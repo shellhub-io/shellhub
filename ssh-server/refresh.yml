@@ -1,0 +1,14 @@
+app_root: .
+ignored_folders:
+- vendor
+included_extensions:
+- .go
+build_target_path: ""
+build_path: /src
+build_flags: []
+build_delay: 200ns
+binary_name: ssh-server
+command_flags: []
+command_env: []
+enable_colors: true
+log_name: ""

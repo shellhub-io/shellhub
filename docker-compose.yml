@@ -1,0 +1,34 @@
+version: '3.7'
+
+services:
+  ssh-server:
+    build: ssh-server
+    environment:
+      - PRIVATE_KEY=/var/run/secrets/private_key
+    depends_on:
+      - emq
+    links:
+      - emq
+    ports:
+      - "2222:2222"
+    secrets:
+      - ssh_server_private_key
+  emq:
+    image: emqx/emqx:v3.1.1
+    environment:
+     - EMQ_NAME=emq
+     - EMQ_HOST=127.0.0.1
+     - EMQ_LOG__CONSOLE__LEVEL=debug
+    ports:
+    - target: 1883
+      published: 1883
+      protocol: tcp
+      mode: host
+    - target: 18083
+      published: 18083
+      protocol: tcp
+      mode: host
+
+secrets:
+  ssh_server_private_key:
+    external: true
