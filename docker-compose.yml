@@ -16,9 +16,21 @@ services:
   emq:
     image: emqx/emqx:v3.1.1
     environment:
-     - EMQ_NAME=emq
-     - EMQ_HOST=127.0.0.1
-     - EMQ_LOG__CONSOLE__LEVEL=debug
+      - EMQX_NAME=emq
+      - EMQX_HOST=127.0.0.1
+      - EMQX_LISTENER__TCP__EXTERNAL=1883
+      - EMQX_LOADED_PLUGINS=emqx_management,emqx_dashboard,emqx_auth_http,emqx_web_hook
+      - EMQX_LOG__CONSOLE__LEVEL=debug
+      - EMQX_AUTH__HTTP__AUTH_REQ=http://api:8080/mqtt/auth
+      - EMQX_AUTH__HTTP__AUTH_REQ__method=get
+      - EMQX_AUTH__HTTP__AUTH_REQ__params=username=%u,password=%P,ipaddr=%a
+      - EMQX_AUTH__HTTP__ACL_REQ=http://api:8080/mqtt/acl
+      - EMQX_AUTH__HTTP__ACL_REQ__METHOD=get
+      - EMQX_AUTH__HTTP__ACL_REQ__PARAMS=access=%A,username=%u,topic=%t,ipaddr=%a
+      - EMQX_AUTH__HTTP__ACL_NOMATCH=deny
+      - EMQX_WEB__HOOK__API__URL=http://api:8080/mqtt/webhook
+    links:
+      - api
     ports:
     - target: 1883
       published: 1883
