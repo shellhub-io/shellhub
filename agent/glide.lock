@@ -1,0 +1,55 @@
+hash: e1abebf72fe2e78e0062cda10693f2764efd4593d7336c0705c89ba91fca0746
+updated: 2019-06-05T14:26:35.736272847-03:00
+imports:
+- name: github.com/anmitsu/go-shlex
+  version: 648efa622239a2f6ff949fed78ee37b48d499ba4
+- name: github.com/eclipse/paho.mqtt.golang
+  version: adca289fdcf8c883800aafa545bc263452290bae
+  subpackages:
+  - packets
+- name: github.com/gliderlabs/ssh
+  version: a9daacccc9f1368e52f390591d908470cee477d2
+- name: github.com/jaypipes/ghw
+  version: 032dfb1f8cb2b9b5c0e894855833e23ff1fe24a9
+- name: github.com/kelseyhightower/envconfig
+  version: 0b417c4ec4a8a82eecc22a1459a504aa55163d61
+- name: github.com/konsorten/go-windows-terminal-sequences
+  version: f55edac94c9bbba5d6182a4be46d86a2c9b5b50e
+- name: github.com/kr/pty
+  version: 521317be5ebc228a0f0ede099fa2a0b5ece22e49
+- name: github.com/moul/http2curl
+  version: 673ac5e47953f6b1523def6719a0de496707ac63
+- name: github.com/parnurzeal/gorequest
+  version: a578a48e8d6ca8b01a3b18314c43c6716bb5f5a3
+- name: github.com/pkg/errors
+  version: ba968bfe8b2f7e042a574c888954fccecfa385b4
+- name: github.com/shirou/gopsutil
+  version: 5335e3fd506df4cb63de0a8239c7461d23063be6
+  subpackages:
+  - cpu
+  - mem
+- name: github.com/sirupsen/logrus
+  version: 839c75faf7f98a33d445d181f3018b5c3409a45e
+- name: golang.org/x/crypto
+  version: f99c8df09eb5bff426315721bfa5f16a99cad32c
+  subpackages:
+  - curve25519
+  - ed25519
+  - ed25519/internal/edwards25519
+  - internal/chacha20
+  - internal/subtle
+  - poly1305
+  - ssh
+- name: golang.org/x/net
+  version: 60506f45cf65977eb3a9c6e30f995f54a721c271
+  subpackages:
+  - internal/socks
+  - proxy
+  - publicsuffix
+  - websocket
+- name: golang.org/x/sys
+  version: 4c4f7f33c9ed00de01c4c741d2177abfcfe19307
+  subpackages:
+  - cpu
+  - unix
+testImports: []
