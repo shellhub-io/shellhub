@@ -19,12 +19,12 @@ func AuthenticateMqttClient(c echo.Context) error {
 		return err
 	}
 
-	ipaddr, err := net.LookupIP("ssh-server")
+	ipaddr, err := net.LookupIP("ssh")
 	if err != nil {
 		return err
 	}
 
-	// Authorize connection from internal ssh-server client
+	// Authorize connection from internal ssh client
 	if q.IPAddr == ipaddr[0].String() {
 		return nil
 	}

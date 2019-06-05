@@ -1,10 +1,10 @@
 version: '3.7'
 
 services:
-  ssh-server:
-    build: ssh-server
+  ssh:
+    build: ssh
     environment:
-      - PRIVATE_KEY=/var/run/secrets/private_key
+      - PRIVATE_KEY=/var/run/secrets/ssh_private_key
     depends_on:
       - emq
     links:
@@ -12,7 +12,7 @@ services:
     ports:
       - "2222:2222"
     secrets:
-      - ssh_server_private_key
+      - ssh_private_key
   emq:
     image: emqx/emqx:v3.1.1
     environment:
@@ -43,7 +43,7 @@ services:
     image: mongo:3.4.19
 
 secrets:
-  ssh_server_private_key:
+  ssh_private_key:
     external: true
   api_private_key:
     external: true

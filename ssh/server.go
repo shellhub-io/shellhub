@@ -51,8 +51,8 @@ func NewServer(opts *Options) *Server {
 	s.sshd.SetOption(sshserver.HostKeyFile(os.Getenv("SSH_SERVER_PRIV_KEY_PATH")))
 
 	bopts := mqtt.NewClientOptions().AddBroker(opts.Broker)
-	bopts.SetUsername("ssh-server")
-	bopts.SetPassword("ssh-server")
+	bopts.SetUsername("ssh")
+	bopts.SetPassword("ssh")
 	bopts.SetAutoReconnect(true)
 	bopts.SetOnConnectHandler(func(client mqtt.Client) {
 		logrus.WithFields(logrus.Fields{

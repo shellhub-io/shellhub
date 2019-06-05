@@ -1,12 +1,12 @@
 version: '3.7'
 
 services:
-  ssh-server:
+  ssh:
     build:
-      context: ssh-server
+      context: ssh
       target: development
     volumes:
-      - ./ssh-server:/go/src/github.com/gustavosbarreto/devicehub/ssh-server
+      - ./ssh:/go/src/github.com/gustavosbarreto/devicehub/ssh
       - secrets:/var/run/secrets
   api:
     build:
