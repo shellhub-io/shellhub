@@ -34,11 +34,8 @@ func NewServer(opts *Options) *Server {
 	}
 
 	s.sshd = &sshserver.Server{
-		Addr: opts.Addr,
-		PasswordHandler: func(ctx sshserver.Context, pass string) bool {
-			fmt.Println("passwordhandler")
-			return true
-		},
+		Addr:             opts.Addr,
+		PasswordHandler:  s.passwordHandler,
 		PublicKeyHandler: s.publicKeyHandler,
 		Handler:          s.sessionHandler,
 		ReversePortForwardingCallback: s.reversePortForwardingHandler,
@@ -143,7 +140,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
 		}).Error("Timeout waiting for reverse port forward client")
 
-		io.WriteString(session, "Timeout\n")
+		io.WriteString(session, fmt.Sprintf("Failed to connect to: %s\n", sess.target))
 		session.Close()
 		return
 	}
@@ -201,20 +198,24 @@ func (s *Server) connectToBroker() {
 }
 
 func (s *Server) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey) bool {
-	fmt.Println("publickeyhandler")
-
 	if strings.Contains(ctx.User(), "@") {
-		fmt.Println("eh user")
-		return true
+		logrus.Info("Public key authentication for user disabled")
+		return false
 	}
 
 	parts := strings.SplitN(ctx.User(), ":", 2)
 	if len(parts) < 2 {
+		logrus.Warn("Public key authentication for service disabled")
 		return false
 	}
 
-	fmt.Println(parts)
+	logrus.Error("Unknown public key authentication type")
 
+	return false
+}
+
+func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
+	logrus.Warn("Password verification disabled")
 	return true
 }
 
