@@ -2,7 +2,7 @@
 
 # This script generates a new SSH private key for development environment
 
-mv /vendor .
+cp -a /vendor .
 
 mkdir -p /var/run/secrets
 

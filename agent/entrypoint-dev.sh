@@ -1,5 +1,5 @@
 #!/bin/sh
 
-mv /vendor .
+cp -a /vendor .
 
 refresh run

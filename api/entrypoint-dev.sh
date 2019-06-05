@@ -2,7 +2,7 @@
 
 # This script generates a new SSH key pair for development environment
 
-mv /vendor .
+cp -a /vendor .
 
 mkdir -p /var/run/secrets
 
