@@ -145,13 +145,12 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		return
 	}
 
-	passwd, err := sess.promptForPassword()
-	if err != nil {
+	passwd, ok := session.Context().Value("password").(string)
+	if !ok {
 		logrus.WithFields(logrus.Fields{
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
-		}).Error("Failed to read password")
+		}).Error("Failed to get password from context")
 
-		io.WriteString(session, "Failed to read password\n")
 		session.Close()
 		return
 	}
@@ -215,7 +214,9 @@ func (s *Server) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey
 }
 
 func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
-	logrus.Warn("Password verification disabled")
+	// Store password in session context for later use in session handling
+	ctx.SetValue("password", pass)
+
 	return true
 }
 
