@@ -44,11 +44,11 @@ func NewServer(opts *Options) *Server {
 		ReversePortForwardingCallback: s.reversePortForwardingHandler,
 	}
 
-	if _, err := os.Stat(os.Getenv("SSH_SERVER_PRIV_KEY_PATH")); os.IsNotExist(err) {
+	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) {
 		logrus.Fatal("Private key not found!")
 	}
 
-	s.sshd.SetOption(sshserver.HostKeyFile(os.Getenv("SSH_SERVER_PRIV_KEY_PATH")))
+	s.sshd.SetOption(sshserver.HostKeyFile(os.Getenv("PRIVATE_KEY")))
 
 	bopts := mqtt.NewClientOptions().AddBroker(opts.Broker)
 	bopts.SetUsername("ssh")
