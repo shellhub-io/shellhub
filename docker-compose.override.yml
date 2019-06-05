@@ -8,6 +8,13 @@ services:
     volumes:
       - ./ssh-server:/go/src/github.com/gustavosbarreto/devicehub/ssh-server
       - secrets:/var/run/secrets
+  api:
+    build:
+      context: api
+      target: development
+    volumes:
+      - ./api:/go/src/github.com/gustavosbarreto/devicehub/api
+      - secrets:/var/run/secrets
 
 volumes:
   secrets:

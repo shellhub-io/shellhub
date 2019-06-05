@@ -28,7 +28,24 @@ services:
       published: 18083
       protocol: tcp
       mode: host
+  api:
+    environment:
+      - PRIVATE_KEY=/var/run/secrets/api_private_key
+      - PUBLIC_KEY=/var/run/secrets/api_public_key
+    depends_on:
+      - mongo
+    links:
+      - mongo
+    secrets:
+      - api_private_key
+      - api_public_key
+  mongo:
+    image: mongo:3.4.19
 
 secrets:
   ssh_server_private_key:
+    external: true
+  api_private_key:
+    external: true
+  api_public_key:
     external: true

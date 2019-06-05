@@ -1,0 +1,12 @@
+package: github.com/gustavosbarreto/devicehub/api
+import:
+- package: github.com/cnf/structhash
+- package: github.com/dgrijalva/jwt-go
+  version: ~3.2.0
+- package: github.com/labstack/echo
+  version: ~3.3.10
+  subpackages:
+  - middleware
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson
