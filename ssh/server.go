@@ -128,7 +128,12 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		return
 	}
 
-	s.publish("connect", sess.target, fmt.Sprintf("%d:%s", sess.port, fwid.String()))
+	err = s.publish("connect", sess.target, fmt.Sprintf("%d:%s", sess.port, fwid.String()))
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("Failed to publish to connect topic")
+	}
 
 	select {
 	case <-s.channels[sess.port]:
