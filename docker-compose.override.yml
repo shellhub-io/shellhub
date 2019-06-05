@@ -21,7 +21,7 @@ services:
       target: development
     environment:
       - SERVER_ADDRESS=http://172.17.0.1:80
-      - PRIVATE_KEY=/root/devicehub.key
+      - PRIVATE_KEY=/var/run/secrets/devicehub.key
     volumes:
       - ./agent:/go/src/github.com/gustavosbarreto/devicehub/agent
       - secrets:/var/run/secrets
