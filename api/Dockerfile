@@ -16,20 +16,16 @@ FROM base AS builder
 
 ADD . .
 
-RUN glide -q install --skip-test && go build -o api && cp api /api
+RUN glide -q install --skip-test && go build
 
 # development stage
 FROM base AS development
 
 RUN apk add --update openssl
-
-COPY --from=builder /api /src/api
-
 RUN go get github.com/markbates/refresh
 
-WORKDIR $GOPATH/src/github.com/gustavosbarreto/devicehub/api
-
 RUN glide -q install --skip-test
+RUN cp -a vendor /vendor
 
 ADD entrypoint-dev.sh /entrypoint.sh
 

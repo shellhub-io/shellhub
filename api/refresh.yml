@@ -7,7 +7,7 @@ build_target_path: ""
 build_path: /go/src/github.com/gustavosbarreto/remoteit/server/api
 build_flags: []
 build_delay: 200ns
-binary_name: api-server
+binary_name: api
 command_flags: []
 command_env: []
 enable_colors: true

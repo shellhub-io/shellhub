@@ -2,6 +2,8 @@
 
 # This script generates a new SSH private key for development environment
 
+mv /vendor .
+
 mkdir -p /var/run/secrets
 
 if [ ! -f /var/run/secrets/ssh_private_key ]; then
