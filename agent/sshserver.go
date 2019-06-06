@@ -10,8 +10,32 @@ import (
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/kr/pty"
+	"github.com/msteinert/pam"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
+
+func Auth(user, passwd string) error {
+	t, err := pam.StartFunc("system-auth", user, func(s pam.Style, msg string) (string, error) {
+		switch s {
+		case pam.PromptEchoOff:
+			return passwd, nil
+		case pam.PromptEchoOn, pam.ErrorMsg, pam.TextInfo:
+			return "", nil
+		}
+		return "", errors.New("Unrecognized PAM message style")
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if err = t.Authenticate(0); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 type SSHServer struct {
 	sshd *sshserver.Server
@@ -23,7 +47,11 @@ func NewSSHServer(port int) *SSHServer {
 	s.sshd = &sshserver.Server{
 		Addr: fmt.Sprintf("localhost:%d", port),
 		PasswordHandler: func(ctx sshserver.Context, pass string) bool {
-			return true
+			if Auth(ctx.User(), pass) == nil {
+				return true
+			}
+
+			return false
 		},
 		PublicKeyHandler: s.publicKeyHandler,
 		Handler:          s.sessionHandler,

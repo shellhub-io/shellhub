@@ -1,5 +1,5 @@
-hash: e1abebf72fe2e78e0062cda10693f2764efd4593d7336c0705c89ba91fca0746
-updated: 2019-06-05T14:26:35.736272847-03:00
+hash: 287c5a007e7a587db22c902759994dfabe802245c75418701e3e3656c9db68ed
+updated: 2019-06-06T09:22:54.225301718-03:00
 imports:
 - name: github.com/anmitsu/go-shlex
   version: 648efa622239a2f6ff949fed78ee37b48d499ba4
@@ -19,6 +19,8 @@ imports:
   version: 521317be5ebc228a0f0ede099fa2a0b5ece22e49
 - name: github.com/moul/http2curl
   version: 673ac5e47953f6b1523def6719a0de496707ac63
+- name: github.com/msteinert/pam
+  version: f29b9f28d6f9a1f6c4e6fd5db731999eb946574b
 - name: github.com/parnurzeal/gorequest
   version: a578a48e8d6ca8b01a3b18314c43c6716bb5f5a3
 - name: github.com/pkg/errors
@@ -48,7 +50,7 @@ imports:
   - publicsuffix
   - websocket
 - name: golang.org/x/sys
-  version: 4c4f7f33c9ed00de01c4c741d2177abfcfe19307
+  version: 79a91cf218c425e1f4d48cd960839b45dd4d065f
   subpackages:
   - cpu
   - unix

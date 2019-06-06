@@ -10,5 +10,6 @@ build_delay: 200ns
 binary_name: agent
 command_flags: []
 command_env: []
+restart_on_error: true
 enable_colors: true
 log_name: ""

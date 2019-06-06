@@ -25,6 +25,11 @@ services:
     volumes:
       - ./agent:/go/src/github.com/gustavosbarreto/devicehub/agent
       - secrets:/var/run/secrets
+    depends_on:
+      - emq
+      - api
+      - ssh
+      - gateway
 
 volumes:
   secrets:
