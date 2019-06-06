@@ -1,0 +1,8 @@
+package: github.com/gustavosbarreto/devicehub/ws
+import:
+- package: golang.org/x/crypto
+  subpackages:
+  - ssh
+- package: golang.org/x/net
+  subpackages:
+  - websocket

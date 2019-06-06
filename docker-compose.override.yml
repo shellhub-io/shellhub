@@ -15,6 +15,12 @@ services:
     volumes:
       - ./api:/go/src/github.com/gustavosbarreto/devicehub/api
       - secrets:/var/run/secrets
+  ws:
+    build:
+      context: ws
+      target: development
+    volumes:
+      - ./ws:/go/src/github.com/gustavosbarreto/devicehub/ws
   agent:
     build:
       context: agent

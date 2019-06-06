@@ -51,11 +51,17 @@ services:
     secrets:
       - api_private_key
       - api_public_key
+  ws:
+    depends_on:
+      - ssh
+    links:
+      - ssh
   gateway:
     build: gateway
     command: [nginx-debug, '-g', 'daemon off;']
     depends_on:
       - api
+      - ws
     ports:
       - '80:80'
   mongo:

@@ -1,0 +1,22 @@
+hash: 21ead7d32e3dc17bb917a96a15d2bad8630d892e32bbb573d1f64a348af76551
+updated: 2019-06-06T15:00:30.699686357-03:00
+imports:
+- name: golang.org/x/crypto
+  version: f99c8df09eb5bff426315721bfa5f16a99cad32c
+  subpackages:
+  - curve25519
+  - ed25519
+  - ed25519/internal/edwards25519
+  - internal/chacha20
+  - internal/subtle
+  - poly1305
+  - ssh
+- name: golang.org/x/net
+  version: 1492cefac77f61bc789c00f41ead8f8d7307cd21
+  subpackages:
+  - websocket
+- name: golang.org/x/sys
+  version: 5da285871e9c6a1c3acade75bea3282d33f55ebd
+  subpackages:
+  - cpu
+testImports: []
