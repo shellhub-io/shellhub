@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"net/http"
 	"strconv"
 
@@ -28,9 +27,7 @@ func relayHandler(ws *websocket.Conn) {
 		Auth: []ssh.AuthMethod{
 			ssh.Password(passwd),
 		},
-		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			return nil
-		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
 	client, err := ssh.Dial("tcp", "ssh:2222", config)

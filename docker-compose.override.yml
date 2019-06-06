@@ -21,6 +21,12 @@ services:
       target: development
     volumes:
       - ./ws:/go/src/github.com/gustavosbarreto/devicehub/ws
+  ui:
+    build:
+      context: ui
+      target: development
+    volumes:
+      - ./ui:/src
   agent:
     build:
       context: agent
