@@ -11,9 +11,11 @@
 <script>
 import { Terminal } from "xterm";
 import * as fit from "xterm/lib/addons/fit/fit";
+import * as attach from "xterm/lib/addons/attach/attach";
 import "xterm/dist/xterm.css";
 
 Terminal.applyAddon(fit);
+Terminal.applyAddon(attach);
 
 export default {
   name: "Terminal",
@@ -22,7 +24,7 @@ export default {
       username: "",
       passwd: "",
       device: ""
-    }
+    };
   },
 
   methods: {
@@ -49,13 +51,13 @@ export default {
 
       var ws = new WebSocket(`ws://${location.host}/ws/ssh?${params}`);
 
-      ws.onmessage = function(e) {
-        xterm.write(e.data);
+      ws.onopen = () => {
+        xterm.attach(ws, true, true);
       };
 
-      xterm.on("data", data => {
-        ws.send(data);
-      });
+      ws.onclose = () => {
+        xterm.detach(ws);
+      }
     }
   }
 };
