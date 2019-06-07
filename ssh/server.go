@@ -215,7 +215,7 @@ func (s *Server) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey
 
 	logrus.Error("Unknown public key authentication type")
 
-	return false
+	return true
 }
 
 func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
@@ -226,7 +226,7 @@ func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
 }
 
 func (s *Server) reversePortForwardingHandler(ctx sshserver.Context, host string, port uint32) bool {
-	if host != "localhost" {
+	if host != "localhost" && host != "127.0.0.1" {
 		logrus.WithFields(logrus.Fields{
 			"host": host,
 			"port": port,
