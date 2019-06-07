@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/websocket"
@@ -80,12 +81,40 @@ func relayHandler(ws *websocket.Conn) {
 	go copyWorker(sshIn, ws, doneCh)
 	go copyWorker(ws, sshOut, doneCh)
 
+	conn := &wsconn{
+		pinger: time.NewTicker(pingInterval),
+	}
+
+	defer conn.pinger.Stop()
+
+	go conn.keepAlive(ws)
+
 	<-doneCh
 
 	client.Close()
 	ws.Close()
 
 	<-doneCh
+}
+
+const pingInterval = time.Second * 30
+
+type wsconn struct {
+	pinger *time.Ticker
+}
+
+func (self *wsconn) keepAlive(ws *websocket.Conn) {
+	for {
+		ws.SetDeadline(time.Now().Add(pingInterval * 2))
+		if fw, err := ws.NewFrameWriter(websocket.PingFrame); err != nil {
+			return
+		} else if _, err = fw.Write([]byte{}); err != nil {
+			return
+		}
+		if _, running := <-self.pinger.C; !running {
+			return
+		}
+	}
 }
 
 func main() {
