@@ -1,11 +1,6 @@
 <template>
-  <div>
-    User: <input v-model="username">
-    Password: <input v-model="passwd">
-    Device ID: <input v-model="device">
-    <button @click=open()>Connect</button>
-    <div class="terminal" ref="terminal"></div>
-  </div>
+    <div>
+    </div>
 </template>
 
 <script>
@@ -19,30 +14,57 @@ Terminal.applyAddon(attach);
 
 export default {
   name: "Terminal",
-  data() {
-    return {
-      username: "",
-      passwd: "",
-      device: ""
-    };
+
+  props: ["uid", "username", "password"],
+
+  mounted() {
+    this.xterm = new Terminal({
+      cursorBlink: true,
+      fontFamily: "monospace"
+    });
+  },
+
+  beforeDestroy() {
+    //this.xterm.dispose();
+  },
+
+  watch: {
+    isOpen: value => {
+      if (!value) {
+        this.xterm.dispose();
+      }
+    }
   },
 
   methods: {
     open() {
-      const xterm = new Terminal({
-        cursorBlink: true,
-        fontFamily: "monospace"
-      });
+      setTimeout(() => {
+        this.connect();
+      }, 1000);
+    },
 
-      xterm.open(this.$refs.terminal);
-      xterm.focus();
-      xterm.fit();
+    close() {
+      this.toggleTerminal("");
+    },
+
+    connect() {
+      this.username = "root";
+      this.passwd = "merdalixo";
+      this.device = this.$props.uid;
+
+      setTimeout(() => {
+        this.xterm.fit();
+      }, 2000);
+
+      this.xterm.open(this.$refs.terminal);
+      this.xterm.fit();
+      this.xterm.focus();
 
       const params = Object.entries({
         user: `${this.username}@${this.device}`,
         passwd: this.passwd,
-        cols: xterm.cols,
-        rows: xterm.rows
+        cols: this.xterm.cols,
+        rows: this.xterm.rows
       })
         .map(([k, v]) => {
           return `${k}=${v}`;
@@ -52,12 +74,12 @@ export default {
       var ws = new WebSocket(`ws://${location.host}/ws/ssh?${params}`);
 
       ws.onopen = () => {
-        xterm.attach(ws, true, true);
+        this.xterm.attach(ws, true, true);
       };
 
       ws.onclose = () => {
-        xterm.detach(ws);
-      }
+        this.xterm.detach(ws);
+      };
     }
   }
 };
