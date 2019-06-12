@@ -169,6 +169,15 @@ func main() {
 			return err
 		}
 
+		cd := &ConnectedDevice{
+			UID:      d.UID,
+			LastSeen: time.Now(),
+		}
+
+		if err := db.C("connected_devices").Insert(&cd); err != nil {
+			return err
+		}
+
 		return c.JSON(http.StatusOK, echo.Map{
 			"uid":   d.UID,
 			"token": signature,
@@ -216,8 +225,8 @@ func main() {
 		db := c.Get("db").(*mgo.Database)
 
 		query := []bson.M{
-			{"$group": bson.M{"_id": "uid", "count": bson.M{"$sum": 1}}},
-			{"$group": bson.M{"_id": "uid", "count": bson.M{"$sum": 1}}},
+			{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
+			{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
 		}
 
 		resp := []bson.M{}
