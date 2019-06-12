@@ -97,6 +97,9 @@ func ProcessMqttEvent(c echo.Context) error {
 		if err := db.C("connected_devices").Insert(&cd); err != nil {
 			return err
 		}
+	case WebHookClientDisconnectedEventType:
+		_, err := db.C("connected_devices").RemoveAll(bson.M{"uid": evt.WebHookClientEvent.Username})
+		return err
 	default:
 		return nil
 	}
