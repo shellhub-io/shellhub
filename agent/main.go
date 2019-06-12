@@ -1,11 +1,13 @@
 package main
 
 import (
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"net"
 	"os"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
@@ -26,6 +28,23 @@ type Endpoints struct {
 
 func (e *Endpoints) buildAPIUrl(uri string) string {
 	return fmt.Sprintf("http://%s/api/%s", e.API, uri)
+}
+
+func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, pubKey *rsa.PublicKey) (*AuthResponse, error) {
+	var auth AuthResponse
+
+	_, _, errs := gorequest.New().Post(endpoints.buildAPIUrl("/devices/auth")).Send(&AuthRequest{
+		Identity: identity,
+		PublicKey: string(pem.EncodeToMemory(&pem.Block{
+			Type:  "RSA PUBLIC KEY",
+			Bytes: x509.MarshalPKCS1PublicKey(pubKey),
+		})),
+	}).EndStruct(&auth)
+	if len(errs) > 0 {
+		return nil, errs[0]
+	}
+
+	return &auth, nil
 }
 
 func main() {
@@ -61,17 +80,9 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	var auth AuthResponse
-
-	_, _, errs = gorequest.New().Post(endpoints.buildAPIUrl("/devices/auth")).Send(&AuthRequest{
-		Identity: identity,
-		PublicKey: string(pem.EncodeToMemory(&pem.Block{
-			Type:  "RSA PUBLIC KEY",
-			Bytes: x509.MarshalPKCS1PublicKey(pubKey),
-		})),
-	}).EndStruct(&auth)
-	if len(errs) > 0 {
-		logrus.WithFields(logrus.Fields{"errs": errs}).Panic("Failed authenticate device")
+	auth, err := sendAuthRequest(&endpoints, identity, pubKey)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
 
 	freePort, err := getFreePort()
@@ -91,7 +102,11 @@ func main() {
 	b.Subscribe(fmt.Sprintf("connect/%s", auth.UID), client.connect)
 	b.Connect()
 
-	select {}
+	ticker := time.NewTicker(10 * time.Second)
+
+	for _ = range ticker.C {
+		sendAuthRequest(&endpoints, identity, pubKey)
+	}
 }
 
 func getFreePort() (int, error) {
