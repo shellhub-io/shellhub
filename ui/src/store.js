@@ -3,9 +3,10 @@ import Vuex from 'vuex'
 
 import devices from '@/modules/devices'
 import modals from '@/modules/modals'
+import stats from '@/modules/stats'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
-    modules: { devices, modals }
+    modules: { devices, modals, stats }
 })
