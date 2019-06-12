@@ -154,9 +154,11 @@ func main() {
 			UID:       hex.EncodeToString(uid[:]),
 			Identity:  req.Identity,
 			PublicKey: req.PublicKey,
+			LastSeen:  time.Now(),
 		}
 
-		if err := db.C("devices").Insert(&d); err != nil && !mgo.IsDup(err) {
+		_, err = db.C("devices").Upsert(bson.M{"uid": d.UID}, d)
+		if err != nil {
 			return err
 		}
 
