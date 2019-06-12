@@ -11,6 +11,12 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type ConnectedDevice struct {
+	ID       bson.ObjectId `json:"-" bson:"_id,omitempty"`
+	UID      string        `json:"uid"`
+	LastSeen time.Time     `json:"last_seen" bson:"last_seen"`
+}
+
 // GET /mqtt/auth
 func AuthenticateMqttClient(c echo.Context) error {
 	q := AuthQuery{}
@@ -70,21 +76,29 @@ func ProcessMqttEvent(c echo.Context) error {
 
 	switch evt.Action {
 	case WebHookClientConnectedEventType:
+		d := Device{}
+		err := db.C("devices").Find(bson.M{"uid": evt.WebHookClientEvent.Username}).One(&d)
+		if err != nil {
+			return err
+		}
+
+		d.LastSeen = time.Now()
+
+		_, err = db.C("devices").Upsert(bson.M{"uid": d.UID}, d)
+		if err != nil {
+			return err
+		}
+
+		cd := &ConnectedDevice{
+			UID:      d.UID,
+			LastSeen: time.Now(),
+		}
+
+		if err := db.C("connected_devices").Insert(&cd); err != nil {
+			return err
+		}
 	default:
 		return nil
-	}
-
-	d := Device{}
-	err := db.C("devices").Find(bson.M{"uid": evt.WebHookClientEvent.Username}).One(&d)
-	if err != nil {
-		return err
-	}
-
-	d.LastSeen = time.Now()
-
-	_, err = db.C("devices").Upsert(bson.M{"uid": d.UID}, d)
-	if err != nil {
-		return err
 	}
 
 	return nil

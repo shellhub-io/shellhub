@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -79,6 +80,25 @@ func main() {
 	err = session.DB("main").C("devices").EnsureIndex(mgo.Index{
 		Key:        []string{"uid"},
 		Unique:     true,
+		Name:       "uid",
+		Background: false,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = session.DB("main").C("connected_devices").EnsureIndex(mgo.Index{
+		Key:         []string{"last_seen"},
+		Name:        "last_seen",
+		ExpireAfter: time.Duration(time.Second * 30),
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = session.DB("main").C("connected_devices").EnsureIndex(mgo.Index{
+		Key:        []string{"uid"},
+		Unique:     false,
 		Name:       "uid",
 		Background: false,
 	})
@@ -190,6 +210,31 @@ func main() {
 		}
 
 		return c.JSON(http.StatusOK, users)
+	})
+
+	e.GET("/stats", func(c echo.Context) error {
+		db := c.Get("db").(*mgo.Database)
+
+		query := []bson.M{
+			{"$group": bson.M{"_id": "uid", "count": bson.M{"$sum": 1}}},
+			{"$group": bson.M{"_id": "uid", "count": bson.M{"$sum": 1}}},
+		}
+
+		resp := []bson.M{}
+
+		if err := db.C("connected_devices").Pipe(query).All(&resp); err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		connectedDevices := 0
+		if len(resp) > 0 {
+			connectedDevices = resp[0]["count"].(int)
+		}
+
+		return c.JSON(http.StatusOK, echo.Map{
+			"connected_devices": connectedDevices,
+		})
 	})
 
 	e.Logger.Fatal(e.Start(":8080"))
