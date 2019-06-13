@@ -9,28 +9,33 @@ import (
 	"strings"
 
 	sshserver "github.com/gliderlabs/ssh"
+	"github.com/parnurzeal/gorequest"
 	"golang.org/x/crypto/ssh"
 )
 
 var ErrInvalidSessionTarget = errors.New("Invalid session target")
 
 type Session struct {
-	session sshserver.Session
-	user    string
-	target  string
-	port    uint32
+	session sshserver.Session `json:"-"`
+	User    string            `json:"username"`
+	Target  string            `json:"device"`
+	UID     string            `json:"uid"`
+	port    uint32            `json:"-"`
 }
 
 func NewSession(target string, session sshserver.Session) (*Session, error) {
-	s := &Session{session: session}
+	s := &Session{
+		session: session,
+		UID:     session.Context().Value(sshserver.ContextKeySessionID).(string),
+	}
 
 	parts := strings.SplitN(target, "@", 2)
 	if len(parts) != 2 {
 		return nil, ErrInvalidSessionTarget
 	}
 
-	s.user = parts[0]
-	s.target = parts[1]
+	s.User = parts[0]
+	s.Target = parts[1]
 
 	return s, nil
 }
@@ -38,7 +43,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 // connect connects to reverse tunnel port
 func (s *Session) connect(passwd string) error {
 	config := &ssh.ClientConfig{
-		User: s.user,
+		User: s.User,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(passwd),
 		},
@@ -101,6 +106,15 @@ func (s *Session) connect(passwd string) error {
 		if err = client.Wait(); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (s *Session) register() error {
+	_, _, errs := gorequest.New().Post("http://api:8080/sessions").Send(*s).End()
+	if len(errs) > 0 {
+		return errs[0]
 	}
 
 	return nil

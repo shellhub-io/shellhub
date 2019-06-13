@@ -101,11 +101,20 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"target":   sess.target,
-		"username": sess.user,
+		"target":   sess.Target,
+		"username": sess.User,
 		"port":     sess.port,
 		"session":  session.Context().Value(sshserver.ContextKeySessionID),
 	}).Info("Session created")
+
+	if err = sess.register(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"target":   sess.Target,
+			"username": sess.User,
+			"port":     sess.port,
+			"session":  session.Context().Value(sshserver.ContextKeySessionID),
+		}).Error("Faield to register session")
+	}
 
 	if _, ok := s.channels[sess.port]; !ok {
 		s.channels[sess.port] = make(chan bool)
@@ -119,7 +128,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		PublicKey string `json:"public_key"`
 	}
 
-	_, _, errs := gorequest.New().Get(fmt.Sprintf("http://api:8080/devices/%s", sess.target)).EndStruct(&device)
+	_, _, errs := gorequest.New().Get(fmt.Sprintf("http://api:8080/devices/%s", sess.Target)).EndStruct(&device)
 	if len(errs) > 0 {
 		logrus.WithFields(logrus.Fields{
 			"err": err,
@@ -128,7 +137,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		return
 	}
 
-	err = s.publish("connect", sess.target, fmt.Sprintf("%d:%s", sess.port, fwid.String()))
+	err = s.publish("connect", sess.Target, fmt.Sprintf("%d:%s", sess.port, fwid.String()))
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"err": err,
@@ -145,7 +154,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
 		}).Error("Timeout waiting for reverse port forward client")
 
-		io.WriteString(session, fmt.Sprintf("Failed to connect to: %s\n", sess.target))
+		io.WriteString(session, fmt.Sprintf("Failed to connect to: %s\n", sess.Target))
 		session.Close()
 		return
 	}
@@ -176,7 +185,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 	delete(s.channels, sess.port)
 
-	s.publish("disconnect", sess.target, fmt.Sprintf("%d", sess.port))
+	s.publish("disconnect", sess.Target, fmt.Sprintf("%d", sess.port))
 }
 
 func (s *Server) connectToBroker() {
