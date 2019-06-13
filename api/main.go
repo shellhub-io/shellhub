@@ -29,6 +29,7 @@ type Device struct {
 	Identity  map[string]string `json:"identity"`
 	PublicKey string            `json:"public_key" bson:"public_key"`
 	LastSeen  time.Time         `json:"last_seen"`
+	Online    bool              `json:"online"`
 }
 
 type AuthQuery struct {
@@ -190,7 +191,24 @@ func main() {
 		db := c.Get("db").(*mgo.Database)
 
 		devices := make([]Device, 0)
-		if err := db.C("devices").Find(bson.M{}).All(&devices); err != nil {
+
+		query := []bson.M{
+			{
+				"$lookup": bson.M{
+					"from":         "connected_devices",
+					"localField":   "uid",
+					"foreignField": "uid",
+					"as":           "online",
+				},
+			},
+			{
+				"$addFields": bson.M{
+					"online": bson.M{"$anyElementTrue": []interface{}{"$online"}},
+				},
+			},
+		}
+
+		if err := db.C("devices").Pipe(query).All(&devices); err != nil {
 			return err
 		}
 
