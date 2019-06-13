@@ -15,7 +15,6 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/parnurzeal/gorequest"
-	uuid "github.com/satori/go.uuid"
 )
 
 type Server struct {
@@ -120,9 +119,9 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		s.channels[sess.port] = make(chan bool)
 	}
 
-	fwid := uuid.NewV4()
+	fwid := session.Context().Value(sshserver.ContextKeySessionID)
 
-	s.forwarding[sess.port] = fmt.Sprintf("%d:%s", sess.port, fwid.String())
+	s.forwarding[sess.port] = fmt.Sprintf("%d:%s", sess.port, fwid)
 
 	var device struct {
 		PublicKey string `json:"public_key"`
@@ -137,11 +136,10 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		return
 	}
 
-	err = s.publish("connect", sess.Target, fmt.Sprintf("%d:%s", sess.port, fwid.String()))
+	err = s.publish("connect", sess.Target, fmt.Sprintf("%d:%s", sess.port, fwid))
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"err": err,
-		}).Error("Failed to publish to connect topic")
+		session.Close()
+		return
 	}
 
 	select {
@@ -281,6 +279,9 @@ func (s *Server) publish(topic, target, message string) error {
 
 	topic = fmt.Sprintf("%s/%s", topic, target)
 	if token := s.broker.Publish(topic, 0, false, message); token.Wait() && token.Error() != nil {
+		logrus.WithFields(logrus.Fields{
+			"err": token.Error(),
+		}).Error("Failed to publish to broker")
 		return token.Error()
 	}
 
