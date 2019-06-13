@@ -37,8 +37,8 @@ type Session struct {
 	UID        string        `json:"uid"`
 	Device     string        `json:"device"`
 	Username   string        `json:"username"`
-	StartedAt  time.Time     `json:"started_at"`
-	FinishedAt time.Time     `json:"finished_at"`
+	StartedAt  time.Time     `json:"started_at" bson:"started_at"`
+	FinishedAt time.Time     `json:"finished_at" bson:"finished_at"`
 }
 
 type AuthQuery struct {
