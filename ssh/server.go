@@ -169,12 +169,9 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		logrus.WithFields(logrus.Fields{
 			"err":     err,
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
-		}).Error("Failed to estabilish connection to device")
+		}).Info("Connection closed")
 
-		io.WriteString(session, "Failed to establish connection to device\n")
 		session.Close()
-
-		return
 	}
 
 	delete(s.channels, sess.port)
