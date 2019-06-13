@@ -32,6 +32,15 @@ type Device struct {
 	Online    bool              `json:"online"`
 }
 
+type Session struct {
+	ID         bson.ObjectId `json:"-" bson:"_id,omitempty"`
+	UID        string        `json:"uid"`
+	Device     string        `json:"device"`
+	Username   string        `json:"username"`
+	StartedAt  time.Time     `json:"started_at"`
+	FinishedAt time.Time     `json:"finished_at"`
+}
+
 type AuthQuery struct {
 	Username string `query:"username"`
 	Password string `query:"password"`
@@ -100,6 +109,16 @@ func main() {
 	err = session.DB("main").C("connected_devices").EnsureIndex(mgo.Index{
 		Key:        []string{"uid"},
 		Unique:     false,
+		Name:       "uid",
+		Background: false,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = session.DB("main").C("sessions").EnsureIndex(mgo.Index{
+		Key:        []string{"uid"},
+		Unique:     true,
 		Name:       "uid",
 		Background: false,
 	})
@@ -264,6 +283,54 @@ func main() {
 		return c.JSON(http.StatusOK, echo.Map{
 			"connected_devices": connectedDevices,
 		})
+	})
+
+	e.GET("/sessions", func(c echo.Context) error {
+		db := c.Get("db").(*mgo.Database)
+
+		sessions := make([]Session, 0)
+		if err := db.C("sessions").Find(bson.M{}).All(&sessions); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, sessions)
+	})
+
+	e.POST("/sessions", func(c echo.Context) error {
+		db := c.Get("db").(*mgo.Database)
+
+		var session Session
+		err := c.Bind(&session)
+		if err != nil {
+			return err
+		}
+
+		session.StartedAt = time.Now()
+		session.FinishedAt = time.Time{}
+
+		if err := db.C("sessions").Insert(session); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, session)
+	})
+
+	e.POST("/sessions/:uid/finish", func(c echo.Context) error {
+		db := c.Get("db").(*mgo.Database)
+
+		session := new(Session)
+		if err := db.C("sessions").Find(bson.M{"uid": c.Param("uid")}).One(&session); err != nil {
+			return err
+		}
+
+		session.FinishedAt = time.Now()
+
+		_, err = db.C("sessions").Upsert(bson.M{"uid": session.UID}, session)
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, session)
 	})
 
 	e.Logger.Fatal(e.Start(":8080"))
