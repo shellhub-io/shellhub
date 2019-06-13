@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -118,21 +117,4 @@ func (s *Session) register() error {
 	}
 
 	return nil
-}
-
-// promptForPassword prompts the user for password of session target
-func (s *Session) promptForPassword() (string, error) {
-	io.WriteString(s.session, "password: ")
-
-	reader := bufio.NewReader(s.session)
-	passwd, err := reader.ReadString('\r')
-	if err != nil {
-		return "", err
-	}
-
-	passwd = strings.TrimSpace(passwd)
-
-	io.WriteString(s.session, "\n")
-
-	return passwd, nil
 }
