@@ -40,7 +40,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 }
 
 // connect connects to reverse tunnel port
-func (s *Session) connect(passwd string) error {
+func (s *Session) connect(passwd string, session sshserver.Session) error {
 	config := &ssh.ClientConfig{
 		User: s.User,
 		Auth: []ssh.AuthMethod{
@@ -102,9 +102,25 @@ func (s *Session) connect(passwd string) error {
 			return err
 		}
 
-		if err = client.Wait(); err != nil {
-			return err
-		}
+		disconnected := make(chan bool)
+
+		serverConn := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
+
+		go func() {
+			serverConn.Wait()
+			disconnected <- true
+		}()
+
+		go func() {
+			client.Wait()
+			disconnected <- true
+		}()
+
+		<-disconnected
+
+		serverConn.Close()
+		conn.Close()
+		session.Close()
 	}
 
 	return nil

@@ -171,7 +171,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		"session": session.Context().Value(sshserver.ContextKeySessionID),
 	}).Info("Forwarding session to device")
 
-	err = sess.connect(passwd)
+	err = sess.connect(passwd, session)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"err":     err,
