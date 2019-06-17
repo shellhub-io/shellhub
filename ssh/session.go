@@ -134,3 +134,12 @@ func (s *Session) register() error {
 
 	return nil
 }
+
+func (s *Session) finish() error {
+	_, _, errs := gorequest.New().Post(fmt.Sprintf("http://api:8080/sessions/%s/finish", s.UID)).End()
+	if len(errs) > 0 {
+		return errs[0]
+	}
+
+	return nil
+}

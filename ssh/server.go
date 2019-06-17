@@ -184,6 +184,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	delete(s.channels, sess.port)
 
 	s.publish("disconnect", sess.Target, fmt.Sprintf("%d", sess.port))
+	sess.finish()
 }
 
 func (s *Server) connectToBroker() {
