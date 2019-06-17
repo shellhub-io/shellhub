@@ -60,8 +60,8 @@ export default {
         },
         {
           icon: "people",
-          title: "User List",
-          path: "/users"
+          title: "Sessions",
+          path: "/sessions"
         }
       ]
     };

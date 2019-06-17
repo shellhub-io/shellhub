@@ -19,6 +19,12 @@ export default new Router({
 
             component: () =>
                 import(/* webpackChunkName: "devices" */ "./views/Devices.vue")
+        },
+        {
+            path: "/sessions",
+            name: "sessions",
+            component: () =>
+                import("./views/Sessions.vue")
         }
     ]
 });
