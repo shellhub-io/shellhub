@@ -8,7 +8,6 @@ import (
 	"net"
 	"strconv"
 	"strings"
-	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/sirupsen/logrus"
@@ -89,9 +88,6 @@ func (s *SSHClient) connect(msg mqtt.Message) {
 func handleClient(client net.Conn, remote net.Conn) {
 	defer client.Close()
 	chDone := make(chan bool)
-
-	client.SetDeadline(time.Now().Add(time.Second * 5))
-	remote.SetDeadline(time.Now().Add(time.Second * 5))
 
 	// Start remote -> local data transfer
 	go func() {

@@ -136,7 +136,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		return
 	}
 
-	err = s.publish("connect", sess.Target, fmt.Sprintf("%d:%s", sess.port, fwid))
+	err = s.publish(fmt.Sprintf("device/%s/session/%s/open", sess.Target, sess.UID), fmt.Sprintf("%d:%s", sess.port, fwid))
 	if err != nil {
 		session.Close()
 		return
@@ -183,7 +183,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 	delete(s.channels, sess.port)
 
-	s.publish("disconnect", sess.Target, fmt.Sprintf("%d", sess.port))
+	s.publish(fmt.Sprintf("device/%s/session/%s/close", sess.Target, sess.UID), fmt.Sprintf("%d", sess.port))
 	sess.finish()
 }
 
@@ -271,14 +271,12 @@ func (s *Server) reversePortForwardingHandler(ctx sshserver.Context, host string
 }
 
 // publish publishes a `message` on `topic/target` to broker
-func (s *Server) publish(topic, target, message string) error {
+func (s *Server) publish(topic, message string) error {
 	logrus.WithFields(logrus.Fields{
 		"topic":   topic,
-		"target":  target,
 		"message": message,
 	}).Info("Publish to broker")
 
-	topic = fmt.Sprintf("%s/%s", topic, target)
 	if token := s.broker.Publish(topic, 0, false, message); token.Wait() && token.Error() != nil {
 		logrus.WithFields(logrus.Fields{
 			"err": token.Error(),

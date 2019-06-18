@@ -99,7 +99,7 @@ func main() {
 
 	b := NewBroker(endpoints.MQTT, auth.UID, auth.Token)
 
-	b.Subscribe(fmt.Sprintf("connect/%s", auth.UID), client.connect)
+	b.Subscribe(fmt.Sprintf("device/%s/session/+/open", auth.UID), client.connect)
 	b.Connect()
 
 	ticker := time.NewTicker(10 * time.Second)
