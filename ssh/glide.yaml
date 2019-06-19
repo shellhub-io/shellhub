@@ -5,9 +5,7 @@ import:
 - package: github.com/eclipse/paho.mqtt.golang
   version: ~1.1.1
 - package: github.com/gliderlabs/ssh
-  version: 70a2e3dfe88966bc3af7ff3356bce4aa79356133
-  repo: https://github.com/gustavosbarreto/ssh.git
-  vcs: git
+  version: ac34fea39fbcd51ffc3c5291a79ac642285dbaea
 - package: github.com/satori/go.uuid
   version: ~1.2.0
 - package: golang.org/x/crypto

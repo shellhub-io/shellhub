@@ -32,12 +32,18 @@ func NewServer(opts *Options) *Server {
 		forwarding: make(map[uint32]string),
 	}
 
+	forwardHandler := &sshserver.ForwardedTCPHandler{}
+
 	s.sshd = &sshserver.Server{
 		Addr:             opts.Addr,
 		PasswordHandler:  s.passwordHandler,
 		PublicKeyHandler: s.publicKeyHandler,
 		Handler:          s.sessionHandler,
 		ReversePortForwardingCallback: s.reversePortForwardingHandler,
+		RequestHandlers: map[string]sshserver.RequestHandler{
+			"tcpip-forward":        forwardHandler.HandleSSHRequest,
+			"cancel-tcpip-forward": forwardHandler.HandleSSHRequest,
+		},
 	}
 
 	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) {

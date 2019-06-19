@@ -1,5 +1,5 @@
-hash: 1bbf6ad9cebeede9c89f6e619f252d40d596058c32866eb790e48ace30cd2e53
-updated: 2019-06-18T16:50:54.09482561-03:00
+hash: 407366926a0d98ae9ac64ecd7f6794ac68f51494644c8a97dca1f3adcb97e949
+updated: 2019-06-19T20:27:48.987643481Z
 imports:
 - name: github.com/anmitsu/go-shlex
   version: 648efa622239a2f6ff949fed78ee37b48d499ba4
@@ -8,9 +8,7 @@ imports:
   subpackages:
   - packets
 - name: github.com/gliderlabs/ssh
-  version: 70a2e3dfe88966bc3af7ff3356bce4aa79356133
-  repo: https://github.com/gustavosbarreto/ssh.git
-  vcs: git
+  version: ac34fea39fbcd51ffc3c5291a79ac642285dbaea
 - name: github.com/konsorten/go-windows-terminal-sequences
   version: f55edac94c9bbba5d6182a4be46d86a2c9b5b50e
 - name: github.com/moul/http2curl
