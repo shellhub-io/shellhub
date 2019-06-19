@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-navigation-drawer :clipped="clipped" v-model="drawer" enable-resize-watcher app dark>
-      <v-toolbar class="primary">
+      <v-toolbar class="primary darken-1">
         <img
           src="http://vma.isocked.com/static/m.png"
           height="36"
@@ -18,7 +18,7 @@
           v-for="item in items"
           :key="item.title"
           :to="item.path"
-          active-class="grey--text text--lighten-4"
+          active-class="grey--text text--lighten-4 v-list-active"
         >
           <v-list-tile-action>
             <v-icon class="grey--text text--lighten-2">{{ item.icon }}</v-icon>
@@ -30,7 +30,7 @@
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>
-    <v-toolbar app class="white"></v-toolbar>
+    <v-toolbar app color="primary"></v-toolbar>
     <v-content>
       <v-container fluid>
         <router-view></router-view>
@@ -68,3 +68,9 @@ export default {
   }
 };
 </script>
+
+<style>
+.v-list-active {
+  border-left: 4px solid var(--v-primary-base);
+}
+</style>
