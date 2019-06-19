@@ -1,50 +1,57 @@
 <template>
-  <div>
-    <v-data-table :headers="headers" :items="$store.getters['devices/list']" class="elevation-1">
-        <template v-slot:items="props">
-            <td class="text-xs-left">{{ props.item.uid }}</td>
-            <td>{{ props.item.identity.mac }}</td>
-            <td>{{ props.item.last_seen | moment("from", "now") }}</td>
-            <td><TerminalDialog :uid="props.item.uid"></TerminalDialog></td>
-        </template>
-    </v-data-table>
-  </div>
+<v-card>
+    <v-toolbar card dense color="transparent">
+        <v-toolbar-title>Device Fleet</v-toolbar-title>
+    </v-toolbar>
+    <v-divider></v-divider>
+    <v-card-text class="pa-0">
+        <v-list two-line expand class="pa-0">
+            <template v-for="(item, index) in devices">
+                <v-list-group no-action :key="item.uid">
+                    <template v-slot:activator>
+                        <v-list-tile :key="item.uid" ripple>
+                            <v-list-tile-avatar>
+                                <v-icon>developer_board</v-icon>
+                            </v-list-tile-avatar>
+                            <v-list-tile-content>
+                                <v-list-tile-title v-html="item.uid"></v-list-tile-title>
+                                <v-list-tile-sub-title v-html="item.identity.mac"></v-list-tile-sub-title>
+                            </v-list-tile-content>
+                            <v-list-tile-action>
+                                <v-list-tile-action-text v-if="!item.online">last seen {{ item.last_seen | moment("from", "now") }}</v-list-tile-action-text>
+                                <v-list-tile-action-text v-else>connected</v-list-tile-action-text>
+                                <v-icon color="success" v-if="item.online">
+                                    check_circle
+                                </v-icon>
+                                <v-icon v-else>check_circle</v-icon>
+                            </v-list-tile-action>
+                        </v-list-tile>
+                    </template>
+                    <TerminalDialog :uid="item.uid"></TerminalDialog>
+                </v-list-group>
+                <v-divider v-if="index + 1 < devices.length" :key="index"></v-divider>
+            </template>
+        </v-list>
+    </v-card-text>
+</v-card>
 </template>
 
 <script>
 import TerminalDialog from "@/components/TerminalDialog.vue";
 
 export default {
-  name: "DeviceList",
-
   components: {
     TerminalDialog
   },
 
-  data() {
-    return {
-      show: false,
-
-      headers: [
-        {
-          text: "Device UID",
-          value: "uid"
-        },
-        {
-          text: "MAC Address",
-          value: "identity.mac"
-        },
-        {
-          text: "Last Seen",
-          value: "last_seen"
-        },
-        { text: "Actions", value: "name", sortable: false }
-      ]
-    };
-  },
-
   created() {
     this.$store.dispatch("devices/fetch");
+  },
+
+  computed: {
+    devices() {
+      return this.$store.getters["devices/list"];
+    }
   }
 };
 </script>
