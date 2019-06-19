@@ -1,6 +1,6 @@
 <template>
 <v-card>
-    <v-toolbar card dense color="transparent">
+    <v-toolbar card color="transparent">
         <v-toolbar-title>Device Fleet</v-toolbar-title>
     </v-toolbar>
     <v-divider></v-divider>

@@ -1,15 +1,20 @@
 <template>
-  <div>
-    <v-data-table :headers="headers" :items="$store.getters['sessions/list']" class="elevation-1">
+<v-card>
+    <v-toolbar card color="transparent">
+        <v-toolbar-title>Sessions</v-toolbar-title>
+    </v-toolbar>
+    <v-divider></v-divider>
+    <v-card-text class="pa-0">
+    <v-data-table :headers="headers" :items="$store.getters['sessions/list']" item-key="uid" disable-initial-sort hide-actions>
         <template v-slot:items="props">
-            <td class="text-xs-left">{{ props.item.uid }}</td>
             <td>{{ props.item.device }}</td>
             <td>{{ props.item.username }}</td>
             <td>{{ props.item.started_at | moment("ddd D MMM YYYY HH:mm:ss") }}</td>
             <td>{{ props.item.finished_at | moment("ddd D MMM YYYY HH:mm:ss") }}</td>
         </template>
     </v-data-table>
-  </div>
+    </v-card-text>
+</v-card>
 </template>
 
 <script>
@@ -18,11 +23,7 @@ export default {
     return {
       headers: [
         {
-          text: "UID",
-          value: "uid"
-        },
-        {
-          text: "Device UID",
+          text: "Device",
           value: "device"
         },
         {
