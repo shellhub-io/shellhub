@@ -112,7 +112,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		"session":  session.Context().Value(sshserver.ContextKeySessionID),
 	}).Info("Session created")
 
-	if err = sess.register(); err != nil {
+	if err = sess.register(session); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"target":   sess.Target,
 			"username": sess.User,

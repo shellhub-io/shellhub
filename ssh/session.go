@@ -15,11 +15,12 @@ import (
 var ErrInvalidSessionTarget = errors.New("Invalid session target")
 
 type Session struct {
-	session sshserver.Session `json:"-"`
-	User    string            `json:"username"`
-	Target  string            `json:"device"`
-	UID     string            `json:"uid"`
-	port    uint32            `json:"-"`
+	session   sshserver.Session `json:"-"`
+	User      string            `json:"username"`
+	Target    string            `json:"device"`
+	UID       string            `json:"uid"`
+	IPAddress string            `json:"ip_address"`
+	port      uint32            `json:"-"`
 }
 
 func NewSession(target string, session sshserver.Session) (*Session, error) {
@@ -126,7 +127,13 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 	return nil
 }
 
-func (s *Session) register() error {
+func (s *Session) register(session sshserver.Session) error {
+	env := loadEnv(session.Environ())
+
+	if value, ok := env["IP_ADDRESS"]; ok {
+		s.IPAddress = value
+	}
+
 	_, _, errs := gorequest.New().Post("http://api:8080/sessions").Send(*s).End()
 	if len(errs) > 0 {
 		return errs[0]
@@ -142,4 +149,19 @@ func (s *Session) finish() error {
 	}
 
 	return nil
+}
+
+func loadEnv(env []string) map[string]string {
+	m := make(map[string]string, cap(env))
+
+	for _, s := range env {
+		sp := strings.Split(s, "=")
+		if len(sp) == 2 {
+			k := sp[0]
+			v := sp[1]
+			m[k] = v
+		}
+	}
+
+	return m
 }

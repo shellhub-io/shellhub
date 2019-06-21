@@ -37,6 +37,7 @@ type Session struct {
 	UID        string        `json:"uid"`
 	Device     string        `json:"device"`
 	Username   string        `json:"username"`
+	IPAddress  string        `json:"ip_address" bson:"ip_address"`
 	StartedAt  time.Time     `json:"started_at" bson:"started_at"`
 	FinishedAt time.Time     `json:"finished_at" bson:"finished_at"`
 }

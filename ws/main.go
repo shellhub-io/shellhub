@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
 	"time"
@@ -50,6 +51,10 @@ func relayHandler(ws *websocket.Conn) {
 		ws.Close()
 		return
 	}
+
+	ip, _, _ := net.SplitHostPort(ws.Request().RemoteAddr)
+
+	session.Setenv("IP_ADDRESS", ip)
 
 	sshOut, err := session.StdoutPipe()
 	if err != nil {
