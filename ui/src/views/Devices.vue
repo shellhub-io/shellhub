@@ -6,11 +6,11 @@
 </template>
 
 <script>
-import DeviceList from '@/components/DeviceList.vue'
+import DeviceList from "@/components/DeviceList.vue";
 
 export default {
-    components: {
-        DeviceList
-    },
+  components: {
+    DeviceList
+  }
 };
 </script>

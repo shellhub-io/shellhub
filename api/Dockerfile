@@ -34,7 +34,6 @@ ENTRYPOINT ["/entrypoint.sh"]
 # production stage
 FROM alpine:3.7 AS production
 
-WORKDIR /app
-COPY --from=builder /api /app/
+COPY --from=builder /go/src/github.com/gustavosbarreto/devicehub/api/api /api
 
-ENTRYPOINT ./api
+ENTRYPOINT /api

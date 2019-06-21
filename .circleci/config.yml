@@ -1,0 +1,56 @@
+version: 2
+
+jobs:
+  build_api:
+    environment:
+      IMAGE_NAME: gustavosbarreto/devicehub-api
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker image
+          working_directory: api
+          command: docker build -t $IMAGE_NAME:latest .
+  build_ssh:
+    environment:
+      IMAGE_NAME: gustavosbarreto/devicehub-ssh
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker image
+          working_directory: ssh
+          command: docker build -t $IMAGE_NAME:latest .
+  build_ws:
+    environment:
+      IMAGE_NAME: gustavosbarreto/devicehub-ws
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker image
+          working_directory: ws
+          command: docker build -t $IMAGE_NAME:latest .
+
+workflows:
+  version: 2
+  build-master:
+    jobs:
+      - build_api:
+          filters:
+            branches:
+              only: master    
+      - build_ssh:
+          filters:
+            branches:
+              only: master                              
+      - build_ws:
+          filters:
+            branches:
+              only: master    
