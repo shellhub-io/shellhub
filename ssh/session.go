@@ -130,8 +130,22 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 func (s *Session) register(session sshserver.Session) error {
 	env := loadEnv(session.Environ())
 
-	if value, ok := env["IP_ADDRESS"]; ok {
-		s.IPAddress = value
+	ipaddr, err := net.LookupIP("ws")
+	if err != nil {
+		return err
+	}
+
+	host, _, err := net.SplitHostPort(session.RemoteAddr().String())
+	if err != nil {
+		return err
+	}
+
+	if ipaddr[0].String() == host {
+		if value, ok := env["IP_ADDRESS"]; ok {
+			s.IPAddress = value
+		}
+	} else {
+		s.IPAddress = host
 	}
 
 	_, _, errs := gorequest.New().Post("http://api:8080/sessions").Send(*s).End()
