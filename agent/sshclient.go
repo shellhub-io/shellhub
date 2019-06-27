@@ -6,10 +6,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"net/url"
 	"strconv"
 	"strings"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/libertylocked/urlpattern"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
@@ -19,6 +21,7 @@ type SSHClient struct {
 	host       string
 	port       int
 	sshPort    int
+	Sessions   []string
 }
 
 func NewSSHClient(privateKey string, server string, sshPort int) *SSHClient {
@@ -81,8 +84,37 @@ func (s *SSHClient) connect(msg mqtt.Message) {
 			return
 		}
 
+		u, err := url.Parse(fmt.Sprintf("/%s", msg.Topic()))
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+
+		p := urlpattern.NewPattern().Path("/device/{device}/session/{session}/open")
+		if v, ok := p.Match(u); ok {
+			s.Sessions = append(s.Sessions, v["session"])
+		}
+
 		handleClient(client, local)
 	}()
+}
+
+func (s *SSHClient) close(msg mqtt.Message) {
+	u, err := url.Parse(fmt.Sprintf("/%s", msg.Topic()))
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+
+	p := urlpattern.NewPattern().Path("/device/{device}/session/{session}/close")
+	if params, ok := p.Match(u); ok {
+		for i, v := range s.Sessions {
+			if v == params["session"] {
+				s.Sessions[i] = s.Sessions[len(s.Sessions)-1]
+				s.Sessions = s.Sessions[:len(s.Sessions)-1]
+			}
+		}
+	}
 }
 
 func handleClient(client net.Conn, remote net.Conn) {

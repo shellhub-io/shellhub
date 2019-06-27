@@ -9,8 +9,10 @@
         <template v-slot:items="props">
             <td>{{ props.item.device }}</td>
             <td>{{ props.item.username }}</td>
+            <td>{{ props.item.active }}</td>
+            <td>{{ props.item.ip_address }}</td>
             <td>{{ props.item.started_at | moment("ddd D MMM YYYY HH:mm:ss") }}</td>
-            <td>{{ props.item.finished_at | moment("ddd D MMM YYYY HH:mm:ss") }}</td>
+            <td>{{ props.item.last_seen | moment("ddd D MMM YYYY HH:mm:ss") }}</td>
         </template>
     </v-data-table>
     </v-card-text>
@@ -31,12 +33,20 @@ export default {
           value: "username"
         },
         {
+          text: "Active",
+          value: "active"
+        },
+        {
+          text: "IP Address",
+          value: "ip_address"
+        },
+        {
           text: "Started At",
           value: "started_at"
         },
         {
-          text: "Finished At",
-          value: "finished_at"
+          text: "Last Seen",
+          value: "last_seen"
         }
       ]
     };

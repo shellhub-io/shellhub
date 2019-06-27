@@ -22,3 +22,4 @@ import:
 - package: github.com/sirupsen/logrus
   version: ^1.4.0
 - package: github.com/msteinert/pam
+- package: github.com/libertylocked/urlpattern

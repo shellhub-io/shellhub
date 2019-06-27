@@ -21,6 +21,7 @@ import (
 type DeviceAuthRequest struct {
 	Identity  map[string]string `json:"identity"`
 	PublicKey string            `json:"public_key"`
+	Sessions  []string          `json:"sessions,omitempty"`
 }
 
 type Device struct {
@@ -33,13 +34,20 @@ type Device struct {
 }
 
 type Session struct {
-	ID         bson.ObjectId `json:"-" bson:"_id,omitempty"`
-	UID        string        `json:"uid"`
-	Device     string        `json:"device"`
-	Username   string        `json:"username"`
-	IPAddress  string        `json:"ip_address" bson:"ip_address"`
-	StartedAt  time.Time     `json:"started_at" bson:"started_at"`
-	FinishedAt time.Time     `json:"finished_at" bson:"finished_at"`
+	ID        bson.ObjectId `json:"-" bson:"_id,omitempty"`
+	UID       string        `json:"uid"`
+	Device    string        `json:"device"`
+	Username  string        `json:"username"`
+	IPAddress string        `json:"ip_address" bson:"ip_address"`
+	StartedAt time.Time     `json:"started_at" bson:"started_at"`
+	LastSeen  time.Time     `json:"last_seen" bson:"last_seen"`
+	Active    bool          `json:"active"`
+}
+
+type ActiveSession struct {
+	ID       bson.ObjectId `json:"-" bson:"_id,omitempty"`
+	UID      string        `json:"uid"`
+	LastSeen time.Time     `json:"last_seen" bson:"last_seen"`
 }
 
 type AuthQuery struct {
@@ -127,6 +135,25 @@ func main() {
 		panic(err)
 	}
 
+	err = session.DB("main").C("active_sessions").EnsureIndex(mgo.Index{
+		Key:         []string{"last_seen"},
+		Name:        "last_seen",
+		ExpireAfter: time.Duration(time.Second * 30),
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = session.DB("main").C("active_sessions").EnsureIndex(mgo.Index{
+		Key:        []string{"uid"},
+		Unique:     false,
+		Name:       "uid",
+		Background: false,
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	signBytes, err := ioutil.ReadFile(os.Getenv("PRIVATE_KEY"))
 	if err != nil {
 		panic(err)
@@ -169,6 +196,10 @@ func main() {
 			return err
 		}
 
+		sessions := req.Sessions
+
+		req.Sessions = []string{}
+
 		uid := sha256.Sum256(structhash.Dump(req, 1))
 
 		d := &Device{
@@ -199,6 +230,30 @@ func main() {
 
 		if err := db.C("connected_devices").Insert(&cd); err != nil {
 			return err
+		}
+
+		for _, s := range sessions {
+			sess := Session{}
+			err := db.C("sessions").Find(bson.M{"uid": s}).One(&sess)
+			if err != nil {
+				return err
+			}
+
+			sess.LastSeen = time.Now()
+
+			_, err = db.C("sessions").Upsert(bson.M{"uid": sess.UID}, sess)
+			if err != nil {
+				return err
+			}
+
+			as := &ActiveSession{
+				UID:      s,
+				LastSeen: time.Now(),
+			}
+
+			if err := db.C("active_sessions").Insert(&as); err != nil {
+				return err
+			}
 		}
 
 		return c.JSON(http.StatusOK, echo.Map{
@@ -290,7 +345,24 @@ func main() {
 		db := c.Get("db").(*mgo.Database)
 
 		sessions := make([]Session, 0)
-		if err := db.C("sessions").Find(bson.M{}).All(&sessions); err != nil {
+
+		query := []bson.M{
+			{
+				"$lookup": bson.M{
+					"from":         "active_sessions",
+					"localField":   "uid",
+					"foreignField": "uid",
+					"as":           "active",
+				},
+			},
+			{
+				"$addFields": bson.M{
+					"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
+				},
+			},
+		}
+
+		if err := db.C("sessions").Pipe(query).All(&sessions); err != nil {
 			return err
 		}
 
@@ -307,9 +379,18 @@ func main() {
 		}
 
 		session.StartedAt = time.Now()
-		session.FinishedAt = time.Time{}
+		session.LastSeen = session.StartedAt
 
 		if err := db.C("sessions").Insert(session); err != nil {
+			return err
+		}
+
+		as := &ActiveSession{
+			UID:      session.UID,
+			LastSeen: session.StartedAt,
+		}
+
+		if err := db.C("active_sessions").Insert(&as); err != nil {
 			return err
 		}
 
@@ -324,9 +405,14 @@ func main() {
 			return err
 		}
 
-		session.FinishedAt = time.Now()
+		session.LastSeen = time.Now()
 
 		_, err = db.C("sessions").Upsert(bson.M{"uid": session.UID}, session)
+		if err != nil {
+			return err
+		}
+
+		_, err := db.C("active_sessions").RemoveAll(bson.M{"uid": session.UID})
 		if err != nil {
 			return err
 		}

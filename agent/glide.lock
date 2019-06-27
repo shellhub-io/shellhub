@@ -1,5 +1,5 @@
-hash: 287c5a007e7a587db22c902759994dfabe802245c75418701e3e3656c9db68ed
-updated: 2019-06-06T09:22:54.225301718-03:00
+hash: 8214b051070ccf4b7b9567bb2c1ebad218fe38077e594921498602439c06fdcb
+updated: 2019-06-26T11:20:27.417419898-03:00
 imports:
 - name: github.com/anmitsu/go-shlex
   version: 648efa622239a2f6ff949fed78ee37b48d499ba4
@@ -8,7 +8,7 @@ imports:
   subpackages:
   - packets
 - name: github.com/gliderlabs/ssh
-  version: a9daacccc9f1368e52f390591d908470cee477d2
+  version: 5b6cc7030f17095c0cf23bb063b0bfe824fe5f8b
 - name: github.com/jaypipes/ghw
   version: 032dfb1f8cb2b9b5c0e894855833e23ff1fe24a9
 - name: github.com/kelseyhightower/envconfig
@@ -16,7 +16,9 @@ imports:
 - name: github.com/konsorten/go-windows-terminal-sequences
   version: f55edac94c9bbba5d6182a4be46d86a2c9b5b50e
 - name: github.com/kr/pty
-  version: 521317be5ebc228a0f0ede099fa2a0b5ece22e49
+  version: b6e1bdd4a4f88614e0c6e5e8089c7abed98aae17
+- name: github.com/libertylocked/urlpattern
+  version: 72b487d5dfd69b0a1b248849a30793a02da23b50
 - name: github.com/moul/http2curl
   version: 673ac5e47953f6b1523def6719a0de496707ac63
 - name: github.com/msteinert/pam
@@ -50,7 +52,7 @@ imports:
   - publicsuffix
   - websocket
 - name: golang.org/x/sys
-  version: 79a91cf218c425e1f4d48cd960839b45dd4d065f
+  version: 4c4f7f33c9ed00de01c4c741d2177abfcfe19307
   subpackages:
   - cpu
   - unix

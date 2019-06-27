@@ -30,7 +30,7 @@ func (e *Endpoints) buildAPIUrl(uri string) string {
 	return fmt.Sprintf("http://%s/api/%s", e.API, uri)
 }
 
-func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, pubKey *rsa.PublicKey) (*AuthResponse, error) {
+func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, pubKey *rsa.PublicKey, sessions []string) (*AuthResponse, error) {
 	var auth AuthResponse
 
 	_, _, errs := gorequest.New().Post(endpoints.buildAPIUrl("/devices/auth")).Send(&AuthRequest{
@@ -39,6 +39,7 @@ func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, pubKey *rsa
 			Type:  "RSA PUBLIC KEY",
 			Bytes: x509.MarshalPKCS1PublicKey(pubKey),
 		})),
+		Sessions: sessions,
 	}).EndStruct(&auth)
 	if len(errs) > 0 {
 		return nil, errs[0]
@@ -80,7 +81,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	auth, err := sendAuthRequest(&endpoints, identity, pubKey)
+	auth, err := sendAuthRequest(&endpoints, identity, pubKey, []string{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
@@ -100,12 +101,13 @@ func main() {
 	b := NewBroker(endpoints.MQTT, auth.UID, auth.Token)
 
 	b.Subscribe(fmt.Sprintf("device/%s/session/+/open", auth.UID), client.connect)
+	b.Subscribe(fmt.Sprintf("device/%s/session/+/close", auth.UID), client.close)
 	b.Connect()
 
 	ticker := time.NewTicker(10 * time.Second)
 
 	for _ = range ticker.C {
-		sendAuthRequest(&endpoints, identity, pubKey)
+		sendAuthRequest(&endpoints, identity, pubKey, client.Sessions)
 	}
 }
 
