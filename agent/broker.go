@@ -24,10 +24,12 @@ func NewBroker(address, username, password string) *Broker {
 	opts.SetAutoReconnect(true)
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
 		for topic, subscriber := range b.subscribers {
-			if token := b.client.Subscribe(topic, 1, func(client mqtt.Client, msg mqtt.Message) {
-				logrus.WithFields(logrus.Fields{"topic": topic}).Info("Received message on topic")
-				subscriber(msg)
-			}); token.Wait() && token.Error() != nil {
+			if token := b.client.Subscribe(topic, 1, func(subscriber Subscriber) mqtt.MessageHandler {
+				return func(client mqtt.Client, msg mqtt.Message) {
+					logrus.WithFields(logrus.Fields{"topic": msg.Topic()}).Info("Received message on topic")
+					subscriber(msg)
+				}
+			}(subscriber)); token.Wait() && token.Error() != nil {
 				logrus.WithFields(logrus.Fields{"topic": topic, "err": token.Error()}).Error("Failed to subscribe to topic")
 			}
 
