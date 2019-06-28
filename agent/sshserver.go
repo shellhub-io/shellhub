@@ -1,6 +1,7 @@
 package main
 
 import (
+	"C"
 	"fmt"
 	"io"
 	"os"
@@ -10,32 +11,61 @@ import (
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/kr/pty"
-	"github.com/msteinert/pam"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
-func Auth(user, passwd string) error {
-	t, err := pam.StartFunc("system-auth", user, func(s pam.Style, msg string) (string, error) {
-		switch s {
-		case pam.PromptEchoOff:
-			return passwd, nil
-		case pam.PromptEchoOn, pam.ErrorMsg, pam.TextInfo:
-			return "", nil
-		}
-		return "", errors.New("Unrecognized PAM message style")
-	})
+/*
+#cgo LDFLAGS: -lcrypt
+#include <stdlib.h>
+#include <unistd.h>
+#include <crypt.h>
+#include <shadow.h>
+#include <string.h>
+*/
+import "C"
 
-	if err != nil {
-		return err
+func Auth(user string, passwd string) bool {
+	cuser := C.CString(user)
+	defer C.free(unsafe.Pointer(cuser))
+
+	cpasswd := C.CString(passwd)
+	defer C.free(unsafe.Pointer(cpasswd))
+
+	pwd := C.getspnam(cuser)
+	if pwd == nil {
+		return false
 	}
 
-	if err = t.Authenticate(0); err != nil {
-		return err
+	crypted := C.crypt(cpasswd, pwd.sp_pwdp)
+
+	if C.strcmp(crypted, pwd.sp_pwdp) != 0 {
+		return false
 	}
 
-	return nil
+	return true
 }
+
+/*func Auth(user, passwd string) error {
+		t, err := pam.StartFunc("system-auth", user, func(s pam.Style, msg string) (string, error) {
+			switch s {
+			case pam.PromptEchoOff:
+				return passwd, nil
+			case pam.PromptEchoOn, pam.ErrorMsg, pam.TextInfo:
+				return "", nil
+			}
+			return "", errors.New("Unrecognized PAM message style")
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if err = t.Authenticate(0); err != nil {
+			return err
+		}
+
+		return nil
+}*/
 
 type SSHServer struct {
 	sshd *sshserver.Server
@@ -47,7 +77,7 @@ func NewSSHServer(port int) *SSHServer {
 	s.sshd = &sshserver.Server{
 		Addr: fmt.Sprintf("localhost:%d", port),
 		PasswordHandler: func(ctx sshserver.Context, pass string) bool {
-			if Auth(ctx.User(), pass) == nil {
+			if Auth(ctx.User(), pass) == true {
 				return true
 			}
 
