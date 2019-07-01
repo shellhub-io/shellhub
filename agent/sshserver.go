@@ -23,6 +23,10 @@ import (
 #include <string.h>
 */
 import "C"
+import (
+	"os/user"
+	"strconv"
+)
 
 func Auth(user string, passwd string) bool {
 	cuser := C.CString(user)
@@ -98,7 +102,7 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 	sspty, winCh, isPty := session.Pty()
 
 	if isPty {
-		scmd := newShellCmd(sspty.Term)
+		scmd := newShellCmd(session.User(), sspty.Term)
 
 		spty, err := pty.Start(scmd)
 		if err != nil {
@@ -136,7 +140,7 @@ func (s *SSHServer) publicKeyHandler(ctx sshserver.Context, key sshserver.Public
 	return true
 }
 
-func newShellCmd(term string) *exec.Cmd {
+func newShellCmd(username string, term string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
 	if shell == "" {
@@ -147,8 +151,14 @@ func newShellCmd(term string) *exec.Cmd {
 		term = "xterm"
 	}
 
+	u, _ := user.Lookup(username)
+	uid, _ := strconv.Atoi(u.Uid)
+	gid, _ := strconv.Atoi(u.Gid)
+
 	cmd := exec.Command(shell)
 	cmd.Env = []string{fmt.Sprintf("TERM=%s", term)}
+	cmd.SysProcAttr = &syscall.SysProcAttr{}
+	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
 
 	return cmd
 }
