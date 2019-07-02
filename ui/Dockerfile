@@ -10,9 +10,11 @@ FROM base as development
 
 WORKDIR /src
 
-COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/node_modules /node_modules
 
-CMD ["yarn", "serve"]
+ADD entrypoint-dev.sh /entrypoint.sh
+
+CMD ["/entrypoint.sh"]
 
 FROM base as production
 
