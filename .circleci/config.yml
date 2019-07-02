@@ -1,56 +1,34 @@
 version: 2
 
 jobs:
-  build_api:
+  build:
     environment:
-      IMAGE_NAME: gustavosbarreto/devicehub-api
+      API_IMAGE_NAME: gustavosbarreto/devicehub-api
+      SSH_IMAGE_NAME: gustavosbarreto/devicehub-ssh
+      WS_IMAGE_NAME: gustavosbarreto/devicehub-ws
     docker:
       - image: circleci/buildpack-deps:stretch
     steps:
       - checkout
       - setup_remote_docker
       - run:
-          name: Build Docker image
+          name: Build API microservice
           working_directory: api
-          command: docker build -t $IMAGE_NAME:latest .
-  build_ssh:
-    environment:
-      IMAGE_NAME: gustavosbarreto/devicehub-ssh
-    docker:
-      - image: circleci/buildpack-deps:stretch
-    steps:
-      - checkout
-      - setup_remote_docker
+          command: docker build -t $API_IMAGE_NAME:latest .
       - run:
-          name: Build Docker image
+          name: Build SSH microservice
           working_directory: ssh
-          command: docker build -t $IMAGE_NAME:latest .
-  build_ws:
-    environment:
-      IMAGE_NAME: gustavosbarreto/devicehub-ws
-    docker:
-      - image: circleci/buildpack-deps:stretch
-    steps:
-      - checkout
-      - setup_remote_docker
+          command: docker build -t $SSH_IMAGE_NAME:latest .
       - run:
-          name: Build Docker image
+          name: Build WS microservice
           working_directory: ws
-          command: docker build -t $IMAGE_NAME:latest .
+          command: docker build -t $WS_IMAGE_NAME:latest .
 
 workflows:
   version: 2
-  build-master:
+  master:
     jobs:
-      - build_api:
-          filters:
-            branches:
-              only: master    
-      - build_ssh:
-          filters:
-            branches:
-              only: master                              
-      - build_ws:
+      - build:
           filters:
             branches:
               only: master    
