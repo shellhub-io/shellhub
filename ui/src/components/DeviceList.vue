@@ -5,30 +5,27 @@
     </v-toolbar>
     <v-divider></v-divider>
     <v-card-text class="pa-0">
-        <v-list two-line expand class="pa-0">
+        <v-list two-line class="pa-0">
             <template v-for="(item, index) in devices">
-                <v-list-group no-action :key="item.uid">
-                    <template v-slot:activator>
-                        <v-list-tile :key="item.uid" ripple>
-                            <v-list-tile-avatar>
-                                <v-icon>developer_board</v-icon>
-                            </v-list-tile-avatar>
-                            <v-list-tile-content>
-                                <v-list-tile-title v-html="item.uid"></v-list-tile-title>
-                                <v-list-tile-sub-title v-html="item.identity.mac"></v-list-tile-sub-title>
-                            </v-list-tile-content>
-                            <v-list-tile-action>
-                                <v-list-tile-action-text v-if="!item.online">last seen {{ item.last_seen | moment("from", "now") }}</v-list-tile-action-text>
-                                <v-list-tile-action-text v-else>connected</v-list-tile-action-text>
-                                <v-icon color="success" v-if="item.online">
-                                    check_circle
-                                </v-icon>
-                                <v-icon v-else>check_circle</v-icon>
-                            </v-list-tile-action>
-                        </v-list-tile>
-                    </template>
-                    <TerminalDialog :uid="item.uid"></TerminalDialog>
-                </v-list-group>
+                <v-list-tile :key="item.uid">
+                    <v-list-tile-avatar>
+                        <v-icon color="success" v-if="item.online">
+                            check_circle
+                        </v-icon>
+                        <v-icon v-else>check_circle</v-icon>
+                    </v-list-tile-avatar>
+                    <v-list-tile-content>
+                        <v-list-tile-title v-html="item.uid"></v-list-tile-title>
+                        <v-list-tile-sub-title v-html="item.identity.mac"></v-list-tile-sub-title>
+                    </v-list-tile-content>
+                    <v-list-tile-action>
+                        <TerminalDialog :uid="item.uid" v-if="item.online"></TerminalDialog>
+                    </v-list-tile-action>
+                    <v-list-tile-action>
+                        <v-list-tile-action-text v-if="!item.online">last seen {{ item.last_seen | moment("from", "now") }}</v-list-tile-action-text>
+                    </v-list-tile-action>
+                </v-list-tile>
+
                 <v-divider v-if="index + 1 < devices.length" :key="index"></v-divider>
             </template>
         </v-list>
