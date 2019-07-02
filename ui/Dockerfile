@@ -20,6 +20,8 @@ RUN npm install -g http-server python2
 
 COPY . .
 
+COPY --from=base /app/node_modules ./node_modules
+
 RUN npm run build
 
 CMD [ "http-server", "-c-1", "dist" ]
