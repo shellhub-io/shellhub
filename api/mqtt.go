@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -25,13 +24,8 @@ func AuthenticateMqttClient(c echo.Context) error {
 		return err
 	}
 
-	ipaddr, err := net.LookupIP("ssh")
-	if err != nil {
-		return err
-	}
-
 	// Authorize connection from internal ssh client
-	if q.IPAddr == ipaddr[0].String() {
+	if q.Username == "ssh" {
 		return nil
 	}
 
