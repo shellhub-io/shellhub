@@ -34,7 +34,7 @@ jobs:
           command: docker build -t $UI_IMAGE_NAME:latest .
       - run:
           name: Build API Gateway microservice
-          working_directory: ui
+          working_directory: gateway
           command: docker build -t $GATEWAY_IMAGE_NAME:latest .
       - run:
           name: Archive Docker images
