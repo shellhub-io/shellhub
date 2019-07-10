@@ -76,20 +76,19 @@ jobs:
           name: Publish API Gateway microservice image
           command: docker push $GATEWAY_IMAGE_NAME:latest
   deploy:
-    docker:
-      - image: docker:dind
+    executor: docker
     environment:
       DOCKER_TLS_VERIFY: "1"
       DOCKER_MACHINE_NAME: "swarm"
       DOCKER_CERT_PATH: "/tmp/certs"
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "6f:33:16:6f:5e:bf:4b:bd:af:e4:70:c6:60:76:b2:b7"
       - run:
-          name: Setup remote Docker Engine credentials
+          name: Update containers
           command: |
-            mkdir $DOCKER_CERT_PATH
-            echo "$DOCKER_CA" | base64 -d  > $DOCKER_CERT_PATH/ca.pem
-            echo "$DOCKER_CERT" | base64 -d  > $DOCKER_CERT_PATH/cert.pem
-            echo "$DOCKER_KEY" | base64 -d  > $DOCKER_CERT_PATH/key.pem
+            ssh 206.189.188.160 -o "StrictHostKeyChecking no" -l root -p 22 'docker-compose pull; docker-compose up -d'
 workflows:
   version: 2
   master:
