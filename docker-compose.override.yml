@@ -43,5 +43,13 @@ services:
       - ssh
       - gateway
 
+secrets:
+  ssh_private_key:
+    external: true
+  api_private_key:
+    external: true
+  api_public_key:
+    external: true
+
 volumes:
   secrets:

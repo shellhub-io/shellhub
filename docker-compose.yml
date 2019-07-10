@@ -2,9 +2,9 @@ version: '3.7'
 
 services:
   ssh:
-    build: ssh
+    image: gustavosbarreto/devicehub-ssh
     environment:
-      - PRIVATE_KEY=/var/run/secrets/ssh_private_key
+      - PRIVATE_KEY=/run/secrets/ssh_private_key
     depends_on:
       - emq
     links:
@@ -41,9 +41,10 @@ services:
       protocol: tcp
       mode: host
   api:
+    image: gustavosbarreto/devicehub-api
     environment:
-      - PRIVATE_KEY=/var/run/secrets/api_private_key
-      - PUBLIC_KEY=/var/run/secrets/api_public_key
+      - PRIVATE_KEY=/run/secrets/api_private_key
+      - PUBLIC_KEY=/run/secrets/api_public_key
     depends_on:
       - mongo
     links:
@@ -52,12 +53,17 @@ services:
       - api_private_key
       - api_public_key
   ws:
+    image: gustavosbarreto/devicehub-ws
     depends_on:
       - ssh
     links:
       - ssh
+  ui:
+    image: gustavosbarreto/devicehub-ui
+    depends_on:
+      - api
   gateway:
-    build: gateway
+    image: gustavosbarreto/devicehub-gateway
     command: [nginx-debug, '-g', 'daemon off;']
     depends_on:
       - api
@@ -70,8 +76,8 @@ services:
 
 secrets:
   ssh_private_key:
-    external: true
+    file: ./ssh_private_key
   api_private_key:
-    external: true
+    file: ./api_private_key
   api_public_key:
-    external: true
+    file: ./api_public_key
