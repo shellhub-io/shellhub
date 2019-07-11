@@ -77,10 +77,6 @@ jobs:
           command: docker push $GATEWAY_IMAGE_NAME:latest
   deploy:
     executor: docker
-    environment:
-      DOCKER_TLS_VERIFY: "1"
-      DOCKER_MACHINE_NAME: "swarm"
-      DOCKER_CERT_PATH: "/tmp/certs"
     steps:
       - add_ssh_keys:
           fingerprints:
