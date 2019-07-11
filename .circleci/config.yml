@@ -3,11 +3,11 @@ version: 2.1
 executors:
   docker:
     environment:
-      API_IMAGE_NAME: gustavosbarreto/devicehub-api
-      SSH_IMAGE_NAME: gustavosbarreto/devicehub-ssh
-      WS_IMAGE_NAME: gustavosbarreto/devicehub-ws
-      UI_IMAGE_NAME: gustavosbarreto/devicehub-ui
-      GATEWAY_IMAGE_NAME: gustavosbarreto/devicehub-gateway
+      API_IMAGE_NAME: shellhubio/devicehub-api
+      SSH_IMAGE_NAME: shellhubio/devicehub-ssh
+      WS_IMAGE_NAME: shellhubio/devicehub-ws
+      UI_IMAGE_NAME: shellhubio/devicehub-ui
+      GATEWAY_IMAGE_NAME: shellhubio/devicehub-gateway
     docker:
       - image: circleci/buildpack-deps:stretch
 jobs:
@@ -84,7 +84,7 @@ jobs:
       - run:
           name: Update containers
           command: |
-            ssh 206.189.188.160 -o "StrictHostKeyChecking no" -l root -p 22 'docker-compose pull; docker-compose up -d'
+            ssh $DEPLOY_HOST -o "StrictHostKeyChecking no" -l root -p 22 'docker-compose pull; docker-compose up -d'
 workflows:
   version: 2
   master:
