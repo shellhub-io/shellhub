@@ -1,7 +1,7 @@
 <template>
 <v-card>
     <v-toolbar card color="transparent">
-        <v-toolbar-title>Device Fleeta</v-toolbar-title>
+        <v-toolbar-title>Device Fleet</v-toolbar-title>
     </v-toolbar>
     <v-divider></v-divider>
     <v-card-text class="pa-0">
