@@ -12,7 +12,6 @@ executors:
       - image: circleci/buildpack-deps:stretch
 jobs:
   build:
-    executor: docker
     steps:
       - checkout
       - setup_remote_docker
@@ -47,7 +46,6 @@ jobs:
             - ./images.tar
             - ./tags.txt
   push:
-    executor: docker
     steps:
       - setup_remote_docker
       - attach_workspace:
