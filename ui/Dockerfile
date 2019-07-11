@@ -26,4 +26,4 @@ COPY --from=base /app/node_modules ./node_modules
 
 RUN npm run build
 
-CMD [ "http-server", "-c-1", "dist" ]
+CMD [ "http-server", "-c-1", "-P", "http://localhost:8080?", "dist" ]
