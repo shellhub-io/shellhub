@@ -84,7 +84,7 @@ jobs:
       - run:
           name: Update containers
           command: |
-            ssh $DEPLOY_HOST -o "StrictHostKeyChecking no" -o "LogLevel=error" -l root -p 22 'docker-compose pull; docker-compose up -d'
+            ssh $DEPLOY_HOST -o "StrictHostKeyChecking no" -o "LogLevel=error" -l root -p 2222 'docker-compose pull; docker-compose up -d'
 workflows:
   version: 2
   master:
