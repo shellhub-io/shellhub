@@ -5,10 +5,10 @@
         <img
           src="http://vma.isocked.com/static/m.png"
           height="36"
-          alt="Vue Material Admin Template"
+          alt="ShellHub"
         >
         <v-toolbar-title class="ml-0 pl-3">
-          <span class="hidden-sm-and-down">DeviceHub</span>
+          <span class="hidden-sm-and-down">ShellHub</span>
         </v-toolbar-title>
       </v-toolbar>
 
