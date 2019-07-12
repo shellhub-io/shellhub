@@ -47,10 +47,7 @@ export default {
 
   watch: {
     show(value) {
-      if (value) {
-        this.username = prompt("Username:");
-        this.passwd = prompt("Password:");
-      } else {
+      if (!value) {
         this.ws.close();
       }
     }
@@ -74,6 +71,9 @@ export default {
 
   methods: {
     open() {
+      this.username = prompt("Username:");
+      this.passwd = prompt("Password:");
+
       this.$store.dispatch("modals/toggleTerminal", this.$props.uid);
 
       if (this.xterm.element) {
