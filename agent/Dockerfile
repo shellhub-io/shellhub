@@ -1,8 +1,10 @@
 # base stage
 FROM golang:alpine AS base
 
-RUN apk add --update git ca-certificates build-base linux-pam-dev && \
+RUN apk add --update git ca-certificates build-base linux-pam-dev bash && \
     go get -u github.com/Masterminds/glide
+
+RUN ln -sf /bin/bash /bin/sh
 
 WORKDIR $GOPATH/src/github.com/gustavosbarreto/devicehub/agent
 

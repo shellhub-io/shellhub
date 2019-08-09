@@ -1,5 +1,5 @@
 hash: 407366926a0d98ae9ac64ecd7f6794ac68f51494644c8a97dca1f3adcb97e949
-updated: 2019-06-19T20:27:48.987643481Z
+updated: 2019-08-09T15:57:05.589760003-03:00
 imports:
 - name: github.com/anmitsu/go-shlex
   version: 648efa622239a2f6ff949fed78ee37b48d499ba4
@@ -8,11 +8,11 @@ imports:
   subpackages:
   - packets
 - name: github.com/gliderlabs/ssh
-  version: ac34fea39fbcd51ffc3c5291a79ac642285dbaea
+  version: 5b6cc7030f17095c0cf23bb063b0bfe824fe5f8b
 - name: github.com/konsorten/go-windows-terminal-sequences
-  version: f55edac94c9bbba5d6182a4be46d86a2c9b5b50e
+  version: 5c8c8bd35d3832f5d134ae1e1e375b69a4d25242
 - name: github.com/moul/http2curl
-  version: 673ac5e47953f6b1523def6719a0de496707ac63
+  version: 9ac6cf4d929b2fa8fd2d2e6dec5bb0feb4f4911d
 - name: github.com/parnurzeal/gorequest
   version: a578a48e8d6ca8b01a3b18314c43c6716bb5f5a3
 - name: github.com/pkg/errors
@@ -22,7 +22,7 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: 839c75faf7f98a33d445d181f3018b5c3409a45e
 - name: golang.org/x/crypto
-  version: f99c8df09eb5bff426315721bfa5f16a99cad32c
+  version: 0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb
   subpackages:
   - curve25519
   - ed25519
@@ -32,15 +32,14 @@ imports:
   - poly1305
   - ssh
 - name: golang.org/x/net
-  version: 60506f45cf65977eb3a9c6e30f995f54a721c271
+  version: db08ff08e8622530d9ed3a0e8ac279f6d4c02196
   subpackages:
   - internal/socks
   - proxy
   - publicsuffix
   - websocket
 - name: golang.org/x/sys
-  version: 4c4f7f33c9ed00de01c4c741d2177abfcfe19307
+  version: fa43e7bc11baaae89f3f902b2b4d832b68234844
   subpackages:
-  - cpu
   - unix
 testImports: []

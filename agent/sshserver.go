@@ -134,6 +134,27 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 		if err != nil {
 			logrus.Warn(err)
 		}
+	} else {
+		cmd := exec.Command(session.Command()[0], session.Command()[1:]...)
+
+		stdout, _ := cmd.StdoutPipe()
+		stdin, _ := cmd.StdinPipe()
+
+		cmd.Start()
+
+		go func() {
+			if _, err := io.Copy(stdin, session); err != nil {
+				fmt.Println(err)
+			}
+		}()
+
+		go func() {
+			if _, err := io.Copy(session, stdout); err != nil {
+				fmt.Println(err)
+			}
+		}()
+
+		cmd.Wait()
 	}
 }
 

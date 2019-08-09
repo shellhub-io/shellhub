@@ -1,7 +1,7 @@
 # base stage
 FROM golang:alpine AS base
 
-RUN apk add --update git ca-certificates && \
+RUN apk add --update git ca-certificates openssh-client && \
     go get -u github.com/Masterminds/glide
 
 WORKDIR $GOPATH/src/github.com/gustavosbarreto/devicehub/ssh
@@ -33,6 +33,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
 FROM alpine:3.7 AS production
+
+RUN apk add --update openssh-client
 
 COPY --from=builder /go/src/github.com/gustavosbarreto/devicehub/ssh/ssh /ssh
 

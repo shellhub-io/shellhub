@@ -122,6 +122,35 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 		serverConn.Close()
 		conn.Close()
 		session.Close()
+	} else {
+		stdin, _ := client.StdinPipe()
+		stdout, _ := client.StdoutPipe()
+
+		done := make(chan bool)
+
+		go func() {
+			if _, err = io.Copy(stdin, session); err != nil {
+				fmt.Println(err)
+			}
+
+			done <- true
+		}()
+
+		go func() {
+			if _, err = io.Copy(session, stdout); err != nil {
+				fmt.Println(err)
+			}
+
+			done <- true
+		}()
+
+		err = client.Start(s.session.RawCommand())
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+
+		<-done
 	}
 
 	return nil
