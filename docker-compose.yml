@@ -10,7 +10,7 @@ services:
     links:
       - emq
     ports:
-      - "2222:2222"
+      - "22:2222"
     secrets:
       - ssh_private_key
   emq:

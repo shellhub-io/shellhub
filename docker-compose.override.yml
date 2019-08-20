@@ -27,6 +27,9 @@ services:
       target: development
     volumes:
       - ./ui:/src
+  gateway:
+    build:
+      context: gateway
   agent:
     build:
       context: agent

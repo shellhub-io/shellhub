@@ -305,6 +305,43 @@ func main() {
 	e.GET("/mqtt/acl", AuthorizeMqttClient)
 	e.POST("/mqtt/webhook", ProcessMqttEvent)
 
+	e.POST("/login", func(c echo.Context) error {
+		var login struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}
+
+		c.Bind(&login)
+
+		if login.Username == "" {
+			return echo.ErrUnauthorized
+		}
+
+		if login.Username == "admin" && login.Password == "admin" {
+			token := jwt.New(jwt.SigningMethodHS256)
+
+			claims := token.Claims.(jwt.MapClaims)
+			claims["name"] = "admin"
+			claims["admin"] = true
+			claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+
+			t, err := token.SignedString([]byte("secret"))
+			if err != nil {
+				return err
+			}
+
+			return c.JSON(http.StatusOK, map[string]string{
+				"token": t,
+			})
+		}
+
+		return echo.ErrUnauthorized
+	})
+
+	e.GET("/auth", func(c echo.Context) error {
+		return nil
+	}, middleware.JWT([]byte("secret")))
+
 	e.GET("/users", func(c echo.Context) error {
 		db := c.Get("db").(*mgo.Database)
 
