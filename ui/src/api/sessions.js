@@ -2,5 +2,5 @@ import http from '@/helpers/http'
 
 export const
     fetchSessions = async () => {
-        return http.get('/sessions')
+        return http().get('/sessions')
     }
