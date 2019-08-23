@@ -45,7 +45,7 @@ export default {
                 localStorage.setItem('token', resp.data.token)
                 context.commit('auth_success', resp.data.token)
             } catch (err) {
-                alert(err);
+                context.commit('auth_error')
             }
         },
 
