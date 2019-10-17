@@ -1,8 +1,10 @@
-hash: 8214b051070ccf4b7b9567bb2c1ebad218fe38077e594921498602439c06fdcb
-updated: 2019-06-26T11:20:27.417419898-03:00
+hash: a343c6c1665eaa195edd99e7653480109105070f646980e5e68434de6b478ba6
+updated: 2019-10-17T09:00:00.474801317-03:00
 imports:
 - name: github.com/anmitsu/go-shlex
   version: 648efa622239a2f6ff949fed78ee37b48d499ba4
+- name: github.com/creack/pty
+  version: 3a6a957789163cacdfe0e291617a1c8e80612c11
 - name: github.com/eclipse/paho.mqtt.golang
   version: adca289fdcf8c883800aafa545bc263452290bae
   subpackages:
@@ -10,32 +12,28 @@ imports:
 - name: github.com/gliderlabs/ssh
   version: 5b6cc7030f17095c0cf23bb063b0bfe824fe5f8b
 - name: github.com/jaypipes/ghw
-  version: 032dfb1f8cb2b9b5c0e894855833e23ff1fe24a9
+  version: 29869ac89830376f4997b823e455dac004acce4e
 - name: github.com/kelseyhightower/envconfig
   version: 0b417c4ec4a8a82eecc22a1459a504aa55163d61
 - name: github.com/konsorten/go-windows-terminal-sequences
-  version: f55edac94c9bbba5d6182a4be46d86a2c9b5b50e
+  version: 5c8c8bd35d3832f5d134ae1e1e375b69a4d25242
 - name: github.com/kr/pty
-  version: b6e1bdd4a4f88614e0c6e5e8089c7abed98aae17
+  version: 24b51915630e1d9d3c6adf15a3a96796bbc3cd43
 - name: github.com/libertylocked/urlpattern
   version: 72b487d5dfd69b0a1b248849a30793a02da23b50
-- name: github.com/moul/http2curl
-  version: 673ac5e47953f6b1523def6719a0de496707ac63
-- name: github.com/msteinert/pam
-  version: f29b9f28d6f9a1f6c4e6fd5db731999eb946574b
 - name: github.com/parnurzeal/gorequest
-  version: a578a48e8d6ca8b01a3b18314c43c6716bb5f5a3
+  version: b735e503d8bf955a72baf89723cdb50ab0bd668c
 - name: github.com/pkg/errors
   version: ba968bfe8b2f7e042a574c888954fccecfa385b4
 - name: github.com/shirou/gopsutil
-  version: 5335e3fd506df4cb63de0a8239c7461d23063be6
+  version: 1c09419d4b1c4c19e06d9f48b9406bda27d32acd
   subpackages:
   - cpu
   - mem
 - name: github.com/sirupsen/logrus
   version: 839c75faf7f98a33d445d181f3018b5c3409a45e
 - name: golang.org/x/crypto
-  version: f99c8df09eb5bff426315721bfa5f16a99cad32c
+  version: 0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb
   subpackages:
   - curve25519
   - ed25519
@@ -45,15 +43,16 @@ imports:
   - poly1305
   - ssh
 - name: golang.org/x/net
-  version: 60506f45cf65977eb3a9c6e30f995f54a721c271
+  version: db08ff08e8622530d9ed3a0e8ac279f6d4c02196
   subpackages:
   - internal/socks
   - proxy
   - publicsuffix
   - websocket
 - name: golang.org/x/sys
-  version: 4c4f7f33c9ed00de01c4c741d2177abfcfe19307
+  version: fa43e7bc11baaae89f3f902b2b4d832b68234844
   subpackages:
-  - cpu
   - unix
+- name: moul.io/http2curl
+  version: 5cd742060b0e0de91f875277b77dd7d7e68b23ca
 testImports: []
