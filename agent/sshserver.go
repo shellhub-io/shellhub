@@ -50,28 +50,6 @@ func Auth(user string, passwd string) bool {
 	return true
 }
 
-/*func Auth(user, passwd string) error {
-		t, err := pam.StartFunc("system-auth", user, func(s pam.Style, msg string) (string, error) {
-			switch s {
-			case pam.PromptEchoOff:
-				return passwd, nil
-			case pam.PromptEchoOn, pam.ErrorMsg, pam.TextInfo:
-				return "", nil
-			}
-			return "", errors.New("Unrecognized PAM message style")
-		})
-
-		if err != nil {
-			return err
-		}
-
-		if err = t.Authenticate(0); err != nil {
-			return err
-		}
-
-		return nil
-}*/
-
 type SSHServer struct {
 	sshd *sshserver.Server
 }
