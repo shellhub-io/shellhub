@@ -20,6 +20,7 @@
                     </v-list-tile-content>
                     <v-list-tile-action>
                         <TerminalDialog :uid="item.uid" v-if="item.online"></TerminalDialog>
+                        <v-btn color="primary" dark icon flat @click="remove(item.uid)"><font-awesome-icon icon="trash">trash</font-awesome-icon></v-btn>
                     </v-list-tile-action>
                     <v-list-tile-action>
                         <v-list-tile-action-text v-if="!item.online">last seen {{ item.last_seen | moment("from", "now") }}</v-list-tile-action-text>
@@ -48,6 +49,14 @@ export default {
   computed: {
     devices() {
       return this.$store.getters["devices/list"];
+    }
+  },
+
+  methods: {
+    remove(uid) {
+      if (confirm("Are you sure?")) {
+        this.$store.dispatch("devices/remove", uid);
+      }
     }
   }
 };
