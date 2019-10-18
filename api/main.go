@@ -301,6 +301,20 @@ func main() {
 		return c.JSON(http.StatusOK, device)
 	})
 
+	e.DELETE("/devices/:uid", func(c echo.Context) error {
+		db := c.Get("db").(*mgo.Database)
+
+		if err := db.C("devices").Remove(bson.M{"uid": c.Param("uid")}); err != nil {
+			return err
+		}
+
+		if err := db.C("sessions").Remove(bson.M{"device": c.Param("uid")}); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	e.GET("/mqtt/auth", AuthenticateMqttClient)
 	e.GET("/mqtt/acl", AuthorizeMqttClient)
 	e.POST("/mqtt/webhook", ProcessMqttEvent)
