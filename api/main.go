@@ -63,6 +63,13 @@ type ACLQuery struct {
 	IPAddr   string `query:"ipaddr"`
 }
 
+type User struct {
+	ID       bson.ObjectId `json:"-" bson:"_id,omitempty"`
+	Username string        `json:"username"`
+	Password string        `json:"password"`
+	TenantID string        `json:"tenant_id"`
+}
+
 type AuthClaims struct {
 	UID string `json:"uid"`
 
@@ -148,6 +155,26 @@ func main() {
 		Key:        []string{"uid"},
 		Unique:     false,
 		Name:       "uid",
+		Background: false,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = session.DB("main").C("users").EnsureIndex(mgo.Index{
+		Key:        []string{"username"},
+		Unique:     true,
+		Name:       "username",
+		Background: false,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = session.DB("main").C("users").EnsureIndex(mgo.Index{
+		Key:        []string{"tenant_id"},
+		Unique:     true,
+		Name:       "tenant_id",
 		Background: false,
 	})
 	if err != nil {
@@ -327,16 +354,21 @@ func main() {
 
 		c.Bind(&login)
 
-		if login.Username == "" {
+		db := c.Get("db").(*mgo.Database)
+
+		user := new(User)
+		if err := db.C("users").Find(bson.M{"username": login.Username}).One(&user); err != nil {
 			return echo.ErrUnauthorized
 		}
 
-		if login.Username == "admin" && login.Password == "admin" {
+		password := sha256.Sum256([]byte(login.Password))
+		if user.Password == hex.EncodeToString(password[:]) {
 			token := jwt.New(jwt.SigningMethodHS256)
 
 			claims := token.Claims.(jwt.MapClaims)
-			claims["name"] = "admin"
+			claims["name"] = user.Username
 			claims["admin"] = true
+			claims["tenant"] = user.TenantID
 			claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
 			t, err := token.SignedString([]byte("secret"))
