@@ -18,6 +18,7 @@ import (
 type ConfigOptions struct {
 	ServerAddress string `envconfig:"server_address"`
 	PrivateKey    string `envconfig:"private_key"`
+	TenantID      string `envconfig:"tenant_id"`
 }
 
 type Endpoints struct {
@@ -30,7 +31,7 @@ func (e *Endpoints) buildAPIUrl(uri string) string {
 	return fmt.Sprintf("http://%s/api/%s", e.API, uri)
 }
 
-func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, pubKey *rsa.PublicKey, sessions []string) (*AuthResponse, error) {
+func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*AuthResponse, error) {
 	var auth AuthResponse
 
 	_, _, errs := gorequest.New().Post(endpoints.buildAPIUrl("/devices/auth")).Send(&AuthRequest{
@@ -39,6 +40,7 @@ func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, pubKey *rsa
 			Type:  "RSA PUBLIC KEY",
 			Bytes: x509.MarshalPKCS1PublicKey(pubKey),
 		})),
+		TenantID: tenantID,
 		Sessions: sessions,
 	}).EndStruct(&auth)
 	if len(errs) > 0 {
@@ -81,7 +83,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	auth, err := sendAuthRequest(&endpoints, identity, pubKey, []string{})
+	auth, err := sendAuthRequest(&endpoints, identity, pubKey, opts.TenantID, []string{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
@@ -107,7 +109,7 @@ func main() {
 	ticker := time.NewTicker(10 * time.Second)
 
 	for _ = range ticker.C {
-		sendAuthRequest(&endpoints, identity, pubKey, client.Sessions)
+		sendAuthRequest(&endpoints, identity, pubKey, opts.TenantID, client.Sessions)
 	}
 }
 

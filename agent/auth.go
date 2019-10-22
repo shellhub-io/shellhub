@@ -14,6 +14,7 @@ import (
 type AuthRequest struct {
 	Identity  *DeviceIdentity `json:"identity"`
 	PublicKey string          `json:"public_key"`
+	TenantID  string          `json:"tenant_id"`
 	Sessions  []string        `json:"sessions,omitempty"`
 }
 
