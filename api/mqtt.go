@@ -13,6 +13,7 @@ import (
 type ConnectedDevice struct {
 	ID       bson.ObjectId `json:"-" bson:"_id,omitempty"`
 	UID      string        `json:"uid"`
+	TenantID string        `json:"tenant_id" bson:"tenant_id"`
 	LastSeen time.Time     `json:"last_seen" bson:"last_seen"`
 }
 

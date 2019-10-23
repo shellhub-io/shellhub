@@ -21,6 +21,7 @@ import (
 type DeviceAuthRequest struct {
 	Identity  map[string]string `json:"identity"`
 	PublicKey string            `json:"public_key"`
+	TenantID  string            `json:"tenant_id"`
 	Sessions  []string          `json:"sessions,omitempty"`
 }
 
@@ -29,6 +30,7 @@ type Device struct {
 	UID       string            `json:"uid"`
 	Identity  map[string]string `json:"identity"`
 	PublicKey string            `json:"public_key" bson:"public_key"`
+	TenantID  string            `json:"tenant_id" bson:"tenant_id"`
 	LastSeen  time.Time         `json:"last_seen"`
 	Online    bool              `json:"online"`
 }
@@ -37,6 +39,7 @@ type Session struct {
 	ID        bson.ObjectId `json:"-" bson:"_id,omitempty"`
 	UID       string        `json:"uid"`
 	Device    string        `json:"device"`
+	TenantID  string        `json:"tenant_id" bson:"tenant_id"`
 	Username  string        `json:"username"`
 	IPAddress string        `json:"ip_address" bson:"ip_address"`
 	StartedAt time.Time     `json:"started_at" bson:"started_at"`
@@ -67,7 +70,7 @@ type User struct {
 	ID       bson.ObjectId `json:"-" bson:"_id,omitempty"`
 	Username string        `json:"username"`
 	Password string        `json:"password"`
-	TenantID string        `json:"tenant_id"`
+	TenantID string        `json:"tenant_id" bson:"tenant_id"`
 }
 
 type AuthClaims struct {
@@ -233,6 +236,7 @@ func main() {
 			UID:       hex.EncodeToString(uid[:]),
 			Identity:  req.Identity,
 			PublicKey: req.PublicKey,
+			TenantID:  req.TenantID,
 			LastSeen:  time.Now(),
 		}
 
@@ -252,6 +256,7 @@ func main() {
 
 		cd := &ConnectedDevice{
 			UID:      d.UID,
+			TenantID: d.TenantID,
 			LastSeen: time.Now(),
 		}
 
@@ -308,6 +313,15 @@ func main() {
 					"online": bson.M{"$anyElementTrue": []interface{}{"$online"}},
 				},
 			},
+		}
+
+		// Only match for the respective tenant if requested
+		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
+			query = append(query, bson.M{
+				"$match": bson.M{
+					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
+				},
+			})
 		}
 
 		if err := db.C("devices").Pipe(query).All(&devices); err != nil {
@@ -385,6 +399,12 @@ func main() {
 	})
 
 	e.GET("/auth", func(c echo.Context) error {
+		token := c.Get("user").(*jwt.Token)
+		claims := token.Claims.(jwt.MapClaims)
+
+		// Extract tenant from JWT
+		c.Response().Header().Set("X-Tenant-ID", claims["tenant"].(string))
+
 		return nil
 	}, middleware.JWT([]byte("secret")))
 
@@ -407,12 +427,23 @@ func main() {
 			{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
 		}
 
+		// Only match for the respective tenant if requested
+		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
+			query = append([]bson.M{{
+				"$match": bson.M{
+					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
+				},
+			}}, query...)
+		}
+
 		resp := []bson.M{}
 
 		if err := db.C("connected_devices").Pipe(query).All(&resp); err != nil {
 			fmt.Println(err)
 			return err
 		}
+
+		fmt.Println(resp)
 
 		connectedDevices := 0
 		if len(resp) > 0 {
@@ -445,6 +476,15 @@ func main() {
 			},
 		}
 
+		// Only match for the respective tenant if requested
+		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
+			query = append(query, bson.M{
+				"$match": bson.M{
+					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
+				},
+			})
+		}
+
 		if err := db.C("sessions").Pipe(query).All(&sessions); err != nil {
 			return err
 		}
@@ -463,6 +503,13 @@ func main() {
 
 		session.StartedAt = time.Now()
 		session.LastSeen = session.StartedAt
+
+		device := new(Device)
+		if err := db.C("devices").Find(bson.M{"uid": session.Device}).One(&device); err != nil {
+			return err
+		}
+
+		session.TenantID = device.TenantID
 
 		if err := db.C("sessions").Insert(session); err != nil {
 			return err
