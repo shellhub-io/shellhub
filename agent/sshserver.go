@@ -25,7 +25,6 @@ import (
 import "C"
 import (
 	"os/user"
-	"path/filepath"
 	"strconv"
 )
 
@@ -155,7 +154,7 @@ func newShellCmd(username string, term string) *exec.Cmd {
 	uid, _ := strconv.Atoi(u.Uid)
 	gid, _ := strconv.Atoi(u.Gid)
 
-	cmd := exec.Command(shell, "-"+filepath.Base(shell))
+	cmd := exec.Command(shell, "--login")
 	cmd.Env = []string{
 		"TERM=" + term,
 		"HOME=" + u.HomeDir,
