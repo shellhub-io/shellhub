@@ -30,7 +30,12 @@
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>
-    <v-toolbar app color="primary"></v-toolbar>
+    <v-toolbar app color="primary">
+      <v-spacer></v-spacer>
+      <v-btn icon>
+        <font-awesome-icon color="white" icon="sign-out-alt" @click="logout()">sign-out-alt</font-awesome-icon>
+      </v-btn>
+    </v-toolbar>
     <v-content>
       <v-container fluid>
         <router-view></router-view>
@@ -42,6 +47,14 @@
 <script>
 export default {
   name: "App",
+
+  methods: {
+    logout() {
+      this.$store.dispatch("auth/logout").then(() => {
+        this.$router.push("/login");
+      });
+    }
+  },
 
   data() {
     return {
