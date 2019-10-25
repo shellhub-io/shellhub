@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <v-navigation-drawer :clipped="clipped" v-model="drawer" enable-resize-watcher app dark>
-      <v-toolbar class="primary darken-1">
+    <v-navigation-drawer :clipped="clipped" v-model="drawer" :mini-variant="true" enable-resize-watcher app dark>
+      <v-app-bar class="primary darken-1">
         <img
           src="http://vma.isocked.com/static/m.png"
           height="36"
@@ -10,32 +10,32 @@
         <v-toolbar-title class="ml-0 pl-3">
           <span class="hidden-sm-and-down">ShellHub</span>
         </v-toolbar-title>
-      </v-toolbar>
+      </v-app-bar>
 
       <v-divider></v-divider>
       <v-list class="grey--text">
-        <v-list-tile
+        <v-list-item
           v-for="item in items"
           :key="item.title"
           :to="item.path"
           active-class="grey--text text--lighten-4 v-list-active"
         >
-          <v-list-tile-action>
+          <v-list-item-action>
             <v-icon class="grey--text text--lighten-2">{{ item.icon }}</v-icon>
-          </v-list-tile-action>
+          </v-list-item-action>
 
-          <v-list-tile-content>
-            <v-list-tile-title>{{ item.title }}</v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
+          <v-list-item-content>
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
-    <v-toolbar app color="primary">
+    <v-app-bar app color="primary" dark>
       <v-spacer></v-spacer>
       <v-btn icon>
-        <font-awesome-icon color="white" icon="sign-out-alt" @click="logout()">sign-out-alt</font-awesome-icon>
+        <font-awesome-icon icon="sign-out-alt" @click="logout()">sign-out-alt</font-awesome-icon>
       </v-btn>
-    </v-toolbar>
+    </v-app-bar>
     <v-content>
       <v-container fluid>
         <router-view></router-view>

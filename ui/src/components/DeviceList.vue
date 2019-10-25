@@ -1,31 +1,31 @@
 <template>
 <v-card>
-    <v-toolbar card color="transparent">
+    <v-app-bar flat color="transparent">
         <v-toolbar-title>Device Fleet</v-toolbar-title>
-    </v-toolbar>
+    </v-app-bar>
     <v-divider></v-divider>
     <v-card-text class="pa-0">
         <v-list two-line class="pa-0">
             <template v-for="(item, index) in devices">
-                <v-list-tile :key="item.uid">
-                    <v-list-tile-avatar>
+                <v-list-item :key="item.uid">
+                    <v-list-item-avatar>
                         <v-icon color="success" v-if="item.online">
                             check_circle
                         </v-icon>
                         <v-icon v-else>check_circle</v-icon>
-                    </v-list-tile-avatar>
-                    <v-list-tile-content>
-                        <v-list-tile-title v-html="item.uid"></v-list-tile-title>
-                        <v-list-tile-sub-title v-html="item.identity.mac"></v-list-tile-sub-title>
-                    </v-list-tile-content>
-                    <v-list-tile-action>
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                        <v-list-item-title v-html="item.uid"></v-list-item-title>
+                        <v-list-item-subtitle v-html="item.identity.mac"></v-list-item-subtitle>
+                    </v-list-item-content>
+                    <v-list-item-action>
                         <TerminalDialog :uid="item.uid" v-if="item.online"></TerminalDialog>
-                        <v-btn color="primary" dark icon flat @click="remove(item.uid)"><font-awesome-icon icon="trash">trash</font-awesome-icon></v-btn>
-                    </v-list-tile-action>
-                    <v-list-tile-action>
-                        <v-list-tile-action-text v-if="!item.online">last seen {{ item.last_seen | moment("from", "now") }}</v-list-tile-action-text>
-                    </v-list-tile-action>
-                </v-list-tile>
+                        <v-btn color="primary" dark icon text @click="remove(item.uid)"><font-awesome-icon icon="trash">trash</font-awesome-icon></v-btn>
+                    </v-list-item-action>
+                    <v-list-item-action>
+                        <v-list-item-action-text v-if="!item.online">last seen {{ item.last_seen | moment("from", "now") }}</v-list-item-action-text>
+                    </v-list-item-action>
+                </v-list-item>
 
                 <v-divider v-if="index + 1 < devices.length" :key="index"></v-divider>
             </template>

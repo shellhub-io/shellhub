@@ -1,11 +1,11 @@
 <template>
 <v-card>
-    <v-toolbar card color="transparent">
+    <v-app-bar flat color="transparent">
         <v-toolbar-title>Sessions</v-toolbar-title>
-    </v-toolbar>
+    </v-app-bar>
     <v-divider></v-divider>
     <v-card-text class="pa-0">
-    <v-data-table :headers="headers" :items="$store.getters['sessions/list']" item-key="uid" disable-initial-sort hide-actions>
+    <v-data-table :headers="headers" :items="$store.getters['sessions/list']" item-key="uid" hide-default-footer>
         <template v-slot:items="props">
             <td>{{ props.item.device }}</td>
             <td>{{ props.item.username }}</td>

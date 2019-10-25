@@ -1,7 +1,7 @@
 <template>
 <v-dialog v-model="show">
     <template v-slot:activator="{ on }">
-        <v-btn color="primary" dark @click="open()" icon flat><font-awesome-icon icon="terminal">terminal</font-awesome-icon></v-btn>
+        <v-btn color="primary" dark @click="open()" icon text><font-awesome-icon icon="terminal">terminal</font-awesome-icon></v-btn>
     </template>
     <v-card>
         <v-toolbar dark color="primary" v-if="visible">
