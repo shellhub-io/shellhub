@@ -9,6 +9,6 @@ easily access any Linux device behind firewall and NAT.
 
 ```
 $ docker-compose build
-$ docker-compse up
+$ docker-compose up
 ```
 
