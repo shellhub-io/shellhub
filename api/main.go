@@ -229,10 +229,14 @@ func main() {
 		}
 
 		sessions := req.Sessions
+		attributes := req.Attributes
 
 		req.Sessions = []string{}
+		req.Attributes = map[string]string{}
 
 		uid := sha256.Sum256(structhash.Dump(req, 1))
+
+		req.Attributes = attributes
 
 		d := &Device{
 			UID:        hex.EncodeToString(uid[:]),
