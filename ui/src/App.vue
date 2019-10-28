@@ -33,7 +33,7 @@
     <v-app-bar app color="primary" dark>
       <v-spacer></v-spacer>
       <v-btn icon>
-        <font-awesome-icon icon="sign-out-alt" @click="logout()">sign-out-alt</font-awesome-icon>
+        <font-awesome-icon color="white" icon="sign-out-alt" @click="logout()">sign-out-alt</font-awesome-icon>
       </v-btn>
     </v-app-bar>
     <v-content>

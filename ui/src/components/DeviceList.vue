@@ -5,32 +5,38 @@
     </v-app-bar>
     <v-divider></v-divider>
     <v-card-text class="pa-0">
-        <v-list two-line class="pa-0">
-            <template v-for="(item, index) in devices">
-                <v-list-item :key="item.uid">
-                    <v-list-item-avatar>
-                        <v-icon color="success" v-if="item.online">
-                            check_circle
-                        </v-icon>
-                        <v-icon v-else>check_circle</v-icon>
-                    </v-list-item-avatar>
-                    <v-list-item-content>
-                        <v-list-item-title v-html="item.uid"></v-list-item-title>
-                        <v-list-item-subtitle v-html="item.identity.mac"></v-list-item-subtitle>
-                    </v-list-item-content>
-                    <v-list-item-action>
-                        <TerminalDialog :uid="item.uid" v-if="item.online"></TerminalDialog>
-                        <v-btn color="primary" dark icon text @click="remove(item.uid)"><font-awesome-icon icon="trash">trash</font-awesome-icon></v-btn>
-                    </v-list-item-action>
-                    <v-list-item-action>
-                        <v-list-item-action-text v-if="!item.online">last seen {{ item.last_seen | moment("from", "now") }}</v-list-item-action-text>
-                    </v-list-item-action>
-                </v-list-item>
-
-                <v-divider v-if="index + 1 < devices.length" :key="index"></v-divider>
+        <v-data-table :headers="headers" :items="devices" item-key="uid" hide-default-footer>
+            <template v-slot:item.online="{ item }">
+                <v-icon color="success" v-if="item.online">check_circle</v-icon>
+                <v-tooltip bottom v-else>
+                    <template #activator="{ on }">
+                        <v-icon v-on="on">check_circle</v-icon>
+                    </template>
+                    <span>last seen {{ item.last_seen | moment("from", "now") }}</span>
+                </v-tooltip>
             </template>
-        </v-list>
+
+            <template v-slot:item.uid="{ item }">
+                <v-chip>
+                    {{ item.uid }}
+                    <v-icon small right @click v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
+                </v-chip>
+            </template>
+
+            <template v-slot:item.identity.mac="{ item }">
+                <code>{{ item.identity.mac }}</code>
+            </template>
+
+            <template v-slot:item.actions="{ item }">
+                <TerminalDialog :uid="item.uid" v-if="item.online"></TerminalDialog>
+
+                <v-icon @click="remove(item.uid)">
+                    delete
+                </v-icon>
+            </template>
+        </v-data-table>
     </v-card-text>
+    <v-snackbar v-model="copySnack" :timeout=3000>Device UID copied to clipboard</v-snackbar>
 </v-card>
 </template>
 
@@ -53,11 +59,47 @@ export default {
   },
 
   methods: {
+    copy(device) {
+      this.$clipboard(device.uid);
+    },
+
     remove(uid) {
       if (confirm("Are you sure?")) {
         this.$store.dispatch("devices/remove", uid);
       }
+    },
+
+    showCopySnack() {
+      this.copySnack = true;
     }
+  },
+
+  data() {
+    return {
+      copySnack: false,
+      headers: [
+        {
+          text: "UID",
+          value: "uid"
+        },
+        {
+          text: "MAC",
+          value: "identity.mac",
+          align: "center"
+        },
+        {
+          text: "Online",
+          value: "online",
+          align: "center"
+        },
+        {
+          text: "Actions",
+          value: "actions",
+          align: "center",
+          sortable: false
+        }
+      ]
+    };
   }
 };
 </script>

@@ -1,7 +1,7 @@
 <template>
 <v-dialog v-model="show">
     <template v-slot:activator="{ on }">
-        <v-btn color="primary" dark @click="open()" icon text><font-awesome-icon icon="terminal">terminal</font-awesome-icon></v-btn>
+        <v-icon @click="open()">mdi-console</v-icon>
     </template>
     <v-card>
         <v-toolbar dark color="primary" v-if="visible">
