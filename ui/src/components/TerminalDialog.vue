@@ -1,7 +1,29 @@
 <template>
 <v-dialog v-model="show">
     <template v-slot:activator="{ on }">
-        <v-icon @click="open()">mdi-console</v-icon>
+        <v-menu bottom right transition="scale-transition" origin="top right">
+            <template v-slot:activator="{ on }">
+                <v-icon v-on="on">mdi-console</v-icon>
+            </template>
+
+            <v-card>
+                <v-list>
+                    <v-list-item @click="() => {}" v-clipboard="`root@${$props.uid}@${hostname}`">
+                        <v-list-item-action>
+                            <v-icon>mdi-content-copy</v-icon>
+                        </v-list-item-action>
+                        <v-list-item-title>Copy SSH connection string to clipboard</v-list-item-title>
+                    </v-list-item>
+
+                    <v-list-item @click="open()">
+                        <v-list-item-action>
+                            <v-icon>mdi-monitor</v-icon>
+                        </v-list-item-action>
+                        <v-list-item-title>Open Terminal Window</v-list-item-title>
+                    </v-list-item>
+                </v-list>
+            </v-card>
+        </v-menu>
     </template>
     <v-card>
         <v-toolbar dark color="primary" v-if="visible">
@@ -32,6 +54,7 @@ export default {
 
   data() {
     return {
+      hostname: window.location.hostname,
       username: "",
       passwd: "",
       visible: false
