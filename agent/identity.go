@@ -25,6 +25,25 @@ func GetDeviceIdentity() (*DeviceIdentity, error) {
 	return d, nil
 }
 
+func GetDeviceAttributes() (*DeviceAttributes, error) {
+	attr := &DeviceAttributes{}
+
+	id, err := getValueFromOsRelease("ID")
+	if err != nil {
+		return nil, err
+	}
+
+	name, err := getValueFromOsRelease("PRETTY_NAME")
+	if err != nil {
+		return nil, err
+	}
+
+	attr.ID = id
+	attr.PrettyName = name
+
+	return attr, nil
+}
+
 func primaryIface() (*net.Interface, error) {
 	interfaces, err := net.Interfaces()
 	if err != nil {

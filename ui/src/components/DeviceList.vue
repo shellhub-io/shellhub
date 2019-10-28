@@ -23,6 +23,11 @@
                 </v-chip>
             </template>
 
+            <template v-slot:item.attributes.pretty_name="{ item }">
+                <v-icon left>{{ deviceIcon[item.attributes.id] || 'fl-tux' }}</v-icon>
+                {{ item.attributes.pretty_name }}
+            </template>
+
             <template v-slot:item.identity.mac="{ item }">
                 <code>{{ item.identity.mac }}</code>
             </template>
@@ -76,11 +81,19 @@ export default {
 
   data() {
     return {
+      deviceIcon: {
+        arch: "fl-archlinux",
+        ubuntu: "fl-ubuntu"
+      },
       copySnack: false,
       headers: [
         {
           text: "UID",
           value: "uid"
+        },
+        {
+          text: "Operating System",
+          value: "attributes.pretty_name"
         },
         {
           text: "MAC",

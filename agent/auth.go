@@ -11,11 +11,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+type DeviceAttributes struct {
+	ID         string `json:"id"`
+	PrettyName string `json:"pretty_name"`
+}
+
 type AuthRequest struct {
-	Identity  *DeviceIdentity `json:"identity"`
-	PublicKey string          `json:"public_key"`
-	TenantID  string          `json:"tenant_id"`
-	Sessions  []string        `json:"sessions,omitempty"`
+	Identity   *DeviceIdentity   `json:"identity"`
+	Attributes *DeviceAttributes `json:"attributes"`
+	PublicKey  string            `json:"public_key"`
+	TenantID   string            `json:"tenant_id"`
+	Sessions   []string          `json:"sessions,omitempty"`
 }
 
 type AuthResponse struct {

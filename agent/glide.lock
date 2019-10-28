@@ -1,5 +1,5 @@
-hash: a343c6c1665eaa195edd99e7653480109105070f646980e5e68434de6b478ba6
-updated: 2019-10-17T09:00:00.474801317-03:00
+hash: 45b314aa1f13e5e4653a918e6b33c412006b72b8628d6832f172a019a726f6d1
+updated: 2019-10-28T11:59:43.568496933-03:00
 imports:
 - name: github.com/anmitsu/go-shlex
   version: 648efa622239a2f6ff949fed78ee37b48d499ba4
@@ -21,6 +21,8 @@ imports:
   version: 24b51915630e1d9d3c6adf15a3a96796bbc3cd43
 - name: github.com/libertylocked/urlpattern
   version: 72b487d5dfd69b0a1b248849a30793a02da23b50
+- name: github.com/mattn/go-shellwords
+  version: 36a9b3c57cb5caa559ff63fb7e9b585f1c00df75
 - name: github.com/parnurzeal/gorequest
   version: b735e503d8bf955a72baf89723cdb50ab0bd668c
 - name: github.com/pkg/errors

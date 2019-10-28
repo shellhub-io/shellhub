@@ -22,3 +22,5 @@ import:
 - package: github.com/sirupsen/logrus
   version: ^1.4.0
 - package: github.com/libertylocked/urlpattern
+- package: github.com/mattn/go-shellwords
+  version: ~1.0.6

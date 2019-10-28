@@ -19,20 +19,22 @@ import (
 )
 
 type DeviceAuthRequest struct {
-	Identity  map[string]string `json:"identity"`
-	PublicKey string            `json:"public_key"`
-	TenantID  string            `json:"tenant_id"`
-	Sessions  []string          `json:"sessions,omitempty"`
+	Identity   map[string]string `json:"identity"`
+	Attributes map[string]string `json:"attributes"`
+	PublicKey  string            `json:"public_key"`
+	TenantID   string            `json:"tenant_id"`
+	Sessions   []string          `json:"sessions,omitempty"`
 }
 
 type Device struct {
-	ID        bson.ObjectId     `json:"-" bson:"_id,omitempty"`
-	UID       string            `json:"uid"`
-	Identity  map[string]string `json:"identity"`
-	PublicKey string            `json:"public_key" bson:"public_key"`
-	TenantID  string            `json:"tenant_id" bson:"tenant_id"`
-	LastSeen  time.Time         `json:"last_seen"`
-	Online    bool              `json:"online"`
+	ID         bson.ObjectId     `json:"-" bson:"_id,omitempty"`
+	UID        string            `json:"uid"`
+	Identity   map[string]string `json:"identity"`
+	Attributes map[string]string `json:"attributes"`
+	PublicKey  string            `json:"public_key" bson:"public_key"`
+	TenantID   string            `json:"tenant_id" bson:"tenant_id"`
+	LastSeen   time.Time         `json:"last_seen"`
+	Online     bool              `json:"online"`
 }
 
 type Session struct {
@@ -233,11 +235,12 @@ func main() {
 		uid := sha256.Sum256(structhash.Dump(req, 1))
 
 		d := &Device{
-			UID:       hex.EncodeToString(uid[:]),
-			Identity:  req.Identity,
-			PublicKey: req.PublicKey,
-			TenantID:  req.TenantID,
-			LastSeen:  time.Now(),
+			UID:        hex.EncodeToString(uid[:]),
+			Identity:   req.Identity,
+			Attributes: req.Attributes,
+			PublicKey:  req.PublicKey,
+			TenantID:   req.TenantID,
+			LastSeen:   time.Now(),
 		}
 
 		_, err = db.C("devices").Upsert(bson.M{"uid": d.UID}, d)

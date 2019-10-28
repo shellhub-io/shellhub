@@ -31,11 +31,12 @@ func (e *Endpoints) buildAPIUrl(uri string) string {
 	return fmt.Sprintf("http://%s/api/%s", e.API, uri)
 }
 
-func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*AuthResponse, error) {
+func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, attributes *DeviceAttributes, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*AuthResponse, error) {
 	var auth AuthResponse
 
 	_, _, errs := gorequest.New().Post(endpoints.buildAPIUrl("/devices/auth")).Send(&AuthRequest{
-		Identity: identity,
+		Identity:   identity,
+		Attributes: attributes,
 		PublicKey: string(pem.EncodeToMemory(&pem.Block{
 			Type:  "RSA PUBLIC KEY",
 			Bytes: x509.MarshalPKCS1PublicKey(pubKey),
@@ -70,6 +71,11 @@ func main() {
 		logrus.Fatal(err)
 	}
 
+	attributes, err := GetDeviceAttributes()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
 	if _, err := os.Stat(opts.PrivateKey); os.IsNotExist(err) {
 		logrus.Info("Private key not found. Generating...")
 		err := generatePrivateKey(opts.PrivateKey)
@@ -83,7 +89,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	auth, err := sendAuthRequest(&endpoints, identity, pubKey, opts.TenantID, []string{})
+	auth, err := sendAuthRequest(&endpoints, identity, attributes, pubKey, opts.TenantID, []string{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
@@ -109,7 +115,7 @@ func main() {
 	ticker := time.NewTicker(10 * time.Second)
 
 	for _ = range ticker.C {
-		sendAuthRequest(&endpoints, identity, pubKey, opts.TenantID, client.Sessions)
+		sendAuthRequest(&endpoints, identity, attributes, pubKey, opts.TenantID, client.Sessions)
 	}
 }
 
