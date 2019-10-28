@@ -6,12 +6,13 @@ export default {
     state: {
         status: '',
         token: localStorage.getItem('token') || '',
-        user: {}
+        user: localStorage.getItem('user') || ''
     },
 
     getters: {
         isLoggedIn: state => !!state.token,
         authStatus: state => state.status,
+        currentUser: state => state.user,
     },
 
     mutations: {
@@ -19,19 +20,20 @@ export default {
             state.status = 'loading'
         },
 
-        auth_success(state, token, user){
+        auth_success(state, data) {
             state.status = 'success'
-            state.token = token
-            state.user = user
+            state.token = data.token
+            state.user = data.user
         },
 
-        auth_error(state){
+        auth_error(state) {
             state.status = 'error'
         },
 
-        logout(state){
+        logout(state) {
             state.status = ''
             state.token = ''
+            state.user = ''
         },
     },
 
@@ -43,15 +45,18 @@ export default {
                 const resp = await login(user);
 
                 localStorage.setItem('token', resp.data.token)
-                context.commit('auth_success', resp.data.token)
+                localStorage.setItem('user', resp.data.user)
+
+                context.commit('auth_success', resp.data)
             } catch (err) {
                 context.commit('auth_error')
             }
         },
 
-        logout(context){
+        logout(context) {
             context.commit('logout')
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
         }
     }
 }

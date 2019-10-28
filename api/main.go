@@ -399,6 +399,7 @@ func main() {
 
 			return c.JSON(http.StatusOK, map[string]string{
 				"token": t,
+				"user":  user.Username,
 			})
 		}
 
