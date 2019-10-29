@@ -451,15 +451,85 @@ func main() {
 			return err
 		}
 
-		fmt.Println(resp)
-
-		connectedDevices := 0
+		onlineDevices := 0
 		if len(resp) > 0 {
-			connectedDevices = resp[0]["count"].(int)
+			onlineDevices = resp[0]["count"].(int)
+		}
+
+		query = []bson.M{
+			{"$count": "count"},
+		}
+
+		// Only match for the respective tenant if requested
+		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
+			query = append([]bson.M{{
+				"$match": bson.M{
+					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
+				},
+			}}, query...)
+		}
+
+		resp = []bson.M{}
+
+		if err := db.C("devices").Pipe(query).All(&resp); err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		registeredDevices := 0
+		if len(resp) > 0 {
+			registeredDevices = resp[0]["count"].(int)
+		}
+
+		query = []bson.M{
+			{
+				"$lookup": bson.M{
+					"from":         "active_sessions",
+					"localField":   "uid",
+					"foreignField": "uid",
+					"as":           "active",
+				},
+			},
+			{
+				"$addFields": bson.M{
+					"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
+				},
+			},
+			{
+				"$match": bson.M{
+					"active": true,
+				},
+			},
+		}
+
+		// Only match for the respective tenant if requested
+		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
+			query = append(query, bson.M{
+				"$match": bson.M{
+					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
+				},
+			})
+		}
+
+		query = append(query, bson.M{
+			"$count": "count",
+		})
+
+		resp = []bson.M{}
+
+		if err := db.C("sessions").Pipe(query).All(&resp); err != nil {
+			return err
+		}
+
+		activeSessions := 0
+		if len(resp) > 0 {
+			activeSessions = resp[0]["count"].(int)
 		}
 
 		return c.JSON(http.StatusOK, echo.Map{
-			"connected_devices": connectedDevices,
+			"registered_devices": registeredDevices,
+			"online_devices":     onlineDevices,
+			"active_sessions":    activeSessions,
 		})
 	})
 
