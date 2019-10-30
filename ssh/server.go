@@ -184,6 +184,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
 		}).Info("Connection closed")
 
+		session.Write([]byte("Permission denied\n"))
+
 		session.Close()
 	}
 
