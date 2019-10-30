@@ -1,8 +1,8 @@
 <template>
-<v-container class="grey lighten-5">
-    <v-row no-gutters>
-        <v-col>
-            <v-card class="ma-4" outlined>
+<v-container fluid>
+    <v-row>
+        <v-col cols="12" md="4" class="pt-0">
+            <v-card class="pa-2">
                 <v-list-item three-line>
                     <v-list-item-content>
                         <div class="overline mb-4">Registered Devices</div>
@@ -19,8 +19,8 @@
             </v-card>
         </v-col>
 
-        <v-col>
-            <v-card class="ma-4" outlined>
+        <v-col cols="12" md="4" class="pt-0">
+            <v-card class="pa-2">
                 <v-list-item three-line>
                     <v-list-item-content>
                         <div class="overline mb-4">Online Devices</div>
@@ -37,8 +37,8 @@
             </v-card>
         </v-col>
 
-        <v-col>
-            <v-card class="ma-4" outlined>
+        <v-col cols="12" md="4" class="pt-0">
+            <v-card class="pa-2">
                 <v-list-item three-line>
                     <v-list-item-content>
                         <div class="overline mb-4">Active Sessions</div>
