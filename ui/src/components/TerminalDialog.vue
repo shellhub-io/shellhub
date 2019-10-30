@@ -8,7 +8,7 @@
 
             <v-card>
                 <v-list>
-                    <v-list-item @click="() => {}" v-clipboard="`root@${$props.uid}@${hostname}`">
+                    <v-list-item @click="() => {}" v-clipboard="`${$props.uid}@${hostname}`" v-clipboard:success="showCopySnack">
                         <v-list-item-action>
                             <v-icon>mdi-content-copy</v-icon>
                         </v-list-item-action>
@@ -24,6 +24,8 @@
                 </v-list>
             </v-card>
         </v-menu>
+
+        <v-snackbar v-model="copySnack" :timeout=3000>SSH connection string copied to clipboard</v-snackbar>
     </template>
     <v-card>
         <v-toolbar dark color="primary" v-if="visible">
@@ -39,7 +41,9 @@
 </template>
 
 <script>
-import { Terminal } from "xterm";
+import {
+    Terminal
+} from "xterm";
 import * as fit from "xterm/lib/addons/fit/fit";
 import * as attach from "xterm/lib/addons/attach/attach";
 import "xterm/dist/xterm.css";
@@ -48,102 +52,107 @@ Terminal.applyAddon(fit);
 Terminal.applyAddon(attach);
 
 export default {
-  name: "TerminalDialog",
+    name: "TerminalDialog",
 
-  props: ["uid"],
+    props: ["uid"],
 
-  data() {
-    return {
-      hostname: window.location.hostname,
-      username: "",
-      passwd: "",
-      visible: false
-    };
-  },
+    data() {
+        return {
+            hostname: window.location.hostname,
+            username: "",
+            passwd: "",
+            visible: false,
+            copySnack: false,
+        };
+    },
 
-  mounted() {
-    this.xterm = new Terminal({
-      cursorBlink: true,
-      fontFamily: "monospace"
-    });
-  },
+    mounted() {
+        this.xterm = new Terminal({
+            cursorBlink: true,
+            fontFamily: "monospace"
+        });
+    },
 
-  watch: {
-    show(value) {
-      if (!value) {
-        this.ws.close();
-      }
-    }
-  },
-
-  computed: {
-    show: {
-      get() {
-        return this.$store.getters["modals/terminal"] === this.$props.uid;
-      },
-
-      set(value) {
-        if (value) {
-          this.$store.dispatch("modals/toggleTerminal", this.$props.uid);
-        } else {
-          this.$store.dispatch("modals/toggleTerminal", "");
+    watch: {
+        show(value) {
+            if (!value) {
+                this.ws.close();
+            }
         }
-      }
-    }
-  },
-
-  methods: {
-    open() {
-      this.username = prompt("Username:");
-      this.passwd = prompt("Password:");
-
-      this.$store.dispatch("modals/toggleTerminal", this.$props.uid);
-
-      if (this.xterm.element) {
-        this.xterm.reset();
-      }
-
-      setTimeout(() => {
-        this.visible = true;
-        this.connect();
-      }, 1000);
     },
 
-    close() {
-      this.$store.dispatch("modals/toggleTerminal", "");
+    computed: {
+        show: {
+            get() {
+                return this.$store.getters["modals/terminal"] === this.$props.uid;
+            },
+
+            set(value) {
+                if (value) {
+                    this.$store.dispatch("modals/toggleTerminal", this.$props.uid);
+                } else {
+                    this.$store.dispatch("modals/toggleTerminal", "");
+                }
+            }
+        }
     },
 
-    connect() {
-      this.$nextTick(() => this.xterm.fit());
+    methods: {
+        open() {
+            this.username = prompt("Username:");
+            this.passwd = prompt("Password:");
 
-      if (!this.xterm.element) {
-        this.xterm.open(this.$refs.terminal);
-      }
+            this.$store.dispatch("modals/toggleTerminal", this.$props.uid);
 
-      this.xterm.fit();
-      this.xterm.focus();
+            if (this.xterm.element) {
+                this.xterm.reset();
+            }
 
-      const params = Object.entries({
-        user: `${this.username}@${this.$props.uid}`,
-        passwd: this.passwd,
-        cols: this.xterm.cols,
-        rows: this.xterm.rows
-      })
-        .map(([k, v]) => {
-          return `${k}=${v}`;
-        })
-        .join("&");
+            setTimeout(() => {
+                this.visible = true;
+                this.connect();
+            }, 1000);
+        },
 
-      this.ws = new WebSocket(`ws://${location.host}/ws/ssh?${params}`);
+        close() {
+            this.$store.dispatch("modals/toggleTerminal", "");
+        },
 
-      this.ws.onopen = () => {
-        this.xterm.attach(this.ws, true, true);
-      };
+        connect() {
+            this.$nextTick(() => this.xterm.fit());
 
-      this.ws.onclose = () => {
-        this.xterm.detach(this.ws);
-      };
+            if (!this.xterm.element) {
+                this.xterm.open(this.$refs.terminal);
+            }
+
+            this.xterm.fit();
+            this.xterm.focus();
+
+            const params = Object.entries({
+                    user: `${this.username}@${this.$props.uid}`,
+                    passwd: this.passwd,
+                    cols: this.xterm.cols,
+                    rows: this.xterm.rows
+                })
+                .map(([k, v]) => {
+                    return `${k}=${v}`;
+                })
+                .join("&");
+
+            this.ws = new WebSocket(`ws://${location.host}/ws/ssh?${params}`);
+
+            this.ws.onopen = () => {
+                this.xterm.attach(this.ws, true, true);
+            };
+
+            this.ws.onclose = () => {
+                this.xterm.detach(this.ws);
+            };
+        },
+
+        showCopySnack() {
+            this.copySnack = true;
+        }
     }
-  }
 };
 </script>
