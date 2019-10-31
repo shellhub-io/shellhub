@@ -1,5 +1,5 @@
 <template>
-<v-dialog v-model="show">
+<v-dialog v-model="show" max-width="1024px">
     <template v-slot:activator="{ on }">
         <v-menu bottom right transition="scale-transition" origin="top right">
             <template v-slot:activator="{ on }">
@@ -28,19 +28,30 @@
         <v-snackbar v-model="copySnack" :timeout=3000>SSH connection string copied to clipboard</v-snackbar>
     </template>
     <v-card>
-        <v-toolbar dark color="primary" v-if="visible">
+        <v-toolbar dark color="primary">
             <v-btn icon dark @click="close()">
                 <v-icon>close</v-icon>
             </v-btn>
             <v-toolbar-title>Terminal</v-toolbar-title>
             <v-spacer></v-spacer>
         </v-toolbar>
+        <v-card class="ma-0 pa-6" v-if="showLoginForm" outlined>
+            <v-form ref="form" v-model="valid" @submit.prevent="connect()" lazy-validation>
+                <v-text-field label="Username" v-model="username" ref="username" autofocus :rules="[rules.required]" :validate-on-blur="true"></v-text-field>
+                <v-text-field label="Password" type="password" v-model="passwd" :rules="[rules.required]" :validate-on-blur="true"></v-text-field>
+                <v-btn type="submit" color="primary" class="mt-4" rounded>Connect</v-btn>
+            </v-form>
+        </v-card>
         <div ref="terminal"></div>
     </v-card>
 </v-dialog>
 </template>
 
 <script>
+import {
+    required,
+    minLength
+} from "vuelidate/lib/validators";
 import {
     Terminal
 } from "xterm";
@@ -61,22 +72,28 @@ export default {
             hostname: window.location.hostname,
             username: "",
             passwd: "",
-            visible: false,
+            showLoginForm: true,
             copySnack: false,
+            valid: true,
+            rules: {
+                required: value => !!value || "Required"
+            }
         };
-    },
-
-    mounted() {
-        this.xterm = new Terminal({
-            cursorBlink: true,
-            fontFamily: "monospace"
-        });
     },
 
     watch: {
         show(value) {
             if (!value) {
-                this.ws.close();
+                if (this.ws) this.ws.close();
+                if (this.xterm) this.xterm.destroy();
+
+                this.username = "";
+                this.passwd = "";
+                this.showLoginForm = true;
+            } else {
+                requestAnimationFrame(() => {
+                    this.$refs.username.focus();
+                });
             }
         }
     },
@@ -99,19 +116,16 @@ export default {
 
     methods: {
         open() {
-            this.username = prompt("Username:");
-            this.passwd = prompt("Password:");
+            this.xterm = new Terminal({
+                cursorBlink: true,
+                fontFamily: "monospace"
+            });
 
             this.$store.dispatch("modals/toggleTerminal", this.$props.uid);
 
             if (this.xterm.element) {
                 this.xterm.reset();
             }
-
-            setTimeout(() => {
-                this.visible = true;
-                this.connect();
-            }, 1000);
         },
 
         close() {
@@ -119,6 +133,11 @@ export default {
         },
 
         connect() {
+            if (!this.$refs.form.validate(true)) {
+                return;
+            }
+
+            this.showLoginForm = false;
             this.$nextTick(() => this.xterm.fit());
 
             if (!this.xterm.element) {
