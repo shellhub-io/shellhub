@@ -49,10 +49,6 @@
 
 <script>
 import {
-    required,
-    minLength
-} from "vuelidate/lib/validators";
-import {
     Terminal
 } from "xterm";
 import * as fit from "xterm/lib/addons/fit/fit";
