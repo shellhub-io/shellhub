@@ -1,6 +1,10 @@
-hash: 91f5f75554730b8862c005c544c4f7d5c5f62808e2e164ecfde570b3fd7a59d3
-updated: 2019-06-05T09:54:25.567208827-03:00
+hash: 58700411ef55e45fe039cd00fc4997a8431fec538805dcf3951d893460b8a2c2
+updated: 2019-11-01T20:34:58.08375227Z
 imports:
+- name: cirello.io/goherokuname
+  version: 54f91376eb16467d4ca1b3b6d7c351f41524fe52
+  subpackages:
+  - '...'
 - name: github.com/cnf/structhash
   version: 62a607eb02243845670f25a61cbc2d394c1ede10
 - name: github.com/dgrijalva/jwt-go

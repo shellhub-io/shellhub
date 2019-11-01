@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"cirello.io/goherokuname"
 	"github.com/cnf/structhash"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -29,6 +30,7 @@ type DeviceAuthRequest struct {
 type Device struct {
 	ID         bson.ObjectId     `json:"-" bson:"_id,omitempty"`
 	UID        string            `json:"uid"`
+	Name       string            `json:"name" bson:"name,omitempty"`
 	Identity   map[string]string `json:"identity"`
 	Attributes map[string]string `json:"attributes"`
 	PublicKey  string            `json:"public_key" bson:"public_key"`
@@ -247,7 +249,14 @@ func main() {
 			LastSeen:   time.Now(),
 		}
 
-		_, err = db.C("devices").Upsert(bson.M{"uid": d.UID}, d)
+		q := bson.M{
+			"$setOnInsert": bson.M{
+				"name": goherokuname.Haikunate(),
+			},
+			"$set": d,
+		}
+
+		_, err = db.C("devices").Upsert(bson.M{"uid": d.UID}, q)
 		if err != nil {
 			return err
 		}
