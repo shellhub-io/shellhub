@@ -6,6 +6,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { fas } from '@fortawesome/free-solid-svg-icons'
 import Clipboard from 'v-clipboard'
+import { Fragment } from 'vue-fragment'
 
 import 'vuetify/dist/vuetify.min.css'
 
@@ -14,6 +15,7 @@ library.add(fas) // Include needed icons.
 
 Vue.use(Vuetify);
 Vue.use(Clipboard);
+Vue.use(Fragment);
 
 export default new Vuetify({
   iconfont: 'md',

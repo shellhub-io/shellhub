@@ -1,5 +1,5 @@
 <template>
-<v-container fluid>
+<fragment>
     <v-row>
         <v-col cols="12" md="4" class="pt-0">
             <v-card class="pa-2">
@@ -55,7 +55,7 @@
             </v-card>
         </v-col>
     </v-row>
-</v-container>
+</fragment>
 </template>
 
 <script>

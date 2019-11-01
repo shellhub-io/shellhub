@@ -57,7 +57,9 @@
         </v-menu>
     </v-app-bar>
     <v-content>
-      <router-view></router-view>
+        <v-container class="ma-8">
+            <router-view></router-view>
+        </v-container>
     </v-content>
 </v-app>
 </template>

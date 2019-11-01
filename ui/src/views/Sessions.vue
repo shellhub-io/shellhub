@@ -1,5 +1,5 @@
 <template>
-<v-container fluid>
+<fragment>
     <v-card>
         <v-app-bar flat color="transparent">
             <v-toolbar-title>Sessions</v-toolbar-title>
@@ -31,7 +31,7 @@
         </v-card-text>
     </v-card>
     <v-snackbar v-model="copySnack" :timeout=3000>Device UID copied to clipboard</v-snackbar>
-</v-container>
+</fragment>
 </template>
 
 <script>
