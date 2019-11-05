@@ -372,6 +372,25 @@ func main() {
 		return nil
 	})
 
+	e.PATCH("/devices/:uid", func(c echo.Context) error {
+		db := c.Get("db").(*mgo.Database)
+
+		var req struct {
+			Name string `json:"name"`
+		}
+
+		err := c.Bind(&req)
+		if err != nil {
+			return err
+		}
+
+		if err := db.C("devices").Update(bson.M{"uid": c.Param("uid")}, bson.M{"$set": bson.M{"name": req.Name}}); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	e.GET("/mqtt/auth", AuthenticateMqttClient)
 	e.GET("/mqtt/acl", AuthorizeMqttClient)
 	e.POST("/mqtt/webhook", ProcessMqttEvent)
