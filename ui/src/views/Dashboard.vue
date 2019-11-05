@@ -46,7 +46,7 @@
                         <v-list-item-subtitle>Active SSH Sessions opened by users</v-list-item-subtitle>
                     </v-list-item-content>
 
-                    <v-list-item-avatar tile size="80"><v-icon x-large>people</v-icon></v-list-item-avatar>
+                    <v-list-item-avatar tile size="80"><v-icon x-large>history</v-icon></v-list-item-avatar>
                 </v-list-item>
 
                 <v-card-actions>

@@ -107,7 +107,7 @@ export default {
           path: "/devices"
         },
         {
-          icon: "people",
+          icon: "history",
           title: "Sessions",
           path: "/sessions"
         }
