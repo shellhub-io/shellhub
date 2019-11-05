@@ -54,7 +54,7 @@
         </v-menu>
     </v-app-bar>
     <v-content>
-        <v-container class="ma-8">
+        <v-container class="pa-8">
             <router-view></router-view>
         </v-container>
     </v-content>
