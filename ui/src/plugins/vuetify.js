@@ -19,6 +19,14 @@ Vue.use(Fragment);
 
 export default new Vuetify({
   iconfont: 'md',
+  theme: {
+    themes: {
+      light: {
+        primary: '#0E283D',
+        secondary: '#5CA7DF'
+      }
+    }
+  },
   options: {
     customProperties: true
   }

@@ -1,18 +1,15 @@
 <template>
 <v-app>
-    <v-navigation-drawer :clipped="clipped" v-model="drawer" :mini-variant="true" enable-resize-watcher app dark>
-        <v-app-bar class="primary darken-1">
-            <img src="http://vma.isocked.com/static/m.png" height="36" alt="ShellHub">
-            <v-toolbar-title class="ml-0 pl-3">
-                <span class="hidden-sm-and-down">ShellHub</span>
-            </v-toolbar-title>
+    <v-navigation-drawer :clipped="clipped" v-model="drawer" :mini-variant="true" enable-resize-watcher app>
+        <v-app-bar class="primary" flat>
+
         </v-app-bar>
 
         <v-divider></v-divider>
-        <v-list class="grey--text">
-            <v-list-item v-for="item in items" :key="item.title" :to="item.path" active-class="grey--text text--lighten-4 v-list-active">
+        <v-list>
+            <v-list-item v-for="item in items" :key="item.title" :to="item.path" color="secondary">
                 <v-list-item-action>
-                    <v-icon class="grey--text text--lighten-2">{{ item.icon }}</v-icon>
+                    <v-icon>{{ item.icon }}</v-icon>
                 </v-list-item-action>
 
                 <v-list-item-content>
@@ -21,7 +18,7 @@
             </v-list-item>
         </v-list>
     </v-navigation-drawer>
-    <v-app-bar app color="primary">
+    <v-app-bar app color="primary lighten-1" flat>
         <v-spacer></v-spacer>
         <v-menu transition="scale-transition" origin="top right">
             <template v-slot:activator="{ on }">
