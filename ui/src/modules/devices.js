@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { fetchDevices, removeDevice } from '@/api/devices'
+import { fetchDevices, removeDevice, renameDevice } from '@/api/devices'
 
 export default {
     namespaced: true,
@@ -19,7 +19,11 @@ export default {
 
         removeDevice: (state, uid) => {
             state.devices.splice(state.devices.findIndex(d => d.uid == uid), 1)
-        }
+        },
+
+        renameDevice: (state, data) => {
+            state.devices = state.devices.map(i => i.uid == data.uid ? { ...i, name: data.name } : i);
+        },
     },
 
     actions: {
@@ -33,6 +37,11 @@ export default {
             await removeDevice(uid);
 
             context.commit('removeDevice', uid)
+        },
+
+        rename: async (context, data) => {
+            await renameDevice(data);
+            context.commit('renameDevice', data)
         }
     }
 }

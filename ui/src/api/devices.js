@@ -7,4 +7,8 @@ export const
 
     removeDevice = async (uid) => {
         return http().delete(`/devices/${uid}`)
+    },
+
+    renameDevice = async (data) => {
+        return http().patch(`/devices/${data.uid}`, { name: data.name })
     }

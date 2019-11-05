@@ -24,6 +24,15 @@
                     </v-chip>
                 </template>
 
+                <template v-slot:item.name="{ item }">
+                    <v-edit-dialog :return-value="editName" large @open="editName = item.name" @save="save(item)">
+                        <v-text-field slot="input" v-model="editName" label="Edit" single-line>
+                        </v-text-field>
+                        <v-icon small left>mdi-file-edit</v-icon>
+                        {{ item.name }}
+                    </v-edit-dialog>
+                </template>
+
                 <template v-slot:item.attributes.pretty_name="{ item }">
                     <v-icon left>{{ deviceIcon[item.attributes.id] || 'fl-tux' }}</v-icon>
                     {{ item.attributes.pretty_name }}
@@ -78,6 +87,13 @@ export default {
 
         showCopySnack() {
             this.copySnack = true;
+        },
+
+        save(item) {
+            this.$store.dispatch("devices/rename", {
+                uid: item.uid,
+                name: this.editName
+            });
         }
     },
 
@@ -88,9 +104,14 @@ export default {
                 ubuntu: "fl-ubuntu"
             },
             copySnack: false,
+            editName: '',
             headers: [{
                     text: "UID",
                     value: "uid"
+                },
+                {
+                    text: "Name",
+                    value: "name"
                 },
                 {
                     text: "Operating System",
