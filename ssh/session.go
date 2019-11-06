@@ -7,6 +7,7 @@ import (
 	"net"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/parnurzeal/gorequest"
 	"golang.org/x/crypto/ssh"
@@ -59,7 +60,10 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 
 	client, err := conn.NewSession()
 	if err != nil {
-		fmt.Println(err)
+		logrus.WithFields(logrus.Fields{
+			"session": s.UID,
+			"err":     err,
+		}).Error("Failed to create session for SSH Client")
 	}
 
 	pty, winCh, isPty := s.session.Pty()
@@ -73,7 +77,10 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 		go func() {
 			for win := range winCh {
 				if err = client.WindowChange(win.Height, win.Width); err != nil {
-					fmt.Println(err)
+					logrus.WithFields(logrus.Fields{
+						"session": s.UID,
+						"err":     err,
+					}).Error("Failed to send WindowChange")
 				}
 			}
 		}()
@@ -146,7 +153,10 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 
 		err = client.Start(s.session.RawCommand())
 		if err != nil {
-			fmt.Println(err)
+			logrus.WithFields(logrus.Fields{
+				"session": s.UID,
+				"err":     err,
+			}).Error("Failed to start session raw command")
 			return nil
 		}
 
