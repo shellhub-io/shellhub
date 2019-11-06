@@ -96,13 +96,19 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 
 		go func() {
 			if _, err = io.Copy(stdin, s.session); err != nil {
-				fmt.Println(err)
+				logrus.WithFields(logrus.Fields{
+					"session": s.UID,
+					"err":     err,
+				}).Error("Failed to copy to stdin in pty session")
 			}
 		}()
 
 		go func() {
 			if _, err = io.Copy(s.session, stdout); err != nil {
-				fmt.Println(err)
+				logrus.WithFields(logrus.Fields{
+					"session": s.UID,
+					"err":     err,
+				}).Error("Failed to copy from stdout in pty session")
 			}
 		}()
 
@@ -137,7 +143,10 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 
 		go func() {
 			if _, err = io.Copy(stdin, session); err != nil {
-				fmt.Println(err)
+				logrus.WithFields(logrus.Fields{
+					"session": s.UID,
+					"err":     err,
+				}).Error("Failed to copy to stdin in raw session")
 			}
 
 			done <- true
@@ -145,7 +154,10 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 
 		go func() {
 			if _, err = io.Copy(session, stdout); err != nil {
-				fmt.Println(err)
+				logrus.WithFields(logrus.Fields{
+					"session": s.UID,
+					"err":     err,
+				}).Error("Failed to copy from stdout in raw session")
 			}
 
 			done <- true
