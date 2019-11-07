@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 	"sort"
+	"strings"
 )
 
 var ErrNoInterfaceFound = errors.New("No interface found")
@@ -54,6 +55,10 @@ func primaryIface() (*net.Interface, error) {
 
 	for _, iface := range interfaces {
 		if iface.Flags&net.FlagLoopback > 0 {
+			continue
+		}
+
+		if !strings.HasPrefix(iface.Name, "eth") && !strings.HasPrefix(iface.Name, "eno") {
 			continue
 		}
 
