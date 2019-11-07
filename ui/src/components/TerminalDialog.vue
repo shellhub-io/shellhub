@@ -145,7 +145,7 @@ export default {
 
             const params = Object.entries({
                     user: `${this.username}@${this.$props.uid}`,
-                    passwd: this.passwd,
+                    passwd: encodeURIComponent(this.passwd),
                     cols: this.xterm.cols,
                     rows: this.xterm.rows
                 })
