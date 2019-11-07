@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	sshserver "github.com/gliderlabs/ssh"
@@ -53,7 +55,33 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 		},
 	}
 
-	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", "localhost", s.port), config)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	var conn *ssh.Client
+	var err error
+
+	timeout := time.After(time.Second * 10)
+
+loop:
+	for {
+		select {
+		case <-ctx.Done():
+			break loop
+		case <-timeout:
+			cancel()
+		default:
+			conn, err = ssh.Dial("tcp", fmt.Sprintf("%s:%d", "localhost", s.port), config)
+			if err != nil {
+				logrus.WithFields(logrus.Fields{
+					"session": s.UID,
+					"err":     err,
+				}).Warning("Failed to connect to forwarding")
+			} else {
+				cancel()
+			}
+		}
+	}
+
 	if err != nil {
 		return err
 	}
