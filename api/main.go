@@ -444,15 +444,46 @@ func main() {
 		return nil
 	}, middleware.JWT([]byte("secret")))
 
-	e.GET("/users", func(c echo.Context) error {
+	e.GET("/lookup", func(c echo.Context) error {
 		db := c.Get("db").(*mgo.Database)
 
-		users := make([]Device, 0)
-		if err := db.C("users").Find(bson.M{}).All(&users); err != nil {
+		var query struct {
+			Domain string `query:"domain"`
+			Name   string `query:"name"`
+		}
+
+		if err := c.Bind(&query); err != nil {
 			return err
 		}
 
-		return c.JSON(http.StatusOK, users)
+		pipe := []bson.M{}
+
+		// Only match for the respective tenant if requested
+		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
+			pipe = append(pipe, bson.M{
+				"$match": bson.M{
+					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
+				},
+			})
+		} else {
+			pipe = append(pipe, bson.M{"$match": bson.M{"username": query.Domain}})
+		}
+
+		users := make([]User, 0)
+		if err := db.C("users").Pipe(pipe).All(&users); err != nil {
+			return err
+		}
+
+		if len(users) == 0 {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+
+		device := new(Device)
+		if err := db.C("devices").Find(bson.M{"tenant_id": users[0].TenantID, "name": query.Name}).One(&device); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, device)
 	})
 
 	e.GET("/stats", func(c echo.Context) error {
