@@ -39,27 +39,30 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	}
 
 	s.User = parts[0]
+	s.Target = parts[1]
 
-	parts = strings.SplitN(parts[1], "/", 2)
-	if len(parts) < 2 {
-		return nil, ErrInvalidSessionTarget
+	if strings.Contains(s.Target, "/") {
+		parts = strings.SplitN(parts[1], "/", 2)
+		if len(parts) < 2 {
+			return nil, ErrInvalidSessionTarget
+		}
+
+		lookup := map[string]string{
+			"domain": parts[0],
+			"name":   parts[1],
+		}
+
+		var device struct {
+			UID string `json:"uid"`
+		}
+
+		res, _, errs := gorequest.New().Get("http://api:8080/lookup").Query(lookup).EndStruct(&device)
+		if len(errs) > 0 || res.StatusCode != http.StatusOK {
+			return nil, ErrInvalidSessionTarget
+		}
+
+		s.Target = device.UID
 	}
-
-	lookup := map[string]string{
-		"domain": parts[0],
-		"name":   parts[1],
-	}
-
-	var device struct {
-		UID string `json:"uid"`
-	}
-
-	res, _, errs := gorequest.New().Get("http://api:8080/lookup").Query(lookup).EndStruct(&device)
-	if len(errs) > 0 || res.StatusCode != http.StatusOK {
-		return nil, ErrInvalidSessionTarget
-	}
-
-	s.Target = device.UID
 
 	return s, nil
 }
