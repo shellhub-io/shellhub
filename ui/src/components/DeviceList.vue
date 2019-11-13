@@ -42,6 +42,11 @@
                     <code>{{ item.identity.mac }}</code>
                 </template>
 
+                <template v-slot:item.namespace="{ item }">
+                  <kbd>{{ address(item) }}<v-icon color="white" small right @click v-clipboard="address(item)" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
+                  </kbd>
+                </template>
+
                 <template v-slot:item.actions="{ item }">
                     <TerminalDialog :uid="item.uid" v-if="item.online"></TerminalDialog>
 
@@ -51,7 +56,7 @@
                 </template>
             </v-data-table>
         </v-card-text>
-        <v-snackbar v-model="copySnack" :timeout=3000>Device UID copied to clipboard</v-snackbar>
+        <v-snackbar v-model="copySnack" :timeout=3000>Device SSHID copied to clipboard</v-snackbar>
     </v-card>
 </fragment>
 </template>
@@ -60,81 +65,89 @@
 import TerminalDialog from "@/components/TerminalDialog.vue";
 
 export default {
-    components: {
-        TerminalDialog
-    },
+  components: {
+    TerminalDialog
+  },
 
-    created() {
-        this.$store.dispatch("devices/fetch");
-    },
+  created() {
+    this.$store.dispatch("devices/fetch");
+  },
 
-    computed: {
-        devices() {
-            return this.$store.getters["devices/list"];
-        }
-    },
-
-    methods: {
-        copy(device) {
-            this.$clipboard(device.uid);
-        },
-
-        remove(uid) {
-            if (confirm("Are you sure?")) {
-                this.$store.dispatch("devices/remove", uid);
-            }
-        },
-
-        showCopySnack() {
-            this.copySnack = true;
-        },
-
-        save(item) {
-            this.$store.dispatch("devices/rename", {
-                uid: item.uid,
-                name: this.editName
-            });
-        }
-    },
-
-    data() {
-        return {
-            deviceIcon: {
-                arch: "fl-archlinux",
-                ubuntu: "fl-ubuntu"
-            },
-            copySnack: false,
-            editName: '',
-            headers: [{
-                    text: "UID",
-                    value: "uid"
-                },
-                {
-                    text: "Name",
-                    value: "name"
-                },
-                {
-                    text: "Operating System",
-                    value: "attributes.pretty_name"
-                },
-                {
-                    text: "MAC",
-                    value: "identity.mac",
-                    align: "center"
-                },
-                {
-                    text: "Online",
-                    value: "online",
-                    align: "center"
-                },
-                {
-                    text: "Actions",
-                    value: "actions",
-                    align: "center",
-                    sortable: false
-                }
-            ]
-        };
+  computed: {
+    devices() {
+      return this.$store.getters["devices/list"];
     }
+  },
+
+  methods: {
+    address(item) {
+      return `${item.namespace}/${item.name}@${this.hostname}`;
+    },
+
+    copy(device) {
+      this.$clipboard(device.uid);
+    },
+
+    remove(uid) {
+      if (confirm("Are you sure?")) {
+        this.$store.dispatch("devices/remove", uid);
+      }
+    },
+
+    showCopySnack() {
+      this.copySnack = true;
+    },
+
+    save(item) {
+      this.$store.dispatch("devices/rename", {
+        uid: item.uid,
+        name: this.editName
+      });
+    }
+  },
+
+  data() {
+    return {
+      hostname: window.location.hostname,
+      deviceIcon: {
+        arch: "fl-archlinux",
+        ubuntu: "fl-ubuntu"
+      },
+      copySnack: false,
+      editName: "",
+      headers: [
+        {
+          text: "Online",
+          value: "online",
+          align: "center"
+        },
+        {
+          text: "Name",
+          value: "name"
+        },
+        {
+          text: "Operating System",
+          value: "attributes.pretty_name"
+        },
+
+        {
+          text: "MAC",
+          value: "identity.mac",
+          align: "center"
+        },
+        {
+          text: "SSHID",
+          value: "namespace",
+          align: "center"
+        },
+        {
+          text: "Actions",
+          value: "actions",
+          align: "center",
+          sortable: false
+        }
+      ]
+    };
+  }
 };
 </script>
