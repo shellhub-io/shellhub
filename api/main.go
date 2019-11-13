@@ -37,6 +37,7 @@ type Device struct {
 	TenantID   string            `json:"tenant_id" bson:"tenant_id"`
 	LastSeen   time.Time         `json:"last_seen"`
 	Online     bool              `json:"online"`
+	Namespace  string            `json:"namespace"`
 }
 
 type Session struct {
@@ -325,9 +326,21 @@ func main() {
 				},
 			},
 			{
-				"$addFields": bson.M{
-					"online": bson.M{"$anyElementTrue": []interface{}{"$online"}},
+				"$lookup": bson.M{
+					"from":         "users",
+					"localField":   "tenant_id",
+					"foreignField": "tenant_id",
+					"as":           "namespace",
 				},
+			},
+			{
+				"$addFields": bson.M{
+					"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
+					"namespace": "$namespace.username",
+				},
+			},
+			{
+				"$unwind": "$namespace",
 			},
 		}
 
