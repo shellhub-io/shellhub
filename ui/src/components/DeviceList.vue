@@ -43,7 +43,7 @@
                 </template>
 
                 <template v-slot:item.namespace="{ item }">
-                  <kbd>{{ address(item) }}<v-icon color="white" small right @click v-clipboard="address(item)" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
+                  <kbd>{{ address(item) }}<v-icon color="white" small right @click v-clipboard="() => address(item)" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
                   </kbd>
                 </template>
 
@@ -103,6 +103,8 @@ export default {
         uid: item.uid,
         name: this.editName
       });
+
+      item.name = this.editName;
     }
   },
 
