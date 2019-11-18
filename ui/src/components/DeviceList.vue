@@ -81,7 +81,7 @@ export default {
 
   methods: {
     address(item) {
-      return `${item.namespace}/${item.name}@${this.hostname}`;
+      return `${item.namespace}.${item.name}@${this.hostname}`;
     },
 
     copy(device) {

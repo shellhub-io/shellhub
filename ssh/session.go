@@ -41,8 +41,8 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	s.User = parts[0]
 	s.Target = parts[1]
 
-	if strings.Contains(s.Target, "/") {
-		parts = strings.SplitN(parts[1], "/", 2)
+	if strings.Contains(s.Target, ".") {
+		parts = strings.SplitN(parts[1], ".", 2)
 		if len(parts) < 2 {
 			return nil, ErrInvalidSessionTarget
 		}
