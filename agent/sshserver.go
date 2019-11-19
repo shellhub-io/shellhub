@@ -114,6 +114,12 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 	} else {
 		cmd := exec.Command(session.Command()[0], session.Command()[1:]...)
 
+		u, _ := user.Lookup(session.User())
+		cmd.Env = []string{
+			"HOME=" + u.HomeDir,
+		}
+		cmd.Dir = u.HomeDir
+
 		stdout, _ := cmd.StdoutPipe()
 		stdin, _ := cmd.StdinPipe()
 
