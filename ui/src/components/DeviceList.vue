@@ -6,7 +6,7 @@
         </v-app-bar>
         <v-divider></v-divider>
         <v-card-text class="pa-0">
-            <v-data-table :headers="headers" :items="devices" item-key="uid" hide-default-footer>
+            <v-data-table :headers="headers" :items="devices" item-key="uid" disable-pagination hide-default-footer>
                 <template v-slot:item.online="{ item }">
                     <v-icon color="success" v-if="item.online">check_circle</v-icon>
                     <v-tooltip bottom v-else>
