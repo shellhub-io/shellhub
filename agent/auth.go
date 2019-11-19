@@ -52,7 +52,7 @@ func generatePrivateKey(filename string) error {
 		return err
 	}
 
-	return nil
+	return f.Sync()
 }
 
 func readPublicKey(filename string) (*rsa.PublicKey, error) {
