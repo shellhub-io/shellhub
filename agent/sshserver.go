@@ -62,10 +62,13 @@ func (c *sshConn) Close() error {
 
 type SSHServer struct {
 	sshd *sshserver.Server
+	cmds map[string]*exec.Cmd
 }
 
 func NewSSHServer(port int) *SSHServer {
-	s := &SSHServer{}
+	s := &SSHServer{
+		cmds: make(map[string]*exec.Cmd),
+	}
 
 	s.sshd = &sshserver.Server{
 		Addr: fmt.Sprintf("localhost:%d", port),
@@ -80,7 +83,10 @@ func NewSSHServer(port int) *SSHServer {
 		Handler:          s.sessionHandler,
 		ConnCallback: func(ctx sshserver.Context, conn net.Conn) net.Conn {
 			closeCallback := func() {
-				logrus.Info("connection closed")
+				if v, ok := s.cmds[ctx.SessionID()]; ok {
+					v.Process.Kill()
+					delete(s.cmds, ctx.SessionID())
+				}
 			}
 
 			return &sshConn{conn, closeCallback}
@@ -124,6 +130,8 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 				logrus.Warn(err)
 			}
 		}()
+
+		s.cmds[session.Context().Value(sshserver.ContextKeySessionID).(string)] = scmd
 
 		err = scmd.Wait()
 		if err != nil {
