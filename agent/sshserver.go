@@ -24,6 +24,7 @@ import (
 */
 import "C"
 import (
+	"net"
 	"os/user"
 	"strconv"
 )
@@ -49,6 +50,16 @@ func Auth(user string, passwd string) bool {
 	return true
 }
 
+type sshConn struct {
+	net.Conn
+	closeCallback func()
+}
+
+func (c *sshConn) Close() error {
+	c.closeCallback()
+	return c.Conn.Close()
+}
+
 type SSHServer struct {
 	sshd *sshserver.Server
 }
@@ -67,6 +78,13 @@ func NewSSHServer(port int) *SSHServer {
 		},
 		PublicKeyHandler: s.publicKeyHandler,
 		Handler:          s.sessionHandler,
+		ConnCallback: func(ctx sshserver.Context, conn net.Conn) net.Conn {
+			closeCallback := func() {
+				logrus.Info("connection closed")
+			}
+
+			return &sshConn{conn, closeCallback}
+		},
 	}
 
 	return s
