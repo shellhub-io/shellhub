@@ -140,4 +140,7 @@ func handleClient(client net.Conn, remote net.Conn) {
 	}()
 
 	<-chDone
+
+	client.Close()
+	remote.Close()
 }
