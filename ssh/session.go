@@ -84,7 +84,7 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 	var conn *ssh.Client
 	var err error
 
-	timeout := time.After(time.Second * 10)
+	timeout := time.After(time.Second * 20)
 
 loop:
 	for {
@@ -92,6 +92,7 @@ loop:
 		case <-ctx.Done():
 			break loop
 		case <-timeout:
+			err = errors.New("Timeout connecting to forwarding")
 			cancel()
 		default:
 			conn, err = ssh.Dial("tcp", fmt.Sprintf("%s:%d", "localhost", s.port), config)
