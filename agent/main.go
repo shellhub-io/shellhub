@@ -118,7 +118,7 @@ func main() {
 
 	for _ = range ticker.C {
 		auth, err = sendAuthRequest(&endpoints, identity, attributes, pubKey, opts.TenantID, client.Sessions)
-		if err != nil {
+		if err == nil {
 			server.SetDeviceName(auth.Name)
 		}
 	}
