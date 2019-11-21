@@ -61,8 +61,9 @@ func (c *sshConn) Close() error {
 }
 
 type SSHServer struct {
-	sshd *sshserver.Server
-	cmds map[string]*exec.Cmd
+	sshd       *sshserver.Server
+	cmds       map[string]*exec.Cmd
+	deviceName string
 }
 
 func NewSSHServer(port int) *SSHServer {
@@ -100,11 +101,15 @@ func (s *SSHServer) ListenAndServe() error {
 	return s.sshd.ListenAndServe()
 }
 
+func (s *SSHServer) SetDeviceName(name string) {
+	s.deviceName = name
+}
+
 func (s *SSHServer) sessionHandler(session sshserver.Session) {
 	sspty, winCh, isPty := session.Pty()
 
 	if isPty {
-		scmd := newShellCmd(session.User(), sspty.Term)
+		scmd := newShellCmd(s, session.User(), sspty.Term)
 
 		spty, err := pty.Start(scmd)
 		if err != nil {
@@ -171,7 +176,7 @@ func (s *SSHServer) publicKeyHandler(ctx sshserver.Context, key sshserver.Public
 	return true
 }
 
-func newShellCmd(username string, term string) *exec.Cmd {
+func newShellCmd(s *SSHServer, username string, term string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
 	if shell == "" {
@@ -191,6 +196,7 @@ func newShellCmd(username string, term string) *exec.Cmd {
 		"TERM=" + term,
 		"HOME=" + u.HomeDir,
 		"SHELL=" + shell,
+		"SHELLHUB_HOST=" + s.deviceName,
 	}
 	cmd.Dir = u.HomeDir
 	cmd.SysProcAttr = &syscall.SysProcAttr{}

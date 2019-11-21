@@ -102,6 +102,8 @@ func main() {
 	server := NewSSHServer(freePort)
 	client := NewSSHClient(opts.PrivateKey, endpoints.SSH, freePort)
 
+	server.SetDeviceName(auth.Name)
+
 	go func() {
 		logrus.Fatal(server.ListenAndServe())
 	}()
@@ -115,7 +117,10 @@ func main() {
 	ticker := time.NewTicker(10 * time.Second)
 
 	for _ = range ticker.C {
-		sendAuthRequest(&endpoints, identity, attributes, pubKey, opts.TenantID, client.Sessions)
+		auth, err = sendAuthRequest(&endpoints, identity, attributes, pubKey, opts.TenantID, client.Sessions)
+		if err != nil {
+			server.SetDeviceName(auth.Name)
+		}
 	}
 }
 
