@@ -305,9 +305,14 @@ func main() {
 			}
 		}
 
+		if err := db.C("devices").Find(bson.M{"uid": d.UID}).One(&d); err != nil {
+			return err
+		}
+
 		return c.JSON(http.StatusOK, echo.Map{
 			"uid":   d.UID,
 			"token": signature,
+			"name":  d.Name,
 		})
 	})
 
