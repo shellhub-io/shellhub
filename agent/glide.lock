@@ -10,7 +10,7 @@ imports:
   subpackages:
   - packets
 - name: github.com/gliderlabs/ssh
-  version: 5b6cc7030f17095c0cf23bb063b0bfe824fe5f8b
+  version: 59d6e4540dea33ecd8f90b12887906b7b081fbcd
 - name: github.com/jaypipes/ghw
   version: 29869ac89830376f4997b823e455dac004acce4e
 - name: github.com/kelseyhightower/envconfig
