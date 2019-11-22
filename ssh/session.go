@@ -77,6 +77,7 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
+		Timeout: time.Second * 5,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
