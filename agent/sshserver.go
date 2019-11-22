@@ -66,7 +66,7 @@ type SSHServer struct {
 	deviceName string
 }
 
-func NewSSHServer(port int) *SSHServer {
+func NewSSHServer(privateKey string, port int) *SSHServer {
 	s := &SSHServer{
 		cmds: make(map[string]*exec.Cmd),
 	}
@@ -93,6 +93,8 @@ func NewSSHServer(port int) *SSHServer {
 			return &sshConn{conn, closeCallback}
 		},
 	}
+
+	s.sshd.SetOption(sshserver.HostKeyFile(privateKey))
 
 	return s
 }

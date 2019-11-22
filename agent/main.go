@@ -99,7 +99,7 @@ func main() {
 		logrus.Fatal(errors.Wrap(err, "failed to get free port"))
 	}
 
-	server := NewSSHServer(freePort)
+	server := NewSSHServer(opts.PrivateKey, freePort)
 	client := NewSSHClient(opts.PrivateKey, endpoints.SSH, freePort)
 
 	server.SetDeviceName(auth.Name)
