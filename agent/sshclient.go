@@ -78,6 +78,8 @@ func (s *SSHClient) connect(msg mqtt.Message) {
 			return
 		}
 
+		serverConn.SendRequest("tcpip-forward-connected", true, []byte(strconv.Itoa(port)))
+
 		client, err := listener.Accept()
 		if err != nil {
 			logrus.Error(err)
