@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/parnurzeal/gorequest"
+	"golang.org/x/crypto/ssh"
 )
 
 type Server struct {
@@ -43,6 +45,17 @@ func NewServer(opts *Options) *Server {
 		RequestHandlers: map[string]sshserver.RequestHandler{
 			"tcpip-forward":        forwardHandler.HandleSSHRequest,
 			"cancel-tcpip-forward": forwardHandler.HandleSSHRequest,
+			"tcpip-forward-connected": func(ctx sshserver.Context, srv *sshserver.Server, req *ssh.Request) (ok bool, payload []byte) {
+				port, _ := strconv.ParseUint(string(req.Payload), 10, 32)
+
+				delete(s.forwarding, uint32(port))
+
+				if _, ok := s.channels[uint32(port)]; ok {
+					s.channels[uint32(port)] <- ok
+				}
+
+				return true, nil
+			},
 		},
 	}
 
@@ -267,12 +280,6 @@ func (s *Server) reversePortForwardingHandler(ctx sshserver.Context, host string
 		}).Error("Forwarding not authorized")
 
 		return false
-	}
-
-	delete(s.forwarding, port)
-
-	if _, ok := s.channels[port]; ok {
-		s.channels[port] <- ok
 	}
 
 	return true

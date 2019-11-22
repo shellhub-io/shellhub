@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -77,38 +76,15 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
-		Timeout: time.Second * 5,
+		Timeout: time.Second * 10,
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-
-	var conn *ssh.Client
-	var err error
-
-	timeout := time.After(time.Second * 20)
-
-loop:
-	for {
-		select {
-		case <-ctx.Done():
-			break loop
-		case <-timeout:
-			err = errors.New("Timeout connecting to forwarding")
-			cancel()
-		default:
-			conn, err = ssh.Dial("tcp", fmt.Sprintf("%s:%d", "localhost", s.port), config)
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"session": s.UID,
-					"err":     err,
-				}).Warning("Failed to connect to forwarding")
-			} else {
-				cancel()
-			}
-		}
-	}
-
+	conn, err := DialWithDeadline("tcp", fmt.Sprintf("%s:%d", "localhost", s.port), config)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"session": s.UID,
+			"err":     err,
+		}).Warning("Failed to connect to forwarding")
 		return err
 	}
 
@@ -283,4 +259,28 @@ func loadEnv(env []string) map[string]string {
 	}
 
 	return m
+}
+
+func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
+	if config.Timeout > 0 {
+		conn.SetReadDeadline(time.Now().Add(config.Timeout))
+	}
+	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
+	if err != nil {
+		return nil, err
+	}
+	if config.Timeout > 0 {
+		conn.SetReadDeadline(time.Time{})
+	}
+	return ssh.NewClient(c, chans, reqs), nil
+}
+
+func DialWithDeadline(network string, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
+	conn, err := net.DialTimeout(network, addr, config.Timeout)
+	if err != nil {
+		return nil, err
+
+	}
+
+	return NewClientConnWithDeadline(conn, addr, config)
 }
