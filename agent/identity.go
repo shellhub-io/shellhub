@@ -58,7 +58,7 @@ func primaryIface() (*net.Interface, error) {
 			continue
 		}
 
-		if !strings.HasPrefix(iface.Name, "eth") && !strings.HasPrefix(iface.Name, "eno") {
+		if !strings.HasPrefix(iface.Name, "eth") && !strings.HasPrefix(iface.Name, "eno") && !strings.HasPrefix(iface.Name, "enp") {
 			continue
 		}
 
