@@ -14,41 +14,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-/*
-#cgo LDFLAGS: -lcrypt
-#include <stdlib.h>
-#include <unistd.h>
-#include <crypt.h>
-#include <shadow.h>
-#include <string.h>
-*/
-import "C"
 import (
 	"net"
-	"os/user"
-	"strconv"
 )
-
-func Auth(user string, passwd string) bool {
-	cuser := C.CString(user)
-	defer C.free(unsafe.Pointer(cuser))
-
-	cpasswd := C.CString(passwd)
-	defer C.free(unsafe.Pointer(cpasswd))
-
-	pwd := C.getspnam(cuser)
-	if pwd == nil {
-		return false
-	}
-
-	crypted := C.crypt(cpasswd, pwd.sp_pwdp)
-
-	if C.strcmp(crypted, pwd.sp_pwdp) != 0 {
-		return false
-	}
-
-	return true
-}
 
 type sshConn struct {
 	net.Conn
@@ -145,13 +113,8 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 			logrus.Warn(err)
 		}
 	} else {
-		cmd := exec.Command(session.Command()[0], session.Command()[1:]...)
-
-		u, _ := user.Lookup(session.User())
-		cmd.Env = []string{
-			"HOME=" + u.HomeDir,
-		}
-		cmd.Dir = u.HomeDir
+		u := lookupUser(session.User())
+		cmd := newCmd(u, "", "", s.deviceName, session.Command()...)
 
 		stdout, _ := cmd.StdoutPipe()
 		stdin, _ := cmd.StdinPipe()
@@ -189,20 +152,9 @@ func newShellCmd(s *SSHServer, username string, term string) *exec.Cmd {
 		term = "xterm"
 	}
 
-	u, _ := user.Lookup(username)
-	uid, _ := strconv.Atoi(u.Uid)
-	gid, _ := strconv.Atoi(u.Gid)
+	u := lookupUser(username)
 
-	cmd := exec.Command(shell, "--login")
-	cmd.Env = []string{
-		"TERM=" + term,
-		"HOME=" + u.HomeDir,
-		"SHELL=" + shell,
-		"SHELLHUB_HOST=" + s.deviceName,
-	}
-	cmd.Dir = u.HomeDir
-	cmd.SysProcAttr = &syscall.SysProcAttr{}
-	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
+	cmd := newCmd(u, shell, term, s.deviceName, shell, "--login")
 
 	return cmd
 }
