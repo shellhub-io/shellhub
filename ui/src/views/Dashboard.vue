@@ -14,7 +14,7 @@
                 </v-list-item>
 
                 <v-card-actions>
-                    <v-btn text>Add Device</v-btn>
+                    <AddDevice/>
                 </v-card-actions>
             </v-card>
         </v-col>
@@ -59,7 +59,13 @@
 </template>
 
 <script>
+import AddDevice from "@/components/AddDevice.vue";
+
 export default {
+  components: {
+    AddDevice
+  },
+
   created() {
     this.$store.dispatch("stats/get");
   },

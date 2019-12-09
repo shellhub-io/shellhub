@@ -6,13 +6,15 @@ export default {
     state: {
         status: '',
         token: localStorage.getItem('token') || '',
-        user: localStorage.getItem('user') || ''
+        user: localStorage.getItem('user') || '',
+        tenant: localStorage.getItem('tenant') || ''
     },
 
     getters: {
         isLoggedIn: state => !!state.token,
         authStatus: state => state.status,
         currentUser: state => state.user,
+        tenant: state => state.tenant,
     },
 
     mutations: {
@@ -24,6 +26,7 @@ export default {
             state.status = 'success'
             state.token = data.token
             state.user = data.user
+            state.tenant = data.tenant
         },
 
         auth_error(state) {
@@ -34,6 +37,7 @@ export default {
             state.status = ''
             state.token = ''
             state.user = ''
+            state.tenant = ''
         },
     },
 
@@ -46,6 +50,7 @@ export default {
 
                 localStorage.setItem('token', resp.data.token)
                 localStorage.setItem('user', resp.data.user)
+                localStorage.setItem('tenant', resp.data.tenant)
 
                 context.commit('auth_success', resp.data)
             } catch (err) {
@@ -57,6 +62,7 @@ export default {
             context.commit('logout')
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            localStorage.removeItem('tenant');
         }
     }
 }
