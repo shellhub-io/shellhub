@@ -14,7 +14,7 @@ RUN glide install
 
 ADD . .
 
-RUN glide -q install --skip-test && GOOS=linux GOARCH=arm64 go build
+RUN glide -q install --skip-test && GOOS=linux GOARCH=arm64 go build -tags docker
 
 FROM scratch
 
