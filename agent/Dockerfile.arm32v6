@@ -1,0 +1,26 @@
+# docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+FROM arm32v6/golang:alpine
+
+RUN apk add --update git ca-certificates util-linux build-base bash && \
+    go get -u github.com/Masterminds/glide
+
+WORKDIR $GOPATH/src/github.com/gustavosbarreto/devicehub/agent
+
+ADD ./glide.yaml .
+ADD ./glide.lock .
+
+RUN glide install
+
+ADD . .
+
+RUN glide -q install --skip-test && GOOS=linux GOARCH=arm go build
+
+FROM scratch
+
+COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=0 /usr/bin/nsenter /usr/bin/
+COPY --from=0 /lib/ld-musl-armhf.so.1 /lib/
+COPY --from=0 /go/src/github.com/gustavosbarreto/devicehub/agent/agent /bin/agent
+
+ENTRYPOINT ["/bin/agent"]
