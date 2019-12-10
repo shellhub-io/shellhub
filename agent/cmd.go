@@ -4,12 +4,11 @@ package main
 
 import (
 	"os/exec"
-	"os/user"
 	"strconv"
 	"syscall"
 )
 
-func newCmd(u *user.User, shell, term, host string, command ...string) *exec.Cmd {
+func newCmd(u *User, shell, term, host string, command ...string) *exec.Cmd {
 	uid, _ := strconv.Atoi(u.Uid)
 	gid, _ := strconv.Atoi(u.Gid)
 

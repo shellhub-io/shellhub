@@ -1,5 +1,3 @@
-// +build !docker
-
 package main
 
 /*
@@ -7,39 +5,54 @@ package main
 #define _GNU_SOURCE 1
 #include <stdlib.h>
 #include <stdio.h>
-#include <shadow.h>
 #include <string.h>
-#include <crypt.h>
+#include <pwd.h>
 */
 import "C"
-
 import (
-	"C"
-	"os/user"
+	"strconv"
+	"unsafe"
 )
-import "unsafe"
 
-func Auth(user string, passwd string) bool {
-	cuser := C.CString(user)
+type User struct {
+	Uid      string
+	Gid      string
+	Username string
+	Name     string
+	HomeDir  string
+	Shell    string
+}
+
+func lookupUser(username string) *User {
+	cuser := C.CString(username)
 	defer C.free(unsafe.Pointer(cuser))
 
-	cpasswd := C.CString(passwd)
-	defer C.free(unsafe.Pointer(cpasswd))
+	cfilename := C.CString(passwdFilename)
+	defer C.free(unsafe.Pointer(cfilename))
 
-	pwd := C.getspnam(cuser)
-	if pwd == nil {
-		return false
+	cmode := C.CString("r")
+	defer C.free(unsafe.Pointer(cmode))
+
+	f := C.fopen(cfilename, cmode)
+	defer C.fclose(f)
+
+	var pwd *C.struct_passwd
+	for {
+		if pwd = C.fgetpwent(f); pwd == nil {
+			return nil
+		}
+
+		if C.strcmp(cuser, pwd.pw_name) == 0 {
+			return &User{
+				Uid:      strconv.FormatUint(uint64(pwd.pw_uid), 10),
+				Gid:      strconv.FormatUint(uint64(pwd.pw_gid), 10),
+				Username: C.GoString(pwd.pw_name),
+				Name:     C.GoString(pwd.pw_gecos),
+				HomeDir:  C.GoString(pwd.pw_dir),
+				Shell:    C.GoString(pwd.pw_shell),
+			}
+		}
 	}
 
-	crypted := C.crypt(cpasswd, pwd.sp_pwdp)
-
-	if C.strcmp(crypted, pwd.sp_pwdp) != 0 {
-		return false
-	}
-
-	return true
-}
-func lookupUser(username string) *user.User {
-	u, _ := user.Lookup(username)
-	return u
+	return nil
 }

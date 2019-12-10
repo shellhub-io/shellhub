@@ -144,15 +144,15 @@ func (s *SSHServer) publicKeyHandler(ctx sshserver.Context, key sshserver.Public
 func newShellCmd(s *SSHServer, username string, term string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
+	u := lookupUser(username)
+
 	if shell == "" {
-		shell = "/bin/sh"
+		shell = u.Shell
 	}
 
 	if term == "" {
 		term = "xterm"
 	}
-
-	u := lookupUser(username)
 
 	cmd := newCmd(u, shell, term, s.deviceName, shell, "--login")
 

@@ -1,4 +1,4 @@
-// +build docker
+// +build !docker
 
 package main
 
@@ -9,15 +9,16 @@ package main
 #include <stdio.h>
 #include <shadow.h>
 #include <string.h>
-#include <pwd.h>
 #include <crypt.h>
 */
 import "C"
-import (
-	"unsafe"
-)
 
-const passwdFilename = "/host/etc/passwd"
+import (
+	"C"
+)
+import "unsafe"
+
+const passwdFilename = "/etc/passwd"
 
 func Auth(user string, passwd string) bool {
 	cuser := C.CString(user)
@@ -26,26 +27,7 @@ func Auth(user string, passwd string) bool {
 	cpasswd := C.CString(passwd)
 	defer C.free(unsafe.Pointer(cpasswd))
 
-	cfilename := C.CString("/host/etc/shadow")
-	defer C.free(unsafe.Pointer(cfilename))
-
-	cmode := C.CString("r")
-	defer C.free(unsafe.Pointer(cmode))
-
-	f := C.fopen(cfilename, cmode)
-	defer C.fclose(f)
-
-	var pwd *C.struct_spwd
-	for {
-		if pwd = C.fgetspent(f); pwd == nil {
-			return false
-		}
-
-		if C.strcmp(cuser, pwd.sp_namp) == 0 {
-			break
-		}
-	}
-
+	pwd := C.getspnam(cuser)
 	if pwd == nil {
 		return false
 	}
