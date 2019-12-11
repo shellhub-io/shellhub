@@ -49,7 +49,7 @@ jobs:
           name: Archive Docker images
           command: |
             docker save $(docker images | awk '{if ($1 ~ /shellhubio\//) print $3}') -o images.tar
-            docker images | awk '{if ($1 ~ /\/devicehub-/) print $1 " " $3}' > tags.txt
+            docker images | awk '{if ($1 ~ /shellhubio\//) print $1 " " $3}' > tags.txt
       - persist_to_workspace:
           root: .
           paths:
