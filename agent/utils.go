@@ -9,8 +9,6 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 )
 
-const etcOsRelease = "/etc/os-release"
-
 func getValueFromOsRelease(key string) (string, error) {
 	osReleaseFile, err := os.Open(etcOsRelease)
 	if err != nil {

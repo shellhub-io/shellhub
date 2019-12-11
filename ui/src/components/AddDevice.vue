@@ -7,7 +7,7 @@
         <v-card-title>Run the following command to register your device:</v-card-title>
         <v-card-text>
 <code class="pa-2">
-docker run -d --restart=unless-stopped --privileged --net=host --pid=host -v /:/host -v /etc/os-release:/etc/os-release -e SERVER_ADDRESS=http://{{ hostname }} -e PRIVATE_KEY=/host/etc/shellhub.key -e TENANT_ID={{ tenant }} shellhubio/agent:latest
+docker run -d --restart=unless-stopped --privileged --net=host --pid=host -v /:/host -e SERVER_ADDRESS=http://{{ hostname }} -e PRIVATE_KEY=/host/etc/shellhub.key -e TENANT_ID={{ tenant }} shellhubio/agent:latest
 </code>
         </v-card-text>
         <v-card-actions>
