@@ -89,7 +89,7 @@ jobs:
           command: |
             docker push $AGENT_IMAGE_NAME:amd64
             docker push $AGENT_IMAGE_NAME:arm32v6
-            docker push $AGENT_IMAGE_NAME:amd64v8
+            docker push $AGENT_IMAGE_NAME:arm64v8
             docker manifest create -a $AGENT_IMAGE_NAME $AGENT_IMAGE_NAME:amd64 $AGENT_IMAGE_NAME:arm64v8 $AGENT_IMAGE_NAME:arm32v6
             docker manifest annotate $AGENT_IMAGE_NAME $AGENT_IMAGE_NAME:amd64 --os linux --arch amd64
             docker manifest annotate $AGENT_IMAGE_NAME $AGENT_IMAGE_NAME:arm32v6 --os linux --arch arm
