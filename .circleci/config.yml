@@ -9,6 +9,7 @@ executors:
       UI_IMAGE_NAME: shellhubio/devicehub-ui
       GATEWAY_IMAGE_NAME: shellhubio/devicehub-gateway
       AGENT_IMAGE_NAME: shellhubio/agent
+      DOCKER_CLI_EXPERIMENTAL: enabled
     docker:
       - image: circleci/buildpack-deps:stretch
 jobs:
