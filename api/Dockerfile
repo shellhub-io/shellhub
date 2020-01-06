@@ -4,7 +4,7 @@ FROM golang:alpine AS base
 RUN apk add --update git ca-certificates && \
     go get -u github.com/Masterminds/glide
 
-WORKDIR $GOPATH/src/github.com/gustavosbarreto/devicehub/api
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
 ADD ./glide.yaml .
 ADD ./glide.lock .
@@ -34,6 +34,6 @@ ENTRYPOINT ["/entrypoint.sh"]
 # production stage
 FROM alpine:3.7 AS production
 
-COPY --from=builder /go/src/github.com/gustavosbarreto/devicehub/api/api /api
+COPY --from=builder /go/src/github.com/shellhub-io/shellhub/api/api /api
 
 ENTRYPOINT /api

@@ -3,7 +3,7 @@ FROM golang:alpine
 RUN apk add --update git ca-certificates util-linux build-base bash && \
     go get -u github.com/Masterminds/glide
 
-WORKDIR $GOPATH/src/github.com/gustavosbarreto/devicehub/agent
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 ADD ./glide.yaml .
 ADD ./glide.lock .
@@ -19,6 +19,6 @@ FROM scratch
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=0 /usr/bin/nsenter /usr/bin/
 COPY --from=0 /lib/ld-musl-x86_64.so.1 /lib/
-COPY --from=0 /go/src/github.com/gustavosbarreto/devicehub/agent/agent /bin/agent
+COPY --from=0 /go/src/github.com/shellhub-io/shellhub/agent/agent /bin/agent
 
 ENTRYPOINT ["/bin/agent"]

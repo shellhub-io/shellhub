@@ -6,7 +6,7 @@ RUN apk add --update git ca-certificates build-base bash && \
 
 RUN ln -sf /bin/bash /bin/sh
 
-WORKDIR $GOPATH/src/github.com/gustavosbarreto/devicehub/agent
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 ADD ./glide.yaml .
 ADD ./glide.lock .
