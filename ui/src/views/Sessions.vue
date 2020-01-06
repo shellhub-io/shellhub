@@ -10,7 +10,7 @@
                 <template v-slot:item.device="{ item }">
                     <v-chip>
                         {{ item.device }}
-                        <v-icon small right @click v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
+                        <v-icon small right @click.stop v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
                     </v-chip>
                 </template>
 

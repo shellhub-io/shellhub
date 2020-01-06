@@ -20,7 +20,7 @@
                 <template v-slot:item.uid="{ item }">
                     <v-chip>
                         {{ item.uid }}
-                        <v-icon small right @click v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
+                        <v-icon small right @click.stop v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
                     </v-chip>
                 </template>
 
@@ -43,7 +43,7 @@
                 </template>
 
                 <template v-slot:item.namespace="{ item }">
-                  <kbd>{{ address(item) }}<v-icon color="white" small right @click v-clipboard="() => address(item)" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
+                  <kbd>{{ address(item) }}<v-icon color="white" small right @click.stop v-clipboard="() => address(item)" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
                   </kbd>
                 </template>
 
