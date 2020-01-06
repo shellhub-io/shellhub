@@ -96,16 +96,6 @@ jobs:
             docker manifest annotate $AGENT_IMAGE_NAME $AGENT_IMAGE_NAME:arm32v6 --os linux --arch arm
             docker manifest annotate $AGENT_IMAGE_NAME $AGENT_IMAGE_NAME:arm64v8 --os linux --arch arm64
             docker manifest push $AGENT_IMAGE_NAME
-  deploy:
-    executor: docker
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "6f:33:16:6f:5e:bf:4b:bd:af:e4:70:c6:60:76:b2:b7"
-      - run:
-          name: Update containers
-          command: |
-            ssh $DEPLOY_HOST -o "StrictHostKeyChecking no" -o "LogLevel=error" -l root -p 2222 'docker-compose pull; docker-compose up -d'
 workflows:
   version: 2
   master:
@@ -117,12 +107,6 @@ workflows:
       - push:
           requires:
             - build
-          filters:
-            branches:
-              only: master
-      - deploy:
-          requires:
-            - push
           filters:
             branches:
               only: master
