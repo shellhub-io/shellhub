@@ -4,7 +4,7 @@ ignored_folders:
 included_extensions:
 - .go
 build_target_path: ""
-build_path: /go/src/github.com/gustavosbarreto/remoteit/server/agent
+build_path: /go/src/github.com/shellhub-io/shellhub/agent
 build_flags: []
 build_delay: 200ns
 binary_name: agent
