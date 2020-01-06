@@ -1,4 +1,4 @@
-package: github.com/gustavosbarreto/devicehub/ws
+package: github.com/shellhub-io/shellhub/ws
 import:
 - package: golang.org/x/crypto
   subpackages:

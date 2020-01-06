@@ -1,4 +1,4 @@
-package: github.com/gustavosbarreto/devicehub/api
+package: github.com/shellhub-io/shellhub/api
 import:
 - package: github.com/cnf/structhash
 - package: github.com/dgrijalva/jwt-go

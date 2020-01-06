@@ -1,4 +1,4 @@
-package: github.com/gustavosbarreto/devicehub/agent
+package: github.com/shellhub-io/shellhub/agent
 import:
 - package: github.com/eclipse/paho.mqtt.golang
   version: ^1.1.1

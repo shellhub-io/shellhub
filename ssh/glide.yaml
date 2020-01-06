@@ -1,4 +1,4 @@
-package: github.com/gustavosbarreto/devicehub/ssh
+package: github.com/shellhub-io/shellhub/ssh
 import:
 - package: github.com/Sirupsen/logrus
   version: ~1.4.0
