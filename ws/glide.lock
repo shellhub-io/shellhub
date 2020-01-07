@@ -1,5 +1,5 @@
-hash: 21ead7d32e3dc17bb917a96a15d2bad8630d892e32bbb573d1f64a348af76551
-updated: 2019-06-06T15:00:30.699686357-03:00
+hash: 9f423732e34d913d905be69ccaabc3ab52c9c16fb4dbdf3bed9bd4bfd0aa888f
+updated: 2020-01-06T17:38:56.753696169-03:00
 imports:
 - name: golang.org/x/crypto
   version: f99c8df09eb5bff426315721bfa5f16a99cad32c
@@ -12,11 +12,11 @@ imports:
   - poly1305
   - ssh
 - name: golang.org/x/net
-  version: 1492cefac77f61bc789c00f41ead8f8d7307cd21
+  version: 60506f45cf65977eb3a9c6e30f995f54a721c271
   subpackages:
   - websocket
 - name: golang.org/x/sys
-  version: 5da285871e9c6a1c3acade75bea3282d33f55ebd
+  version: 4c4f7f33c9ed00de01c4c741d2177abfcfe19307
   subpackages:
   - cpu
 testImports: []
