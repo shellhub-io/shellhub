@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   ssh:
-    image: shellhubio/devicehub-ssh
+    image: shellhubio/shellhub-ssh
     environment:
       - PRIVATE_KEY=/run/secrets/ssh_private_key
     depends_on:
@@ -41,7 +41,7 @@ services:
       protocol: tcp
       mode: host
   api:
-    image: shellhubio/devicehub-api
+    image: shellhubio/shellhub-api
     environment:
       - PRIVATE_KEY=/run/secrets/api_private_key
       - PUBLIC_KEY=/run/secrets/api_public_key
@@ -53,17 +53,17 @@ services:
       - api_private_key
       - api_public_key
   ws:
-    image: shellhubio/devicehub-ws
+    image: shellhubio/shellhub-ws
     depends_on:
       - ssh
     links:
       - ssh
   ui:
-    image: shellhubio/devicehub-ui
+    image: shellhubio/shellhub-ui
     depends_on:
       - api
   gateway:
-    image: shellhubio/devicehub-gateway
+    image: shellhubio/shellhub-gateway
     command: [nginx-debug, '-g', 'daemon off;']
     depends_on:
       - api
