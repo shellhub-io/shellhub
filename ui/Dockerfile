@@ -18,9 +18,7 @@ ADD entrypoint-dev.sh /entrypoint.sh
 
 CMD ["/entrypoint.sh"]
 
-FROM base as production
-
-RUN npm install -g http-server python2
+FROM base as builder
 
 COPY . .
 
@@ -28,4 +26,8 @@ COPY --from=base /app/node_modules ./node_modules
 
 RUN npm run build
 
-CMD [ "http-server", "-c-1", "-P", "http://localhost:8080?", "dist" ]
+FROM nginx:1.16.0-alpine as production
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+CMD ["nginx-debug", "-g", "daemon off;"]
