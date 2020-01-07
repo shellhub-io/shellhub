@@ -20,6 +20,8 @@ CMD ["/entrypoint.sh"]
 
 FROM base as builder
 
+WORKDIR /app
+
 COPY . .
 
 COPY --from=base /app/node_modules ./node_modules
