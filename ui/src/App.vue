@@ -35,11 +35,10 @@
                         <v-list-item-title class="mb-1">Tenant ID</v-list-item-title>
                         <v-list-item-subtitle>
                             <v-chip>
-                                <span class="text-shadow">
-                                  <!-- If you are trying to hack us, YOU ARE DOING IT WRONG! -->
-                                  {{ randomTenantID() }}
+                                <span>
+                                  {{ tenant }}
                                 </span>
-                                <v-icon right>mdi-lock-open</v-icon>
+                                <v-icon right v-clipboard="tenant" v-clipboard:success="() => { copySnack = true; }">mdi-content-copy</v-icon>
                             </v-chip>
                         </v-list-item-subtitle>
                     </v-list-item-content>
@@ -57,6 +56,7 @@
         <v-container class="pa-8">
             <router-view></router-view>
         </v-container>
+        <v-snackbar v-model="copySnack" :timeout=3000>Tenant ID copied to clipboard</v-snackbar>
     </v-content>
 </v-app>
 </template>
@@ -70,24 +70,12 @@ export default {
       this.$store.dispatch("auth/logout").then(() => {
         this.$router.push("/login");
       });
-    },
+    }
+  },
 
-    randomTenantID() {
-      var uuid = "";
-      var random = "";
-
-      for (var i = 0; i < 32; i++) {
-        random = (Math.random() * 16) | 0;
-
-        if (i == 8 || i == 12 || i == 16 || i == 20) {
-          uuid += "-";
-        }
-        uuid += (i == 12 ? 4 : i == 16 ? (random & 3) | 8 : random).toString(
-          16
-        );
-      }
-
-      return uuid;
+  computed: {
+    tenant() {
+      return this.$store.getters["auth/tenant"];
     }
   },
 
@@ -95,6 +83,7 @@ export default {
     return {
       drawer: true,
       clipped: false,
+      copySnack: false,
       items: [
         {
           icon: "dashboard",
