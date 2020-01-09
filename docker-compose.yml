@@ -64,7 +64,6 @@ services:
       - api
   gateway:
     image: shellhubio/shellhub-gateway
-    command: [nginx-debug, '-g', 'daemon off;']
     depends_on:
       - api
       - ws

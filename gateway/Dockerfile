@@ -1,4 +1,4 @@
-FROM nginx:1.15.6-alpine
+FROM openresty/openresty:1.15.8.2-6-alpine
 
 RUN ["rm", "/etc/nginx/conf.d/default.conf"]
 
