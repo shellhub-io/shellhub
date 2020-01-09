@@ -1,5 +1,5 @@
 <template>
-<v-dialog v-model="show" max-width="1024px">
+<v-dialog v-model="show" max-width="800px">
     <template v-slot:activator="{ on }">
         <v-btn text @click="show = true">Add Device</v-btn>
     </template>
@@ -7,7 +7,7 @@
         <v-card-title>Run the following command to register your device:</v-card-title>
         <v-card-text>
 <code class="pa-2">
-docker run -d --restart=unless-stopped --privileged --net=host --pid=host -v /:/host -e SERVER_ADDRESS=http://{{ hostname }} -e PRIVATE_KEY=/host/etc/shellhub.key -e TENANT_ID={{ tenant }} shellhubio/agent:latest
+curl "http://{{ hostname }}/install.sh?tenant_id={{ tenant }}" | sh
 </code>
         </v-card-text>
         <v-card-actions>
