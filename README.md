@@ -13,13 +13,14 @@ in the ShellHub documentation.
 
 ## Contributing
 
-If you would like to contribute to the development of ShellHub, then
-please submit a pull request or raise an issue if you find a problem.
+ShellHub is an open source project and we love to receive contributions from
+our community. If you would like to contribute, please read
+our [contributing guide](CONTRIBUTING.md).
 
 ## License
 
 ShellHub is licensed under the Apache License, Version 2.0.
-See [LICENSE]() for the full license text.
+See [LICENSE](LICENSE) for the full license text.
 
 ## Development
 
