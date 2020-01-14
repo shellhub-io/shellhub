@@ -5,6 +5,8 @@ via command line (using any SSH client) or web-based user interface.
 It is intended to be used instead of sshd. ShellHub enables teams to
 easily access any Linux device behind firewall and NAT.
 
+![Screenshot](https://github.com/shellhub-io/shellhub-io.github.io/raw/src/docs/img/screenshot.png)
+
 ## Getting started
 
 To start using ShellHub, we recommend that you begin with the
