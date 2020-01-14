@@ -1,51 +1,25 @@
-# ShellHub
+# ShellHub [![ShellHub](https://circleci.com/gh/shellhub-io/shellhub.svg?style=shield)](https://circleci.com/gh/shellhub-io/shellhub)
 
 ShellHub is a modern SSH server for remotely accessing Linux devices
 via command line (using any SSH client) or web-based user interface.
 It is intended to be used instead of sshd. ShellHub enables teams to
 easily access any Linux device behind firewall and NAT.
 
-## Installing and Running
+## Getting started
 
-ShellHub is built using the microservices design pattern, meaning that
-multiple small, isolated services make up the server.
-In order to make it easy to test ShellHub as a whole, we have created
-a Docker Compose environment that brings all of these components up
-and connects them together on a single machine.
+To start using ShellHub, we recommend that you begin with the
+[Getting started](https://shellhub-io.github.io/getting-started/) section
+in the ShellHub documentation.
 
-> Make sure you have installed docker and docker-compose
+## Contributing
 
-In a working directory, download the docker-compose file:
+If you would like to contribute to the development of ShellHub, then
+please submit a pull request or raise an issue if you find a problem.
 
-```
-$ wget https://raw.githubusercontent.com/shellhub-io/shellhub/master/docker-compose.yml
-```
+## License
 
-Brings up the ShellHub server:
-
-```
-$ docker-compose up
-```
-
-### Creating the initial user
-
-After ShellHub server have been up and running you need to create the initial user.
-
-Go to the working directory and download the `add-user` utility from our repository:
-
-```
-$ wget https://raw.githubusercontent.com/shellhub-io/shellhub/master/bin/add-user
-```
-
-Then run the `add-user` utility:
-
-```
-$ ./add-user <username> <password>
-```
-
-### Open the ShellHub UI
-
-The ShellHub UI can now be accessed at http://localhost
+ShellHub is licensed under the Apache License, Version 2.0.
+See [LICENSE]() for the full license text.
 
 ## Development
 
@@ -54,3 +28,6 @@ $ docker-compose build
 $ docker-compose up
 ```
 
+## Authors
+
+ShellHub was created by [O.S. Systems](https://www.ossystems.com.br).
