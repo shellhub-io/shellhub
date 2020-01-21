@@ -1,6 +1,6 @@
 <template>
 <v-app>
-    <v-navigation-drawer :clipped="clipped" v-model="drawer" :mini-variant="true" enable-resize-watcher app>
+    <v-navigation-drawer v-if="isLoggedIn" :clipped="clipped" v-model="drawer" :mini-variant="true" enable-resize-watcher app>
         <v-app-bar class="primary" flat>
 
         </v-app-bar>
@@ -18,7 +18,7 @@
             </v-list-item>
         </v-list>
     </v-navigation-drawer>
-    <v-app-bar app color="primary lighten-1" flat>
+    <v-app-bar app color="primary lighten-1" flat v-if="isLoggedIn">
         <v-spacer></v-spacer>
         <v-menu transition="scale-transition" origin="top right">
             <template v-slot:activator="{ on }">
@@ -76,6 +76,10 @@ export default {
   computed: {
     tenant() {
       return this.$store.getters["auth/tenant"];
+    },
+
+    isLoggedIn() {
+      return this.$store.getters['auth/isLoggedIn'];
     }
   },
 
