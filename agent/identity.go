@@ -2,9 +2,13 @@ package main
 
 import (
 	"errors"
+	"io/ioutil"
+	"math"
 	"net"
-	"sort"
+	"path/filepath"
+	"strconv"
 	"strings"
+	"syscall"
 )
 
 var ErrNoInterfaceFound = errors.New("No interface found")
@@ -48,33 +52,55 @@ func GetDeviceAttributes() (*DeviceAttributes, error) {
 func primaryIface() (*net.Interface, error) {
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		return nil, err
+		return nil, ErrNoInterfaceFound
 	}
 
-	indexes := []int{}
+	var ifdev *net.Interface
+	min := uint64(math.MaxUint16)
 
-	for _, iface := range interfaces {
+	for i, iface := range interfaces {
 		if iface.Flags&net.FlagLoopback > 0 {
 			continue
 		}
 
-		if !strings.HasPrefix(iface.Name, "eth") && !strings.HasPrefix(iface.Name, "eno") && !strings.HasPrefix(iface.Name, "enp") {
-			continue
+		data, err := readSysFs(iface.Name, "type")
+		if err != nil {
+			break
 		}
 
-		indexes = append(indexes, iface.Index)
+		iftype, err := strconv.ParseUint(data, 10, 16)
+		if err != nil {
+			break
+		}
+
+		if iftype != syscall.ARPHRD_ETHER {
+			break
+		}
+
+		data, err = readSysFs(iface.Name, "ifindex")
+		if err != nil {
+			break
+		}
+
+		ifindex, err := strconv.ParseUint(data, 10, 16)
+		if err != nil {
+			break
+		}
+
+		if ifindex < min {
+			min = ifindex
+			ifdev = &interfaces[i]
+		}
 	}
 
-	if len(indexes) == 0 {
+	if ifdev == nil {
 		return nil, ErrNoInterfaceFound
 	}
 
-	sort.Ints(indexes)
+	return ifdev, nil
+}
 
-	iface, err := net.InterfaceByIndex(indexes[0])
-	if err != nil {
-		return nil, err
-	}
-
-	return iface, nil
+func readSysFs(iface string, file string) (string, error) {
+	data, err := ioutil.ReadFile(filepath.Join("/sys/class/net", iface, file))
+	return strings.TrimSpace(string(data)), err
 }
