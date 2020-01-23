@@ -15,6 +15,7 @@
 
                 <v-card-actions>
                     <AddDevice/>
+                    <v-btn text @click="$store.dispatch('modals/showAddDevice', true)">Add Device</v-btn>
                 </v-card-actions>
             </v-card>
         </v-col>

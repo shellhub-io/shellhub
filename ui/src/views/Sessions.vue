@@ -1,8 +1,9 @@
 <template>
 <fragment>
-    <v-card>
+    <h1>Sessions</h1>
+    <v-card class="mt-2">
         <v-app-bar flat color="transparent">
-            <v-toolbar-title>Sessions</v-toolbar-title>
+            <v-toolbar-title></v-toolbar-title>
         </v-app-bar>
         <v-divider></v-divider>
         <v-card-text class="pa-0">

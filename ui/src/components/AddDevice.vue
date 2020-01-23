@@ -1,8 +1,5 @@
 <template>
 <v-dialog v-model="show" max-width="800px">
-    <template v-slot:activator="{ on }">
-        <v-btn text @click="show = true">Add Device</v-btn>
-    </template>
     <v-card>
         <v-card-title>Run the following command to register your device:</v-card-title>
         <v-card-text>
@@ -24,7 +21,6 @@ export default {
 
   data() {
     return {
-      show: false,
       hostname: window.location.hostname
     };
   },
@@ -32,6 +28,16 @@ export default {
   computed: {
     tenant() {
       return this.$store.getters["auth/tenant"];
+    },
+
+    show: {
+      get() {
+        return this.$store.getters["modals/add_device"];
+      },
+
+      set(value) {
+        this.$store.dispatch("modals/showAddDevice", value);
+      }
     }
   }
 };

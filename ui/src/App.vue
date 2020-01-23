@@ -1,25 +1,42 @@
 <template>
 <v-app>
-    <v-navigation-drawer v-if="isLoggedIn" :clipped="clipped" v-model="drawer" :mini-variant="true" enable-resize-watcher app>
-        <v-app-bar class="primary" flat>
-
-        </v-app-bar>
-
-        <v-divider></v-divider>
+    <v-navigation-drawer v-if="isLoggedIn" :clipped="false" fixed v-model="drawer" :mini-variant="false" enable-resize-watcher app>
+        <v-container>
+            <div class="text-center">
+                <v-icon>mdi-console</v-icon>
+                <h2 style="font-family: monospace">ShellHub</h2>
+                <span class="overline">beta</span>
+            </div>
+        </v-container>
         <v-list>
-            <v-list-item v-for="item in items" :key="item.title" :to="item.path" color="secondary">
+            <v-list-item v-for="item in items" :key="item.title" :to="item.path" two-line>
                 <v-list-item-action>
-                    <v-icon>{{ item.icon }}</v-icon>
+                    <v-icon v-text="item.icon"></v-icon>
                 </v-list-item-action>
 
                 <v-list-item-content>
-                    <v-list-item-title>{{ item.title }}</v-list-item-title>
+                    <v-list-item-title v-text="item.title"></v-list-item-title>
                 </v-list-item-content>
             </v-list-item>
         </v-list>
     </v-navigation-drawer>
-    <v-app-bar app color="primary lighten-1" flat v-if="isLoggedIn">
+    <v-app-bar app elevate-on-scroll color="primary" class="pl-3 pr-4" v-if="isLoggedIn">
+        <v-menu transition="scale-transition" origin="top left">
+            <template v-slot:activator="{ on }">
+                <v-chip v-on="on">
+                    <v-icon left>mdi-server</v-icon>
+                    My Device Fleet
+                    <v-icon right>mdi-chevron-down</v-icon>
+                </v-chip>
+            </template>
+        </v-menu>
         <v-spacer></v-spacer>
+        <v-chip>
+            <v-icon>help</v-icon>
+        </v-chip>
+        <v-chip>
+            <v-icon>notifications</v-icon>
+        </v-chip>
         <v-menu transition="scale-transition" origin="top right">
             <template v-slot:activator="{ on }">
                 <v-chip v-on="on">
@@ -36,7 +53,7 @@
                         <v-list-item-subtitle>
                             <v-chip>
                                 <span>
-                                  {{ tenant }}
+                                    {{ tenant }}
                                 </span>
                                 <v-icon right v-clipboard="tenant" v-clipboard:success="() => { copySnack = true; }">mdi-content-copy</v-icon>
                             </v-chip>
@@ -79,7 +96,7 @@ export default {
     },
 
     isLoggedIn() {
-      return this.$store.getters['auth/isLoggedIn'];
+      return this.$store.getters["auth/isLoggedIn"];
     }
   },
 
@@ -96,7 +113,7 @@ export default {
         },
         {
           icon: "devices",
-          title: "Device Fleet",
+          title: "Devices",
           path: "/devices"
         },
         {

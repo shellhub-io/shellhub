@@ -8,7 +8,8 @@ import { fas } from '@fortawesome/free-solid-svg-icons'
 import Clipboard from 'v-clipboard'
 import Fragment from 'vue-fragment'
 
-import 'vuetify/dist/vuetify.min.css'
+//import 'vuetify/dist/vuetify.min.css'
+//import '../styles/variables.scss'
 
 Vue.component('font-awesome-icon', FontAwesomeIcon) // Register component globally
 library.add(fas) // Include needed icons.
@@ -20,14 +21,14 @@ Vue.use(Fragment.Plugin);
 export default new Vuetify({
   iconfont: 'md',
   theme: {
+    dark: true,
     themes: {
-      light: {
-        primary: '#0E283D',
-        secondary: '#5CA7DF'
-      }
+      dark: {
+        primary: '#2d2b55',
+        secondary: '#b0bec5',
+        accent: '#8c9eff',
+        error: '#b71c1c',
+      },
     }
-  },
-  options: {
-    customProperties: true
   }
 })

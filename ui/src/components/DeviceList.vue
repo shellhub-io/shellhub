@@ -1,8 +1,15 @@
 <template>
 <fragment>
-    <v-card>
+
+  <div class="d-flex pa-0 align-center">
+  <h1>Devices</h1>
+  <v-spacer/>
+  <v-spacer/>
+  <AddDevice/>
+  <v-btn outlined @click="$store.dispatch('modals/showAddDevice', true)">Add Device</v-btn>
+  </div>
+    <v-card class="mt-2">
         <v-app-bar flat color="transparent">
-            <v-toolbar-title>Device Fleet</v-toolbar-title>
         </v-app-bar>
         <v-divider></v-divider>
         <v-card-text class="pa-0">
@@ -43,8 +50,9 @@
                 </template>
 
                 <template v-slot:item.namespace="{ item }">
-                  <kbd>{{ address(item) }}<v-icon color="white" small right @click.stop v-clipboard="() => address(item)" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
-                  </kbd>
+                  <v-chip class="merda">
+                    {{ address(item) }}<v-icon color="white" small right @click.stop v-clipboard="() => address(item)" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
+                  </v-chip>
                 </template>
 
                 <template v-slot:item.actions="{ item }">
@@ -63,10 +71,12 @@
 
 <script>
 import TerminalDialog from "@/components/TerminalDialog.vue";
+import AddDevice from "@/components/AddDevice.vue";
 
 export default {
   components: {
-    TerminalDialog
+    TerminalDialog,
+    AddDevice
   },
 
   created() {
@@ -133,11 +143,6 @@ export default {
         },
 
         {
-          text: "MAC",
-          value: "identity.mac",
-          align: "center"
-        },
-        {
           text: "SSHID",
           value: "namespace",
           align: "center"
@@ -153,3 +158,8 @@ export default {
   }
 };
 </script>
+<style scoped>
+.merda {
+  font-family: monospace;
+}
+</style>
