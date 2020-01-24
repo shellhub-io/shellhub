@@ -8,9 +8,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
-	"cirello.io/goherokuname"
 	"github.com/cnf/structhash"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -250,9 +250,11 @@ func main() {
 			LastSeen:   time.Now(),
 		}
 
+		hostname := strings.Replace(req.Identity["mac"], ":", "-", -1)
+
 		q := bson.M{
 			"$setOnInsert": bson.M{
-				"name": goherokuname.Haikunate(),
+				"name": hostname,
 			},
 			"$set": d,
 		}
