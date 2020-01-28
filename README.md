@@ -19,6 +19,11 @@ ShellHub is an open source project and we love to receive contributions from
 our community. If you would like to contribute, please read
 our [contributing guide](CONTRIBUTING.md).
 
+## Getting Help
+
+You are welcome to submit any questions, participate in discussions and request
+help with any issue in our [Gitter Channel](https://gitter.im/shellhub-io/community).
+
 ## License
 
 ShellHub is licensed under the Apache License, Version 2.0.
