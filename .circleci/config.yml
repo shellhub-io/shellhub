@@ -46,6 +46,7 @@ jobs:
             docker build -f Dockerfile.amd64 -t $AGENT_IMAGE_NAME:amd64 .
             docker build -f Dockerfile.arm32v6 -t $AGENT_IMAGE_NAME:arm32v6 .
             docker build -f Dockerfile.arm64v8 -t $AGENT_IMAGE_NAME:arm64v8 .
+          no_output_timeout: 20m
       - run:
           name: Archive Docker images
           command: |
