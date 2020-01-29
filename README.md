@@ -29,11 +29,24 @@ help with any issue in our [Gitter Channel](https://gitter.im/shellhub-io/commun
 ShellHub is licensed under the Apache License, Version 2.0.
 See [LICENSE](LICENSE) for the full license text.
 
-## Development
+## Development Environment Setup
+
+First of all, you'll need to generate required keys for the services:
 
 ```
-$ docker-compose build
-$ docker-compose up
+$ ./bin/keygen
+```
+
+Start the whole environment:
+
+```
+$ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+Wait for all services to be ready then create initial user running:
+
+```
+$ ./bin/add-user <username> <password>
 ```
 
 ## Authors
