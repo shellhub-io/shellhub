@@ -7,14 +7,12 @@ services:
       target: development
     volumes:
       - ./ssh:/go/src/github.com/shellhub-io/shellhub/ssh
-      - secrets:/var/run/secrets
   api:
     build:
       context: api
       target: development
     volumes:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
-      - secrets:/var/run/secrets
   ws:
     build:
       context: ws
@@ -39,20 +37,8 @@ services:
       - PRIVATE_KEY=/var/run/secrets/shellhub.key
     volumes:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
-      - secrets:/var/run/secrets
     depends_on:
       - emq
       - api
       - ssh
       - gateway
-
-secrets:
-  ssh_private_key:
-    external: true
-  api_private_key:
-    external: true
-  api_public_key:
-    external: true
-
-volumes:
-  secrets:
