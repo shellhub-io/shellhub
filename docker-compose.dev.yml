@@ -28,6 +28,8 @@ services:
   gateway:
     build:
       context: gateway
+    environment:
+      - SHELLHUB_VERSION=latest
   agent:
     build:
       context: agent

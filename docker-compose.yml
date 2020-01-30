@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   ssh:
-    image: shellhubio/shellhub-ssh
+    image: shellhubio/shellhub-ssh:${SHELLHUB_VERSION}
     environment:
       - PRIVATE_KEY=/run/secrets/ssh_private_key
     depends_on:
@@ -41,7 +41,7 @@ services:
       protocol: tcp
       mode: host
   api:
-    image: shellhubio/shellhub-api
+    image: shellhubio/shellhub-api:${SHELLHUB_VERSION}
     environment:
       - PRIVATE_KEY=/run/secrets/api_private_key
       - PUBLIC_KEY=/run/secrets/api_public_key
@@ -53,17 +53,19 @@ services:
       - api_private_key
       - api_public_key
   ws:
-    image: shellhubio/shellhub-ws
+    image: shellhubio/shellhub-ws:${SHELLHUB_VERSION}
     depends_on:
       - ssh
     links:
       - ssh
   ui:
-    image: shellhubio/shellhub-ui
+    image: shellhubio/shellhub-ui:${SHELLHUB_VERSION}
     depends_on:
       - api
   gateway:
-    image: shellhubio/shellhub-gateway
+    image: shellhubio/shellhub-gateway:${SHELLHUB_VERSION}
+    environment:
+      - SHELLHUB_VERSION=${SHELLHUB_VERSION}
     depends_on:
       - api
       - ws
