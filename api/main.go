@@ -109,91 +109,102 @@ const (
 
 var verifyKey *rsa.PublicKey
 
+func EnsureIndex(session *Session, database string, collection string, key string, unique boolean) {
+	session.DB(database).C(collection).EnsureIndex(mgo.Index{
+		Key:        []string{key},
+		Unique:     unique,
+		Name:       key,
+		Background: false,
+	})
+	return
+}
+func EnsureIndexTemp(session *Session, database string, collection string, key string, duration int) (err Error) {
+	err = session.DB("database").C("collection").EnsureIndex(mgo.Index{
+		Key:         []string{key},
+		Name:        key,
+		ExpireAfter: time.Duration(time.Second * duration),
+	})
+	return
+}
+
+func MatchTenantID(c echo.Context, ) (query map[string]interface{}) {
+	// Only match for the respective tenant if requested
+	if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
+		query["match"] = bson.M{
+			"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
+		}
+	}
+	return
+}
+
+var device_query = map[string]bson.M{
+	"lookup": {
+		"from":         "connected_devices",
+		"localField":   "uid",
+		"foreignField": "uid",
+		"as":           "online",
+	},
+	"addFields": {"$anyElementTrue": []interface{}{"$online"}},
+}
+
+var user_query = map[string]bson.M{
+	"lookup": {
+		"from":         "users",
+		"localField":   "tenant_id",
+		"foreignField": "tenant_id",
+		"as":           "namespace",
+	},
+}
+
+var session_query = map[string]bson.M{
+	"lookup": {
+		"from":         "active_sessions",
+		"localField":   "uid",
+		"foreignField": "uid",
+		"as":           "active",
+	},
+	"addFields": {
+		"active": bson.M{"$anyElementTrue": []interface{}{"$active"}}},
+
+	"match": {
+		"active": true},
+}
+
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
+	m := map[string]string{
+		"devices":  "uid",
+		"users":    "username",
+		"users":    "tenant_id",
+		"sessions": "uid",
+	}
+
+	n := map[string]string{
+		"active_sessions":   "uid",
+		"connected_devices": "uid",
+	}
 
 	session, err := mgo.Dial("mongodb://mongo:27017")
 	if err != nil {
 		panic(err)
 	}
 
-	err = session.DB("main").C("devices").EnsureIndex(mgo.Index{
-		Key:        []string{"uid"},
-		Unique:     true,
-		Name:       "uid",
-		Background: false,
-	})
-	if err != nil {
-		panic(err)
+	for collection, name := range m {
+		err = EnsureIndex(session, "main", collection, name, true)
+		if err != nil {
+			panic(err)
+		}
 	}
-
-	err = session.DB("main").C("connected_devices").EnsureIndex(mgo.Index{
-		Key:         []string{"last_seen"},
-		Name:        "last_seen",
-		ExpireAfter: time.Duration(time.Second * 30),
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	err = session.DB("main").C("connected_devices").EnsureIndex(mgo.Index{
-		Key:        []string{"uid"},
-		Unique:     false,
-		Name:       "uid",
-		Background: false,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	err = session.DB("main").C("sessions").EnsureIndex(mgo.Index{
-		Key:        []string{"uid"},
-		Unique:     true,
-		Name:       "uid",
-		Background: false,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	err = session.DB("main").C("active_sessions").EnsureIndex(mgo.Index{
-		Key:         []string{"last_seen"},
-		Name:        "last_seen",
-		ExpireAfter: time.Duration(time.Second * 30),
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	err = session.DB("main").C("active_sessions").EnsureIndex(mgo.Index{
-		Key:        []string{"uid"},
-		Unique:     false,
-		Name:       "uid",
-		Background: false,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	err = session.DB("main").C("users").EnsureIndex(mgo.Index{
-		Key:        []string{"username"},
-		Unique:     true,
-		Name:       "username",
-		Background: false,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	err = session.DB("main").C("users").EnsureIndex(mgo.Index{
-		Key:        []string{"tenant_id"},
-		Unique:     true,
-		Name:       "tenant_id",
-		Background: false,
-	})
-	if err != nil {
-		panic(err)
+	for collection, name := range n {
+		err = EnsureIndexTemp(session, "main", collection, "last_seen")
+		if err != nil {
+			panic(err)
+		}
+		err = EnsureIndex(session, "main", collection, name, true)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	signBytes, err := ioutil.ReadFile(os.Getenv("PRIVATE_KEY"))
@@ -332,24 +343,14 @@ func main() {
 
 		query := []bson.M{
 			{
-				"$lookup": bson.M{
-					"from":         "connected_devices",
-					"localField":   "uid",
-					"foreignField": "uid",
-					"as":           "online",
-				},
+				"$lookup": device_query["lookup"],
 			},
 			{
-				"$lookup": bson.M{
-					"from":         "users",
-					"localField":   "tenant_id",
-					"foreignField": "tenant_id",
-					"as":           "namespace",
-				},
+				"$lookup": user_query["lookup"],
 			},
 			{
-				"$addFields": bson.M{
-					"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
+				"$addFields": {
+					"online":    device_query["addFields"],
 					"namespace": "$namespace.username",
 				},
 			},
@@ -358,17 +359,8 @@ func main() {
 			},
 		}
 
-		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			query = append(query, bson.M{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			})
-		}
-
-		if err := db.C("devices").Pipe(query).All(&devices); err != nil {
-			return err
+		if query_append := MatchTenantID(c, query); query_append != nil {
+			query = append(query, bson.M{query_append})
 		}
 
 		return c.JSON(http.StatusOK, devices)
@@ -491,13 +483,8 @@ func main() {
 
 		pipe := []bson.M{}
 
-		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			pipe = append(pipe, bson.M{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			})
+		if pipe_append := MatchTenantID(c, pipe); pipe_append != nil {
+			pipe = append(pipe, bson.M{pipe_append})
 		} else {
 			pipe = append(pipe, bson.M{"$match": bson.M{"username": query.Domain}})
 		}
@@ -528,12 +515,8 @@ func main() {
 		}
 
 		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			query = append([]bson.M{{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			}}, query...)
+		if query_append := MatchTenantID(c, query); query_append != nil {
+			query = append([]bson.M{{query_append}}, query...)
 		}
 
 		resp := []bson.M{}
@@ -552,13 +535,8 @@ func main() {
 			{"$count": "count"},
 		}
 
-		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			query = append([]bson.M{{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			}}, query...)
+		if query_append := MatchTenantID(c, query); query_append != nil {
+			query = append([]bson.M{{query_append}}, query...)
 		}
 
 		resp = []bson.M{}
@@ -575,32 +553,18 @@ func main() {
 
 		query = []bson.M{
 			{
-				"$lookup": bson.M{
-					"from":         "active_sessions",
-					"localField":   "uid",
-					"foreignField": "uid",
-					"as":           "active",
-				},
+				"$lookup": session_query["lookup"],
 			},
 			{
-				"$addFields": bson.M{
-					"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
-				},
+				"$addFields": session_query["addFields"],
 			},
 			{
-				"$match": bson.M{
-					"active": true,
-				},
+				"$match": session_query["match"],
 			},
 		}
 
-		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			query = append(query, bson.M{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			})
+		if query_append := MatchTenantID(c, query); query_append != nil {
+			query = append(query, bson.M{query_append})
 		}
 
 		query = append(query, bson.M{
@@ -632,28 +596,15 @@ func main() {
 
 		query := []bson.M{
 			{
-				"$lookup": bson.M{
-					"from":         "active_sessions",
-					"localField":   "uid",
-					"foreignField": "uid",
-					"as":           "active",
-				},
+				"$lookup": session_query["lookup"],
 			},
 			{
-				"$addFields": bson.M{
-					"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
-				},
+				"$addFields": session_query["addFields"],
 			},
 		}
 
 		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			query = append(query, bson.M{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			})
-		}
+		query = MatchTenantID(query)
 
 		if err := db.C("sessions").Pipe(query).All(&sessions); err != nil {
 			return err
