@@ -21,31 +21,31 @@ jobs:
       - run:
           name: Build API microservice
           working_directory: api
-          command: docker build -t $API_IMAGE_NAME:latest .
+          command: docker build -t $API_IMAGE_NAME:$CIRCLE_SHA1 .
       - run:
           name: Build SSH microservice
           working_directory: ssh
-          command: docker build -t $SSH_IMAGE_NAME:latest .
+          command: docker build -t $SSH_IMAGE_NAME:$CIRCLE_SHA1 .
       - run:
           name: Build WS microservice
           working_directory: ws
-          command: docker build -t $WS_IMAGE_NAME:latest .
+          command: docker build -t $WS_IMAGE_NAME:$CIRCLE_SHA1 .
       - run:
           name: Build UI microservice
           working_directory: ui
-          command: docker build -t $UI_IMAGE_NAME:latest .
+          command: docker build -t $UI_IMAGE_NAME:$CIRCLE_SHA1 .
       - run:
           name: Build API Gateway microservice
           working_directory: gateway
-          command: docker build -t $GATEWAY_IMAGE_NAME:latest .
+          command: docker build -t $GATEWAY_IMAGE_NAME:$CIRCLE_SHA1 .
       - run:
           name: Build agent images
           working_directory: agent
           command: |
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-            docker build -f Dockerfile.amd64 -t $AGENT_IMAGE_NAME:amd64 .
-            docker build -f Dockerfile.arm32v6 -t $AGENT_IMAGE_NAME:arm32v6 .
-            docker build -f Dockerfile.arm64v8 -t $AGENT_IMAGE_NAME:arm64v8 .
+            docker build -f Dockerfile.amd64 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-amd64 .
+            docker build -f Dockerfile.arm32v6 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-arm32v6 .
+            docker build -f Dockerfile.arm64v8 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-arm64v8 .
           no_output_timeout: 20m
       - run:
           name: Archive Docker images
@@ -60,6 +60,7 @@ jobs:
   push:
     executor: docker
     steps:
+      - checkout
       - setup_remote_docker
       - attach_workspace:
           at: /tmp/workspace
@@ -73,30 +74,22 @@ jobs:
             awk '{ print "docker tag "$3" "$1":"$2"" | "/bin/sh"}' /tmp/workspace/tags.txt
       - run:
           name: Publish API microservice image
-          command: docker push $API_IMAGE_NAME:latest
+          command: ./.circleci/push.sh $API_IMAGE_NAME
       - run:
           name: Publish SSH microservice image
-          command: docker push $SSH_IMAGE_NAME:latest
+          command: ./.circleci/push.sh $SSH_IMAGE_NAME
       - run:
           name: Publish WS microservice image
-          command: docker push $WS_IMAGE_NAME:latest
+          command: ./.circleci/push.sh $WS_IMAGE_NAME
       - run:
           name: Publish UI microservice image
-          command: docker push $UI_IMAGE_NAME:latest
+          command: ./.circleci/push.sh $UI_IMAGE_NAME
       - run:
           name: Publish API Gateway microservice image
-          command: docker push $GATEWAY_IMAGE_NAME:latest
+          command: ./.circleci/push.sh $GATEWAY_IMAGE_NAME
       - run:
           name: Publish agent images
-          command: |
-            docker push $AGENT_IMAGE_NAME:amd64
-            docker push $AGENT_IMAGE_NAME:arm32v6
-            docker push $AGENT_IMAGE_NAME:arm64v8
-            docker manifest create -a $AGENT_IMAGE_NAME $AGENT_IMAGE_NAME:amd64 $AGENT_IMAGE_NAME:arm64v8 $AGENT_IMAGE_NAME:arm32v6
-            docker manifest annotate $AGENT_IMAGE_NAME $AGENT_IMAGE_NAME:amd64 --os linux --arch amd64
-            docker manifest annotate $AGENT_IMAGE_NAME $AGENT_IMAGE_NAME:arm32v6 --os linux --arch arm
-            docker manifest annotate $AGENT_IMAGE_NAME $AGENT_IMAGE_NAME:arm64v8 --os linux --arch arm64
-            docker manifest push $AGENT_IMAGE_NAME
+          command: ./.circleci/push-multiarch.sh $AGENT_IMAGE_NAME
 workflows:
   version: 2
   master:
@@ -104,10 +97,14 @@ workflows:
       - build:
           filters:
             branches:
-              only: master    
+              only: master
+            tags:
+              only: /.*/
       - push:
           requires:
             - build
           filters:
             branches:
               only: master
+            tags:
+              only: /.*/
