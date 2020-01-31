@@ -1,4 +1,6 @@
 package: github.com/shellhub-io/shellhub/agent
+ignore:
+- github.com/shellhub-io/shellhub/pkg
 import:
 - package: github.com/eclipse/paho.mqtt.golang
   version: ^1.1.1
@@ -24,3 +26,6 @@ import:
 - package: github.com/libertylocked/urlpattern
 - package: github.com/mattn/go-shellwords
   version: ~1.0.6
+- package: github.com/dgrijalva/jwt-go
+  version: ~4.0.0-preview1
+- package: gopkg.in/mgo.v2

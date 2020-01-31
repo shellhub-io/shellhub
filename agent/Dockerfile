@@ -6,18 +6,27 @@ RUN apk add --update git ca-certificates build-base bash && \
 
 RUN ln -sf /bin/bash /bin/sh
 
-WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-COPY glide.yaml glide.lock ./
+COPY ./agent/glide.yaml ./agent/glide.lock ./
 
 RUN glide install
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 # builder stage
 FROM base AS builder
 
-COPY . .
+COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
+COPY ./agent .
 
-RUN glide -q install --skip-test && go build
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
+
+RUN glide install --skip-test
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
+
+RUN go build
 
 # development stage
 FROM base AS development
@@ -25,10 +34,14 @@ FROM base AS development
 RUN apk add --update openssl openssh-client
 RUN go get github.com/markbates/refresh
 
-RUN glide -q install --skip-test
-RUN cp -a vendor /vendor
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-COPY entrypoint-dev.sh /entrypoint.sh
+RUN glide install --skip-test
+RUN cp -a $GOPATH/src/github.com/shellhub-io/shellhub/vendor /vendor
+
+COPY ./agent/entrypoint-dev.sh /entrypoint.sh
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 ENTRYPOINT ["/entrypoint.sh"]
 

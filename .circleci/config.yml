@@ -19,12 +19,10 @@ jobs:
       - setup_remote_docker
       - run:
           name: Build API microservice
-          working_directory: api
-          command: docker build -t $API_IMAGE_NAME:$CIRCLE_SHA1 .
+          command: docker build -t $API_IMAGE_NAME:$CIRCLE_SHA1 -f api/Dockerfile .
       - run:
           name: Build SSH microservice
-          working_directory: ssh
-          command: docker build -t $SSH_IMAGE_NAME:$CIRCLE_SHA1 .
+          command: docker build -t $SSH_IMAGE_NAME:$CIRCLE_SHA1 -f ssh/Dockerfile .
       - run:
           name: Build UI microservice
           working_directory: ui
@@ -35,12 +33,11 @@ jobs:
           command: docker build -t $GATEWAY_IMAGE_NAME:$CIRCLE_SHA1 .
       - run:
           name: Build agent images
-          working_directory: agent
           command: |
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-            docker build -f Dockerfile.amd64 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-amd64 .
-            docker build -f Dockerfile.arm32v6 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-arm32v6 .
-            docker build -f Dockerfile.arm64v8 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-arm64v8 .
+            docker build -f agent/Dockerfile.amd64 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-amd64 .
+            docker build -f agent/Dockerfile.arm32v6 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-arm32v6 .
+            docker build -f agent/Dockerfile.arm64v8 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-arm64v8 .
           no_output_timeout: 20m
       - run:
           name: Archive Docker images

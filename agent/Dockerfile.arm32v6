@@ -5,15 +5,24 @@ FROM arm32v6/golang:alpine
 RUN apk add --update git ca-certificates util-linux build-base bash && \
     go get -u github.com/Masterminds/glide
 
-WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-COPY glide.yaml glide.lock ./
+COPY ./agent/glide.yaml ./agent/glide.lock ./
 
 RUN glide install
 
-COPY . .
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
-RUN glide -q install --skip-test && GOOS=linux GOARCH=arm go build -tags docker
+COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
+COPY ./agent .
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
+
+RUN glide -q install --skip-test
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
+
+RUN GOOS=linux GOARCH=arm go build -tags docker
 
 FROM scratch
 
