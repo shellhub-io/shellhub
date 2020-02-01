@@ -440,7 +440,7 @@ func main() {
 			claims["tenant"] = user.TenantID
 			claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
-			t, err := token.SignedString([]byte("secret"))
+			t, err := token.SignedString(os.Getenv("JWT_SECRET"))
 			if err != nil {
 				return err
 			}
@@ -463,7 +463,7 @@ func main() {
 		c.Response().Header().Set("X-Tenant-ID", claims["tenant"].(string))
 
 		return nil
-	}, middleware.JWT([]byte("secret")))
+	}, middleware.JWT(os.Getenv("JWT_SECRET")))
 
 	e.GET("/lookup", func(c echo.Context) error {
 		db := c.Get("db").(*mgo.Database)
