@@ -84,6 +84,13 @@ type AuthClaims struct {
 	jwt.StandardClaims
 }
 
+type UserClaims struct {
+	Name   string `json:"name"`
+	Admin  bool   `json:"admin"`
+	Tenant string `json:"tenant"`
+	jwt.StandardClaims
+}
+
 type WebHookEvent struct {
 	Action string `json:"action"`
 
@@ -432,15 +439,16 @@ func main() {
 
 		password := sha256.Sum256([]byte(login.Password))
 		if user.Password == hex.EncodeToString(password[:]) {
-			token := jwt.New(jwt.SigningMethodHS256)
+			token := jwt.NewWithClaims(jwt.SigningMethodRS256, UserClaims{
+				Name:   user.Username,
+				Admin:  true,
+				Tenant: user.TenantID,
+				StandardClaims: jwt.StandardClaims{
+					ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+				},
+			})
 
-			claims := token.Claims.(jwt.MapClaims)
-			claims["name"] = user.Username
-			claims["admin"] = true
-			claims["tenant"] = user.TenantID
-			claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-			t, err := token.SignedString(os.Getenv("JWT_SECRET"))
+			t, err := token.SignedString(signKey)
 			if err != nil {
 				return err
 			}
@@ -457,13 +465,17 @@ func main() {
 
 	e.GET("/auth", func(c echo.Context) error {
 		token := c.Get("user").(*jwt.Token)
-		claims := token.Claims.(jwt.MapClaims)
+		claims := token.Claims.(*UserClaims)
 
 		// Extract tenant from JWT
-		c.Response().Header().Set("X-Tenant-ID", claims["tenant"].(string))
+		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
 
 		return nil
-	}, middleware.JWT(os.Getenv("JWT_SECRET")))
+	}, middleware.JWTWithConfig(middleware.JWTConfig{
+		Claims:        &UserClaims{},
+		SigningKey:    verifyKey,
+		SigningMethod: "RS256",
+	}))
 
 	e.GET("/lookup", func(c echo.Context) error {
 		db := c.Get("db").(*mgo.Database)
