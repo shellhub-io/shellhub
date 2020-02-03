@@ -10,7 +10,7 @@ services:
     links:
       - emq
     ports:
-      - "22:2222"
+      - "${SHELLHUB_SSH_PORT}:2222"
     secrets:
       - ssh_private_key
   emq:
@@ -66,6 +66,7 @@ services:
     image: shellhubio/shellhub-gateway:${SHELLHUB_VERSION}
     environment:
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
+      - SHELLHUB_SSH_PORT=${SHELLHUB_SSH_PORT}
     depends_on:
       - api
       - ws
