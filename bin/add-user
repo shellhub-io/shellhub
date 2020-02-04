@@ -6,11 +6,23 @@ USERNAME=$1
 PASSWORD=`echo -n $2 | sha256sum | awk '{ print $1 }'`
 TENANT_ID=`uuidgen`
 
+if [ $(docker inspect --format='{{.State.Running}}' $(docker-compose ps -q mongo)) = false ]; then
+    echo "ERROR: mongo container is not running"
+    exit 1
+fi
+
+EXISTS=$(docker-compose exec -T mongo mongo main --quiet --eval "db.users.find({ username: '$USERNAME' })")
+
+if [ -n "$EXISTS" ]; then
+    echo "ERROR: user already exists!"
+    exit 1
+fi
+
 INSERTED=`docker-compose exec -T mongo mongo main --quiet --eval "db.users.insert({ username: '$USERNAME', password: '$PASSWORD', tenant_id: '$TENANT_ID' }).nInserted"`
 
 if [ $INSERTED -eq 1 ]; then
-    echo "User '$USERNAME' added'"
+    echo "User added: $USERNAME"
     echo "Tenant ID: $TENANT_ID"
 else
-    echo "Failed to add user"
+    echo "ERROR: Failed to add user"
 fi
