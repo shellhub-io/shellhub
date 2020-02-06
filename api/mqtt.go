@@ -1,21 +1,45 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
+	"github.com/shellhub-io/shellhub/api/pkg/models"
+	"github.com/shellhub-io/shellhub/api/pkg/services/deviceadm"
+	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
 	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
-type ConnectedDevice struct {
-	ID       bson.ObjectId `json:"-" bson:"_id,omitempty"`
-	UID      string        `json:"uid"`
-	TenantID string        `json:"tenant_id" bson:"tenant_id"`
-	LastSeen time.Time     `json:"last_seen" bson:"last_seen"`
+type AuthQuery struct {
+	Username string `query:"username"`
+	Password string `query:"password"`
+	IPAddr   string `query:"ipaddr"`
 }
+
+type ACLQuery struct {
+	Access   string `query:"access"`
+	Username string `query:"username"`
+	Topic    string `query:"topic"`
+	IPAddr   string `query:"ipaddr"`
+}
+
+type WebHookEvent struct {
+	Action string `json:"action"`
+
+	WebHookClientEvent
+}
+
+type WebHookClientEvent struct {
+	ClientID string `json:"client_id"`
+	Username string `json:"username"`
+}
+
+const (
+	WebHookClientConnectedEventType    = "client_connected"
+	WebHookClientDisconnectedEventType = "client_disconnected"
+)
 
 // GET /mqtt/auth
 func AuthenticateMqttClient(c echo.Context) error {
@@ -30,7 +54,7 @@ func AuthenticateMqttClient(c echo.Context) error {
 		return nil
 	}
 
-	token, err := jwt.ParseWithClaims(q.Password, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(q.Password, &models.DeviceAuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
@@ -41,7 +65,7 @@ func AuthenticateMqttClient(c echo.Context) error {
 		return err
 	}
 
-	if _, ok := token.Claims.(AuthClaims); ok && token.Valid {
+	if _, ok := token.Claims.(models.DeviceAuthClaims); ok && token.Valid {
 		return nil
 	}
 
@@ -61,8 +85,6 @@ func AuthorizeMqttClient(c echo.Context) error {
 
 // POST /mqtt/webhook
 func ProcessMqttEvent(c echo.Context) error {
-	db := c.Get("db").(*mgo.Database)
-
 	evt := WebHookEvent{}
 
 	if err := c.Bind(&evt); err != nil {
@@ -71,30 +93,21 @@ func ProcessMqttEvent(c echo.Context) error {
 
 	switch evt.Action {
 	case WebHookClientConnectedEventType:
-		d := Device{}
-		err := db.C("devices").Find(bson.M{"uid": evt.WebHookClientEvent.Username}).One(&d)
-		if err != nil {
-			return err
-		}
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := deviceadm.NewService(store)
 
-		d.LastSeen = time.Now()
-
-		_, err = db.C("devices").Upsert(bson.M{"uid": d.UID}, d)
-		if err != nil {
-			return err
-		}
-
-		cd := &ConnectedDevice{
-			UID:      d.UID,
-			LastSeen: time.Now(),
-		}
-
-		if err := db.C("connected_devices").Insert(&cd); err != nil {
+		if err := svc.UpdateDeviceStatus(ctx, models.UID(evt.WebHookClientEvent.Username), true); err != nil {
 			return err
 		}
 	case WebHookClientDisconnectedEventType:
-		_, err := db.C("connected_devices").RemoveAll(bson.M{"uid": evt.WebHookClientEvent.Username})
-		return err
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := deviceadm.NewService(store)
+
+		if err := svc.UpdateDeviceStatus(ctx, models.UID(evt.WebHookClientEvent.Username), false); err != nil {
+			return err
+		}
 	default:
 		return nil
 	}

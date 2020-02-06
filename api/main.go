@@ -1,110 +1,22 @@
 package main
 
 import (
+	"context"
 	"crypto/rsa"
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
-	"github.com/cnf/structhash"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/shellhub-io/shellhub/api/pkg/models"
+	"github.com/shellhub-io/shellhub/api/pkg/services/authsvc"
+	"github.com/shellhub-io/shellhub/api/pkg/services/deviceadm"
+	"github.com/shellhub-io/shellhub/api/pkg/services/sessionmngr"
+	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
 	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
-)
-
-type DeviceAuthRequest struct {
-	Identity   map[string]string `json:"identity"`
-	Attributes map[string]string `json:"attributes"`
-	PublicKey  string            `json:"public_key"`
-	TenantID   string            `json:"tenant_id"`
-	Sessions   []string          `json:"sessions,omitempty"`
-}
-
-type Device struct {
-	ID         bson.ObjectId     `json:"-" bson:"_id,omitempty"`
-	UID        string            `json:"uid"`
-	Name       string            `json:"name" bson:"name,omitempty"`
-	Identity   map[string]string `json:"identity"`
-	Attributes map[string]string `json:"attributes"`
-	PublicKey  string            `json:"public_key" bson:"public_key"`
-	TenantID   string            `json:"tenant_id" bson:"tenant_id"`
-	LastSeen   time.Time         `json:"last_seen"`
-	Online     bool              `json:"online"`
-	Namespace  string            `json:"namespace"`
-}
-
-type Session struct {
-	ID        bson.ObjectId `json:"-" bson:"_id,omitempty"`
-	UID       string        `json:"uid"`
-	Device    string        `json:"device"`
-	TenantID  string        `json:"tenant_id" bson:"tenant_id"`
-	Username  string        `json:"username"`
-	IPAddress string        `json:"ip_address" bson:"ip_address"`
-	StartedAt time.Time     `json:"started_at" bson:"started_at"`
-	LastSeen  time.Time     `json:"last_seen" bson:"last_seen"`
-	Active    bool          `json:"active"`
-}
-
-type ActiveSession struct {
-	ID       bson.ObjectId `json:"-" bson:"_id,omitempty"`
-	UID      string        `json:"uid"`
-	LastSeen time.Time     `json:"last_seen" bson:"last_seen"`
-}
-
-type AuthQuery struct {
-	Username string `query:"username"`
-	Password string `query:"password"`
-	IPAddr   string `query:"ipaddr"`
-}
-
-type ACLQuery struct {
-	Access   string `query:"access"`
-	Username string `query:"username"`
-	Topic    string `query:"topic"`
-	IPAddr   string `query:"ipaddr"`
-}
-
-type User struct {
-	ID       bson.ObjectId `json:"-" bson:"_id,omitempty"`
-	Username string        `json:"username"`
-	Password string        `json:"password"`
-	TenantID string        `json:"tenant_id" bson:"tenant_id"`
-}
-
-type AuthClaims struct {
-	UID string `json:"uid"`
-
-	jwt.StandardClaims
-}
-
-type UserClaims struct {
-	Name   string `json:"name"`
-	Admin  bool   `json:"admin"`
-	Tenant string `json:"tenant"`
-	jwt.StandardClaims
-}
-
-type WebHookEvent struct {
-	Action string `json:"action"`
-
-	WebHookClientEvent
-}
-
-type WebHookClientEvent struct {
-	ClientID string `json:"client_id"`
-	Username string `json:"username"`
-}
-
-const (
-	WebHookClientConnectedEventType    = "client_connected"
-	WebHookClientDisconnectedEventType = "client_disconnected"
 )
 
 var verifyKey *rsa.PublicKey
@@ -222,6 +134,11 @@ func main() {
 
 			defer s.Close()
 
+			tenant := c.Request().Header.Get("X-Tenant-ID")
+			ctx := context.WithValue(c.Request().Context(), "tenant", tenant)
+			ctx = context.WithValue(ctx, "db", s.DB("main"))
+
+			c.Set("ctx", ctx)
 			c.Set("db", s.DB("main"))
 
 			return next(c)
@@ -229,145 +146,32 @@ func main() {
 	})
 
 	e.POST("/devices/auth", func(c echo.Context) error {
-		db := c.Get("db").(*mgo.Database)
-
-		var req DeviceAuthRequest
+		var req models.DeviceAuthRequest
 
 		err := c.Bind(&req)
 		if err != nil {
 			return err
 		}
 
-		sessions := req.Sessions
-		attributes := req.Attributes
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := authsvc.NewService(store, signKey)
 
-		req.Sessions = []string{}
-		req.Attributes = map[string]string{}
-
-		uid := sha256.Sum256(structhash.Dump(req, 1))
-
-		req.Attributes = attributes
-
-		d := &Device{
-			UID:        hex.EncodeToString(uid[:]),
-			Identity:   req.Identity,
-			Attributes: req.Attributes,
-			PublicKey:  req.PublicKey,
-			TenantID:   req.TenantID,
-			LastSeen:   time.Now(),
-		}
-
-		hostname := strings.Replace(req.Identity["mac"], ":", "-", -1)
-
-		q := bson.M{
-			"$setOnInsert": bson.M{
-				"name": hostname,
-			},
-			"$set": d,
-		}
-
-		_, err = db.C("devices").Upsert(bson.M{"uid": d.UID}, q)
+		res, err := svc.AuthDevice(ctx, &req)
 		if err != nil {
 			return err
 		}
 
-		token := jwt.NewWithClaims(jwt.SigningMethodRS256, AuthClaims{
-			UID: string(uid[:]),
-		})
-
-		signature, err := token.SignedString(signKey)
-		if err != nil {
-			return err
-		}
-
-		cd := &ConnectedDevice{
-			UID:      d.UID,
-			TenantID: d.TenantID,
-			LastSeen: time.Now(),
-		}
-
-		if err := db.C("connected_devices").Insert(&cd); err != nil {
-			return err
-		}
-
-		for _, s := range sessions {
-			sess := Session{}
-			err := db.C("sessions").Find(bson.M{"uid": s}).One(&sess)
-			if err != nil {
-				return err
-			}
-
-			sess.LastSeen = time.Now()
-
-			_, err = db.C("sessions").Upsert(bson.M{"uid": sess.UID}, sess)
-			if err != nil {
-				return err
-			}
-
-			as := &ActiveSession{
-				UID:      s,
-				LastSeen: time.Now(),
-			}
-
-			if err := db.C("active_sessions").Insert(&as); err != nil {
-				return err
-			}
-		}
-
-		if err := db.C("devices").Find(bson.M{"uid": d.UID}).One(&d); err != nil {
-			return err
-		}
-
-		return c.JSON(http.StatusOK, echo.Map{
-			"uid":   d.UID,
-			"token": signature,
-			"name":  d.Name,
-		})
+		return c.JSON(http.StatusOK, res)
 	})
 
 	e.GET("/devices", func(c echo.Context) error {
-		db := c.Get("db").(*mgo.Database)
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := deviceadm.NewService(store)
 
-		devices := make([]Device, 0)
-
-		query := []bson.M{
-			{
-				"$lookup": bson.M{
-					"from":         "connected_devices",
-					"localField":   "uid",
-					"foreignField": "uid",
-					"as":           "online",
-				},
-			},
-			{
-				"$lookup": bson.M{
-					"from":         "users",
-					"localField":   "tenant_id",
-					"foreignField": "tenant_id",
-					"as":           "namespace",
-				},
-			},
-			{
-				"$addFields": bson.M{
-					"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
-					"namespace": "$namespace.username",
-				},
-			},
-			{
-				"$unwind": "$namespace",
-			},
-		}
-
-		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			query = append(query, bson.M{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			})
-		}
-
-		if err := db.C("devices").Pipe(query).All(&devices); err != nil {
+		devices, err := svc.ListDevices(ctx)
+		if err != nil {
 			return err
 		}
 
@@ -375,10 +179,12 @@ func main() {
 	})
 
 	e.GET("/devices/:uid", func(c echo.Context) error {
-		db := c.Get("db").(*mgo.Database)
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := deviceadm.NewService(store)
 
-		device := new(Device)
-		if err := db.C("devices").Find(bson.M{"uid": c.Param("uid")}).One(&device); err != nil {
+		device, err := svc.GetDevice(ctx, models.UID(c.Param("uid")))
+		if err != nil {
 			return err
 		}
 
@@ -386,22 +192,14 @@ func main() {
 	})
 
 	e.DELETE("/devices/:uid", func(c echo.Context) error {
-		db := c.Get("db").(*mgo.Database)
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := deviceadm.NewService(store)
 
-		if err := db.C("devices").Remove(bson.M{"uid": c.Param("uid")}); err != nil {
-			return err
-		}
-
-		if err := db.C("sessions").Remove(bson.M{"device": c.Param("uid")}); err != nil {
-			return err
-		}
-
-		return nil
+		return svc.DeleteDevice(ctx, models.UID(c.Param("uid")))
 	})
 
 	e.PATCH("/devices/:uid", func(c echo.Context) error {
-		db := c.Get("db").(*mgo.Database)
-
 		var req struct {
 			Name string `json:"name"`
 		}
@@ -411,11 +209,11 @@ func main() {
 			return err
 		}
 
-		if err := db.C("devices").Update(bson.M{"uid": c.Param("uid")}, bson.M{"$set": bson.M{"name": req.Name}}); err != nil {
-			return err
-		}
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := deviceadm.NewService(store)
 
-		return nil
+		return svc.RenameDevice(ctx, models.UID(c.Param("uid")), req.Name)
 	})
 
 	e.GET("/mqtt/auth", AuthenticateMqttClient)
@@ -423,63 +221,40 @@ func main() {
 	e.POST("/mqtt/webhook", ProcessMqttEvent)
 
 	e.POST("/login", func(c echo.Context) error {
-		var login struct {
-			Username string `json:"username"`
-			Password string `json:"password"`
+		var req models.UserAuthRequest
+
+		err := c.Bind(&req)
+		if err != nil {
+			return err
 		}
 
-		c.Bind(&login)
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := authsvc.NewService(store, signKey)
 
-		db := c.Get("db").(*mgo.Database)
-
-		user := new(User)
-		if err := db.C("users").Find(bson.M{"username": login.Username}).One(&user); err != nil {
+		res, err := svc.AuthUser(ctx, req)
+		if err != nil {
 			return echo.ErrUnauthorized
 		}
 
-		password := sha256.Sum256([]byte(login.Password))
-		if user.Password == hex.EncodeToString(password[:]) {
-			token := jwt.NewWithClaims(jwt.SigningMethodRS256, UserClaims{
-				Name:   user.Username,
-				Admin:  true,
-				Tenant: user.TenantID,
-				StandardClaims: jwt.StandardClaims{
-					ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
-				},
-			})
-
-			t, err := token.SignedString(signKey)
-			if err != nil {
-				return err
-			}
-
-			return c.JSON(http.StatusOK, map[string]string{
-				"token":  t,
-				"user":   user.Username,
-				"tenant": user.TenantID,
-			})
-		}
-
-		return echo.ErrUnauthorized
+		return c.JSON(http.StatusOK, res)
 	})
 
 	e.GET("/auth", func(c echo.Context) error {
 		token := c.Get("user").(*jwt.Token)
-		claims := token.Claims.(*UserClaims)
+		claims := token.Claims.(*models.UserAuthClaims)
 
 		// Extract tenant from JWT
 		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
 
 		return nil
 	}, middleware.JWTWithConfig(middleware.JWTConfig{
-		Claims:        &UserClaims{},
+		Claims:        &models.UserAuthClaims{},
 		SigningKey:    verifyKey,
 		SigningMethod: "RS256",
 	}))
 
 	e.GET("/lookup", func(c echo.Context) error {
-		db := c.Get("db").(*mgo.Database)
-
 		var query struct {
 			Domain string `query:"domain"`
 			Name   string `query:"name"`
@@ -489,173 +264,36 @@ func main() {
 			return err
 		}
 
-		pipe := []bson.M{}
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := deviceadm.NewService(store)
 
-		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			pipe = append(pipe, bson.M{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			})
-		} else {
-			pipe = append(pipe, bson.M{"$match": bson.M{"username": query.Domain}})
-		}
-
-		users := make([]User, 0)
-		if err := db.C("users").Pipe(pipe).All(&users); err != nil {
-			return err
-		}
-
-		if len(users) == 0 {
-			return echo.NewHTTPError(http.StatusNotFound)
-		}
-
-		device := new(Device)
-		if err := db.C("devices").Find(bson.M{"tenant_id": users[0].TenantID, "name": query.Name}).One(&device); err != nil {
-			return err
+		err, device := svc.LookupDevice(ctx, query.Domain, query.Name)
+		if err != nil {
+			return nil
 		}
 
 		return c.JSON(http.StatusOK, device)
 	})
 
 	e.GET("/stats", func(c echo.Context) error {
-		db := c.Get("db").(*mgo.Database)
+		ctx := c.Get("ctx").(context.Context)
 
-		query := []bson.M{
-			{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
-			{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
-		}
-
-		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			query = append([]bson.M{{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			}}, query...)
-		}
-
-		resp := []bson.M{}
-
-		if err := db.C("connected_devices").Pipe(query).All(&resp); err != nil {
-			fmt.Println(err)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		stats, err := store.GetStats(ctx)
+		if err != nil {
 			return err
 		}
 
-		onlineDevices := 0
-		if len(resp) > 0 {
-			onlineDevices = resp[0]["count"].(int)
-		}
-
-		query = []bson.M{
-			{"$count": "count"},
-		}
-
-		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			query = append([]bson.M{{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			}}, query...)
-		}
-
-		resp = []bson.M{}
-
-		if err := db.C("devices").Pipe(query).All(&resp); err != nil {
-			fmt.Println(err)
-			return err
-		}
-
-		registeredDevices := 0
-		if len(resp) > 0 {
-			registeredDevices = resp[0]["count"].(int)
-		}
-
-		query = []bson.M{
-			{
-				"$lookup": bson.M{
-					"from":         "active_sessions",
-					"localField":   "uid",
-					"foreignField": "uid",
-					"as":           "active",
-				},
-			},
-			{
-				"$addFields": bson.M{
-					"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
-				},
-			},
-			{
-				"$match": bson.M{
-					"active": true,
-				},
-			},
-		}
-
-		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			query = append(query, bson.M{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			})
-		}
-
-		query = append(query, bson.M{
-			"$count": "count",
-		})
-
-		resp = []bson.M{}
-
-		if err := db.C("sessions").Pipe(query).All(&resp); err != nil {
-			return err
-		}
-
-		activeSessions := 0
-		if len(resp) > 0 {
-			activeSessions = resp[0]["count"].(int)
-		}
-
-		return c.JSON(http.StatusOK, echo.Map{
-			"registered_devices": registeredDevices,
-			"online_devices":     onlineDevices,
-			"active_sessions":    activeSessions,
-		})
+		return c.JSON(http.StatusOK, stats)
 	})
 
 	e.GET("/sessions", func(c echo.Context) error {
-		db := c.Get("db").(*mgo.Database)
+		ctx := c.Get("ctx").(context.Context)
 
-		sessions := make([]Session, 0)
-
-		query := []bson.M{
-			{
-				"$lookup": bson.M{
-					"from":         "active_sessions",
-					"localField":   "uid",
-					"foreignField": "uid",
-					"as":           "active",
-				},
-			},
-			{
-				"$addFields": bson.M{
-					"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
-				},
-			},
-		}
-
-		// Only match for the respective tenant if requested
-		if len(c.Request().Header.Get("X-Tenant-ID")) > 0 {
-			query = append(query, bson.M{
-				"$match": bson.M{
-					"tenant_id": c.Request().Header.Get("X-Tenant-ID"),
-				},
-			})
-		}
-
-		if err := db.C("sessions").Pipe(query).All(&sessions); err != nil {
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		sessions, err := store.ListSessions(ctx)
+		if err != nil {
 			return err
 		}
 
@@ -663,34 +301,19 @@ func main() {
 	})
 
 	e.POST("/sessions", func(c echo.Context) error {
-		db := c.Get("db").(*mgo.Database)
-
-		var session Session
+		session := new(models.Session)
 		err := c.Bind(&session)
 		if err != nil {
 			return err
 		}
 
-		session.StartedAt = time.Now()
-		session.LastSeen = session.StartedAt
+		ctx := c.Get("ctx").(context.Context)
 
-		device := new(Device)
-		if err := db.C("devices").Find(bson.M{"uid": session.Device}).One(&device); err != nil {
-			return err
-		}
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := sessionmngr.NewService(store)
 
-		session.TenantID = device.TenantID
-
-		if err := db.C("sessions").Insert(session); err != nil {
-			return err
-		}
-
-		as := &ActiveSession{
-			UID:      session.UID,
-			LastSeen: session.StartedAt,
-		}
-
-		if err := db.C("active_sessions").Insert(&as); err != nil {
+		session, err = svc.CreateSession(ctx, *session)
+		if err != nil {
 			return err
 		}
 
@@ -698,26 +321,12 @@ func main() {
 	})
 
 	e.POST("/sessions/:uid/finish", func(c echo.Context) error {
-		db := c.Get("db").(*mgo.Database)
+		ctx := c.Get("ctx").(context.Context)
 
-		session := new(Session)
-		if err := db.C("sessions").Find(bson.M{"uid": c.Param("uid")}).One(&session); err != nil {
-			return err
-		}
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := sessionmngr.NewService(store)
 
-		session.LastSeen = time.Now()
-
-		_, err = db.C("sessions").Upsert(bson.M{"uid": session.UID}, session)
-		if err != nil {
-			return err
-		}
-
-		_, err := db.C("active_sessions").RemoveAll(bson.M{"uid": session.UID})
-		if err != nil {
-			return err
-		}
-
-		return c.JSON(http.StatusOK, session)
+		return svc.DeactivateSession(ctx, models.UID(c.Param("uid")))
 	})
 
 	e.Logger.Fatal(e.Start(":8080"))
