@@ -25,9 +25,10 @@ type AuthRequest struct {
 }
 
 type AuthResponse struct {
-	UID   string `json:"uid"`
-	Token string `json:"token"`
-	Name  string `json:"name"`
+	UID       string `json:"uid"`
+	Token     string `json:"token"`
+	Name      string `json:"name"`
+	Namespace string `json: "namespace"`
 }
 
 func generatePrivateKey(filename string) error {

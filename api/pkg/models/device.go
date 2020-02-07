@@ -39,8 +39,10 @@ type DeviceAuth struct {
 }
 
 type DeviceAuthResponse struct {
-	UID   string `json:"uid"`
-	Token string `json:"token"`
+	UID       string `json:"uid"`
+	Token     string `json:"token"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
 }
 
 type ConnectedDevice struct {
