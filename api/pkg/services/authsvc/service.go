@@ -63,9 +63,14 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		}
 	}
 
+	dev, _ := s.store.GetDevice(ctx, models.UID(device.UID))
+	user, err := s.store.GetUserByTenant(ctx, device.TenantID)
+
 	return &models.DeviceAuthResponse{
-		UID:   hex.EncodeToString(uid[:]),
-		Token: tokenStr,
+		UID:       hex.EncodeToString(uid[:]),
+		Token:     tokenStr,
+		Name:      dev.Name,
+		Namespace: user.Username,
 	}, nil
 }
 

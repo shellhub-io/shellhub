@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"time"
 
+	"encoding/json"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
 	"github.com/pkg/errors"
@@ -51,6 +53,20 @@ func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, attributes 
 	return &auth, nil
 }
 
+type Information struct {
+	SSHID string `json:"sshid"`
+}
+
+func getInfo(input string) string {
+	info := Information{
+		SSHID: input,
+	}
+	prettyJSON, err := json.MarshalIndent(info, "", "    ")
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"err": err}).Fatal("Failed to generate json")
+	}
+	return string(prettyJSON)
+}
 func main() {
 	opts := ConfigOptions{}
 
@@ -92,6 +108,10 @@ func main() {
 	auth, err := sendAuthRequest(&endpoints, identity, attributes, pubKey, opts.TenantID, []string{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
+	}
+	if l := len(os.Args); l > 1 && os.Args[1] == "info" {
+		fmt.Println(getInfo(auth.Namespace + "." + auth.Name + "@" + strings.Split(endpoints.SSH, ":")[0]))
+		return
 	}
 
 	freePort, err := getFreePort()

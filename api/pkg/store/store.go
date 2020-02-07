@@ -19,4 +19,5 @@ type Store interface {
 	KeepAliveSession(ctx context.Context, uid models.UID) error
 	DeactivateSession(ctx context.Context, uid models.UID) error
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
+	GetUserByTenant(ctx context.Context, tenant string) (*models.User, error)
 }
