@@ -22,8 +22,7 @@ func NewService(store store.Store) Service {
 }
 
 func (s *service) ListSessions(ctx context.Context) ([]models.Session, error) {
-	return nil, nil
-	//	return s.store.ListDevices(ctx)
+	return s.store.ListSessions(ctx)
 }
 
 func (s *service) CreateSession(ctx context.Context, session models.Session) (*models.Session, error) {

@@ -292,7 +292,8 @@ func main() {
 		ctx := c.Get("ctx").(context.Context)
 
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
-		sessions, err := store.ListSessions(ctx)
+		svc := sessionmngr.NewService(store)
+		sessions, err := svc.ListSessions(ctx)
 		if err != nil {
 			return err
 		}
