@@ -2,35 +2,41 @@ version: '3.7'
 
 services:
   ssh:
+    image: shellhub-ssh
     build:
       context: ssh
       target: development
     volumes:
       - ./ssh:/go/src/github.com/shellhub-io/shellhub/ssh
   api:
+    image: shellhub-api
     build:
       context: api
       target: development
     volumes:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
   ws:
+    image: shellhub-ws
     build:
       context: ws
       target: development
     volumes:
       - ./ws:/go/src/github.com/shellhub-io/shellhub/ws
   ui:
+    image: shellhub-ui
     build:
       context: ui
       target: development
     volumes:
       - ./ui:/src
   gateway:
+    image: shellhub-gateway
     build:
       context: gateway
     environment:
       - SHELLHUB_VERSION=latest
   agent:
+    image: shellhub-agent
     build:
       context: agent
       target: development
