@@ -146,7 +146,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		PublicKey string `json:"public_key"`
 	}
 
-	_, _, errs := gorequest.New().Get(fmt.Sprintf("http://api:8080/devices/%s", sess.Target)).EndStruct(&device)
+	_, _, errs := gorequest.New().Get(fmt.Sprintf("http://api:8080/public/devices/%s", sess.Target)).EndStruct(&device)
 	if len(errs) > 0 {
 		logrus.WithFields(logrus.Fields{
 			"err": err,

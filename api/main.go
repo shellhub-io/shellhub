@@ -146,7 +146,10 @@ func main() {
 		}
 	})
 
-	e.POST("/devices/auth", func(c echo.Context) error {
+	publicAPI := e.Group("/public")
+	internalAPI := e.Group("/internal")
+
+	publicAPI.POST("/devices/auth", func(c echo.Context) error {
 		var req models.DeviceAuthRequest
 
 		err := c.Bind(&req)
@@ -166,7 +169,7 @@ func main() {
 		return c.JSON(http.StatusOK, res)
 	})
 
-	e.GET("/devices", func(c echo.Context) error {
+	publicAPI.GET("/devices", func(c echo.Context) error {
 		ctx := c.Get("ctx").(context.Context)
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := deviceadm.NewService(store)
@@ -179,7 +182,7 @@ func main() {
 		return c.JSON(http.StatusOK, devices)
 	})
 
-	e.GET("/devices/:uid", func(c echo.Context) error {
+	publicAPI.GET("/devices/:uid", func(c echo.Context) error {
 		ctx := c.Get("ctx").(context.Context)
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := deviceadm.NewService(store)
@@ -192,7 +195,7 @@ func main() {
 		return c.JSON(http.StatusOK, device)
 	})
 
-	e.DELETE("/devices/:uid", func(c echo.Context) error {
+	publicAPI.DELETE("/devices/:uid", func(c echo.Context) error {
 		ctx := c.Get("ctx").(context.Context)
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := deviceadm.NewService(store)
@@ -200,7 +203,7 @@ func main() {
 		return svc.DeleteDevice(ctx, models.UID(c.Param("uid")))
 	})
 
-	e.PATCH("/devices/:uid", func(c echo.Context) error {
+	publicAPI.PATCH("/devices/:uid", func(c echo.Context) error {
 		var req struct {
 			Name string `json:"name"`
 		}
@@ -217,55 +220,7 @@ func main() {
 		return svc.RenameDevice(ctx, models.UID(c.Param("uid")), req.Name)
 	})
 
-	e.GET("/mqtt/auth", func(c echo.Context) error {
-		q := models.MqttAuthQuery{}
-
-		if err := c.Bind(&q); err != nil {
-			return err
-		}
-
-		ctx := c.Get("ctx").(context.Context)
-		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
-		svc := mqtthooks.NewService(store, verifyKey)
-
-		return svc.AuthenticateClient(ctx, q)
-	})
-
-	e.GET("/mqtt/superuser", func(c echo.Context) error {
-		q := models.MqttAuthQuery{}
-
-		if err := c.Bind(&q); err != nil {
-			return err
-		}
-
-		return echo.NewHTTPError(http.StatusUnauthorized)
-	})
-
-	e.GET("/mqtt/acl", func(c echo.Context) error {
-		q := models.MqttACLQuery{}
-
-		if err := c.Bind(&q); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	e.POST("/mqtt/webhook", func(c echo.Context) error {
-		evt := models.MqttEvent{}
-
-		if err := c.Bind(&evt); err != nil {
-			return err
-		}
-
-		ctx := c.Get("ctx").(context.Context)
-		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
-		svc := mqtthooks.NewService(store, verifyKey)
-
-		return svc.ProcessEvent(ctx, evt)
-	})
-
-	e.POST("/login", func(c echo.Context) error {
+	publicAPI.POST("/login", func(c echo.Context) error {
 		var req models.UserAuthRequest
 
 		err := c.Bind(&req)
@@ -285,7 +240,7 @@ func main() {
 		return c.JSON(http.StatusOK, res)
 	})
 
-	e.GET("/auth", func(c echo.Context) error {
+	internalAPI.GET("/auth", func(c echo.Context) error {
 		token := c.Get("user").(*jwt.Token)
 		claims := token.Claims.(*models.UserAuthClaims)
 
@@ -299,7 +254,100 @@ func main() {
 		SigningMethod: "RS256",
 	}))
 
-	e.GET("/lookup", func(c echo.Context) error {
+	publicAPI.GET("/stats", func(c echo.Context) error {
+		ctx := c.Get("ctx").(context.Context)
+
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		stats, err := store.GetStats(ctx)
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, stats)
+	})
+
+	publicAPI.GET("/sessions", func(c echo.Context) error {
+		ctx := c.Get("ctx").(context.Context)
+
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := sessionmngr.NewService(store)
+		sessions, err := svc.ListSessions(ctx)
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, sessions)
+	})
+
+	publicAPI.POST("/sessions", func(c echo.Context) error {
+		session := new(models.Session)
+		err := c.Bind(&session)
+		if err != nil {
+			return err
+		}
+
+		ctx := c.Get("ctx").(context.Context)
+
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := sessionmngr.NewService(store)
+
+		session, err = svc.CreateSession(ctx, *session)
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, session)
+	})
+
+	internalAPI.GET("/mqtt/auth", func(c echo.Context) error {
+		q := models.MqttAuthQuery{}
+
+		if err := c.Bind(&q); err != nil {
+			return err
+		}
+
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := mqtthooks.NewService(store, verifyKey)
+
+		return svc.AuthenticateClient(ctx, q)
+	})
+
+	internalAPI.GET("/mqtt/superuser", func(c echo.Context) error {
+		q := models.MqttAuthQuery{}
+
+		if err := c.Bind(&q); err != nil {
+			return err
+		}
+
+		return echo.NewHTTPError(http.StatusUnauthorized)
+	})
+
+	internalAPI.GET("/mqtt/acl", func(c echo.Context) error {
+		q := models.MqttACLQuery{}
+
+		if err := c.Bind(&q); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	internalAPI.POST("/mqtt/webhook", func(c echo.Context) error {
+		evt := models.MqttEvent{}
+
+		if err := c.Bind(&evt); err != nil {
+			return err
+		}
+
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := mqtthooks.NewService(store, verifyKey)
+
+		return svc.ProcessEvent(ctx, evt)
+	})
+
+	internalAPI.GET("/lookup", func(c echo.Context) error {
 		var query struct {
 			Domain string `query:"domain"`
 			Name   string `query:"name"`
@@ -321,52 +369,7 @@ func main() {
 		return c.JSON(http.StatusOK, device)
 	})
 
-	e.GET("/stats", func(c echo.Context) error {
-		ctx := c.Get("ctx").(context.Context)
-
-		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
-		stats, err := store.GetStats(ctx)
-		if err != nil {
-			return err
-		}
-
-		return c.JSON(http.StatusOK, stats)
-	})
-
-	e.GET("/sessions", func(c echo.Context) error {
-		ctx := c.Get("ctx").(context.Context)
-
-		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
-		svc := sessionmngr.NewService(store)
-		sessions, err := svc.ListSessions(ctx)
-		if err != nil {
-			return err
-		}
-
-		return c.JSON(http.StatusOK, sessions)
-	})
-
-	e.POST("/sessions", func(c echo.Context) error {
-		session := new(models.Session)
-		err := c.Bind(&session)
-		if err != nil {
-			return err
-		}
-
-		ctx := c.Get("ctx").(context.Context)
-
-		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
-		svc := sessionmngr.NewService(store)
-
-		session, err = svc.CreateSession(ctx, *session)
-		if err != nil {
-			return err
-		}
-
-		return c.JSON(http.StatusOK, session)
-	})
-
-	e.POST("/sessions/:uid/finish", func(c echo.Context) error {
+	internalAPI.POST("/sessions/:uid/finish", func(c echo.Context) error {
 		ctx := c.Get("ctx").(context.Context)
 
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))

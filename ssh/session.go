@@ -55,7 +55,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 			UID string `json:"uid"`
 		}
 
-		res, _, errs := gorequest.New().Get("http://api:8080/lookup").Query(lookup).EndStruct(&device)
+		res, _, errs := gorequest.New().Get("http://api:8080/internal/lookup").Query(lookup).EndStruct(&device)
 		if len(errs) > 0 || res.StatusCode != http.StatusOK {
 			return nil, ErrInvalidSessionTarget
 		}
@@ -229,7 +229,7 @@ func (s *Session) register(session sshserver.Session) error {
 		s.IPAddress = host
 	}
 
-	_, _, errs := gorequest.New().Post("http://api:8080/sessions").Send(*s).End()
+	_, _, errs := gorequest.New().Post("http://api:8080/public/sessions").Send(*s).End()
 	if len(errs) > 0 {
 		return errs[0]
 	}
@@ -238,7 +238,7 @@ func (s *Session) register(session sshserver.Session) error {
 }
 
 func (s *Session) finish() error {
-	_, _, errs := gorequest.New().Post(fmt.Sprintf("http://api:8080/sessions/%s/finish", s.UID)).End()
+	_, _, errs := gorequest.New().Post(fmt.Sprintf("http://api:8080/internal/sessions/%s/finish", s.UID)).End()
 	if len(errs) > 0 {
 		return errs[0]
 	}
