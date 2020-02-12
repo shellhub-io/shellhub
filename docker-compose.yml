@@ -28,6 +28,9 @@ services:
       - EMQX_AUTH__HTTP__ACL_REQ__METHOD=get
       - EMQX_AUTH__HTTP__ACL_REQ__PARAMS=access=%A,username=%u,topic=%t,ipaddr=%a
       - EMQX_AUTH__HTTP__ACL_NOMATCH=deny
+      - EMQX_AUTH__HTTP__SUPER_REQ=http://api:8080/mqtt/superuser
+      - EMQX_AUTH__HTTP__SUPER_REQ__method=get
+      - EMQX_AUTH__HTTP__SUPER_REQ__params=username=%u,password=%P,ipaddr=%a
       - EMQX_WEB__HOOK__API__URL=http://api:8080/mqtt/webhook
     links:
       - api

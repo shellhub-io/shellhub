@@ -231,6 +231,16 @@ func main() {
 		return svc.AuthenticateClient(ctx, q)
 	})
 
+	e.GET("/mqtt/superuser", func(c echo.Context) error {
+		q := models.MqttAuthQuery{}
+
+		if err := c.Bind(&q); err != nil {
+			return err
+		}
+
+		return echo.NewHTTPError(http.StatusUnauthorized)
+	})
+
 	e.GET("/mqtt/acl", func(c echo.Context) error {
 		q := models.MqttACLQuery{}
 
