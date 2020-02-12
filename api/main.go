@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/models"
 	"github.com/shellhub-io/shellhub/api/pkg/services/authsvc"
 	"github.com/shellhub-io/shellhub/api/pkg/services/deviceadm"
+	"github.com/shellhub-io/shellhub/api/pkg/services/mqtthooks"
 	"github.com/shellhub-io/shellhub/api/pkg/services/sessionmngr"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
 	mgo "gopkg.in/mgo.v2"
@@ -216,9 +217,43 @@ func main() {
 		return svc.RenameDevice(ctx, models.UID(c.Param("uid")), req.Name)
 	})
 
-	e.GET("/mqtt/auth", AuthenticateMqttClient)
-	e.GET("/mqtt/acl", AuthorizeMqttClient)
-	e.POST("/mqtt/webhook", ProcessMqttEvent)
+	e.GET("/mqtt/auth", func(c echo.Context) error {
+		q := models.MqttAuthQuery{}
+
+		if err := c.Bind(&q); err != nil {
+			return err
+		}
+
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := mqtthooks.NewService(store, verifyKey)
+
+		return svc.AuthenticateClient(ctx, q)
+	})
+
+	e.GET("/mqtt/acl", func(c echo.Context) error {
+		q := models.MqttACLQuery{}
+
+		if err := c.Bind(&q); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	e.POST("/mqtt/webhook", func(c echo.Context) error {
+		evt := models.MqttEvent{}
+
+		if err := c.Bind(&evt); err != nil {
+			return err
+		}
+
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := mqtthooks.NewService(store, verifyKey)
+
+		return svc.ProcessEvent(ctx, evt)
+	})
 
 	e.POST("/login", func(c echo.Context) error {
 		var req models.UserAuthRequest
