@@ -1,4 +1,6 @@
 package: github.com/shellhub-io/shellhub/api
+ignore:
+- github.com/shellhub-io/shellhub/api/pkg
 import:
 - package: github.com/cnf/structhash
 - package: github.com/dgrijalva/jwt-go
@@ -14,5 +16,7 @@ import:
   version: ~1.2.0
   subpackages:
   - '...'
-ignore:
-- github.com/shellhub-io/shellhub/api/pkg
+- package: go.mongodb.org/mongo-driver
+  version: ~1.3.0
+  subpackages:
+  - mongo
