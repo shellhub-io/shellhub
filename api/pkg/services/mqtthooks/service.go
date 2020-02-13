@@ -3,7 +3,9 @@ package mqtthooks
 import (
 	"context"
 	"crypto/rsa"
+	"errors"
 	"fmt"
+	"net"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/shellhub-io/shellhub/api/pkg/models"
@@ -36,9 +38,20 @@ func (s *service) ProcessEvent(ctx context.Context, event models.MqttEvent) erro
 }
 
 func (s *service) AuthenticateClient(ctx context.Context, query models.MqttAuthQuery) error {
-	// Authorize connection from internal ssh client
+	// Authorize connection from internal ssh service
 	if query.Username == "ssh" {
-		return nil
+		addrs, err := net.LookupHost("ssh")
+		if err != nil {
+			return err
+		}
+
+		for _, addr := range addrs {
+			if addr == query.IPAddr {
+				return nil
+			}
+		}
+
+		return errors.New("unauthorized")
 	}
 
 	token, err := jwt.ParseWithClaims(query.Password, &models.DeviceAuthClaims{}, func(token *jwt.Token) (interface{}, error) {
