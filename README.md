@@ -1,4 +1,4 @@
-# ShellHub [![ShellHub](https://circleci.com/gh/shellhub-io/shellhub.svg?style=shield)](https://circleci.com/gh/shellhub-io/shellhub)
+# ShellHub [![ShellHub](https://circleci.com/gh/shellhub-io/shellhub.svg?style=shield)](https://circleci.com/gh/shellhub-io/shellhub) [![I love Free Software](https://fsfe.org/campaigns/ilovefs/artwork/graphics/ilovefs-button-small-en.png)](https://ilovefs.org)
 
 ShellHub is a modern SSH server for remotely accessing Linux devices
 via command line (using any SSH client) or web-based user interface, 
