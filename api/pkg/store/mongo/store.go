@@ -108,7 +108,7 @@ func (s *Store) RenameDevice(ctx context.Context, uid models.UID, name string) e
 
 func (s *Store) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
 	user := new(models.User)
-	if err := s.db.C("users").Find(bson.M{"$match": bson.M{"username": namespace}}).One(&user); err != nil {
+	if err := s.db.C("users").Find(bson.M{"username": namespace}).One(&user); err != nil {
 		return nil, err
 	}
 

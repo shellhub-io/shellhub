@@ -361,7 +361,7 @@ func main() {
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := deviceadm.NewService(store)
 
-		err, device := svc.LookupDevice(ctx, query.Domain, query.Name)
+		device, err := svc.LookupDevice(ctx, query.Domain, query.Name)
 		if err != nil {
 			return nil
 		}
