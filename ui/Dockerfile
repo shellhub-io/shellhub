@@ -1,4 +1,4 @@
-FROM node:11.9.0-alpine as base
+FROM node:12.16.0-alpine as base
 
 RUN apk add --update build-base python
 
@@ -14,7 +14,7 @@ WORKDIR /src
 
 COPY --from=base /app/node_modules /node_modules
 
-ADD entrypoint-dev.sh /entrypoint.sh
+COPY entrypoint-dev.sh /entrypoint.sh
 
 CMD ["/entrypoint.sh"]
 
