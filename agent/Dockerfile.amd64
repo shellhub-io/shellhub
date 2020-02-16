@@ -5,12 +5,11 @@ RUN apk add --update git ca-certificates util-linux build-base bash && \
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
-ADD ./glide.yaml .
-ADD ./glide.lock .
+COPY glide.yaml glide.lock ./
 
 RUN glide install
 
-ADD . .
+COPY . .
 
 RUN glide -q install --skip-test && GOOS=linux GOARCH=amd64 go build -tags docker
 

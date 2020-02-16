@@ -6,15 +6,14 @@ RUN apk add --update git ca-certificates && \
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/ws
 
-ADD ./glide.yaml .
-ADD ./glide.lock .
+COPY glide.yaml glide.lock ./
 
 RUN glide install
 
 # builder stage
 FROM base AS builder
 
-ADD . .
+COPY . .
 
 RUN glide -q install --skip-test && go build
 
@@ -27,7 +26,7 @@ RUN go get github.com/markbates/refresh
 RUN glide -q install --skip-test
 RUN cp -a vendor /vendor
 
-ADD entrypoint-dev.sh /entrypoint.sh
+COPY entrypoint-dev.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 
