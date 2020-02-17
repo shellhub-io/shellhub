@@ -80,8 +80,6 @@ func NewServer(opts *Options) *Server {
 			"err":    err,
 		}).Error("Lost connection from broker")
 
-		s.broker = client
-
 		s.connectToBroker()
 	})
 
