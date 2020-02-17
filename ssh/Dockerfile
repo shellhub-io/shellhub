@@ -31,7 +31,7 @@ COPY entrypoint-dev.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
-FROM alpine:3.7 AS production
+FROM alpine:3.11 AS production
 
 RUN apk add --update openssh-client
 
