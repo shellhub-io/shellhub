@@ -27,7 +27,7 @@ help with any issue in our [Gitter Channel](https://gitter.im/shellhub-io/commun
 ## License
 
 ShellHub is licensed under the Apache License, Version 2.0.
-See [LICENSE](LICENSE) for the full license text.
+See [LICENSE](LICENSE.md) for the full license text.
 
 ## Development Environment Setup
 
