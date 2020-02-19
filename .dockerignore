@@ -1,0 +1,6 @@
+.git
+.gitignore
+./docker-compose*.yml
+./*.md
+./bin
+./ui/node_modules
