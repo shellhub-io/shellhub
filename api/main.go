@@ -16,7 +16,9 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/services/deviceadm"
 	"github.com/shellhub-io/shellhub/api/pkg/services/mqtthooks"
 	"github.com/shellhub-io/shellhub/api/pkg/services/sessionmngr"
+	"github.com/shellhub-io/shellhub/api/pkg/services/ssh2ws"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
+	"golang.org/x/net/websocket"
 	mgo "gopkg.in/mgo.v2"
 )
 
@@ -297,6 +299,11 @@ func main() {
 		}
 
 		return c.JSON(http.StatusOK, session)
+	})
+
+	publicAPI.GET("/ws/ssh", func(c echo.Context) error {
+		websocket.Handler(ssh2ws.Handler).ServeHTTP(c.Response(), c.Request())
+		return nil
 	})
 
 	internalAPI.GET("/mqtt/auth", func(c echo.Context) error {

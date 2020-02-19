@@ -1,10 +1,8 @@
-package main
+package ssh2ws
 
 import (
 	"fmt"
 	"io"
-	"log"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -17,7 +15,7 @@ func copyWorker(dst io.Writer, src io.Reader, doneCh chan<- bool) {
 	doneCh <- true
 }
 
-func relayHandler(ws *websocket.Conn) {
+func Handler(ws *websocket.Conn) {
 	user := ws.Request().URL.Query().Get("user")
 	passwd := ws.Request().URL.Query().Get("passwd")
 	cols, _ := strconv.Atoi(ws.Request().URL.Query().Get("cols"))
@@ -119,11 +117,4 @@ func (self *wsconn) keepAlive(ws *websocket.Conn) {
 	}
 }
 
-func main() {
-	http.Handle("/ssh", websocket.Handler(relayHandler))
-
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
+//	http.Handle("/ssh", websocket.Handler(relayHandler))

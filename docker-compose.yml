@@ -55,12 +55,6 @@ services:
     secrets:
       - api_private_key
       - api_public_key
-  ws:
-    image: shellhubio/shellhub-ws:${SHELLHUB_VERSION}
-    depends_on:
-      - ssh
-    links:
-      - ssh
   ui:
     image: shellhubio/shellhub-ui:${SHELLHUB_VERSION}
     depends_on:
@@ -72,7 +66,6 @@ services:
       - SHELLHUB_SSH_PORT=${SHELLHUB_SSH_PORT}
     depends_on:
       - api
-      - ws
       - ui
     ports:
       - '80:80'
