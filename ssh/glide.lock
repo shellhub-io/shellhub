@@ -1,5 +1,5 @@
-hash: 3d53ec674cb66d51accefdbfa7eaeb9f625f6b99c77a1e9e532e2f148ce94aba
-updated: 2020-02-20T16:30:46.500851965-03:00
+hash: 97530d39c50e1b5a93fc8866ba5417c2c3224640fc4aca8ed7cc6792f167cd61
+updated: 2020-02-20T17:40:48.660103161-03:00
 imports:
 - name: github.com/anmitsu/go-shlex
   version: 648efa622239a2f6ff949fed78ee37b48d499ba4
