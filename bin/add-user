@@ -2,6 +2,11 @@
 
 [ -z $1 ] || [ -z $2 ] && echo "Usage: $0 <username> <password>" && exit 1
 
+if [ ! -f "$(which uuidgen 2> /dev/null)" ]; then
+    echo "$0 requires uuidgen but it's not installed. Aborting!"
+    exit 1
+fi
+
 USERNAME=$1
 PASSWORD=`echo -n $2 | sha256sum | awk '{ print $1 }'`
 TENANT_ID=`uuidgen`
