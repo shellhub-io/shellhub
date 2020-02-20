@@ -148,7 +148,7 @@ func main() {
 		}
 	})
 
-	publicAPI := e.Group("/public")
+	publicAPI := e.Group("/api")
 	internalAPI := e.Group("/internal")
 
 	publicAPI.POST("/devices/auth", func(c echo.Context) error {
