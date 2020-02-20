@@ -1,8 +1,10 @@
-hash: 4bfb85a22bb8d334560dd263a5d309eaf5703b5c2d5b02bf73148db2d2d2ed26
-updated: 2020-02-17T10:36:04.883145081-03:00
+hash: 3d53ec674cb66d51accefdbfa7eaeb9f625f6b99c77a1e9e532e2f148ce94aba
+updated: 2020-02-20T16:30:46.500851965-03:00
 imports:
 - name: github.com/anmitsu/go-shlex
   version: 648efa622239a2f6ff949fed78ee37b48d499ba4
+- name: github.com/dgrijalva/jwt-go
+  version: a58974ee87a68abcf6cfb2315224e89135cf3311
 - name: github.com/eclipse/paho.mqtt.golang
   version: adca289fdcf8c883800aafa545bc263452290bae
   subpackages:
@@ -20,27 +22,33 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: 839c75faf7f98a33d445d181f3018b5c3409a45e
 - name: golang.org/x/crypto
-  version: f99c8df09eb5bff426315721bfa5f16a99cad32c
+  version: bac4c82f69751a6dd76e702d54b3ceb88adab236
   subpackages:
+  - blowfish
+  - chacha20
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
-  - internal/chacha20
   - internal/subtle
   - poly1305
   - ssh
+  - ssh/internal/bcrypt_pbkdf
 - name: golang.org/x/net
-  version: 60506f45cf65977eb3a9c6e30f995f54a721c271
+  version: 46282727080fcf56da5781d0a9ef2fda184be5e6
   subpackages:
   - internal/socks
   - proxy
   - publicsuffix
   - websocket
 - name: golang.org/x/sys
-  version: 4c4f7f33c9ed00de01c4c741d2177abfcfe19307
+  version: cb0a6d8edb6c3528b01a0be84a5fe513dbf880a6
   subpackages:
   - cpu
   - unix
+- name: gopkg.in/mgo.v2
+  version: a6b53ec6cb22a3699387a57a161566f9402ee85b
+  subpackages:
+  - bson
 - name: moul.io/http2curl
-  version: 5cd742060b0e0de91f875277b77dd7d7e68b23ca
+  version: 6e492056e75ab57b7ead79feb2934f1bd778301d
 testImports: []

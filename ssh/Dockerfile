@@ -24,7 +24,7 @@ RUN glide -q install --skip-test
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/ssh
 
-RUN go build
+RUN go build -tags internal_api
 
 # development stage
 FROM base AS development

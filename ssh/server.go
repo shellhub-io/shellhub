@@ -15,7 +15,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	sshserver "github.com/gliderlabs/ssh"
-	"github.com/parnurzeal/gorequest"
+	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -140,12 +140,9 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 	s.forwarding[sess.port] = fmt.Sprintf("%d:%s", sess.port, fwid)
 
-	var device struct {
-		PublicKey string `json:"public_key"`
-	}
-
-	_, _, errs := gorequest.New().Get(fmt.Sprintf("http://api:8080/public/devices/%s", sess.Target)).EndStruct(&device)
-	if len(errs) > 0 {
+	c := client.NewClient()
+	_, err = c.GetDevice(sess.Target)
+	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"err": err,
 		}).Error("Failed to get device public key")
