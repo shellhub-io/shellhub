@@ -1,6 +1,14 @@
 <template>
 <v-layout align-center justify-center>
     <v-flex xs12 sm8 md4>
+        <div dark color="primary" class="logo">
+              <div class="text-center">
+                <v-icon>mdi-console</v-icon>
+                <h2 style="font-family: monospace">ShellHub</h2>
+                <span class="overline">beta</span>
+              </div>
+        </div>
+
         <v-card class="elevation-12">
               <v-toolbar dark color="primary">
                 <v-toolbar-title>Login</v-toolbar-title>
@@ -48,3 +56,9 @@ export default {
   }
 };
 </script>
+
+<style lang="stylus">
+.logo{
+  margin-bottom: 15px;
+}
+</style>
