@@ -11,4 +11,8 @@ export const
 
     renameDevice = async (data) => {
         return http().patch(`/devices/${data.uid}`, { name: data.name })
+    },
+
+    getDevice = async (uid) => {
+        return http().get(`/devices/${uid}`)
     }

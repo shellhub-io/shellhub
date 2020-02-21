@@ -22,6 +22,12 @@ const router = new Router({
                 import(/* webpackChunkName: "devices" */ "./views/Devices.vue")
         },
         {
+            path: "/devices/:id",
+            name: "featureDevice",
+            component: () =>
+                import("./views/FeatureDevice.vue") 
+        },
+        {
             path: "/sessions",
             name: "sessions",
             component: () =>

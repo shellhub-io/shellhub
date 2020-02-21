@@ -13,7 +13,7 @@
         </v-app-bar>
         <v-divider></v-divider>
         <v-card-text class="pa-0">
-            <v-data-table :headers="headers" :items="devices" item-key="uid" disable-pagination hide-default-footer>
+            <v-data-table :headers="headers" :items="devices" item-key="uid" @click:row="featureDevice" disable-pagination hide-default-footer>
                 <template v-slot:item.online="{ item }">
                     <v-icon color="success" v-if="item.online">check_circle</v-icon>
                     <v-tooltip bottom v-else>
@@ -61,7 +61,7 @@
                     <v-icon @click="remove(item.uid)">
                         delete
                     </v-icon>
-                </template>
+                </template> 
             </v-data-table>
         </v-card-text>
         <v-snackbar v-model="copySnack" :timeout=3000>Device SSHID copied to clipboard</v-snackbar>
@@ -90,6 +90,10 @@ export default {
   },
 
   methods: {
+    featureDevice(value){
+      this.$router.push('/devices/'+value.uid) 
+    },
+
     address(item) {
       return `${item.namespace}.${item.name}@${this.hostname}`;
     },
