@@ -50,7 +50,6 @@ services:
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - /:/host
     depends_on:
-      - emq
       - api
       - ssh
       - gateway

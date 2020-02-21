@@ -10,9 +10,9 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/mitchellh/mapstructure"
 	"github.com/shellhub-io/shellhub/api/pkg/services/authsvc"
 	"github.com/shellhub-io/shellhub/api/pkg/services/deviceadm"
-	"github.com/shellhub-io/shellhub/api/pkg/services/mqtthooks"
 	"github.com/shellhub-io/shellhub/api/pkg/services/sessionmngr"
 	"github.com/shellhub-io/shellhub/api/pkg/services/ssh2ws"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
@@ -136,10 +136,13 @@ func main() {
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-
 			tenant := c.Request().Header.Get("X-Tenant-ID")
-			ctx := context.WithValue(c.Request().Context(), "tenant", tenant)
-			ctx = context.WithValue(ctx, "db", client.Database("main"))
+
+			ctx := context.WithValue(c.Request().Context(), "db", client.Database("main"))
+
+			if tenant != "" {
+				ctx = context.WithValue(ctx, "tenant", tenant)
+			}
 
 			c.Set("ctx", ctx)
 			c.Set("db", client.Database("main"))
@@ -243,14 +246,36 @@ func main() {
 
 	internalAPI.GET("/auth", func(c echo.Context) error {
 		token := c.Get("user").(*jwt.Token)
-		claims := token.Claims.(*models.UserAuthClaims)
+		rawClaims := token.Claims.(*jwt.MapClaims)
 
-		// Extract tenant from JWT
-		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
+		switch claims := (*rawClaims)["claims"]; claims {
+		case "user":
+			var claims models.UserAuthClaims
 
-		return nil
+			if err := DecodeMap(rawClaims, &claims); err != nil {
+				return err
+			}
+
+			// Extract tenant from JWT
+			c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
+
+			return nil
+		case "device":
+			var claims models.DeviceAuthClaims
+
+			if err := DecodeMap(rawClaims, &claims); err != nil {
+				return err
+			}
+
+			// Extract device UID from JWT
+			c.Response().Header().Set("X-Device-UID", claims.UID)
+
+			return nil
+		}
+
+		return echo.ErrUnauthorized
 	}, middleware.JWTWithConfig(middleware.JWTConfig{
-		Claims:        &models.UserAuthClaims{},
+		Claims:        &jwt.MapClaims{},
 		SigningKey:    verifyKey,
 		SigningMethod: "RS256",
 	}))
@@ -317,54 +342,6 @@ func main() {
 		return nil
 	})
 
-	internalAPI.GET("/mqtt/auth", func(c echo.Context) error {
-		q := models.MqttAuthQuery{}
-
-		if err := c.Bind(&q); err != nil {
-			return err
-		}
-
-		ctx := c.Get("ctx").(context.Context)
-		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
-		svc := mqtthooks.NewService(store, verifyKey)
-
-		return svc.AuthenticateClient(ctx, q)
-	})
-
-	internalAPI.GET("/mqtt/superuser", func(c echo.Context) error {
-		q := models.MqttAuthQuery{}
-
-		if err := c.Bind(&q); err != nil {
-			return err
-		}
-
-		return echo.NewHTTPError(http.StatusUnauthorized)
-	})
-
-	internalAPI.GET("/mqtt/acl", func(c echo.Context) error {
-		q := models.MqttACLQuery{}
-
-		if err := c.Bind(&q); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	internalAPI.POST("/mqtt/webhook", func(c echo.Context) error {
-		evt := models.MqttEvent{}
-
-		if err := c.Bind(&evt); err != nil {
-			return err
-		}
-
-		ctx := c.Get("ctx").(context.Context)
-		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
-		svc := mqtthooks.NewService(store, verifyKey)
-
-		return svc.ProcessEvent(ctx, evt)
-	})
-
 	internalAPI.GET("/lookup", func(c echo.Context) error {
 		var query struct {
 			Domain string `query:"domain"`
@@ -397,4 +374,19 @@ func main() {
 	})
 
 	e.Logger.Fatal(e.Start(":8080"))
+}
+
+func DecodeMap(input interface{}, output interface{}) error {
+	config := &mapstructure.DecoderConfig{
+		TagName:  "json",
+		Metadata: nil,
+		Result:   output,
+	}
+
+	decoder, err := mapstructure.NewDecoder(config)
+	if err != nil {
+		return err
+	}
+
+	return decoder.Decode(input)
 }

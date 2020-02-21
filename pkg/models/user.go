@@ -26,5 +26,6 @@ type UserAuthClaims struct {
 	Admin  bool   `json:"admin"`
 	Tenant string `json:"tenant"`
 
-	jwt.StandardClaims
+	AuthClaims         `json:",squash"`
+	jwt.StandardClaims `json:",squash"`
 }

@@ -1,5 +1,5 @@
-hash: de753e0964ff95c530f9aedd5b2e7a5f25e1a99ea53bc9aa4253a33cdcf94ecf
-updated: 2020-02-19T10:25:48.209145399-03:00
+hash: ccceaaf46eb49b4b8820d02095f1ca3894f984e83adefbeceb65042cc95401cc
+updated: 2020-02-21T20:51:06.272356144-03:00
 imports:
 - name: github.com/anmitsu/go-shlex
   version: 648efa622239a2f6ff949fed78ee37b48d499ba4
@@ -13,6 +13,10 @@ imports:
   - packets
 - name: github.com/gliderlabs/ssh
   version: 59d6e4540dea33ecd8f90b12887906b7b081fbcd
+- name: github.com/gorilla/mux
+  version: 75dcda0896e109a2a22c9315bca3bb21b87b2ba5
+- name: github.com/gorilla/websocket
+  version: c3e18be99d19e6b3e8f1559eea2c161a665c4b6b
 - name: github.com/jaypipes/ghw
   version: c7df1345868fa7ed1113d11b67f023db0a3253c8
 - name: github.com/kelseyhightower/envconfig
@@ -37,7 +41,7 @@ imports:
 - name: github.com/sirupsen/logrus
   version: 839c75faf7f98a33d445d181f3018b5c3409a45e
 - name: golang.org/x/crypto
-  version: 1d94cc7ab1c630336ab82ccb9c9cda72a875c382
+  version: 2aa609cf4a9d7d1126360de73b55b6002f9e052a
   subpackages:
   - blowfish
   - chacha20
@@ -49,7 +53,7 @@ imports:
   - ssh
   - ssh/internal/bcrypt_pbkdf
 - name: golang.org/x/net
-  version: 16171245cfb220d5317888b716d69c1fb4e7992b
+  version: 46282727080fcf56da5781d0a9ef2fda184be5e6
   subpackages:
   - internal/socks
   - proxy
@@ -63,5 +67,5 @@ imports:
 - name: gopkg.in/mgo.v2
   version: a6b53ec6cb22a3699387a57a161566f9402ee85b
 - name: moul.io/http2curl
-  version: 5cd742060b0e0de91f875277b77dd7d7e68b23ca
+  version: 9280a7ca1854f93dfee71d5e7d448627123efaf5
 testImports: []

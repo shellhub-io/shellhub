@@ -1,20 +1,25 @@
 package main
 
 import (
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"encoding/json"
 
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
-	"github.com/pkg/errors"
+	"github.com/shellhub-io/shellhub/pkg/revdial"
+	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,9 +30,8 @@ type ConfigOptions struct {
 }
 
 type Endpoints struct {
-	API  string `json:"api"`
-	SSH  string `json:"ssh"`
-	MQTT string `json:"mqtt"`
+	API string `json:"api"`
+	SSH string `json:"ssh"`
 }
 
 func (e *Endpoints) buildAPIUrl(uri string) string {
@@ -52,6 +56,10 @@ func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, attributes 
 	}
 
 	return &auth, nil
+}
+
+func Revdial(ctx context.Context, address, path string) (*websocket.Conn, *http.Response, error) {
+	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("ws://%s", address), path}, ""), nil)
 }
 
 type Information struct {
@@ -115,25 +123,43 @@ func main() {
 		return
 	}
 
-	freePort, err := getFreePort()
-	if err != nil {
-		logrus.Fatal(errors.Wrap(err, "failed to get free port"))
-	}
+	server := NewSSHServer(opts.PrivateKey)
+	client := NewSSHClient(opts.PrivateKey, endpoints.SSH)
 
-	server := NewSSHServer(opts.PrivateKey, freePort)
-	client := NewSSHClient(opts.PrivateKey, endpoints.SSH, freePort)
+	router := mux.NewRouter()
+	router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		conn := r.Context().Value("http-conn").(net.Conn)
+		client.Sessions = append(client.Sessions, vars["id"])
+		server.sshd.HandleConn(conn)
+	})
+	router.HandleFunc("/ssh/close/{id}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		client.close(vars["id"])
+	}).Methods("DELETE")
+
+	sv := http.Server{
+		Handler: router,
+		ConnContext: func(ctx context.Context, c net.Conn) context.Context {
+			return context.WithValue(ctx, "http-conn", c)
+		},
+	}
 
 	server.SetDeviceName(auth.Name)
 
 	go func() {
-		logrus.Fatal(server.ListenAndServe())
+		for {
+			listener, err := NewListener(endpoints.API, auth.Token)
+			if err != nil {
+				time.Sleep(time.Second * 10)
+				continue
+			}
+
+			if err := sv.Serve(listener); err != nil {
+				continue
+			}
+		}
 	}()
-
-	b := NewBroker(endpoints.MQTT, auth.UID, auth.Token)
-
-	b.Subscribe(fmt.Sprintf("device/%s/session/+/open", auth.UID), client.connect)
-	b.Subscribe(fmt.Sprintf("device/%s/session/+/close", auth.UID), client.close)
-	b.Connect()
 
 	ticker := time.NewTicker(10 * time.Second)
 
@@ -145,16 +171,18 @@ func main() {
 	}
 }
 
-func getFreePort() (int, error) {
-	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+func NewListener(host string, token string) (*revdial.Listener, error) {
+	req, _ := http.NewRequest("GET", "", nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	wsConn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s/ssh/connection", host), req.Header)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	l, err := net.ListenTCP("tcp", addr)
-	if err != nil {
-		return 0, err
-	}
-	defer l.Close()
-	return l.Addr().(*net.TCPAddr).Port, nil
+	listener := revdial.NewListener(wsconnadapter.New(wsConn), func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
+		return Revdial(ctx, host, path)
+	})
+
+	return listener, nil
 }

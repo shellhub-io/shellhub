@@ -16,6 +16,8 @@ import (
 
 import (
 	"net"
+	"sync"
+	"time"
 )
 
 type sshConn struct {
@@ -32,15 +34,15 @@ type SSHServer struct {
 	sshd       *sshserver.Server
 	cmds       map[string]*exec.Cmd
 	deviceName string
+	mu         sync.Mutex
 }
 
-func NewSSHServer(privateKey string, port int) *SSHServer {
+func NewSSHServer(privateKey string) *SSHServer {
 	s := &SSHServer{
 		cmds: make(map[string]*exec.Cmd),
 	}
 
 	s.sshd = &sshserver.Server{
-		Addr: fmt.Sprintf("localhost:%d", port),
 		PasswordHandler: func(ctx sshserver.Context, pass string) bool {
 			if Auth(ctx.User(), pass) == true {
 				return true
@@ -50,8 +52,13 @@ func NewSSHServer(privateKey string, port int) *SSHServer {
 		},
 		PublicKeyHandler: s.publicKeyHandler,
 		Handler:          s.sessionHandler,
+		RequestHandlers:  sshserver.DefaultRequestHandlers,
+		ChannelHandlers:  sshserver.DefaultChannelHandlers,
 		ConnCallback: func(ctx sshserver.Context, conn net.Conn) net.Conn {
 			closeCallback := func() {
+				s.mu.Lock()
+				defer s.mu.Unlock()
+
 				if v, ok := s.cmds[ctx.SessionID()]; ok {
 					v.Process.Kill()
 					delete(s.cmds, ctx.SessionID())
@@ -77,6 +84,23 @@ func (s *SSHServer) SetDeviceName(name string) {
 
 func (s *SSHServer) sessionHandler(session sshserver.Session) {
 	sspty, winCh, isPty := session.Pty()
+
+	go func() {
+		ticker := time.NewTicker(time.Second * 30)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				_, err := session.SendRequest("keepalive@ssh.shellhub.io", false, nil)
+				if err != nil {
+					return
+				}
+			case <-session.Context().Done():
+				ticker.Stop()
+			}
+		}
+	}()
 
 	if isPty {
 		scmd := newShellCmd(s, session.User(), sspty.Term)
@@ -106,7 +130,9 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 			}
 		}()
 
+		s.mu.Lock()
 		s.cmds[session.Context().Value(sshserver.ContextKeySessionID).(string)] = scmd
+		s.mu.Unlock()
 
 		err = scmd.Wait()
 		if err != nil {

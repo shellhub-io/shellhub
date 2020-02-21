@@ -23,7 +23,6 @@ type Session struct {
 	Target    string            `json:"device"`
 	UID       string            `json:"uid"`
 	IPAddress string            `json:"ip_address"`
-	port      uint32            `json:"-"`
 }
 
 func NewSession(target string, session sshserver.Session) (*Session, error) {
@@ -66,8 +65,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	return s, nil
 }
 
-// connect connects to reverse tunnel port
-func (s *Session) connect(passwd string, session sshserver.Session) error {
+func (s *Session) connect(passwd string, session sshserver.Session, conn net.Conn) error {
 	config := &ssh.ClientConfig{
 		User: s.User,
 		Auth: []ssh.AuthMethod{
@@ -76,10 +74,10 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
-		Timeout: time.Second * 10,
 	}
 
-	conn, err := DialWithDeadline("tcp", fmt.Sprintf("%s:%d", "localhost", s.port), config)
+	sshConn, err := NewClientConnWithDeadline(conn, "tcp", config)
+
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"session": s.UID,
@@ -88,7 +86,7 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 		return err
 	}
 
-	client, err := conn.NewSession()
+	client, err := sshConn.NewSession()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"session": s.UID,

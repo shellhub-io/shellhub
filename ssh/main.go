@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
+	"net/http"
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 )
 
 func main() {
@@ -15,10 +15,15 @@ func main() {
 		ConnectTimeout: 30 * time.Second,
 	}
 
-	portRange, _ := ioutil.ReadFile("/proc/sys/net/ipv4/ip_local_port_range")
-	fmt.Sscanf(string(portRange), "%d %d", &opts.MinPort, &opts.MaxPort)
+	tunnel := httptunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
+	tunnel.ConnectionHandler = func(r *http.Request) (string, error) {
+		uid := r.Header.Get("X-Device-UID")
+		return uid, nil
+	}
 
-	server := NewServer(opts)
+	go http.ListenAndServe(":8080", tunnel.Router())
+
+	server := NewServer(opts, tunnel)
 
 	logrus.Fatal(server.ListenAndServe())
 }

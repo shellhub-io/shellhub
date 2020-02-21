@@ -29,3 +29,7 @@ import:
 - package: github.com/dgrijalva/jwt-go
   version: ~4.0.0-preview1
 - package: gopkg.in/mgo.v2
+- package: github.com/gorilla/mux
+  version: ~1.7.4
+- package: github.com/gorilla/websocket
+  version: ~1.4.1

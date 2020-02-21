@@ -1,4 +1,4 @@
-app_root: /go/src/github.com/shellhub-io/shellhub
+package: ""
 ignore:
 - github.com/shellhub-io/shellhub
 import:
@@ -22,3 +22,7 @@ import:
 - package: gopkg.in/mgo.v2
   subpackages:
   - bson
+- package: github.com/gorilla/websocket
+  version: ~1.4.1
+- package: github.com/gorilla/mux
+  version: ~1.7.4
