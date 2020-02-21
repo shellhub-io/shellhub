@@ -4,6 +4,8 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha512"
+	"encoding/asn1"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"net"
@@ -138,10 +140,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 	fwid := session.Context().Value(sshserver.ContextKeySessionID)
 
-	s.forwarding[sess.port] = fmt.Sprintf("%d:%s", sess.port, fwid)
-
 	c := client.NewClient()
-	_, err = c.GetDevice(sess.Target)
+	device, err := c.GetDevice(sess.Target)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"err": err,
@@ -149,6 +149,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		session.Close()
 		return
 	}
+
+	s.forwarding[sess.port] = fmt.Sprintf("%d:%s:%s", sess.port, fwid, device.UID)
 
 	err = s.publish(fmt.Sprintf("device/%s/session/%s/open", sess.Target, sess.UID), fmt.Sprintf("%d:%s", sess.port, fwid))
 	if err != nil {
@@ -229,14 +231,49 @@ func (s *Server) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey
 	}
 
 	parts := strings.SplitN(ctx.User(), ":", 2)
-	if len(parts) < 2 {
-		logrus.Warn("Public key authentication for service disabled")
+	if len(parts) != 2 {
 		return false
+	}
+
+	port, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return false
+	}
+
+	if fwid, ok := s.forwarding[uint32(port)]; ok {
+		if !strings.HasPrefix(fwid, ctx.User()) {
+			return false
+		}
+
+		parts = strings.SplitN(fwid, ":", 3) // port:fwid:device
+		if len(parts) != 3 {
+			return false
+		}
+
+		api := client.NewClient()
+		device, err := api.GetDevice(parts[2])
+		if err != nil {
+			return false
+		}
+
+		block, _ := pem.Decode([]byte(device.PublicKey))
+
+		var rsaPubKey rsa.PublicKey
+		if _, err = asn1.Unmarshal(block.Bytes, &rsaPubKey); err != nil {
+			return false
+		}
+
+		sshPubKey, err := ssh.NewPublicKey(&rsaPubKey)
+		if err != nil {
+			return false
+		}
+
+		return sshserver.KeysEqual(key, sshPubKey)
 	}
 
 	logrus.Error("Unknown public key authentication type")
 
-	return true
+	return false
 }
 
 func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
@@ -267,7 +304,7 @@ func (s *Server) reversePortForwardingHandler(ctx sshserver.Context, host string
 		return false
 	}
 
-	if fwid, ok := s.forwarding[port]; !ok || fwid != ctx.User() {
+	if fwid, ok := s.forwarding[port]; !ok || !strings.HasPrefix(fwid, ctx.User()) {
 		logrus.WithFields(logrus.Fields{
 			"host": host,
 			"port": port,
