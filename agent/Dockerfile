@@ -1,7 +1,7 @@
 # base stage
-FROM golang:alpine AS base
+FROM golang:1.13-alpine3.11 AS base
 
-RUN apk add --update git ca-certificates build-base bash && \
+RUN apk add --update git ca-certificates build-base bash util-linux && \
     go get -u github.com/Masterminds/glide
 
 RUN ln -sf /bin/bash /bin/sh
@@ -26,7 +26,7 @@ RUN glide install --skip-test
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
-RUN go build
+RUN go build -tags docker
 
 # development stage
 FROM base AS development
