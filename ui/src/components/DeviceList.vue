@@ -12,8 +12,8 @@
         <v-app-bar flat color="transparent">
         </v-app-bar>
         <v-divider></v-divider>
-        <v-card-text class="pa-0">
-            <v-data-table :headers="headers" :items="devices" item-key="uid" @click:row="featureDevice" disable-pagination hide-default-footer>
+        <v-card-text class="pa-0">  <!-- @click:row="featureDevice" -->
+            <v-data-table :headers="headers" :items="devices" item-key="uid" disable-pagination hide-default-footer>
                 <template v-slot:item.online="{ item }">
                     <v-icon color="success" v-if="item.online">check_circle</v-icon>
                     <v-tooltip bottom v-else>
@@ -56,6 +56,10 @@
                 </template>
 
                 <template v-slot:item.actions="{ item }">
+                    <v-icon class="icons" @click="featureDevice(item)">
+                        info
+                    </v-icon>
+
                     <TerminalDialog :uid="item.uid" v-if="item.online"></TerminalDialog>
 
                     <v-icon @click="remove(item.uid)">
@@ -165,5 +169,9 @@ export default {
 <style scoped>
 .merda {
   font-family: monospace;
+}
+
+.icons{
+  margin-right: 4px;
 }
 </style>

@@ -16,48 +16,61 @@
           
           <div class="item">
             <div class="item-name">Uid: </div>
-            <div class="item-description">{{device.uid}}</div>
+            <div class="item-description">{{this.device.uid}}</div>
           </div>
 
           <div class="item">
-            <div class="item-name">Name: </div>
-            <!-- <v-icon small left>mdi-file-edit</v-icon>  -->
-            <div class="item-description">{{device.name}}</div>
+            <div class="item-description">
+
+              <v-edit-dialog :return-value="editName" large @open="editName = device.name" @save="save()">
+                  <div class="item-name">Name: </div>
+                  
+                  <v-text-field slot="input" v-model="editName" label="Edit" single-line>
+                  </v-text-field>
+                  
+                  <v-icon small left>mdi-file-edit</v-icon>
+                  <div class="item-description">
+                      {{ this.device.name }}
+                  </div>
+
+              </v-edit-dialog>
+
+            </div> 
           </div>
 
           <div class="item">
             <div class="item-name">Mac: </div>
-            <div class="item-description">{{device.identity}}</div>
+            <div class="item-description">{{this.device.identity}}</div>
           </div>
 
           <div class="item"> 
             <div class="item-name">Operating System: </div>
-            <div class="item-description">{{device.attributes}}</div>
+            <div class="item-description">{{this.device.attributes}}</div>
           </div>
 
           <div class="item">
             <div class="item-name">Public Key: </div>
-            <div>{{device.public_key}}</div>
+            <div>{{this.device.public_key}}</div>
           </div>
 
           <div class="item">
             <div class="item-name">Tenant Id: </div>
-            <div class="item-description">{{device.tenant_id}}</div>
+            <div class="item-description">{{this.device.tenant_id}}</div>
           </div>
 
           <div class="item">
             <div class="item-name">Last Seen: </div>
-            <div class="item-description">{{device.last_seen}}</div>
+            <div class="item-description">{{this.device.last_seen}}</div>
           </div>
 
           <div class="item">
             <div class="item-name">Online: </div>
-            <div class="item-description">{{device.online}}</div>
+            <div class="item-description">{{this.device.online}}</div>
           </div>
 
           <div class="item">
             <div class="item-name">Namespace: </div>
-            <div class="item-description">{{device.namespace}}</div>
+            <div class="item-description">{{this.device.namespace}}</div>
           </div>
 
         </v-card-text>
@@ -67,56 +80,36 @@
 </template>
 
 <script>
-// import TerminalDialog from "@/components/TerminalDialog.vue";
-// import AddDevice from "@/components/AddDevice.vue";
 
 export default {
   name: "DeviceFeature",
 
-
   components: {
-    // TerminalDialog,
-    // AddDevice
 
   },
 
-  created() {
+  async created() {
       this.uid = this.$route.params.id
-      this.$store.dispatch("devices/get", this.uid);
+      await this.$store.dispatch("devices/get", this.uid);
+      this.device = this.$store.getters["devices/get"];
+
   },
 
   computed: {
-    device() {
-      return this.$store.getters["devices/get"];
-    }
+    // device() {
+    //   return this.$store.getters["devices/get"];
+    // }
   },
 
   methods: {
-    address(item) {
-      return `${item.namespace}.${item.name}@${this.hostname}`;
-    },
 
-    copy(device) {
-      this.$clipboard(device.uid);
-    },
-
-    remove(uid) {
-      if (confirm("Are you sure?")) {
-        this.$store.dispatch("devices/remove", uid);
-      }
-    },
-
-    showCopySnack() {
-      this.copySnack = true;
-    },
-
-    save(item) {
+    save() {
       this.$store.dispatch("devices/rename", {
-        uid: item.uid,
+        uid: this.device.uid,
         name: this.editName
       });
 
-      item.name = this.editName;
+      this.device.name = this.editName;
     }
   },
 
@@ -124,47 +117,14 @@ export default {
     return {
       uid: '',
       hostname: window.location.hostname,
-      deviceIcon: {
-        arch: "fl-archlinux",
-        ubuntu: "fl-ubuntu"
-      },
       copySnack: false,
       editName: "",
-      headers: [
-        // {
-        //   text: "Online",
-        //   value: "online",
-        //   align: "center"
-        // },
-        {
-          text: "Name",
-          value: "name"
-        },
-        // {
-        //   text: "Operating System",
-        //   value: "attributes.pretty_name"
-        // },
-
-        // {
-        //   text: "SSHID",
-        //   value: "namespace",
-        //   align: "center"
-        // },
-        // {
-        //   text: "Actions",
-        //   value: "actions",
-        //   align: "center",
-        //   sortable: false
-        // }
-      ]
+      device: []
     };
   }
 };
 </script>
 <style scoped>
-.merda {
-  font-family: monospace;
-}
 
 .item {
   margin-bottom: 4px;
@@ -178,6 +138,7 @@ export default {
 .item-description {
   font-size: 14px;
   display:inline;
+
 }
 
 
