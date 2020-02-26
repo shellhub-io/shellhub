@@ -2,7 +2,7 @@
 <fragment>
 
   <div class="d-flex pa-0 align-center">
-  <h1>Features Device</h1>
+  <h1>Device Details</h1>
   <v-spacer/>
   <v-spacer/>
   <!-- <AddDevice/> -->
@@ -12,7 +12,7 @@
         <v-app-bar flat color="transparent">
           <div class="item-title">
           
-            <div class="item-description">
+            <!-- <div class="item-description"> -->
               <v-edit-dialog :return-value="editName" large @open="editName = device.name" @save="save()">
                   
                   <v-text-field slot="input" v-model="editName" label="Edit" single-line>
@@ -24,16 +24,23 @@
 
                   <v-icon small left>mdi-file-edit</v-icon>
 
-                  <div class="status">Online</div>
+                  <div class="status">
+                    <div class="status-online" v-if="this.device.online">
+                      Online
+                    </div>
+                    <div class="status-offline" v-else>
+                      Offline
+                    </div>
+                  </div>
+
               </v-edit-dialog>
-            </div> 
+            <!-- </div>  -->
         
           </div>
 
           <div class="item-action">
-            <!-- <div > -->
-                <TerminalDialog :uid="device.uid"></TerminalDialog>
-            <!-- </div> -->
+
+            <TerminalDialog :uid="device.uid"></TerminalDialog>
 
             <v-icon @click="remove()">
                 delete
@@ -43,11 +50,8 @@
         </v-app-bar>
         
 
-
-
         <v-divider></v-divider>
         <v-card-text>
-
           
           <div class="item">
             <div class="item-name">Uid </div>
@@ -65,23 +69,8 @@
           </div>
 
           <div class="item">
-            <div class="item-name">Public Key </div>
-            <div>{{this.device.public_key}}</div>
-          </div>
-
-          <div class="item">
-            <div class="item-name">Tenant Id </div>
-            <div class="item-description">{{this.device.tenant_id}}</div>
-          </div>
-
-          <div class="item">
             <div class="item-name">Last Seen </div>
-            <div class="item-description">{{this.device.last_seen}}</div>
-          </div>
-
-          <div class="item">
-            <div class="item-name">Namespace </div>
-            <div class="item-description">{{this.device.namespace}}</div>
+            <div class="item-description">{{this.device.last_seen | moment("dddd, MMMM Do YYYY, h:mm:ss a")}}</div>
           </div>
 
         </v-card-text>
@@ -92,6 +81,7 @@
 
 <script>
 import TerminalDialog from "@/components/TerminalDialog.vue";
+import moment from 'moment'
 
 export default {
   name: "DeviceFeature",
@@ -107,7 +97,12 @@ export default {
   },
 
   computed: {
-    
+    // format_date(value){
+    //   if (value) {
+    //     return moment(String(value)).format('YYYYMMDD')
+    //   }
+    // },
+
   },
 
   methods: {
@@ -127,6 +122,9 @@ export default {
         this.$router.push('/devices');
       }
     },
+    format_date(){
+        return moment(String(this.device.last_seen)).format('DD-MM-YYYY')
+    },
   },
 
   data() {
@@ -143,7 +141,7 @@ export default {
 <style scoped>
 
 .mt-2{
-  position: relative;
+  /* position: relative; */
   width:100%;
 }
 
@@ -151,6 +149,7 @@ export default {
   margin-left: 15px;
   margin-right: 15px;
   margin-bottom: 15px;
+  width: 100%;
 }
 .item-name {
   font-size: 14px;
@@ -165,9 +164,9 @@ export default {
 }
 
 .item-title{
-  margin-bottom: 1px;
+  margin-bottom: -4px;
   margin-left: 15px;
-  width: 70%;
+  width: 350%;
   
 }
 
@@ -180,8 +179,14 @@ export default {
 .status{
   margin-top: -5px;
   font-size: 12px;
-  color: rgb(162, 250, 163);
   font-weight: bold;
+}
+.status-online{
+  color: rgb(162, 250, 163);
+}
+
+.status-offline{
+  color: red;
 }
 
 .item-action{

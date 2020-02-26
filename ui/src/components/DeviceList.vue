@@ -41,7 +41,7 @@
                 </template>
 
                 <template v-slot:item.attributes.pretty_name="{ item }">
-                    <v-icon left>{{ deviceIcon[item.attributes.id] || 'fl-tux' }}</v-icon>
+                    <v-icon left >{{ deviceIcon[item.attributes.id] || 'fl-tux' }}</v-icon>
                     {{ item.attributes.pretty_name }}
                 </template>
 
