@@ -1,11 +1,11 @@
-app_root: .
+app_root: /go/src/github.com/shellhub-io/shellhub
 ignored_folders:
 - vendor
 included_extensions:
 - .go
 build_target_path: ""
-build_path: /src
-build_flags: []
+build_path: /go/src/github.com/shellhub-io/shellhub/ssh
+build_flags: ["-tags", "internal_api"]
 build_delay: 200ns
 binary_name: ssh
 command_flags: []

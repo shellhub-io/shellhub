@@ -4,18 +4,27 @@ FROM golang:alpine AS base
 RUN apk add --update git ca-certificates && \
     go get -u github.com/Masterminds/glide
 
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
+
+COPY ./api/glide.yaml ./api/glide.lock ./
+
+RUN glide install --skip-test
+
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
-
-COPY glide.yaml  glide.lock ./
-
-RUN glide install
 
 # builder stage
 FROM base AS builder
 
-COPY . .
+COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
+COPY ./api .
 
-RUN glide -q install --skip-test && go build
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
+
+RUN glide install --skip-test
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
+
+RUN go build
 
 # development stage
 FROM base AS development
@@ -23,10 +32,14 @@ FROM base AS development
 RUN apk add --update openssl
 RUN go get github.com/markbates/refresh
 
-RUN glide -q install --skip-test
-RUN cp -a vendor /vendor
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-COPY entrypoint-dev.sh /entrypoint.sh
+RUN glide install --skip-test
+RUN cp -a $GOPATH/src/github.com/shellhub-io/shellhub/vendor /vendor
+
+COPY ./api/entrypoint-dev.sh /entrypoint.sh
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
 ENTRYPOINT ["/entrypoint.sh"]
 

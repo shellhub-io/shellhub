@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/api/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type Store interface {

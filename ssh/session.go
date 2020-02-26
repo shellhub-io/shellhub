@@ -211,7 +211,7 @@ func (s *Session) connect(passwd string, session sshserver.Session) error {
 func (s *Session) register(session sshserver.Session) error {
 	env := loadEnv(session.Environ())
 
-	ipaddr, err := net.LookupIP("ws")
+	ipaddr, err := net.LookupIP("api")
 	if err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func (s *Session) register(session sshserver.Session) error {
 		s.IPAddress = host
 	}
 
-	_, _, errs := gorequest.New().Post("http://api:8080/public/sessions").Send(*s).End()
+	_, _, errs := gorequest.New().Post("http://api:8080/api/sessions").Send(*s).End()
 	if len(errs) > 0 {
 		return errs[0]
 	}

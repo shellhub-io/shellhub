@@ -4,24 +4,21 @@ services:
   ssh:
     image: shellhub-ssh
     build:
-      context: ssh
+      context: .
+      dockerfile: ssh/Dockerfile
       target: development
     volumes:
       - ./ssh:/go/src/github.com/shellhub-io/shellhub/ssh
+      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
   api:
     image: shellhub-api
     build:
-      context: api
+      context: .
+      dockerfile: api/Dockerfile
       target: development
     volumes:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
-  ws:
-    image: shellhub-ws
-    build:
-      context: ws
-      target: development
-    volumes:
-      - ./ws:/go/src/github.com/shellhub-io/shellhub/ws
+      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
   ui:
     image: shellhub-ui
     build:
@@ -38,13 +35,15 @@ services:
   agent:
     image: shellhub-agent
     build:
-      context: agent
+      context: .
+      dockerfile: agent/Dockerfile
       target: development
     environment:
       - SERVER_ADDRESS=http://172.17.0.1:80
       - PRIVATE_KEY=/var/run/secrets/shellhub.key
     volumes:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
+      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
     depends_on:
       - emq
       - api

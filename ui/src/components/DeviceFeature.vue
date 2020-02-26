@@ -10,10 +10,12 @@
   </div>
     <v-card class="mt-2">
         <v-app-bar flat color="transparent">
+
           <div class="item-title">
           
             <!-- <div class="item-description"> -->
               <v-edit-dialog :return-value="editName" large @open="editName = device.name" @save="save()">
+
                   
                   <v-text-field slot="input" v-model="editName" label="Edit" single-line>
                   </v-text-field>
@@ -71,6 +73,7 @@
           <div class="item">
             <div class="item-name">Last Seen </div>
             <div class="item-description">{{this.device.last_seen | moment("dddd, MMMM Do YYYY, h:mm:ss a")}}</div>
+
           </div>
 
         </v-card-text>
@@ -80,13 +83,16 @@
 </template>
 
 <script>
+
 import TerminalDialog from "@/components/TerminalDialog.vue";
 import moment from 'moment'
+
 
 export default {
   name: "DeviceFeature",
 
   components: {
+
     TerminalDialog,
   },
 
@@ -102,7 +108,6 @@ export default {
     //     return moment(String(value)).format('YYYYMMDD')
     //   }
     // },
-
   },
 
   methods: {

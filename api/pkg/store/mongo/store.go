@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/api/pkg/store"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"

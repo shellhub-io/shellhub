@@ -8,7 +8,7 @@ import (
 	"net"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/shellhub-io/shellhub/api/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/api/pkg/store"
 )
 

@@ -1,4 +1,6 @@
-package: github.com/shellhub-io/shellhub/ssh
+app_root: /go/src/github.com/shellhub-io/shellhub
+ignore:
+- github.com/shellhub-io/shellhub
 import:
 - package: github.com/Sirupsen/logrus
   version: ~1.4.0
@@ -15,3 +17,8 @@ import:
   version: ^0.2.15
 - package: github.com/pkg/errors
   version: ~0.8.1
+- package: github.com/dgrijalva/jwt-go
+  version: ~4.0.0-preview1
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson

@@ -11,12 +11,14 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/shellhub-io/shellhub/api/pkg/models"
 	"github.com/shellhub-io/shellhub/api/pkg/services/authsvc"
 	"github.com/shellhub-io/shellhub/api/pkg/services/deviceadm"
 	"github.com/shellhub-io/shellhub/api/pkg/services/mqtthooks"
 	"github.com/shellhub-io/shellhub/api/pkg/services/sessionmngr"
+	"github.com/shellhub-io/shellhub/api/pkg/services/ssh2ws"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
+	"github.com/shellhub-io/shellhub/pkg/models"
+	"golang.org/x/net/websocket"
 	mgo "gopkg.in/mgo.v2"
 )
 
@@ -146,7 +148,7 @@ func main() {
 		}
 	})
 
-	publicAPI := e.Group("/public")
+	publicAPI := e.Group("/api")
 	internalAPI := e.Group("/internal")
 
 	publicAPI.POST("/devices/auth", func(c echo.Context) error {
@@ -297,6 +299,11 @@ func main() {
 		}
 
 		return c.JSON(http.StatusOK, session)
+	})
+
+	publicAPI.GET("/ws/ssh", func(c echo.Context) error {
+		websocket.Handler(ssh2ws.Handler).ServeHTTP(c.Response(), c.Request())
+		return nil
 	})
 
 	internalAPI.GET("/mqtt/auth", func(c echo.Context) error {

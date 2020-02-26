@@ -1,4 +1,4 @@
-app_root: .
+app_root: /go/src/github.com/shellhub-io/shellhub
 ignored_folders:
 - vendor
 included_extensions:

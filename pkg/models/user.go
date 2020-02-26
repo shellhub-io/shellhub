@@ -2,14 +2,13 @@ package models
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type User struct {
-	ID       bson.ObjectId `json:"-" bson:"_id,omitempty"`
-	Username string        `json:"username"`
-	Password string        `json:"password"`
-	TenantID string        `json:"tenant_id" bson:"tenant_id"`
+	ID       string `json:"-" bson:"_id,omitempty"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	TenantID string `json:"tenant_id" bson:"tenant_id"`
 }
 
 type UserAuthRequest struct {

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"encoding/json"
+
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
 	"github.com/pkg/errors"

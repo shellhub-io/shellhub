@@ -2,8 +2,6 @@
 
 # This script generates a new SSH key pair for development environment
 
-cp -a /vendor .
-
 mkdir -p /var/run/secrets
 
 if [ ! -f /var/run/secrets/api_private_key ]; then
