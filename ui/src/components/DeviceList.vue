@@ -15,7 +15,7 @@
         <v-card-text class="pa-0">  <!-- @click:row="featureDevice" -->
             <v-data-table :headers="headers" :items="devices" item-key="uid" disable-pagination hide-default-footer>
                 <template v-slot:item.online="{ item }">
-                    <v-icon color="success" v-if="item.online">check_circle</v-icon>
+                    <v-icon color="success" v-if="item.online" @click.stop="featureDevice(item)">check_circle</v-icon>
                     <v-tooltip bottom v-else>
                         <template #activator="{ on }">
                             <v-icon v-on="on">check_circle</v-icon>
