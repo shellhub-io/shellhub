@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -18,8 +17,10 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/services/ssh2ws"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"go.mongodb.org/mongo-driver/bson"
+	mgo "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/net/websocket"
-	mgo "gopkg.in/mgo.v2"
 )
 
 var verifyKey *rsa.PublicKey
@@ -27,86 +28,88 @@ var verifyKey *rsa.PublicKey
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
+	// Set client options
+	clientOptions := options.Client().ApplyURI("mongodb://mongo:27017")
+	// Connect to MongoDB
+	client, err := mgo.Connect(context.TODO(), clientOptions)
 
-	session, err := mgo.Dial("mongodb://mongo:27017")
 	if err != nil {
 		panic(err)
 	}
 
-	err = session.DB("main").C("devices").EnsureIndex(mgo.Index{
-		Key:        []string{"uid"},
-		Unique:     true,
-		Name:       "uid",
-		Background: false,
-	})
+	err = client.Ping(context.TODO(), nil)
 	if err != nil {
 		panic(err)
 	}
 
-	err = session.DB("main").C("connected_devices").EnsureIndex(mgo.Index{
-		Key:         []string{"last_seen"},
-		Name:        "last_seen",
-		ExpireAfter: time.Duration(time.Second * 30),
-	})
+	mod := mgo.IndexModel{
+		Keys:    bson.D{{"uid", 1}},
+		Options: options.Index().SetName("uid").SetUnique(true),
+	}
+	_, err = client.Database("main").Collection("devices").Indexes().CreateOne(context.TODO(), mod)
+	if err != nil {
+		panic(err)
+	}
+	
+	mod = mgo.IndexModel{
+		Keys:    bson.D{{"last_seen", 1}},
+		Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
+	}
+	_, err = client.Database("main").Collection("connected_devices").Indexes().CreateOne(context.TODO(), mod)
+	if err != nil {
+		panic(err)
+	}
+	
+	mod = mgo.IndexModel{
+		Keys:    bson.D{{"uid", 1}},
+		Options: options.Index().SetName("uid").SetUnique(false),
+	}
+	_, err = client.Database("main").Collection("connected_devices").Indexes().CreateOne(context.TODO(), mod)
 	if err != nil {
 		panic(err)
 	}
 
-	err = session.DB("main").C("connected_devices").EnsureIndex(mgo.Index{
-		Key:        []string{"uid"},
-		Unique:     false,
-		Name:       "uid",
-		Background: false,
-	})
+	mod = mgo.IndexModel{
+		Keys:    bson.D{{"uid", 1}},
+		Options: options.Index().SetName("uid").SetUnique(true),
+	}
+	_, err = client.Database("main").Collection("sessions").Indexes().CreateOne(context.TODO(), mod)
 	if err != nil {
 		panic(err)
 	}
 
-	err = session.DB("main").C("sessions").EnsureIndex(mgo.Index{
-		Key:        []string{"uid"},
-		Unique:     true,
-		Name:       "uid",
-		Background: false,
-	})
+	mod = mgo.IndexModel{
+		Keys:    bson.D{{"last_seen", 1}},
+		Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
+	}
+	_, err = client.Database("main").Collection("active_sessions").Indexes().CreateOne(context.TODO(), mod)
 	if err != nil {
 		panic(err)
 	}
 
-	err = session.DB("main").C("active_sessions").EnsureIndex(mgo.Index{
-		Key:         []string{"last_seen"},
-		Name:        "last_seen",
-		ExpireAfter: time.Duration(time.Second * 30),
-	})
+	mod = mgo.IndexModel{
+		Keys:    bson.D{{"uid", 1}},
+		Options: options.Index().SetName("uid").SetUnique(false),
+	}
+	_, err = client.Database("main").Collection("active_sessions").Indexes().CreateOne(context.TODO(), mod)
 	if err != nil {
 		panic(err)
 	}
 
-	err = session.DB("main").C("active_sessions").EnsureIndex(mgo.Index{
-		Key:        []string{"uid"},
-		Unique:     false,
-		Name:       "uid",
-		Background: false,
-	})
+	mod = mgo.IndexModel{
+		Keys:    bson.D{{"username", 1}},
+		Options: options.Index().SetName("username").SetUnique(false),
+	}
+	_, err = client.Database("main").Collection("users").Indexes().CreateOne(context.TODO(), mod)
 	if err != nil {
 		panic(err)
 	}
 
-	err = session.DB("main").C("users").EnsureIndex(mgo.Index{
-		Key:        []string{"username"},
-		Unique:     true,
-		Name:       "username",
-		Background: false,
-	})
-	if err != nil {
-		panic(err)
+	mod = mgo.IndexModel{
+		Keys:    bson.D{{"tenant_id", 1}},
+		Options: options.Index().SetName("tenant_id").SetUnique(false),
 	}
-
-	err = session.DB("main").C("users").EnsureIndex(mgo.Index{
-		Key:        []string{"tenant_id"},
-		Unique:     true,
-		Name:       "tenant_id",
-		Background: false,
-	})
+	_, err = client.Database("main").Collection("users").Indexes().CreateOne(context.TODO(), mod)
 	if err != nil {
 		panic(err)
 	}
@@ -133,16 +136,13 @@ func main() {
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			s := session.Clone()
-
-			defer s.Close()
 
 			tenant := c.Request().Header.Get("X-Tenant-ID")
 			ctx := context.WithValue(c.Request().Context(), "tenant", tenant)
-			ctx = context.WithValue(ctx, "db", s.DB("main"))
+			ctx = context.WithValue(ctx, "db", client.Database("main"))
 
 			c.Set("ctx", ctx)
-			c.Set("db", s.DB("main"))
+			c.Set("db", client.Database("main"))
 
 			return next(c)
 		}
@@ -150,7 +150,6 @@ func main() {
 
 	publicAPI := e.Group("/api")
 	internalAPI := e.Group("/internal")
-
 	publicAPI.POST("/devices/auth", func(c echo.Context) error {
 		var req models.DeviceAuthRequest
 
@@ -270,7 +269,6 @@ func main() {
 
 	publicAPI.GET("/sessions", func(c echo.Context) error {
 		ctx := c.Get("ctx").(context.Context)
-
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := sessionmngr.NewService(store)
 		sessions, err := svc.ListSessions(ctx)

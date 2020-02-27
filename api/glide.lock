@@ -1,5 +1,5 @@
-hash: 831278f6e8dd83382fe578de5ef08d83b1fea3c6875e8910d00668876897366c
-updated: 2020-02-12T15:52:22.080009464-03:00
+hash: 333693efb3bb2630ec838866c5dd4184609902d42cfd707c5eb6c9ee9ec56d04
+updated: 2020-02-17T09:28:03.268194436-03:00
 imports:
 - name: cirello.io/goherokuname
   version: 54f91376eb16467d4ca1b3b6d7c351f41524fe52
@@ -9,50 +9,105 @@ imports:
   version: 62a607eb02243845670f25a61cbc2d394c1ede10
 - name: github.com/dgrijalva/jwt-go
   version: 06ea1031745cb8b3dab3f6a236daf2b0aa468b7e
+- name: github.com/go-stack/stack
+  version: 2fee6af1a9795aafbe0253a0cfbdf668e1fb8a9a
+- name: github.com/golang/snappy
+  version: ff6b7dc882cf4cfba7ee0b9f7dcc1ac096c554aa
+- name: github.com/klauspost/compress
+  version: 59173b57be0cfc705da1f4f227f4049d193a5fa2
+  subpackages:
+  - fse
+  - huff0
+  - snappy
+  - zstd
+  - zstd/internal/xxhash
 - name: github.com/labstack/echo
   version: 38772c686c76b501f94bd6cd5b77f5842e93b559
   subpackages:
   - middleware
 - name: github.com/labstack/gommon
-  version: ab0bfd9a5eba33a8c364bf3390d809ed23c31f97
+  version: 4919956f6fb227b548f004da27c7c6b20fba499f
   subpackages:
   - bytes
   - color
   - log
   - random
 - name: github.com/mattn/go-colorable
-  version: 8029fb3788e5a4a9c00e415f586a6d033f5d38b3
+  version: c742d6fb21c22a5bb6f768a683e6782e52fe0311
 - name: github.com/mattn/go-isatty
-  version: 1311e847b0cb909da63b5fecfb5370aa66236465
+  version: cb30d6282491c185f77d9bec5d25de1bb61a06bc
+- name: github.com/pkg/errors
+  version: 614d223910a179a466c1767a985424175c39b465
 - name: github.com/valyala/bytebufferpool
   version: cdfbe9377474227bb42120c1e22fd4433e7f69bf
 - name: github.com/valyala/fasttemplate
-  version: 8b5e4e491ab636663841c42ea3c5a9adebabaf36
+  version: f2edffee060be376160f92203356c93e83b01352
+- name: github.com/xdg/scram
+  version: 7eeb5667e42c09cb51bf7b7c28aea8c56767da90
+- name: github.com/xdg/stringprep
+  version: 73f8eece6fdcd902c185bf651de50f3828bed5ed
+- name: go.mongodb.org/mongo-driver
+  version: f002b1fa256d7987c03274bab1f4263dbdff0f64
+  subpackages:
+  - bson
+  - bson/bsoncodec
+  - bson/bsonoptions
+  - bson/bsonrw
+  - bson/bsontype
+  - bson/primitive
+  - event
+  - internal
+  - mongo
+  - mongo/options
+  - mongo/readconcern
+  - mongo/readpref
+  - mongo/writeconcern
+  - tag
+  - version
+  - x/bsonx
+  - x/bsonx/bsoncore
+  - x/mongo/driver
+  - x/mongo/driver/address
+  - x/mongo/driver/auth
+  - x/mongo/driver/auth/internal/gssapi
+  - x/mongo/driver/connstring
+  - x/mongo/driver/description
+  - x/mongo/driver/dns
+  - x/mongo/driver/mongocrypt
+  - x/mongo/driver/mongocrypt/options
+  - x/mongo/driver/operation
+  - x/mongo/driver/session
+  - x/mongo/driver/topology
+  - x/mongo/driver/uuid
+  - x/mongo/driver/wiremessage
 - name: golang.org/x/crypto
-  version: f99c8df09eb5bff426315721bfa5f16a99cad32c
+  version: 1d94cc7ab1c630336ab82ccb9c9cda72a875c382
   subpackages:
   - acme
   - acme/autocert
+  - pbkdf2
 - name: golang.org/x/net
-  version: 60506f45cf65977eb3a9c6e30f995f54a721c271
+  version: 16171245cfb220d5317888b716d69c1fb4e7992b
   subpackages:
   - idna
+- name: golang.org/x/sync
+  version: cd5d95a43a6e21273425c7ae415d3df9ea832eeb
+  subpackages:
+  - semaphore
 - name: golang.org/x/sys
-  version: 4c4f7f33c9ed00de01c4c741d2177abfcfe19307
+  version: 12a6c2dcc1e4cb348b57847c73987099e261714b
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 342b2e1fbaa52c93f31447ad2c6abc048c63e475
+  version: 929e72ca90deac4784bbe451caf10faa5b256ebe
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
 - name: gopkg.in/mgo.v2
-  version: 9856a29383ce1c59f308dd1cf0363a79b5bef6b5
+  version: a6b53ec6cb22a3699387a57a161566f9402ee85b
   subpackages:
   - bson
   - internal/json
-  - internal/sasl
-  - internal/scram
 testImports: []

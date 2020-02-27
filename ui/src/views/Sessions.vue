@@ -22,6 +22,7 @@
                 </template>
 
                 <template v-slot:item.started="{ item }">
+
                     {{ item.started_at | moment("ddd, MMM Do YY, h:mm:ss a")}}
                 </template>
 
@@ -102,6 +103,7 @@ export default {
     /* opacity: 0.5; */
     
 }
+
 .short{
   width:200px;
 }

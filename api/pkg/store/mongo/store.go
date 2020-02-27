@@ -5,19 +5,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/api/pkg/store"
-	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/shellhub-io/shellhub/pkg/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Store struct {
-	db *mgo.Database
+	db *mongo.Database
 
 	store.Store
 }
 
-func NewStore(db *mgo.Database) *Store {
+func NewStore(db *mongo.Database) *Store {
 	return &Store{db: db}
 }
 
@@ -60,16 +61,27 @@ func (s *Store) ListDevices(ctx context.Context) ([]models.Device, error) {
 	}
 
 	devices := make([]models.Device, 0)
-	if err := s.db.C("devices").Pipe(query).All(&devices); err != nil {
-		return nil, err
+	device := new(models.Device)
+	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
+	if err != nil {
+		return devices, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		err = cursor.Decode(&device)
+		if err != nil {
+			return devices, err
+		} 
+		devices = append(devices, *device)
 	}
 
-	return devices, nil
+	return devices, err
 }
 
 func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	device := new(models.Device)
-	if err := s.db.C("devices").Find(bson.M{"uid": uid}).One(&device); err != nil {
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
 		return nil, err
 	}
 
@@ -77,11 +89,11 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 }
 
 func (s *Store) DeleteDevice(ctx context.Context, uid models.UID) error {
-	if err := s.db.C("devices").Remove(bson.M{"uid": uid}); err != nil {
+	if _, err := s.db.Collection("devices").DeleteOne(ctx, bson.M{"uid": uid}); err != nil {
 		return err
 	}
 
-	if err := s.db.C("sessions").Remove(bson.M{"device": uid}); err != nil {
+	if _, err := s.db.Collection("sessions").DeleteOne(ctx, bson.M{"device": uid}); err != nil {
 		return err
 	}
 
@@ -97,23 +109,26 @@ func (s *Store) AddDevice(ctx context.Context, d models.Device) error {
 		},
 		"$set": d,
 	}
-
-	_, err := s.db.C("devices").Upsert(bson.M{"uid": d.UID}, q)
+	opts := options.Update().SetUpsert(true)
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": d.UID}, q, opts)
 	return err
 }
 
 func (s *Store) RenameDevice(ctx context.Context, uid models.UID, name string) error {
-	return s.db.C("devices").Update(bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": name}})
+	if _, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": name}}); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Store) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
 	user := new(models.User)
-	if err := s.db.C("users").Find(bson.M{"username": namespace}).One(&user); err != nil {
+	if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": namespace}).Decode(&user); err != nil {
 		return nil, err
 	}
 
 	device := new(models.Device)
-	if err := s.db.C("devices").Find(bson.M{"tenant_id": user.TenantID, "name": name}).One(&device); err != nil {
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": user.TenantID, "name": name}).Decode(&device); err != nil {
 		return nil, err
 	}
 
@@ -121,19 +136,19 @@ func (s *Store) LookupDevice(ctx context.Context, namespace, name string) (*mode
 }
 
 func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
+
 	device := new(models.Device)
-	if err := s.db.C("devices").Find(bson.M{"uid": uid}).One(&device); err != nil {
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
 		return err
 	}
 
 	if !online {
-		_, err := s.db.C("connected_devices").RemoveAll(bson.M{"uid": uid})
+		_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
 		return err
 	}
-
 	device.LastSeen = time.Now()
-
-	_, err := s.db.C("devices").Upsert(bson.M{"uid": device.UID}, device)
+	opts := options.Update().SetUpsert(true)
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"last_seen": device.LastSeen}}, opts)
 	if err != nil {
 		return err
 	}
@@ -143,8 +158,11 @@ func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online b
 		TenantID: device.TenantID,
 		LastSeen: time.Now(),
 	}
+	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
+		return err
+	}
 
-	return s.db.C("connected_devices").Insert(&cd)
+	return nil
 }
 
 func (s *Store) ListSessions(ctx context.Context) ([]models.Session, error) {
@@ -172,13 +190,23 @@ func (s *Store) ListSessions(ctx context.Context) ([]models.Session, error) {
 			},
 		})
 	}
-
 	sessions := make([]models.Session, 0)
-	if err := s.db.C("sessions").Pipe(query).All(&sessions); err != nil {
-		return nil, err
+	session := new(models.Session)
+	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+
+		err = cursor.Decode(&session)
+		if err != nil {
+			return sessions, err
+		} else {
+			sessions = append(sessions, *session)
+		}
+
 	}
 
-	return sessions, nil
+	return sessions, err
 }
 
 func (s *Store) CreateSession(ctx context.Context, session models.Session) (*models.Session, error) {
@@ -192,7 +220,7 @@ func (s *Store) CreateSession(ctx context.Context, session models.Session) (*mod
 
 	session.TenantID = device.TenantID
 
-	if err := s.db.C("sessions").Insert(&session); err != nil {
+	if _, err := s.db.Collection("sessions").InsertOne(ctx, &session); err != nil {
 		return nil, err
 	}
 
@@ -201,7 +229,7 @@ func (s *Store) CreateSession(ctx context.Context, session models.Session) (*mod
 		LastSeen: session.StartedAt,
 	}
 
-	if err := s.db.C("active_sessions").Insert(&as); err != nil {
+	if _, err := s.db.Collection("active_sessions").InsertOne(ctx, &as); err != nil {
 		return nil, err
 	}
 
@@ -225,7 +253,13 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 
 	resp := []bson.M{}
 
-	if err := s.db.C("connected_devices").Pipe(query).All(&resp); err != nil {
+	cursor, _ := s.db.Collection("connected_devices").Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+
+	cursor.Next(ctx)
+
+	err := cursor.Decode(resp)
+	if err != nil {
 		return nil, err
 	}
 
@@ -249,12 +283,15 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 
 	resp = []bson.M{}
 
-	if err := s.db.C("devices").Pipe(query).All(&resp); err != nil {
-		return nil, err
-	}
+	cursor, _ = s.db.Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+
+	cursor.Next(ctx)
+	devices := []models.Device{}
+	err = cursor.Decode(devices)
 
 	registeredDevices := 0
-	if len(resp) > 0 {
+	if len(devices) > 0 {
 		registeredDevices = resp[0]["count"].(int)
 	}
 
@@ -292,9 +329,12 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		"$count": "count",
 	})
 
-	resp = []bson.M{}
+	cursor, _ = s.db.Aggregate(ctx, query)
+	defer cursor.Close(ctx)
 
-	if err := s.db.C("sessions").Pipe(query).All(&resp); err != nil {
+	cursor.Next(ctx)
+	err = cursor.Decode(resp)
+	if err != nil {
 		return nil, err
 	}
 
@@ -313,14 +353,14 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 func (s *Store) KeepAliveSession(ctx context.Context, uid models.UID) error {
 	session := models.Session{}
 
-	err := s.db.C("sessions").Find(bson.M{"uid": s}).One(&session)
+	err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": s}).Decode(&session)
 	if err != nil {
 		return err
 	}
 
 	session.LastSeen = time.Now()
-
-	_, err = s.db.C("sessions").Upsert(bson.M{"uid": session.UID}, session)
+	opts := options.Update().SetUpsert(true)
+	_, err = s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, session, opts)
 	if err != nil {
 		return err
 	}
@@ -330,7 +370,7 @@ func (s *Store) KeepAliveSession(ctx context.Context, uid models.UID) error {
 		LastSeen: time.Now(),
 	}
 
-	if err := s.db.C("active_sessions").Insert(&activeSession); err != nil {
+	if _, err := s.db.Collection("active_sessions").InsertOne(ctx, &activeSession); err != nil {
 		return err
 	}
 
@@ -339,24 +379,26 @@ func (s *Store) KeepAliveSession(ctx context.Context, uid models.UID) error {
 
 func (s *Store) DeactivateSession(ctx context.Context, uid models.UID) error {
 	session := new(models.Session)
-	if err := s.db.C("sessions").Find(bson.M{"uid": uid}).One(&session); err != nil {
+	if err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": uid}).Decode(&session); err != nil {
 		return err
 	}
 
 	session.LastSeen = time.Now()
-
-	_, err := s.db.C("sessions").Upsert(bson.M{"uid": session.UID}, session)
+	opts := options.Update().SetUpsert(true)
+	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, session, opts)
 	if err != nil {
 		return err
 	}
 
-	_, err = s.db.C("active_sessions").RemoveAll(bson.M{"uid": session.UID})
+	_, err = s.db.Collection("active_sessions").DeleteMany(ctx, bson.M{"uid": session.UID})
 	return err
 }
 
 func (s *Store) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+
 	user := new(models.User)
-	if err := s.db.C("users").Find(bson.M{"username": username}).One(&user); err != nil {
+
+	if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": username}).Decode(&user); err != nil {
 		return nil, err
 	}
 
@@ -365,7 +407,7 @@ func (s *Store) GetUserByUsername(ctx context.Context, username string) (*models
 
 func (s *Store) GetUserByTenant(ctx context.Context, tenant string) (*models.User, error) {
 	user := new(models.User)
-	if err := s.db.C("users").Find(bson.M{"tenant_id": tenant}).One(&user); err != nil {
+	if err := s.db.Collection("users").FindOne(ctx, bson.M{"tenant_id": tenant}).Decode(&user); err != nil {
 		return nil, err
 	}
 	return user, nil
