@@ -72,7 +72,7 @@ func (s *Store) ListDevices(ctx context.Context) ([]models.Device, error) {
 		err = cursor.Decode(&device)
 		if err != nil {
 			return devices, err
-		} 
+		}
 		devices = append(devices, *device)
 	}
 
@@ -251,21 +251,9 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		}}, query...)
 	}
 
-	resp := []bson.M{}
-
-	cursor, _ := s.db.Collection("connected_devices").Aggregate(ctx, query)
-	defer cursor.Close(ctx)
-
-	cursor.Next(ctx)
-
-	err := cursor.Decode(resp)
+	onlineDevices, err := aggregateCount(ctx, s.db.Collection("connected_devices"), query)
 	if err != nil {
 		return nil, err
-	}
-
-	onlineDevices := 0
-	if len(resp) > 0 {
-		onlineDevices = resp[0]["count"].(int)
 	}
 
 	query = []bson.M{
@@ -281,18 +269,9 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		}}, query...)
 	}
 
-	resp = []bson.M{}
-
-	cursor, _ = s.db.Aggregate(ctx, query)
-	defer cursor.Close(ctx)
-
-	cursor.Next(ctx)
-	devices := []models.Device{}
-	err = cursor.Decode(devices)
-
-	registeredDevices := 0
-	if len(devices) > 0 {
-		registeredDevices = resp[0]["count"].(int)
+	registeredDevices, err := aggregateCount(ctx, s.db.Collection("devices"), query)
+	if err != nil {
+		return nil, err
 	}
 
 	query = []bson.M{
@@ -329,18 +308,9 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		"$count": "count",
 	})
 
-	cursor, _ = s.db.Aggregate(ctx, query)
-	defer cursor.Close(ctx)
-
-	cursor.Next(ctx)
-	err = cursor.Decode(resp)
+	activeSessions, err := aggregateCount(ctx, s.db.Collection("sessions"), query)
 	if err != nil {
 		return nil, err
-	}
-
-	activeSessions := 0
-	if len(resp) > 0 {
-		activeSessions = resp[0]["count"].(int)
 	}
 
 	return &models.Stats{
