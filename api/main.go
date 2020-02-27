@@ -50,7 +50,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	mod = mgo.IndexModel{
 		Keys:    bson.D{{"last_seen", 1}},
 		Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
@@ -59,7 +59,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	mod = mgo.IndexModel{
 		Keys:    bson.D{{"uid", 1}},
 		Options: options.Index().SetName("uid").SetUnique(false),
@@ -98,7 +98,7 @@ func main() {
 
 	mod = mgo.IndexModel{
 		Keys:    bson.D{{"username", 1}},
-		Options: options.Index().SetName("username").SetUnique(false),
+		Options: options.Index().SetName("username").SetUnique(true),
 	}
 	_, err = client.Database("main").Collection("users").Indexes().CreateOne(context.TODO(), mod)
 	if err != nil {
@@ -107,7 +107,7 @@ func main() {
 
 	mod = mgo.IndexModel{
 		Keys:    bson.D{{"tenant_id", 1}},
-		Options: options.Index().SetName("tenant_id").SetUnique(false),
+		Options: options.Index().SetName("tenant_id").SetUnique(true),
 	}
 	_, err = client.Database("main").Collection("users").Indexes().CreateOne(context.TODO(), mod)
 	if err != nil {
