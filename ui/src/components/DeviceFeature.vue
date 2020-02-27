@@ -2,7 +2,7 @@
 <fragment>
 
   <div class="d-flex pa-0 align-center">
-  <h1>Device Feature</h1>
+  <h1>Device Details</h1>
   <v-spacer/>
   <v-spacer/>
   <!-- <AddDevice/> -->
@@ -10,67 +10,67 @@
   </div>
     <v-card class="mt-2">
         <v-app-bar flat color="transparent">
-        </v-app-bar>
-        <v-divider></v-divider>
-        <v-card-text>
+          <div class="item-title">
           
-          <div class="item">
-            <div class="item-name">Uid: </div>
-            <div class="item-description">{{this.device.uid}}</div>
-          </div>
-
-          <div class="item">
-            <div class="item-description">
-
+            <!-- <div class="item-description"> -->
               <v-edit-dialog :return-value="editName" large @open="editName = device.name" @save="save()">
-                  <div class="item-name">Name: </div>
                   
                   <v-text-field slot="input" v-model="editName" label="Edit" single-line>
                   </v-text-field>
                   
-                  <v-icon small left>mdi-file-edit</v-icon>
-                  <div class="item-description">
+                  <div class="item-title-name">
                       {{ this.device.name }}
                   </div>
 
-              </v-edit-dialog>
+                  <v-icon small left>mdi-file-edit</v-icon>
 
-            </div> 
+                  <div class="status">
+                    <div class="status-online" v-if="this.device.online">
+                      Online
+                    </div>
+                    <div class="status-offline" v-else>
+                      Offline
+                    </div>
+                  </div>
+
+              </v-edit-dialog>
+            <!-- </div>  -->
+        
+          </div>
+
+          <div class="item-action">
+
+            <TerminalDialog :uid="device.uid"></TerminalDialog>
+
+            <v-icon @click="remove()">
+                delete
+            </v-icon>
+          </div>
+
+        </v-app-bar>
+        
+
+        <v-divider></v-divider>
+        <v-card-text>
+          
+          <div class="item">
+            <div class="item-name">Uid </div>
+            <div class="item-description">{{this.device.uid}}</div>
           </div>
 
           <div class="item">
-            <div class="item-name">Mac: </div>
-            <div class="item-description">{{this.device.identity}}</div>
+            <div class="item-name">Mac </div>
+            <div class="item-description" v-if="this.device.identity">{{this.device.identity['mac']}}</div>
           </div>
 
           <div class="item"> 
-            <div class="item-name">Operating System: </div>
-            <div class="item-description">{{this.device.attributes}}</div>
+            <div class="item-name">Operating System </div>
+            <div class="item-description" v-if="this.device.attributes">{{this.device.attributes.pretty_name}}</div>
           </div>
 
           <div class="item">
-            <div class="item-name">Public Key: </div>
-            <div>{{this.device.public_key}}</div>
-          </div>
-
-          <div class="item">
-            <div class="item-name">Tenant Id: </div>
-            <div class="item-description">{{this.device.tenant_id}}</div>
-          </div>
-
-          <div class="item">
-            <div class="item-name">Last Seen: </div>
-            <div class="item-description">{{this.device.last_seen}}</div>
-          </div>
-
-          <div class="item">
-            <div class="item-name">Online: </div>
-            <div class="item-description">{{this.device.online}}</div>
-          </div>
-
-          <div class="item">
-            <div class="item-name">Namespace: </div>
-            <div class="item-description">{{this.device.namespace}}</div>
+            <div class="item-name">Last Seen </div>
+            <div class="item-description">{{this.device.last_seen | moment("dddd, MMMM Do YYYY, h:mm:ss a")}}</div>
           </div>
 
         </v-card-text>
@@ -80,25 +80,29 @@
 </template>
 
 <script>
+import TerminalDialog from "@/components/TerminalDialog.vue";
+import moment from 'moment'
 
 export default {
   name: "DeviceFeature",
 
   components: {
-
+    TerminalDialog,
   },
 
   async created() {
       this.uid = this.$route.params.id
       await this.$store.dispatch("devices/get", this.uid);
       this.device = this.$store.getters["devices/get"];
-
   },
 
   computed: {
-    // device() {
-    //   return this.$store.getters["devices/get"];
-    // }
+    // format_date(value){
+    //   if (value) {
+    //     return moment(String(value)).format('YYYYMMDD')
+    //   }
+    // },
+
   },
 
   methods: {
@@ -110,7 +114,17 @@ export default {
       });
 
       this.device.name = this.editName;
-    }
+    },
+
+    remove() {
+      if (confirm("Are you sure?")) {
+        this.$store.dispatch("devices/remove", this.device.uid);
+        this.$router.push('/devices');
+      }
+    },
+    format_date(){
+        return moment(String(this.device.last_seen)).format('DD-MM-YYYY')
+    },
   },
 
   data() {
@@ -126,8 +140,16 @@ export default {
 </script>
 <style scoped>
 
+.mt-2{
+  /* position: relative; */
+  width:100%;
+}
+
 .item {
-  margin-bottom: 4px;
+  margin-left: 15px;
+  margin-right: 15px;
+  margin-bottom: 15px;
+  width: 100%;
 }
 .item-name {
   font-size: 14px;
@@ -137,10 +159,48 @@ export default {
 
 .item-description {
   font-size: 14px;
-  display:inline;
+  /* display:inline; */
 
 }
 
+.item-title{
+  margin-bottom: -4px;
+  margin-left: 15px;
+  width: 350%;
+  
+}
+
+.item-title-name{
+  font-size: 28px;
+  font-weight: 500;
+  display:inline;
+}
+
+.status{
+  margin-top: -5px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.status-online{
+  color: rgb(162, 250, 163);
+}
+
+.status-offline{
+  color: red;
+}
+
+.item-action{
+  margin-left: 10px;
+  /* display:inline; */
+  width: 20%;
+  float: right;
+}
+
+
+
+/* .mt-2{
+  padding: 32px;
+} */
 
 
 </style>
