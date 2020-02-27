@@ -1,5 +1,5 @@
 # base stage
-FROM golang:alpine AS base
+FROM golang:1.13-alpine3.11 AS base
 
 RUN apk add --update git ca-certificates && \
     go get -u github.com/Masterminds/glide
