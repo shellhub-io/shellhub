@@ -1,6 +1,7 @@
 <template>
 <v-app>
     <v-navigation-drawer v-if="isLoggedIn" :clipped="false" fixed v-model="drawer" :mini-variant="false" enable-resize-watcher app>
+        
         <v-container>
             <div class="text-center">
                 <v-icon>mdi-console</v-icon>
@@ -8,6 +9,7 @@
                 <span class="overline">beta</span>
             </div>
         </v-container>
+
         <v-list>
             <v-list-item v-for="item in items" :key="item.title" :to="item.path" two-line>
                 <v-list-item-action>
@@ -20,6 +22,7 @@
             </v-list-item>
         </v-list>
     </v-navigation-drawer>
+    
     <v-app-bar app elevate-on-scroll color="primary" class="pl-3 pr-4" v-if="isLoggedIn">
         <v-menu transition="scale-transition" origin="top left">
             <template v-slot:activator="{ on }">
@@ -70,7 +73,7 @@
         </v-menu>
     </v-app-bar>
     <v-content>
-        <v-container class="pa-8">
+        <v-container class="pa-8" fluid>
             <router-view></router-view>
         </v-container>
         <v-snackbar v-model="copySnack" :timeout=3000>Tenant ID copied to clipboard</v-snackbar>
@@ -136,4 +139,5 @@ export default {
   text-shadow: #000 0 0 6px;
   color: transparent;
 }
+
 </style>

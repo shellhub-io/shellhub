@@ -10,9 +10,9 @@
             <v-data-table :headers="headers" :items="$store.getters['sessions/list']" item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" disable-pagination hide-default-footer>
                 
                 <template v-slot:item.device="{ item }">
-                    <v-chip>
-                        {{ item.device }}
-                        <v-icon small right @click.stop v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
+                    <v-chip class="short">
+                        <span>{{item.device}}</span>
+                        <v-icon small @click.stop v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
                     </v-chip>
 
                 </template>
@@ -22,11 +22,11 @@
                 </template>
 
                 <template v-slot:item.started="{ item }">
-                    {{ item.started_at | moment("dddd, MMMM Do YYYY, h:mm:ss a")}}
+                    {{ item.started_at | moment("ddd, MMM Do YY, h:mm:ss a")}}
                 </template>
 
                 <template v-slot:item.last_seen="{ item }">
-                    {{ item.last_seen | moment("dddd, MMMM Do YYYY, h:mm:ss a")}}
+                    {{ item.last_seen | moment("ddd, MMM Do YY, h:mm:ss a")}}
                 </template>
 
                 <template v-slot:item.active="{ item }">
@@ -101,6 +101,14 @@ export default {
     background-color: rgba(57, 6, 105, 0.1);
     /* opacity: 0.5; */
     
+}
+.short{
+  width:200px;
+}
+.short span{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
