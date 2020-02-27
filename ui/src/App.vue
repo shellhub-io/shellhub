@@ -70,7 +70,7 @@
         </v-menu>
     </v-app-bar>
     <v-content>
-        <v-container class="pa-8">
+        <v-container class="pa-8" fluid>
             <router-view></router-view>
         </v-container>
         <v-snackbar v-model="copySnack" :timeout=3000>Tenant ID copied to clipboard</v-snackbar>
