@@ -323,14 +323,15 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 func (s *Store) KeepAliveSession(ctx context.Context, uid models.UID) error {
 	session := models.Session{}
 
-	err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": s}).Decode(&session)
+	err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": uid}).Decode(&session)
 	if err != nil {
 		return err
 	}
 
 	session.LastSeen = time.Now()
+
 	opts := options.Update().SetUpsert(true)
-	_, err = s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, session, opts)
+	_, err = s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session}, opts)
 	if err != nil {
 		return err
 	}
@@ -355,7 +356,7 @@ func (s *Store) DeactivateSession(ctx context.Context, uid models.UID) error {
 
 	session.LastSeen = time.Now()
 	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, session, opts)
+	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session}, opts)
 	if err != nil {
 		return err
 	}
