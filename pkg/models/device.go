@@ -4,11 +4,9 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type Device struct {
-	ID         bson.ObjectId     `json:"-" bson:"_id,omitempty"`
 	UID        string            `json:"uid"`
 	Name       string            `json:"name" bson:"name,omitempty"`
 	Identity   map[string]string `json:"identity"`
@@ -46,8 +44,7 @@ type DeviceAuthResponse struct {
 }
 
 type ConnectedDevice struct {
-	ID       bson.ObjectId `json:"-" bson:"_id,omitempty"`
-	UID      string        `json:"uid"`
-	TenantID string        `json:"tenant_id" bson:"tenant_id"`
-	LastSeen time.Time     `json:"last_seen" bson:"last_seen"`
+	UID      string    `json:"uid"`
+	TenantID string    `json:"tenant_id" bson:"tenant_id"`
+	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
 }
