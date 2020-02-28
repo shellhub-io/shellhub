@@ -113,7 +113,7 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
-				"uid": uid,
+				"uid":       uid,
 			},
 		})
 	}
