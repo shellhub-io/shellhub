@@ -72,7 +72,7 @@ func (s *Store) ListDevices(ctx context.Context) ([]models.Device, error) {
 		err = cursor.Decode(&device)
 		if err != nil {
 			return devices, err
-		} 
+		}
 		devices = append(devices, *device)
 	}
 
@@ -80,8 +80,57 @@ func (s *Store) ListDevices(ctx context.Context) ([]models.Device, error) {
 }
 
 func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
+	query := []bson.M{
+		{
+			"$lookup": bson.M{
+				"from":         "connected_devices",
+				"localField":   "uid",
+				"foreignField": "uid",
+				"as":           "online",
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "users",
+				"localField":   "tenant_id",
+				"foreignField": "tenant_id",
+				"as":           "namespace",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
+				"namespace": "$namespace.username",
+			},
+		},
+		{
+			"$unwind": "$namespace",
+		},
+		// {
+		// 	"$match": bson.M{
+		// 		"uid": uid,
+		// 	},
+		// },
+	}
+
+	// Only match for the respective tenant if requested
+	if tenant := store.TenantFromContext(ctx); tenant != nil {
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
+				"uid": uid,
+			},
+		})
+	}
+
 	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
+
+	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+	cursor.Next(ctx)
+
+	err = cursor.Decode(&device)
+	if err != nil {
 		return nil, err
 	}
 
