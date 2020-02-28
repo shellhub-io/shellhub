@@ -80,8 +80,52 @@ func (s *Store) ListDevices(ctx context.Context) ([]models.Device, error) {
 }
 
 func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
+	query := []bson.M{
+		{
+			"$lookup": bson.M{
+				"from":         "connected_devices",
+				"localField":   "uid",
+				"foreignField": "uid",
+				"as":           "online",
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "users",
+				"localField":   "tenant_id",
+				"foreignField": "tenant_id",
+				"as":           "namespace",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
+				"namespace": "$namespace.username",
+			},
+		},
+		{
+			"$unwind": "$namespace",
+		},
+	}
+
+	// Only match for the respective tenant if requested
+	if tenant := store.TenantFromContext(ctx); tenant != nil {
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
+				"uid":       uid,
+			},
+		})
+	}
+
 	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
+
+	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+	cursor.Next(ctx)
+
+	err = cursor.Decode(&device)
+	if err != nil {
 		return nil, err
 	}
 
@@ -251,9 +295,21 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		}}, query...)
 	}
 
-	onlineDevices, err := aggregateCount(ctx, s.db.Collection("connected_devices"), query)
+	resp := []bson.M{}
+
+	cursor, _ := s.db.Collection("connected_devices").Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+
+	cursor.Next(ctx)
+
+	err := cursor.Decode(resp)
 	if err != nil {
 		return nil, err
+	}
+
+	onlineDevices := 0
+	if len(resp) > 0 {
+		onlineDevices = resp[0]["count"].(int)
 	}
 
 	query = []bson.M{
@@ -269,9 +325,18 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		}}, query...)
 	}
 
-	registeredDevices, err := aggregateCount(ctx, s.db.Collection("devices"), query)
-	if err != nil {
-		return nil, err
+	resp = []bson.M{}
+
+	cursor, _ = s.db.Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+
+	cursor.Next(ctx)
+	devices := []models.Device{}
+	err = cursor.Decode(devices)
+
+	registeredDevices := 0
+	if len(devices) > 0 {
+		registeredDevices = resp[0]["count"].(int)
 	}
 
 	query = []bson.M{
@@ -308,9 +373,18 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		"$count": "count",
 	})
 
-	activeSessions, err := aggregateCount(ctx, s.db.Collection("sessions"), query)
+	cursor, _ = s.db.Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+
+	cursor.Next(ctx)
+	err = cursor.Decode(resp)
 	if err != nil {
 		return nil, err
+	}
+
+	activeSessions := 0
+	if len(resp) > 0 {
+		activeSessions = resp[0]["count"].(int)
 	}
 
 	return &models.Stats{
@@ -323,15 +397,14 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 func (s *Store) KeepAliveSession(ctx context.Context, uid models.UID) error {
 	session := models.Session{}
 
-	err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": uid}).Decode(&session)
+	err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": s}).Decode(&session)
 	if err != nil {
 		return err
 	}
 
 	session.LastSeen = time.Now()
-
 	opts := options.Update().SetUpsert(true)
-	_, err = s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session}, opts)
+	_, err = s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, session, opts)
 	if err != nil {
 		return err
 	}
@@ -356,7 +429,7 @@ func (s *Store) DeactivateSession(ctx context.Context, uid models.UID) error {
 
 	session.LastSeen = time.Now()
 	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session}, opts)
+	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, session, opts)
 	if err != nil {
 		return err
 	}
