@@ -82,6 +82,9 @@ func (s *Store) ListDevices(ctx context.Context) ([]models.Device, error) {
 func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	query := []bson.M{
 		{
+			"$match": bson.M{"uid": uid},
+		},
+		{
 			"$lookup": bson.M{
 				"from":         "connected_devices",
 				"localField":   "uid",
@@ -113,7 +116,6 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
-				"uid":       uid,
 			},
 		})
 	}
