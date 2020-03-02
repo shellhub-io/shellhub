@@ -22,11 +22,12 @@ import (
 
 type sshConn struct {
 	net.Conn
-	closeCallback func()
+	closeCallback func(string)
+	ctx           sshserver.Context
 }
 
 func (c *sshConn) Close() error {
-	c.closeCallback()
+	c.closeCallback(c.ctx.SessionID())
 	return c.Conn.Close()
 }
 
@@ -55,17 +56,17 @@ func NewSSHServer(privateKey string) *SSHServer {
 		RequestHandlers:  sshserver.DefaultRequestHandlers,
 		ChannelHandlers:  sshserver.DefaultChannelHandlers,
 		ConnCallback: func(ctx sshserver.Context, conn net.Conn) net.Conn {
-			closeCallback := func() {
+			closeCallback := func(id string) {
 				s.mu.Lock()
 				defer s.mu.Unlock()
 
-				if v, ok := s.cmds[ctx.SessionID()]; ok {
+				if v, ok := s.cmds[id]; ok {
 					v.Process.Kill()
-					delete(s.cmds, ctx.SessionID())
+					delete(s.cmds, id)
 				}
 			}
 
-			return &sshConn{conn, closeCallback}
+			return &sshConn{conn, closeCallback, ctx}
 		},
 	}
 
