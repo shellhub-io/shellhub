@@ -279,6 +279,19 @@ func main() {
 		return c.JSON(http.StatusOK, sessions)
 	})
 
+	publicAPI.GET("/session/:uid", func(c echo.Context) error {
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := sessionmngr.NewService(store)
+
+		session, err := svc.GetSession(ctx, models.UID(c.Param("uid")))
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, session)
+	})
+
 	publicAPI.POST("/sessions", func(c echo.Context) error {
 		session := new(models.Session)
 		err := c.Bind(&session)
