@@ -15,6 +15,7 @@ type Store interface {
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
 	ListSessions(ctx context.Context) ([]models.Session, error)
+	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)
 	KeepAliveSession(ctx context.Context, uid models.UID) error
 	DeactivateSession(ctx context.Context, uid models.UID) error

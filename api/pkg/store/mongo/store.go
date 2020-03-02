@@ -255,6 +255,49 @@ func (s *Store) ListSessions(ctx context.Context) ([]models.Session, error) {
 	return sessions, err
 }
 
+func (s *Store) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
+	query := []bson.M{
+		{
+			"$match": bson.M{"uid": uid},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "active_sessions",
+				"localField":   "uid",
+				"foreignField": "uid",
+				"as":           "active",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
+			},
+		},
+	}
+
+	// Only match for the respective tenant if requested
+	if tenant := store.TenantFromContext(ctx); tenant != nil {
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
+			},
+		})
+	}
+
+	session := new(models.Session)
+
+	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+	cursor.Next(ctx)
+
+	err = cursor.Decode(&session)
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
+}
+
 func (s *Store) CreateSession(ctx context.Context, session models.Session) (*models.Session, error) {
 	session.StartedAt = time.Now()
 	session.LastSeen = session.StartedAt
