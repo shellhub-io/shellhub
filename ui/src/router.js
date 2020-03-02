@@ -22,16 +22,22 @@ const router = new Router({
                 import(/* webpackChunkName: "devices" */ "./views/Devices.vue")
         },
         {
-            path: "/devices/:id",
-            name: "featureDevice",
+            path: "/device/:id",
+            name: "detailsDevice",
             component: () =>
-                import("./views/FeatureDevice.vue") 
+                import(/* webpackChunkName: "details-device" */ "./views/DetailsDevice.vue") 
         },
         {
             path: "/sessions",
             name: "sessions",
             component: () =>
                 import("./views/Sessions.vue")
+        },
+        {
+            path: "/session/:id",
+            name: "detailsSession",
+            component: () =>
+                import(/* webpackChunkName: "details-session" */ "./views/DetailsSession.vue") 
         },
         {
             path: "/login",

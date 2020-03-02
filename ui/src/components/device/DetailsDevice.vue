@@ -84,7 +84,7 @@ import TerminalDialog from "@/components/TerminalDialog.vue";
 import moment from 'moment'
 
 export default {
-  name: "DeviceFeature",
+  name: "DetailsDevice",
 
   components: {
     TerminalDialog,
@@ -97,12 +97,6 @@ export default {
   },
 
   computed: {
-    // format_date(value){
-    //   if (value) {
-    //     return moment(String(value)).format('YYYYMMDD')
-    //   }
-    // },
-
   },
 
   methods: {
@@ -160,14 +154,12 @@ export default {
 .item-description {
   font-size: 14px;
   /* display:inline; */
-
 }
 
 .item-title{
   margin-bottom: -4px;
   margin-left: 15px;
   width: 350%;
-  
 }
 
 .item-title-name{
@@ -195,12 +187,5 @@ export default {
   width: 20%;
   float: right;
 }
-
-
-
-/* .mt-2{
-  padding: 32px;
-} */
-
 
 </style>

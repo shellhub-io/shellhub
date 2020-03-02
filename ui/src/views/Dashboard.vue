@@ -60,7 +60,7 @@
 </template>
 
 <script>
-import AddDevice from "@/components/AddDevice.vue";
+import AddDevice from "@/components/device/AddDevice.vue";
 
 export default {
   components: {
