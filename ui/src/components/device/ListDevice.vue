@@ -56,7 +56,7 @@
                 </template>
 
                 <template v-slot:item.actions="{ item }">
-                    <v-icon class="icons" @click="featureDevice(item)">
+                    <v-icon class="icons" @click="detailsDevice(item)">
                         info
                     </v-icon>
 
@@ -75,7 +75,7 @@
 
 <script>
 import TerminalDialog from "@/components/TerminalDialog.vue";
-import AddDevice from "@/components/AddDevice.vue";
+import AddDevice from "@/components/device/AddDevice.vue";
 
 export default {
   components: {
@@ -94,8 +94,8 @@ export default {
   },
 
   methods: {
-    featureDevice(value){
-      this.$router.push('/devices/'+value.uid) 
+    detailsDevice(value){
+      this.$router.push('/device/'+value.uid) 
     },
 
     address(item) {
