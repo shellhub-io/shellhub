@@ -6,7 +6,7 @@ $material-dark-elevation-colors: () !default;
 // https://material.io/design/environment/elevation.html#default-elevations
 $material-dark-elevation-colors: (
   "0": #33007b,
-  "1": #484588,
+  "1": #323641,
   "2": blue,
   "3": yellow,
   "4": #33007b,
@@ -25,7 +25,7 @@ $material-dark: map-deep-merge(
       "lights-out": rgba(map-get($shades, "black"), 0.2)
     ),
     "app-bar": map-get($material-dark-elevation-colors, "4"),
-    "background": #2d2b55,
+    "background": #323641,
     "bottom-navigation": map-get($material-dark-elevation-colors, "8"),
     "surface": #31004a,
     "calendar": (
@@ -38,7 +38,7 @@ $material-dark: map-deep-merge(
       "past-color": rgba(map-get($shades, "white"), 0.5)
     ),
     "cards": map-get($material-dark-elevation-colors, "1"),
-    "chips": #2d2b55,
+    "chips": #364576,
     "dividers": rgba(map-get($shades, "white"), 0.12),
     "text": (
       "theme": map-get($shades, "white"),

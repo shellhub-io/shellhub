@@ -1,8 +1,8 @@
 <template>
 <v-app>
-    <v-navigation-drawer v-if="isLoggedIn" :clipped="false" fixed v-model="drawer" :mini-variant="false" enable-resize-watcher app>
+    <v-navigation-drawer v-if="isLoggedIn" :clipped="false" fixed v-model="drawer" :mini-variant="false" enable-resize-watcher app dark>
         <v-container>
-            <div class="text-center">
+            <div class="text-center white--text">
                 <v-icon>mdi-console</v-icon>
                 <h2 style="font-family: monospace">ShellHub</h2>
                 <span class="overline">beta</span>
@@ -20,7 +20,7 @@
             </v-list-item>
         </v-list>
     </v-navigation-drawer>
-    <v-app-bar app elevate-on-scroll color="primary" class="pl-3 pr-4" v-if="isLoggedIn">
+    <v-app-bar app elevate-on-scroll class="pl-3 pr-4" v-if="isLoggedIn" dark color="primary">
         <v-menu transition="scale-transition" origin="top left">
             <template v-slot:activator="{ on }">
                 <v-chip v-on="on">

@@ -21,10 +21,10 @@ Vue.use(Fragment.Plugin);
 export default new Vuetify({
   iconfont: 'md',
   theme: {
-    dark: true,
+    dark: false,
     themes: {
-      dark: {
-        primary: '#2d2b55',
+      light: {
+        primary: '#364576',
         secondary: '#b0bec5',
         accent: '#8c9eff',
         error: '#b71c1c',
