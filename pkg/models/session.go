@@ -12,7 +12,7 @@ type Session struct {
 	IPAddress string    `json:"ip_address" bson:"ip_address"`
 	StartedAt time.Time `json:"started_at" bson:"started_at"`
 	LastSeen  time.Time `json:"last_seen" bson:"last_seen"`
-	Active    bool      `json:"active"`
+	Active    bool      `json:"active" bson:",omitempty"`
 }
 
 type ActiveSession struct {

@@ -13,9 +13,9 @@ type Device struct {
 	Attributes map[string]string `json:"attributes"`
 	PublicKey  string            `json:"public_key" bson:"public_key"`
 	TenantID   string            `json:"tenant_id" bson:"tenant_id"`
-	LastSeen   time.Time         `json:"last_seen"`
-	Online     bool              `json:"online"`
-	Namespace  string            `json:"namespace"`
+	LastSeen   time.Time         `json:"last_seen" bson:"last_seen"`
+	Online     bool              `json:"online" bson:",omitempty"`
+	Namespace  string            `json:"namespace" bson:",omitempty"`
 }
 
 type DeviceAuthClaims struct {
