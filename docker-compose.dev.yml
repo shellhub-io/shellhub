@@ -38,12 +38,17 @@ services:
       context: .
       dockerfile: agent/Dockerfile
       target: development
+    privileged: true
+    network_mode: host
+    pid: host
     environment:
-      - SERVER_ADDRESS=http://172.17.0.1:80
-      - PRIVATE_KEY=/var/run/secrets/shellhub.key
+      - SERVER_ADDRESS=http://172.17.0.1
+      - PRIVATE_KEY=/go/src/github.com/shellhub-io/shellhub/agent/shellhub.key
+      - TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     volumes:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
+      - /:/host
     depends_on:
       - emq
       - api
