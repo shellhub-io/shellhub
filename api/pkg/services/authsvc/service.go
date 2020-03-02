@@ -10,8 +10,8 @@ import (
 
 	"github.com/cnf/structhash"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/api/pkg/store"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type Service interface {
@@ -63,8 +63,15 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		}
 	}
 
-	dev, _ := s.store.GetDevice(ctx, models.UID(device.UID))
+	dev, err := s.store.GetDevice(ctx, models.UID(device.UID))
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := s.store.GetUserByTenant(ctx, device.TenantID)
+	if err != nil {
+		return nil, err
+	}
 
 	return &models.DeviceAuthResponse{
 		UID:       hex.EncodeToString(uid[:]),
