@@ -29,6 +29,11 @@ type ConfigOptions struct {
 	TenantID      string `envconfig:"tenant_id"`
 }
 
+type Info struct {
+	Version   string    `json:"version"`
+	Endpoints Endpoints `json:"endpoints"`
+}
+
 type Endpoints struct {
 	API string `json:"api"`
 	SSH string `json:"ssh"`
@@ -84,9 +89,9 @@ func main() {
 		logrus.Panic(err)
 	}
 
-	endpoints := Endpoints{}
+	info := Info{}
 
-	_, _, errs := gorequest.New().Get(fmt.Sprintf("%s/endpoints", opts.ServerAddress)).EndStruct(&endpoints)
+	_, _, errs := gorequest.New().Get(fmt.Sprintf("%s/info", opts.ServerAddress)).EndStruct(&info)
 	if len(errs) > 0 {
 		logrus.WithFields(logrus.Fields{"err": errs[0]}).Fatal("Failed to get endpoints")
 	}
@@ -114,17 +119,17 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	auth, err := sendAuthRequest(&endpoints, identity, attributes, pubKey, opts.TenantID, []string{})
+	auth, err := sendAuthRequest(&info.Endpoints, identity, attributes, pubKey, opts.TenantID, []string{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
 	if l := len(os.Args); l > 1 && os.Args[1] == "info" {
-		fmt.Println(getInfo(auth.Namespace + "." + auth.Name + "@" + strings.Split(endpoints.SSH, ":")[0]))
+		fmt.Println(getInfo(auth.Namespace + "." + auth.Name + "@" + strings.Split(info.Endpoints.SSH, ":")[0]))
 		return
 	}
 
 	server := NewSSHServer(opts.PrivateKey)
-	client := NewSSHClient(opts.PrivateKey, endpoints.SSH)
+	client := NewSSHClient(opts.PrivateKey, info.Endpoints.SSH)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +154,7 @@ func main() {
 
 	go func() {
 		for {
-			listener, err := NewListener(endpoints.API, auth.Token)
+			listener, err := NewListener(info.Endpoints.API, auth.Token)
 			if err != nil {
 				time.Sleep(time.Second * 10)
 				continue
@@ -164,7 +169,7 @@ func main() {
 	ticker := time.NewTicker(10 * time.Second)
 
 	for _ = range ticker.C {
-		auth, err = sendAuthRequest(&endpoints, identity, attributes, pubKey, opts.TenantID, client.Sessions)
+		auth, err = sendAuthRequest(&info.Endpoints, identity, attributes, pubKey, opts.TenantID, client.Sessions)
 		if err == nil {
 			server.SetDeviceName(auth.Name)
 		}
