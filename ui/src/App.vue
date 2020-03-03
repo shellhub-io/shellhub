@@ -14,7 +14,7 @@
         </v-list>
     </v-navigation-drawer>
     <v-app-bar v-if="isLoggedIn" app clipped-left dark color="primary">
-        <v-img src="@/assets/logo.png" max-width="160" />
+        <v-img src="@/assets/logo-inverted.png" max-width="160" />
         <span class="overline mt-3">BETA</span>
         <v-spacer></v-spacer>
         <v-menu transition="scale-transition" origin="top left">
