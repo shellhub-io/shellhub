@@ -1,16 +1,17 @@
-
 <template>
   <div>
-    <ListDevice/>
+    <DeviceList/>
   </div>
 </template>
 
 <script>
-import ListDevice from "@/components/device/ListDevice.vue";
+import DeviceList from '@/components/device/DeviceList.vue';
 
 export default {
+  name: 'Devices',
+
   components: {
-    ListDevice
+    DeviceList
   }
 };
 </script>

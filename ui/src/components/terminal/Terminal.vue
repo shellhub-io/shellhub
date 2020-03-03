@@ -1,26 +1,26 @@
 <template>
-    <div>
-    </div>
+  <div>
+  </div>
 </template>
 
 <script>
-import { Terminal } from "xterm";
-import * as fit from "xterm/lib/addons/fit/fit";
-import * as attach from "xterm/lib/addons/attach/attach";
-import "xterm/dist/xterm.css";
+import { Terminal } from 'xterm';
+import * as fit from 'xterm/lib/addons/fit/fit';
+import * as attach from 'xterm/lib/addons/attach/attach';
+import 'xterm/dist/xterm.css';
 
 Terminal.applyAddon(fit);
 Terminal.applyAddon(attach);
 
 export default {
-  name: "Terminal",
+  name: 'Terminal',
 
-  props: ["uid", "username", "password"],
+  props: ['uid', 'username', 'password'],
 
   mounted() {
     this.xterm = new Terminal({
       cursorBlink: true,
-      fontFamily: "monospace"
+      fontFamily: 'monospace'
     });
   },
 
@@ -44,12 +44,12 @@ export default {
     },
 
     close() {
-      this.toggleTerminal("");
+      this.toggleTerminal('');
     },
 
     connect() {
-      this.username = "root";
-      this.passwd = "merdalixo";
+      this.username = 'root';
+      this.passwd = 'merdalixo';
       this.device = this.$props.uid;
 
       setTimeout(() => {
@@ -69,7 +69,7 @@ export default {
         .map(([k, v]) => {
           return `${k}=${v}`;
         })
-        .join("&");
+        .join('&');
 
       var ws = new WebSocket(`ws://${location.host}/ws/ssh?${params}`);
 

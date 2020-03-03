@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <ListSession/>
@@ -6,9 +5,11 @@
 </template>
 
 <script>
-import ListSession from "@/components/session/ListSession.vue";
+import ListSession from '@/components/session/SessionList.vue';
 
 export default {
+  name: 'Sessions',
+
   components: {
     ListSession
   }
