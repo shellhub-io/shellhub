@@ -1,6 +1,6 @@
 <template>
 <v-app>
-    <v-navigation-drawer v-if="isLoggedIn" fixed v-model="drawer" app absolute clipped dark>
+    <v-navigation-drawer v-if="isLoggedIn" v-model="drawer" app clipped dark>
         <v-list>
             <v-list-item v-for="item in items" :key="item.title" :to="item.path" two-line>
                 <v-list-item-action>
