@@ -23,6 +23,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var AgentVersion string
+
 type ConfigOptions struct {
 	ServerAddress string `envconfig:"server_address"`
 	PrivateKey    string `envconfig:"private_key"`
@@ -54,6 +56,7 @@ func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, attributes 
 			Bytes: x509.MarshalPKCS1PublicKey(pubKey),
 		})),
 		TenantID: tenantID,
+		Version:  AgentVersion,
 		Sessions: sessions,
 	}).EndStruct(&auth)
 	if len(errs) > 0 {

@@ -21,6 +21,7 @@ type AuthRequest struct {
 	Attributes *DeviceAttributes `json:"attributes"`
 	PublicKey  string            `json:"public_key"`
 	TenantID   string            `json:"tenant_id"`
+	Version    string            `json:"version"`
 	Sessions   []string          `json:"sessions,omitempty"`
 }
 

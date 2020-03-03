@@ -35,9 +35,9 @@ jobs:
           name: Build agent images
           command: |
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-            docker build -f agent/Dockerfile.amd64 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-amd64 .
-            docker build -f agent/Dockerfile.arm32v6 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-arm32v6 .
-            docker build -f agent/Dockerfile.arm64v8 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-arm64v8 .
+            docker build -f agent/Dockerfile.amd64 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-amd64 --build-arg SHELLHUB_VERSION=${CIRCLE_TAG} .
+            docker build -f agent/Dockerfile.arm32v6 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-arm32v6 --build-arg SHELLHUB_VERSION=${CIRCLE_TAG} .
+            docker build -f agent/Dockerfile.arm64v8 -t $AGENT_IMAGE_NAME:${CIRCLE_SHA1}-arm64v8 --build-arg SHELLHUB_VERSION=${CIRCLE_TAG} .
           no_output_timeout: 20m
       - run:
           name: Archive Docker images

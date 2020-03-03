@@ -38,6 +38,8 @@ services:
       context: .
       dockerfile: agent/Dockerfile
       target: development
+      args:
+        SHELLHUB_VERSION: latest
     privileged: true
     network_mode: host
     pid: host
@@ -45,6 +47,7 @@ services:
       - SERVER_ADDRESS=http://172.17.0.1
       - PRIVATE_KEY=/go/src/github.com/shellhub-io/shellhub/agent/shellhub.key
       - TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      - SHELLHUB_VERSION=${SHELLHUB_VERSION}
     volumes:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg

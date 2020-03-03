@@ -37,6 +37,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		Attributes: req.Attributes,
 		PublicKey:  req.PublicKey,
 		TenantID:   req.TenantID,
+		Version:    req.Version,
 		LastSeen:   time.Now(),
 	}
 

@@ -5,7 +5,7 @@ included_extensions:
 - .go
 build_target_path: ""
 build_path: /go/src/github.com/shellhub-io/shellhub/agent
-build_flags: ["-tags", "docker"]
+build_flags: ["-tags", "docker", "-ldflags", "-X main.AgentVersion=latest"]
 build_delay: 200ns
 binary_name: agent
 command_flags: []

@@ -17,6 +17,8 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 # builder stage
 FROM base AS builder
 
+ARG SHELLHUB_VERSION=latest
+
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
 COPY ./agent .
 
@@ -26,7 +28,7 @@ RUN glide install --skip-test
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
-RUN go build -tags docker
+RUN go build -tags docker -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
 
 # development stage
 FROM base AS development

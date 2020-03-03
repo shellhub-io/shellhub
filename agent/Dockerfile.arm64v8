@@ -2,6 +2,8 @@
 
 FROM arm64v8/golang:alpine
 
+ARG SHELLHUB_VERSION=latest
+
 RUN apk add --update git ca-certificates util-linux build-base bash && \
     go get -u github.com/Masterminds/glide
 
@@ -22,7 +24,7 @@ RUN glide -q install --skip-test
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
-RUN GOOS=linux GOARCH=arm64 go build -tags docker
+RUN GOOS=linux GOARCH=arm64 go build -tags docker -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
 
 FROM scratch
 
