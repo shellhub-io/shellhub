@@ -1,16 +1,17 @@
-
 <template>
   <div>
-    <DetailsSession/>
+    <SessionDetails/>
   </div>
 </template>
 
 <script>
-import DetailsSession from "@/components/session/DetailsSession.vue";
+import SessionDetails from '@/components/session/SessionDetails.vue';
 
 export default {
+  name: 'DetailsSessiom',
+
   components: {
-    DetailsSession
+    SessionDetails
   }
 };
 </script>
