@@ -16,6 +16,7 @@
           <template #activator="{ on }">
             <v-icon v-on="on">check_circle</v-icon>
           </template>
+          <span>active {{ session.last_seen | moment("from", "now") }}</span>
         </v-tooltip>
         {{ this.session.device }}
       </v-toolbar-title>
