@@ -16,7 +16,7 @@
   </v-navigation-drawer>
 
   <v-app-bar v-if="isLoggedIn" app clipped-left dark color="primary">
-    <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+    <v-app-bar-nav-icon @click.stop="drawer = !drawer" class="hidden-lg-and-up"></v-app-bar-nav-icon>
       <v-img src="@/assets/logo-inverted.png" max-width="160" />
         <span class="overline mt-3">BETA</span>
         <v-spacer></v-spacer>
@@ -121,7 +121,7 @@ export default {
         this.$router.push("/login");
       });
     }
-  },
+  }
 };
 </script>
 
