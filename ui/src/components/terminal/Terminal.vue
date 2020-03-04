@@ -48,8 +48,8 @@ export default {
     },
 
     connect() {
-      this.username = 'root';
-      this.passwd = 'merdalixo';
+      this.username = '';
+      this.passwd = '';
       this.device = this.$props.uid;
 
       setTimeout(() => {
