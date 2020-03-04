@@ -1,74 +1,77 @@
 <template>
 <v-app>
-    <v-navigation-drawer v-if="isLoggedIn" v-model="drawer" app clipped dark>
-        <v-list>
-            <v-list-item v-for="item in items" :key="item.title" :to="item.path" two-line>
-                <v-list-item-action>
-                    <v-icon v-text="item.icon"></v-icon>
-                </v-list-item-action>
 
-                <v-list-item-content>
-                    <v-list-item-title v-text="item.title"></v-list-item-title>
-                </v-list-item-content>
-            </v-list-item>
-        </v-list>
-    </v-navigation-drawer>
-    <v-app-bar v-if="isLoggedIn" app clipped-left dark color="primary">
-        <v-img src="@/assets/logo-inverted.png" max-width="160" />
+  <v-navigation-drawer v-if="isLoggedIn" v-model="drawer" app clipped dark>
+    <v-list>
+      <v-list-item v-for="item in items" :key="item.title" :to="item.path" two-line>
+        <v-list-item-action>
+          <v-icon v-text="item.icon"></v-icon>
+        </v-list-item-action>
+
+        <v-list-item-content>
+          <v-list-item-title v-text="item.title"></v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+    </v-list>
+  </v-navigation-drawer>
+
+  <v-app-bar v-if="isLoggedIn" app clipped-left dark color="primary">
+    <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+      <v-img src="@/assets/logo-inverted.png" max-width="160" />
         <span class="overline mt-3">BETA</span>
         <v-spacer></v-spacer>
         <v-menu transition="scale-transition" origin="top left">
-            <template v-slot:activator="{ on }">
-                <v-chip v-on="on">
-                    <v-icon left>mdi-server</v-icon>
-                    My Device Fleet
-                    <v-icon right>mdi-chevron-down</v-icon>
-                </v-chip>
-            </template>
+          <template v-slot:activator="{ on }">
+            <v-chip v-on="on">
+              <v-icon left>mdi-server</v-icon>
+              My Device Fleet
+              <v-icon right>mdi-chevron-down</v-icon>
+            </v-chip>
+          </template>
         </v-menu>
         <v-chip>
-            <v-icon>help</v-icon>
+          <v-icon>help</v-icon>
         </v-chip>
         <v-chip>
-            <v-icon>notifications</v-icon>
+          <v-icon>notifications</v-icon>
         </v-chip>
         <v-menu transition="scale-transition" origin="top right">
-            <template v-slot:activator="{ on }">
-                <v-chip v-on="on">
-                    <v-icon left>mdi-account</v-icon>
-                    {{ $store.getters["auth/currentUser"] }}
-                    <v-icon right>mdi-chevron-down</v-icon>
-                </v-chip>
-            </template>
+          <template v-slot:activator="{ on }">
+            <v-chip v-on="on">
+              <v-icon left>mdi-account</v-icon>
+                {{ $store.getters["auth/currentUser"] }}
+              <v-icon right>mdi-chevron-down</v-icon>
+            </v-chip>
+          </template>
 
-            <v-card>
-                <v-list-item three-line>
-                    <v-list-item-content>
-                        <v-list-item-title class="mb-1">Tenant ID</v-list-item-title>
-                        <v-list-item-subtitle>
-                            <v-chip>
-                                <span>
-                                    {{ tenant }}
-                                </span>
-                                <v-icon right v-clipboard="tenant" v-clipboard:success="() => { copySnack = true; }">mdi-content-copy</v-icon>
-                            </v-chip>
-                        </v-list-item-subtitle>
-                    </v-list-item-content>
-                </v-list-item>
+          <v-card>
+            <v-list-item three-line>
+              <v-list-item-content>
+                <v-list-item-title class="mb-1">Tenant ID</v-list-item-title>
+                <v-list-item-subtitle>
+                  <v-chip>
+                    <span>
+                      {{ tenant }}
+                    </span>
+                    <v-icon right v-clipboard="tenant" v-clipboard:success="() => { copySnack = true; }">mdi-content-copy</v-icon>
+                  </v-chip>
+                </v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
 
-                <v-card-actions>
-                    <v-btn small text @click="logout()">
-                        Logout
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
+            <v-card-actions>
+              <v-btn small text @click="logout()">
+                Logout
+              </v-btn>
+            </v-card-actions>
+          </v-card>
         </v-menu>
     </v-app-bar>
     <v-content>
-        <v-container class="pa-8" fluid>
-            <router-view></router-view>
-        </v-container>
-        <v-snackbar v-model="copySnack" :timeout=3000>Tenant ID copied to clipboard</v-snackbar>
+      <v-container class="pa-8" fluid>
+        <router-view></router-view>
+      </v-container>
+      <v-snackbar v-model="copySnack" :timeout=3000>Tenant ID copied to clipboard</v-snackbar>
     </v-content>
 </v-app>
 </template>
@@ -76,24 +79,6 @@
 <script>
 export default {
   name: "App",
-
-  methods: {
-    logout() {
-      this.$store.dispatch("auth/logout").then(() => {
-        this.$router.push("/login");
-      });
-    }
-  },
-
-  computed: {
-    tenant() {
-      return this.$store.getters["auth/tenant"];
-    },
-
-    isLoggedIn() {
-      return this.$store.getters["auth/isLoggedIn"];
-    }
-  },
 
   data() {
     return {
@@ -118,7 +103,25 @@ export default {
         }
       ]
     };
-  }
+  },
+
+  computed: {
+    tenant() {
+      return this.$store.getters["auth/tenant"];
+    },
+
+    isLoggedIn() {
+      return this.$store.getters["auth/isLoggedIn"];
+    }
+  },
+
+  methods: {
+    logout() {
+      this.$store.dispatch("auth/logout").then(() => {
+        this.$router.push("/login");
+      });
+    }
+  },
 };
 </script>
 

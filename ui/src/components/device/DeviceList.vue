@@ -10,64 +10,66 @@
   </div>
     
   <v-card class="mt-2">
-    <v-app-bar flat color="transparent">
-    </v-app-bar>
+    <v-app-bar flat color="transparent"></v-app-bar>
     <v-divider></v-divider>
-      <v-card-text class="pa-0">
-        <v-data-table :headers="headers" :items="devices" item-key="uid" disable-pagination hide-default-footer>
-  
-          <template v-slot:item.online="{ item }" >
-            <v-icon color="success" v-if="item.online" @click.stop="detailsDevice(item)">check_circle</v-icon>
-            <v-tooltip bottom v-else>
-              <template #activator="{ on }">
-                <v-icon v-on="on">check_circle</v-icon>
-              </template>
-              <span>last seen {{ item.last_seen | moment("from", "now") }}</span>
-            </v-tooltip>
-          </template>
 
-          <template v-slot:item.uid="{ item }">
-            <v-chip>
-              {{ item.uid }}
-              <v-icon small right @click.stop v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
-            </v-chip>
-          </template>
+    <v-card-text class="pa-0">
+      <v-data-table :headers="headers" :items="$store.getters['devices/list']" item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" disable-pagination hide-default-footer>
 
-          <template v-slot:item.name="{ item }">
-            <v-edit-dialog :return-value="editName" large @open="editName = item.name" @save="save(item)">
-              <v-text-field slot="input" v-model="editName" label="Edit" single-line></v-text-field>
-              <v-icon small left>mdi-file-edit</v-icon>
-              {{ item.name }}
-            </v-edit-dialog>
-          </template>
+        <template v-slot:item.online="{ item }" >
+          <v-icon color="success" v-if="item.online" @click.stop="detailsDevice(item)">check_circle</v-icon>
+          <v-tooltip bottom v-else>
+            <template #activator="{ on }">
+              <v-icon v-on="on">check_circle</v-icon>
+            </template>
+            <span>last seen {{ item.last_seen | moment("from", "now") }}</span>
+          </v-tooltip>
+        </template>
 
-          <template v-slot:item.attributes.pretty_name="{ item }">
-            <v-icon left>{{ deviceIcon[item.attributes.id] || 'fl-tux' }}</v-icon>
-            {{ item.attributes.pretty_name }}
-          </template>
+        <!-- <template v-slot:item.uid="{ item }">
+          <v-chip class="short">
+            <span>{{ item.uid }}</span>
+            <v-icon small @click.stop v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
+          </v-chip> v-icon notranslate v-icon--link mdi mdi-content-copy theme--light
+        </template> -->
+        <!-- v-icon notranslate v-icon--link mdi mdi-content-copy theme--light -->
+        <!-- v-icon notranslate v-icon--link mdi mdi-content-copy theme--light white--text -->
 
-          <template v-slot:item.identity.mac="{ item }">
-            <code>{{ item.identity.mac }}</code>
-          </template>
+        <template v-slot:item.uid="{ item }">
+          <v-chip class="short" color="blue lighten-2">
+            <span>{{ item.uid }}</span>
+            <v-icon small dark right@click.stop v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy none-text</v-icon>
+          </v-chip>
+        </template>
 
-          <template v-slot:item.namespace="{ item }">
-            <v-chip class="merda">
-              {{ address(item) }}<v-icon color="white" small right @click.stop v-clipboard="() => address(item)" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
-            </v-chip>
-          </template>
+        <template v-slot:item.attributes.pretty_name="{ item }">
+          <v-icon left>{{ deviceIcon[item.attributes.id] || 'fl-tux' }}</v-icon>
+          {{ item.attributes.pretty_name }}
+        </template>
 
-          <template v-slot:item.actions="{ item }">
-            <v-icon class="icons" @click="detailsDevice(item)">info</v-icon>
+        <template v-slot:item.identity.mac="{ item }">
+          <code>{{ item.identity.mac }}</code>
+        </template>
 
-            <TerminalDialog :uid="item.uid" v-if="item.online"></TerminalDialog>
+        <template v-slot:item.namespace="{ item }">
+          <v-chip class="list-itens">
+            {{ address(item) }}<v-icon small right @click.stop v-clipboard="() => address(item)" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
+          </v-chip>
+        </template>
 
-            <v-icon @click="remove(item.uid)">delete</v-icon>
-          </template> 
-        </v-data-table>
-      </v-card-text>
-      
-      <v-snackbar v-model="copySnack" :timeout=3000>Device SSHID copied to clipboard</v-snackbar>
-    </v-card>
+        <template v-slot:item.actions="{ item }">
+          <v-icon class="icons" @click="detailsDevice(item)">info</v-icon>
+
+          <TerminalDialog :uid="item.uid" v-if="item.online"></TerminalDialog>
+
+          <v-icon @click="remove(item.uid)">delete</v-icon>
+        </template>
+
+      </v-data-table>
+    </v-card-text>
+    <v-snackbar v-model="copySnack" :timeout=3000>Device SSHID copied to clipboard</v-snackbar>
+  </v-card>
+
 </fragment>
 </template>
 
@@ -127,9 +129,9 @@ export default {
   },
 
   computed: {
-    devices() {
-      return this.$store.getters['devices/list'];
-    }
+    // devices() {
+    //   return this.$store.getters['devices/list'];
+    // }
   },
 
   methods: {
@@ -168,11 +170,12 @@ export default {
 };
 </script>
 <style scoped>
-.merda {
+.list-itens {
   font-family: monospace;
 }
 
 .icons{
   margin-right: 4px;
 }
+
 </style>
