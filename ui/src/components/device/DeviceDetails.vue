@@ -16,6 +16,7 @@
             <template #activator="{ on }">
               <v-icon v-on="on">check_circle</v-icon>
             </template>
+            <span>active {{ device.last_seen | moment("from", "now") }}</span>
           </v-tooltip>
           {{ this.device.name }}
           <v-icon small left>mdi-file-edit</v-icon>
@@ -46,7 +47,10 @@
 
         <div class="mt-2">
           <div class="overline">Operating System</div>
-          <div v-if="this.device.attributes">{{ this.device.attributes.pretty_name }}</div>
+          <div v-if="this.device.attributes">
+            <v-icon left>{{ deviceIcon[device.attributes.id] || 'fl-tux' }}</v-icon>
+            {{ this.device.attributes.pretty_name }}
+          </div>
         </div>
 
         <div class="mt-2">
@@ -76,7 +80,11 @@ export default {
       uid: '',
       hostname: window.location.hostname,
       editName: '',
-      device: []
+      device: [],
+      deviceIcon: {
+        arch: 'fl-archlinux',
+        ubuntu: 'fl-ubuntu'
+      },
     };
   },
 
