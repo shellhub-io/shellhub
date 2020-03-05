@@ -242,11 +242,16 @@ func (s *Store) ListSessions(ctx context.Context) ([]models.Session, error) {
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
-
 		err = cursor.Decode(&session)
 		if err != nil {
 			return sessions, err
 		} else {
+			device, err := s.GetDevice(ctx, session.DeviceUID)
+			if err != nil {
+				return sessions, err
+			}
+
+			session.Device = device
 			sessions = append(sessions, *session)
 		}
 
@@ -295,6 +300,13 @@ func (s *Store) GetSession(ctx context.Context, uid models.UID) (*models.Session
 		return nil, err
 	}
 
+	device, err := s.GetDevice(ctx, session.DeviceUID)
+	if err != nil {
+		return nil, err
+	}
+
+	session.Device = device
+
 	return session, nil
 }
 
@@ -302,7 +314,7 @@ func (s *Store) CreateSession(ctx context.Context, session models.Session) (*mod
 	session.StartedAt = time.Now()
 	session.LastSeen = session.StartedAt
 
-	device, err := s.GetDevice(ctx, session.Device)
+	device, err := s.GetDevice(ctx, session.DeviceUID)
 	if err != nil {
 		return nil, err
 	}

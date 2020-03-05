@@ -6,7 +6,8 @@ import (
 
 type Session struct {
 	UID       string    `json:"uid"`
-	Device    UID       `json:"device"`
+	DeviceUID UID       `json:"-" bson:"device_uid"`
+	Device    *Device   `json:"device" bson:",omitempty"`
 	TenantID  string    `json:"tenant_id" bson:"tenant_id"`
 	Username  string    `json:"username"`
 	IPAddress string    `json:"ip_address" bson:"ip_address"`
