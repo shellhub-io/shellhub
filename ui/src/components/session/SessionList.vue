@@ -30,7 +30,9 @@
         </template>
 
         <template v-slot:item.device="{ item }">
-          <a :href="linkToDevice(item.device)">{{ item.device.name }}</a>
+          <router-link :to="{ name: 'detailsDevice', params: { id: item.device.uid } }">
+            {{ item.device.name }}
+          </router-link>
         </template>
 
         <template v-slot:item.ip_address="{ item }">
@@ -117,9 +119,6 @@ export default {
     },
     detailsSession(session) {
       this.$router.push("/session/" + session.uid);
-    },
-    linkToDevice(device) {
-      return `/device/${device.uid}`;
     }
   }
 };
