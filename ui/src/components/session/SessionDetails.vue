@@ -10,7 +10,7 @@
   <v-card class="mt-2">
     <v-toolbar flat color="transparent">
 
-      <v-toolbar-title>
+      <v-toolbar-title v-if="this.session.device">
         <v-icon color="success" v-if="this.session.active">check_circle</v-icon>
         <v-tooltip bottom v-else>
           <template #activator="{ on }">
@@ -18,7 +18,7 @@
           </template>
           <span>active {{ session.last_seen | moment("from", "now") }}</span>
         </v-tooltip>
-        {{ this.session.device }}
+        {{ this.session.device.name }}
       </v-toolbar-title>
 
     </v-toolbar>
