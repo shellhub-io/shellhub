@@ -12,11 +12,7 @@
         which works with all Linux distributions that have Docker installed and properly set up.</p>
 
       <strong>Run the following command on your device:</strong>
-
-      <code class="pt-2 pb-2 mt-2 mb-4" style="width:100%">
-        <span>curl "http://{{ hostname }}/install.sh?tenant_id={{ tenant }}" | sh</span>
-        <v-icon small right @click.stop v-clipboard="() => address()" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
-      </code>
+      <v-text-field class="code" fill-width outlined readonly dense append-icon="mdi-content-copy" @click:append="copyCommand" :value="command()"/>
 
       <v-divider></v-divider>
 
@@ -64,16 +60,24 @@ export default {
     }
   },
   methods:{
-    showCopySnack() {
+    command() {
+      return `curl "http://${this.hostname}/install.sh?tenant_id=${this.tenant}" | sh`;
+    },
+
+    copyCommand() {
+      this.$clipboard(this.command());
       this.copySnack = true;
-    },
-    address() {
-      return 'curl "http://' + this.hostname + '/install.sh?tenant_id='+ this.tenant +'" | sh'
-    },
+    }
   }
 };
 </script>
 
-<style>
+<style lang="scss" scoped>
+@import '~vuetify/src/styles/settings/_variables.scss';
 
+.code {
+  font-family: monospace;
+  font-size: $code-kbd-font-size;
+  font-weight: $code-kbd-font-weight;
+}
 </style>
