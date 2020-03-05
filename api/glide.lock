@@ -1,5 +1,5 @@
-hash: 0031be2ceadcde1e91c30ddde79f0f51a3f68a323f1649d045923351c4470f70
-updated: 2020-02-27T18:27:35.014750382-03:00
+hash: c5365a9671550dc1f3422a03a2975cc3e0a5dc863af2dcad75b895bf94e56777
+updated: 2020-03-05T09:35:54.649285776-03:00
 imports:
 - name: cirello.io/goherokuname
   version: 54f91376eb16467d4ca1b3b6d7c351f41524fe52
@@ -18,7 +18,7 @@ imports:
 - name: github.com/gorilla/websocket
   version: c3e18be99d19e6b3e8f1559eea2c161a665c4b6b
 - name: github.com/klauspost/compress
-  version: 98b287bcd1b5d61b698ccc529a220f597f584400
+  version: 022415c7cabcefa1c24832ebdf8598a41008e77a
   subpackages:
   - fse
   - huff0
@@ -37,23 +37,25 @@ imports:
   - log
   - random
 - name: github.com/mattn/go-colorable
-  version: 617ccecac584b6eb25ebfe54b38457007cb79cfe
+  version: 4e32bdb9fe4eefa9b10cb112e44debf77784ff7a
 - name: github.com/mattn/go-isatty
   version: cb30d6282491c185f77d9bec5d25de1bb61a06bc
 - name: github.com/mitchellh/mapstructure
   version: 3536a929edddb9a5b34bd6861dc4a9647cb459fe
 - name: github.com/pkg/errors
-  version: ba968bfe8b2f7e042a574c888954fccecfa385b4
+  version: 614d223910a179a466c1767a985424175c39b465
 - name: github.com/valyala/bytebufferpool
   version: cdfbe9377474227bb42120c1e22fd4433e7f69bf
 - name: github.com/valyala/fasttemplate
   version: f2edffee060be376160f92203356c93e83b01352
+- name: github.com/xakep666/mongo-migrate
+  version: b6296c15c8d5306313226a3e4ed234f8c45dccc9
 - name: github.com/xdg/scram
   version: 7eeb5667e42c09cb51bf7b7c28aea8c56767da90
 - name: github.com/xdg/stringprep
   version: 73f8eece6fdcd902c185bf651de50f3828bed5ed
 - name: go.mongodb.org/mongo-driver
-  version: f002b1fa256d7987c03274bab1f4263dbdff0f64
+  version: 17ea4abd2ac121376c1f782964fce1c3ee692915
   subpackages:
   - bson
   - bson/bsoncodec
@@ -87,7 +89,7 @@ imports:
   - x/mongo/driver/uuid
   - x/mongo/driver/wiremessage
 - name: golang.org/x/crypto
-  version: 2aa609cf4a9d7d1126360de73b55b6002f9e052a
+  version: 78000ba7a073cafc0278790f6bce552a0f25850e
   subpackages:
   - acme
   - acme/autocert
@@ -102,7 +104,7 @@ imports:
   - ssh
   - ssh/internal/bcrypt_pbkdf
 - name: golang.org/x/net
-  version: 0de0cce0169b09b364e001f108dc0399ea8630b3
+  version: 244492dfa37ae2ce87222fd06250a03160745faa
   subpackages:
   - idna
   - websocket
@@ -111,7 +113,7 @@ imports:
   subpackages:
   - semaphore
 - name: golang.org/x/sys
-  version: d5e6a3e2c0ae16fc7480523ebcb7fd4dd3215489
+  version: 5c8b2ff67527cb88b770f693cebf3799036d8bc0
   subpackages:
   - cpu
   - unix
