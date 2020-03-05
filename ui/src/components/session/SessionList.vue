@@ -11,14 +11,14 @@
     <v-app-bar flat color="transparent">
       <v-toolbar-title></v-toolbar-title>
     </v-app-bar>
-    
+
     <v-divider></v-divider>
 
     <!-- v-icon notranslate v-icon--link mdi mdi-content-copy theme--light -->
-    
+
     <v-card-text class="pa-0">
       <v-data-table :headers="headers" :items="$store.getters['sessions/list']" item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" disable-pagination hide-default-footer>
-              
+
         <template v-slot:item.active="{ item }">
           <v-icon color="success" v-if="item.active">check_circle</v-icon>
           <v-tooltip bottom v-else>
@@ -30,10 +30,7 @@
         </template>
 
         <template v-slot:item.device="{ item }">
-          <v-chip class="short" v-if="item.device">
-            <span>{{ item.device.name }}</span>
-            <v-icon small @click.stop v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
-          </v-chip>
+          <a :href="linkToDevice(item.device)">{{ item.device.name }}</a>
         </template>
 
         <template v-slot:item.ip_address="{ item }">
@@ -63,9 +60,8 @@
 </template>
 
 <script>
-
 export default {
-  name: 'SessionList',
+  name: "SessionList",
 
   data() {
     return {
@@ -106,7 +102,7 @@ export default {
           text: "Actions",
           value: "actions",
           align: "center"
-        },
+        }
       ]
     };
   },
@@ -119,23 +115,12 @@ export default {
     showCopySnack() {
       this.copySnack = true;
     },
-    detailsSession(session){
-      this.$router.push('/session/'+session.uid) 
+    detailsSession(session) {
+      this.$router.push("/session/" + session.uid);
     },
-  },
-
+    linkToDevice(device) {
+      return `/device/${device.uid}`;
+    }
+  }
 };
 </script>
-
-<style>
-
-.short{
-  width:auto;
-}
-.short span{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-</style>
