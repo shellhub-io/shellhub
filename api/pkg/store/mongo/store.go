@@ -484,3 +484,78 @@ func (s *Store) GetUserByTenant(ctx context.Context, tenant string) (*models.Use
 	}
 	return user, nil
 }
+
+func CreateIndexes(db *mongo.Database) error {
+	mod := mongo.IndexModel{
+		Keys:    bson.D{{"uid", 1}},
+		Options: options.Index().SetName("uid").SetUnique(true),
+	}
+	_, err := db.Collection("devices").Indexes().CreateOne(context.TODO(), mod)
+	if err != nil {
+		return err
+	}
+
+	mod = mongo.IndexModel{
+		Keys:    bson.D{{"last_seen", 1}},
+		Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
+	}
+	_, err = db.Collection("connected_devices").Indexes().CreateOne(context.TODO(), mod)
+	if err != nil {
+		return err
+	}
+
+	mod = mongo.IndexModel{
+		Keys:    bson.D{{"uid", 1}},
+		Options: options.Index().SetName("uid").SetUnique(false),
+	}
+	_, err = db.Collection("connected_devices").Indexes().CreateOne(context.TODO(), mod)
+	if err != nil {
+		return err
+	}
+
+	mod = mongo.IndexModel{
+		Keys:    bson.D{{"uid", 1}},
+		Options: options.Index().SetName("uid").SetUnique(true),
+	}
+	_, err = db.Collection("sessions").Indexes().CreateOne(context.TODO(), mod)
+	if err != nil {
+		return err
+	}
+
+	mod = mongo.IndexModel{
+		Keys:    bson.D{{"last_seen", 1}},
+		Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
+	}
+	_, err = db.Collection("active_sessions").Indexes().CreateOne(context.TODO(), mod)
+	if err != nil {
+		return err
+	}
+
+	mod = mongo.IndexModel{
+		Keys:    bson.D{{"uid", 1}},
+		Options: options.Index().SetName("uid").SetUnique(false),
+	}
+	_, err = db.Collection("active_sessions").Indexes().CreateOne(context.TODO(), mod)
+	if err != nil {
+		return err
+	}
+
+	mod = mongo.IndexModel{
+		Keys:    bson.D{{"username", 1}},
+		Options: options.Index().SetName("username").SetUnique(true),
+	}
+	_, err = db.Collection("users").Indexes().CreateOne(context.TODO(), mod)
+	if err != nil {
+		return err
+	}
+
+	mod = mongo.IndexModel{
+		Keys:    bson.D{{"tenant_id", 1}},
+		Options: options.Index().SetName("tenant_id").SetUnique(true),
+	}
+	_, err = db.Collection("users").Indexes().CreateOne(context.TODO(), mod)
+	if err != nil {
+		return err
+	}
+	return nil
+}

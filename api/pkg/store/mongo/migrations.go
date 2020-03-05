@@ -1,4 +1,4 @@
-package main
+package mongo
 
 import (
 	"context"
@@ -13,6 +13,7 @@ var migrations = []migrate.Migration{
 	{
 		Version: 1,
 		Up: func(db *mongo.Database) error {
+			CreateIndexes(db)
 			return nil
 		},
 		Down: func(db *mongo.Database) error {
@@ -33,7 +34,7 @@ var migrations = []migrate.Migration{
 	},
 }
 
-func applyMigrations(db *mongo.Database) error {
+func ApplyMigrations(db *mongo.Database) error {
 	m := migrate.NewMigrate(db, migrations...)
 
 	if err := m.Up(migrate.AllAvailable); err != nil {
