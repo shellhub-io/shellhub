@@ -30,8 +30,8 @@
         </template>
 
         <template v-slot:item.device="{ item }">
-          <v-chip class="short">
-            <span>{{ item.device }}</span>
+          <v-chip class="short" v-if="item.device">
+            <span>{{ item.device.name }}</span>
             <v-icon small @click.stop v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
           </v-chip>
         </template>
@@ -130,7 +130,7 @@ export default {
 <style>
 
 .short{
-  width:300px;
+  width:auto;
 }
 .short span{
   white-space: nowrap;
