@@ -42,6 +42,10 @@ func main() {
 		panic(err)
 	}
 
+	if err := applyMigrations(client.Database("main")); err != nil {
+		panic(err)
+	}
+
 	mod := mgo.IndexModel{
 		Keys:    bson.D{{"uid", 1}},
 		Options: options.Index().SetName("uid").SetUnique(true),
