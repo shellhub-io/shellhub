@@ -17,7 +17,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/services/ssh2ws"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"go.mongodb.org/mongo-driver/bson"
 	mgo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/net/websocket"
@@ -42,79 +41,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := applyMigrations(client.Database("main")); err != nil {
-		panic(err)
-	}
-
-	mod := mgo.IndexModel{
-		Keys:    bson.D{{"uid", 1}},
-		Options: options.Index().SetName("uid").SetUnique(true),
-	}
-	_, err = client.Database("main").Collection("devices").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		panic(err)
-	}
-
-	mod = mgo.IndexModel{
-		Keys:    bson.D{{"last_seen", 1}},
-		Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
-	}
-	_, err = client.Database("main").Collection("connected_devices").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		panic(err)
-	}
-
-	mod = mgo.IndexModel{
-		Keys:    bson.D{{"uid", 1}},
-		Options: options.Index().SetName("uid").SetUnique(false),
-	}
-	_, err = client.Database("main").Collection("connected_devices").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		panic(err)
-	}
-
-	mod = mgo.IndexModel{
-		Keys:    bson.D{{"uid", 1}},
-		Options: options.Index().SetName("uid").SetUnique(true),
-	}
-	_, err = client.Database("main").Collection("sessions").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		panic(err)
-	}
-
-	mod = mgo.IndexModel{
-		Keys:    bson.D{{"last_seen", 1}},
-		Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
-	}
-	_, err = client.Database("main").Collection("active_sessions").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		panic(err)
-	}
-
-	mod = mgo.IndexModel{
-		Keys:    bson.D{{"uid", 1}},
-		Options: options.Index().SetName("uid").SetUnique(false),
-	}
-	_, err = client.Database("main").Collection("active_sessions").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		panic(err)
-	}
-
-	mod = mgo.IndexModel{
-		Keys:    bson.D{{"username", 1}},
-		Options: options.Index().SetName("username").SetUnique(true),
-	}
-	_, err = client.Database("main").Collection("users").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		panic(err)
-	}
-
-	mod = mgo.IndexModel{
-		Keys:    bson.D{{"tenant_id", 1}},
-		Options: options.Index().SetName("tenant_id").SetUnique(true),
-	}
-	_, err = client.Database("main").Collection("users").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
+	if err := mongo.ApplyMigrations(client.Database("main")); err != nil {
 		panic(err)
 	}
 
