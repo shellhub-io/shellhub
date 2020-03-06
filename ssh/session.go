@@ -18,11 +18,12 @@ import (
 var ErrInvalidSessionTarget = errors.New("Invalid session target")
 
 type Session struct {
-	session   sshserver.Session `json:"-"`
-	User      string            `json:"username"`
-	Target    string            `json:"device_uid"`
-	UID       string            `json:"uid"`
-	IPAddress string            `json:"ip_address"`
+	session      sshserver.Session `json:"-"`
+	User         string            `json:"username"`
+	Target       string            `json:"device_uid"`
+	UID          string            `json:"uid"`
+	IPAddress    string            `json:"ip_address"`
+	Authenticate bool              `json:"authenticate"`
 }
 
 func NewSession(target string, session sshserver.Session) (*Session, error) {
@@ -77,7 +78,6 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 	}
 
 	sshConn, err := NewClientConnWithDeadline(conn, "tcp", config)
-
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"session": s.UID,
@@ -148,6 +148,16 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 
 		serverConn := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
 
+		var status struct {
+			Authenticate bool `json:"authenticate"`
+		}
+		status.Authenticate = true 
+
+		_, _, errs := gorequest.New().Patch("http://api:8080/api/session/" + s.UID).Send(status).End()
+		if len(errs) > 0 {
+			return errs[0]
+		}
+
 		go func() {
 			serverConn.Wait()
 			disconnected <- true
@@ -202,7 +212,6 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 
 		<-done
 	}
-
 	return nil
 }
 

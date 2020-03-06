@@ -104,7 +104,6 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		}).Info("Connection closed")
 
 		session.Write([]byte("Permission denied\n"))
-
 		session.Close()
 	}
 
