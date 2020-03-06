@@ -30,6 +30,7 @@ services:
     environment:
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - SHELLHUB_SSH_PORT=${SHELLHUB_SSH_PORT}
+      - SHELLHUB_PROXY=${SHELLHUB_PROXY}
     depends_on:
       - api
       - ui

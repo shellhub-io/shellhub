@@ -8,6 +8,7 @@ require (
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/parnurzeal/gorequest v0.2.16
+	github.com/pires/go-proxyproto v0.0.0-20200315140437-f0371d3cede2
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/shellhub-io/shellhub v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.4.2

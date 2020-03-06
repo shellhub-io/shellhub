@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 
 	sshserver "github.com/gliderlabs/ssh"
+	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/sirupsen/logrus"
 )
@@ -142,5 +144,13 @@ func (s *Server) ListenAndServe() error {
 		"addr": s.opts.Addr,
 	}).Info("SSH server listening")
 
-	return s.sshd.ListenAndServe()
+	list, err := net.Listen("tcp", s.opts.Addr)
+	if err != nil {
+		return err
+	}
+
+	proxyListener := &proxyproto.Listener{Listener: list}
+	defer proxyListener.Close()
+
+	return s.sshd.Serve(proxyListener)
 }
