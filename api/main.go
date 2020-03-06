@@ -321,6 +321,23 @@ func main() {
 		return c.JSON(http.StatusOK, session)
 	})
 
+	publicAPI.PATCH("/session/:uid", func(c echo.Context) error {
+		var status struct {
+			Authenticate bool `json:"authenticate"`
+		}
+
+		err := c.Bind(&status)
+		if err != nil {
+			return err
+		}
+
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := sessionmngr.NewService(store)
+
+		return svc.UpdateSessionAuthenticate(ctx, models.UID(c.Param("uid")), status.Authenticate)
+	})
+
 	publicAPI.POST("/sessions", func(c echo.Context) error {
 		session := new(models.Session)
 		err := c.Bind(&session)
