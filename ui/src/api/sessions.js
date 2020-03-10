@@ -6,5 +6,8 @@ export const
     },
     getSession = async (uid) => {
         return http().get(`/session/${uid}`)
+    },
+    closeSession = async (session) => {
+        return http().post(`/session/${session.uid}/close`, { device: session.device_uid })
     }
 

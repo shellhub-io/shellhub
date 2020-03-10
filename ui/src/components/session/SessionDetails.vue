@@ -21,6 +21,12 @@
         {{ this.session.device.name }}
       </v-toolbar-title>
 
+      <v-spacer></v-spacer>
+
+      <v-icon class="icons ml-1" v-if="this.session.active" @click="closeSession()">
+        desktop_access_disabled
+      </v-icon>
+
     </v-toolbar>
         
     <v-divider></v-divider>
@@ -52,7 +58,7 @@
       </div>
     </v-card-text>
 
-    <v-snackbar v-model="copySnack" :timeout=3000>Device SSHID copied to clipboard</v-snackbar>
+    <v-snackbar v-model="closeSessionSnack" :timeout=3000>Closed session conection to the device</v-snackbar>
   </v-card>
 
 </fragment>
@@ -67,7 +73,7 @@ export default {
     return {
       uid: '',
       session: [],
-      copySnack: false
+      closeSessionSnack: false
     };
   },
 
@@ -76,6 +82,17 @@ export default {
     await this.$store.dispatch("sessions/get", this.uid);
     this.session = this.$store.getters["sessions/get"];
   },
+
+  methods: {
+    async closeSession(){
+      this.$store.dispatch("sessions/close");
+      this.closeSessionSnack = true;
+
+      await this.$store.dispatch("sessions/get", this.uid);
+      this.session = this.$store.getters["sessions/get"];
+    }
+
+  }
 
 };
 </script>
