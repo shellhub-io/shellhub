@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
@@ -34,18 +35,19 @@ func main() {
 		}
 		err := decoder.Decode(&closeRequest)
 		if err != nil {
-			http.Error(res, err, http.StatusBadRequest)
+			http.Error(res, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		conn, err := tunnel.Dial(context.Background(), closeRequest.Device)
 		if err != nil {
-			http.Error(res, err, http.StatusBadRequest)
+			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		req, _ = http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", vars["uid"]), nil)
 		if err := req.Write(conn); err != nil {
-			http.Error(res, err, http.StatusBadRequest)
+			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
