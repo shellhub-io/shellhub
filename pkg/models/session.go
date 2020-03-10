@@ -5,16 +5,16 @@ import (
 )
 
 type Session struct {
-	UID          string    `json:"uid"`
-	DeviceUID    UID       `json:"device_uid,omitempty" bson:"device_uid"`
-	Device       *Device   `json:"device" bson:",omitempty"`
-	TenantID     string    `json:"tenant_id" bson:"tenant_id"`
-	Username     string    `json:"username"`
-	IPAddress    string    `json:"ip_address" bson:"ip_address"`
-	StartedAt    time.Time `json:"started_at" bson:"started_at"`
-	LastSeen     time.Time `json:"last_seen" bson:"last_seen"`
-	Active       bool      `json:"active" bson:",omitempty"`
-	Authenticate bool      `json:"authenticate" bson:"authenticate"`
+	UID           string    `json:"uid"`
+	DeviceUID     UID       `json:"device_uid,omitempty" bson:"device_uid"`
+	Device        *Device   `json:"device" bson:",omitempty"`
+	TenantID      string    `json:"tenant_id" bson:"tenant_id"`
+	Username      string    `json:"username"`
+	IPAddress     string    `json:"ip_address" bson:"ip_address"`
+	StartedAt     time.Time `json:"started_at" bson:"started_at"`
+	LastSeen      time.Time `json:"last_seen" bson:"last_seen"`
+	Active        bool      `json:"active" bson:",omitempty"`
+	Authenticated bool      `json:"authenticate" bson:"authenticated"`
 }
 
 type ActiveSession struct {

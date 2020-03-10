@@ -34,6 +34,7 @@ func (c *sshConn) Close() error {
 type SSHServer struct {
 	sshd       *sshserver.Server
 	cmds       map[string]*exec.Cmd
+	sessions   map[string]sshserver.Session
 	deviceName string
 	mu         sync.Mutex
 }

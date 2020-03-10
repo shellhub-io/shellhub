@@ -18,12 +18,12 @@ import (
 var ErrInvalidSessionTarget = errors.New("Invalid session target")
 
 type Session struct {
-	session      sshserver.Session `json:"-"`
-	User         string            `json:"username"`
-	Target       string            `json:"device_uid"`
-	UID          string            `json:"uid"`
-	IPAddress    string            `json:"ip_address"`
-	Authenticate bool              `json:"authenticate"`
+	session       sshserver.Session `json:"-"`
+	User          string            `json:"username"`
+	Target        string            `json:"device_uid"`
+	UID           string            `json:"uid"`
+	IPAddress     string            `json:"ip_address"`
+	Authenticated bool              `json:"authenticated"`
 }
 
 func NewSession(target string, session sshserver.Session) (*Session, error) {
