@@ -14,7 +14,7 @@ type Session struct {
 	StartedAt     time.Time `json:"started_at" bson:"started_at"`
 	LastSeen      time.Time `json:"last_seen" bson:"last_seen"`
 	Active        bool      `json:"active" bson:",omitempty"`
-	Authenticated bool      `json:"authenticate" bson:"authenticated"`
+	Authenticated bool      `json:"authenticated" bson:"authenticated"`
 }
 
 type ActiveSession struct {
