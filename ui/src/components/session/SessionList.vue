@@ -17,7 +17,7 @@
     <!-- v-icon notranslate v-icon--link mdi mdi-content-copy theme--light -->
 
     <v-card-text class="pa-0">
-      <v-data-table :headers="headers" :items="$store.getters['sessions/list']" item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" disable-pagination hide-default-footer>
+      <v-data-table :headers="headers" :items=listSessions item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" disable-pagination hide-default-footer>
 
         <template v-slot:item.active="{ item }">
           <v-icon color="success" v-if="item.active">check_circle</v-icon>
@@ -51,12 +51,16 @@
           <v-icon class="icons" @click="detailsSession(item)">
             info
           </v-icon>
+          
+          <v-icon class="icons ml-1" v-if="item.active" @click="closeSession(item)">
+            desktop_access_disabled
+          </v-icon>
         </template>
 
       </v-data-table>
     </v-card-text>
+  <v-snackbar v-model="sessionSnack" :timeout=3000>Closed session conection to the device</v-snackbar>
   </v-card>
-  <v-snackbar v-model="copySnack" :timeout=3000>Device UID copied to clipboard</v-snackbar>
 
 </fragment>
 </template>
@@ -67,7 +71,8 @@ export default {
 
   data() {
     return {
-      copySnack: false,
+      sessionSnack: false,
+      listSessions: [],
 
       headers: [
         {
@@ -109,17 +114,23 @@ export default {
     };
   },
 
-  created() {
-    this.$store.dispatch("sessions/fetch");
+  async mounted(){
+    await this.$store.dispatch("sessions/fetch");
+    this.listSessions = this.$store.getters['sessions/list']
   },
 
   methods: {
-    showCopySnack() {
-      this.copySnack = true;
-    },
     detailsSession(session) {
       this.$router.push("/session/" + session.uid);
+    },
+    async closeSession(session){
+      this.$store.dispatch("sessions/close", session.uid);
+      this.sessionSnack = true;
+
+      await this.$store.dispatch("sessions/fetch");
+      this.listSessions = this.$store.getters['sessions/list']
     }
+
   }
 };
 </script>

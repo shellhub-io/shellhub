@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { fetchSessions, getSession } from '@/api/sessions'
+import { fetchSessions, getSession, closeSession } from '@/api/sessions'
 
 export default {
     namespaced: true,
@@ -33,7 +33,9 @@ export default {
         get: async (context,uid)  => {
             let res = await getSession(uid)
             context.commit('setSession', res.data)
+        },
+        close: async (context, session) => {
+            await closeSession(session)
         }
-
     }
 }
