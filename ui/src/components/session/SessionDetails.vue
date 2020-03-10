@@ -42,6 +42,18 @@
         <div>{{ this.session.username }}</div>
       </div>
 
+      <div class="mt-2">
+        <div class="overline">Authorized</div>
+        <v-tooltip bottom>
+            <template #activator="{ on }" v-bind:session="this.session">
+              <v-icon v-on="on" :color="session.active ? 'success' : ''" size="" v-if="session.authenticated">mdi-shield-check</v-icon>
+              <v-icon v-on="on" color="error" size="" v-else>mdi-shield-alert</v-icon>
+            </template>
+            <span v-if="session.authenticated">User has been authenticated</span>
+            <span v-else>User has not been authenticated</span>
+          </v-tooltip>
+      </div>
+
       <div class="mt-2"> 
         <div class="overline">Ip Address</div>
         <code>{{ this.session.ip_address }}</code>
@@ -77,7 +89,7 @@ export default {
     };
   },
 
-  async created() {
+  async mounted() {
     this.uid = this.$route.params.id
     await this.$store.dispatch("sessions/get", this.uid);
     this.session = this.$store.getters["sessions/get"];

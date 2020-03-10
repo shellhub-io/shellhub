@@ -148,11 +148,13 @@ export default {
       this.$router.push("/session/" + session.uid);
     },
     async closeSession(session) {
-      this.$store.dispatch("sessions/close", session);
-      this.sessionSnack = true;
+      if (confirm('Are you sure?', session)) {
+        this.$store.dispatch("sessions/close", session);
+        this.sessionSnack = true;
 
-      await this.$store.dispatch("sessions/fetch");
-      this.listSessions = this.$store.getters["sessions/list"];
+        await this.$store.dispatch("sessions/fetch");
+        this.listSessions = this.$store.getters['sessions/list']
+      }
     }
   }
 };
