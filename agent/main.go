@@ -132,18 +132,17 @@ func main() {
 	}
 
 	server := NewSSHServer(opts.PrivateKey)
-	client := NewSSHClient(opts.PrivateKey, info.Endpoints.SSH)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		conn := r.Context().Value("http-conn").(net.Conn)
-		client.Sessions = append(client.Sessions, vars["id"])
+		server.sessions[vars["id"]] = conn
 		server.sshd.HandleConn(conn)
 	})
 	router.HandleFunc("/ssh/close/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		client.close(vars["id"])
+		server.closeSession(vars["id"])
 	}).Methods("DELETE")
 
 	sv := http.Server{
@@ -172,7 +171,12 @@ func main() {
 	ticker := time.NewTicker(10 * time.Second)
 
 	for _ = range ticker.C {
-		auth, err = sendAuthRequest(&info.Endpoints, identity, attributes, pubKey, opts.TenantID, client.Sessions)
+		sessions := make([]string, 0, len(server.sessions))
+		for key := range server.sessions {
+			sessions = append(sessions, key)
+		}
+
+		auth, err = sendAuthRequest(&info.Endpoints, identity, attributes, pubKey, opts.TenantID, sessions)
 		if err == nil {
 			server.SetDeviceName(auth.Name)
 		}

@@ -236,7 +236,7 @@ func (s *Session) register(session sshserver.Session) error {
 		s.IPAddress = host
 	}
 
-	_, _, errs := gorequest.New().Post("http://api:8080/api/sessions").Send(*s).End()
+	_, _, errs := gorequest.New().Post("http://api:8080/internal/sessions").Send(*s).End()
 	if len(errs) > 0 {
 		return errs[0]
 	}

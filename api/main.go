@@ -265,7 +265,7 @@ func main() {
 		return svc.SetSessionAuthenticated(ctx, models.UID(c.Param("uid")), req.Authenticated)
 	})
 
-	publicAPI.POST("/sessions", func(c echo.Context) error {
+	internalAPI.POST("/sessions", func(c echo.Context) error {
 		session := new(models.Session)
 		err := c.Bind(&session)
 		if err != nil {

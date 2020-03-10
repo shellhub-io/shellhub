@@ -34,14 +34,15 @@ func (c *sshConn) Close() error {
 type SSHServer struct {
 	sshd       *sshserver.Server
 	cmds       map[string]*exec.Cmd
-	sessions   map[string]sshserver.Session
+	sessions   map[string]net.Conn
 	deviceName string
 	mu         sync.Mutex
 }
 
 func NewSSHServer(privateKey string) *SSHServer {
 	s := &SSHServer{
-		cmds: make(map[string]*exec.Cmd),
+		cmds:     make(map[string]*exec.Cmd),
+		sessions: make(map[string]net.Conn),
 	}
 
 	s.sshd = &sshserver.Server{
@@ -167,6 +168,13 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 
 func (s *SSHServer) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey) bool {
 	return true
+}
+
+func (s *SSHServer) closeSession(id string) {
+	if session, ok := s.sessions[id]; ok {
+		session.Close()
+		delete(s.sessions, id)
+	}
 }
 
 func newShellCmd(s *SSHServer, username string, term string) *exec.Cmd {
