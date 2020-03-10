@@ -1,6 +1,10 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"time"
 
@@ -21,7 +25,32 @@ func main() {
 		return uid, nil
 	}
 
-	go http.ListenAndServe(":8080", tunnel.Router())
+	router := tunnel.Router().(*mux.Router)
+	router.HandleFunc("/api/session/{uid}/close", func(res http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		decoder := json.NewDecoder(req.Body)
+		var closeRequest struct {
+			Device string `json:"device"`
+		}
+		err := decoder.Decode(&closeRequest)
+		if err != nil {
+			http.Error(res, err, http.StatusBadRequest)
+			return
+		}
+
+		conn, err := tunnel.Dial(context.Background(), closeRequest.Device)
+		if err != nil {
+			http.Error(res, err, http.StatusBadRequest)
+			return
+		}
+		req, _ = http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", vars["uid"]), nil)
+		if err := req.Write(conn); err != nil {
+			http.Error(res, err, http.StatusBadRequest)
+			return
+		}
+
+	})
+	go http.ListenAndServe(":8080", router)
 
 	server := NewServer(opts, tunnel)
 

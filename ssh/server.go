@@ -119,6 +119,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	}
 
 	sess.finish()
+
 }
 
 func (s *Server) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey) bool {
