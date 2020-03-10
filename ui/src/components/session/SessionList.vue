@@ -124,7 +124,7 @@ export default {
       this.$router.push("/session/" + session.uid);
     },
     async closeSession(session){
-      this.$store.dispatch("sessions/close", session.uid);
+      this.$store.dispatch("sessions/close", session);
       this.sessionSnack = true;
 
       await this.$store.dispatch("sessions/fetch");
