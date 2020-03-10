@@ -38,11 +38,21 @@
         <template v-slot:item.username="{ item }">
           <v-tooltip bottom v-if="!item.authenticated">
             <template #activator="{ on }">
-              <v-icon v-on="on" color="error" size="medium">mdi-shield-alert</v-icon>
             </template>
             <span>Unauthorized</span>
           </v-tooltip>
           {{ item.username }}
+        </template>
+
+        <template v-slot:item.authenticated="{ item }">
+          <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-icon v-on="on" :color="item.active ? 'success' : ''" size="" v-if="item.authenticated">mdi-shield-check</v-icon>
+              <v-icon v-on="on" color="error" size="" v-else>mdi-shield-alert</v-icon>
+            </template>
+            <span v-if="item.authenticated">User has been authenticated</span>
+            <span v-else>User has not been authenticated</span>
+          </v-tooltip>
         </template>
 
         <template v-slot:item.ip_address="{ item }">
@@ -97,6 +107,11 @@ export default {
         {
           text: "Username",
           value: "username",
+          align: "center"
+        },
+        {
+          text: "Authenticated",
+          value: "authenticated",
           align: "center"
         },
         {
