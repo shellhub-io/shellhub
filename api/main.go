@@ -235,7 +235,7 @@ func main() {
 		return c.JSON(http.StatusOK, sessions)
 	})
 
-	publicAPI.GET("/session/:uid", func(c echo.Context) error {
+	publicAPI.GET("/sessions/:uid", func(c echo.Context) error {
 		ctx := c.Get("ctx").(context.Context)
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := sessionmngr.NewService(store)

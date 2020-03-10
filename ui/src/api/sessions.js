@@ -5,9 +5,9 @@ export const
         return http().get('/sessions')
     },
     getSession = async (uid) => {
-        return http().get(`/session/${uid}`)
+        return http().get(`/sessions/${uid}`)
     },
     closeSession = async (session) => {
-        return http().post(`/session/${session.uid}/close`, { device: session.device_uid })
+        return http().post(`/sessions/${session.uid}/close`, { device: session.device_uid })
     }
 

@@ -27,7 +27,7 @@ func main() {
 	}
 
 	router := tunnel.Router().(*mux.Router)
-	router.HandleFunc("/api/session/{uid}/close", func(res http.ResponseWriter, req *http.Request) {
+	router.HandleFunc("/sessions/{uid}/close", func(res http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		decoder := json.NewDecoder(req.Body)
 		var closeRequest struct {
