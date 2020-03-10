@@ -13,7 +13,6 @@ var migrations = []migrate.Migration{
 	{
 		Version: 1,
 		Up: func(db *mongo.Database) error {
-			CreateIndexes(db)
 			return nil
 		},
 		Down: func(db *mongo.Database) error {
@@ -41,5 +40,5 @@ func ApplyMigrations(db *mongo.Database) error {
 		return err
 	}
 
-	return nil
+	return EnsureIndexes(db)
 }

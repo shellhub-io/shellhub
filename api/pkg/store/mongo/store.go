@@ -490,7 +490,7 @@ func (s *Store) GetUserByTenant(ctx context.Context, tenant string) (*models.Use
 	return user, nil
 }
 
-func CreateIndexes(db *mongo.Database) error {
+func EnsureIndexes(db *mongo.Database) error {
 	mod := mongo.IndexModel{
 		Keys:    bson.D{{"uid", 1}},
 		Options: options.Index().SetName("uid").SetUnique(true),
