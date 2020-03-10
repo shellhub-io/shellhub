@@ -12,7 +12,7 @@ type Service interface {
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)
 	DeactivateSession(ctx context.Context, uid models.UID) error
-	UpdateSessionAuthenticate(ctx context.Context, uid models.UID, authenticate bool) error
+	SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error
 }
 
 type service struct {
@@ -39,6 +39,6 @@ func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
 	return s.store.DeactivateSession(ctx, uid)
 }
 
-func (s *service) UpdateSessionAuthenticate(ctx context.Context, uid models.UID, authenticate bool) error {
-	return s.store.UpdateSessionAuthenticate(ctx, uid, authenticate)
+func (s *service) SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
+	return s.store.SetSessionAuthenticated(ctx, uid, authenticated)
 }

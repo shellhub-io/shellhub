@@ -310,11 +310,9 @@ func (s *Store) GetSession(ctx context.Context, uid models.UID) (*models.Session
 	return session, nil
 }
 
-func (s *Store) UpdateSessionAuthenticate(ctx context.Context, uid models.UID, authenticate bool) error {
-	if _, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"authenticate": authenticate}}); err != nil {
-		return err
-	}
-	return nil
+func (s *Store) SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
+	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"authenticated": authenticated}})
+	return err
 }
 
 func (s *Store) CreateSession(ctx context.Context, session models.Session) (*models.Session, error) {

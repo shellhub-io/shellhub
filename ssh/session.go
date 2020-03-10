@@ -149,11 +149,11 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 		serverConn := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
 
 		var status struct {
-			Authenticate bool `json:"authenticate"`
+			Authenticated bool `json:"authenticated"`
 		}
-		status.Authenticate = true 
+		status.Authenticated = true
 
-		_, _, errs := gorequest.New().Patch("http://api:8080/api/session/" + s.UID).Send(status).End()
+		_, _, errs := gorequest.New().Patch("http://api:8080/internal/sessions/" + s.UID).Send(status).End()
 		if len(errs) > 0 {
 			return errs[0]
 		}

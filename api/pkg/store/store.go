@@ -17,7 +17,7 @@ type Store interface {
 	ListSessions(ctx context.Context) ([]models.Session, error)
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)
-	UpdateSessionAuthenticate(ctx context.Context, uid models.UID, authenticate bool) error
+	SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error
 	KeepAliveSession(ctx context.Context, uid models.UID) error
 	DeactivateSession(ctx context.Context, uid models.UID) error
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
