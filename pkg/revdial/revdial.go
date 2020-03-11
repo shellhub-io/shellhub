@@ -51,6 +51,7 @@ type Dialer struct {
 	connReady    chan bool
 	donec        chan struct{}
 	closeOnce    sync.Once
+	online       chan bool
 }
 
 var (
@@ -73,6 +74,7 @@ func NewDialer(c net.Conn, connPath string) *Dialer {
 		connReady:    make(chan bool),
 		incomingConn: make(chan net.Conn),
 		pickupFailed: make(chan error),
+		online:       make(chan bool),
 	}
 
 	join := "?"
@@ -110,6 +112,7 @@ func (d *Dialer) Done() <-chan struct{} { return d.donec }
 
 // Close closes the Dialer.
 func (d *Dialer) Close() error {
+	d.online <- false
 	d.closeOnce.Do(d.close)
 	return nil
 }
@@ -404,4 +407,8 @@ func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 
 		d.matchConn(wsconnadapter.New(wsConn))
 	})
+}
+
+func (d *Dialer) IsOnline() bool {
+	return <-d.online
 }

@@ -31,7 +31,6 @@ func main() {
 	clientOptions := options.Client().ApplyURI("mongodb://mongo:27017")
 	// Connect to MongoDB
 	client, err := mgo.Connect(context.TODO(), clientOptions)
-
 	if err != nil {
 		panic(err)
 	}
@@ -84,6 +83,19 @@ func main() {
 
 	publicAPI := e.Group("/api")
 	internalAPI := e.Group("/internal")
+	internalAPI.POST("/devices/:uid/offline", func(c echo.Context) error {
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := deviceadm.NewService(store)
+
+		err := svc.UpdateDeviceStatus(ctx, models.UID(c.Param("uid")), false)
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, nil)
+	})
+
 	publicAPI.POST("/devices/auth", func(c echo.Context) error {
 		var req models.DeviceAuthRequest
 
