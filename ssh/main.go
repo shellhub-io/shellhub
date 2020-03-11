@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/parnurzeal/gorequest"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 )
 
@@ -50,11 +51,19 @@ func main() {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 	})
 	go http.ListenAndServe(":8080", router)
 
 	server := NewServer(opts, tunnel)
+
+	go func() {
+		for {
+			id, online := tunnel.Online()
+			if !online {
+				_, _, _ = gorequest.New().Post(fmt.Sprintf("http://api:8080/internal/devices/%s/offline", id)).End()
+			}
+		}
+	}()
 
 	logrus.Fatal(server.ListenAndServe())
 }

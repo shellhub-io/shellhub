@@ -35,6 +35,8 @@ type Tunnel struct {
 	DialerPath        string
 	ConnectionHandler func(*http.Request) (string, error)
 	connman           *connman.ConnectionManager
+	id                chan string
+	online            chan bool
 }
 
 func NewTunnel(connectionPath, dialerPath string) *Tunnel {
@@ -45,6 +47,8 @@ func NewTunnel(connectionPath, dialerPath string) *Tunnel {
 			panic("ConnectionHandler not implemented")
 		},
 		connman: connman.New(),
+		id:      make(chan string),
+		online:  make(chan bool),
 	}
 }
 
@@ -105,4 +109,9 @@ func (t *Tunnel) ForwardResponse(resp *http.Response, w http.ResponseWriter) {
 	w.WriteHeader(resp.StatusCode)
 	io.Copy(w, resp.Body)
 	resp.Body.Close()
+}
+
+func (t *Tunnel) Online() (id string, online bool) {
+	id, online = t.connman.Online()
+	return
 }
