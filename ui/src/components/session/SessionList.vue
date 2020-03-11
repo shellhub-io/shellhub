@@ -73,12 +73,12 @@
           </v-icon>
 
           <v-icon class="icons ml-1" v-if="item.active" @click="closeSession(item)">
-            desktop_access_disabled
+            mdi-close-circle
           </v-icon>
         </template>
       </v-data-table>
     </v-card-text>
-  <v-snackbar v-model="sessionSnack" :timeout=3000>Closed session conection to the device</v-snackbar>
+  <v-snackbar v-model="sessionSnack" :timeout=3000>Session closed</v-snackbar>
   </v-card>
 
 </fragment>
@@ -148,12 +148,12 @@ export default {
       this.$router.push("/session/" + session.uid);
     },
     async closeSession(session) {
-      if (confirm('Are you sure?', session)) {
+      if (confirm("Are you sure?", session)) {
         this.$store.dispatch("sessions/close", session);
         this.sessionSnack = true;
 
         await this.$store.dispatch("sessions/fetch");
-        this.listSessions = this.$store.getters['sessions/list']
+        this.listSessions = this.$store.getters["sessions/list"];
       }
     }
   }

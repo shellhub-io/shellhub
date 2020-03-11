@@ -28,7 +28,7 @@
       </v-icon>
 
     </v-toolbar>
-        
+
     <v-divider></v-divider>
 
     <v-card-text>
@@ -43,7 +43,7 @@
       </div>
 
       <div class="mt-2">
-        <div class="overline">Authorized</div>
+        <div class="overline">Authenticated</div>
         <v-tooltip bottom>
             <template #activator="{ on }" v-bind:session="this.session">
               <v-icon v-on="on" :color="session.active ? 'success' : ''" size="" v-if="session.authenticated">mdi-shield-check</v-icon>
@@ -54,7 +54,7 @@
           </v-tooltip>
       </div>
 
-      <div class="mt-2"> 
+      <div class="mt-2">
         <div class="overline">Ip Address</div>
         <code>{{ this.session.ip_address }}</code>
       </div>
@@ -77,34 +77,31 @@
 </template>
 
 <script>
-
 export default {
   name: "SessionDetails",
 
   data() {
     return {
-      uid: '',
+      uid: "",
       session: [],
       closeSessionSnack: false
     };
   },
 
   async mounted() {
-    this.uid = this.$route.params.id
+    this.uid = this.$route.params.id;
     await this.$store.dispatch("sessions/get", this.uid);
     this.session = this.$store.getters["sessions/get"];
   },
 
   methods: {
-    async closeSession(){
+    async closeSession() {
       this.$store.dispatch("sessions/close");
       this.closeSessionSnack = true;
 
       await this.$store.dispatch("sessions/get", this.uid);
       this.session = this.$store.getters["sessions/get"];
     }
-
   }
-
 };
 </script>
