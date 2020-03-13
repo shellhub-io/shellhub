@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/shellhub-io/shellhub/agent/internal/osrelease"
 )
 
 var ErrNoInterfaceFound = errors.New("No interface found")
@@ -33,12 +35,12 @@ func GetDeviceIdentity() (*DeviceIdentity, error) {
 func GetDeviceAttributes() (*DeviceAttributes, error) {
 	attr := &DeviceAttributes{}
 
-	id, err := getValueFromOsRelease("ID")
+	id, err := osrelease.GetValue("ID")
 	if err != nil {
 		return nil, err
 	}
 
-	name, err := getValueFromOsRelease("PRETTY_NAME")
+	name, err := osrelease.GetValue("PRETTY_NAME")
 	if err != nil {
 		return nil, err
 	}

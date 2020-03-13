@@ -1,4 +1,4 @@
-package main
+package osauth
 
 /*
 #cgo LDFLAGS: -lcrypt
@@ -23,7 +23,7 @@ type User struct {
 	Shell    string
 }
 
-func lookupUser(username string) *User {
+func LookupUser(username string) *User {
 	cuser := C.CString(username)
 	defer C.free(unsafe.Pointer(cuser))
 

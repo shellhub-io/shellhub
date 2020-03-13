@@ -7,9 +7,11 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+
+	"github.com/shellhub-io/shellhub/agent/internal/osauth"
 )
 
-func newCmd(u *User, shell, term, host string, command ...string) *exec.Cmd {
+func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
 	uid, _ := strconv.Atoi(u.Uid)
 	gid, _ := strconv.Atoi(u.Gid)
 

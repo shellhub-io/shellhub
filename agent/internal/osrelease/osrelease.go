@@ -1,38 +1,39 @@
-package main
+package osrelease
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strings"
 
 	shellwords "github.com/mattn/go-shellwords"
 )
 
-func getValueFromOsRelease(key string) (string, error) {
-	osReleaseFile, err := os.Open(etcOsRelease)
+func GetValue(key string) (string, error) {
+	file, err := os.Open(osRelease)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return "", fmt.Errorf("Error opening %s: %v", etcOsRelease, err)
+			return "", err
 		}
 	}
-	defer osReleaseFile.Close()
+	defer file.Close()
 
 	var value string
 	keyWithTrailingEqual := key + "="
-	scanner := bufio.NewScanner(osReleaseFile)
+	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, keyWithTrailingEqual) {
 			data := strings.SplitN(line, "=", 2)
 			values, err := shellwords.Parse(data[1])
 			if err != nil {
-				return "", fmt.Errorf("%s is invalid: %s", key, err.Error())
+				return "", err
 			}
+
 			if len(values) != 1 {
-				return "", fmt.Errorf("%s needs to be enclosed by quotes if they have spaces: %s", key, data[1])
+				value = strings.Join(values, " ")
+			} else {
+				value = values[0]
 			}
-			value = values[0]
 		}
 	}
 

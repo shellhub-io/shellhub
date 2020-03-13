@@ -1,6 +1,6 @@
 // +build !docker
 
-package main
+package osauth
 
 /*
 #cgo LDFLAGS: -lcrypt
@@ -20,7 +20,7 @@ import "unsafe"
 
 const passwdFilename = "/etc/passwd"
 
-func Auth(user string, passwd string) bool {
+func AuthUser(user string, passwd string) bool {
 	cuser := C.CString(user)
 	defer C.free(unsafe.Pointer(cuser))
 

@@ -11,6 +11,7 @@ import (
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/kr/pty"
+	"github.com/shellhub-io/shellhub/agent/internal/osauth"
 	"github.com/sirupsen/logrus"
 )
 
@@ -47,7 +48,7 @@ func NewSSHServer(privateKey string) *SSHServer {
 
 	s.sshd = &sshserver.Server{
 		PasswordHandler: func(ctx sshserver.Context, pass string) bool {
-			if Auth(ctx.User(), pass) == true {
+			if osauth.AuthUser(ctx.User(), pass) == true {
 				return true
 			}
 
@@ -142,7 +143,7 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 			logrus.Warn(err)
 		}
 	} else {
-		u := lookupUser(session.User())
+		u := osauth.LookupUser(session.User())
 		cmd := newCmd(u, "", "", s.deviceName, session.Command()...)
 
 		stdout, _ := cmd.StdoutPipe()
@@ -180,7 +181,7 @@ func (s *SSHServer) closeSession(id string) {
 func newShellCmd(s *SSHServer, username string, term string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
-	u := lookupUser(username)
+	u := osauth.LookupUser(username)
 
 	if shell == "" {
 		shell = u.Shell
