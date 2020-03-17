@@ -174,6 +174,16 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 		conn.Close()
 		session.Close()
 	} else {
+		var status struct {
+			Authenticated bool `json:"authenticated"`
+		}
+		status.Authenticated = true
+
+		_, _, errs := gorequest.New().Patch("http://api:8080/internal/sessions/" + s.UID).Send(status).End()
+		if len(errs) > 0 {
+			return errs[0]
+		}
+
 		stdin, _ := client.StdinPipe()
 		stdout, _ := client.StdoutPipe()
 
