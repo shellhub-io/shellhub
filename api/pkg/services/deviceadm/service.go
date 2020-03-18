@@ -2,16 +2,17 @@ package deviceadm
 
 import (
 	"context"
+	"errors"
 
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/api/pkg/store"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type Service interface {
 	ListDevices(ctx context.Context) ([]models.Device, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID) error
-	RenameDevice(ctx context.Context, uid models.UID, name string) error
+	RenameDevice(ctx context.Context, uid models.UID, name string, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
 }
@@ -36,8 +37,13 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID) error {
 	return s.store.DeleteDevice(ctx, uid)
 }
 
-func (s *service) RenameDevice(ctx context.Context, uid models.UID, name string) error {
-	return s.store.RenameDevice(ctx, uid, name)
+func (s *service) RenameDevice(ctx context.Context, uid models.UID, name string, tenant string) error {
+	device, _ := s.store.GetDeviceByName(ctx, name, tenant)
+	if device == nil {
+		return s.store.RenameDevice(ctx, uid, name)
+	} else {
+		return errors.New("rename unauthorized")
+	}
 }
 
 func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {

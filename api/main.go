@@ -151,6 +151,7 @@ func main() {
 	})
 
 	publicAPI.PATCH("/devices/:uid", func(c echo.Context) error {
+		tenant := c.Request().Header.Get("X-Tenant-ID")
 		var req struct {
 			Name string `json:"name"`
 		}
@@ -164,7 +165,7 @@ func main() {
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := deviceadm.NewService(store)
 
-		return svc.RenameDevice(ctx, models.UID(c.Param("uid")), req.Name)
+		return svc.RenameDevice(ctx, models.UID(c.Param("uid")), req.Name, tenant)
 	})
 
 	publicAPI.POST("/login", func(c echo.Context) error {
