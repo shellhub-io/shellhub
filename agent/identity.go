@@ -32,8 +32,8 @@ func GetDeviceIdentity() (*DeviceIdentity, error) {
 	return d, nil
 }
 
-func GetDeviceAttributes() (*DeviceAttributes, error) {
-	attr := &DeviceAttributes{}
+func GetDeviceInfo() (*DeviceInfo, error) {
+	attr := &DeviceInfo{}
 
 	id, err := osrelease.GetValue("ID")
 	if err != nil {

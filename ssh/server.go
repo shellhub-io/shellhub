@@ -48,6 +48,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		"session": session.Context().Value(sshserver.ContextKeySessionID),
 	}).Info("Handling session request")
 
+	fmt.Println("merda")
+
 	sess, err := NewSession(session.User(), session)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{

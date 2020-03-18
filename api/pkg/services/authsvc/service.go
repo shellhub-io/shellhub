@@ -32,13 +32,13 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 	uid := sha256.Sum256(structhash.Dump(req.DeviceAuth, 1))
 
 	device := models.Device{
-		UID:        hex.EncodeToString(uid[:]),
-		Identity:   req.Identity,
-		Attributes: req.Attributes,
-		PublicKey:  req.PublicKey,
-		TenantID:   req.TenantID,
-		Version:    req.Version,
-		LastSeen:   time.Now(),
+		UID:       hex.EncodeToString(uid[:]),
+		Identity:  req.Identity,
+		Info:      req.Info,
+		PublicKey: req.PublicKey,
+		TenantID:  req.TenantID,
+		Version:   req.Version,
+		LastSeen:  time.Now(),
 	}
 	sameMacDev, err := s.store.GetDeviceByMac(ctx, device.Identity["mac"], device.TenantID)
 	if sameMacDev != nil && sameMacDev.UID != device.UID {

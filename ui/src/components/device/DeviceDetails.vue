@@ -47,9 +47,9 @@
 
         <div class="mt-2">
           <div class="overline">Operating System</div>
-          <div v-if="this.device.attributes">
-            <v-icon left>{{ deviceIcon[device.attributes.id] || 'fl-tux' }}</v-icon>
-            {{ this.device.attributes.pretty_name }}
+          <div v-if="this.device.info">
+            <v-icon left>{{ deviceIcon[device.info.id] || 'fl-tux' }}</v-icon>
+            {{ this.device.info.pretty_name }}
           </div>
         </div>
 

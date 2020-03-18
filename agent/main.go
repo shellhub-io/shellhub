@@ -45,12 +45,12 @@ func (e *Endpoints) buildAPIUrl(uri string) string {
 	return fmt.Sprintf("http://%s/api/%s", e.API, uri)
 }
 
-func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, attributes *DeviceAttributes, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*AuthResponse, error) {
+func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, info *DeviceInfo, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*AuthResponse, error) {
 	var auth AuthResponse
 
 	_, _, errs := gorequest.New().Post(endpoints.buildAPIUrl("/devices/auth")).Send(&AuthRequest{
-		Identity:   identity,
-		Attributes: attributes,
+		Identity: identity,
+		Info:     info,
 		PublicKey: string(pem.EncodeToMemory(&pem.Block{
 			Type:  "RSA PUBLIC KEY",
 			Bytes: x509.MarshalPKCS1PublicKey(pubKey),
@@ -104,7 +104,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	attributes, err := GetDeviceAttributes()
+	devinfo, err := GetDeviceInfo()
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -122,7 +122,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	auth, err := sendAuthRequest(&info.Endpoints, identity, attributes, pubKey, opts.TenantID, []string{})
+	auth, err := sendAuthRequest(&info.Endpoints, identity, devinfo, pubKey, opts.TenantID, []string{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
@@ -176,7 +176,7 @@ func main() {
 			sessions = append(sessions, key)
 		}
 
-		auth, err = sendAuthRequest(&info.Endpoints, identity, attributes, pubKey, opts.TenantID, sessions)
+		auth, err = sendAuthRequest(&info.Endpoints, identity, devinfo, pubKey, opts.TenantID, sessions)
 		if err == nil {
 			server.SetDeviceName(auth.Name)
 		}

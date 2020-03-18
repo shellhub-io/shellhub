@@ -42,9 +42,9 @@
           </v-chip>
         </template>
 
-        <template v-slot:item.attributes.pretty_name="{ item }">
-          <v-icon left>{{ deviceIcon[item.attributes.id] || 'fl-tux' }}</v-icon>
-          {{ item.attributes.pretty_name }}
+        <template v-slot:item.info.pretty_name="{ item }">
+          <v-icon left>{{ deviceIcon[item.info.id] || 'fl-tux' }}</v-icon>
+          {{ item.info.pretty_name }}
         </template>
 
         <template v-slot:item.identity.mac="{ item }">
@@ -106,7 +106,7 @@ export default {
         },
         {
           text: 'Operating System',
-          value: 'attributes.pretty_name'
+          value: 'info.pretty_name'
         },
 
         {

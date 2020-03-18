@@ -7,16 +7,16 @@ import (
 )
 
 type Device struct {
-	UID        string            `json:"uid"`
-	Name       string            `json:"name" bson:"name,omitempty"`
-	Identity   map[string]string `json:"identity"`
-	Attributes map[string]string `json:"attributes"`
-	PublicKey  string            `json:"public_key" bson:"public_key"`
-	TenantID   string            `json:"tenant_id" bson:"tenant_id"`
-	LastSeen   time.Time         `json:"last_seen" bson:"last_seen"`
-	Online     bool              `json:"online" bson:",omitempty"`
-	Namespace  string            `json:"namespace" bson:",omitempty"`
-	Version    string            `json:"version"`
+	UID       string            `json:"uid"`
+	Name      string            `json:"name" bson:"name,omitempty"`
+	Identity  map[string]string `json:"identity"`
+	Info      map[string]string `json:"info"`
+	PublicKey string            `json:"public_key" bson:"public_key"`
+	TenantID  string            `json:"tenant_id" bson:"tenant_id"`
+	LastSeen  time.Time         `json:"last_seen" bson:"last_seen"`
+	Online    bool              `json:"online" bson:",omitempty"`
+	Namespace string            `json:"namespace" bson:",omitempty"`
+	Version   string            `json:"version"`
 }
 
 type DeviceAuthClaims struct {
@@ -27,9 +27,9 @@ type DeviceAuthClaims struct {
 }
 
 type DeviceAuthRequest struct {
-	Attributes map[string]string `json:"attributes"`
-	Sessions   []string          `json:"sessions,omitempty"`
-	Version    string            `json:"version"`
+	Info     map[string]string `json:"info"`
+	Sessions []string          `json:"sessions,omitempty"`
+	Version  string            `json:"version"`
 	*DeviceAuth
 }
 
