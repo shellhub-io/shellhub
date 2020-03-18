@@ -40,6 +40,10 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		Version:    req.Version,
 		LastSeen:   time.Now(),
 	}
+	sameMacDev, err := s.store.GetDeviceByMac(ctx, device.Identity["mac"], device.TenantID)
+	if sameMacDev != nil && sameMacDev.UID != device.UID {
+		return nil, errors.New("device with this mac address already authored")
+	}
 
 	if err := s.store.AddDevice(ctx, device); err != nil {
 		return nil, err
