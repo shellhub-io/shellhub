@@ -182,7 +182,6 @@ func (s *Store) LookupDevice(ctx context.Context, namespace, name string) (*mode
 }
 
 func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
-
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
 		return err
@@ -472,7 +471,6 @@ func (s *Store) DeactivateSession(ctx context.Context, uid models.UID) error {
 }
 
 func (s *Store) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
-
 	user := new(models.User)
 
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": username}).Decode(&user); err != nil {
@@ -488,6 +486,15 @@ func (s *Store) GetUserByTenant(ctx context.Context, tenant string) (*models.Use
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *Store) GetDeviceByMac(ctx context.Context, mac string, tenant string) (*models.Device, error) {
+	device := new(models.Device)
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
+		return nil, err
+	}
+
+	return device, nil
 }
 
 func EnsureIndexes(db *mongo.Database) error {
