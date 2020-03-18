@@ -1,10 +1,6 @@
-hash: c5365a9671550dc1f3422a03a2975cc3e0a5dc863af2dcad75b895bf94e56777
-updated: 2020-03-05T09:35:54.649285776-03:00
+hash: 88b25e1b06e61000d09bf4f2f3add83e3b1c84cf4d62e52efc006bf10f5494f9
+updated: 2020-03-19T11:29:17.867466773-03:00
 imports:
-- name: cirello.io/goherokuname
-  version: 54f91376eb16467d4ca1b3b6d7c351f41524fe52
-  subpackages:
-  - '...'
 - name: github.com/cnf/structhash
   version: 62a607eb02243845670f25a61cbc2d394c1ede10
 - name: github.com/dgrijalva/jwt-go
@@ -13,12 +9,8 @@ imports:
   version: 2fee6af1a9795aafbe0253a0cfbdf668e1fb8a9a
 - name: github.com/golang/snappy
   version: ff6b7dc882cf4cfba7ee0b9f7dcc1ac096c554aa
-- name: github.com/gorilla/mux
-  version: 75dcda0896e109a2a22c9315bca3bb21b87b2ba5
-- name: github.com/gorilla/websocket
-  version: c3e18be99d19e6b3e8f1559eea2c161a665c4b6b
 - name: github.com/klauspost/compress
-  version: 022415c7cabcefa1c24832ebdf8598a41008e77a
+  version: badde5230a5d116220c8066bc77f97905bb15957
   subpackages:
   - fse
   - huff0
@@ -41,7 +33,7 @@ imports:
 - name: github.com/mattn/go-isatty
   version: cb30d6282491c185f77d9bec5d25de1bb61a06bc
 - name: github.com/mitchellh/mapstructure
-  version: 3536a929edddb9a5b34bd6861dc4a9647cb459fe
+  version: 9e4011917e467353a5cacb6b11f3991b381055c8
 - name: github.com/pkg/errors
   version: 614d223910a179a466c1767a985424175c39b465
 - name: github.com/valyala/bytebufferpool
@@ -89,43 +81,29 @@ imports:
   - x/mongo/driver/uuid
   - x/mongo/driver/wiremessage
 - name: golang.org/x/crypto
-  version: 78000ba7a073cafc0278790f6bce552a0f25850e
+  version: 1b76d66859c6111b3d5c3ea6600ea44dc188bf12
   subpackages:
   - acme
   - acme/autocert
-  - blowfish
-  - chacha20
-  - curve25519
-  - ed25519
-  - ed25519/internal/edwards25519
-  - internal/subtle
   - pbkdf2
-  - poly1305
-  - ssh
-  - ssh/internal/bcrypt_pbkdf
 - name: golang.org/x/net
   version: 244492dfa37ae2ce87222fd06250a03160745faa
   subpackages:
   - idna
   - websocket
 - name: golang.org/x/sync
-  version: cd5d95a43a6e21273425c7ae415d3df9ea832eeb
+  version: 43a5402ce75a95522677f77c619865d66b8c57ab
   subpackages:
   - semaphore
 - name: golang.org/x/sys
-  version: 5c8b2ff67527cb88b770f693cebf3799036d8bc0
+  version: 5766fd39f98ddd8d769ad4aedcee557dd28de90f
   subpackages:
-  - cpu
   - unix
 - name: golang.org/x/text
-  version: 929e72ca90deac4784bbe451caf10faa5b256ebe
+  version: 06d492aade888ab8698aad35476286b7b555c961
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
-- name: gopkg.in/mgo.v2
-  version: a6b53ec6cb22a3699387a57a161566f9402ee85b
-  subpackages:
-  - bson
 testImports: []
