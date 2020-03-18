@@ -23,4 +23,5 @@ type Store interface {
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	GetUserByTenant(ctx context.Context, tenant string) (*models.User, error)
 	GetDeviceByMac(ctx context.Context, mac string, tenant string) (*models.Device, error)
+	GetDeviceByName(ctx context.Context, name string, tenant string) (*models.Device, error)
 }
