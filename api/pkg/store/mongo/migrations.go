@@ -43,6 +43,18 @@ var migrations = []migrate.Migration{
 			return err
 		},
 	},
+	// Version 4
+	{
+		Version: 4,
+		Up: func(db *mongo.Database) error {
+			_, err := db.Collection("devices").UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{"version": "info.version"}})
+			return err
+		},
+		Down: func(db *mongo.Database) error {
+			_, err := db.Collection("devices").UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{"info.version": "version"}})
+			return err
+		},
+	},
 }
 
 func ApplyMigrations(db *mongo.Database) error {

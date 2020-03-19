@@ -3,6 +3,7 @@ package main
 type DeviceInfo struct {
 	ID         string `json:"id"`
 	PrettyName string `json:"pretty_name"`
+	Version    string `json:"version"`
 }
 
 type AuthRequest struct {
@@ -10,7 +11,6 @@ type AuthRequest struct {
 	Info      *DeviceInfo     `json:"info"`
 	PublicKey string          `json:"public_key"`
 	TenantID  string          `json:"tenant_id"`
-	Version   string          `json:"version"`
 	Sessions  []string        `json:"sessions,omitempty"`
 }
 

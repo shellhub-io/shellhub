@@ -56,7 +56,6 @@ func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, info *Devic
 			Bytes: x509.MarshalPKCS1PublicKey(pubKey),
 		})),
 		TenantID: tenantID,
-		Version:  AgentVersion,
 		Sessions: sessions,
 	}).EndStruct(&auth)
 	if len(errs) > 0 {
@@ -108,6 +107,7 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	devinfo.Version = AgentVersion
 
 	if _, err := os.Stat(opts.PrivateKey); os.IsNotExist(err) {
 		logrus.Info("Private key not found. Generating...")

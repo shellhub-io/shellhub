@@ -16,7 +16,6 @@ type Device struct {
 	LastSeen  time.Time         `json:"last_seen" bson:"last_seen"`
 	Online    bool              `json:"online" bson:",omitempty"`
 	Namespace string            `json:"namespace" bson:",omitempty"`
-	Version   string            `json:"version"`
 }
 
 type DeviceAuthClaims struct {
@@ -29,7 +28,6 @@ type DeviceAuthClaims struct {
 type DeviceAuthRequest struct {
 	Info     map[string]string `json:"info"`
 	Sessions []string          `json:"sessions,omitempty"`
-	Version  string            `json:"version"`
 	*DeviceAuth
 }
 
