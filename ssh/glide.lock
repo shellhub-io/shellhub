@@ -1,14 +1,8 @@
-hash: b5e6f698be20970ccc6976b4345ec813cfc2feb5701f581272c8faeb32676d1e
-updated: 2020-02-21T13:55:37.959737596-03:00
+hash: ddc0362447507bc18b653935dba59db7e0716f30b18b93a1fa2ee3b8c8ccb46f
+updated: 2020-03-19T12:49:51.286717931-03:00
 imports:
 - name: github.com/anmitsu/go-shlex
   version: 648efa622239a2f6ff949fed78ee37b48d499ba4
-- name: github.com/dgrijalva/jwt-go
-  version: a58974ee87a68abcf6cfb2315224e89135cf3311
-- name: github.com/eclipse/paho.mqtt.golang
-  version: adca289fdcf8c883800aafa545bc263452290bae
-  subpackages:
-  - packets
 - name: github.com/gliderlabs/ssh
   version: 5b6cc7030f17095c0cf23bb063b0bfe824fe5f8b
 - name: github.com/gorilla/mux
@@ -20,13 +14,13 @@ imports:
 - name: github.com/parnurzeal/gorequest
   version: b735e503d8bf955a72baf89723cdb50ab0bd668c
 - name: github.com/pkg/errors
-  version: ba968bfe8b2f7e042a574c888954fccecfa385b4
-- name: github.com/satori/go.uuid
-  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
+  version: 614d223910a179a466c1767a985424175c39b465
 - name: github.com/Sirupsen/logrus
   version: 839c75faf7f98a33d445d181f3018b5c3409a45e
+- name: github.com/xdg/stringprep
+  version: bd625b8dc1e3b0f57412280ccbcc317f0c69d8db
 - name: golang.org/x/crypto
-  version: bac4c82f69751a6dd76e702d54b3ceb88adab236
+  version: 1b76d66859c6111b3d5c3ea6600ea44dc188bf12
   subpackages:
   - blowfish
   - chacha20
@@ -38,21 +32,14 @@ imports:
   - ssh
   - ssh/internal/bcrypt_pbkdf
 - name: golang.org/x/net
-  version: 46282727080fcf56da5781d0a9ef2fda184be5e6
+  version: 244492dfa37ae2ce87222fd06250a03160745faa
   subpackages:
-  - internal/socks
-  - proxy
   - publicsuffix
-  - websocket
 - name: golang.org/x/sys
-  version: cb0a6d8edb6c3528b01a0be84a5fe513dbf880a6
+  version: 5766fd39f98ddd8d769ad4aedcee557dd28de90f
   subpackages:
   - cpu
   - unix
-- name: gopkg.in/mgo.v2
-  version: a6b53ec6cb22a3699387a57a161566f9402ee85b
-  subpackages:
-  - bson
 - name: moul.io/http2curl
-  version: 6e492056e75ab57b7ead79feb2934f1bd778301d
+  version: 9280a7ca1854f93dfee71d5e7d448627123efaf5
 testImports: []
