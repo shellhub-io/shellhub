@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/parnurzeal/gorequest"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 

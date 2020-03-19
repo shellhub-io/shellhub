@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
+	"github.com/sirupsen/logrus"
 )
 
 type Server struct {

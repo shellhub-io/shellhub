@@ -1,16 +1,17 @@
 # base stage
 FROM golang:1.13-alpine3.11 AS base
 
-RUN apk add --update git ca-certificates && \
-    go get -u github.com/Masterminds/glide
+RUN apk add --update git ca-certificates
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-COPY ./api/glide.yaml ./api/glide.lock ./
-
-RUN glide install --skip-test
+COPY ./go.mod ./
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
+
+COPY ./api/go.mod ./api/go.sum ./
+
+RUN go mod download
 
 # builder stage
 FROM base AS builder
@@ -20,7 +21,7 @@ COPY ./api .
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-RUN glide install --skip-test
+RUN go mod download
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
@@ -34,8 +35,7 @@ RUN go get github.com/markbates/refresh
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-RUN glide install --skip-test
-RUN cp -a $GOPATH/src/github.com/shellhub-io/shellhub/vendor /vendor
+RUN go mod download
 
 COPY ./api/entrypoint-dev.sh /entrypoint.sh
 

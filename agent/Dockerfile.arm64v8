@@ -1,26 +1,25 @@
 # docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-FROM arm64v8/golang:alpine
+FROM arm64v8/golang:1.13-alpine3.11
 
 ARG SHELLHUB_VERSION=latest
 
-RUN apk add --update git ca-certificates util-linux build-base bash && \
-    go get -u github.com/Masterminds/glide
+RUN apk add --update git ca-certificates util-linux build-base bash
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-COPY ./agent/glide.yaml ./agent/glide.lock ./
-
-RUN glide install
+COPY ./go.mod ./
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
+
+COPY ./agent/go.mod ./agent/go.sum ./
+
+RUN go mod download
 
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
 COPY ./agent .
 
-WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
-
-RUN glide -q install --skip-test
+RUN go mod download
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 

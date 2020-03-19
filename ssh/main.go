@@ -9,9 +9,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/parnurzeal/gorequest"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
