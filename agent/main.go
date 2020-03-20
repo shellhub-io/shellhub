@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	"github.com/sirupsen/logrus"
@@ -31,32 +32,24 @@ type ConfigOptions struct {
 	TenantID      string `envconfig:"tenant_id"`
 }
 
-type Info struct {
-	Version   string    `json:"version"`
-	Endpoints Endpoints `json:"endpoints"`
-}
-
-type Endpoints struct {
-	API string `json:"api"`
-	SSH string `json:"ssh"`
-}
-
-func (e *Endpoints) buildAPIUrl(uri string) string {
+func buildAPIUrl(e *models.Endpoints, uri string) string {
 	return fmt.Sprintf("http://%s/api/%s", e.API, uri)
 }
 
-func sendAuthRequest(endpoints *Endpoints, identity *DeviceIdentity, info *DeviceInfo, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*AuthResponse, error) {
-	var auth AuthResponse
+func sendAuthRequest(endpoints *models.Endpoints, identity *models.DeviceIdentity, info *models.DeviceInfo, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*models.DeviceAuthResponse, error) {
+	var auth models.DeviceAuthResponse
 
-	_, _, errs := gorequest.New().Post(endpoints.buildAPIUrl("/devices/auth")).Send(&AuthRequest{
-		Identity: identity,
+	_, _, errs := gorequest.New().Post(buildAPIUrl(endpoints, "/devices/auth")).Send(&models.DeviceAuthRequest{
 		Info:     info,
-		PublicKey: string(pem.EncodeToMemory(&pem.Block{
-			Type:  "RSA PUBLIC KEY",
-			Bytes: x509.MarshalPKCS1PublicKey(pubKey),
-		})),
-		TenantID: tenantID,
 		Sessions: sessions,
+		DeviceAuth: &models.DeviceAuth{
+			Identity: identity,
+			TenantID: tenantID,
+			PublicKey: string(pem.EncodeToMemory(&pem.Block{
+				Type:  "RSA PUBLIC KEY",
+				Bytes: x509.MarshalPKCS1PublicKey(pubKey),
+			})),
+		},
 	}).EndStruct(&auth)
 	if len(errs) > 0 {
 		return nil, errs[0]
@@ -91,7 +84,7 @@ func main() {
 		logrus.Panic(err)
 	}
 
-	info := Info{}
+	info := models.Info{}
 
 	_, _, errs := gorequest.New().Get(fmt.Sprintf("%s/info", opts.ServerAddress)).EndStruct(&info)
 	if len(errs) > 0 {

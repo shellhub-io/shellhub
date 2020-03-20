@@ -11,16 +11,13 @@ import (
 	"syscall"
 
 	"github.com/shellhub-io/shellhub/agent/internal/osrelease"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 var ErrNoInterfaceFound = errors.New("No interface found")
 
-type DeviceIdentity struct {
-	MAC string `json:"mac"`
-}
-
-func GetDeviceIdentity() (*DeviceIdentity, error) {
-	d := &DeviceIdentity{}
+func GetDeviceIdentity() (*models.DeviceIdentity, error) {
+	d := &models.DeviceIdentity{}
 
 	iface, err := primaryIface()
 	if err != nil {
@@ -32,8 +29,8 @@ func GetDeviceIdentity() (*DeviceIdentity, error) {
 	return d, nil
 }
 
-func GetDeviceInfo() (*DeviceInfo, error) {
-	attr := &DeviceInfo{}
+func GetDeviceInfo() (*models.DeviceInfo, error) {
+	attr := &models.DeviceInfo{}
 
 	id, err := osrelease.GetValue("ID")
 	if err != nil {

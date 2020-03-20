@@ -7,15 +7,15 @@ import (
 )
 
 type Device struct {
-	UID       string            `json:"uid"`
-	Name      string            `json:"name" bson:"name,omitempty"`
-	Identity  map[string]string `json:"identity"`
-	Info      map[string]string `json:"info"`
-	PublicKey string            `json:"public_key" bson:"public_key"`
-	TenantID  string            `json:"tenant_id" bson:"tenant_id"`
-	LastSeen  time.Time         `json:"last_seen" bson:"last_seen"`
-	Online    bool              `json:"online" bson:",omitempty"`
-	Namespace string            `json:"namespace" bson:",omitempty"`
+	UID       string          `json:"uid"`
+	Name      string          `json:"name" bson:"name,omitempty"`
+	Identity  *DeviceIdentity `json:"identity"`
+	Info      *DeviceInfo     `json:"info"`
+	PublicKey string          `json:"public_key" bson:"public_key"`
+	TenantID  string          `json:"tenant_id" bson:"tenant_id"`
+	LastSeen  time.Time       `json:"last_seen" bson:"last_seen"`
+	Online    bool            `json:"online" bson:",omitempty"`
+	Namespace string          `json:"namespace" bson:",omitempty"`
 }
 
 type DeviceAuthClaims struct {
@@ -26,15 +26,15 @@ type DeviceAuthClaims struct {
 }
 
 type DeviceAuthRequest struct {
-	Info     map[string]string `json:"info"`
-	Sessions []string          `json:"sessions,omitempty"`
+	Info     *DeviceInfo `json:"info"`
+	Sessions []string    `json:"sessions,omitempty"`
 	*DeviceAuth
 }
 
 type DeviceAuth struct {
-	Identity  map[string]string `json:"identity"`
-	PublicKey string            `json:"public_key"`
-	TenantID  string            `json:"tenant_id"`
+	Identity  *DeviceIdentity `json:"identity"`
+	PublicKey string          `json:"public_key"`
+	TenantID  string          `json:"tenant_id"`
 }
 
 type DeviceAuthResponse struct {
@@ -42,6 +42,16 @@ type DeviceAuthResponse struct {
 	Token     string `json:"token"`
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+}
+
+type DeviceIdentity struct {
+	MAC string `json:"mac"`
+}
+
+type DeviceInfo struct {
+	ID         string `json:"id"`
+	PrettyName string `json:"pretty_name"`
+	Version    string `json:"version"`
 }
 
 type ConnectedDevice struct {
