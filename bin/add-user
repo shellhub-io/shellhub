@@ -8,7 +8,7 @@ if [ ! -f "$(which uuidgen 2> /dev/null)" ]; then
 fi
 
 USERNAME=$1
-PASSWORD=`echo -n $2 | sha256sum | awk '{ print $1 }'`
+PASSWORD=`printf $2 | sha256sum | awk '{ print $1 }'`
 TENANT_ID=`uuidgen`
 
 if [ $(docker inspect --format='{{.State.Running}}' $(docker-compose ps -q mongo)) = false ]; then
