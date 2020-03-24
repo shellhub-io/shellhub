@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"crypto/rsa"
+
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -121,11 +123,27 @@ func main() {
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := deviceadm.NewService(store)
 
-		devices, err := svc.ListDevices(ctx)
+		var query struct {
+			Page    int `query:"page"`
+			PerPage int `query:"per_page"`
+		}
+		c.Bind(&query)
+
+		page := query.Page
+		perPage := query.PerPage
+		if perPage == 0 || perPage > 100 {
+			perPage = 10
+		}
+
+		devices, err := svc.ListDevices(ctx, perPage, page)
 		if err != nil {
 			return err
 		}
-
+		count, err := svc.CountDevices(ctx)
+		if err != nil {
+			return err
+		}
+		c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
 		return c.JSON(http.StatusOK, devices)
 	})
 
@@ -240,10 +258,31 @@ func main() {
 		ctx := c.Get("ctx").(context.Context)
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := sessionmngr.NewService(store)
-		sessions, err := svc.ListSessions(ctx)
+
+		var query struct {
+			Page    int `query:"page"`
+			PerPage int `query:"per_page"`
+		}
+		c.Bind(&query)
+
+		page := query.Page
+		perPage := query.PerPage
+		if perPage == 0 || perPage > 100 {
+			perPage = 10
+		}
+
+
+		sessions, err := svc.ListSessions(ctx, perPage, page)
 		if err != nil {
 			return err
 		}
+
+		count, err := svc.CountSessions(ctx)
+		if err != nil {
+			return err
+		}
+
+		c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
 
 		return c.JSON(http.StatusOK, sessions)
 	})

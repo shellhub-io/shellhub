@@ -9,7 +9,8 @@ import (
 )
 
 type Service interface {
-	ListDevices(ctx context.Context) ([]models.Device, error)
+	CountDevices(ctx context.Context) (int64, error)	
+	ListDevices(ctx context.Context, perPage int, page int) ([]models.Device, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID) error
 	RenameDevice(ctx context.Context, uid models.UID, name string, tenant string) error
@@ -24,9 +25,12 @@ type service struct {
 func NewService(store store.Store) Service {
 	return &service{store}
 }
+func (s *service) CountDevices(ctx context.Context) (int64, error) {
+	return s.store.CountDevices(ctx)
+}
 
-func (s *service) ListDevices(ctx context.Context) ([]models.Device, error) {
-	return s.store.ListDevices(ctx)
+func (s *service) ListDevices(ctx context.Context, perPage int, page int) ([]models.Device, error) {
+	return s.store.ListDevices(ctx, perPage, page)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {

@@ -8,7 +8,8 @@ import (
 )
 
 type Service interface {
-	ListSessions(ctx context.Context) ([]models.Session, error)
+	CountSessions(ctx context.Context) (int64, error)
+	ListSessions(ctx context.Context, perPage int, page int) ([]models.Session, error)
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)
 	DeactivateSession(ctx context.Context, uid models.UID) error
@@ -23,8 +24,12 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) ListSessions(ctx context.Context) ([]models.Session, error) {
-	return s.store.ListSessions(ctx)
+func (s *service) CountSessions(ctx context.Context) (int64, error) {
+	return s.store.CountSessions(ctx)
+}
+
+func (s *service) ListSessions(ctx context.Context, perPage int, page int) ([]models.Session, error) {
+	return s.store.ListSessions(ctx, perPage, page)
 }
 
 func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {

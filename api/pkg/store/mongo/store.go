@@ -22,9 +22,17 @@ func NewStore(db *mongo.Database) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) ListDevices(ctx context.Context) ([]models.Device, error) {
+func (s *Store) ListDevices(ctx context.Context, perPage int, page int) ([]models.Device, error) {
+	skip := perPage * (page - 1)
 	query := []bson.M{
 		{
+			"$skip": skip,
+		},
+		{
+			"$limit": perPage,
+		},
+		{
+
 			"$lookup": bson.M{
 				"from":         "connected_devices",
 				"localField":   "uid",
@@ -210,8 +218,46 @@ func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online b
 	return nil
 }
 
-func (s *Store) ListSessions(ctx context.Context) ([]models.Session, error) {
+func (s *Store) CountDevices(ctx context.Context) (int64, error) {
+
+	if tenant := store.TenantFromContext(ctx); tenant != nil {
+		query := bson.M{
+			"tenant_id": tenant.ID,
+		}
+
+		count, err := s.db.Collection("devices").CountDocuments(ctx, query)
+		return count, err
+	}
+
+	return 0, nil
+
+}
+
+func (s *Store) CountSessions(ctx context.Context) (int64, error) {
+
+	if tenant := store.TenantFromContext(ctx); tenant != nil {
+		query := bson.M{
+			"tenant_id": tenant.ID,
+		}
+
+		count, err := s.db.Collection("sessions").CountDocuments(ctx, query)
+		return count, err
+	}
+
+	return 0, nil
+
+}
+
+func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]models.Session, error) {
+	skip := perPage * (page - 1)
 	query := []bson.M{
+		{
+			"$skip": skip,
+		},
+		{
+			"$limit": perPage,
+		},
+
 		{
 			"$lookup": bson.M{
 				"from":         "active_sessions",
