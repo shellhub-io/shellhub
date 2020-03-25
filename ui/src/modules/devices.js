@@ -6,17 +6,20 @@ export default {
 
     state: {
         devices: [],
-        device: []
+        device: [],
+        numberDevices: 0,
     },
 
     getters: {
         list: state => state.devices,
-        get: state => state.device
+        get: state => state.device,
+        getNumberDevices: state => state.numberDevices
     },
 
     mutations: {
-        setDevices: (state, data) => {
-            Vue.set(state, 'devices', data)
+        setDevices: (state, res) => {
+            Vue.set(state, 'devices', res.data)
+            Vue.set(state, 'numberDevices', parseInt(res.headers['x-total-count']))
         },
 
         removeDevice: (state, uid) => {
@@ -33,9 +36,9 @@ export default {
     },
 
     actions: {
-        fetch: async (context) => {
-            let res = await fetchDevices()
-            context.commit('setDevices', res.data)
+        fetch: async (context, data) => {
+            let res = await fetchDevices(data.per_page,data.page)
+            context.commit('setDevices', res)
         },
 
         remove: async (context, uid) => {
