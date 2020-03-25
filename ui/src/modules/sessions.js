@@ -6,18 +6,20 @@ export default {
 
     state: {
         sessions: [],
-        session: []
-
+        session: [],
+        numberSessions: 0,
     },
 
     getters: {
         list: state => state.sessions,
-        get: state => state.session
+        get: state => state.session,
+        getNumberSessions: state => state.numberSessions
     },
 
     mutations: {
-        setSessions: (state, data) => {
-            Vue.set(state, 'sessions', data)
+        setSessions: (state, res) => {
+            Vue.set(state, 'sessions', res.data)
+            Vue.set(state, 'numberSessions', parseInt(res.headers['x-total-count']))
         },
         setSession: (state, data) => {
             Vue.set(state, 'session', data)
@@ -25,10 +27,9 @@ export default {
     },
 
     actions: {
-        fetch: async (context) => {
-            let res = await fetchSessions()
-
-            context.commit('setSessions', res.data)
+        fetch: async (context, data) => {
+            let res = await fetchSessions(data.per_page,data.page)
+            context.commit('setSessions', res)
         },
         get: async (context,uid)  => {
             let res = await getSession(uid)

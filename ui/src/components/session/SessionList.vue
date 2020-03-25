@@ -14,11 +14,8 @@
 
     <v-divider></v-divider>
 
-    <!-- v-icon notranslate v-icon--link mdi mdi-content-copy theme--light -->
-
     <v-card-text class="pa-0">
-      <v-data-table :headers="headers" :items=listSessions item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" disable-pagination hide-default-footer>
-
+      <v-data-table :headers="headers" :items=listSessions item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" :items-per-page="10" :server-items-length='this.numberSessions' :options.sync='pagination'>
         <template v-slot:item.active="{ item }">
           <v-icon color="success" v-if="item.active">check_circle</v-icon>
           <v-tooltip bottom v-else>
@@ -91,7 +88,10 @@ export default {
   data() {
     return {
       sessionSnack: false,
+      numberSessions: 0,
       listSessions: [],
+      data: [],
+      pagination: {},
 
       headers: [
         {
@@ -138,9 +138,20 @@ export default {
     };
   },
 
-  async mounted() {
-    await this.$store.dispatch("sessions/fetch");
-    this.listSessions = this.$store.getters["sessions/list"];
+  watch: {
+    pagination: {
+      async handler () {
+        const rowsPerPage = this.pagination.itemsPerPage
+        const pageNumber = this.pagination.page
+
+        this.data =  [{'per_page': rowsPerPage, 'page':pageNumber}]
+
+        await this.$store.dispatch("sessions/fetch", this.data[0]);
+        this.listSessions = this.$store.getters["sessions/list"];
+        this.numberSessions = this.$store.getters["sessions/getNumberSessions"]; 
+      },
+      deep: true
+    },
   },
 
   methods: {
@@ -155,7 +166,7 @@ export default {
         await this.$store.dispatch("sessions/fetch");
         this.listSessions = this.$store.getters["sessions/list"];
       }
-    }
+    },
   }
 };
 </script>

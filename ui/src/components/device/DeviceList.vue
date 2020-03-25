@@ -14,7 +14,7 @@
     <v-divider></v-divider>
 
     <v-card-text class="pa-0">
-      <v-data-table :headers="headers" :items="$store.getters['devices/list']" item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" disable-pagination hide-default-footer>
+      <v-data-table :headers="headers" :items=listDevices item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" :items-per-page="10" :server-items-length='this.numberDevices' :options.sync='pagination'>
 
         <template v-slot:item.online="{ item }" >
           <v-icon color="success" v-if="item.online" @click.stop="detailsDevice(item)">check_circle</v-icon>
@@ -25,15 +25,6 @@
             <span>last seen {{ item.last_seen | moment("from", "now") }}</span>
           </v-tooltip>
         </template>
-
-        <!-- <template v-slot:item.uid="{ item }">
-          <v-chip class="short">
-            <span>{{ item.uid }}</span>
-            <v-icon small @click.stop v-clipboard="item.uid" v-clipboard:success="showCopySnack">mdi-content-copy</v-icon>
-          </v-chip> v-icon notranslate v-icon--link mdi mdi-content-copy theme--light
-        </template> -->
-        <!-- v-icon notranslate v-icon--link mdi mdi-content-copy theme--light -->
-        <!-- v-icon notranslate v-icon--link mdi mdi-content-copy theme--light white--text -->
 
         <template v-slot:item.uid="{ item }">
           <v-chip class="short" color="blue lighten-2">
@@ -88,6 +79,9 @@ export default {
   data() {
     return {
       hostname: window.location.hostname,
+      numberDevices: 0,
+      listDevices: [],
+      pagination: {},
       deviceIcon: {
         arch: 'fl-archlinux',
         ubuntu: 'fl-ubuntu'
@@ -124,14 +118,20 @@ export default {
     };
   },
 
-  created() {
-    this.$store.dispatch('devices/fetch');
-  },
+  watch: {
+    pagination: {
+      async handler () {
+        const rowsPerPage = this.pagination.itemsPerPage
+        const pageNumber = this.pagination.page
 
-  computed: {
-    // devices() {
-    //   return this.$store.getters['devices/list'];
-    // }
+        this.data =  [{'per_page': rowsPerPage, 'page':pageNumber}]
+
+        await this.$store.dispatch("devices/fetch", this.data[0]);
+        this.listDevices = this.$store.getters["devices/list"];
+        this.numberDevices = this.$store.getters["devices/getNumberDevices"]; 
+      },
+      deep: true
+    },
   },
 
   methods: {
