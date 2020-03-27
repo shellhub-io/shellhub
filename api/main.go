@@ -131,8 +131,11 @@ func main() {
 
 		page := query.Page
 		perPage := query.PerPage
-		if perPage == 0 || perPage > 100 {
+		if perPage < 1 || perPage > 100 {
 			perPage = 10
+		}
+		if page < 1 {
+			page = 1
 		}
 
 		devices, err := svc.ListDevices(ctx, perPage, page)
@@ -267,10 +270,12 @@ func main() {
 
 		page := query.Page
 		perPage := query.PerPage
-		if perPage == 0 || perPage > 100 {
+		if perPage < 1 || perPage > 100 {
 			perPage = 10
 		}
-
+		if page < 1 {
+			page = 1
+		}
 
 		sessions, err := svc.ListSessions(ctx, perPage, page)
 		if err != nil {
