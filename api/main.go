@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/rsa"
+	"fmt"
 
 	"io/ioutil"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"strconv"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/mitchellh/mapstructure"
@@ -24,13 +26,24 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+type config struct {
+	MongoHost string `envconfig:"mongo_host" default:"mongo"`
+	MongoPort int    `envconfig:"mongo_port" default:"27017"`
+}
+
 var verifyKey *rsa.PublicKey
 
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
+
+	var cfg config
+	if err := envconfig.Process("api", &cfg); err != nil {
+		panic(err.Error())
+	}
+
 	// Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://mongo:27017")
+	clientOptions := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", cfg.MongoHost, cfg.MongoPort))
 	// Connect to MongoDB
 	client, err := mgo.Connect(context.TODO(), clientOptions)
 	if err != nil {
