@@ -4,7 +4,7 @@ import router from "../router";
 
 export default () => {
     let axios = Axios.create({
-        baseURL: `http://${location.host}/api`,
+        baseURL: `${location.protocol}//${location.host}/api`,
         headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
         }
