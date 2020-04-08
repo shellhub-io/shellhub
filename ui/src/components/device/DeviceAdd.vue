@@ -61,7 +61,7 @@ export default {
   },
   methods:{
     command() {
-      return `curl "http://${this.hostname}/install.sh?tenant_id=${this.tenant}" | sh`;
+      return `curl "${location.protocol}//${this.hostname}/install.sh?tenant_id=${this.tenant}" | sh`;
     },
 
     copyCommand() {
