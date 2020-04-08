@@ -613,15 +613,6 @@ func EnsureIndexes(db *mongo.Database) error {
 	}
 
 	mod = mongo.IndexModel{
-		Keys:    bson.D{{"email", 1}},
-		Options: options.Index().SetName("email").SetUnique(true),
-	}
-	_, err = db.Collection("users").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		return err
-	}
-
-	mod = mongo.IndexModel{
 		Keys:    bson.D{{"tenant_id", 1}},
 		Options: options.Index().SetName("tenant_id").SetUnique(true),
 	}
