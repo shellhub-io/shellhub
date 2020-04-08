@@ -6,6 +6,7 @@ import (
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var migrations = []migrate.Migration{
@@ -53,6 +54,25 @@ var migrations = []migrate.Migration{
 		Down: func(db *mongo.Database) error {
 			_, err := db.Collection("devices").UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{"info.version": "version"}})
 			return err
+		},
+	},
+	{
+		Version: 5,
+		Up: func(db *mongo.Database) error {
+			mod := mongo.IndexModel{
+				Keys:    bson.D{{"email", 1}},
+				Options: options.Index().SetName("email").SetUnique(true),
+			}
+			_, err := db.Collection("users").Indexes().CreateOne(context.TODO(), mod)
+
+			return err
+
+		},
+		Down: func(db *mongo.Database) error {
+			_, err := db.Collection("users").Indexes().DropOne(context.TODO(), "email")
+
+			return err
+
 		},
 	},
 }
