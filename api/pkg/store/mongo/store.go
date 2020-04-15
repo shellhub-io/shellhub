@@ -548,6 +548,15 @@ func (s *Store) GetDeviceByName(ctx context.Context, name string, tenant string)
 	return device, nil
 }
 
+func (s *Store) GetDeviceByUid(ctx context.Context, uid models.UID, tenant string) (*models.Device, error) {
+	device := new(models.Device)
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}).Decode(&device); err != nil {
+		return nil, err
+	}
+
+	return device, nil
+}
+
 func EnsureIndexes(db *mongo.Database) error {
 	mod := mongo.IndexModel{
 		Keys:    bson.D{{"uid", 1}},

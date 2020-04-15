@@ -177,11 +177,19 @@ func main() {
 	})
 
 	publicAPI.DELETE("/devices/:uid", func(c echo.Context) error {
+		tenant := c.Request().Header.Get("X-Tenant-ID")
 		ctx := c.Get("ctx").(context.Context)
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := deviceadm.NewService(store)
 
-		return svc.DeleteDevice(ctx, models.UID(c.Param("uid")))
+		if err := svc.DeleteDevice(ctx, models.UID(c.Param("uid")), tenant); err != nil {
+			if err == deviceadm.UnauthorizedErr {
+				return c.NoContent(http.StatusForbidden)
+			} else {
+				return err
+			}
+		}
+		return nil
 	})
 
 	publicAPI.PATCH("/devices/:uid", func(c echo.Context) error {
@@ -199,7 +207,14 @@ func main() {
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := deviceadm.NewService(store)
 
-		return svc.RenameDevice(ctx, models.UID(c.Param("uid")), req.Name, tenant)
+		if err := svc.RenameDevice(ctx, models.UID(c.Param("uid")), req.Name, tenant); err != nil {
+			if err == deviceadm.UnauthorizedErr {
+				return c.NoContent(http.StatusForbidden)
+			} else {
+				return err
+			}
+		}
+		return nil
 	})
 
 	publicAPI.POST("/login", func(c echo.Context) error {
