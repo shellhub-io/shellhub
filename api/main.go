@@ -19,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/services/deviceadm"
 	"github.com/shellhub-io/shellhub/api/pkg/services/sessionmngr"
 	"github.com/shellhub-io/shellhub/api/pkg/services/ssh2ws"
+	"github.com/shellhub-io/shellhub/api/pkg/services/tokenmngr"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	mgo "go.mongodb.org/mongo-driver/mongo"
@@ -404,6 +405,27 @@ func main() {
 		svc := sessionmngr.NewService(store)
 
 		return svc.DeactivateSession(ctx, models.UID(c.Param("uid")))
+	})
+
+	internalAPI.GET("/token/new", func(c echo.Context) error {
+
+		var query struct {
+			TenantID string `query:"tenant_id"`
+		}
+		c.Bind(&query)
+		token := new(models.Token)
+
+		ctx := c.Get("ctx").(context.Context)
+		tenant := query.TenantID
+
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := tokenmngr.NewService(store)
+
+		token, err := svc.CreateToken(ctx, *token, tenant)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		return c.JSON(http.StatusOK, token)
 	})
 
 	e.Logger.Fatal(e.Start(":8080"))

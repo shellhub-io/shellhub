@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
+
 	"encoding/pem"
 	"fmt"
 	"net"
@@ -12,8 +14,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"encoding/json"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -31,18 +31,20 @@ type ConfigOptions struct {
 	ServerAddress string `envconfig:"server_address"`
 	PrivateKey    string `envconfig:"private_key"`
 	TenantID      string `envconfig:"tenant_id"`
+	Token         string `envconfig:"token"`
 }
 
 func buildAPIUrl(protocol string, e *models.Endpoints, uri string) string {
 	return fmt.Sprintf("%s://%s/api/%s", protocol, e.API, uri)
 }
 
-func sendAuthRequest(endpoints *models.Endpoints, protocol string, identity *models.DeviceIdentity, info *models.DeviceInfo, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*models.DeviceAuthResponse, error) {
+func sendAuthRequest(endpoints *models.Endpoints, protocol string, identity *models.DeviceIdentity, info *models.DeviceInfo, pubKey *rsa.PublicKey, tenantID string, token string, sessions []string) (*models.DeviceAuthResponse, error) {
 	var auth models.DeviceAuthResponse
 
 	_, _, errs := gorequest.New().Post(buildAPIUrl(protocol, endpoints, "/devices/auth")).Send(&models.DeviceAuthRequest{
 		Info:     info,
 		Sessions: sessions,
+		Token:    token,
 		DeviceAuth: &models.DeviceAuth{
 			Identity: identity,
 			TenantID: tenantID,
@@ -118,7 +120,7 @@ func main() {
 
 	serverUrl, _ := url.Parse(opts.ServerAddress)
 
-	auth, err := sendAuthRequest(&info.Endpoints, serverUrl.Scheme, identity, devinfo, pubKey, opts.TenantID, []string{})
+	auth, err := sendAuthRequest(&info.Endpoints, serverUrl.Scheme, identity, devinfo, pubKey, opts.TenantID, opts.Token, []string{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
@@ -172,7 +174,7 @@ func main() {
 			sessions = append(sessions, key)
 		}
 
-		auth, err = sendAuthRequest(&info.Endpoints, serverUrl.Scheme, identity, devinfo, pubKey, opts.TenantID, sessions)
+		auth, err = sendAuthRequest(&info.Endpoints, serverUrl.Scheme, identity, devinfo, pubKey, opts.TenantID, opts.Token, sessions)
 		if err == nil {
 			server.SetDeviceName(auth.Name)
 		}

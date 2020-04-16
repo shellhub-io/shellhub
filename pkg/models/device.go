@@ -28,6 +28,7 @@ type DeviceAuthClaims struct {
 type DeviceAuthRequest struct {
 	Info     *DeviceInfo `json:"info"`
 	Sessions []string    `json:"sessions,omitempty"`
+	Token    string      `json:"token"`
 	*DeviceAuth
 }
 

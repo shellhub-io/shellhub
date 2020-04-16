@@ -244,6 +244,19 @@ func (s *Store) CountSessions(ctx context.Context) (int64, error) {
 
 }
 
+func (s *Store) CountTokens(ctx context.Context) (int64, error) {
+	query := bson.M{}
+	if tenant := store.TenantFromContext(ctx); tenant != nil {
+		query = bson.M{
+			"tenant_id": tenant.ID,
+		}
+	}
+
+	count, err := s.db.Collection("tokens").CountDocuments(ctx, query)
+	return count, err
+
+}
+
 func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]models.Session, error) {
 	skip := perPage * (page - 1)
 	query := []bson.M{
@@ -560,6 +573,25 @@ func (s *Store) GetDeviceByUid(ctx context.Context, uid models.UID, tenant strin
 	}
 
 	return device, nil
+}
+func (s *Store) CreateToken(ctx context.Context, token models.Token) (*models.Token, error) {
+
+	if _, err := s.db.Collection("tokens").InsertOne(ctx, &token); err != nil {
+		return nil, err
+	}
+	return &token, nil
+}
+func (s *Store) GetToken(ctx context.Context, id string) (*models.Token, error) {
+	token := new(models.Token)
+
+	if err := s.db.Collection("tokens").FindOne(ctx, bson.M{"id": id}).Decode(&token); err != nil {
+		return nil, err
+	}
+	if _, err := s.db.Collection("tokens").DeleteOne(ctx, bson.M{"id": id}); err != nil {
+		return nil, err
+	}
+
+	return token, nil
 }
 
 func EnsureIndexes(db *mongo.Database) error {

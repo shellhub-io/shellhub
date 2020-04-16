@@ -44,6 +44,12 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		return nil, errors.New("device with this mac address already authored")
 	}
 
+	_, err = s.store.GetToken(ctx, req.Token)
+
+	if err != nil {
+		return nil, errors.New("invalid or expired token")
+	}
+
 	if err := s.store.AddDevice(ctx, device); err != nil {
 		return nil, err
 	}
