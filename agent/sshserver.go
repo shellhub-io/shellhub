@@ -93,6 +93,7 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 		ticker := time.NewTicker(time.Second * 30)
 		defer ticker.Stop()
 
+	loop:
 		for {
 			select {
 			case <-ticker.C:
@@ -102,6 +103,7 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 				}
 			case <-session.Context().Done():
 				ticker.Stop()
+				break loop
 			}
 		}
 	}()
