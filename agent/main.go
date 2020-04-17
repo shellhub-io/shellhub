@@ -59,8 +59,8 @@ func sendAuthRequest(endpoints *models.Endpoints, protocol string, identity *mod
 	return &auth, nil
 }
 
-func Revdial(ctx context.Context, address, path string) (*websocket.Conn, *http.Response, error) {
-	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("ws://%s", address), path}, ""), nil)
+func Revdial(ctx context.Context, protocol, address, path string) (*websocket.Conn, *http.Response, error) {
+	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s", protocol, address), path}, ""), nil)
 }
 
 type Information struct {
@@ -152,7 +152,7 @@ func main() {
 
 	go func() {
 		for {
-			listener, err := NewListener(info.Endpoints.API, auth.Token)
+			listener, err := NewListener(info.Endpoints.API, serverUrl.Scheme, auth.Token)
 			if err != nil {
 				time.Sleep(time.Second * 10)
 				continue
@@ -179,17 +179,18 @@ func main() {
 	}
 }
 
-func NewListener(host string, token string) (*revdial.Listener, error) {
+func NewListener(host string, protocol string, token string) (*revdial.Listener, error) {
 	req, _ := http.NewRequest("GET", "", nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
-	wsConn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s/ssh/connection", host), req.Header)
+	protocol = strings.Replace(protocol, "http", "ws", 1)
+	wsConn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("%s://%s/ssh/connection", protocol, host), req.Header)
 	if err != nil {
 		return nil, err
 	}
 
 	listener := revdial.NewListener(wsconnadapter.New(wsConn), func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
-		return Revdial(ctx, host, path)
+		return Revdial(ctx, protocol, host, path)
 	})
 
 	return listener, nil
