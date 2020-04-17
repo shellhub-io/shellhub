@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -32,14 +33,14 @@ type ConfigOptions struct {
 	TenantID      string `envconfig:"tenant_id"`
 }
 
-func buildAPIUrl(e *models.Endpoints, uri string) string {
-	return fmt.Sprintf("http://%s/api/%s", e.API, uri)
+func buildAPIUrl(protocol string, e *models.Endpoints, uri string) string {
+	return fmt.Sprintf("%s://%s/api/%s", protocol, e.API, uri)
 }
 
-func sendAuthRequest(endpoints *models.Endpoints, identity *models.DeviceIdentity, info *models.DeviceInfo, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*models.DeviceAuthResponse, error) {
+func sendAuthRequest(endpoints *models.Endpoints, protocol string, identity *models.DeviceIdentity, info *models.DeviceInfo, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*models.DeviceAuthResponse, error) {
 	var auth models.DeviceAuthResponse
 
-	_, _, errs := gorequest.New().Post(buildAPIUrl(endpoints, "/devices/auth")).Send(&models.DeviceAuthRequest{
+	_, _, errs := gorequest.New().Post(buildAPIUrl(protocol, endpoints, "/devices/auth")).Send(&models.DeviceAuthRequest{
 		Info:     info,
 		Sessions: sessions,
 		DeviceAuth: &models.DeviceAuth{
@@ -115,7 +116,9 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	auth, err := sendAuthRequest(&info.Endpoints, identity, devinfo, pubKey, opts.TenantID, []string{})
+	serverUrl, _ := url.Parse(opts.ServerAddress)
+
+	auth, err := sendAuthRequest(&info.Endpoints, serverUrl.Scheme, identity, devinfo, pubKey, opts.TenantID, []string{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
@@ -169,7 +172,7 @@ func main() {
 			sessions = append(sessions, key)
 		}
 
-		auth, err = sendAuthRequest(&info.Endpoints, identity, devinfo, pubKey, opts.TenantID, sessions)
+		auth, err = sendAuthRequest(&info.Endpoints, serverUrl.Scheme, identity, devinfo, pubKey, opts.TenantID, sessions)
 		if err == nil {
 			server.SetDeviceName(auth.Name)
 		}
