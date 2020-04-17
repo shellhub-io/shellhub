@@ -17,6 +17,12 @@ export default {
 
   props: ['uid', 'username', 'password'],
 
+  data() {
+    return {
+      protocolConnectionURL: ''
+    }
+  },
+
   mounted() {
     this.xterm = new Terminal({
       cursorBlink: true,
@@ -33,6 +39,14 @@ export default {
       if (!value) {
         this.xterm.dispose();
       }
+    }
+  },
+
+  created: function(){
+    if(location.protocol == "http:"){
+      this.protocolConnectionURL = 'ws'
+    }else{
+      this.protocolConnectionURL = 'wss'
     }
   },
 
@@ -71,7 +85,7 @@ export default {
         })
         .join('&');
 
-      var ws = new WebSocket(`ws://${location.host}/ws/ssh?${params}`);
+      var ws = new WebSocket(this.protocolConnectionURL+`://${location.host}/ws/ssh?${params}`);
 
       ws.onopen = () => {
         this.xterm.attach(ws, true, true);
