@@ -248,6 +248,11 @@ func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]mode
 	skip := perPage * (page - 1)
 	query := []bson.M{
 		{
+			"$sort": bson.M{
+				"started_at": -1,
+			},
+		},
+		{
 			"$skip": skip,
 		},
 		{
