@@ -38,6 +38,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		PublicKey: req.PublicKey,
 		TenantID:  req.TenantID,
 		LastSeen:  time.Now(),
+		Valid:     true,
 	}
 	sameMacDev, err := s.store.GetDeviceByMac(ctx, device.Identity.MAC, device.TenantID)
 	if sameMacDev != nil && sameMacDev.UID != device.UID {

@@ -16,6 +16,7 @@ type Device struct {
 	LastSeen  time.Time       `json:"last_seen" bson:"last_seen"`
 	Online    bool            `json:"online" bson:",omitempty"`
 	Namespace string          `json:"namespace" bson:",omitempty"`
+	Valid     bool            `json:"valid" bson:"valid"`
 }
 
 type DeviceAuthClaims struct {

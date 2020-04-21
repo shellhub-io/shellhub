@@ -32,6 +32,9 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int) ([]model
 			"$limit": perPage,
 		},
 		{
+			"$match": bson.M{"valid": true},
+		},
+		{
 
 			"$lookup": bson.M{
 				"from":         "connected_devices",
@@ -93,6 +96,9 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 			"$match": bson.M{"uid": uid},
 		},
 		{
+			"$match": bson.M{"valid": true},
+		},
+		{
 			"$lookup": bson.M{
 				"from":         "connected_devices",
 				"localField":   "uid",
@@ -143,11 +149,7 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 }
 
 func (s *Store) DeleteDevice(ctx context.Context, uid models.UID) error {
-	if _, err := s.db.Collection("devices").DeleteOne(ctx, bson.M{"uid": uid}); err != nil {
-		return err
-	}
-
-	if _, err := s.db.Collection("sessions").DeleteOne(ctx, bson.M{"device": uid}); err != nil {
+	if _, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"valid": false}}); err != nil {
 		return err
 	}
 
