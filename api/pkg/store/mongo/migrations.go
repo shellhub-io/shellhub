@@ -75,6 +75,34 @@ var migrations = []migrate.Migration{
 
 		},
 	},
+	{
+		Version: 6,
+		Up: func(db *mongo.Database) error {
+			mod := mongo.IndexModel{
+				Keys:    bson.D{{"created_at", 1}},
+				Options: options.Index().SetName("created_at").SetUnique(false).SetExpireAfterSeconds(3600),
+			}
+			_, err := db.Collection("tokens").Indexes().CreateOne(context.TODO(), mod)
+			return err
+		},
+		Down: func(db *mongo.Database) error {
+			_, err := db.Collection("tokens").Indexes().DropOne(context.TODO(), "created_at")
+			return err
+		},
+	},
+	{
+		Version: 7,
+		Up: func(db *mongo.Database) error {
+			_, err := db.Collection("devices").UpdateMany(context.Background(), bson.M{}, bson.M{"$set": bson.M{"valid": true}})
+			return err
+
+		},
+		Down: func(db *mongo.Database) error {
+			_, err := db.Collection("devices").UpdateMany(context.Background(), bson.M{}, bson.M{"$unset": bson.M{"valid": ""}})
+
+			return err
+		},
+	},
 }
 
 func ApplyMigrations(db *mongo.Database) error {
