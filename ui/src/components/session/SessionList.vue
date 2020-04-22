@@ -15,7 +15,7 @@
     <v-divider></v-divider>
 
     <v-card-text class="pa-0">
-      <v-data-table :headers="headers" :items=listSessions item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" :items-per-page="10" :server-items-length='this.numberSessions' :options.sync='pagination'>
+      <v-data-table :headers="headers" :items=listSessions item-key="uid" :sort-by="['started_at']" :sort-desc="[true]" :items-per-page="10" :footer-props="{'items-per-page-options': [10, 25, 50, 100]}" :server-items-length='this.numberSessions' :options.sync='pagination' :disable-sort="true">
         <template v-slot:item.active="{ item }">
           <v-icon color="success" v-if="item.active">check_circle</v-icon>
           <v-tooltip bottom v-else>
