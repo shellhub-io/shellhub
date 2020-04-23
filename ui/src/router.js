@@ -53,11 +53,14 @@ router.beforeEach((to, from, next) => {
         if (store.getters['auth/isLoggedIn']) {
           return next()
         }
-
         return next(`/login?redirect=${to.path}`)
-      } else {
+    } 
+    else {
+        if (store.getters['auth/isLoggedIn']) {
+            return next('/')
+        }
         return next()
-      }
+    }
 })
 
 export default router;
