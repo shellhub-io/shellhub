@@ -108,6 +108,8 @@ export default {
     },
 
     connect() {
+      var protocolConnectionURL = '';
+
       if (!this.$refs.form.validate(true)) {
         return;
       }
@@ -133,7 +135,13 @@ export default {
         })
         .join('&');
 
-      this.ws = new WebSocket(`ws://${location.host}/ws/ssh?${params}`);
+      if(location.protocol == "http:"){
+        protocolConnectionURL = 'ws'
+      }else{
+        protocolConnectionURL = 'wss'
+      }
+
+      this.ws = new WebSocket(protocolConnectionURL+`://${location.host}/ws/ssh?${params}`);
 
       this.ws.onopen = () => {
         this.xterm.attach(this.ws, true, true);

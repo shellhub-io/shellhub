@@ -19,7 +19,6 @@ export default {
 
   data() {
     return {
-      protocolConnectionURL: ''
     }
   },
 
@@ -42,14 +41,6 @@ export default {
     }
   },
 
-  created: function(){
-    if(location.protocol == "http:"){
-      this.protocolConnectionURL = 'ws'
-    }else{
-      this.protocolConnectionURL = 'wss'
-    }
-  },
-
   methods: {
     open() {
       setTimeout(() => {
@@ -65,6 +56,7 @@ export default {
       this.username = '';
       this.passwd = '';
       this.device = this.$props.uid;
+      var protocolConnectionURL = '';
 
       setTimeout(() => {
         this.xterm.fit();
@@ -85,8 +77,14 @@ export default {
         })
         .join('&');
 
-      var ws = new WebSocket(this.protocolConnectionURL+`://${location.host}/ws/ssh?${params}`);
+      if(location.protocol == "http:"){
+        protocolConnectionURL = 'ws'
+      }else{
+        protocolConnectionURL = 'wss'
+      }
 
+      var ws = new WebSocket(protocolConnectionURL+`://${location.host}/ws/ssh?${params}`);
+      
       ws.onopen = () => {
         this.xterm.attach(ws, true, true);
       };
