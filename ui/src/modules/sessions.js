@@ -22,7 +22,9 @@ export default {
             Vue.set(state, 'numberSessions', parseInt(res.headers['x-total-count']))
         },
         setSession: (state, data) => {
-            Vue.set(state, 'session', data)
+            if(data){
+                Vue.set(state, 'session', data)
+            }
         }
     },
 

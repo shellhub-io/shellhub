@@ -2,12 +2,12 @@
 <fragment>
 
   <div class="d-flex pa-0 align-center">
-    <h1>Session Details</h1>
+    <h1 v-if="hide">Session Details</h1>
     <v-spacer/>
     <v-spacer/>
   </div>
 
-  <v-card class="mt-2">
+  <v-card v-if="hide" class="mt-2">
     <v-toolbar flat color="transparent">
 
       <v-toolbar-title v-if="this.session.device">
@@ -73,7 +73,28 @@
     <v-snackbar v-model="closeSessionSnack" :timeout=3000>Closed session conection to the device</v-snackbar>
   </v-card>
 
+  <div class="text-center">
+    <v-dialog v-model="dialog" width="500" persistent>
+      <v-card>
+        <v-card-title class="headline grey lighten-2" primary-title>
+          Session ID error
+        </v-card-title>
+        <v-card-text>
+        <br>
+          You tried to access a non-existing session ID .
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="redirect">
+            Go back to sessions
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </fragment>
+
 </template>
 
 <script>
@@ -84,23 +105,32 @@ export default {
     return {
       uid: "",
       session: [],
-      closeSessionSnack: false
+      closeSessionSnack: false,
+      dialog: false,
+      hide:true
     };
   },
-
-  async mounted() {
+  async created() {
     this.uid = this.$route.params.id;
-    await this.$store.dispatch("sessions/get", this.uid);
-    this.session = this.$store.getters["sessions/get"];
+    try{
+      await this.$store.dispatch("sessions/get", this.uid);
+      this.session = this.$store.getters["sessions/get"];
+    }
+    catch(error){
+      this.hide=false;
+      this.dialog=true;
+    }
   },
-
   methods: {
     async closeSession() {
       this.$store.dispatch("sessions/close");
       this.closeSessionSnack = true;
-
       await this.$store.dispatch("sessions/get", this.uid);
       this.session = this.$store.getters["sessions/get"];
+    },
+    redirect(){
+      this.dialog=false;
+      this.$router.push('/sessions');
     }
   }
 };

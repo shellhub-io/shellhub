@@ -2,10 +2,10 @@
 <fragment>
 
   <div class="d-flex pa-0 align-center">
-    <h1>Device Details</h1>
+    <h1 v-if="hide">Device Details</h1>
   </div>
   
-  <v-card class="mt-2">
+  <v-card class="mt-2" v-if="hide">
     <v-toolbar flat color="transparent">
       
       <v-edit-dialog :return-value="editName" large @open="editName = device.name" @save="save()">
@@ -60,6 +60,27 @@
       </v-card-text>
 
     </v-card>
+
+  <div class="text-center">
+    <v-dialog persistent v-model="dialog" width="500">
+      <v-card>
+        <v-card-title class="headline grey lighten-2" primary-title>
+          Device ID error
+        </v-card-title>
+        <v-card-text>
+        <br>
+          You tried to access a non-existing device ID.
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="redirect">
+            Go back to devices
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </fragment>
 </template>
 
@@ -77,9 +98,11 @@ export default {
 
   data() {
     return {
+      dialog:false,
       uid: '',
       hostname: window.location.hostname,
       editName: '',
+      hide:true,
       device: [],
       deviceIcon: {
         arch: 'fl-archlinux',
@@ -95,10 +118,10 @@ export default {
       this.device = this.$store.getters["devices/get"];
     }
     catch(error){
-      this.$router.push('/devices');
-    }
+      this.hide=false;
+      this.dialog=true;
+    } 
   },
-
   methods: {
     save() {
       this.$store.dispatch('devices/rename', {
@@ -108,15 +131,17 @@ export default {
 
       this.device.name = this.editName;
     },
-
     remove() {
       if (confirm('Are you sure?')) {
         this.$store.dispatch('devices/remove', this.device.uid);
-        this.$router.push('/devices');
       }
     },
     format_date() {
       return moment(String(this.device.last_seen)).format('DD-MM-YYYY');
+    },
+    redirect(){
+      this.dialog=false;
+      this.$router.push('/devices');
     }
   },
 
