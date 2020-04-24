@@ -1,5 +1,5 @@
 <template>
-<v-dialog v-model="show" max-width="800px">
+<v-dialog v-model="show" :retain-focus="false" max-width="800px">
   <v-card>
 
     <v-card-title class="headline grey lighten-2 text-center" primary-title>
