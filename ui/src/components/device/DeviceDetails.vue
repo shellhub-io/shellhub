@@ -90,8 +90,13 @@ export default {
 
   async created() {
     this.uid = this.$route.params.id;
-    await this.$store.dispatch('devices/get', this.uid);
-    this.device = this.$store.getters['devices/get'];
+    try{
+      await this.$store.dispatch('devices/get', this.uid);
+      this.device = this.$store.getters["devices/get"];
+    }
+    catch(error){
+      this.$router.push('/devices');
+    }
   },
 
   methods: {
