@@ -13,7 +13,8 @@ export default {
     getters: {
         list: state => state.devices,
         get: state => state.device,
-        getNumberDevices: state => state.numberDevices
+        getNumberDevices: state => state.numberDevices,
+        getStatusCode: state => state.statusCode,
     },
 
     mutations: {
@@ -31,7 +32,9 @@ export default {
         },
 
         setDevice: (state, data) => {
-            Vue.set(state, 'device', data)
+            if(data){
+                Vue.set(state, 'device', data)
+            }
         }
     },
 
