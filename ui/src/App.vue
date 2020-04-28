@@ -20,7 +20,7 @@
       <v-img src="@/assets/logo-inverted.png" max-width="160" />
         <span class="overline mt-3">BETA</span>
         <v-spacer></v-spacer>
-        <v-menu transition="scale-transition" origin="top left">
+        <v-tooltip bottom>
           <template v-slot:activator="{ on }">
             <v-chip v-on="on">
               <v-icon left>mdi-server</v-icon>
@@ -28,13 +28,19 @@
               <v-icon right>mdi-chevron-down</v-icon>
             </v-chip>
           </template>
-        </v-menu>
-        <v-chip>
+          <span>Under development</span>
+        </v-tooltip>
+        <v-chip href="https://shellhub-io.github.io/" target="_blank">
           <v-icon>help</v-icon>
-        </v-chip>
-        <v-chip>
-          <v-icon>notifications</v-icon>
-        </v-chip>
+        </v-chip>   
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
+            <v-chip v-on="on">
+            <v-icon>notifications</v-icon>
+            </v-chip>
+          </template>
+          <span>Under development</span>
+        </v-tooltip>
         <v-menu transition="scale-transition" origin="top right">
           <template v-slot:activator="{ on }">
             <v-chip v-on="on">
