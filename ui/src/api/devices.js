@@ -1,8 +1,8 @@
 import http from '@/helpers/http'
 
 export const
-    fetchDevices = async () => {
-        return http().get('/devices')
+    fetchDevices = async (per_page, page) => {
+        return http().get('/devices?per_page='+per_page.toString()+'&page='+page.toString())
     },
 
     removeDevice = async (uid) => {
