@@ -25,12 +25,7 @@ func NewStore(db *mongo.Database) *Store {
 func (s *Store) ListDevices(ctx context.Context, perPage int, page int) ([]models.Device, error) {
 	skip := perPage * (page - 1)
 	query := []bson.M{
-		{
-			"$skip": skip,
-		},
-		{
-			"$limit": perPage,
-		},
+
 		{
 
 			"$lookup": bson.M{
@@ -67,6 +62,15 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int) ([]model
 			},
 		})
 	}
+
+	query = append(query, bson.M{
+
+		"$skip": skip,
+	})
+	query = append(query, bson.M{
+
+		"$limit": perPage,
+	})
 
 	devices := make([]models.Device, 0)
 	device := new(models.Device)
@@ -252,12 +256,6 @@ func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]mode
 				"started_at": -1,
 			},
 		},
-		{
-			"$skip": skip,
-		},
-		{
-			"$limit": perPage,
-		},
 
 		{
 			"$lookup": bson.M{
@@ -282,6 +280,16 @@ func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]mode
 			},
 		})
 	}
+
+	query = append(query, bson.M{
+
+		"$skip": skip,
+	})
+	query = append(query, bson.M{
+
+		"$limit": perPage,
+	})
+
 	sessions := make([]models.Session, 0)
 	session := new(models.Session)
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
