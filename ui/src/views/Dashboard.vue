@@ -77,8 +77,12 @@ export default {
     DeviceAdd
   },
 
-  created() {
-    this.$store.dispatch('stats/get');
+  async created() {
+    await this.$store.dispatch('stats/get');
+
+    if(this.$store.getters['stats/stats'].registered_devices == 0){
+      this.$store.dispatch('modals/showAddDevice', true)
+    }
   },
 
   computed: {

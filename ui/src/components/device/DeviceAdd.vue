@@ -1,5 +1,5 @@
 <template>
-<v-dialog v-model="show" :retain-focus="false" max-width="800px">
+<v-dialog v-model="show" :retain-focus="false" persistent max-width="800px">
   <v-card>
 
     <v-card-title class="headline grey lighten-2 text-center" primary-title>
@@ -24,9 +24,11 @@
 
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn text @click="show = false">Close</v-btn>
+      <!-- <v-btn text @click="show = false">Close</v-btn> -->
+      <v-btn text @click="this.validadeAddDevice">Close</v-btn>
     </v-card-actions>
 
+    <v-snackbar v-model="allowsUserContinue" :timeout=3000>Please! You should enter a device to continue in the ShellHub</v-snackbar>
     <v-snackbar v-model="copySnack" :timeout=3000>Command copied to clipboard</v-snackbar>
   </v-card>
 
@@ -40,7 +42,8 @@ export default {
   data() {
     return {
       hostname: window.location.hostname,
-      copySnack: false
+      copySnack: false,      
+      allowsUserContinue: false
     };
   },
 
@@ -67,7 +70,20 @@ export default {
     copyCommand() {
       this.$clipboard(this.command());
       this.copySnack = true;
+    },
+
+    async validadeAddDevice(){
+      if(this.$store.getters['stats/stats'].registered_devices == 0){
+        await this.$store.dispatch('stats/get');
+        
+        if(this.$store.getters['stats/stats'].registered_devices != 0){
+          this.show = false
+        } else{
+          this.allowsUserContinue = true;
+        }
+      }
     }
+
   }
 };
 </script>
