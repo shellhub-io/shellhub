@@ -152,15 +152,12 @@ func main() {
 
 		filter := query.Filter
 
-		devices, err := svc.ListDevices(ctx, perPage, page, filter)
+		devices, count, err := svc.ListDevices(ctx, perPage, page, filter)
 		if err != nil {
 			return err
 		}
-		count, err := svc.CountDevices(ctx)
-		if err != nil {
-			return err
-		}
-		c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
+
+		c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
 		return c.JSON(http.StatusOK, devices)
 	})
 
@@ -306,17 +303,12 @@ func main() {
 			page = 1
 		}
 
-		sessions, err := svc.ListSessions(ctx, perPage, page)
+		sessions, count, err := svc.ListSessions(ctx, perPage, page)
 		if err != nil {
 			return err
 		}
 
-		count, err := svc.CountSessions(ctx)
-		if err != nil {
-			return err
-		}
-
-		c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
+		c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
 
 		return c.JSON(http.StatusOK, sessions)
 	})
