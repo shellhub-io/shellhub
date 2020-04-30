@@ -23,7 +23,7 @@ func NewStore(db *mongo.Database) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) ListDevices(ctx context.Context, perPage int, page int, filters []models.Filter) ([]models.Device, error) {
+func (s *Store) ListDevices(ctx context.Context, perPage int, page int, filters []models.Filter) ([]models.Device, int, error) {
 	skip := perPage * (page - 1)
 	var query_filter []bson.M
 	for _, filter := range filters {
@@ -101,7 +101,12 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int, filters 
 				"tenant_id": tenant.ID,
 			},
 		})
+	}
 
+	query_count := append(query, bson.M{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}})
+	count, err := aggregateCount(ctx, s.db.Collection("devices"), query_count)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	query = append(query, bson.M{
@@ -118,7 +123,8 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int, filters 
 	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
 
 	if err != nil {
-		return devices, err
+
+		return devices, count, err
 	}
 	defer cursor.Close(ctx)
 
@@ -126,12 +132,12 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int, filters 
 		device := new(models.Device)
 		err = cursor.Decode(&device)
 		if err != nil {
-			return devices, err
+			return devices, count, err
 		}
 		devices = append(devices, *device)
 	}
 
-	return devices, err
+	return devices, count, err
 }
 
 func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
@@ -291,7 +297,7 @@ func (s *Store) CountSessions(ctx context.Context) (int64, error) {
 
 }
 
-func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]models.Session, error) {
+func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]models.Session, int, error) {
 	skip := perPage * (page - 1)
 	query := []bson.M{
 		{
@@ -322,7 +328,12 @@ func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]mode
 				"tenant_id": tenant.ID,
 			},
 		})
-	
+	}
+
+	query_count := append(query, bson.M{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}})
+	count, err := aggregateCount(ctx, s.db.Collection("sessions"), query_count)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	query = append(query, bson.M{
@@ -342,11 +353,11 @@ func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]mode
 		session := new(models.Session)
 		err = cursor.Decode(&session)
 		if err != nil {
-			return sessions, err
+			return sessions, count, err
 		} else {
 			device, err := s.GetDevice(ctx, session.DeviceUID)
 			if err != nil {
-				return sessions, err
+				return sessions, count, err
 			}
 
 			session.Device = device
@@ -355,7 +366,7 @@ func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]mode
 
 	}
 
-	return sessions, err
+	return sessions, count, err
 }
 
 func (s *Store) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
