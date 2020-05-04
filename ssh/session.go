@@ -228,17 +228,12 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 func (s *Session) register(session sshserver.Session) error {
 	env := loadEnv(session.Environ())
 
-	ipaddr, err := net.LookupIP("api")
-	if err != nil {
-		return err
-	}
-
 	host, _, err := net.SplitHostPort(session.RemoteAddr().String())
 	if err != nil {
 		return err
 	}
 
-	if ipaddr[0].String() == host {
+	if host == "127.0.0.1" || host == "::1" {
 		if value, ok := env["IP_ADDRESS"]; ok {
 			s.IPAddress = value
 		}

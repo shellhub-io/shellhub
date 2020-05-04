@@ -1,4 +1,4 @@
-package ssh2ws
+package main
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ func copyWorker(dst io.Writer, src io.Reader, doneCh chan<- bool) {
 	doneCh <- true
 }
 
-func Handler(ws *websocket.Conn) {
+func HandlerWebsocket(ws *websocket.Conn) {
 	user := ws.Request().URL.Query().Get("user")
 	passwd := ws.Request().URL.Query().Get("passwd")
 	cols, _ := strconv.Atoi(ws.Request().URL.Query().Get("cols"))
@@ -29,7 +29,7 @@ func Handler(ws *websocket.Conn) {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	client, err := ssh.Dial("tcp", "ssh:2222", config)
+	client, err := ssh.Dial("tcp", "localhost:2222", config)
 	if err != nil {
 		fmt.Println(err)
 		ws.Close()
@@ -116,5 +116,3 @@ func (self *wsconn) keepAlive(ws *websocket.Conn) {
 		}
 	}
 }
-
-//	http.Handle("/ssh", websocket.Handler(relayHandler))

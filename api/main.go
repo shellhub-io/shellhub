@@ -18,12 +18,10 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/services/authsvc"
 	"github.com/shellhub-io/shellhub/api/pkg/services/deviceadm"
 	"github.com/shellhub-io/shellhub/api/pkg/services/sessionmngr"
-	"github.com/shellhub-io/shellhub/api/pkg/services/ssh2ws"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	mgo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang.org/x/net/websocket"
 )
 
 type config struct {
@@ -368,11 +366,6 @@ func main() {
 		}
 
 		return c.JSON(http.StatusOK, session)
-	})
-
-	publicAPI.GET("/ws/ssh", func(c echo.Context) error {
-		websocket.Handler(ssh2ws.Handler).ServeHTTP(c.Response(), c.Request())
-		return nil
 	})
 
 	internalAPI.GET("/lookup", func(c echo.Context) error {
