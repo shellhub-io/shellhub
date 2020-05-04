@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"golang.org/x/net/websocket"
 
 	"github.com/parnurzeal/gorequest"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
@@ -52,6 +53,8 @@ func main() {
 			return
 		}
 	})
+	router.Handle("/ws/ssh", websocket.Handler(HandlerWebsocket))
+
 	go http.ListenAndServe(":8080", router)
 
 	server := NewServer(opts, tunnel)
