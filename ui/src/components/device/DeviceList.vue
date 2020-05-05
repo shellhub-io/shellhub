@@ -84,7 +84,9 @@ export default {
       pagination: {},
       deviceIcon: {
         arch: 'fl-archlinux',
-        ubuntu: 'fl-ubuntu'
+        ubuntu: 'fl-ubuntu',
+        raspbian: 'fl-raspberry-pi',
+        'ubuntu-core': 'fl-ubuntu'
       },
       copySnack: false,
       editName: '',
