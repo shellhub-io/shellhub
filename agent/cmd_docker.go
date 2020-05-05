@@ -22,6 +22,8 @@ func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 		"TERM=" + term,
 		"HOME=" + u.HomeDir,
 		"SHELL=" + shell,
+		"USER=" + u.Username,
+		"LOGNAME=" + u.Username,
 		"SHELLHUB_HOST=" + host,
 	}
 
@@ -33,11 +35,17 @@ func nsenterCommandWrapper(uid, gid int, home string, command ...string) ([]stri
 
 	if _, err := os.Stat("/usr/bin/nsenter"); err == nil {
 		wrappedCommand = append([]string{
+			"/usr/bin/setpriv",
+			"--init-groups",
+			"--ruid",
+			strconv.Itoa(uid),
+			"--regid",
+			strconv.Itoa(gid),
 			"/usr/bin/nsenter",
 			"-t", "1",
 			"-a",
-			"-S", strconv.Itoa(uid),
-			"-G", strconv.Itoa(gid),
+			"-S",
+			strconv.Itoa(uid),
 			fmt.Sprintf("--wd=%s", home),
 		}, wrappedCommand...)
 	} else if err != nil && !os.IsNotExist(err) {
