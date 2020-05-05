@@ -73,7 +73,7 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int) ([]model
 	})
 
 	devices := make([]models.Device, 0)
-	device := new(models.Device)
+
 	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
 	if err != nil {
 		return devices, err
@@ -81,6 +81,7 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int) ([]model
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
+		device := new(models.Device)
 		err = cursor.Decode(&device)
 		if err != nil {
 			return devices, err
@@ -291,11 +292,11 @@ func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]mode
 	})
 
 	sessions := make([]models.Session, 0)
-	session := new(models.Session)
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
+		session := new(models.Session)
 		err = cursor.Decode(&session)
 		if err != nil {
 			return sessions, err
