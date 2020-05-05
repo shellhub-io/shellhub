@@ -1,7 +1,7 @@
 # base stage
 FROM golang:1.13-alpine3.11 AS base
 
-RUN apk add --update git ca-certificates build-base bash util-linux
+RUN apk add --update git ca-certificates build-base bash util-linux setpriv
 
 RUN ln -sf /bin/bash /bin/sh
 

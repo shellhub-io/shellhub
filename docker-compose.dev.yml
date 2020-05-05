@@ -52,6 +52,8 @@ services:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - /:/host
+      - /etc/passwd:/etc/passwd
+      - /etc/group:/etc/group
     depends_on:
       - api
       - ssh
