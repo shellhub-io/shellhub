@@ -58,3 +58,14 @@ type ConnectedDevice struct {
 	TenantID string    `json:"tenant_id" bson:"tenant_id"`
 	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
 }
+
+type Params struct {
+	Name     string `json:"name"`
+	Operator string `json:"operator"`
+	Value    string `json:"value"`
+}
+
+type Filter struct {
+	Type   string `json:"type"`
+	Params Params `json:"params"`
+}

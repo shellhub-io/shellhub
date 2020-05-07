@@ -2,6 +2,8 @@ package deviceadm
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"gopkg.in/go-playground/validator.v9"
 	"github.com/shellhub-io/shellhub/api/pkg/store"
@@ -12,7 +14,7 @@ var UnauthorizedErr = errors.New("unauthorized")
 
 type Service interface {
 	CountDevices(ctx context.Context) (int64, error)
-	ListDevices(ctx context.Context, perPage int, page int) ([]models.Device, error)
+	ListDevices(ctx context.Context, perPage int, page int, filter string) ([]models.Device, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name string, tenant string) error
@@ -31,8 +33,20 @@ func (s *service) CountDevices(ctx context.Context) (int64, error) {
 	return s.store.CountDevices(ctx)
 }
 
-func (s *service) ListDevices(ctx context.Context, perPage int, page int) ([]models.Device, error) {
-	return s.store.ListDevices(ctx, perPage, page)
+func (s *service) ListDevices(ctx context.Context, perPage int, page int, filterB64 string) ([]models.Device, error) {
+
+	raw, err := base64.StdEncoding.DecodeString(filterB64)
+	if err != nil {
+		return err
+	}
+
+	var filter []models.Filter
+
+	if err := json.Unmarshal([]byte(raw), &filter); err != nil {
+		panic(err)
+	}
+
+	return s.store.ListDevices(ctx, perPage, page, filter)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
