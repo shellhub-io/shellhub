@@ -7,7 +7,7 @@ import (
 )
 
 type Store interface {
-	ListDevices(ctx context.Context, perPage int, page int) ([]models.Device, error)
+	ListDevices(ctx context.Context, perPage int, page int, filters []models.Filter) ([]models.Device, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID) error
 	AddDevice(ctx context.Context, d models.Device) error

@@ -46,10 +46,18 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int, filters 
 			})
 
 		} else if filter.Type == "property" && filter.Params.Operator == "bool" {
+<<<<<<< HEAD
+			var operator bool
+			if filter.Params.Value == "true" {
+				operator = true
+			} else if filter.Params.Value == "false" {
+				operator = false
+=======
 			operator, err := strconv.ParseBool(filter.Params.Value)
 			if err != nil {
 
 				return nil, 0, err
+>>>>>>> f0a148e... base
 			}
 			query_filter = append(query_filter, bson.M{
 
@@ -101,7 +109,6 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int, filters 
 				"tenant_id": tenant.ID,
 			},
 		})
-
 	}
 
 	query = append(query, bson.M{
@@ -116,7 +123,6 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int, filters 
 	devices := make([]models.Device, 0)
 
 	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
-
 	if err != nil {
 		return devices, err
 	}
@@ -322,7 +328,6 @@ func (s *Store) ListSessions(ctx context.Context, perPage int, page int) ([]mode
 				"tenant_id": tenant.ID,
 			},
 		})
-	
 	}
 
 	query = append(query, bson.M{

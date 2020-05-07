@@ -135,8 +135,9 @@ func main() {
 		svc := deviceadm.NewService(store)
 
 		var query struct {
-			Page    int `query:"page"`
-			PerPage int `query:"per_page"`
+			Page    int    `query:"page"`
+			PerPage int    `query:"per_page"`
+			Filter  string `query:"filter"`
 		}
 		c.Bind(&query)
 
@@ -149,7 +150,9 @@ func main() {
 			page = 1
 		}
 
-		devices, err := svc.ListDevices(ctx, perPage, page)
+		filter := query.Filter
+
+		devices, err := svc.ListDevices(ctx, perPage, page, filter)
 		if err != nil {
 			return err
 		}
