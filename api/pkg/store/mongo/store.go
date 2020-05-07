@@ -22,8 +22,45 @@ func NewStore(db *mongo.Database) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) ListDevices(ctx context.Context, perPage int, page int) ([]models.Device, error) {
+func (s *Store) ListDevices(ctx context.Context, perPage int, page int, filters []models.Filter) ([]models.Device, error) {
 	skip := perPage * (page - 1)
+	var query_filter []bson.M
+	for _, filter := range filters {
+		if filter.Type == "property" && filter.Params.Operator == "like" {
+
+			query_filter = append(query_filter, bson.M{
+
+				filter.Params.Name: bson.M{
+					"$regex":   filter.Params.Value,
+					"$options": "i",
+				},
+			})
+		} else if filter.Type == "property" && filter.Params.Operator == "eq" {
+
+			query_filter = append(query_filter, bson.M{
+
+				filter.Params.Name: bson.M{
+					"$eq": filter.Params.Value,
+				},
+			})
+
+		} else if filter.Type == "property" && filter.Params.Operator == "bool" {
+			var operator bool
+			if filter.Params.Value == "true" {
+				operator = true
+			} else if filter.Params.Value == "false" {
+				operator = false
+			}
+			query_filter = append(query_filter, bson.M{
+
+				filter.Params.Name: bson.M{
+					"$eq": operator,
+				},
+			})
+
+		}
+	}
+
 	query := []bson.M{
 
 		{
@@ -51,6 +88,9 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int) ([]model
 		},
 		{
 			"$unwind": "$namespace",
+		},
+		{
+			"$match": bson.M{"$or": query_filter},
 		},
 	}
 
