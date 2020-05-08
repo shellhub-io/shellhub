@@ -2,13 +2,12 @@ package models
 
 import (
 	"time"
-
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
 type Device struct {
 	UID       string          `json:"uid"`
-	Name      string          `json:"name" bson:"name,omitempty"`
+	Name      string          `json:"name" bson:"name,omitempty" validate:"required,hostname_rfc1123"`
 	Identity  *DeviceIdentity `json:"identity"`
 	Info      *DeviceInfo     `json:"info"`
 	PublicKey string          `json:"public_key" bson:"public_key"`
