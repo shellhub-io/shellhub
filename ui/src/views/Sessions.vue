@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ListSession/>
+    <ListSession />
   </div>
 </template>
 

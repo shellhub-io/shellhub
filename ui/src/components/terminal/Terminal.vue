@@ -1,6 +1,5 @@
 <template>
-  <div>
-  </div>
+  <div />
 </template>
 
 <script>
@@ -15,10 +14,31 @@ Terminal.applyAddon(attach);
 export default {
   name: 'Terminal',
 
-  props: ['uid', 'username', 'password'],
+  props: {
+    uid: {
+      type: String,
+      required: true
+    }, 
+    username: {
+      type: String,
+      required: true
+    },
+    password: {
+      type: String,
+      required: true
+    },
+  },
 
   data() {
     return {
+    };
+  },
+
+  watch: {
+    isOpen: (value) => {
+      if (!value) {
+        this.xterm.dispose();
+      }
     }
   },
 
@@ -31,14 +51,6 @@ export default {
 
   beforeDestroy() {
     //this.xterm.dispose();
-  },
-
-  watch: {
-    isOpen: value => {
-      if (!value) {
-        this.xterm.dispose();
-      }
-    }
   },
 
   methods: {
@@ -56,7 +68,7 @@ export default {
       this.username = '';
       this.passwd = '';
       this.device = this.$props.uid;
-      var protocolConnectionURL = '';
+      let protocolConnectionURL = '';
 
       setTimeout(() => {
         this.xterm.fit();
@@ -77,13 +89,13 @@ export default {
         })
         .join('&');
 
-      if(location.protocol == "http:"){
-        protocolConnectionURL = 'ws'
+      if(location.protocol === 'http:'){
+        protocolConnectionURL = 'ws';
       }else{
-        protocolConnectionURL = 'wss'
+        protocolConnectionURL = 'wss';
       }
 
-      var ws = new WebSocket(protocolConnectionURL+`://${location.host}/ws/ssh?${params}`);
+      let ws = new WebSocket(`${protocolConnectionURL}://${location.host}/ws/ssh?${params}`);
       
       ws.onopen = () => {
         this.xterm.attach(ws, true, true);
