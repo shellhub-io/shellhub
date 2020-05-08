@@ -1,62 +1,62 @@
-import Vue from 'vue'
-import { fetchDevices, removeDevice, renameDevice, getDevice} from '@/api/devices'
+import Vue from 'vue';
+import { fetchDevices, removeDevice, renameDevice, getDevice } from '../api/devices';
 
 export default {
-    namespaced: true,
+  namespaced: true,
 
-    state: {
-        devices: [],
-        device: [],
-        numberDevices: 0,
+  state: {
+    devices: [],
+    device: [],
+    numberDevices: 0,
+  },
+
+  getters: {
+    list: (state) => state.devices,
+    get: (state) => state.device,
+    getNumberDevices: (state) => state.numberDevices,
+    getStatusCode: (state) => state.statusCode,
+  },
+
+  mutations: {
+    setDevices: (state, res) => {
+      Vue.set(state, 'devices', res.data);
+      Vue.set(state, 'numberDevices', parseInt(res.headers['x-total-count'], 10));
     },
 
-    getters: {
-        list: state => state.devices,
-        get: state => state.device,
-        getNumberDevices: state => state.numberDevices,
-        getStatusCode: state => state.statusCode,
+    removeDevice: (state, uid) => {
+      state.devices.splice(state.devices.findIndex((d) => d.uid === uid), 1);
     },
 
-    mutations: {
-        setDevices: (state, res) => {
-            Vue.set(state, 'devices', res.data)
-            Vue.set(state, 'numberDevices', parseInt(res.headers['x-total-count']))
-        },
-
-        removeDevice: (state, uid) => {
-            state.devices.splice(state.devices.findIndex(d => d.uid == uid), 1)
-        },
-
-        renameDevice: (state, data) => {
-            state.devices = state.devices.map(i => i.uid == data.uid ? { ...i, name: data.name } : i);
-        },
-
-        setDevice: (state, data) => {
-            if(data){
-                Vue.set(state, 'device', data)
-            }
-        }
+    renameDevice: (state, data) => {
+      state.devices = state.devices.map((i) => i.uid === data.uid ? { ...i, name: data.name } : i);
     },
 
-    actions: {
-        fetch: async (context, data) => {
-            let res = await fetchDevices(data.per_page,data.page)
-            context.commit('setDevices', res)
-        },
+    setDevice: (state, data) => {
+      if (data) {
+        Vue.set(state, 'device', data);
+      }
+    },
+  },
 
-        remove: async (context, uid) => {
-            await removeDevice(uid);
-            context.commit('removeDevice', uid)
-        },
+  actions: {
+    fetch: async (context, data) => {
+      const res = await fetchDevices(data.perPage, data.page);
+      context.commit('setDevices', res);
+    },
 
-        rename: async (context, data) => {
-            await renameDevice(data);
-            context.commit('renameDevice', data)
-        },
+    remove: async (context, uid) => {
+      await removeDevice(uid);
+      context.commit('removeDevice', uid);
+    },
 
-        get: async (context,uid)  => {
-            let res = await getDevice(uid)
-            context.commit('setDevice', res.data)
-        }
-    }
-}
+    rename: async (context, data) => {
+      await renameDevice(data);
+      context.commit('renameDevice', data);
+    },
+
+    get: async (context, uid) => {
+      const res = await getDevice(uid);
+      context.commit('setDevice', res.data);
+    },
+  },
+};

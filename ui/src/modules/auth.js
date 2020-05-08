@@ -1,68 +1,68 @@
-import { login } from '@/api/auth'
+import { login } from '@/api/auth';
 
 export default {
-    namespaced: true,
+  namespaced: true,
 
-    state: {
-        status: '',
-        token: localStorage.getItem('token') || '',
-        user: localStorage.getItem('user') || '',
-        tenant: localStorage.getItem('tenant') || ''
+  state: {
+    status: '',
+    token: localStorage.getItem('token') || '',
+    user: localStorage.getItem('user') || '',
+    tenant: localStorage.getItem('tenant') || ''
+  },
+
+  getters: {
+    isLoggedIn: (state) => !!state.token,
+    authStatus: (state) => state.status,
+    currentUser: (state) => state.user,
+    tenant: (state) => state.tenant,
+  },
+
+  mutations: {
+    authRequest(state) {
+      state.status = 'loading';
     },
 
-    getters: {
-        isLoggedIn: state => !!state.token,
-        authStatus: state => state.status,
-        currentUser: state => state.user,
-        tenant: state => state.tenant,
+    authSuccess(state, data) {
+      state.status = 'success';
+      state.token = data.token;
+      state.user = data.user;
+      state.tenant = data.tenant;
     },
 
-    mutations: {
-        auth_request(state) {
-            state.status = 'loading'
-        },
-
-        auth_success(state, data) {
-            state.status = 'success'
-            state.token = data.token
-            state.user = data.user
-            state.tenant = data.tenant
-        },
-
-        auth_error(state) {
-            state.status = 'error'
-        },
-
-        logout(state) {
-            state.status = ''
-            state.token = ''
-            state.user = ''
-            state.tenant = ''
-        },
+    authError(state) {
+      state.status = 'error';
     },
 
-    actions: {
-        async login(context, user) {
-            context.commit('auth_request')
+    logout(state) {
+      state.status = '';
+      state.token = '';
+      state.user = '';
+      state.tenant = '';
+    },
+  },
 
-            try {
-                const resp = await login(user);
+  actions: {
+    async login(context, user) {
+      context.commit('authRequest');
 
-                localStorage.setItem('token', resp.data.token)
-                localStorage.setItem('user', resp.data.user)
-                localStorage.setItem('tenant', resp.data.tenant)
+      try {
+        const resp = await login(user);
 
-                context.commit('auth_success', resp.data)
-            } catch (err) {
-                context.commit('auth_error')
-            }
-        },
+        localStorage.setItem('token', resp.data.token);
+        localStorage.setItem('user', resp.data.user);
+        localStorage.setItem('tenant', resp.data.tenant);
 
-        logout(context) {
-            context.commit('logout')
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('tenant');
-        }
+        context.commit('authSuccess', resp.data);
+      } catch (err) {
+        context.commit('authError');
+      }
+    },
+
+    logout(context) {
+      context.commit('logout');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('tenant');
     }
-}
+  }
+};
