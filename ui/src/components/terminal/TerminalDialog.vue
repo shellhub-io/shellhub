@@ -1,33 +1,71 @@
 <template>
-<v-dialog v-model="show" max-width="1024px">
-    
-  <template v-slot:activator="{ on }">
-    <v-icon @click="open()">mdi-console</v-icon>
-  </template>
+  <v-dialog
+    v-model="show"
+    max-width="1024px"
+  >
+    <template v-slot:activator="{ on }">
+      <v-icon @click="open()">
+        mdi-console
+      </v-icon>
+    </template>
   
-  <v-card>
-    <v-toolbar dark color="primary">
-      <v-btn icon dark @click="close()">
-        <v-icon>close</v-icon>
-      </v-btn>
-      <v-toolbar-title>Terminal</v-toolbar-title>
+    <v-card>
+      <v-toolbar
+        dark
+        color="primary"
+      >
+        <v-btn
+          icon
+          dark
+          @click="close()"
+        >
+          <v-icon>close</v-icon>
+        </v-btn>
+        <v-toolbar-title>Terminal</v-toolbar-title>
   
-      <v-spacer></v-spacer>
+        <v-spacer />
+      </v-toolbar>
     
-    </v-toolbar>
+      <v-card
+        v-if="showLoginForm"
+        class="ma-0 pa-6"
+        outlined
+      >      
+        <v-form
+          ref="form"
+          v-model="valid"
+          lazy-validation
+          @submit.prevent="connect()"
+        >
+          <v-text-field
+            ref="username"
+            v-model="username"
+            label="Username"
+            autofocus
+            :rules="[rules.required]"
+            :validate-on-blur="true"
+          />
+          <v-text-field
+            v-model="passwd"
+            label="Password"
+            type="password"
+            :rules="[rules.required]"
+            :validate-on-blur="true"
+          />
+          <v-btn
+            type="submit"
+            color="primary"
+            class="mt-4"
+            rounded
+          >
+            Connect
+          </v-btn>
+        </v-form>
+      </v-card>
     
-    <v-card class="ma-0 pa-6" v-if="showLoginForm" outlined>      
-      <v-form ref="form" v-model="valid" @submit.prevent="connect()" lazy-validation>
-        <v-text-field label="Username" v-model="username" ref="username" autofocus :rules="[rules.required]" :validate-on-blur="true"></v-text-field>
-        <v-text-field label="Password" type="password" v-model="passwd" :rules="[rules.required]" :validate-on-blur="true"></v-text-field>
-        <v-btn type="submit" color="primary" class="mt-4" rounded>Connect</v-btn>
-      </v-form>
+      <div ref="terminal" />
     </v-card>
-    
-    <div ref="terminal"></div>
-  </v-card>
-
-</v-dialog>
+  </v-dialog>
 </template>
 
 <script>
@@ -42,7 +80,12 @@ Terminal.applyAddon(attach);
 export default {
   name: 'TerminalDialog',
 
-  props: ['uid'],
+  props: {
+    uid: {
+      type: String,
+      required: true
+    }, 
+  },
 
   data() {
     return {
@@ -51,9 +94,25 @@ export default {
       showLoginForm: true,
       valid: true,
       rules: {
-        required: value => !!value || 'Required'
+        required: (value) => !!value || 'Required'
       }
     };
+  },
+
+  computed: {
+    show: {
+      get() {
+        return this.$store.getters['modals/terminal'] === this.$props.uid;
+      },
+
+      set(value) {
+        if (value) {
+          this.$store.dispatch('modals/toggleTerminal', this.$props.uid);
+        } else {
+          this.$store.dispatch('modals/toggleTerminal', '');
+        }
+      }
+    }
   },
 
   watch: {
@@ -69,22 +128,6 @@ export default {
         requestAnimationFrame(() => {
           this.$refs.username.focus();
         });
-      }
-    }
-  },
-
-  computed: {
-    show: {
-      get() {
-        return this.$store.getters['modals/terminal'] === this.$props.uid;
-      },
-
-      set(value) {
-        if (value) {
-          this.$store.dispatch('modals/toggleTerminal', this.$props.uid);
-        } else {
-          this.$store.dispatch('modals/toggleTerminal', '');
-        }
       }
     }
   },
@@ -108,7 +151,7 @@ export default {
     },
 
     connect() {
-      var protocolConnectionURL = '';
+      let protocolConnectionURL = '';
 
       if (!this.$refs.form.validate(true)) {
         return;
@@ -135,13 +178,13 @@ export default {
         })
         .join('&');
 
-      if(location.protocol == "http:"){
-        protocolConnectionURL = 'ws'
-      }else{
-        protocolConnectionURL = 'wss'
+      if(location.protocol === 'http:'){
+        protocolConnectionURL = 'ws';
+      } else{
+        protocolConnectionURL = 'wss';
       }
 
-      this.ws = new WebSocket(protocolConnectionURL+`://${location.host}/ws/ssh?${params}`);
+      this.ws = new WebSocket(`${protocolConnectionURL}://${location.host}/ws/ssh?${params}`);
 
       this.ws.onopen = () => {
         this.xterm.attach(this.ws, true, true);

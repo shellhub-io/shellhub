@@ -1,6 +1,6 @@
 <template>
   <div>
-    <SessionDetails/>
+    <SessionDetails />
   </div>
 </template>
 

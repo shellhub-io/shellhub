@@ -1,41 +1,72 @@
 <template>
-<v-layout align-center justify-center>
-    <v-flex xs12 sm8 md4>
-        <v-container>
-            <v-layout align-center justify-center column>
-                <v-flex class="text-center primary--text">
-                    <v-img src="@/assets/logo.png"/>
-                    <span class="overline">BETA</span>
-                </v-flex>
-            </v-layout>
-        </v-container>
+  <v-layout
+    align-center
+    justify-center
+  >
+    <v-flex
+      xs12
+      sm8
+      md4
+    >
+      <v-container>
+        <v-layout
+          align-center
+          justify-center
+          column
+        >
+          <v-flex class="text-center primary--text">
+            <v-img src="@/assets/logo.png" />
+            <span class="overline">BETA</span>
+          </v-flex>
+        </v-layout>
+      </v-container>
 
-        <v-card class="elevation-12 mt-10">
-            <v-toolbar dark color="primary">
-                <v-toolbar-title>Login</v-toolbar-title>
-                <v-spacer></v-spacer>
-            </v-toolbar>
+      <v-card class="elevation-12 mt-10">
+        <v-toolbar
+          dark
+          color="primary"
+        >
+          <v-toolbar-title>Login</v-toolbar-title>
+          <v-spacer />
+        </v-toolbar>
 
-            <v-form @submit.prevent="login()">
-                <v-card-text>
-                    <v-text-field :error="this.$store.getters['auth/authStatus'] == 'error'" prepend-icon="person" v-model="username" label="Username" type="text"></v-text-field>
-                    <v-text-field :error="this.$store.getters['auth/authStatus'] == 'error'" id="password" prepend-icon="lock" v-model="password" label="Password" type="password"></v-text-field>
-                </v-card-text>
+        <v-form @submit.prevent="login()">
+          <v-card-text>
+            <v-text-field
+              v-model="username"
+              :error="this.$store.getters['auth/authStatus'] == 'error'"
+              prepend-icon="person"
+              label="Username"
+              type="text"
+            />
+            <v-text-field
+              id="password"
+              v-model="password"
+              :error="this.$store.getters['auth/authStatus'] == 'error'"
+              prepend-icon="lock"
+              label="Password"
+              type="password"
+            />
+          </v-card-text>
 
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn type="submit" color="primary">Submit</v-btn>
-                </v-card-actions>
-            </v-form>
-        </v-card>
-
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              type="submit"
+              color="primary"
+            >
+              Submit
+            </v-btn>
+          </v-card-actions>
+        </v-form>
+      </v-card>
     </v-flex>
-</v-layout>
+  </v-layout>
 </template>
 
 <script>
 export default {
-  name: "Login",
+  name: 'Login',
 
   data() {
     return {
@@ -47,7 +78,7 @@ export default {
   methods: {
     login() {
       this.$store
-        .dispatch("auth/login", {
+        .dispatch('auth/login', {
           username: this.username,
           password: this.password
         })
@@ -55,7 +86,7 @@ export default {
           if (this.$route.query.redirect) {
             this.$router.push(this.$route.query.redirect);
           } else {
-            this.$router.push("/");
+            this.$router.push('/');
           }
         });
     }
