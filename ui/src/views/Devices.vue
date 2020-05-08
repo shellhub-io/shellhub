@@ -1,6 +1,6 @@
 <template>
   <div>
-    <DeviceList/>
+    <DeviceList />
   </div>
 </template>
 

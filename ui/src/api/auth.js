@@ -1,6 +1,6 @@
-import http from '@/helpers/http'
+import http from '@/helpers/http';
 
 export const
-    login = async (user) => {
-        return http().post('/login', user)
-    }
+  login = async (user) => {
+    return http().post('/login', user);
+  };
