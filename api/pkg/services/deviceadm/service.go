@@ -50,8 +50,12 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name string, tenant string) error {
 	device, _ := s.store.GetDeviceByUid(ctx, uid, tenant)
 	if device != nil {
-		if device.Name != name {
+
+		otherDevice, _ := s.store.GetDeviceByName(ctx, name, tenant)
+		if otherDevice == nil {
+
 			return s.store.RenameDevice(ctx, uid, name)
+
 		}
 	}
 	return UnauthorizedErr
