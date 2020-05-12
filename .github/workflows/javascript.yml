@@ -1,0 +1,19 @@
+name: JavaScript
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Run eslint
+        uses: stefanoeb/eslint-action@1.0.2
+        with:
+          files: ui/
