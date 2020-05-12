@@ -42,7 +42,7 @@ func (s *service) ListDevices(ctx context.Context, perPage int, page int, filter
 
 	var filter []models.Filter
 
-	if err := json.Unmarshal([]byte(raw), &filter); err != nil {
+	if err := json.Unmarshal([]byte(raw), &filter); len(raw) > 0 && err != nil {
 		return nil, 0, err
 	}
 
