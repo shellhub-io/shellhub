@@ -166,7 +166,7 @@ func main() {
 
 	ticker := time.NewTicker(10 * time.Second)
 
-	for _ = range ticker.C {
+	for range ticker.C {
 		sessions := make([]string, 0, len(server.sessions))
 		for key := range server.sessions {
 			sessions = append(sessions, key)
