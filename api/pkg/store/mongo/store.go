@@ -89,9 +89,13 @@ func (s *Store) ListDevices(ctx context.Context, perPage int, page int, filters 
 		{
 			"$unwind": "$namespace",
 		},
-		{
+	}
+
+	// Apply filters if any
+	if len(query_filter) > 0 {
+		query = append(query, bson.M{
 			"$match": bson.M{"$or": query_filter},
-		},
+		})
 	}
 
 	// Only match for the respective tenant if requested
