@@ -1,0 +1,50 @@
+name: JavaScript
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Node.JS 12.16
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.16"
+
+      - name: Install Node Dependencies
+        working-directory: ui/
+        run: npm install
+
+      - name: Cache node modules
+        uses: actions/cache@v1
+        with:
+          path: ui/node_modules
+          key: ${{ runner.OS }}-ui-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-ui-${{ env.cache-name }}-
+            ${{ runner.OS }}-ui-
+            ${{ runner.OS }}-
+
+      - name: Save Code Linting Report JSON
+        working-directory: ui/
+        run: npm run --silent lint:report | tee eslint_report.json
+        continue-on-error: true
+
+      - name: Annotate Code Linting Results
+        uses: ataylorme/eslint-annotate-action@1.0.4
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          report-json: "ui/eslint_report.json"
+
+      - name: Upload ESLint report
+        uses: actions/upload-artifact@v1
+        with:
+          name: eslint_report.json
+          path: eslint_report.json
