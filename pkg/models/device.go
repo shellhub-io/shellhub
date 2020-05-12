@@ -1,8 +1,8 @@
 package models
 
 import (
-	"time"
 	jwt "github.com/dgrijalva/jwt-go"
+	"time"
 )
 
 type Device struct {
