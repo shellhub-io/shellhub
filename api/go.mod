@@ -16,7 +16,7 @@ require (
 	github.com/xakep666/mongo-migrate v0.2.1
 	go.mongodb.org/mongo-driver v1.3.1
 	golang.org/x/crypto v0.0.0-20200317142112-1b76d66859c6
-	golang.org/x/net v0.0.0-20200319234117-63522dbf7eec
+	golang.org/x/net v0.0.0-20200513185701-a91f0712d120
 	gopkg.in/go-playground/validator.v9 v9.31.0
 )
 
