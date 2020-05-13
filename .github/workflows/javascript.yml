@@ -14,6 +14,6 @@ jobs:
       - uses: actions/checkout@v1
 
       - name: Run eslint
-        uses: stefanoeb/eslint-action@1.0.2
+        uses: gustavosbarreto/eslint-action@add_working_directory
         with:
-          files: ui/
+          working_directory: ui/
