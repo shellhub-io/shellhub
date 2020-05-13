@@ -31,13 +31,14 @@ RUN go build
 FROM base AS development
 
 RUN apk add --update openssl
-RUN go get github.com/markbates/refresh
+RUN go get github.com/markbates/refresh && go get github.com/mgechev/revive
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
 RUN go mod download
 
 COPY ./api/entrypoint-dev.sh /entrypoint.sh
+COPY ./.revive.toml /
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 

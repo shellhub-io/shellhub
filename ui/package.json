@@ -6,6 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
+    "lint:no-fix": "vue-cli-service lint --no-fix",
     "lint:report": "vue-cli-service lint --no-fix --format json"
   },
   "dependencies": {
