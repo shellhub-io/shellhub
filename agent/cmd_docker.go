@@ -12,8 +12,8 @@ import (
 )
 
 func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
-	uid, _ := strconv.Atoi(u.Uid)
-	gid, _ := strconv.Atoi(u.Gid)
+	uid, _ := strconv.Atoi(u.UID)
+	gid, _ := strconv.Atoi(u.GID)
 
 	nscommand, _ := nsenterCommandWrapper(uid, gid, fmt.Sprintf("/host/%s", u.HomeDir), command...)
 
