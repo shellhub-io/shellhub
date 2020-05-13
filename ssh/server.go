@@ -123,16 +123,15 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	}
 
 	sess.finish()
-
 }
 
-func (s *Server) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey) bool {
+func (*Server) publicKeyHandler(_ sshserver.Context, _ sshserver.PublicKey) bool {
 	logrus.Error("Unknown public key authentication type")
 
 	return false
 }
 
-func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
+func (*Server) passwordHandler(ctx sshserver.Context, pass string) bool {
 	// Store password in session context for later use in session handling
 	ctx.SetValue("password", pass)
 

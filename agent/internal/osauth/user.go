@@ -9,14 +9,15 @@ package osauth
 #include <pwd.h>
 */
 import "C"
+
 import (
 	"strconv"
 	"unsafe"
 )
 
 type User struct {
-	Uid      string
-	Gid      string
+	UID      string
+	GID      string
 	Username string
 	Name     string
 	HomeDir  string
@@ -44,8 +45,8 @@ func LookupUser(username string) *User {
 
 		if C.strcmp(cuser, pwd.pw_name) == 0 {
 			return &User{
-				Uid:      strconv.FormatUint(uint64(pwd.pw_uid), 10),
-				Gid:      strconv.FormatUint(uint64(pwd.pw_gid), 10),
+				UID:      strconv.FormatUint(uint64(pwd.pw_uid), 10),
+				GID:      strconv.FormatUint(uint64(pwd.pw_gid), 10),
 				Username: C.GoString(pwd.pw_name),
 				Name:     C.GoString(pwd.pw_gecos),
 				HomeDir:  C.GoString(pwd.pw_dir),

@@ -2,11 +2,12 @@ package wsconnadapter
 
 import (
 	"errors"
-	"github.com/gorilla/websocket"
 	"io"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 // an adapter for representing WebSocket connection as a net.Conn

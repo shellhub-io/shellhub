@@ -13,13 +13,14 @@ package osauth
 #include <crypt.h>
 */
 import "C"
+
 import (
 	"unsafe"
 )
 
 const passwdFilename = "/host/etc/passwd"
 
-func AuthUser(user string, passwd string) bool {
+func AuthUser(user, passwd string) bool {
 	cuser := C.CString(user)
 	defer C.free(unsafe.Pointer(cuser))
 

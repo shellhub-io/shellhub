@@ -103,7 +103,7 @@ type wsconn struct {
 	pinger *time.Ticker
 }
 
-func (self *wsconn) keepAlive(ws *websocket.Conn) {
+func (w *wsconn) keepAlive(ws *websocket.Conn) {
 	for {
 		ws.SetDeadline(time.Now().Add(pingInterval * 2))
 		if fw, err := ws.NewFrameWriter(websocket.PingFrame); err != nil {
@@ -111,7 +111,7 @@ func (self *wsconn) keepAlive(ws *websocket.Conn) {
 		} else if _, err = fw.Write([]byte{}); err != nil {
 			return
 		}
-		if _, running := <-self.pinger.C; !running {
+		if _, running := <-w.pinger.C; !running {
 			return
 		}
 	}
