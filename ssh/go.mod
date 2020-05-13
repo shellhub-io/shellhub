@@ -13,7 +13,7 @@ require (
 	github.com/shellhub-io/shellhub v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.4.2
 	golang.org/x/crypto v0.0.0-20200317142112-1b76d66859c6
-	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
+	golang.org/x/net v0.0.0-20200513185701-a91f0712d120
 	moul.io/http2curl v1.0.0 // indirect
 )
 
