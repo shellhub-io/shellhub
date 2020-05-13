@@ -9,6 +9,7 @@ package osauth
 #include <pwd.h>
 */
 import "C"
+
 import (
 	"strconv"
 	"unsafe"

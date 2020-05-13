@@ -24,7 +24,7 @@ func generatePrivateKey(filename string) error {
 
 	defer f.Close()
 
-	var privateKey = &pem.Block{
+	privateKey := &pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(key),
 	}

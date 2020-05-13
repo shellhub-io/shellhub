@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
-
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -397,7 +396,7 @@ func main() {
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
-func DecodeMap(input interface{}, output interface{}) error {
+func DecodeMap(input, output interface{}) error {
 	config := &mapstructure.DecoderConfig{
 		TagName:  "json",
 		Metadata: nil,

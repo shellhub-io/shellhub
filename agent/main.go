@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"net"
@@ -12,8 +13,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"encoding/json"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -77,6 +76,7 @@ func getInfo(input string) string {
 	}
 	return string(prettyJSON)
 }
+
 func main() {
 	opts := ConfigOptions{}
 
@@ -179,7 +179,7 @@ func main() {
 	}
 }
 
-func NewListener(host string, protocol string, token string) (*revdial.Listener, error) {
+func NewListener(host, protocol, token string) (*revdial.Listener, error) {
 	req, _ := http.NewRequest("GET", "", nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 

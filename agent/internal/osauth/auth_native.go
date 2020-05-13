@@ -20,7 +20,7 @@ import "unsafe"
 
 const passwdFilename = "/etc/passwd"
 
-func AuthUser(user string, passwd string) bool {
+func AuthUser(user, passwd string) bool {
 	cuser := C.CString(user)
 	defer C.free(unsafe.Pointer(cuser))
 

@@ -14,16 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 )
 
-var (
-	upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		Subprotocols:    []string{"binary"},
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
-)
+var upgrader = websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024, Subprotocols: []string{"binary"}, CheckOrigin: func(r *http.Request) bool { return true }}
 
 const (
 	DefaultConnectionURL = "/connection"

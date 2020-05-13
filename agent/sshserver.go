@@ -180,7 +180,7 @@ func (s *SSHServer) closeSession(id string) {
 	}
 }
 
-func newShellCmd(s *SSHServer, username string, term string) *exec.Cmd {
+func newShellCmd(s *SSHServer, username, term string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
 	u := osauth.LookupUser(username)

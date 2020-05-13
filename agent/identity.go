@@ -99,7 +99,7 @@ func primaryIface() (*net.Interface, error) {
 	return ifdev, nil
 }
 
-func readSysFs(iface string, file string) (string, error) {
+func readSysFs(iface, file string) (string, error) {
 	data, err := ioutil.ReadFile(filepath.Join("/sys/class/net", iface, file))
 	return strings.TrimSpace(string(data)), err
 }

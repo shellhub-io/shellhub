@@ -66,13 +66,11 @@ var migrations = []migrate.Migration{
 			_, err := db.Collection("users").Indexes().CreateOne(context.TODO(), mod)
 
 			return err
-
 		},
 		Down: func(db *mongo.Database) error {
 			_, err := db.Collection("users").Indexes().DropOne(context.TODO(), "email")
 
 			return err
-
 		},
 	},
 }
