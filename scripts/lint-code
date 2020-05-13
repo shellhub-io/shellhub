@@ -1,0 +1,56 @@
+#!/bin/sh
+
+usage() {
+    cat <<EOF
+Run code lints under development machine.
+
+Usage:
+    $0 <mode>
+
+Mode:
+    go    Run golang lint utilities
+    vue   Run vue lint utilities
+    all   Run both golang and vue lints
+EOF
+    exit 1
+}
+
+go() {
+    [ ! -e .revive.toml ] && echo "ERROR: Run the script from the project root." && exit 1
+
+    for container in agent api ssh; do
+        echo "Running Golang linter on $container"
+        # Run revive on a running container
+        docker-compose \
+            -f docker-compose.yml -f docker-compose.dev.yml \
+            exec $container revive -config /.revive.toml -formatter stylish && echo "No lint errors found!"
+    done
+}
+
+vue() {
+    [ ! -d ui ] && echo "ERROR: Run the script from the project root." && exit 1
+
+    echo "Running UI lints"
+
+    # Run linter on a running container
+    docker-compose \
+        -f docker-compose.yml -f docker-compose.dev.yml \
+        exec ui npm run lint:no-fix
+}
+
+case "$1" in
+    "go")
+        go
+        ;;
+    "vue")
+        vue
+        ;;
+    "all")
+        go
+        vue
+        ;;
+    *)
+        usage
+        ;;
+esac
+

@@ -35,7 +35,7 @@ RUN go build -tags docker -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
 FROM base AS development
 
 RUN apk add --update openssl openssh-client
-RUN go get github.com/markbates/refresh
+RUN go get github.com/markbates/refresh && go get github.com/mgechev/revive
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -44,6 +44,7 @@ RUN go mod download
 #RUN cp -a $GOPATH/src/github.com/shellhub-io/shellhub/vendor /vendor
 
 COPY ./agent/entrypoint-dev.sh /entrypoint.sh
+COPY ./.revive.toml /
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
