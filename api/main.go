@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
-
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -181,11 +180,10 @@ func main() {
 		svc := deviceadm.NewService(store)
 
 		if err := svc.DeleteDevice(ctx, models.UID(c.Param("uid")), tenant); err != nil {
-			if err == deviceadm.UnauthorizedErr {
+			if err == deviceadm.ErrUnauthorized {
 				return c.NoContent(http.StatusForbidden)
-			} else {
-				return err
 			}
+			return err
 		}
 		return nil
 	})
@@ -206,11 +204,10 @@ func main() {
 		svc := deviceadm.NewService(store)
 
 		if err := svc.RenameDevice(ctx, models.UID(c.Param("uid")), req.Name, tenant); err != nil {
-			if err == deviceadm.UnauthorizedErr {
+			if err == deviceadm.ErrUnauthorized {
 				return c.NoContent(http.StatusForbidden)
-			} else {
-				return err
 			}
+			return err
 		}
 		return nil
 	})
@@ -397,7 +394,7 @@ func main() {
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
-func DecodeMap(input interface{}, output interface{}) error {
+func DecodeMap(input, output interface{}) error {
 	config := &mapstructure.DecoderConfig{
 		TagName:  "json",
 		Metadata: nil,

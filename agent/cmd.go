@@ -11,8 +11,8 @@ import (
 )
 
 func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
-	uid, _ := strconv.Atoi(u.Uid)
-	gid, _ := strconv.Atoi(u.Gid)
+	uid, _ := strconv.Atoi(u.UID)
+	gid, _ := strconv.Atoi(u.GID)
 
 	cmd := exec.Command(command[0], command[1:]...)
 	cmd.Env = []string{

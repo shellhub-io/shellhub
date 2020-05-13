@@ -44,13 +44,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
 
-    - name: Run gofmt -s
-      working-directory: ${{ matrix.project }}
-      run: |
-        gofmt -s -d .
-
-        # If there are any diff, exit as error
-        [ "$(gofmt -s -l .)" == "" ] || exit 1
+    - name: Run Revive Action
+      uses: docker://morphy/revive-action:v1
+      with:
+        config: .revive.toml
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build
       working-directory: ${{ matrix.project }}

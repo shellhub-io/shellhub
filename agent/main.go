@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"net"
@@ -12,8 +13,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"encoding/json"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -77,6 +76,7 @@ func getInfo(input string) string {
 	}
 	return string(prettyJSON)
 }
+
 func main() {
 	opts := ConfigOptions{}
 
@@ -116,9 +116,9 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	serverUrl, _ := url.Parse(opts.ServerAddress)
+	serverURL, _ := url.Parse(opts.ServerAddress)
 
-	auth, err := sendAuthRequest(&info.Endpoints, serverUrl.Scheme, identity, devinfo, pubKey, opts.TenantID, []string{})
+	auth, err := sendAuthRequest(&info.Endpoints, serverURL.Scheme, identity, devinfo, pubKey, opts.TenantID, []string{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
@@ -152,7 +152,7 @@ func main() {
 
 	go func() {
 		for {
-			listener, err := NewListener(info.Endpoints.API, serverUrl.Scheme, auth.Token)
+			listener, err := NewListener(info.Endpoints.API, serverURL.Scheme, auth.Token)
 			if err != nil {
 				time.Sleep(time.Second * 10)
 				continue
@@ -172,14 +172,14 @@ func main() {
 			sessions = append(sessions, key)
 		}
 
-		auth, err = sendAuthRequest(&info.Endpoints, serverUrl.Scheme, identity, devinfo, pubKey, opts.TenantID, sessions)
+		auth, err = sendAuthRequest(&info.Endpoints, serverURL.Scheme, identity, devinfo, pubKey, opts.TenantID, sessions)
 		if err == nil {
 			server.SetDeviceName(auth.Name)
 		}
 	}
 }
 
-func NewListener(host string, protocol string, token string) (*revdial.Listener, error) {
+func NewListener(host, protocol, token string) (*revdial.Listener, error) {
 	req, _ := http.NewRequest("GET", "", nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 

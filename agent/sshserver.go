@@ -48,11 +48,7 @@ func NewSSHServer(privateKey string) *SSHServer {
 
 	s.sshd = &sshserver.Server{
 		PasswordHandler: func(ctx sshserver.Context, pass string) bool {
-			if osauth.AuthUser(ctx.User(), pass) == true {
-				return true
-			}
-
-			return false
+			return osauth.AuthUser(ctx.User(), pass)
 		},
 		PublicKeyHandler: s.publicKeyHandler,
 		Handler:          s.sessionHandler,
@@ -169,7 +165,7 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 	}
 }
 
-func (s *SSHServer) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey) bool {
+func (s *SSHServer) publicKeyHandler(_ sshserver.Context, _ sshserver.PublicKey) bool {
 	return true
 }
 
@@ -180,7 +176,7 @@ func (s *SSHServer) closeSession(id string) {
 	}
 }
 
-func newShellCmd(s *SSHServer, username string, term string) *exec.Cmd {
+func newShellCmd(s *SSHServer, username, term string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
 	u := osauth.LookupUser(username)
