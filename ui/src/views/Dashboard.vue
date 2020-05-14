@@ -35,6 +35,10 @@
             </v-list-item-avatar>
           </v-list-item>
 
+          <v-card-actions v-if="stats.registered_devices == 0">
+            <Welcome :screen-welcome="true" />
+          </v-card-actions>
+
           <v-card-actions>
             <DeviceAdd />
             <v-btn
@@ -131,12 +135,14 @@
 
 <script>
 import DeviceAdd from '@/components/device/DeviceAdd.vue';
+import Welcome from '@/components/welcome/Welcome.vue';
 
 export default {
   name: 'Dashboard',
 
   components: {
-    DeviceAdd
+    DeviceAdd,
+    Welcome,
   },
 
   data(){
