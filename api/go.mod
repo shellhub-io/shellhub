@@ -11,6 +11,7 @@ require (
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.2.1
+	github.com/parnurzeal/gorequest v0.2.16 // indirect
 	github.com/shellhub-io/shellhub v0.0.0-00010101000000-000000000000
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	github.com/xakep666/mongo-migrate v0.2.1
@@ -18,6 +19,7 @@ require (
 	golang.org/x/crypto v0.0.0-20200317142112-1b76d66859c6
 	golang.org/x/net v0.0.0-20200513185701-a91f0712d120
 	gopkg.in/go-playground/validator.v9 v9.31.0
+	moul.io/http2curl v1.0.0 // indirect
 )
 
 replace github.com/shellhub-io/shellhub => ../
