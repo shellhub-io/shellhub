@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +13,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var ErrWrongParamsType = errors.New("wrong parameters type")
 
 type Store struct {
 	db *mongo.Database
@@ -25,37 +28,67 @@ func NewStore(db *mongo.Database) *Store {
 
 func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []models.Filter) ([]models.Device, int, error) {
 	skip := perPage * (page - 1)
+	var queryMatch []bson.M
 	var queryFilter []bson.M
 	for _, filter := range filters {
-		if filter.Type != "property" {
-			continue
-		}
-
-		switch filter.Params.Operator {
-		case "like":
-			queryFilter = append(queryFilter, bson.M{
-				filter.Params.Name: bson.M{
-					"$regex":   filter.Params.Value,
-					"$options": "i",
-				},
-			})
-		case "eq":
-			queryFilter = append(queryFilter, bson.M{
-				filter.Params.Name: bson.M{
-					"$eq": filter.Params.Value,
-				},
-			})
-		case "bool":
-			operator, err := strconv.ParseBool(filter.Params.Value)
-			if err != nil {
-				return nil, 0, err
+		switch filter.Type {
+		case "property":
+			var property bson.M
+			params, ok := filter.Params.(*models.PropertyParams)
+			if !ok {
+				return nil, 0, ErrWrongParamsType
 			}
-			queryFilter = append(queryFilter, bson.M{
-				filter.Params.Name: bson.M{
+
+			switch params.Operator {
+			case "like":
+				property = bson.M{
+					"$regex":   params.Value,
+					"$options": "i",
+				}
+
+			case "eq":
+				property = bson.M{
+					"$eq": params.Value,
+				}
+
+			case "bool":
+				operator, _ := strconv.ParseBool(params.Value)
+				property = bson.M{
 					"$eq": operator,
-				},
+				}
+			}
+
+			queryFilter = append(queryFilter, bson.M{
+				params.Name: property,
 			})
+
+		case "operator":
+			var operator string
+			params, ok := filter.Params.(*models.OperatorParams)
+			if !ok {
+				return nil, 0, ErrWrongParamsType
+			}
+
+			switch params.Name {
+			case "and":
+				operator = "$and"
+			case "or":
+				operator = "$or"
+			}
+
+			queryMatch = append(queryMatch, bson.M{
+				"$match": bson.M{operator: queryFilter},
+			})
+
+			queryFilter = nil
+
 		}
+	}
+
+	if len(queryFilter) > 0 {
+		queryMatch = append(queryMatch, bson.M{
+			"$match": bson.M{"$or": queryFilter},
+		})
 	}
 
 	query := []bson.M{
@@ -92,10 +125,8 @@ func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []mo
 	})
 
 	// Apply filters if any
-	if len(queryFilter) > 0 {
-		query = append(query, bson.M{
-			"$match": bson.M{"$or": queryFilter},
-		})
+	if len(queryMatch) > 0 {
+		query = append(query, queryMatch...)
 	}
 
 	// Only match for the respective tenant if requested
