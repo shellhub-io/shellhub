@@ -9,9 +9,9 @@ const store = new Vuex.Store({
   state: {
     auth: {
       status: true,
-      token: 'akjhsdkjahsd',
-      user: 'leonardojoao',
-      tenant: 'kldsjflksjdfkl'
+      token: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+      user: 'user',
+      tenant: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoibGV'
     }
   },
   getters: {
@@ -27,5 +27,13 @@ describe('Header', () => {
   it('is a Vue instance', () => {
     expect(wrapper.isVueInstance()).toBeTruthy();
   });
-
+  it('has a username field', () => {
+    expect(wrapper.find('[data-cy="username-text"]').exists()).toBe(true);
+  });
+  it('has a password field', () => {
+    expect(wrapper.find('[data-cy="password-text"]').exists()).toBe(true);
+  });
+  it('has a button', () => {
+    expect(wrapper.find('[data-cy="login-btn"]').exists()).toBe(true);
+  });
 });

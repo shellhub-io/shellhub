@@ -1,8 +1,14 @@
 import http from '@/helpers/http';
 
 export const
-  fetchDevices = async (perPage, page) => {
-    return http().get(`/devices?per_page=${perPage}&page=${page}`);
+  fetchDevices = async (perPage, page, search) => {
+    let query = '';
+    if (search === null) { 
+      query = `/devices?per_page=${perPage}&page=${page}`;
+    } else {
+      query = `/devices?per_page=${perPage}&page=${page}&filter=${search}`;
+    }
+    return http().get(query);
   },
 
   removeDevice = async (uid) => {
