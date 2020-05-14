@@ -3,6 +3,14 @@
     <div class="d-flex pa-0 align-center">
       <h1>Devices</h1>
       <v-spacer />
+      <v-text-field
+        v-model="search"
+        append-icon="mdi-magnify"
+        label="Search by hostname"
+        class="mx-6"
+        single-line
+        hide-details
+      />
       <v-spacer />
       <DeviceAdd />
       <v-btn
@@ -21,6 +29,7 @@
 
       <v-card-text class="pa-0">
         <v-data-table
+          class="elevation-1"
           :headers="headers"
           :items="listDevices"
           item-key="uid"
@@ -31,6 +40,7 @@
           :server-items-length="numberDevices"
           :options.sync="pagination"
           :disable-sort="true"
+          :search="search"
         >
           <template v-slot:item.online="{ item }">
             <v-icon
@@ -137,6 +147,7 @@ export default {
       pagination: {},
       copySnack: false,
       editName: '',
+      search: '',
       headers: [
         {
           text: 'Online',
@@ -170,21 +181,32 @@ export default {
 
   watch: {
     pagination: {
-      async handler () {
-        const rowsPerPage = this.pagination.itemsPerPage;
-        const pageNumber = this.pagination.page;
-
-        this.data =  [{'perPage': rowsPerPage, 'page':pageNumber}];
-
-        await this.$store.dispatch('devices/fetch', this.data[0]);
-        this.listDevices = this.$store.getters['devices/list'];
-        this.numberDevices = this.$store.getters['devices/getNumberDevices']; 
+      handler () {
+        this.getDevices();
       },
       deep: true
     },
+    search() {
+      this.getDevices();
+    }
   },
 
   methods: {
+    async getDevices(){
+      let filter = null;
+      let encodedFilter = null;
+
+      if(this.search) {
+        filter = [{type: 'property', params: {name: 'name', operator: 'like', value: this.search}}];
+        encodedFilter = btoa(JSON.stringify(filter));
+      } 
+      const data = {perPage: this.pagination.itemsPerPage, page: this.pagination.page, filter: encodedFilter};
+      
+      await this.$store.dispatch('devices/fetch', data);
+      this.listDevices = this.$store.getters['devices/list'];
+      this.numberDevices = this.$store.getters['devices/getNumberDevices'];
+    },
+
     detailsDevice(value){
       this.$router.push('/device/'+value.uid); 
     },
