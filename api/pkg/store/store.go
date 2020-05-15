@@ -26,5 +26,5 @@ type Store interface {
 	GetDeviceByName(ctx context.Context, name, tenant string) (*models.Device, error)
 	CountDevices(ctx context.Context) (int64, error)
 	CountSessions(ctx context.Context) (int64, error)
-	GetDeviceByUid(ctx context.Context, uid models.UID, tenant string) (*models.Device, error)
+	GetDeviceByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error)
 }

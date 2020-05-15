@@ -55,7 +55,7 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 }
 
 func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
-	device, _ := s.store.GetDeviceByUid(ctx, uid, tenant)
+	device, _ := s.store.GetDeviceByUID(ctx, uid, tenant)
 	if device != nil {
 		return s.store.DeleteDevice(ctx, uid)
 	}
@@ -63,7 +63,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 }
 
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
-	device, _ := s.store.GetDeviceByUid(ctx, uid, tenant)
+	device, _ := s.store.GetDeviceByUID(ctx, uid, tenant)
 	validate := validator.New()
 	if device != nil {
 		if device.Name != name {
