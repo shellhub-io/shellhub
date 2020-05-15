@@ -73,8 +73,8 @@
           </template>
 
           <template v-slot:item.info.pretty_name="{ item }">
-            <v-icon left>
-              {{ deviceIcon[item.info.id] || 'fl-tux' }}
+            <v-icon v-if="item.info.id">
+              ${{ item.info.id }}
             </v-icon>
             {{ item.info.pretty_name }}
           </template>
@@ -98,21 +98,35 @@
           </template>
 
           <template v-slot:item.actions="{ item }">
-            <v-icon
-              class="icons"
-              @click="detailsDevice(item)"
-            >
-              info
-            </v-icon>
-
+            <v-tooltip bottom>
+              <template #activator="{ on }">
+                <v-icon
+                  class="icons"
+                  v-on="on"
+                  @click="detailsDevice(item)"
+                >
+                  info
+                </v-icon>
+              </template>
+              <span>Details</span>
+            </v-tooltip>
+        
             <TerminalDialog
               v-if="item.online"
               :uid="item.uid"
             />
 
-            <v-icon @click="remove(item.uid)">
-              delete
-            </v-icon>
+            <v-tooltip bottom>
+              <template #activator="{ on }">
+                <v-icon
+                  v-on="on"
+                  @click="remove(item.uid)"
+                >
+                  delete
+                </v-icon>
+              </template>
+              <span>Delete</span>
+            </v-tooltip>
           </template>
         </v-data-table>
       </v-card-text>
@@ -135,7 +149,7 @@ export default {
 
   components: {
     TerminalDialog,
-    DeviceAdd
+    DeviceAdd,  
   },
 
   data() {
@@ -144,31 +158,6 @@ export default {
       numberDevices: 0,
       listDevices: [],
       pagination: {},
-      deviceIcon: {
-        alpine: 'fl-alpine',
-        arch: 'fl-archlinux',
-        centos: 'fl-centos',
-        coreos: 'fl-coreos',
-        debian: 'fl-debian',
-        devuan: 'fl-devuan',
-        elementary: 'fl-elementary',
-        fedora: 'fl-fedora',
-        freebsd: 'fl-freebsd',
-        gentoo: 'fl-gentoo',
-        linuxmint: 'fl-linuxmint',
-        mageia: 'fl-mageia',
-        manjaro: 'fl-manjaro',
-        mandriva: 'fl-mandriva',
-        nixos: 'fl-nixos',
-        opensuse: 'fl-opensuse',
-        rhel: 'fl-redhat',
-        sabayon: 'fl-sabayon',
-        slackware: 'fl-slackware',
-        ubuntu: 'fl-ubuntu',
-        raspbian: 'fl-raspberry-pi',
-        'ubuntu-core': 'fl-ubuntu',
-        void: 'fl-void',
-      },
       copySnack: false,
       editName: '',
       headers: [
@@ -235,7 +224,7 @@ export default {
         this.$store.dispatch('devices/remove', uid);
       }
     },
-
+  
     showCopySnack() {
       this.copySnack = true;
     },
@@ -247,7 +236,7 @@ export default {
       });
 
       item.name = this.editName;
-    }
+    },
   },
   
 };
