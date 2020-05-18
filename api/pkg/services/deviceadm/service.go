@@ -14,7 +14,6 @@ import (
 var ErrUnauthorized = errors.New("unauthorized")
 
 type Service interface {
-	CountDevices(ctx context.Context) (int64, error)
 	ListDevices(ctx context.Context, perPage, page int, filter string) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
@@ -29,10 +28,6 @@ type service struct {
 
 func NewService(store store.Store) Service {
 	return &service{store}
-}
-
-func (s *service) CountDevices(ctx context.Context) (int64, error) {
-	return s.store.CountDevices(ctx)
 }
 
 func (s *service) ListDevices(ctx context.Context, perPage, page int, filterB64 string) ([]models.Device, int, error) {
