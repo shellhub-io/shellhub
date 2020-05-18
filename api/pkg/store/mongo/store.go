@@ -264,30 +264,6 @@ func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online b
 	return nil
 }
 
-func (s *Store) CountDevices(ctx context.Context) (int64, error) {
-	query := bson.M{}
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
-		query = bson.M{
-			"tenant_id": tenant.ID,
-		}
-	}
-
-	count, err := s.db.Collection("devices").CountDocuments(ctx, query)
-	return count, err
-}
-
-func (s *Store) CountSessions(ctx context.Context) (int64, error) {
-	query := bson.M{}
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
-		query = bson.M{
-			"tenant_id": tenant.ID,
-		}
-	}
-
-	count, err := s.db.Collection("sessions").CountDocuments(ctx, query)
-	return count, err
-}
-
 func (s *Store) ListSessions(ctx context.Context, perPage, page int) ([]models.Session, int, error) {
 	skip := perPage * (page - 1)
 	query := []bson.M{

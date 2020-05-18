@@ -8,7 +8,6 @@ import (
 )
 
 type Service interface {
-	CountSessions(ctx context.Context) (int64, error)
 	ListSessions(ctx context.Context, perPage, page int) ([]models.Session, int, error)
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)
@@ -22,10 +21,6 @@ type service struct {
 
 func NewService(store store.Store) Service {
 	return &service{store}
-}
-
-func (s *service) CountSessions(ctx context.Context) (int64, error) {
-	return s.store.CountSessions(ctx)
 }
 
 func (s *service) ListSessions(ctx context.Context, perPage, page int) ([]models.Session, int, error) {
