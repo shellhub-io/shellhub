@@ -140,7 +140,6 @@ export default {
       sessionSnack: false,
       numberSessions: 0,
       listSessions: [],
-      data: [],
       pagination: {},
 
       headers: [
@@ -191,12 +190,9 @@ export default {
   watch: {
     pagination: {
       async handler () {
-        const rowsPerPage = this.pagination.itemsPerPage;
-        const pageNumber = this.pagination.page;
+        const data = {'perPage': this.pagination.itemsPerPage, 'page': this.pagination.page};
 
-        this.data =  [{'perPage': rowsPerPage, 'page':pageNumber}];
-
-        await this.$store.dispatch('sessions/fetch', this.data[0]);
+        await this.$store.dispatch('sessions/fetch', data);
         this.listSessions = this.$store.getters['sessions/list'];
         this.numberSessions = this.$store.getters['sessions/getNumberSessions']; 
       },
