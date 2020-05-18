@@ -98,7 +98,7 @@ func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []mo
 		})
 	}
 
-	queryCount := append(query, bson.M{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}})
+	queryCount := append(query, bson.M{"$count": "count"})
 	count, err := aggregateCount(ctx, s.db.Collection("devices"), queryCount)
 	if err != nil {
 		return nil, 0, err
@@ -321,7 +321,7 @@ func (s *Store) ListSessions(ctx context.Context, perPage, page int) ([]models.S
 		})
 	}
 
-	queryCount := append(query, bson.M{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}})
+	queryCount := append(query, bson.M{"$count": "count"})
 	count, err := aggregateCount(ctx, s.db.Collection("sessions"), queryCount)
 	if err != nil {
 		return nil, 0, err
