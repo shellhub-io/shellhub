@@ -1,5 +1,7 @@
 <template>
   <fragment>
+    <DeviceIcon @expIcon="getIcon" />
+
     <div class="d-flex pa-0 align-center">
       <h1>Devices</h1>
       <v-spacer />
@@ -12,7 +14,7 @@
         Add Device
       </v-btn>
     </div>
-    
+
     <v-card class="mt-2">
       <v-app-bar
         flat
@@ -73,8 +75,8 @@
           </template>
 
           <template v-slot:item.info.pretty_name="{ item }">
-            <v-icon v-if="item.info.id">
-              ${{ item.info.id }}
+            <v-icon>
+              {{ deviceIcon[item.info.id] }}
             </v-icon>
             {{ item.info.pretty_name }}
           </template>
@@ -143,19 +145,22 @@
 <script>
 import TerminalDialog from '@/components/terminal/TerminalDialog.vue';
 import DeviceAdd from '@/components/device/DeviceAdd.vue';
+import DeviceIcon from '@/components/device/DeviceIcon.vue';
 
 export default {
   name: 'DeviceList',
 
   components: {
     TerminalDialog,
-    DeviceAdd,  
+    DeviceAdd,
+    DeviceIcon,
   },
 
   data() {
     return {
       hostname: window.location.hostname,
       numberDevices: 0,
+      deviceIcon:{},
       listDevices: [],
       pagination: {},
       copySnack: false,
@@ -207,6 +212,13 @@ export default {
   },
 
   methods: {
+
+    getIcon(data){
+      // eslint-disable-next-line no-console
+      //console.log(data);
+      this.deviceIcon=data;
+    },
+
     detailsDevice(value){
       this.$router.push('/device/'+value.uid); 
     },
