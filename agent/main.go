@@ -85,6 +85,21 @@ func main() {
 		logrus.Panic(err)
 	}
 
+	updater, err := NewUpdater()
+	if err != nil {
+		logrus.Panic(err)
+	}
+
+	if err := updater.CompleteUpdate(); err != nil {
+		logrus.Warning(err)
+		os.Exit(0)
+	}
+
+	currentVersion, err := updater.CurrentVersion()
+	if err != nil {
+		logrus.Panic(err)
+	}
+
 	info := models.Info{}
 
 	_, _, errs := gorequest.New().Get(fmt.Sprintf("%s/info", opts.ServerAddress)).EndStruct(&info)
@@ -161,6 +176,25 @@ func main() {
 			if err := sv.Serve(listener); err != nil {
 				continue
 			}
+		}
+	}()
+
+	go func() {
+		for {
+			nextVersion, err := CheckUpdate(opts.ServerAddress)
+			if err != nil {
+				logrus.Error(err)
+				goto sleep
+			}
+
+			if nextVersion.GreaterThan(currentVersion) {
+				if err := updater.ApplyUpdate(nextVersion); err != nil {
+					logrus.Error(err)
+				}
+			}
+
+		sleep:
+			time.Sleep(time.Hour * 24)
 		}
 	}()
 
