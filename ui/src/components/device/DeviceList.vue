@@ -1,7 +1,5 @@
 <template>
   <fragment>
-    <DeviceIcon @expIcon="getIcon" />
-
     <div class="d-flex pa-0 align-center">
       <h1>Devices</h1>
       <v-spacer />
@@ -75,9 +73,7 @@
           </template>
 
           <template v-slot:item.info.pretty_name="{ item }">
-            <v-icon>
-              {{ deviceIcon[item.info.id] }}
-            </v-icon>
+            <DeviceIcon :icon-name="item.info.id" />
             {{ item.info.pretty_name }}
           </template>
 
@@ -212,13 +208,6 @@ export default {
   },
 
   methods: {
-
-    getIcon(data){
-      // eslint-disable-next-line no-console
-      //console.log(data);
-      this.deviceIcon=data;
-    },
-
     detailsDevice(value){
       this.$router.push('/device/'+value.uid); 
     },
