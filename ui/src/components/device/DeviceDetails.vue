@@ -87,9 +87,7 @@
             Operating System
           </div>
           <div v-if="device.info">
-            <v-icon v-if="device.info.id">
-              ${{ device.info.id }}
-            </v-icon>
+            <DeviceIcon :icon-name="device.info.id" />
             {{ device.info.pretty_name }}
           </div>
         </div>
@@ -141,12 +139,14 @@
 
 import TerminalDialog from '@/components/terminal/TerminalDialog.vue';
 import moment from 'moment';
+import DeviceIcon from '@/components/device/DeviceIcon.vue';
 
 export default {
   name: 'DeviceDetails',
 
   components: {
-    TerminalDialog
+    TerminalDialog,
+    DeviceIcon
   },
 
   data() {

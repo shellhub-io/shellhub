@@ -39,16 +39,15 @@ export default {
         mandriva: 'fl-mandriva',
         nixos: 'fl-nixos',
         opensuse: 'fl-opensuse',
-        raspbian: 'fl-raspberry-pi',
         rhel: 'fl-redhat',
         sabayon: 'fl-sabayon',
         slackware: 'fl-slackware',
         ubuntu: 'fl-ubuntu',
+        raspbian: 'fl-raspberry-pi',
         'ubuntu-core': 'fl-ubuntu',
         void: 'fl-void',
       },
     };
   },
-
 };
 </script>
