@@ -4,7 +4,7 @@ FROM arm64v8/golang:1.13-alpine3.11
 
 ARG SHELLHUB_VERSION=latest
 
-RUN apk add --update git ca-certificates util-linux build-base bash
+RUN apk add --update git ca-certificates util-linux build-base bash setpriv
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -29,6 +29,8 @@ FROM scratch
 
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=0 /usr/bin/nsenter /usr/bin/
+COPY --from=0 /usr/bin/setpriv /usr/bin/
+COPY --from=0 /usr/lib/libcap-ng.so.* /usr/lib/
 COPY --from=0 /lib/ld-musl-aarch64.so.1 /lib/
 COPY --from=0 /go/src/github.com/shellhub-io/shellhub/agent/agent /bin/agent
 
