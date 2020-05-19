@@ -12,7 +12,6 @@
         Add Device
       </v-btn>
     </div>
-
     <v-card class="mt-2">
       <v-app-bar
         flat
@@ -156,7 +155,6 @@ export default {
     return {
       hostname: window.location.hostname,
       numberDevices: 0,
-      deviceIcon:{},
       listDevices: [],
       pagination: {},
       copySnack: false,
@@ -225,7 +223,7 @@ export default {
         this.$store.dispatch('devices/remove', uid);
       }
     },
-  
+
     showCopySnack() {
       this.copySnack = true;
     },
