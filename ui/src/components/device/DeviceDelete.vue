@@ -1,5 +1,17 @@
 <template>
   <fragment>
+    <v-tooltip bottom>
+      <template #activator="{ on }">
+        <v-icon
+          v-on="on"
+          @click="dialog = !dialog"
+        >
+          delete
+        </v-icon>
+      </template>
+      <span>Delete</span>
+    </v-tooltip>
+
     <v-dialog
       v-model="dialog"
       max-width="290"
@@ -19,16 +31,15 @@
           <v-btn
             color="green darken-1"
             text
-            @click="dialog = false"
+            @click="dialog = !dialog"
           >
             Cancel
           </v-btn>
 
-          
           <v-btn
             color="green darken-1"
             text
-            @click="remove(); dialog=false"
+            @click="remove();"
           >
             Ok
           </v-btn>
@@ -47,18 +58,18 @@ export default {
       type: String,
       required: true
     },
-    dialog:{
-      type: Boolean,
-    }
+  },
+
+  data() {
+    return {
+      dialog: false,
+    };
   },
 
   methods:{
     async remove() {
       await this.$store.dispatch('devices/remove', this.uid);
-      this.$router.push('/devices');
     },
-  }
-
-  
+  }  
 };
 </script>
