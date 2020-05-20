@@ -58,6 +58,9 @@ export default {
       type: String,
       required: true
     },
+    redirect:{
+      type: Boolean,
+    }
   },
 
   data() {
@@ -69,8 +72,11 @@ export default {
   methods:{
     async remove() {
       await this.$store.dispatch('devices/remove', this.uid);
-      this.$router.push('/devices');
+      if(this.redirect){
+        this.$router.push('/devices');
+      }
     },
   }  
 };
 </script>
+
