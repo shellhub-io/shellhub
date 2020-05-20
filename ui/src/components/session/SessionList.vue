@@ -104,13 +104,18 @@
           </template>
 
           <template v-slot:item.actions="{ item }">
-            <v-icon
-              class="icons"
-              @click="detailsSession(item)"
-            >
-              info
-            </v-icon>
-
+            <v-tooltip bottom>
+              <template #activator="{ on }">
+                <v-icon
+                  class="icons"
+                  v-on="on"
+                  @click="detailsSession(item)"
+                >
+                  info
+                </v-icon>
+              </template>
+              <span>Details</span>
+            </v-tooltip>
             <v-icon
               v-if="item.active"
               class="icons ml-1"

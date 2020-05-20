@@ -57,12 +57,13 @@
         <v-spacer />
       
         <TerminalDialog :uid="device.uid" />
-
-        <DeviceDelete   
+      
+        <DeviceDelete
           :uid="device.uid"
           :dialog="dialogDelete"
+          :redirect="true"
         />
-      </v-toolbar>  
+      </v-toolbar>
 
       <v-divider />
 
@@ -73,7 +74,7 @@
           </div>
           <div>{{ device.uid }}</div>
         </div>
-
+        
         <div class="mt-2">
           <div class="overline">
             MAC
@@ -172,7 +173,6 @@ export default {
       this.dialogError=true;
     } 
   },
-
   methods: {
     save() {
       this.$store.dispatch('devices/rename', {
@@ -182,7 +182,6 @@ export default {
 
       this.device.name = this.editName;
     },
-
     formatDate() {
       return moment(String(this.device.last_seen)).format('DD-MM-YYYY');
     },
@@ -191,6 +190,5 @@ export default {
       this.$router.push('/devices');
     }
   },
-
 };
 </script>

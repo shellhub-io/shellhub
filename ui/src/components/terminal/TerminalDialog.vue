@@ -1,71 +1,78 @@
 <template>
-  <v-dialog
-    v-model="show"
-    max-width="1024px"
-  >
-    <template v-slot:activator="{ on }">
-      <v-icon @click="open()">
-        mdi-console
-      </v-icon>
-    </template>
-  
-    <v-card>
-      <v-toolbar
-        dark
-        color="primary"
-      >
-        <v-btn
-          icon
+  <fragment>
+    <v-tooltip bottom>
+      <template v-slot:activator="{ on }">
+        <v-icon
+          v-on="on"
+          @click="open()"
+        >
+          mdi-console
+        </v-icon>
+      </template>
+      <span>Terminal</span>
+    </v-tooltip>
+    <v-dialog
+      v-model="show"
+      max-width="1024px"
+    >
+      <v-card>
+        <v-toolbar
           dark
-          @click="close()"
+          color="primary"
         >
-          <v-icon>close</v-icon>
-        </v-btn>
-        <v-toolbar-title>Terminal</v-toolbar-title>
-  
-        <v-spacer />
-      </v-toolbar>
-    
-      <v-card
-        v-if="showLoginForm"
-        class="ma-0 pa-6"
-        outlined
-      >      
-        <v-form
-          ref="form"
-          v-model="valid"
-          lazy-validation
-          @submit.prevent="connect()"
-        >
-          <v-text-field
-            ref="username"
-            v-model="username"
-            label="Username"
-            autofocus
-            :rules="[rules.required]"
-            :validate-on-blur="true"
-          />
-          <v-text-field
-            v-model="passwd"
-            label="Password"
-            type="password"
-            :rules="[rules.required]"
-            :validate-on-blur="true"
-          />
           <v-btn
-            type="submit"
-            color="primary"
-            class="mt-4"
-            rounded
+            icon
+            dark
+            @click="close()"
           >
-            Connect
+            <v-icon>close</v-icon>
           </v-btn>
-        </v-form>
-      </v-card>
+          <v-toolbar-title>Terminal</v-toolbar-title>
     
-      <div ref="terminal" />
-    </v-card>
-  </v-dialog>
+          <v-spacer />
+        </v-toolbar>
+
+        <v-card
+          v-if="showLoginForm"
+          class="ma-0 pa-6"
+          outlined
+        >
+          <v-form
+            ref="form"
+            v-model="valid"
+            lazy-validation
+            @submit.prevent="connect()"
+          >
+            <v-text-field
+              ref="username"
+              v-model="username"
+              label="Username"
+              autofocus
+              :rules="[rules.required]"
+              :validate-on-blur="true"
+            />
+            <v-text-field
+              v-model="passwd"
+              label="Password"
+              type="password"
+              :rules="[rules.required]"
+              :validate-on-blur="true"
+            />
+            <v-btn
+              type="submit"
+              color="primary"
+              class="mt-4"
+              rounded
+            >
+              Connect
+            </v-btn>
+          </v-form>
+        </v-card>
+
+        <div ref="terminal" />
+      </v-card>
+    </v-dialog>
+  </fragment>
 </template>
 
 <script>
