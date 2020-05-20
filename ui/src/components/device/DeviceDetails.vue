@@ -57,13 +57,18 @@
         <v-spacer />
       
         <TerminalDialog :uid="device.uid" />
-      
+
         <v-btn icon>
-          <v-icon @click="remove()">
+          <v-icon @click="dialogDelete=true">
             delete
           </v-icon>
         </v-btn>
-      </v-toolbar>
+      </v-toolbar>  
+
+      <DeviceDelete   
+        :uid="device.uid"
+        :dialog="dialogDelete"
+      />
 
       <v-divider />
 
@@ -74,7 +79,7 @@
           </div>
           <div>{{ device.uid }}</div>
         </div>
-        
+
         <div class="mt-2">
           <div class="overline">
             MAC
@@ -103,7 +108,7 @@
 
     <div class="text-center">
       <v-dialog
-        v-model="dialog"
+        v-model="dialogError"
         persistent
         width="500"
       >
@@ -140,18 +145,21 @@
 import TerminalDialog from '@/components/terminal/TerminalDialog.vue';
 import moment from 'moment';
 import DeviceIcon from '@/components/device/DeviceIcon.vue';
+import DeviceDelete from '@/components/device/DeviceDelete.vue'; 
 
 export default {
   name: 'DeviceDetails',
 
   components: {
     TerminalDialog,
-    DeviceIcon
+    DeviceIcon,
+    DeviceDelete,
   },
 
   data() {
     return {
-      dialog:false,
+      dialogDelete: false,
+      dialogError:false,
       uid: '',
       hostname: window.location.hostname,
       editName: '',
@@ -167,9 +175,10 @@ export default {
       this.device = this.$store.getters['devices/get'];
     } catch(error){
       this.hide=false;
-      this.dialog=true;
+      this.dialogError=true;
     } 
   },
+
   methods: {
     save() {
       this.$store.dispatch('devices/rename', {
@@ -179,16 +188,12 @@ export default {
 
       this.device.name = this.editName;
     },
-    remove() {
-      if (confirm('Are you sure?')) {
-        this.$store.dispatch('devices/remove', this.device.uid);
-      }
-    },
+
     formatDate() {
       return moment(String(this.device.last_seen)).format('DD-MM-YYYY');
     },
     redirect(){
-      this.dialog=false;
+      this.dialogError=false;
       this.$router.push('/devices');
     }
   },
