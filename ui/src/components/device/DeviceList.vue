@@ -113,21 +113,9 @@
               :uid="item.uid"
             />
 
-            <v-tooltip bottom>
-              <template #activator="{ on }">
-                <v-icon
-                  v-on="on"
-                  @click="dialogDelete=true"
-                >
-                  delete
-                </v-icon>
-              </template>
-              <span>Delete</span>
-              <DeviceDelete   
-                :uid="item.uid"
-                :dialog="dialogDelete"
-              />
-            </v-tooltip>
+            <DeviceDelete   
+              :uid="item.uid"
+            />
           </template>
         </v-data-table>
       </v-card-text>
