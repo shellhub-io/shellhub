@@ -117,12 +117,16 @@
               <template #activator="{ on }">
                 <v-icon
                   v-on="on"
-                  @click="remove(item.uid)"
+                  @click="dialogDelete=true"
                 >
                   delete
                 </v-icon>
               </template>
               <span>Delete</span>
+              <DeviceDelete   
+                :uid="item.uid"
+                :dialog="dialogDelete"
+              />
             </v-tooltip>
           </template>
         </v-data-table>
@@ -141,6 +145,7 @@
 import TerminalDialog from '@/components/terminal/TerminalDialog.vue';
 import DeviceAdd from '@/components/device/DeviceAdd.vue';
 import DeviceIcon from '@/components/device/DeviceIcon.vue';
+import DeviceDelete from '@/components/device/DeviceDelete.vue';
 
 export default {
   name: 'DeviceList',
@@ -149,6 +154,7 @@ export default {
     TerminalDialog,
     DeviceAdd,
     DeviceIcon,
+    DeviceDelete
   },
 
   data() {
@@ -156,6 +162,7 @@ export default {
       hostname: window.location.hostname,
       numberDevices: 0,
       listDevices: [],
+      dialogDelete :false,
       pagination: {},
       copySnack: false,
       editName: '',
@@ -216,12 +223,6 @@ export default {
 
     copy(device) {
       this.$clipboard(device.uid);
-    },
-
-    remove(uid) {
-      if (confirm('Are you sure?')) {
-        this.$store.dispatch('devices/remove', uid);
-      }
     },
 
     showCopySnack() {
