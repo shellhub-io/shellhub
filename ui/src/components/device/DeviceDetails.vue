@@ -58,17 +58,11 @@
       
         <TerminalDialog :uid="device.uid" />
 
-        <v-btn icon>
-          <v-icon @click="dialogDelete=true">
-            delete
-          </v-icon>
-        </v-btn>
+        <DeviceDelete   
+          :uid="device.uid"
+          :dialog="dialogDelete"
+        />
       </v-toolbar>  
-
-      <DeviceDelete   
-        :uid="device.uid"
-        :dialog="dialogDelete"
-      />
 
       <v-divider />
 

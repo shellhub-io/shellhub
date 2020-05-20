@@ -9,12 +9,12 @@
           delete
         </v-icon>
       </template>
-      <span>Delete</span>
+      <span>Remove</span>
     </v-tooltip>
 
     <v-dialog
       v-model="dialog"
-      max-width="290"
+      max-width="400"
     >
       <v-card>
         <v-card-title class="headline">
@@ -22,26 +22,26 @@
         </v-card-title>
 
         <v-card-text>
-          Your device is going to be deleted
+          You are about to remove this device
         </v-card-text>
         
         <v-card-actions>
           <v-spacer />
 
           <v-btn
-            color="green darken-1"
+            color="primary"
             text
-            @click="dialog = !dialog"
+            @click="dialog=!dialog"
           >
-            Cancel
+            CANCEL
           </v-btn>
 
           <v-btn
-            color="green darken-1"
+            color="red darken-1"
             text
             @click="remove();"
           >
-            Ok
+            REMOVE
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -69,6 +69,7 @@ export default {
   methods:{
     async remove() {
       await this.$store.dispatch('devices/remove', this.uid);
+      this.$router.push('/devices');
     },
   }  
 };
