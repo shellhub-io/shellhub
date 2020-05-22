@@ -36,10 +36,12 @@
         class="hidden-lg-and-up"
         @click.stop="drawer = !drawer"
       />
-      <v-img
-        src="@/assets/logo-inverted.png"
-        max-width="160"
-      />
+      <router-link to="/">
+        <v-img
+          src="@/assets/logo-inverted.png"
+          max-width="160"
+        />
+      </router-link>
       <span class="overline mt-3">BETA</span>
       <v-spacer />
       <v-menu
