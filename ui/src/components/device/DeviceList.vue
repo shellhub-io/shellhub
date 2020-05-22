@@ -53,31 +53,13 @@
             </v-tooltip>
           </template>
 
-          <template v-slot:item.uid="{ item }">
-            <v-chip
-              class="short"
-              color="blue lighten-2"
-            >
-              <span>{{ item.uid }}</span>
-              <v-icon
-                v-clipboard="item.uid"
-                v-clipboard:success="showCopySnack"
-                small
-                dark
-                right@click.stop
-              >
-                mdi-content-copy none-text
-              </v-icon>
-            </v-chip>
+          <template v-slot:item.hostname="{ item }">
+            {{ item.name }}
           </template>
 
           <template v-slot:item.info.pretty_name="{ item }">
             <DeviceIcon :icon-name="item.info.id" />
             {{ item.info.pretty_name }}
-          </template>
-
-          <template v-slot:item.identity.mac="{ item }">
-            <code>{{ item.identity.mac }}</code>
           </template>
 
           <template v-slot:item.namespace="{ item }">
@@ -161,14 +143,15 @@ export default {
           align: 'center'
         },
         {
-          text: 'Name',
-          value: 'name'
+          text: 'Hostname',
+          value: 'hostname',
+          align: 'center'
         },
         {
           text: 'Operating System',
-          value: 'info.pretty_name'
+          value: 'info.pretty_name',
+          align: 'center'
         },
-
         {
           text: 'SSHID',
           value: 'namespace',
