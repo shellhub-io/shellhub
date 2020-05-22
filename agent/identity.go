@@ -64,26 +64,26 @@ func primaryIface() (*net.Interface, error) {
 
 		data, err := readSysFs(iface.Name, "type")
 		if err != nil {
-			break
+			continue
 		}
 
 		iftype, err := strconv.ParseUint(data, 10, 16)
 		if err != nil {
-			break
+			continue
 		}
 
 		if iftype != syscall.ARPHRD_ETHER {
-			break
+			continue
 		}
 
 		data, err = readSysFs(iface.Name, "ifindex")
 		if err != nil {
-			break
+			continue
 		}
 
 		ifindex, err := strconv.ParseUint(data, 10, 16)
 		if err != nil {
-			break
+			continue
 		}
 
 		if ifindex < min {
