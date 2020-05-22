@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
@@ -95,9 +96,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	currentVersion, err := updater.CurrentVersion()
-	if err != nil {
-		logrus.Panic(err)
+	currentVersion := new(semver.Version)
+
+	if AgentVersion != "latest" {
+		currentVersion, err = updater.CurrentVersion()
+		if err != nil {
+			logrus.Panic(err)
+		}
 	}
 
 	info := models.Info{}
@@ -179,24 +184,27 @@ func main() {
 		}
 	}()
 
-	go func() {
-		for {
-			nextVersion, err := CheckUpdate(opts.ServerAddress)
-			if err != nil {
-				logrus.Error(err)
-				goto sleep
-			}
-
-			if nextVersion.GreaterThan(currentVersion) {
-				if err := updater.ApplyUpdate(nextVersion); err != nil {
+	// Disable check update in development mode
+	if AgentVersion != "latest" {
+		go func() {
+			for {
+				nextVersion, err := CheckUpdate(opts.ServerAddress)
+				if err != nil {
 					logrus.Error(err)
+					goto sleep
 				}
-			}
 
-		sleep:
-			time.Sleep(time.Hour * 24)
-		}
-	}()
+				if nextVersion.GreaterThan(currentVersion) {
+					if err := updater.ApplyUpdate(nextVersion); err != nil {
+						logrus.Error(err)
+					}
+				}
+
+			sleep:
+				time.Sleep(time.Hour * 24)
+			}
+		}()
+	}
 
 	ticker := time.NewTicker(10 * time.Second)
 
