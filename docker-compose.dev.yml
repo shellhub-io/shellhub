@@ -54,6 +54,7 @@ services:
       - /:/host
       - /etc/passwd:/etc/passwd
       - /etc/group:/etc/group
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - api
       - ssh
