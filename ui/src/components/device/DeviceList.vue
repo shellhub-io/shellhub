@@ -36,7 +36,6 @@
             <v-icon
               v-if="item.online"
               color="success"
-              @click.stop="detailsDevice(item)"
             >
               check_circle
             </v-icon>
@@ -54,7 +53,9 @@
           </template>
 
           <template v-slot:item.hostname="{ item }">
-            {{ item.name }}
+            <router-link :to="{ name: 'detailsDevice', params: { id: item.uid } }">
+              {{ item.name }}
+            </router-link>
           </template>
 
           <template v-slot:item.info.pretty_name="{ item }">
@@ -222,3 +223,4 @@ export default {
 }
 
 </style>
+
