@@ -1,5 +1,12 @@
 <template>
   <fragment>
+    <v-alert
+      v-if="flag"
+      type="warning"
+      outlined
+    >
+      Sorry, we couldn't find the page you were looking for
+    </v-alert>
     <v-row>
       <v-col
         cols="12"
@@ -129,6 +136,12 @@ export default {
     DeviceAdd
   },
 
+  data(){
+    return {
+      flag: false
+    };
+  },
+
   computed: {
     stats() {
       return this.$store.getters['stats/stats'];
@@ -137,6 +150,12 @@ export default {
 
   created() {
     this.$store.dispatch('stats/get');
+  },
+
+  mounted() {
+    this.flag = localStorage.getItem('flag');
+    localStorage.removeItem('flag');
   }
 };
 </script>
+
