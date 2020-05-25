@@ -24,36 +24,30 @@ var migrations = []migrate.Migration{
 	{
 		Version: 2,
 		Up: func(db *mongo.Database) error {
-			_, err := db.Collection("sessions").UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{"device": "device_uid"}})
-			return err
+			return renameField(db, "sessions", "device", "device_uid")
 		},
 		Down: func(db *mongo.Database) error {
-			_, err := db.Collection("sessions").UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{"device_uid": "device"}})
-			return err
+			return renameField(db, "sessions", "device_uid", "device")
 		},
 	},
 	// Version 3
 	{
 		Version: 3,
 		Up: func(db *mongo.Database) error {
-			_, err := db.Collection("devices").UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{"attributes": "info"}})
-			return err
+			return renameField(db, "devices", "attributes", "info")
 		},
 		Down: func(db *mongo.Database) error {
-			_, err := db.Collection("devices").UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{"info": "attributes"}})
-			return err
+			return renameField(db, "devices", "info", "attributes")
 		},
 	},
 	// Version 4
 	{
 		Version: 4,
 		Up: func(db *mongo.Database) error {
-			_, err := db.Collection("devices").UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{"version": "info.version"}})
-			return err
+			return renameField(db, "devices", "version", "info.version")
 		},
 		Down: func(db *mongo.Database) error {
-			_, err := db.Collection("devices").UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{"info.version": "version"}})
-			return err
+			return renameField(db, "devices", "info.version", "version")
 		},
 	},
 	{
