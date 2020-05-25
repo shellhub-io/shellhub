@@ -57,6 +57,7 @@ jobs:
       run: go test -v ./...
     
     - name: SonarCloud Scan
+      if: matrix.project == 'api'
       uses: sonarsource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
