@@ -1,0 +1,56 @@
+name: build-tag-push-go
+
+on:
+  push:
+    tags:        
+      - v* 
+    paths-ignore:
+    - 'ui/**'
+
+jobs:
+
+  build-tag-push:
+    name: build-tag-push
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [ api,  agent,  pkg,  ssh ]
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.14
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      working-directory: ${{ matrix.project }}
+      run: go mod download
+
+    - uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
+    - name: Get release version
+      id: get_version
+      run: echo ::set-env name=RELEASE_VERSION::$(echo ${GITHUB_REF:10})
+
+    - name: Publish to Registry
+      if: matrix.project != 'pkg' && matrix.project != 'agent' 
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: gomex/${{ matrix.project }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        tags: "latest,${{ env.RELEASE_VERSION }}"
+        dockerfile: ${{ matrix.project }}/Dockerfile
