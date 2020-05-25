@@ -1,6 +1,6 @@
 // +build docker
 
-package main
+package selfupdater
 
 import (
 	"bufio"
@@ -172,7 +172,7 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 
 }
 
-func NewUpdater() (Updater, error) {
+func NewUpdater(_ string) (Updater, error) {
 	api, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return nil, err

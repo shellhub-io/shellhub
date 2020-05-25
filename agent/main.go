@@ -19,6 +19,9 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
+	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
+	"github.com/shellhub-io/shellhub/agent/selfupdater"
+	"github.com/shellhub-io/shellhub/agent/sshd"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
@@ -33,49 +36,8 @@ type ConfigOptions struct {
 	TenantID      string `envconfig:"tenant_id"`
 }
 
-func buildAPIUrl(protocol string, e *models.Endpoints, uri string) string {
-	return fmt.Sprintf("%s://%s/api/%s", protocol, e.API, uri)
-}
-
-func sendAuthRequest(endpoints *models.Endpoints, protocol string, identity *models.DeviceIdentity, info *models.DeviceInfo, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*models.DeviceAuthResponse, error) {
-	var auth models.DeviceAuthResponse
-
-	_, _, errs := gorequest.New().Post(buildAPIUrl(protocol, endpoints, "/devices/auth")).Send(&models.DeviceAuthRequest{
-		Info:     info,
-		Sessions: sessions,
-		DeviceAuth: &models.DeviceAuth{
-			Identity: identity,
-			TenantID: tenantID,
-			PublicKey: string(pem.EncodeToMemory(&pem.Block{
-				Type:  "RSA PUBLIC KEY",
-				Bytes: x509.MarshalPKCS1PublicKey(pubKey),
-			})),
-		},
-	}).EndStruct(&auth)
-	if len(errs) > 0 {
-		return nil, errs[0]
-	}
-
-	return &auth, nil
-}
-
-func Revdial(ctx context.Context, protocol, address, path string) (*websocket.Conn, *http.Response, error) {
-	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s", protocol, address), path}, ""), nil)
-}
-
 type Information struct {
 	SSHID string `json:"sshid"`
-}
-
-func getInfo(input string) string {
-	info := Information{
-		SSHID: input,
-	}
-	prettyJSON, err := json.MarshalIndent(info, "", "    ")
-	if err != nil {
-		logrus.WithFields(logrus.Fields{"err": err}).Fatal("Failed to generate json")
-	}
-	return string(prettyJSON)
 }
 
 func main() {
@@ -86,7 +48,7 @@ func main() {
 		logrus.Panic(err)
 	}
 
-	updater, err := NewUpdater()
+	updater, err := selfupdater.NewUpdater(AgentVersion)
 	if err != nil {
 		logrus.Panic(err)
 	}
@@ -112,33 +74,29 @@ func main() {
 		logrus.WithFields(logrus.Fields{"err": errs[0]}).Fatal("Failed to get endpoints")
 	}
 
-	identity, err := GetDeviceIdentity()
+	device, err := NewDevice()
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	devinfo, err := GetDeviceInfo()
-	if err != nil {
-		logrus.Fatal(err)
-	}
-	devinfo.Version = AgentVersion
+	device.Info.Version = AgentVersion
 
 	if _, err := os.Stat(opts.PrivateKey); os.IsNotExist(err) {
 		logrus.Info("Private key not found. Generating...")
-		err := generatePrivateKey(opts.PrivateKey)
+		err := keygen.GeneratePrivateKey(opts.PrivateKey)
 		if err != nil {
 			logrus.Fatal(err)
 		}
 	}
 
-	pubKey, err := readPublicKey(opts.PrivateKey)
+	pubKey, err := keygen.ReadPublicKey(opts.PrivateKey)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
 	serverURL, _ := url.Parse(opts.ServerAddress)
 
-	auth, err := sendAuthRequest(&info.Endpoints, serverURL.Scheme, identity, devinfo, pubKey, opts.TenantID, []string{})
+	auth, err := sendAuthRequest(&info.Endpoints, serverURL.Scheme, device.Identity, device.Info, pubKey, opts.TenantID, []string{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
@@ -147,18 +105,18 @@ func main() {
 		return
 	}
 
-	server := NewSSHServer(opts.PrivateKey)
+	server := sshd.NewSSHServer(opts.PrivateKey)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		conn := r.Context().Value("http-conn").(net.Conn)
-		server.sessions[vars["id"]] = conn
-		server.sshd.HandleConn(conn)
+		server.Sessions[vars["id"]] = conn
+		server.HandleConn(conn)
 	})
 	router.HandleFunc("/ssh/close/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		server.closeSession(vars["id"])
+		server.CloseSession(vars["id"])
 	}).Methods("DELETE")
 
 	sv := http.Server{
@@ -209,12 +167,12 @@ func main() {
 	ticker := time.NewTicker(10 * time.Second)
 
 	for range ticker.C {
-		sessions := make([]string, 0, len(server.sessions))
-		for key := range server.sessions {
+		sessions := make([]string, 0, len(server.Sessions))
+		for key := range server.Sessions {
 			sessions = append(sessions, key)
 		}
 
-		auth, err = sendAuthRequest(&info.Endpoints, serverURL.Scheme, identity, devinfo, pubKey, opts.TenantID, sessions)
+		auth, err = sendAuthRequest(&info.Endpoints, serverURL.Scheme, device.Identity, device.Info, pubKey, opts.TenantID, sessions)
 		if err == nil {
 			server.SetDeviceName(auth.Name)
 		}
@@ -236,4 +194,56 @@ func NewListener(host, protocol, token string) (*revdial.Listener, error) {
 	})
 
 	return listener, nil
+}
+
+func buildAPIUrl(protocol string, e *models.Endpoints, uri string) string {
+	return fmt.Sprintf("%s://%s/api/%s", protocol, e.API, uri)
+}
+
+func sendAuthRequest(endpoints *models.Endpoints, protocol string, identity *models.DeviceIdentity, info *models.DeviceInfo, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*models.DeviceAuthResponse, error) {
+	var auth models.DeviceAuthResponse
+
+	_, _, errs := gorequest.New().Post(buildAPIUrl(protocol, endpoints, "/devices/auth")).Send(&models.DeviceAuthRequest{
+		Info:     info,
+		Sessions: sessions,
+		DeviceAuth: &models.DeviceAuth{
+			Identity: identity,
+			TenantID: tenantID,
+			PublicKey: string(pem.EncodeToMemory(&pem.Block{
+				Type:  "RSA PUBLIC KEY",
+				Bytes: x509.MarshalPKCS1PublicKey(pubKey),
+			})),
+		},
+	}).EndStruct(&auth)
+	if len(errs) > 0 {
+		return nil, errs[0]
+	}
+
+	return &auth, nil
+}
+
+func Revdial(ctx context.Context, protocol, address, path string) (*websocket.Conn, *http.Response, error) {
+	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s", protocol, address), path}, ""), nil)
+}
+
+func CheckUpdate(server string) (*semver.Version, error) {
+	info := models.Info{}
+
+	_, _, errs := gorequest.New().Get(fmt.Sprintf("%s/info", server)).EndStruct(&info)
+	if len(errs) > 0 {
+		return nil, errs[0]
+	}
+
+	return semver.NewVersion(info.Version)
+}
+
+func getInfo(input string) string {
+	info := Information{
+		SSHID: input,
+	}
+	prettyJSON, err := json.MarshalIndent(info, "", "    ")
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"err": err}).Fatal("Failed to generate json")
+	}
+	return string(prettyJSON)
 }

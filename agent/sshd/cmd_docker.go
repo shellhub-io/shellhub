@@ -1,6 +1,6 @@
 // +build docker
 
-package main
+package sshd
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/agent/internal/osauth"
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 )
 
 func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {

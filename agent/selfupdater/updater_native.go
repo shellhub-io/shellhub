@@ -1,16 +1,17 @@
 // +build !docker
 
-package main
+package selfupdater
 
 import (
 	"github.com/Masterminds/semver"
 )
 
 type nativeUpdater struct {
+	version string
 }
 
 func (n *nativeUpdater) CurrentVersion() (*semver.Version, error) {
-	return semver.NewVersion(AgentVersion)
+	return semver.NewVersion(n.version)
 }
 
 func (n *nativeUpdater) ApplyUpdate(_ *semver.Version) error {
@@ -21,6 +22,6 @@ func (n *nativeUpdater) CompleteUpdate() error {
 	return nil
 }
 
-func NewUpdater() (Updater, error) {
-	return &nativeUpdater{}, nil
+func NewUpdater(version string) (Updater, error) {
+	return &nativeUpdater{version}, nil
 }

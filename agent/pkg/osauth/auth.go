@@ -1,5 +1,3 @@
-// +build docker
-
 package osauth
 
 /*
@@ -18,7 +16,7 @@ import (
 	"unsafe"
 )
 
-const passwdFilename = "/host/etc/passwd"
+var DefaultShadowFilename = "/etc/shadow"
 
 func AuthUser(user, passwd string) bool {
 	cuser := C.CString(user)
@@ -27,7 +25,7 @@ func AuthUser(user, passwd string) bool {
 	cpasswd := C.CString(passwd)
 	defer C.free(unsafe.Pointer(cpasswd))
 
-	cfilename := C.CString("/host/etc/shadow")
+	cfilename := C.CString(DefaultShadowFilename)
 	defer C.free(unsafe.Pointer(cfilename))
 
 	cmode := C.CString("r")
@@ -53,9 +51,5 @@ func AuthUser(user, passwd string) bool {
 
 	crypted := C.crypt(cpasswd, pwd.sp_pwdp)
 
-	if C.strcmp(crypted, pwd.sp_pwdp) != 0 {
-		return false
-	}
-
-	return true
+	return C.strcmp(crypted, pwd.sp_pwdp) == 0
 }
