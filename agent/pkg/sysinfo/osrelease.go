@@ -1,4 +1,4 @@
-package osrelease
+package sysinfo
 
 import (
 	"bufio"
@@ -8,8 +8,37 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 )
 
-func GetValue(key string) (string, error) {
-	file, err := os.Open(osRelease)
+var DefaultOSReleaseFilename = "/etc/os-release"
+
+type OSRelease struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+func GetOSRelease() (*OSRelease, error) {
+	id, err := getValueFromOsRelease("ID")
+	if err != nil {
+		return nil, err
+	}
+
+	name, err := getValueFromOsRelease("PRETTY_NAME")
+	if err != nil {
+		return nil, err
+	}
+
+	if name == "" {
+		name, err = getValueFromOsRelease("PRETTY_NAME")
+		if err != nil {
+			return nil, err
+		}
+
+	}
+
+	return &OSRelease{id, name}, nil
+}
+
+func getValueFromOsRelease(key string) (string, error) {
+	file, err := os.Open(DefaultOSReleaseFilename)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return "", err

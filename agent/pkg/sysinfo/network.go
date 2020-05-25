@@ -1,4 +1,4 @@
-package main
+package sysinfo
 
 import (
 	"errors"
@@ -9,46 +9,11 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-
-	"github.com/shellhub-io/shellhub/agent/internal/osrelease"
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 var ErrNoInterfaceFound = errors.New("No interface found")
 
-func GetDeviceIdentity() (*models.DeviceIdentity, error) {
-	d := &models.DeviceIdentity{}
-
-	iface, err := primaryIface()
-	if err != nil {
-		return nil, err
-	}
-
-	d.MAC = iface.HardwareAddr.String()
-
-	return d, nil
-}
-
-func GetDeviceInfo() (*models.DeviceInfo, error) {
-	attr := &models.DeviceInfo{}
-
-	id, err := osrelease.GetValue("ID")
-	if err != nil {
-		return nil, err
-	}
-
-	name, err := osrelease.GetValue("PRETTY_NAME")
-	if err != nil {
-		return nil, err
-	}
-
-	attr.ID = id
-	attr.PrettyName = name
-
-	return attr, nil
-}
-
-func primaryIface() (*net.Interface, error) {
+func PrimaryInterface() (*net.Interface, error) {
 	interfaces, err := net.Interfaces()
 	if err != nil {
 		return nil, ErrNoInterfaceFound

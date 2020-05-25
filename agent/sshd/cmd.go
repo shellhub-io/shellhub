@@ -1,13 +1,13 @@
 // +build !docker
 
-package main
+package sshd
 
 import (
 	"os/exec"
 	"strconv"
 	"syscall"
 
-	"github.com/shellhub-io/shellhub/agent/internal/osauth"
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 )
 
 func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {

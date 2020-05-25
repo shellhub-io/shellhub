@@ -1,4 +1,4 @@
-package main
+package sshd
 
 import (
 	"C"
@@ -11,7 +11,7 @@ import (
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/kr/pty"
-	"github.com/shellhub-io/shellhub/agent/internal/osauth"
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,7 +35,7 @@ func (c *sshConn) Close() error {
 type SSHServer struct {
 	sshd       *sshserver.Server
 	cmds       map[string]*exec.Cmd
-	sessions   map[string]net.Conn
+	Sessions   map[string]net.Conn
 	deviceName string
 	mu         sync.Mutex
 }
@@ -43,7 +43,7 @@ type SSHServer struct {
 func NewSSHServer(privateKey string) *SSHServer {
 	s := &SSHServer{
 		cmds:     make(map[string]*exec.Cmd),
-		sessions: make(map[string]net.Conn),
+		Sessions: make(map[string]net.Conn),
 	}
 
 	s.sshd = &sshserver.Server{
@@ -76,6 +76,10 @@ func NewSSHServer(privateKey string) *SSHServer {
 
 func (s *SSHServer) ListenAndServe() error {
 	return s.sshd.ListenAndServe()
+}
+
+func (s *SSHServer) HandleConn(conn net.Conn) {
+	s.sshd.HandleConn(conn)
 }
 
 func (s *SSHServer) SetDeviceName(name string) {
@@ -169,10 +173,10 @@ func (s *SSHServer) publicKeyHandler(_ sshserver.Context, _ sshserver.PublicKey)
 	return true
 }
 
-func (s *SSHServer) closeSession(id string) {
-	if session, ok := s.sessions[id]; ok {
+func (s *SSHServer) CloseSession(id string) {
+	if session, ok := s.Sessions[id]; ok {
 		session.Close()
-		delete(s.sessions, id)
+		delete(s.Sessions, id)
 	}
 }
 

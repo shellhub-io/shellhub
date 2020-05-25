@@ -1,4 +1,4 @@
-package main
+package keygen
 
 import (
 	"crypto/rand"
@@ -12,7 +12,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func generatePrivateKey(filename string) error {
+var ErrPemDecode = errors.New("PEM decode error")
+
+func GeneratePrivateKey(filename string) error {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return err
@@ -48,7 +50,7 @@ func generatePrivateKey(filename string) error {
 	return f.Sync()
 }
 
-func readPublicKey(filename string) (*rsa.PublicKey, error) {
+func ReadPublicKey(filename string) (*rsa.PublicKey, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -56,7 +58,7 @@ func readPublicKey(filename string) (*rsa.PublicKey, error) {
 
 	block, _ := pem.Decode(data)
 	if block == nil {
-		return nil, errors.New("Failed to decode PEM")
+		return nil, ErrPemDecode
 	}
 
 	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)

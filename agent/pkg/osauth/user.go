@@ -15,6 +15,8 @@ import (
 	"unsafe"
 )
 
+var DefaultPasswdFilename = "/etc/passwd"
+
 type User struct {
 	UID      string
 	GID      string
@@ -28,7 +30,7 @@ func LookupUser(username string) *User {
 	cuser := C.CString(username)
 	defer C.free(unsafe.Pointer(cuser))
 
-	cfilename := C.CString(passwdFilename)
+	cfilename := C.CString(DefaultPasswdFilename)
 	defer C.free(unsafe.Pointer(cfilename))
 
 	cmode := C.CString("r")
