@@ -3,8 +3,6 @@ version: 2.1
 executors:
   docker:
     environment:
-      API_IMAGE_NAME: shellhubio/shellhub-api
-      SSH_IMAGE_NAME: shellhubio/shellhub-ssh
       UI_IMAGE_NAME: shellhubio/shellhub-ui
       GATEWAY_IMAGE_NAME: shellhubio/shellhub-gateway
       AGENT_IMAGE_NAME: shellhubio/agent
@@ -17,12 +15,6 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run:
-          name: Build API microservice
-          command: docker build -t $API_IMAGE_NAME:$CIRCLE_SHA1 -f api/Dockerfile .
-      - run:
-          name: Build SSH microservice
-          command: docker build -t $SSH_IMAGE_NAME:$CIRCLE_SHA1 -f ssh/Dockerfile .
       - run:
           name: Build UI microservice
           working_directory: ui
@@ -64,12 +56,6 @@ jobs:
           command: |
             docker load -i /tmp/workspace/images.tar
             awk '{ print "docker tag "$3" "$1":"$2"" | "/bin/sh"}' /tmp/workspace/tags.txt
-      - run:
-          name: Publish API microservice image
-          command: ./.circleci/push.sh $API_IMAGE_NAME
-      - run:
-          name: Publish SSH microservice image
-          command: ./.circleci/push.sh $SSH_IMAGE_NAME
       - run:
           name: Publish UI microservice image
           command: ./.circleci/push.sh $UI_IMAGE_NAME
