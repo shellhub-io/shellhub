@@ -29,3 +29,8 @@ func aggregateCount(ctx context.Context, coll *mongo.Collection, query []bson.M)
 
 	return resp.Count, nil
 }
+
+func renameField(db *mongo.Database, coll, from, to string) error {
+	_, err := db.Collection(coll).UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{from: to}})
+	return err
+}
