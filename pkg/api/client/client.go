@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	DeviceUIDHeader = "X-Device-UID"
+
 	ConnectionFailedErr = "Connection failed"
 	NotFoundErr         = "Not found"
 	UnknownErr          = "Unknown error"

@@ -18,6 +18,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/services/deviceadm"
 	"github.com/shellhub-io/shellhub/api/pkg/services/sessionmngr"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
+	api "github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	mgo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -29,6 +30,10 @@ type config struct {
 }
 
 var verifyKey *rsa.PublicKey
+
+const (
+	TenantIDHeader = "X-Tenant-ID"
+)
 
 func main() {
 	e := echo.New()
@@ -78,7 +83,7 @@ func main() {
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			tenant := c.Request().Header.Get("X-Tenant-ID")
+			tenant := c.Request().Header.Get(TenantIDHeader)
 
 			ctx := context.WithValue(c.Request().Context(), "db", client.Database("main"))
 
@@ -174,7 +179,7 @@ func main() {
 	})
 
 	publicAPI.DELETE("/devices/:uid", func(c echo.Context) error {
-		tenant := c.Request().Header.Get("X-Tenant-ID")
+		tenant := c.Request().Header.Get(TenantIDHeader)
 		ctx := c.Get("ctx").(context.Context)
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := deviceadm.NewService(store)
@@ -189,7 +194,7 @@ func main() {
 	})
 
 	publicAPI.PATCH("/devices/:uid", func(c echo.Context) error {
-		tenant := c.Request().Header.Get("X-Tenant-ID")
+		tenant := c.Request().Header.Get(TenantIDHeader)
 		var req struct {
 			Name string `json:"name"`
 		}
@@ -245,7 +250,7 @@ func main() {
 			}
 
 			// Extract tenant from JWT
-			c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
+			c.Response().Header().Set(TenantIDHeader, claims.Tenant)
 
 			return nil
 		case "device":
@@ -256,7 +261,7 @@ func main() {
 			}
 
 			// Extract device UID from JWT
-			c.Response().Header().Set("X-Device-UID", claims.UID)
+			c.Response().Header().Set(api.DeviceUIDHeader, claims.UID)
 
 			return nil
 		}

@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/websocket"
 
 	"github.com/parnurzeal/gorequest"
+	api "github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/sirupsen/logrus"
 )
@@ -24,7 +25,7 @@ func main() {
 
 	tunnel := httptunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
 	tunnel.ConnectionHandler = func(r *http.Request) (string, error) {
-		uid := r.Header.Get("X-Device-UID")
+		uid := r.Header.Get(api.DeviceUIDHeader)
 		return uid, nil
 	}
 
