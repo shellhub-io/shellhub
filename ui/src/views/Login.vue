@@ -38,6 +38,7 @@
               prepend-icon="person"
               label="Username"
               type="text"
+              data-cy="username-text"
             />
             <v-text-field
               id="password"
@@ -46,6 +47,7 @@
               prepend-icon="lock"
               label="Password"
               type="password"
+              data-cy="password-text"
             />
           </v-card-text>
 
@@ -54,6 +56,7 @@
             <v-btn
               type="submit"
               color="primary"
+              data-cy="login-btn-text"
             >
               Submit
             </v-btn>
