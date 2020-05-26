@@ -7,6 +7,7 @@ import (
 	"encoding/pem"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 )
@@ -14,6 +15,16 @@ import (
 func generatePrivateKey(filename string) error {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
+		return err
+	}
+
+	_, err = os.Stat(filepath.Dir(filename))
+	if os.IsNotExist(err) {
+		// Create parent directory if it does not exist
+		if err = os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
+			return err
+		}
+	} else if err != nil {
 		return err
 	}
 
