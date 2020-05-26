@@ -25,6 +25,14 @@ func NewStore(db *mongo.Database) *Store {
 
 func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []models.Filter) ([]models.Device, int, error) {
 	skip := perPage * (page - 1)
+
+	query := queryDevices()
+
+	query = append(query, bson.M{
+		"$sort": bson.M{"last_seen": -1},
+	})
+
+	// Apply filters if any
 	var queryFilter []bson.M
 	for _, filter := range filters {
 		if filter.Type != "property" {
@@ -57,39 +65,6 @@ func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []mo
 			})
 		}
 	}
-
-	query := []bson.M{
-		{
-
-			"$lookup": bson.M{
-				"from":         "connected_devices",
-				"localField":   "uid",
-				"foreignField": "uid",
-				"as":           "online",
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "users",
-				"localField":   "tenant_id",
-				"foreignField": "tenant_id",
-				"as":           "namespace",
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
-				"namespace": "$namespace.username",
-			},
-		},
-		{
-			"$unwind": "$namespace",
-		},
-	}
-
-	query = append(query, bson.M{
-		"$sort": bson.M{"last_seen": -1},
-	})
 
 	// Apply filters if any
 	if len(queryFilter) > 0 {
@@ -143,36 +118,9 @@ func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []mo
 }
 
 func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
-	query := []bson.M{
-		{
-			"$match": bson.M{"uid": uid},
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "connected_devices",
-				"localField":   "uid",
-				"foreignField": "uid",
-				"as":           "online",
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "users",
-				"localField":   "tenant_id",
-				"foreignField": "tenant_id",
-				"as":           "namespace",
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
-				"namespace": "$namespace.username",
-			},
-		},
-		{
-			"$unwind": "$namespace",
-		},
-	}
+	query := append(queryDevices(), bson.M{
+		"$match": bson.M{"uid": uid},
+	})
 
 	// Only match for the respective tenant if requested
 	if tenant := store.TenantFromContext(ctx); tenant != nil {
@@ -673,4 +621,35 @@ func EnsureIndexes(db *mongo.Database) error {
 		return err
 	}
 	return nil
+}
+
+func queryDevices() []bson.M {
+	return []bson.M{
+		{
+
+			"$lookup": bson.M{
+				"from":         "connected_devices",
+				"localField":   "uid",
+				"foreignField": "uid",
+				"as":           "online",
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "users",
+				"localField":   "tenant_id",
+				"foreignField": "tenant_id",
+				"as":           "namespace",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
+				"namespace": "$namespace.username",
+			},
+		},
+		{
+			"$unwind": "$namespace",
+		},
+	}
 }
