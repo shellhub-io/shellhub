@@ -82,6 +82,10 @@ func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []mo
 		},
 	}
 
+	query = append(query, bson.M{
+		"$sort": bson.M{"last_seen": -1},
+	})
+
 	// Apply filters if any
 	if len(queryFilter) > 0 {
 		query = append(query, bson.M{
