@@ -3,8 +3,8 @@ version: 2.1
 executors:
   docker:
     environment:
-      UI_IMAGE_NAME: shellhubio/shellhub-ui
-      GATEWAY_IMAGE_NAME: shellhubio/shellhub-gateway
+      UI_IMAGE_NAME: shellhubio/ui
+      GATEWAY_IMAGE_NAME: shellhubio/gateway
       AGENT_IMAGE_NAME: shellhubio/agent
       DOCKER_CLI_EXPERIMENTAL: enabled
     docker:
