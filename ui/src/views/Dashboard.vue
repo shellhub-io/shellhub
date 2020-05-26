@@ -39,6 +39,7 @@
             <DeviceAdd />
             <v-btn
               text
+              data-cy="addDevice-btn"
               @click="$store.dispatch('modals/showAddDevice', true)"
             >
               Add Device
@@ -78,6 +79,7 @@
             <v-btn
               to="/devices"
               text
+              data-cy="viewDevices-btn"
             >
               View all Devices
             </v-btn>
@@ -116,6 +118,7 @@
             <v-btn
               to="/sessions"
               text
+              data-cy="viewSessions-btn"
             >
               View all Sessions
             </v-btn>
