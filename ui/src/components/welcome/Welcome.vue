@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    v-model="show"
+    v-model="disp"
     :retain-focus="false"
     persistent
     max-width="800px"
@@ -10,7 +10,7 @@
         class="headline grey lighten-2 text-center"
         primary-title
       >
-        Welcome to ShellHub
+        Welcome to ShellHub, {{ $store.getters["auth/currentUser"] }}
       </v-card-title>
 
       <v-card-actions v-if="screenFirst">
@@ -34,7 +34,7 @@
         
         <v-btn
           text
-          @click="nextScren"
+          @click="disp"
         >
           Next
         </v-btn>
@@ -82,6 +82,7 @@ export default {
       copySnack: false,      
       allowsUserContinue: false,
       screenFirst: true,
+      active: 0
     };
   },
 
@@ -100,6 +101,14 @@ export default {
       }
     }
   },
+  beforeDestroy(){
+    clearInterval(this.active);
+  },
+
+  created(){
+    this.pollingDevices();
+  },
+
   methods:{
     command() {
       return `curl "${location.protocol}//${this.hostname}/install.sh?tenant_id=${this.tenant}" | sh`;
@@ -122,12 +131,24 @@ export default {
       }
     },
 
+    pollingDevices(){
+      this.active=setInterval(async()=>{
+        await this.$store.dispatch('devices/fetch', {});
+      },3000);  
+    },
+
     nextScren() {
       this.screenFirst = false;
     },
 
     backScreen() {
       this.screenFirst = true;
+    },
+
+    disp(){
+      // eslint-disable-next-line no-console
+      console.log(this.active);
+      this.screenFirst = false;
     }
 
   }
