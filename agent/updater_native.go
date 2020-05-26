@@ -13,9 +13,8 @@ func (n *nativeUpdater) CurrentVersion() (*semver.Version, error) {
 	return semver.NewVersion(AgentVersion)
 }
 
-func (n *nativeUpdater) ApplyUpdate(v *semver.Version) error {
+func (n *nativeUpdater) ApplyUpdate(_ *semver.Version) error {
 	return nil
-
 }
 
 func (n *nativeUpdater) CompleteUpdate() error {
