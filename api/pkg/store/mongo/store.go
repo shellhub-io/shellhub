@@ -27,20 +27,25 @@ func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []mo
 	skip := perPage * (page - 1)
 	var queryFilter []bson.M
 	for _, filter := range filters {
-		if filter.Type == "property" && filter.Params.Operator == "like" {
+		if filter.Type != "property" {
+			continue
+		}
+
+		switch filter.Params.Operator {
+		case "like":
 			queryFilter = append(queryFilter, bson.M{
 				filter.Params.Name: bson.M{
 					"$regex":   filter.Params.Value,
 					"$options": "i",
 				},
 			})
-		} else if filter.Type == "property" && filter.Params.Operator == "eq" {
+		case "eq":
 			queryFilter = append(queryFilter, bson.M{
 				filter.Params.Name: bson.M{
 					"$eq": filter.Params.Value,
 				},
 			})
-		} else if filter.Type == "property" && filter.Params.Operator == "bool" {
+		case "bool":
 			operator, err := strconv.ParseBool(filter.Params.Value)
 			if err != nil {
 				return nil, 0, err
