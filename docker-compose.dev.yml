@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   ssh:
-    image: shellhub-ssh
+    image: ssh
     build:
       context: .
       dockerfile: ssh/Dockerfile
@@ -11,7 +11,7 @@ services:
       - ./ssh:/go/src/github.com/shellhub-io/shellhub/ssh
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
   api:
-    image: shellhub-api
+    image: api
     build:
       context: .
       dockerfile: api/Dockerfile
@@ -20,20 +20,20 @@ services:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
   ui:
-    image: shellhub-ui
+    image: ui
     build:
       context: ui
       target: development
     volumes:
       - ./ui:/src
   gateway:
-    image: shellhub-gateway
+    image: gateway
     build:
       context: gateway
     environment:
       - SHELLHUB_VERSION=latest
   agent:
-    image: shellhub-agent
+    image: agent
     build:
       context: .
       dockerfile: agent/Dockerfile
