@@ -15,7 +15,6 @@ const store = new Vuex.Store({
     }
   },
   getters: {
-    getCurrentLocation: (state) => state.currentLocation
   }
 });
 

@@ -56,7 +56,7 @@
             <v-btn
               type="submit"
               color="primary"
-              data-cy="login-btn-text"
+              data-cy="login-btn"
             >
               Submit
             </v-btn>
