@@ -14,46 +14,7 @@
         flat
         color="transparent"
       >
-        <v-edit-dialog
-          :return-value="editName"
-          large
-          @open="editName = device.name"
-          @save="save()"
-        >
-          <v-text-field
-            slot="input"
-            v-model="editName"
-            label="Edit"
-            single-line
-          />
-          <v-toolbar-title>
-            <v-icon
-              v-if="device.online"
-              color="success"
-            >
-              check_circle
-            </v-icon>
-            <v-tooltip
-              v-else
-              bottom
-            >
-              <template #activator="{ on }">
-                <v-icon v-on="on">
-                  check_circle
-                </v-icon>
-              </template>
-              <span>active {{ device.last_seen | moment("from", "now") }}</span>
-            </v-tooltip>
-            {{ device.name }}
-            <v-icon
-              small
-              left
-            >
-              mdi-file-edit
-            </v-icon>
-          </v-toolbar-title>
-        </v-edit-dialog>
-      
+        <DeviceRename />
         <v-spacer />
       
         <TerminalDialog :uid="device.uid" />
@@ -141,6 +102,7 @@ import TerminalDialog from '@/components/terminal/TerminalDialog.vue';
 import moment from 'moment';
 import DeviceIcon from '@/components/device/DeviceIcon.vue';
 import DeviceDelete from '@/components/device/DeviceDelete.vue'; 
+import DeviceRename from  '@/components/device/DeviceRename.vue'; 
 
 export default {
   name: 'DeviceDetails',
@@ -149,6 +111,7 @@ export default {
     TerminalDialog,
     DeviceIcon,
     DeviceDelete,
+    DeviceRename,
   },
 
   data() {
@@ -174,14 +137,6 @@ export default {
     } 
   },
   methods: {
-    save() {
-      this.$store.dispatch('devices/rename', {
-        uid: this.device.uid,
-        name: this.editName
-      });
-
-      this.device.name = this.editName;
-    },
     formatDate() {
       return moment(String(this.device.last_seen)).format('DD-MM-YYYY');
     },

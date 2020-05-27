@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "core-js": "^3.6.5",
+    "is-valid-hostname": "0.0.1",
     "v-clipboard": "^2.2.2",
     "vue": "^2.6.11",
     "vue-fragment": "^1.5.1",
