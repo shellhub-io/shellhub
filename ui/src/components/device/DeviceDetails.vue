@@ -14,7 +14,30 @@
         flat
         color="transparent"
       >
-        <DeviceRename />
+        <v-toolbar-title>
+          <v-icon
+            v-if="device.online"
+            color="success"
+          >
+            check_circle
+          </v-icon>
+          <v-tooltip
+            v-else
+            bottom
+          >
+            <template #activator="{ on }">
+              <v-icon v-on="on">
+                check_circle
+              </v-icon>
+            </template>
+            <span>active {{ device.last_seen | moment("from", "now") }}</span>
+          </v-tooltip>
+          {{ device.name }}
+          <DeviceRename 
+            :hostname="device.name"
+          />
+        </v-toolbar-title>
+
         <v-spacer />
       
         <TerminalDialog :uid="device.uid" />
