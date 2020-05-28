@@ -2,7 +2,9 @@
 
 package client
 
-import "github.com/shellhub-io/shellhub/pkg/models"
+import (
+	"github.com/shellhub-io/shellhub/pkg/models"
+)
 
 const (
 	apiHost = "ssh.shellhub.io"
@@ -17,6 +19,7 @@ type Client interface {
 type publicAPI interface {
 	GetInfo() (*models.Info, error)
 	Endpoints() (*models.Endpoints, error)
+	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 }
 
 func (c *client) GetInfo() (*models.Info, error) {
@@ -27,6 +30,16 @@ func (c *client) GetInfo() (*models.Info, error) {
 	}
 
 	return info, nil
+}
+
+func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
+	var res *models.DeviceAuthResponse
+	_, _, errs := c.http.Post(buildURL(c, "/api/devices/auth")).Send(req).EndStruct(&res)
+	if len(errs) > 0 {
+		return nil, errs[0]
+	}
+
+	return res, nil
 }
 
 func (c *client) Endpoints() (*models.Endpoints, error) {
