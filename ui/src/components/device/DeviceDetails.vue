@@ -33,14 +33,13 @@
             <span>active {{ device.last_seen | moment("from", "now") }}</span>
           </v-tooltip>
           {{ device.name }}
-          <DeviceRename 
-            :hostname="device.name"
-            :uid="device.uid"
-          />
         </v-toolbar-title>
-
+        <DeviceRename
+          :hostname="device.name"
+          :uid="device.uid"
+          @newHostname="receiveName"
+        />
         <v-spacer />
-      
         <TerminalDialog :uid="device.uid" />
       
         <DeviceDelete
@@ -167,6 +166,9 @@ export default {
     redirect(){
       this.dialogError=false;
       this.$router.push('/devices');
+    },
+    receiveName(params){
+      this.device.name=params;
     }
   },
 };

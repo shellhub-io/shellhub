@@ -23,8 +23,8 @@
           <v-text-field
             v-model="editName"
             required
-            hint="Exs ::(foo-bar.ba-z.qux, foo.example.com, 127.0.0.1)"
-            @input="editName"
+            hint="Exs ::(localhost, foo-bar.ba-z.qux, foo.example.com, 127.0.0.1)"
+            input="editName"
           />
         </v-card-text>
         <v-card-text
@@ -32,7 +32,7 @@
           color="red"
         >
           You entered an invalid hostname,
-          its must follow the
+          it must follow the
           <a
             target="_blank"
             href="https://tools.ietf.org/html/rfc1123"
@@ -83,7 +83,7 @@ export default {
     return {
       dialog: false,
       editName: '',
-      invalid: false,//flag card
+      invalid: false,
     };
   },
   methods : {
@@ -93,15 +93,16 @@ export default {
         name: this.editName
       });
       this.dialog=false;
-      //this.device.name = this.editName;
     },
     check(){
       if (isValidHostname(this.editName)){
         this.save();
+        this.dialog=false;
+        this.$emit('newHostname', this.editName);
       }else{
         this.invalid=true;
       }
-    }
+    },
   }
 };
 </script>
