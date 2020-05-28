@@ -6,13 +6,14 @@
           v-on="on"
           @click="dialog = !dialog"
         >
-          mdi-file-edit
+          mdi-pencil
         </v-icon>
       </template>
       <span>Edit</span>
     </v-tooltip>
     <v-dialog
       v-model="dialog"
+      persistent
       max-width="400"
     >
       <v-card>
@@ -22,14 +23,14 @@
         <v-card-text>
           <v-text-field
             v-model="editName"
-            required
-            hint="Exs ::(localhost, foo-bar.ba-z.qux, foo.example.com, 127.0.0.1)"
-            input="editName"
+            require
+            placeholder="hostname"
           />
+          Examples: (foobar, foo-bar.ba-z.qux, foo.example.com, 127.0.0.1)
         </v-card-text>
         <v-card-text
           v-if="invalid"
-          color="red"
+          class="red--text"
         >
           You entered an invalid hostname,
           it must follow the
@@ -42,10 +43,11 @@
           specifications
         </v-card-text>
         <v-card-actions>
+          <v-spacer />
           <v-btn
             color="primary"
             text
-            @click="dialog=false;invalid=false"
+            @click="cancel"
           >
             Cancel
           </v-btn>
@@ -69,12 +71,8 @@ export default {
   name: 'DeviceRename',
 
   props: {
-    hostname: {
-      type: String,
-      required: true
-    },
-    uid: {
-      type:String,
+    device: {
+      type:Object,
       required:true
     }
   },
@@ -89,16 +87,22 @@ export default {
   methods : {
     save() {
       this.$store.dispatch('devices/rename', {
-        uid: this.uid,
+        uid: this.device.uid,
         name: this.editName
       });
       this.dialog=false;
+    },
+    cancel(){
+      this.dialog=false;
+      this.invalid=false;
+      this.editName='';
     },
     check(){
       if (isValidHostname(this.editName)){
         this.save();
         this.dialog=false;
         this.$emit('newHostname', this.editName);
+        this.editName='';
       }else{
         this.invalid=true;
       }

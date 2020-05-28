@@ -35,11 +35,12 @@
           {{ device.name }}
         </v-toolbar-title>
         <DeviceRename
-          :hostname="device.name"
-          :uid="device.uid"
+          :device="device"
           @newHostname="receiveName"
         />
+
         <v-spacer />
+      
         <TerminalDialog :uid="device.uid" />
       
         <DeviceDelete
