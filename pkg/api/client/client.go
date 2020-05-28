@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"path"
 
 	"github.com/parnurzeal/gorequest"
@@ -39,9 +40,10 @@ type commonAPI interface {
 }
 
 type client struct {
-	host string
-	port int
-	http *gorequest.SuperAgent
+	scheme string
+	host   string
+	port   int
+	http   *gorequest.SuperAgent
 }
 
 func (c *client) ListDevices() ([]models.Device, error) {
@@ -72,5 +74,7 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 }
 
 func buildURL(c *client, uri string) string {
-	return fmt.Sprintf("http://%s", path.Join(fmt.Sprintf("%s:%d", c.host, c.port), uri))
+	u, _ := url.Parse(fmt.Sprintf("%s://%s:%d", c.scheme, c.host, c.port))
+	u.Path = path.Join(u.Path, uri)
+	return u.String()
 }
