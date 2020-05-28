@@ -2,10 +2,7 @@ package main
 
 import (
 	"context"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"net"
 	"net/http"
@@ -18,10 +15,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/parnurzeal/gorequest"
 	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
 	"github.com/shellhub-io/shellhub/agent/selfupdater"
 	"github.com/shellhub-io/shellhub/agent/sshd"
+	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
@@ -67,36 +64,46 @@ func main() {
 		}
 	}
 
-	info := models.Info{}
-
-	_, _, errs := gorequest.New().Get(fmt.Sprintf("%s/info", opts.ServerAddress)).EndStruct(&info)
-	if len(errs) > 0 {
-		logrus.WithFields(logrus.Fields{"err": errs[0]}).Fatal("Failed to get endpoints")
-	}
-
-	device, err := NewDevice()
+	serverAddress, err := url.Parse(opts.ServerAddress)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	device.Info.Version = AgentVersion
+	cli := client.NewClient(client.WithURL(serverAddress))
 
-	if _, err := os.Stat(opts.PrivateKey); os.IsNotExist(err) {
-		logrus.Info("Private key not found. Generating...")
-		err := keygen.GeneratePrivateKey(opts.PrivateKey)
-		if err != nil {
-			logrus.Fatal(err)
-		}
+	info, err := cli.GetInfo()
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"err": err}).Fatal("Failed to get endpoints")
 	}
 
-	pubKey, err := keygen.ReadPublicKey(opts.PrivateKey)
+	agent, err := NewAgent()
 	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	agent.opts = &opts
+	agent.Info.Version = AgentVersion
+
+	if err := agent.generatePrivateKey(); err != nil {
+		logrus.Fatal(err)
+	}
+
+	if err := agent.readPublicKey(); err != nil {
 		logrus.Fatal(err)
 	}
 
 	serverURL, _ := url.Parse(opts.ServerAddress)
 
-	auth, err := sendAuthRequest(&info.Endpoints, serverURL.Scheme, device.Identity, device.Info, pubKey, opts.TenantID, []string{})
+	auth, err := cli.AuthDevice(&models.DeviceAuthRequest{
+		Info:     agent.Info,
+		Sessions: []string{},
+		DeviceAuth: &models.DeviceAuth{
+			Identity:  agent.Identity,
+			TenantID:  opts.TenantID,
+			PublicKey: string(keygen.EncodePublicKeyToPem(agent.pubKey)),
+		},
+	})
+
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
 	}
@@ -146,7 +153,7 @@ func main() {
 	if AgentVersion != "latest" {
 		go func() {
 			for {
-				nextVersion, err := CheckUpdate(opts.ServerAddress)
+				nextVersion, err := CheckUpdate(cli)
 				if err != nil {
 					logrus.Error(err)
 					goto sleep
@@ -172,7 +179,15 @@ func main() {
 			sessions = append(sessions, key)
 		}
 
-		auth, err = sendAuthRequest(&info.Endpoints, serverURL.Scheme, device.Identity, device.Info, pubKey, opts.TenantID, sessions)
+		auth, err := cli.AuthDevice(&models.DeviceAuthRequest{
+			Info:     agent.Info,
+			Sessions: sessions,
+			DeviceAuth: &models.DeviceAuth{
+				Identity:  agent.Identity,
+				TenantID:  opts.TenantID,
+				PublicKey: string(keygen.EncodePublicKeyToPem(agent.pubKey)),
+			},
+		})
 		if err == nil {
 			server.SetDeviceName(auth.Name)
 		}
@@ -196,42 +211,14 @@ func NewListener(host, protocol, token string) (*revdial.Listener, error) {
 	return listener, nil
 }
 
-func buildAPIUrl(protocol string, e *models.Endpoints, uri string) string {
-	return fmt.Sprintf("%s://%s/api/%s", protocol, e.API, uri)
-}
-
-func sendAuthRequest(endpoints *models.Endpoints, protocol string, identity *models.DeviceIdentity, info *models.DeviceInfo, pubKey *rsa.PublicKey, tenantID string, sessions []string) (*models.DeviceAuthResponse, error) {
-	var auth models.DeviceAuthResponse
-
-	_, _, errs := gorequest.New().Post(buildAPIUrl(protocol, endpoints, "/devices/auth")).Send(&models.DeviceAuthRequest{
-		Info:     info,
-		Sessions: sessions,
-		DeviceAuth: &models.DeviceAuth{
-			Identity: identity,
-			TenantID: tenantID,
-			PublicKey: string(pem.EncodeToMemory(&pem.Block{
-				Type:  "RSA PUBLIC KEY",
-				Bytes: x509.MarshalPKCS1PublicKey(pubKey),
-			})),
-		},
-	}).EndStruct(&auth)
-	if len(errs) > 0 {
-		return nil, errs[0]
-	}
-
-	return &auth, nil
-}
-
 func Revdial(ctx context.Context, protocol, address, path string) (*websocket.Conn, *http.Response, error) {
 	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s", protocol, address), path}, ""), nil)
 }
 
-func CheckUpdate(server string) (*semver.Version, error) {
-	info := models.Info{}
-
-	_, _, errs := gorequest.New().Get(fmt.Sprintf("%s/info", server)).EndStruct(&info)
-	if len(errs) > 0 {
-		return nil, errs[0]
+func CheckUpdate(cli client.Client) (*semver.Version, error) {
+	info, err := cli.GetInfo()
+	if err != nil {
+		return nil, err
 	}
 
 	return semver.NewVersion(info.Version)

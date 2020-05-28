@@ -68,3 +68,10 @@ func ReadPublicKey(filename string) (*rsa.PublicKey, error) {
 
 	return &key.PublicKey, nil
 }
+
+func EncodePublicKeyToPem(key *rsa.PublicKey) []byte {
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: x509.MarshalPKCS1PublicKey(key),
+	})
+}
