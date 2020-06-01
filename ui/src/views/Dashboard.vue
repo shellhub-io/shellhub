@@ -36,7 +36,7 @@
           </v-list-item>
 
           <v-card-actions v-if="stats.registered_devices == 0">
-            <Welcome :screen-welcome="true" />
+            <Welcome :dialog="true" />
           </v-card-actions>
 
           <v-card-actions>
