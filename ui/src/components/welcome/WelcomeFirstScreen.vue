@@ -1,49 +1,28 @@
 <template>
-  <v-card>
-    <v-card-text class="mt-4 mb-0 pb-1">
-      <p>
-        ShellHub is a modern SSH server for remotely accessing Linux devices via command line
-        (using any SSH client) or web-based user interface. It is intended to be used instead of sshd.
-      </p>
-      <p>
-        Typically, if you want to SSH a Linux device on a local network, you just need to know its IP
-        address. However, in order to access a Linux device from outside the local network, you will
-        have to go through a few inconveniences, such as getting its public IP address and configuring
-        the router. Changing the VPN/firewall configuration can be cumbersome if the device is behind a
-        corporate firewall that does not allow SSH connections.
-      </p>
-      <p>
-        ShellHub provides a way to avoid all these hassles, helping you easily and seamlessly access
-        any Linux device behind firewall and NAT.
-      </p>
-      <p>
-        Thank you for choosing the ShellHub
-      </p>
-    </v-card-text>
-  </v-card>
+  <fragment>
+    <p class="ml-4 pt-4">
+      Dear, {{ $store.getters["auth/currentUser"] }}!
+    </p>
+    <p class="mt-4 ml-4 mr-4">
+      ShellHub is a modern SSH server for remotely accessing Linux devices via CLI or web-based user
+      interface, it avoids the inconveniences such as firewall and NAT when getting your IP address,
+      automating the access process, and helping you easily, seamlessly and securely connect your
+      device to the internet.
+    </p>
+    <p class="ml-4 pb-4">
+      Thank you for choosing the ShellHub.
+    </p>
+  </fragment>
 </template>
 
 <script>
+
 export default {
   name: 'WelcomeFirstScreen',
-
-  data() {
-    return {
-      hostname: window.location.hostname,
-      copySnack: false,      
-      allowsUserContinue: false
-    };
-  },
-
 };
+
 </script>
 
-<style lang="scss" scoped>
-@import '~vuetify/src/styles/settings/_variables.scss';
+<style>
 
-.code {
-  font-family: monospace;
-  font-size: $code-kbd-font-size;
-  font-weight: $code-kbd-font-weight;
-}
 </style>

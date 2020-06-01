@@ -1,65 +1,110 @@
 <template>
   <v-dialog
-    v-model="disp"
+    v-model="dialog"
     :retain-focus="false"
     persistent
     max-width="800px"
   >
     <v-card>
-      <v-card-title
-        class="headline grey lighten-2 text-center"
-        primary-title
-      >
-        Welcome to ShellHub, {{ $store.getters["auth/currentUser"] }}
-      </v-card-title>
+      <v-stepper v-model="e1">
+        <v-stepper-header>
+          <v-stepper-step
+            :complete="e1 > 1"
+            step="1"
+          >
+            Welcome
+          </v-stepper-step>
 
-      <v-card-actions v-if="screenFirst">
-        <WelcomeFirstScreen />
-      </v-card-actions>
+          <v-divider />
 
-      <v-card-actions v-if="!screenFirst">
-        <WelcomeSecondScreen :command="command()" />
-      </v-card-actions>
+          <v-stepper-step
+            :complete="e1 > 2"
+            step="2"
+          >
+            Conecting device
+          </v-stepper-step>
 
-      <v-card-actions>
-        <v-btn
-          v-if="!screenFirst"
-          text
-          @click="backScreen"
-        >
-          Back
-        </v-btn>
+          <v-divider />
 
-        <v-spacer />
-        
-        <v-btn
-          text
-          @click="disp"
-        >
-          Next
-        </v-btn>
-      </v-card-actions>
+          <v-stepper-step step="3">
+            Congratulations
+          </v-stepper-step>
+        </v-stepper-header>
 
-      <v-snackbar
-        v-model="allowsUserContinue"
-        :timeout="3000"
-      >
-        Please! You should enter a device to continue in the ShellHub
-      </v-snackbar>
-      <v-snackbar
-        v-model="copySnack"
-        :timeout="3000"
-      >
-        Command copied to clipboard
-      </v-snackbar>
+        <v-stepper-items>
+          <v-stepper-content step="1">
+            <v-card 
+              class="mb-12"
+              color="grey lighten-1"
+              height="200px"
+            >
+              <WelcomeFirstScreen />
+            </v-card>
+
+            <v-btn
+              color="primary"
+              @click="e1 = 2"
+            >
+              Continue
+            </v-btn>
+
+            <v-btn text>
+              Cancel
+            </v-btn>
+          </v-stepper-content>
+
+          <v-stepper-content step="2">
+            <v-card 
+              class="mb-12"
+              color="grey lighten-1"
+              height="200px"
+            >
+              <WelcomeSecondScreen :command="command()" />
+            </v-card>
+
+            <v-btn
+              color="primary"
+              @click="e1 = 3"
+            >
+              Continue
+            </v-btn>
+
+            <v-btn text>
+              Cancel
+            </v-btn>
+          </v-stepper-content>
+
+          <v-stepper-content step="3">
+            <v-card 
+              class="mb-12"
+              color="grey lighten-1"
+              height="200px"
+            >
+              <WelcomeThirdScreen :command="command()" />
+            </v-card>
+
+            <v-btn
+              color="primary"
+              @click="e1 = 1"
+            >
+              Continue
+            </v-btn>
+
+            <v-btn text>
+              Cancel
+            </v-btn>
+          </v-stepper-content>
+        </v-stepper-items>
+      </v-stepper>
     </v-card>
   </v-dialog>
 </template>
 
 <script>
+
 import WelcomeFirstScreen from '@/components/welcome/WelcomeFirstScreen.vue';
 import WelcomeSecondScreen from '@/components/welcome/WelcomeSecondScreen.vue';
-
+import WelcomeThirdScreen from '@/components/welcome/WelcomeThirdScreen.vue';
 
 export default {
   name: 'Welcome',
@@ -67,100 +112,44 @@ export default {
   components: {
     WelcomeFirstScreen,
     WelcomeSecondScreen,
+    WelcomeThirdScreen
   },
 
   props: {
-    screenWelcome: {
+    dialog: {
       type: Boolean,
       required: true
     },
   },
 
-  data() {
+  data () {
     return {
-      hostname: window.location.hostname,
-      copySnack: false,      
-      allowsUserContinue: false,
-      screenFirst: true,
-      active: 0
+      e1: 1,
     };
-  },
-
-  computed: {
-    tenant() {
-      return this.$store.getters['auth/tenant'];
-    },
-
-    show: {
-      get() {
-        return this.screenWelcome;
-      },
-
-      set(value) {
-        this.screenWelcome = value;
-      }
-    }
-  },
-  beforeDestroy(){
-    clearInterval(this.active);
   },
 
   created(){
     this.pollingDevices();
   },
 
-  methods:{
+  methods: {
+    pollingDevices(){
+      this.polling = setInterval(async() => {
+        await this.$store.dispatch('stats/get', {});
+
+        if(this.$store.getters['stats/stats'].registered_devices !== 0){
+          this.beforeDestroy();
+        }
+      }, 3000);
+    },
+
+    beforeDestroy () {
+      clearInterval(this.polling);
+    },
+
     command() {
       return `curl "${location.protocol}//${this.hostname}/install.sh?tenant_id=${this.tenant}" | sh`;
     },
-
-    copyCommand() {
-      this.$clipboard(this.command());
-      this.copySnack = true;
-    },
-
-    async validadeAddDevice(){
-      if(this.$store.getters['stats/stats'].registered_devices === 0){
-        await this.$store.dispatch('stats/get');
-        
-        if(this.$store.getters['stats/stats'].registered_devices !== 0){
-          this.show = false;
-        } else{
-          this.allowsUserContinue = true;
-        }
-      }
-    },
-
-    pollingDevices(){
-      this.active=setInterval(async()=>{
-        await this.$store.dispatch('devices/fetch', {});
-      },3000);  
-    },
-
-    nextScren() {
-      this.screenFirst = false;
-    },
-
-    backScreen() {
-      this.screenFirst = true;
-    },
-
-    disp(){
-      // eslint-disable-next-line no-console
-      console.log(this.active);
-      this.screenFirst = false;
-    }
-
   }
 };
 </script>
-
-<style lang="scss" scoped>
-@import '~vuetify/src/styles/settings/_variables.scss';
-
-.code {
-  font-family: monospace;
-  font-size: $code-kbd-font-size;
-  font-weight: $code-kbd-font-weight;
-}
-</style>

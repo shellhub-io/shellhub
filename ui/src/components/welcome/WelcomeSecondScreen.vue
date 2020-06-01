@@ -1,12 +1,14 @@
 <template>
-  <v-card>
-    <v-card-text class="mt-4 mb-0 pb-1">
-      <p>In order to register a device on ShellHub, you need to install ShellHub agent onto it.</p>
-      <p>
-        The easiest way to install ShellHub agent is with our automatic one-line installation script,
-        which works with all Linux distributions that have Docker installed and properly set up.
-      </p>
-
+  <fragment>
+    <p class="ml-4 pt-4">
+      Now you should a device.
+    </p>
+    <p class="mt-4 ml-4 mr-4">
+      The easiest way to install ShellHub agent is with our automatic one-line installation script,
+      which works with all Linux distributions that have Docker installed and properly set up.
+    </p>
+    
+    <div class="mt-4 ml-4 mr-4">
       <strong>Run the following command on your device:</strong>
       <v-text-field
         class="code"
@@ -28,21 +30,14 @@
         >documentation</a>
         for more information and alternative install methods.
       </p>
-    </v-card-text>
-
-    <v-snackbar
-      v-model="allowsUserContinue"
-      :timeout="3000"
-    >
-      Please! You should enter a device to continue in the ShellHub
-    </v-snackbar>
+    </div>
     <v-snackbar
       v-model="copySnack"
       :timeout="3000"
     >
       Command copied to clipboard
     </v-snackbar>
-  </v-card>
+  </fragment>
 </template>
 
 <script>
