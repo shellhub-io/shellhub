@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    v-model="dialog"
+    v-model="show"
     :retain-focus="false"
     persistent
     max-width="800px"
@@ -21,13 +21,13 @@
             :complete="e1 > 2"
             step="2"
           >
-            Conecting device
+            Connecting device
           </v-stepper-step>
 
           <v-divider />
 
           <v-stepper-step step="3">
-            Congratulations
+            Finish
           </v-stepper-step>
         </v-stepper-header>
 
@@ -35,64 +35,73 @@
           <v-stepper-content step="1">
             <v-card 
               class="mb-12"
-              color="grey lighten-1"
-              height="200px"
+              color="grey lighten-4"
+              height="250px"
             >
               <WelcomeFirstScreen />
             </v-card>
-
-            <v-btn
-              color="primary"
-              @click="e1 = 2"
-            >
-              Continue
-            </v-btn>
-
-            <v-btn text>
-              Cancel
-            </v-btn>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn @click="e1 = 2">
+                Next
+              </v-btn>
+            </v-card-actions>
           </v-stepper-content>
 
           <v-stepper-content step="2">
             <v-card 
               class="mb-12"
-              color="grey lighten-1"
-              height="200px"
+              color="grey lighten-4"
+              height="250px"
             >
-              <WelcomeSecondScreen :command="command()" />
+              <WelcomeSecondScreen
+                :command="command()"
+                @expClip="receiveClip"
+              />
             </v-card>
-
-            <v-btn
-              color="primary"
-              @click="e1 = 3"
+            <v-card-actions>
+              <v-spacer />
+              <v-btn @click="e1 = 1">
+                Back
+              </v-btn>
+              <v-btn
+                v-if="!enable"
+                disabled
+              >
+                Waiting for Device
+              </v-btn>
+              <v-btn
+                v-else
+                id="autoclick"
+                @click="e1 = 3"
+              >
+                Next
+              </v-btn>
+            </v-card-actions>
+            <v-snackbar
+              v-model="copy"
+              :timeout="3000"
             >
-              Continue
-            </v-btn>
-
-            <v-btn text>
-              Cancel
-            </v-btn>
+              Command copied to clipboard
+            </v-snackbar>
           </v-stepper-content>
 
           <v-stepper-content step="3">
             <v-card 
               class="mb-12"
-              color="grey lighten-1"
-              height="200px"
+              color="grey lighten-4"
+              height="250px"
             >
               <WelcomeThirdScreen :command="command()" />
             </v-card>
-
-            <v-btn
-              color="primary"
-              @click="e1 = 1"
-            >
-              Continue
-            </v-btn>
-
-            <v-btn text>
-              Cancel
-            </v-btn>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                @click="finished"
+              >
+                Continue
+              </v-btn>
+            </v-card-actions>
           </v-stepper-content>
         </v-stepper-items>
       </v-stepper>
@@ -120,12 +129,31 @@ export default {
       type: Boolean,
       required: true
     },
+    curl: {
+      type: Object,
+      required: true
+    },
   },
 
   data () {
     return {
       e1: 1,
+      copy:false,
+      enable:false,
+      polling: null,
+      trigger: null
     };
+  },
+
+  computed:{
+    show:{
+      get(){
+        return this.dialog;
+      },
+      set(value) {
+        this.$emit('show', value);
+      }
+    }
   },
 
   created(){
@@ -133,23 +161,39 @@ export default {
   },
 
   methods: {
+    receiveClip(params){
+      this.copy=params;
+    },
+    beforeDestroy(){
+      clearInterval(this.polling);
+    },
+    command() {
+      return `curl "${location.protocol}//${this.curl.hostname}/install.sh?tenant_id=${this.curl.tenant}" | sh`;
+    },
+    finished(){
+      clearTimeout(this.trigger);
+      this.show=false;
+      this.$emit('finishedEvent', false);
+      this.beforeDestroy();
+    },
     pollingDevices(){
-      this.polling = setInterval(async() => {
+      this.polling=setInterval(async () => {
         await this.$store.dispatch('stats/get', {});
-
-        if(this.$store.getters['stats/stats'].registered_devices !== 0){
-          this.beforeDestroy();
+        this.enable=this.checkDevice();
+        if (this.enable){
+          this.autoNext();
         }
       }, 3000);
     },
-
-    beforeDestroy () {
-      clearInterval(this.polling);
+    checkDevice(){
+      return this.$store.getters['stats/stats'].registered_devices !== 0;
     },
-
-    command() {
-      return `curl "${location.protocol}//${this.hostname}/install.sh?tenant_id=${this.tenant}" | sh`;
-    },
+    autoNext(){
+      this.trigger=setTimeout(()=>{
+        document.getElementById('autoclick').click();
+      },4000);
+      this.beforeDestroy();
+    }
   }
 };
 </script>

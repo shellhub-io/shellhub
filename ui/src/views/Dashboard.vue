@@ -35,8 +35,12 @@
             </v-list-item-avatar>
           </v-list-item>
 
-          <v-card-actions v-if="stats.registered_devices == 0">
-            <Welcome :dialog="true" />
+          <v-card-actions v-if="registeredDevices">
+            <Welcome
+              :dialog="true"
+              :curl="curl"
+              @finishedEvent="receiveFinish"
+            />
           </v-card-actions>
 
           <v-card-actions>
@@ -147,7 +151,12 @@ export default {
 
   data(){
     return {
-      flag: false
+      curl:{
+        hostname: window.location.hostname,
+        tenant: this.$store.getters['auth/tenant']
+      },
+      flag: false,
+      registeredDevices: false,
     };
   },
 
@@ -157,13 +166,23 @@ export default {
     }
   },
 
-  created() {
-    this.$store.dispatch('stats/get');
+  async created() {
+    await this.$store.dispatch('stats/get');
+    this.registeredDevices= this.initialState();
   },
 
   mounted() {
     this.flag = localStorage.getItem('flag');
     localStorage.removeItem('flag');
+  },
+
+  methods: {
+    receiveFinish(params){
+      this.registeredDevices=params;
+    },
+    initialState(){
+      return this.stats.registered_devices === 0;
+    }
   }
 };
 </script>
