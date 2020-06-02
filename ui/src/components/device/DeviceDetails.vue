@@ -30,7 +30,7 @@
                 check_circle
               </v-icon>
             </template>
-            <span>active {{ device.last_seen | moment("from", "now") }}</span>
+            <span>active {{ lastActive }}</span>
           </v-tooltip>
           {{ device.name }}
         </v-toolbar-title>
@@ -81,7 +81,7 @@
           <div class="overline">
             Last Seen
           </div>
-          <div>{{ device.last_seen | moment("dddd, MMMM Do YYYY, h:mm:ss a") }}</div>
+          <div>{{ convertDate }}</div>
         </div>
       </v-card-text>
     </v-card>
@@ -150,6 +150,16 @@ export default {
     };
   },
 
+  computed: {
+    lastActive(){
+      return moment(this.device.last_seen).format('from', 'now');
+    },
+
+    convertDate() {
+      return moment(this.device.last_seen).format('dddd, MMMM Do YYYY, h:mm:ss a');
+    }
+  },
+
   async created() {
     this.uid = await this.$route.params.id;
     try{
@@ -160,10 +170,8 @@ export default {
       this.dialogError=true;
     } 
   },
+
   methods: {
-    formatDate() {
-      return moment(String(this.device.last_seen)).format('DD-MM-YYYY');
-    },
     redirect(){
       this.dialogError=false;
       this.$router.push('/devices');
