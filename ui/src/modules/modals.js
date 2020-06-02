@@ -4,7 +4,6 @@ export default {
   state: {
     terminal: '',
     addDevice: false,
-    screenWelcome: false,
   },
 
   getters: {
@@ -14,10 +13,6 @@ export default {
 
     addDevice: (state) => {
       return state.addDevice;
-    },
-
-    statusScreenWelcome: (state) => {
-      return state.screenWelcome;
     }
   },
 
@@ -28,11 +23,7 @@ export default {
 
     setAddDevice: (state, data) => {
       state.addDevice = data;
-    },
-
-    setUserWelcome: (state, data) => {
-      state.screenWelcome = data;
-    },
+    }
   },
 
   actions: {
@@ -42,10 +33,6 @@ export default {
 
     showAddDevice: (context, value) => {
       context.commit('setAddDevice', value);
-    },
-
-    showUserWelcome: (context, value) => {
-      context.commit('setUserWelcome', value);
     }
   }
 };

@@ -1,7 +1,7 @@
 <template>
   <fragment>
     <p class="ml-4 pt-4">
-      Now you should a device.
+      Now you should add a device.
     </p>
     <p class="mt-4 ml-4 mr-4">
       The easiest way to install ShellHub agent is with our automatic one-line installation script,
@@ -63,6 +63,7 @@ export default {
     copyCommand() {
       this.$clipboard(this.command);
       this.copySnack = true;
+      this.$emit('expClip', this.copySnack);
     },
   }
 
