@@ -87,14 +87,7 @@ func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []mo
 		return nil, 0, err
 	}
 
-	query = append(query, bson.M{
-
-		"$skip": skip,
-	})
-	query = append(query, bson.M{
-
-		"$limit": perPage,
-	})
+	query = append(query, buildPaginationQuery(skip, perPage)...)
 
 	devices := make([]models.Device, 0)
 
@@ -286,14 +279,7 @@ func (s *Store) ListSessions(ctx context.Context, perPage, page int) ([]models.S
 		return nil, 0, err
 	}
 
-	query = append(query, bson.M{
-
-		"$skip": skip,
-	})
-	query = append(query, bson.M{
-
-		"$limit": perPage,
-	})
+	query = append(query, buildPaginationQuery(skip, perPage)...)
 
 	sessions := make([]models.Session, 0)
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
@@ -619,7 +605,6 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 			})
 
 			queryFilter = nil
-
 		}
 	}
 
@@ -630,6 +615,13 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	}
 
 	return queryMatch, nil
+}
+
+func buildPaginationQuery(skip, perPage int) []bson.M {
+	return []bson.M{
+		bson.M{"$skip": skip},
+		bson.M{"$limit": perPage},
+	}
 }
 
 func EnsureIndexes(db *mongo.Database) error {
