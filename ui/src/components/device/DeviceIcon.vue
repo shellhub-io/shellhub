@@ -2,6 +2,7 @@
   <fragment>
     <v-icon
       class="icons"
+      data-cy="type-icon"
     >
       {{ deviceIcon[iconName] || 'fl-tux' }}
     </v-icon>
