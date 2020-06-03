@@ -28,67 +28,10 @@ func NewStore(db *mongo.Database) *Store {
 
 func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []models.Filter) ([]models.Device, int, error) {
 	skip := perPage * (page - 1)
-	var queryMatch []bson.M
-	var queryFilter []bson.M
-	for _, filter := range filters {
-		switch filter.Type {
-		case "property":
-			var property bson.M
-			params, ok := filter.Params.(*models.PropertyParams)
-			if !ok {
-				return nil, 0, ErrWrongParamsType
-			}
 
-			switch params.Operator {
-			case "like":
-				property = bson.M{
-					"$regex":   params.Value,
-					"$options": "i",
-				}
-
-			case "eq":
-				property = bson.M{
-					"$eq": params.Value,
-				}
-
-			case "bool":
-				operator, _ := strconv.ParseBool(params.Value)
-				property = bson.M{
-					"$eq": operator,
-				}
-			}
-
-			queryFilter = append(queryFilter, bson.M{
-				params.Name: property,
-			})
-
-		case "operator":
-			var operator string
-			params, ok := filter.Params.(*models.OperatorParams)
-			if !ok {
-				return nil, 0, ErrWrongParamsType
-			}
-
-			switch params.Name {
-			case "and":
-				operator = "$and"
-			case "or":
-				operator = "$or"
-			}
-
-			queryMatch = append(queryMatch, bson.M{
-				"$match": bson.M{operator: queryFilter},
-			})
-
-			queryFilter = nil
-
-		}
-	}
-
-	if len(queryFilter) > 0 {
-		queryMatch = append(queryMatch, bson.M{
-			"$match": bson.M{"$or": queryFilter},
-		})
+	queryMatch, err := buildFilterQuery(filters)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	query := []bson.M{
@@ -629,6 +572,64 @@ func (s *Store) GetDeviceByUID(ctx context.Context, uid models.UID, tenant strin
 	}
 
 	return device, nil
+}
+
+func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
+	var queryMatch []bson.M
+	var queryFilter []bson.M
+
+	for _, filter := range filters {
+		switch filter.Type {
+		case "property":
+			var property bson.M
+			params, ok := filter.Params.(*models.PropertyParams)
+			if !ok {
+				return nil, ErrWrongParamsType
+			}
+
+			switch params.Operator {
+			case "like":
+				property = bson.M{"$regex": params.Value, "$options": "i"}
+			case "eq":
+				property = bson.M{"$eq": params.Value}
+			case "bool":
+				operator, _ := strconv.ParseBool(params.Value)
+				property = bson.M{"$eq": operator}
+			}
+
+			queryFilter = append(queryFilter, bson.M{
+				params.Name: property,
+			})
+		case "operator":
+			var operator string
+			params, ok := filter.Params.(*models.OperatorParams)
+			if !ok {
+				return nil, ErrWrongParamsType
+			}
+
+			switch params.Name {
+			case "and":
+				operator = "$and"
+			case "or":
+				operator = "$or"
+			}
+
+			queryMatch = append(queryMatch, bson.M{
+				"$match": bson.M{operator: queryFilter},
+			})
+
+			queryFilter = nil
+
+		}
+	}
+
+	if len(queryFilter) > 0 {
+		queryMatch = append(queryMatch, bson.M{
+			"$match": bson.M{"$or": queryFilter},
+		})
+	}
+
+	return queryMatch, nil
 }
 
 func EnsureIndexes(db *mongo.Database) error {
