@@ -4,3 +4,4 @@ api_public_key
 ssh_private_key
 /go.sum
 /ui/node_modules/
+*.orig
