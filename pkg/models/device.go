@@ -2,7 +2,6 @@ package models
 
 import (
 	"time"
-	"encoding/json"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
@@ -59,47 +58,4 @@ type ConnectedDevice struct {
 	UID      string    `json:"uid"`
 	TenantID string    `json:"tenant_id" bson:"tenant_id"`
 	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
-}
-type PropertyParams struct {
-	Name     string `json:"name"`
-	Operator string `json:"operator"`
-	Value    string `json:"value"`
-}
-type OperatorParams struct {
-	Name string `json:"name"`
-}
-type Filter struct {
-	Type   string      `json:"type,omitempty"`
-	Params interface{} `json:"params,omitempty"`
-}
-
-func (f *Filter) UnmarshalJSON(data []byte) error {
-	var params json.RawMessage
-	type filter Filter
-	aux := filter{
-		Params: &params,
-	}
-
-	if err := json.Unmarshal([]byte(data), &aux); err != nil {
-		return err
-	}
-	switch aux.Type {
-
-	case "property":
-		var property PropertyParams
-		if err := json.Unmarshal(params, &property); err != nil {
-			return err
-		}
-		f.Params = &property
-	case "operator":
-		var operator OperatorParams
-		if err := json.Unmarshal(params, &operator); err != nil {
-			return err
-		}
-		f.Params = &operator
-
-	}
-	f.Type = aux.Type
-	return nil
-
 }
