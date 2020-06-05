@@ -11,6 +11,7 @@ import (
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/parnurzeal/gorequest"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
@@ -40,28 +41,59 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	s.User = parts[0]
 	s.Target = parts[1]
 
-	if strings.Contains(s.Target, ".") {
+	host, _, err := net.SplitHostPort(session.RemoteAddr().String())
+	if err != nil {
+		return nil, err
+	}
+
+	if host == "127.0.0.1" || host == "::1" {
+		env := loadEnv(session.Environ())
+		if value, ok := env["IP_ADDRESS"]; ok {
+			s.IPAddress = value
+		}
+	} else {
+		s.IPAddress = host
+	}
+
+	var lookup map[string]string
+
+	if !strings.Contains(s.Target, ".") {
+		device := new(models.Device)
+		res, _, errs := gorequest.New().Get("http://api:8080/api/devices/" + s.Target).EndStruct(&device)
+		if len(errs) > 0 || res.StatusCode != http.StatusOK {
+			return nil, ErrInvalidSessionTarget
+		}
+
+		lookup = map[string]string{
+			"domain":     device.Namespace,
+			"name":       device.Name,
+			"username":   s.User,
+			"ip_address": s.IPAddress,
+		}
+	} else {
 		parts = strings.SplitN(parts[1], ".", 2)
 		if len(parts) < 2 {
 			return nil, ErrInvalidSessionTarget
 		}
 
-		lookup := map[string]string{
-			"domain": parts[0],
-			"name":   parts[1],
+		lookup = map[string]string{
+			"domain":     parts[0],
+			"name":       parts[1],
+			"username":   s.User,
+			"ip_address": s.IPAddress,
 		}
-
-		var device struct {
-			UID string `json:"uid"`
-		}
-
-		res, _, errs := gorequest.New().Get("http://api:8080/internal/lookup").Query(lookup).EndStruct(&device)
-		if len(errs) > 0 || res.StatusCode != http.StatusOK {
-			return nil, ErrInvalidSessionTarget
-		}
-
-		s.Target = device.UID
 	}
+
+	var device struct {
+		UID string `json:"uid"`
+	}
+
+	res, _, errs := gorequest.New().Get("http://api:8080/internal/lookup").Query(lookup).EndStruct(&device)
+	if len(errs) > 0 || res.StatusCode != http.StatusOK {
+		return nil, ErrInvalidSessionTarget
+	}
+
+	s.Target = device.UID
 
 	return s, nil
 }
@@ -226,21 +258,6 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 }
 
 func (s *Session) register(session sshserver.Session) error {
-	env := loadEnv(session.Environ())
-
-	host, _, err := net.SplitHostPort(session.RemoteAddr().String())
-	if err != nil {
-		return err
-	}
-
-	if host == "127.0.0.1" || host == "::1" {
-		if value, ok := env["IP_ADDRESS"]; ok {
-			s.IPAddress = value
-		}
-	} else {
-		s.IPAddress = host
-	}
-
 	_, _, errs := gorequest.New().Post("http://api:8080/internal/sessions").Send(*s).End()
 	if len(errs) > 0 {
 		return errs[0]

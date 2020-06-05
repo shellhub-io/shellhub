@@ -16,6 +16,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/shellhub-io/shellhub/api/pkg/services/authsvc"
 	"github.com/shellhub-io/shellhub/api/pkg/services/deviceadm"
+	"github.com/shellhub-io/shellhub/api/pkg/services/firewall"
 	"github.com/shellhub-io/shellhub/api/pkg/services/sessionmngr"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
 	api "github.com/shellhub-io/shellhub/pkg/api/client"
@@ -367,8 +368,10 @@ func main() {
 
 	internalAPI.GET("/lookup", func(c echo.Context) error {
 		var query struct {
-			Domain string `query:"domain"`
-			Name   string `query:"name"`
+			Domain    string `query:"domain"`
+			Name      string `query:"name"`
+			Username  string `query:"username"`
+			IPAddress string `query:"ip_address"`
 		}
 
 		if err := c.Bind(&query); err != nil {
@@ -378,10 +381,25 @@ func main() {
 		ctx := c.Get("ctx").(context.Context)
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := deviceadm.NewService(store)
+		fw := firewall.NewService(store)
 
 		device, err := svc.LookupDevice(ctx, query.Domain, query.Name)
 		if err != nil {
 			return nil
+		}
+
+		ok, err := fw.Evaluate(ctx, firewall.Request{
+			Hostname:  query.Name,
+			Namespace: query.Domain,
+			Username:  query.Username,
+			IPAddress: query.IPAddress,
+		})
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			return c.NoContent(http.StatusForbidden)
 		}
 
 		return c.JSON(http.StatusOK, device)
@@ -394,6 +412,100 @@ func main() {
 		svc := sessionmngr.NewService(store)
 
 		return svc.DeactivateSession(ctx, models.UID(c.Param("uid")))
+	})
+
+	publicAPI.GET("/firewall/rules", func(c echo.Context) error {
+		ctx := c.Get("ctx").(context.Context)
+
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := firewall.NewService(store)
+
+		var query struct {
+			Page    int    `query:"page"`
+			PerPage int    `query:"per_page"`
+			Filter  string `query:"filter"`
+		}
+		c.Bind(&query)
+
+		page := query.Page
+		perPage := query.PerPage
+		if perPage < 1 || perPage > 100 {
+			perPage = 10
+		}
+		if page < 1 {
+			page = 1
+		}
+
+		rules, _, _ := svc.ListRules(ctx, perPage, page)
+
+		return c.JSON(http.StatusOK, rules)
+	})
+
+	publicAPI.GET("/firewall/rules/:id", func(c echo.Context) error {
+		ctx := c.Get("ctx").(context.Context)
+
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := firewall.NewService(store)
+
+		rule, err := svc.GetRule(ctx, c.Param("id"))
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, rule)
+	})
+
+	publicAPI.POST("/firewall/rules", func(c echo.Context) error {
+		ctx := c.Get("ctx").(context.Context)
+
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := firewall.NewService(store)
+
+		var rule models.FirewallRule
+		if err := c.Bind(&rule); err != nil {
+			return err
+		}
+
+		if tenant, ok := ctx.Value("tenant").(string); ok {
+			rule.TenantID = tenant
+		}
+
+		if err := svc.CreateRule(ctx, &rule); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, rule)
+	})
+
+	publicAPI.PUT("/firewall/rules/:id", func(c echo.Context) error {
+		ctx := c.Get("ctx").(context.Context)
+
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := firewall.NewService(store)
+
+		var rule models.FirewallRuleUpdate
+		if err := c.Bind(&rule); err != nil {
+			return err
+		}
+
+		if value, err := svc.UpdateRule(ctx, c.Param("id"), rule); err != nil {
+			return err
+		} else {
+			return c.JSON(http.StatusOK, value)
+		}
+	})
+
+	publicAPI.DELETE("/firewall/rules/:id", func(c echo.Context) error {
+		ctx := c.Get("ctx").(context.Context)
+
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := firewall.NewService(store)
+
+		if err := svc.DeleteRule(ctx, c.Param("id")); err != nil {
+			return err
+		}
+
+		return c.NoContent(http.StatusOK)
 	})
 
 	e.Logger.Fatal(e.Start(":8080"))

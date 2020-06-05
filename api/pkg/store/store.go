@@ -25,4 +25,9 @@ type Store interface {
 	GetDeviceByMac(ctx context.Context, mac, tenant string) (*models.Device, error)
 	GetDeviceByName(ctx context.Context, name, tenant string) (*models.Device, error)
 	GetDeviceByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error)
+	CreateFirewallRule(ctx context.Context, rule *models.FirewallRule) error
+	ListFirewallRules(ctx context.Context, perPage, page int) ([]models.FirewallRule, int, error)
+	GetFirewallRule(ctx context.Context, id string) (*models.FirewallRule, error)
+	UpdateFirewallRule(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error)
+	DeleteFirewallRule(ctx context.Context, id string) error
 }
