@@ -1,0 +1,38 @@
+#!/bin/sh
+
+[ -z $1 ] && echo "Usage: $0 <tenant_id>" && exit 1
+
+TENANT_ID=$1
+ID=$(echo "raspbian ubuntucore arch debian ubuntu" | cut -d' ' -f$(shuf -i1-5 -n1))
+PRETTY_NAME=$ID
+MACADDR=$(echo $RANDOM|md5sum|sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/')
+
+PRIVATE_KEY_FILE=$(mktemp -u)
+PUBLIC_KEY_FILE=$(mktemp -u)
+
+openssl genrsa -out $PRIVATE_KEY_FILE 2048 2> /dev/null
+openssl rsa -in $PRIVATE_KEY_FILE -out $PUBLIC_KEY_FILE -pubout 2> /dev/null
+
+PUBLIC_KEY=$(cat $PUBLIC_KEY_FILE)
+
+rm -f $PRIVATE_KEY_FILE
+rm -f $PUBLIC_KEY_FILE
+
+JSON=$(cat <<EOF
+{
+  "sessions": [],
+  "info": {
+    "id": "$ID",
+    "pretty_name": "$PRETTY_NAME",
+    "version": "latest"
+  },
+  "identity": {
+    "mac": "$MACADDR"
+  },
+  "public_key": "$PUBLIC_KEY\n",
+  "tenant_id": "$TENANT_ID"
+}
+EOF
+)
+
+echo $JSON | http post http://localhost/api/devices/auth && echo "Device added!"
