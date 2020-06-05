@@ -1,6 +1,6 @@
 module.exports = {
   preset: '@vue/cli-plugin-unit-jest',
-  setupFiles: ['./tests/unit/index.js'],
+  setupFiles: ['./tests/index.js'],
   verbose: true,
   moduleNameMapper: {
     '\\.(css|less|sass|scss)$': '<rootDir>/tests/__mocks__/styleMock.js',
