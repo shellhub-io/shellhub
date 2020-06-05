@@ -1,0 +1,17 @@
+#!/bin/sh
+
+[ -z $1 ] || [ -z $2 ] && echo "Usage: $0 <username> <password>" && exit 1
+
+. ./functions.sh
+
+TOKEN=`get_api_token $1 $2`
+
+# Is stdin a pipe?
+if [ ! -t 0 ]; then
+    FILTER=`cat - | jq -c | cat | base64 -w 0`
+else
+    FILTER=""
+fi
+
+DEVICES=`http get  http://localhost/api/devices?filter=$FILTER "Authorization: Bearer $TOKEN"`
+echo "$DEVICES" | jq
