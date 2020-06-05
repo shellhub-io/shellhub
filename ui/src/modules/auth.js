@@ -63,6 +63,7 @@ export default {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('tenant');
+      localStorage.removeItem('onceWelcome');
     }
   }
 };

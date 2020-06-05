@@ -2,8 +2,8 @@
   <v-dialog
     v-model="show"
     :retain-focus="false"
-    persistent
     max-width="800px"
+    persistent
   >
     <v-card>
       <v-stepper v-model="e1">
@@ -41,8 +41,17 @@
               <WelcomeFirstScreen />
             </v-card>
             <v-card-actions>
+              <v-btn
+                text
+                @click="finished"
+              >
+                Close
+              </v-btn>
               <v-spacer />
-              <v-btn @click="e1 = 2">
+              <v-btn
+                color="primary"
+                @click="e1 = 2"
+              >
                 Next
               </v-btn>
             </v-card-actions>
@@ -60,8 +69,16 @@
               />
             </v-card>
             <v-card-actions>
+              <v-btn
+                text
+                @click="finished"
+              >
+                Close
+              </v-btn>
               <v-spacer />
-              <v-btn @click="e1 = 1">
+              <v-btn
+                @click="e1 = 1"
+              >
                 Back
               </v-btn>
               <v-btn
@@ -73,6 +90,7 @@
               <v-btn
                 v-else
                 id="autoclick"
+                color="primary"
                 @click="e1 = 3"
               >
                 Next
@@ -97,6 +115,7 @@
             <v-card-actions>
               <v-spacer />
               <v-btn
+                color="primary"
                 @click="finished"
               >
                 Continue

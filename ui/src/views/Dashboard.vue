@@ -35,7 +35,7 @@
             </v-list-item-avatar>
           </v-list-item>
 
-          <v-card-actions v-if="registeredDevices">
+          <v-card-actions v-if="show">
             <Welcome
               :dialog="true"
               :curl="curl"
@@ -156,7 +156,8 @@ export default {
         tenant: this.$store.getters['auth/tenant']
       },
       flag: false,
-      registeredDevices: false,
+      hasDevicesRegistered: false,
+      show: false
     };
   },
 
@@ -168,7 +169,11 @@ export default {
 
   async created() {
     await this.$store.dispatch('stats/get');
-    this.registeredDevices= this.initialState();
+    this.hasDevicesRegistered= this.initialState();
+    if(localStorage.getItem('onceWelcome')===null){
+      localStorage.setItem('onceWelcome',true);
+      this.show=!this.hasDevicesRegistered;
+    }
   },
 
   mounted() {
@@ -178,11 +183,12 @@ export default {
 
   methods: {
     receiveFinish(params){
-      this.registeredDevices=params;
+      this.hasDevicesRegistered=params;
+      this.show=false;
     },
     initialState(){
-      return this.stats.registered_devices === 0;
-    }
+      return this.stats.registered_devices !== 0;
+    },
   }
 };
 </script>

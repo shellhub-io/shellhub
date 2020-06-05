@@ -1,7 +1,7 @@
 <template>
   <fragment>
     <p class="ml-4 pt-4">
-      Now you should add a device.
+      In order to register a device on ShellHub, you need to install ShellHub agent onto it.
     </p>
     <p class="mt-4 ml-4 mr-4">
       The easiest way to install ShellHub agent is with our automatic one-line installation script,
