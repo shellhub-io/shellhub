@@ -32,7 +32,7 @@
                 check_circle
               </v-icon>
             </template>
-            <span>active {{ session.last_seen | moment("from", "now") }}</span>
+            <span>active {{ lastActive }}</span>
           </v-tooltip>
           {{ session.device.name }}
         </v-toolbar-title>
@@ -107,14 +107,14 @@
           <div class="overline">
             Started
           </div>
-          <div>{{ session.started_at | moment("dddd, MMMM Do YYYY, h:mm:ss a") }}</div>
+          <div>{{ convertDate(session.started_at) }}</div>
         </div>
 
         <div class="mt-2">
           <div class="overline">
             Last Seen
           </div>
-          <div>{{ session.last_seen | moment("dddd, MMMM Do YYYY, h:mm:ss a") }}</div>
+          <div>{{ convertDate(session.last_seen) }}</div>
         </div>
       </v-card-text>
 
@@ -161,6 +161,9 @@
 </template>
 
 <script>
+
+import moment from 'moment';
+
 export default {
   name: 'SessionDetails',
 
@@ -173,6 +176,13 @@ export default {
       hide:true
     };
   },
+
+  computed: {
+    lastActive(){
+      return moment(this.session.last_seen).format('from', 'now');
+    },
+  },
+  
   async created() {
     this.uid = this.$route.params.id;
     try{
@@ -183,6 +193,7 @@ export default {
       this.dialog=true;
     }
   },
+
   methods: {
     async closeSession() {
       this.$store.dispatch('sessions/close');
@@ -190,9 +201,14 @@ export default {
       await this.$store.dispatch('sessions/get', this.uid);
       this.session = this.$store.getters['sessions/get'];
     },
+
     redirect(){
       this.dialog=false;
       this.$router.push('/sessions');
+    },
+
+    convertDate(date) {
+      return moment(date).format('dddd, MMMM Do YYYY, h:mm:ss a');
     }
   }
 };
