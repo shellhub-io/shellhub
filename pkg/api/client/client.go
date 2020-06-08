@@ -1,11 +1,16 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"math"
+	"net"
+	"net/http"
 	"net/url"
 	"path"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/parnurzeal/gorequest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -19,10 +24,27 @@ const (
 )
 
 func NewClient(opts ...Opt) Client {
+	retryClient := retryablehttp.NewClient()
+	retryClient.HTTPClient = &http.Client{}
+	retryClient.RetryMax = math.MaxInt32
+	retryClient.Logger = nil
+	retryClient.CheckRetry = func(ctx context.Context, resp *http.Response, err error) (bool, error) {
+		if _, ok := err.(net.Error); ok {
+			return true, nil
+		}
+
+		return retryablehttp.DefaultRetryPolicy(ctx, resp, err)
+	}
+
+	gorequest.DisableTransportSwap = true
+
+	httpClient := gorequest.New()
+	httpClient.Client = retryClient.StandardClient()
+
 	c := &client{
 		host: apiHost,
 		port: apiPort,
-		http: gorequest.New(),
+		http: httpClient,
 	}
 
 	for _, opt := range opts {
