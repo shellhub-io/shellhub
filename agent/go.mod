@@ -14,6 +14,7 @@ require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/websocket v1.4.2
+	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/pty v1.1.8
 	github.com/mattn/go-shellwords v1.0.10
