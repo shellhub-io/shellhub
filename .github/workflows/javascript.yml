@@ -36,6 +36,10 @@ jobs:
             ${{ runner.OS }}-ui-
             ${{ runner.OS }}-
 
+      - name: Unit test
+        working-directory: ui/
+        run: npm run test:unit -- -u
+
       - name: Save Code Linting Report JSON
         working-directory: ui/
         run: npm run --silent lint:report | tee eslint_report.json
