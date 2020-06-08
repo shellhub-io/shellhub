@@ -58,14 +58,16 @@
               :rules="[rules.required]"
               :validate-on-blur="true"
             />
-            <v-btn
-              type="submit"
-              color="primary"
-              class="mt-4"
-              rounded
-            >
-              Connect
-            </v-btn>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                type="submit"
+                color="primary"
+                class="mt-4"
+              >
+                Connect
+              </v-btn>
+            </v-card-actions>
           </v-form>
         </v-card>
 

@@ -2,8 +2,10 @@
   <fragment>
     <v-alert
       v-if="flag"
-      type="warning"
+      text
+      color="#bd4147"
       outlined
+      dismissible
     >
       Sorry, we couldn't find the page you were looking for
     </v-alert>

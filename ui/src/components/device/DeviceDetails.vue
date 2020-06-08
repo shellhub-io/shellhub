@@ -99,11 +99,9 @@
           >
             Device ID error
           </v-card-title>
-          <v-card-text>
-            <br>
-            You tried to access a non-existing device ID.
+          <v-card-text class="mt-4 mb-3 pb-1">
+            You tried to access a non-existing device ID
           </v-card-text>
-          <v-divider />
           <v-card-actions>
             <v-spacer />
             <v-btn

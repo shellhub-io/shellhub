@@ -13,20 +13,19 @@
     </v-tooltip>
     <v-dialog
       v-model="dialog"
-      persistent
-      max-width="400"
+      max-width="450"
     >
       <v-card>
-        <v-card-title>
+        <v-card-title class="headline grey lighten-2 text-center">
           Rename Device
         </v-card-title>
-        <v-card-text>
+        <v-card-text class="caption mb-0">
           <v-text-field
             v-model="editName"
             require
-            placeholder="hostname"
+            :placeholder="device.name"
+            messages="Examples: (foobar, foo-bar.ba-z.qux, foo.example.com, 127.0.0.1)"
           />
-          Examples: (foobar, foo-bar.ba-z.qux, foo.example.com, 127.0.0.1)
         </v-card-text>
         <v-card-text
           v-if="invalid"
@@ -45,11 +44,10 @@
         <v-card-actions>
           <v-spacer />
           <v-btn
-            color="primary"
             text
             @click="cancel"
           >
-            Cancel
+            Close
           </v-btn>
           <v-btn
             color="primary"
@@ -83,6 +81,11 @@ export default {
       editName: '',
       invalid: false,
     };
+  },
+  watch:{
+    dialog(out){
+      !out && this.cancel();
+    }
   },
   methods : {
     save() {
