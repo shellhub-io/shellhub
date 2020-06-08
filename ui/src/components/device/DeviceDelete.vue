@@ -17,11 +17,11 @@
       max-width="400"
     >
       <v-card>
-        <v-card-title class="headline">
+        <v-card-title class="headline grey lighten-2 text-center">
           Are you sure?
         </v-card-title>
 
-        <v-card-text>
+        <v-card-text class="mt-4 mb-3 pb-1">
           You are about to remove this device
         </v-card-text>
         
@@ -29,11 +29,10 @@
           <v-spacer />
 
           <v-btn
-            color="primary"
             text
             @click="dialog=!dialog"
           >
-            CANCEL
+            Close
           </v-btn>
 
           <v-btn
@@ -41,7 +40,7 @@
             text
             @click="remove();"
           >
-            REMOVE
+            Remove
           </v-btn>
         </v-card-actions>
       </v-card>
