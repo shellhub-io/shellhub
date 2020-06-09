@@ -2,7 +2,7 @@
   <a href="https://shellhub.io"><img src="http://docs.shellhub.io/img/logo.png" alt="ShellHub"></a>
 </h1>
 
-<h4 align="center">Centralized SSH for the the edge and cloud computing.</h4>
+<h4 align="center">Centralized SSH for the edge and cloud computing.</h4>
 
 <p align="center">
   <a href="https://circleci.com/gh/shellhub-io/shellhub">
