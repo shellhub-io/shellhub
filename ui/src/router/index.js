@@ -41,6 +41,11 @@ const router = new Router({
       component: () => import('./../views/Login.vue'),
     },
     {
+      path: '/firewall/rules',
+      name: 'firewalls',
+      component: () => import('./../views/FirewallRules.vue'),
+    },
+    {
       path: '*',
       name: 'NotFound',
       component: Dashboard,

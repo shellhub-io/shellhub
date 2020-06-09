@@ -5,11 +5,12 @@ import sessions from '@/modules/sessions';
 import auth from '@/modules/auth';
 import devices from '@/modules/devices';
 import modals from '@/modules/modals';
+import firewallrules from '@/modules/firewall_rules';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
   modules: {
-    devices, modals, stats, sessions, auth,
+    devices, modals, stats, sessions, auth, firewallrules,
   },
 });

@@ -160,6 +160,11 @@ export default {
           title: 'Sessions',
           path: '/sessions',
         },
+        {
+          icon: 'security',
+          title: 'Firewall Rules',
+          path: '/firewall/rules',
+        },
       ],
     };
   },
