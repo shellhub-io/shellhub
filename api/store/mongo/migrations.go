@@ -85,6 +85,30 @@ var migrations = []migrate.Migration{
 			return err
 		},
 	},
+	{
+		Version: 7,
+		Up: func(db *mongo.Database) error {
+			mod := mongo.IndexModel{
+				Keys:    bson.D{{"uid", 1}},
+				Options: options.Index().SetName("uid").SetUnique(false),
+			}
+			_, err := db.Collection("recorded_sessions").Indexes().CreateOne(context.TODO(), mod)
+
+			mod = mongo.IndexModel{
+				Keys:    bson.D{{"uid", 1}},
+				Options: options.Index().SetName("message").SetUnique(false),
+			}
+			_, err = db.Collection("recorded_sessions").Indexes().CreateOne(context.TODO(), mod)
+
+			return err
+		},
+		Down: func(db *mongo.Database) error {
+			_, err := db.Collection("recorded_sessions").Indexes().DropOne(context.TODO(), "uid")
+			_, err = db.Collection("recorded_sessions").Indexes().DropOne(context.TODO(), "message")
+
+			return err
+		},
+	},
 }
 
 func ApplyMigrations(db *mongo.Database) error {
