@@ -1,6 +1,6 @@
 #!/bin/sh
 
-[ -z $1 ] || [ -z $2 ] && echo "Usage: $0 <username> <password>" && exit 1
+[ $# -ne 3 ] && echo "Usage: $0 <username> <password> <email>" && exit 1
 
 if [ ! -f "$(which uuidgen 2> /dev/null)" ]; then
     echo "$0 requires uuidgen but it's not installed. Aborting!"
@@ -9,6 +9,7 @@ fi
 
 USERNAME=$1
 PASSWORD=`printf $2 | sha256sum | awk '{ print $1 }'`
+EMAIL=$3
 TENANT_ID=`uuidgen`
 
 if [ $(docker inspect --format='{{.State.Running}}' $(docker-compose ps -q mongo)) = false ]; then
@@ -23,7 +24,7 @@ if [ -n "$EXISTS" ]; then
     exit 1
 fi
 
-INSERTED=`docker-compose exec -T mongo mongo main --quiet --eval "db.users.insert({ username: '$USERNAME', password: '$PASSWORD', tenant_id: '$TENANT_ID' }).nInserted"`
+INSERTED=`docker-compose exec -T mongo mongo main --quiet --eval "db.users.insert({ username: '$USERNAME', password: '$PASSWORD', email: '$EMAIL', tenant_id: '$TENANT_ID' }).nInserted"`
 
 if [ $INSERTED -eq 1 ]; then
     echo "User added: $USERNAME"
