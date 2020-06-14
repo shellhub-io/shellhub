@@ -39,7 +39,7 @@
     "eslint-plugin-vue": "^5.2.3",
     "fibers": "^4.0.3",
     "font-logos": "^0.10.0",
-    "node-sass": "^4.14.0",
+    "node-sass": "^4.14.1",
     "sass": "^1.26.3",
     "sass-loader": "^8.0.2",
     "stylus": "^0.54.5",
