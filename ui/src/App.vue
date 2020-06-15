@@ -117,7 +117,7 @@
         </v-card>
       </v-menu>
     </v-app-bar>
-    <v-content>
+    <v-main>
       <v-container
         class="pa-8"
         fluid
@@ -130,7 +130,7 @@
       >
         Tenant ID copied to clipboard
       </v-snackbar>
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 
