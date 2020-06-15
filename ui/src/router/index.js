@@ -19,25 +19,25 @@ const router = new Router({
       name: 'devices',
 
       component: () =>
-          import(/* webpackChunkName: 'devices' */ './../views/Devices.vue')
+        import(/* webpackChunkName: 'devices' */ './../views/Devices.vue')
     },
     {
       path: '/device/:id',
       name: 'detailsDevice',
       component: () =>
-          import(/* webpackChunkName: 'details-device' */ './../views/DetailsDevice.vue') 
+        import(/* webpackChunkName: 'details-device' */ './../views/DetailsDevice.vue')
     },
     {
       path: '/sessions',
       name: 'sessions',
       component: () =>
-          import('./../views/Sessions.vue')
+        import('./../views/Sessions.vue')
     },
     {
       path: '/session/:id',
       name: 'detailsSession',
       component: () =>
-          import(/* webpackChunkName: 'details-session' */ './../views/DetailsSession.vue') 
+        import(/* webpackChunkName: 'details-session' */ './../views/DetailsSession.vue')
     },
     {
       path: '/login',

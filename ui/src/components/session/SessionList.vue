@@ -56,13 +56,6 @@
           </template>
 
           <template v-slot:item.username="{ item }">
-            <v-tooltip
-              v-if="!item.authenticated"
-              bottom
-            >
-              <template #activator="{ on }" />
-              <span>Unauthorized</span>
-            </v-tooltip>
             {{ item.username }}
           </template>
 
