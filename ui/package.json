@@ -21,7 +21,9 @@
     "vue-router": "^3.3.4",
     "vuetify": "^2.3.0",
     "vuex": "^3.4.0",
-    "xterm": "^3.14.5"
+    "xterm": "^4.7.0",
+    "xterm-addon-attach": "^0.6.0",
+    "xterm-addon-fit": "^0.4.0"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.28",
