@@ -33,11 +33,14 @@ func NewAgent() (*Agent, error) {
 
 func (a *Agent) generatePrivateKey() error {
 	if _, err := os.Stat(a.opts.PrivateKey); os.IsNotExist(err) {
-		logrus.Info("Private key not found. Generating...")
+		logrus.Info("Generating private key prior start communication...")
+
 		err := keygen.GeneratePrivateKey(a.opts.PrivateKey)
 		if err != nil {
 			return err
 		}
+
+		logrus.Info("Private key generated successfully.")
 	}
 
 	return nil
