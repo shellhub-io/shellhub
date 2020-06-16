@@ -168,11 +168,13 @@ export default {
       }
 
       this.showLoginForm = false;
+      this.$nextTick(() => this.fitAddon.fit());
 
       if (!this.xterm.element) {
         this.xterm.open(this.$refs.terminal);
       }
 
+      this.fitAddon.fit();
       this.xterm.focus();
 
       const params = Object.entries({
