@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { fetchSessions, getSession, closeSession } from '@/api/sessions';
+import * as apiSession from '@/api/sessions';
 
 export default {
   namespaced: true,
@@ -13,32 +13,32 @@ export default {
   getters: {
     list: (state) => state.sessions,
     get: (state) => state.session,
-    getNumberSessions: (state) => state.numberSessions
+    getNumberSessions: (state) => state.numberSessions,
   },
 
   mutations: {
     setSessions: (state, res) => {
       Vue.set(state, 'sessions', res.data);
-      Vue.set(state, 'numberSessions', parseInt(res.headers['x-total-count']));
+      Vue.set(state, 'numberSessions', parseInt(res.headers['x-total-count'], 10));
     },
     setSession: (state, data) => {
-      if(data){
+      if (data) {
         Vue.set(state, 'session', data);
       }
-    }
+    },
   },
 
   actions: {
     fetch: async (context, data) => {
-      let res = await fetchSessions(data.perPage,data.page);
+      const res = await apiSession.fetchSessions(data.perPage, data.page);
       context.commit('setSessions', res);
     },
-    get: async (context,uid)  => {
-      let res = await getSession(uid);
+    get: async (context, uid) => {
+      const res = await apiSession.getSession(uid);
       context.commit('setSession', res.data);
     },
     close: async (context, session) => {
-      await closeSession(session);
-    }
-  }
+      await apiSession.closeSession(session);
+    },
+  },
 };

@@ -1,6 +1,5 @@
 import http from '@/helpers/http';
 
-export const
-  getStats = async () => {
-    return http().get('/stats');
-  };
+const getStats = async () => http().get('/stats');
+
+export { getStats as default };

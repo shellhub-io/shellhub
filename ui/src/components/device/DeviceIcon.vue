@@ -17,7 +17,7 @@ export default {
   props: {
     iconName: {
       type: String,
-      required: true
+      required: true,
     },
   },
 
@@ -51,4 +51,5 @@ export default {
     };
   },
 };
+
 </script>

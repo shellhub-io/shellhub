@@ -3,11 +3,11 @@ import store from '../store';
 import router from '../router';
 
 export default () => {
-  let axios = Axios.create({
-    baseURL: `${location.protocol}//${location.host}/api`,
+  const axios = Axios.create({
+    baseURL: `${window.location.protocol}//${window.location.host}/api`,
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`
-    }
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
   });
 
   axios.interceptors.response.use(
@@ -17,7 +17,7 @@ export default () => {
         store.dispatch('auth/logout');
         router.push('/login');
       }
-    }
+    },
   );
 
   return axios;

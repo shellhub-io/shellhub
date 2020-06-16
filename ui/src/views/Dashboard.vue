@@ -24,7 +24,9 @@
               <v-list-item-title class="headline mb-1">
                 {{ stats.registered_devices }}
               </v-list-item-title>
-              <v-list-item-subtitle>Registered devices into the tenancy account</v-list-item-subtitle>
+              <v-list-item-subtitle>
+                Registered devices into the tenancy account
+              </v-list-item-subtitle>
             </v-list-item-content>
 
             <v-list-item-avatar
@@ -72,7 +74,9 @@
               <v-list-item-title class="headline mb-1">
                 {{ stats.online_devices }}
               </v-list-item-title>
-              <v-list-item-subtitle>Devices are online and ready for connecting</v-list-item-subtitle>
+              <v-list-item-subtitle>
+                Devices are online and ready for connecting
+              </v-list-item-subtitle>
             </v-list-item-content>
 
             <v-list-item-avatar
@@ -140,8 +144,9 @@
 </template>
 
 <script>
-import DeviceAdd from '@/components/device/DeviceAdd.vue';
-import Welcome from '@/components/welcome/Welcome.vue';
+
+import DeviceAdd from '@/components/device/DeviceAdd';
+import Welcome from '@/components/welcome/Welcome';
 
 export default {
   name: 'Dashboard',
@@ -151,30 +156,30 @@ export default {
     Welcome,
   },
 
-  data(){
+  data() {
     return {
-      curl:{
+      curl: {
         hostname: window.location.hostname,
-        tenant: this.$store.getters['auth/tenant']
+        tenant: this.$store.getters['auth/tenant'],
       },
       flag: false,
       hasDevicesRegistered: false,
-      show: false
+      show: false,
     };
   },
 
   computed: {
     stats() {
       return this.$store.getters['stats/stats'];
-    }
+    },
   },
 
   async created() {
     await this.$store.dispatch('stats/get');
-    this.hasDevicesRegistered= this.initialState();
-    if(localStorage.getItem('onceWelcome')===null){
-      localStorage.setItem('onceWelcome',true);
-      this.show=!this.hasDevicesRegistered;
+    this.hasDevicesRegistered = this.initialState();
+    if (localStorage.getItem('onceWelcome') === null) {
+      localStorage.setItem('onceWelcome', true);
+      this.show = !this.hasDevicesRegistered;
     }
   },
 
@@ -184,14 +189,15 @@ export default {
   },
 
   methods: {
-    receiveFinish(params){
-      this.hasDevicesRegistered=params;
-      this.show=false;
+    receiveFinish(params) {
+      this.hasDevicesRegistered = params;
+      this.show = false;
     },
-    initialState(){
+
+    initialState() {
       return this.stats.registered_devices !== 0;
     },
-  }
+  },
 };
-</script>
 
+</script>

@@ -24,7 +24,7 @@
         <v-card-text class="mt-4 mb-3 pb-1">
           You are about to remove this device
         </v-card-text>
-        
+
         <v-card-actions>
           <v-spacer />
 
@@ -49,17 +49,19 @@
 </template>
 
 <script>
+
 export default {
   name: 'DeviceDelete',
 
   props: {
-    uid:{
+    uid: {
       type: String,
-      required: true
+      required: true,
     },
-    redirect:{
+
+    redirect: {
       type: Boolean,
-    }
+    },
   },
 
   data() {
@@ -68,14 +70,14 @@ export default {
     };
   },
 
-  methods:{
+  methods: {
     async remove() {
       await this.$store.dispatch('devices/remove', this.uid);
-      if(this.redirect){
+      if (this.redirect) {
         this.$router.push('/devices');
       }
     },
-  }  
+  },
 };
-</script>
 
+</script>

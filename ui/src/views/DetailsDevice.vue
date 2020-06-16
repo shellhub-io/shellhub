@@ -5,13 +5,15 @@
 </template>
 
 <script>
-import DeviceDetails from '@/components/device/DeviceDetails.vue';
+
+import DeviceDetails from '@/components/device/DeviceDetails';
 
 export default {
   name: 'DetailsDevice',
 
   components: {
-    DeviceDetails
-  }
+    DeviceDetails,
+  },
 };
+
 </script>

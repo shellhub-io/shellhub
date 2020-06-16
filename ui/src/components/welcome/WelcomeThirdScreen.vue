@@ -5,7 +5,9 @@
         Your device has been succesfully added.
       </p>
       <p class="mb-4">
-        Now you can take advantage of all the tools made available by ShellHub, viewing the registered devices, the sessions in each of them and getting access through the terminal interface.
+        Now you can take advantage of all the tools made available by ShellHub, viewing the
+        registered devices, the sessions in each of them and getting access through the terminal
+        interface.
       </p>
       <p class="mb-2">
         For more details, consult our <a
@@ -36,4 +38,3 @@ export default {
 };
 
 </script>
-

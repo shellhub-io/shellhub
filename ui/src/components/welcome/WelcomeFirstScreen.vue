@@ -16,11 +16,13 @@
 
 export default {
   name: 'WelcomeFirstScreen',
+
   methods: {
-    capitalizeFirstLetter(){
-      let user=this.$store.getters['auth/currentUser'].toLowerCase();
+    capitalizeFirstLetter() {
+      const user = this.$store.getters['auth/currentUser'].toLowerCase();
       return user.charAt(0).toUpperCase() + user.slice(1);
     },
-  }
+  },
 };
+
 </script>

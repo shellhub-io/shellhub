@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { getStats } from '@/api/stats';
+import getStats from '@/api/stats';
 
 export default {
   namespaced: true,
@@ -15,14 +15,13 @@ export default {
   mutations: {
     setStats: (state, data) => {
       Vue.set(state, 'stats', data);
-    }
+    },
   },
 
   actions: {
     get: async (context) => {
-      let res = await getStats();
-
+      const res = await getStats();
       context.commit('setStats', res.data);
-    }
-  }
+    },
+  },
 };

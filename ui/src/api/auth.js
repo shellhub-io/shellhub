@@ -1,6 +1,5 @@
 import http from '@/helpers/http';
 
-export const
-  login = async (user) => {
-    return http().post('/login', user);
-  };
+const login = async (user) => http().post('/login', user);
+
+export { login as default };

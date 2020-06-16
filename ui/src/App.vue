@@ -135,6 +135,7 @@
 </template>
 
 <script>
+
 export default {
   name: 'App',
 
@@ -147,19 +148,19 @@ export default {
         {
           icon: 'dashboard',
           title: 'Dashboard',
-          path: '/'
+          path: '/',
         },
         {
           icon: 'devices',
           title: 'Devices',
-          path: '/devices'
+          path: '/devices',
         },
         {
           icon: 'history',
           title: 'Sessions',
-          path: '/sessions'
-        }
-      ]
+          path: '/sessions',
+        },
+      ],
     };
   },
 
@@ -170,7 +171,7 @@ export default {
 
     isLoggedIn() {
       return this.$store.getters['auth/isLoggedIn'];
-    }
+    },
   },
 
   methods: {
@@ -178,9 +179,10 @@ export default {
       this.$store.dispatch('auth/logout').then(() => {
         this.$router.push('/login');
       });
-    }
-  }
+    },
+  },
 };
+
 </script>
 
 <style>
