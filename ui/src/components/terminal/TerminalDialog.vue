@@ -79,12 +79,10 @@
 
 <script>
 import { Terminal } from 'xterm';
-import * as fit from 'xterm/lib/addons/fit/fit';
-import * as attach from 'xterm/lib/addons/attach/attach';
-import 'xterm/dist/xterm.css';
+import { AttachAddon } from 'xterm-addon-attach';
+import { FitAddon } from 'xterm-addon-fit';
 
-Terminal.applyAddon(fit);
-Terminal.applyAddon(attach);
+import 'xterm/css/xterm.css';
 
 export default {
   name: 'TerminalDialog',
@@ -128,7 +126,7 @@ export default {
     show(value) {
       if (!value) {
         if (this.ws) this.ws.close();
-        if (this.xterm) this.xterm.destroy();
+        if (this.xterm) this.xterm.dispose();
 
         this.username = '';
         this.passwd = '';
@@ -147,6 +145,9 @@ export default {
         cursorBlink: true,
         fontFamily: 'monospace'
       });
+
+      this.fitAddon = new FitAddon();
+      this.xterm.loadAddon(this.fitAddon);
 
       this.$store.dispatch('modals/toggleTerminal', this.$props.uid);
 
@@ -167,13 +168,11 @@ export default {
       }
 
       this.showLoginForm = false;
-      this.$nextTick(() => this.xterm.fit());
 
       if (!this.xterm.element) {
         this.xterm.open(this.$refs.terminal);
       }
 
-      this.xterm.fit();
       this.xterm.focus();
 
       const params = Object.entries({
@@ -196,11 +195,12 @@ export default {
       this.ws = new WebSocket(`${protocolConnectionURL}://${location.host}/ws/ssh?${params}`);
 
       this.ws.onopen = () => {
-        this.xterm.attach(this.ws, true, true);
+        this.attachAddon = new AttachAddon(this.ws);
+        this.xterm.loadAddon(this.attachAddon);
       };
 
       this.ws.onclose = () => {
-        this.xterm.detach(this.ws);
+        this.attachAddon.dispose();
       };
     },
 
