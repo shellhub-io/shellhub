@@ -31,7 +31,6 @@ func GetOSRelease() (*OSRelease, error) {
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	return &OSRelease{id, name}, nil
