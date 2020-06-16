@@ -1,4 +1,5 @@
-import { login } from '@/api/auth';
+import Vue from 'vue';
+import login from '@/api/auth';
 
 export default {
   namespaced: true,
@@ -7,7 +8,7 @@ export default {
     status: '',
     token: localStorage.getItem('token') || '',
     user: localStorage.getItem('user') || '',
-    tenant: localStorage.getItem('tenant') || ''
+    tenant: localStorage.getItem('tenant') || '',
   },
 
   getters: {
@@ -19,25 +20,25 @@ export default {
 
   mutations: {
     authRequest(state) {
-      state.status = 'loading';
+      Vue.set(state, 'status', 'loading');
     },
 
     authSuccess(state, data) {
-      state.status = 'success';
-      state.token = data.token;
-      state.user = data.user;
-      state.tenant = data.tenant;
+      Vue.set(state, 'status', 'success');
+      Vue.set(state, 'token', data.token);
+      Vue.set(state, 'user', data.user);
+      Vue.set(state, 'tenant', data.tenant);
     },
 
     authError(state) {
-      state.status = 'error';
+      Vue.set(state, 'status', 'error');
     },
 
     logout(state) {
-      state.status = '';
-      state.token = '';
-      state.user = '';
-      state.tenant = '';
+      Vue.set(state, 'status', '');
+      Vue.set(state, 'token', '');
+      Vue.set(state, 'user', '');
+      Vue.set(state, 'tenant', '');
     },
   },
 
@@ -64,6 +65,6 @@ export default {
       localStorage.removeItem('user');
       localStorage.removeItem('tenant');
       localStorage.removeItem('onceWelcome');
-    }
-  }
+    },
+  },
 };

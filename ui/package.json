@@ -13,7 +13,9 @@
   "dependencies": {
     "axios": "^0.19.2",
     "core-js": "^3.6.5",
+    "eslint-plugin-import": "^2.21.2",
     "is-valid-hostname": "0.0.1",
+    "moment": "^2.26.0",
     "v-clipboard": "^2.2.3",
     "vue": "^2.6.11",
     "vue-fragment": "^1.5.1",
@@ -38,6 +40,8 @@
     "babel-eslint": "^10.1.0",
     "deepmerge": "^4.2.2",
     "eslint": "^7.2.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-import-resolver-webpack": "^0.12.2",
     "eslint-plugin-vue": "^6.2.2",
     "fibers": "^5.0.0",
     "font-logos": "^0.12.1",

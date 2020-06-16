@@ -68,13 +68,14 @@
 </template>
 
 <script>
+
 export default {
   name: 'Login',
 
   data() {
     return {
       username: null,
-      password: null
+      password: null,
     };
   },
 
@@ -83,7 +84,7 @@ export default {
       this.$store
         .dispatch('auth/login', {
           username: this.username,
-          password: this.password
+          password: this.password,
         })
         .then(() => {
           if (this.$route.query.redirect) {
@@ -92,7 +93,8 @@ export default {
             this.$router.push('/');
           }
         });
-    }
-  }
+    },
+  },
 };
+
 </script>

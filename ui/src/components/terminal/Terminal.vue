@@ -3,6 +3,7 @@
 </template>
 
 <script>
+
 import { Terminal } from 'xterm';
 
 export default {
@@ -11,9 +12,10 @@ export default {
   mounted() {
     this.xterm = new Terminal({
       cursorBlink: true,
-      fontFamily: 'monospace'
+      fontFamily: 'monospace',
     });
   },
 
 };
+
 </script>

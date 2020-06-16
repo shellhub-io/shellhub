@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { fetchDevices, removeDevice, renameDevice, getDevice } from '../api/devices';
+import * as apiDevice from '@/api/devices';
 
 export default {
   namespaced: true,
@@ -28,7 +28,7 @@ export default {
     },
 
     renameDevice: (state, data) => {
-      state.devices = state.devices.map((i) => i.uid === data.uid ? { ...i, name: data.name } : i);
+      Vue.set(state, 'devices', state.devices.map((i) => (i.uid === data.uid ? { ...i, name: data.name } : i)));
     },
 
     setDevice: (state, data) => {
@@ -40,22 +40,22 @@ export default {
 
   actions: {
     fetch: async (context, data) => {
-      const res = await fetchDevices(data.perPage, data.page, data.filter);
+      const res = await apiDevice.fetchDevices(data.perPage, data.page, data.filter);
       context.commit('setDevices', res);
     },
 
     remove: async (context, uid) => {
-      await removeDevice(uid);
+      await apiDevice.removeDevice(uid);
       context.commit('removeDevice', uid);
     },
 
     rename: async (context, data) => {
-      await renameDevice(data);
+      await apiDevice.renameDevice(data);
       context.commit('renameDevice', data);
     },
 
     get: async (context, uid) => {
-      const res = await getDevice(uid);
+      const res = await apiDevice.getDevice(uid);
       context.commit('setDevice', res.data);
     },
   },

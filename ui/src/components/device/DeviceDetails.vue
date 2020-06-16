@@ -5,7 +5,7 @@
         Device Details
       </h1>
     </div>
-  
+
     <v-card
       v-if="device"
       class="mt-2"
@@ -40,9 +40,9 @@
         />
 
         <v-spacer />
-      
+
         <TerminalDialog :uid="device.uid" />
-      
+
         <DeviceDelete
           :uid="device.uid"
           :dialog="dialogDelete"
@@ -59,7 +59,7 @@
           </div>
           <div>{{ device.uid }}</div>
         </div>
-        
+
         <div class="mt-2">
           <div class="overline">
             MAC
@@ -120,11 +120,11 @@
 
 <script>
 
-import TerminalDialog from '@/components/terminal/TerminalDialog.vue';
 import moment from 'moment';
-import DeviceIcon from '@/components/device/DeviceIcon.vue';
-import DeviceDelete from '@/components/device/DeviceDelete.vue'; 
-import DeviceRename from  '@/components/device/DeviceRename.vue'; 
+import TerminalDialog from '@/components/terminal/TerminalDialog';
+import DeviceIcon from '@/components/device/DeviceIcon';
+import DeviceDelete from '@/components/device/DeviceDelete';
+import DeviceRename from '@/components/device/DeviceRename';
 
 export default {
   name: 'DeviceDetails',
@@ -139,44 +139,46 @@ export default {
   data() {
     return {
       dialogDelete: false,
-      dialogError:false,
+      dialogError: false,
       uid: '',
       hostname: window.location.hostname,
       editName: '',
-      hide:true,
+      hide: true,
       device: null,
     };
   },
 
   computed: {
-    lastActive(){
+    lastActive() {
       return moment(this.device.last_seen).format('from', 'now');
     },
 
     convertDate() {
       return moment(this.device.last_seen).format('dddd, MMMM Do YYYY, h:mm:ss a');
-    }
+    },
   },
 
   async created() {
     this.uid = await this.$route.params.id;
-    try{
+    try {
       await this.$store.dispatch('devices/get', this.uid);
       this.device = this.$store.getters['devices/get'];
-    } catch(error){
-      this.hide=false;
-      this.dialogError=true;
-    } 
+    } catch (error) {
+      this.hide = false;
+      this.dialogError = true;
+    }
   },
 
   methods: {
-    redirect(){
-      this.dialogError=false;
+    redirect() {
+      this.dialogError = false;
       this.$router.push('/devices');
     },
-    receiveName(params){
-      this.device.name=params;
-    }
+
+    receiveName(params) {
+      this.device.name = params;
+    },
   },
 };
+
 </script>

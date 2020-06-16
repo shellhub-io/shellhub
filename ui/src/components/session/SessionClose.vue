@@ -24,7 +24,7 @@
         <v-card-text class="mt-4 mb-3 pb-1">
           You are going to close connection for this device
         </v-card-text>
-        
+
         <v-card-actions>
           <v-spacer />
 
@@ -49,13 +49,14 @@
 </template>
 
 <script>
+
 export default {
   name: 'SessionClose',
 
   props: {
-    session:{
+    session: {
       type: Object,
-      required: true
+      required: true,
     },
   },
 
@@ -65,12 +66,12 @@ export default {
     };
   },
 
-  methods:{
+  methods: {
     async close() {
       await this.$store.dispatch('sessions/close', this.session);
       this.dialog = false;
     },
-  }  
+  },
 };
-</script>
 
+</script>

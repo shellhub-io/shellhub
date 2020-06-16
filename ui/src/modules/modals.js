@@ -1,3 +1,5 @@
+import Vue from 'vue';
+
 export default {
   namespaced: true,
 
@@ -7,23 +9,18 @@ export default {
   },
 
   getters: {
-    terminal: (state) => {
-      return state.terminal;
-    },
-
-    addDevice: (state) => {
-      return state.addDevice;
-    }
+    terminal: (state) => state.terminal,
+    addDevice: (state) => state.addDevice,
   },
 
   mutations: {
     setTerminal: (state, data) => {
-      state.terminal = data;
+      Vue.set(state, 'terminal', data);
     },
 
     setAddDevice: (state, data) => {
-      state.addDevice = data;
-    }
+      Vue.set(state, 'addDevice', data);
+    },
   },
 
   actions: {
@@ -33,6 +30,6 @@ export default {
 
     showAddDevice: (context, value) => {
       context.commit('setAddDevice', value);
-    }
-  }
+    },
+  },
 };

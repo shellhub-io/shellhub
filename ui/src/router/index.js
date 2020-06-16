@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Dashboard from './../views/Dashboard.vue';
-import store from './../store';
+import Dashboard from '../views/Dashboard';
+import store from '../store';
 
 Vue.use(Router);
 
@@ -12,38 +12,33 @@ const router = new Router({
     {
       path: '/',
       name: 'dashboard',
-      component: Dashboard
+      component: Dashboard,
     },
     {
       path: '/devices',
       name: 'devices',
 
-      component: () =>
-        import(/* webpackChunkName: 'devices' */ './../views/Devices.vue')
+      component: () => import(/* webpackChunkName: 'devices' */ './../views/Devices.vue'),
     },
     {
       path: '/device/:id',
       name: 'detailsDevice',
-      component: () =>
-        import(/* webpackChunkName: 'details-device' */ './../views/DetailsDevice.vue')
+      component: () => import(/* webpackChunkName: 'details-device' */ './../views/DetailsDevice.vue'),
     },
     {
       path: '/sessions',
       name: 'sessions',
-      component: () =>
-        import('./../views/Sessions.vue')
+      component: () => import('./../views/Sessions.vue'),
     },
     {
       path: '/session/:id',
       name: 'detailsSession',
-      component: () =>
-        import(/* webpackChunkName: 'details-session' */ './../views/DetailsSession.vue')
+      component: () => import(/* webpackChunkName: 'details-session' */ './../views/DetailsSession.vue'),
     },
     {
       path: '/login',
       name: 'login',
-      component: () =>
-        import('./../views/Login.vue')
+      component: () => import('./../views/Login.vue'),
     },
     {
       path: '*',
@@ -52,9 +47,9 @@ const router = new Router({
       redirect: () => {
         localStorage.setItem('flag', true);
         return '/';
-      }
-    }
-  ]
+      },
+    },
+  ],
 });
 
 router.beforeEach((to, from, next) => {
@@ -63,12 +58,11 @@ router.beforeEach((to, from, next) => {
       return next();
     }
     return next(`/login?redirect=${to.path}`);
-  } else {
-    if (store.getters['auth/isLoggedIn']) {
-      return next('/');
-    }
-    return next();
   }
+  if (store.getters['auth/isLoggedIn']) {
+    return next('/');
+  }
+  return next();
 });
 
 export default router;

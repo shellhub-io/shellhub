@@ -171,24 +171,24 @@ export default {
       session: null,
       closeSessionSnack: false,
       dialog: false,
-      hide:true
+      hide: true,
     };
   },
 
   computed: {
-    lastActive(){
+    lastActive() {
       return moment(this.session.last_seen).format('from', 'now');
     },
   },
-  
+
   async created() {
     this.uid = this.$route.params.id;
-    try{
+    try {
       await this.$store.dispatch('sessions/get', this.uid);
       this.session = this.$store.getters['sessions/get'];
-    } catch(error){
-      this.hide=false;
-      this.dialog=true;
+    } catch (error) {
+      this.hide = false;
+      this.dialog = true;
     }
   },
 
@@ -200,14 +200,15 @@ export default {
       this.session = this.$store.getters['sessions/get'];
     },
 
-    redirect(){
-      this.dialog=false;
+    redirect() {
+      this.dialog = false;
       this.$router.push('/sessions');
     },
 
     convertDate(date) {
       return moment(date).format('dddd, MMMM Do YYYY, h:mm:ss a');
-    }
-  }
+    },
+  },
 };
+
 </script>

@@ -53,6 +53,7 @@
             color="primary"
             text
             @click="check"
+            @click:outside="cancel"
           >
             Rename
           </v-btn>
@@ -63,6 +64,7 @@
 </template>
 
 <script>
+
 import isValidHostname from 'is-valid-hostname';
 
 export default {
@@ -70,9 +72,9 @@ export default {
 
   props: {
     device: {
-      type:Object,
-      required:true
-    }
+      type: Object,
+      required: true,
+    },
   },
 
   data() {
@@ -82,34 +84,33 @@ export default {
       invalid: false,
     };
   },
-  watch:{
-    dialog(out){
-      !out && this.cancel();
-    }
-  },
-  methods : {
+
+  methods: {
     save() {
       this.$store.dispatch('devices/rename', {
         uid: this.device.uid,
-        name: this.editName
+        name: this.editName,
       });
-      this.dialog=false;
+      this.dialog = false;
     },
-    cancel(){
-      this.dialog=false;
-      this.invalid=false;
-      this.editName='';
+
+    cancel() {
+      this.dialog = false;
+      this.invalid = false;
+      this.editName = '';
     },
-    check(){
-      if (isValidHostname(this.editName)){
+
+    check() {
+      if (isValidHostname(this.editName)) {
         this.save();
-        this.dialog=false;
+        this.dialog = false;
         this.$emit('newHostname', this.editName);
-        this.editName='';
-      }else{
-        this.invalid=true;
+        this.editName = '';
+      } else {
+        this.invalid = true;
       }
     },
-  }
+  },
 };
+
 </script>

@@ -28,7 +28,7 @@
             <v-icon>close</v-icon>
           </v-btn>
           <v-toolbar-title>Terminal</v-toolbar-title>
-    
+
           <v-spacer />
         </v-toolbar>
 
@@ -78,6 +78,7 @@
 </template>
 
 <script>
+
 import { Terminal } from 'xterm';
 import { AttachAddon } from 'xterm-addon-attach';
 import { FitAddon } from 'xterm-addon-fit';
@@ -90,8 +91,8 @@ export default {
   props: {
     uid: {
       type: String,
-      required: true
-    }, 
+      required: true,
+    },
   },
 
   data() {
@@ -101,8 +102,8 @@ export default {
       showLoginForm: true,
       valid: true,
       rules: {
-        required: (value) => !!value || 'Required'
-      }
+        required: (value) => !!value || 'Required',
+      },
     };
   },
 
@@ -118,8 +119,8 @@ export default {
         } else {
           this.$store.dispatch('modals/toggleTerminal', '');
         }
-      }
-    }
+      },
+    },
   },
 
   watch: {
@@ -136,14 +137,14 @@ export default {
           this.$refs.username.focus();
         });
       }
-    }
+    },
   },
 
   methods: {
     open() {
       this.xterm = new Terminal({
         cursorBlink: true,
-        fontFamily: 'monospace'
+        fontFamily: 'monospace',
       });
 
       this.fitAddon = new FitAddon();
@@ -181,20 +182,18 @@ export default {
         user: `${this.username}@${this.$props.uid}`,
         passwd: encodeURIComponent(this.passwd),
         cols: this.xterm.cols,
-        rows: this.xterm.rows
+        rows: this.xterm.rows,
       })
-        .map(([k, v]) => {
-          return `${k}=${v}`;
-        })
+        .map(([k, v]) => `${k}=${v}`)
         .join('&');
 
-      if(location.protocol === 'http:'){
+      if (window.location.protocol === 'http:') {
         protocolConnectionURL = 'ws';
-      } else{
+      } else {
         protocolConnectionURL = 'wss';
       }
 
-      this.ws = new WebSocket(`${protocolConnectionURL}://${location.host}/ws/ssh?${params}`);
+      this.ws = new WebSocket(`${protocolConnectionURL}://${window.location.host}/ws/ssh?${params}`);
 
       this.ws.onopen = () => {
         this.attachAddon = new AttachAddon(this.ws);
@@ -208,7 +207,8 @@ export default {
 
     showCopySnack() {
       this.copySnack = true;
-    }
-  }
+    },
+  },
 };
+
 </script>

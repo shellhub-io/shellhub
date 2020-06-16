@@ -33,7 +33,7 @@
 
         <v-stepper-items>
           <v-stepper-content step="1">
-            <v-card 
+            <v-card
               class="mb-12"
               color="grey lighten-4"
               height="250px"
@@ -58,7 +58,7 @@
           </v-stepper-content>
 
           <v-stepper-content step="2">
-            <v-card 
+            <v-card
               class="mb-12"
               color="grey lighten-4"
               height="250px"
@@ -105,7 +105,7 @@
           </v-stepper-content>
 
           <v-stepper-content step="3">
-            <v-card 
+            <v-card
               class="mb-12"
               color="grey lighten-4"
               height="250px"
@@ -130,9 +130,9 @@
 
 <script>
 
-import WelcomeFirstScreen from '@/components/welcome/WelcomeFirstScreen.vue';
-import WelcomeSecondScreen from '@/components/welcome/WelcomeSecondScreen.vue';
-import WelcomeThirdScreen from '@/components/welcome/WelcomeThirdScreen.vue';
+import WelcomeFirstScreen from '@/components/welcome/WelcomeFirstScreen';
+import WelcomeSecondScreen from '@/components/welcome/WelcomeSecondScreen';
+import WelcomeThirdScreen from '@/components/welcome/WelcomeThirdScreen';
 
 export default {
   name: 'Welcome',
@@ -140,79 +140,88 @@ export default {
   components: {
     WelcomeFirstScreen,
     WelcomeSecondScreen,
-    WelcomeThirdScreen
+    WelcomeThirdScreen,
   },
 
   props: {
     dialog: {
       type: Boolean,
-      required: true
+      required: true,
     },
+
     curl: {
       type: Object,
-      required: true
+      required: true,
     },
   },
 
-  data () {
+  data() {
     return {
       e1: 1,
-      copy:false,
-      enable:false,
+      copy: false,
+      enable: false,
       polling: null,
-      trigger: null
+      trigger: null,
     };
   },
 
-  computed:{
-    show:{
-      get(){
+  computed: {
+    show: {
+      get() {
         return this.dialog;
       },
+
       set(value) {
         this.$emit('show', value);
-      }
-    }
+      },
+    },
   },
 
-  created(){
+  created() {
     this.pollingDevices();
   },
 
   methods: {
-    receiveClip(params){
-      this.copy=params;
+    receiveClip(params) {
+      this.copy = params;
     },
-    beforeDestroy(){
+
+    beforeDestroy() {
       clearInterval(this.polling);
     },
+
     command() {
-      return `curl "${location.protocol}//${this.curl.hostname}/install.sh?tenant_id=${this.curl.tenant}" | sh`;
+      return `curl "${window.location.protocol}//${this.curl.hostname}/install.sh?tenant_id=${this.curl.tenant}" | sh`;
     },
-    finished(){
+
+    finished() {
       clearTimeout(this.trigger);
-      this.show=false;
+      this.show = false;
       this.$emit('finishedEvent', false);
       this.beforeDestroy();
     },
-    pollingDevices(){
-      this.polling=setInterval(async () => {
+
+    pollingDevices() {
+      this.polling = setInterval(async () => {
         await this.$store.dispatch('stats/get', {});
-        this.enable=this.checkDevice();
-        if (this.enable){
+        this.enable = this.checkDevice();
+        if (this.enable) {
           this.autoNext();
         }
       }, 3000);
     },
-    checkDevice(){
+
+    checkDevice() {
       return this.$store.getters['stats/stats'].registered_devices !== 0;
     },
-    autoNext(){
-      this.trigger=setTimeout(()=>{
+
+    autoNext() {
+      this.trigger = setTimeout(() => {
         document.getElementById('autoclick').click();
-      },4000);
+      }, 4000);
       this.beforeDestroy();
-    }
-  }
+    },
+  },
 };
+
 </script>

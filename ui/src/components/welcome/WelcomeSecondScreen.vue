@@ -7,7 +7,6 @@
       The easiest way to install ShellHub agent is with our automatic one-line installation script,
       which works with all Linux distributions that have Docker installed and properly set up.
     </p>
-    
     <div class="mt-4 ml-4 mr-4">
       <strong>Run the following command on your device:</strong>
       <v-text-field
@@ -41,36 +40,39 @@
 </template>
 
 <script>
+
 export default {
   name: 'WelcomeSecondScreen',
 
   props: {
     command: {
       type: String,
-      required: true
+      required: true,
     },
   },
 
   data() {
     return {
       hostname: window.location.hostname,
-      copySnack: false,      
-      allowsUserContinue: false
+      copySnack: false,
+      allowsUserContinue: false,
     };
   },
 
-  methods:{
+  methods: {
     copyCommand() {
       this.$clipboard(this.command);
       this.copySnack = true;
       this.$emit('expClip', this.copySnack);
     },
-  }
+  },
 
 };
+
 </script>
 
 <style lang="scss" scoped>
+
 @import '~vuetify/src/styles/settings/_variables.scss';
 
 .code {
@@ -78,4 +80,5 @@ export default {
   font-size: $code-kbd-font-size;
   font-weight: $code-kbd-font-weight;
 }
+
 </style>
