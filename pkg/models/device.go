@@ -16,6 +16,7 @@ type Device struct {
 	LastSeen  time.Time       `json:"last_seen" bson:"last_seen"`
 	Online    bool            `json:"online" bson:",omitempty"`
 	Namespace string          `json:"namespace" bson:",omitempty"`
+	Pending   bool            `json:"pending" bson:"pending,omitempty"`
 }
 
 type DeviceAuthClaims struct {
@@ -58,4 +59,5 @@ type ConnectedDevice struct {
 	UID      string    `json:"uid"`
 	TenantID string    `json:"tenant_id" bson:"tenant_id"`
 	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+	Pending  bool      `json:"pending" bson:"pending"`
 }

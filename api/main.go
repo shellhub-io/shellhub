@@ -84,5 +84,17 @@ func main() {
 
 	publicAPI.GET(routes.GetStatsURL, apicontext.Handler(routes.GetStats))
 
+	publicAPI.PATCH("/devices/:uid/allow", func(c echo.Context) error {
+		ctx := c.Get("ctx").(context.Context)
+		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
+		svc := deviceadm.NewService(store)
+
+		err := svc.UpdatePendingStatus(ctx, models.UID(c.Param("uid")), false)
+		if err != nil {
+			return err
+		}
+		return c.JSON(http.StatusOK, nil)
+	})
+
 	e.Logger.Fatal(e.Start(":8080"))
 }

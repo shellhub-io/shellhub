@@ -15,12 +15,13 @@ import (
 var ErrUnauthorized = errors.New("unauthorized")
 
 type Service interface {
-	ListDevices(ctx context.Context, pagination paginator.Query, filter string) ([]models.Device, int, error)
+	ListDevices(ctx context.Context, pagination paginator.Query, filter string, pending bool) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
+	UpdatePendingStatus(ctx context.Context, uid models.UID, pending bool) error
 }
 
 type service struct {
@@ -31,7 +32,7 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filterB64 string) ([]models.Device, int, error) {
+func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filterB64 string, pending bool) ([]models.Device, int, error) {
 	raw, err := base64.StdEncoding.DecodeString(filterB64)
 	if err != nil {
 		return nil, 0, err
@@ -43,7 +44,7 @@ func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, f
 		return nil, 0, err
 	}
 
-	return s.store.ListDevices(ctx, pagination, filter)
+	return s.store.ListDevices(ctx, pagination, filter, pending)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
@@ -81,4 +82,8 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 
 func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
 	return s.store.UpdateDeviceStatus(ctx, uid, online)
+}
+
+func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, pending bool) error {
+	return s.store.UpdatePendingStatus(ctx, uid, pending)
 }

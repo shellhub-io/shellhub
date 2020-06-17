@@ -8,13 +8,14 @@ import (
 )
 
 type Store interface {
-	ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.Device, int, error)
+	ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter, pending bool) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID) error
 	AddDevice(ctx context.Context, d models.Device) error
 	RenameDevice(ctx context.Context, uid models.UID, name string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
+	UpdatePendingStatus(ctx context.Context, uid models.UID, pending bool) error
 	ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error)
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)

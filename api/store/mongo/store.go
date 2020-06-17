@@ -28,13 +28,18 @@ func NewStore(db *mongo.Database) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.Device, int, error) {
+func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter, pending bool) ([]models.Device, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	query := []bson.M{
+		{
+			"$match": bson.M{
+				"pending": pending,
+			},
+		},
 		{
 
 			"$lookup": bson.M{
@@ -181,7 +186,8 @@ func (s *Store) AddDevice(ctx context.Context, d models.Device) error {
 
 	q := bson.M{
 		"$setOnInsert": bson.M{
-			"name": hostname,
+			"name":    hostname,
+			"pending": true,
 		},
 		"$set": d,
 	}
@@ -232,6 +238,31 @@ func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online b
 		UID:      device.UID,
 		TenantID: device.TenantID,
 		LastSeen: time.Now(),
+		Pending:  device.Pending,
+	}
+	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, pending bool) error {
+	device := new(models.Device)
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
+		return err
+	}
+
+	opts := options.Update().SetUpsert(true)
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"pending": pending}}, opts)
+	if err != nil {
+		return err
+	}
+	cd := &models.ConnectedDevice{
+		UID:      device.UID,
+		TenantID: device.TenantID,
+		LastSeen: time.Now(),
+		Pending:  pending,
 	}
 	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
 		return err
@@ -400,6 +431,12 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		}}, query...)
 	}
 
+	query = append([]bson.M{{
+		"$match": bson.M{
+			"pending": false,
+		},
+	}}, query...)
+
 	onlineDevices, err := aggregateCount(ctx, s.db.Collection("connected_devices"), query)
 	if err != nil {
 		return nil, err
@@ -417,8 +454,37 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 			},
 		}}, query...)
 	}
+	query = append([]bson.M{{
+		"$match": bson.M{
+			"pending": false,
+		},
+	}}, query...)
 
 	registeredDevices, err := aggregateCount(ctx, s.db.Collection("devices"), query)
+	if err != nil {
+		return nil, err
+	}
+
+	query = []bson.M{
+		{"$count": "count"},
+	}
+
+	// Only match for the respective tenant if requested
+	if tenant := store.TenantFromContext(ctx); tenant != nil {
+		query = append([]bson.M{{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
+			},
+		}}, query...)
+	}
+
+	query = append([]bson.M{{
+		"$match": bson.M{
+			"pending": true,
+		},
+	}}, query...)
+
+	pendingDevices, err := aggregateCount(ctx, s.db.Collection("devices"), query)
 	if err != nil {
 		return nil, err
 	}
@@ -465,6 +531,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	return &models.Stats{
 		RegisteredDevices: registeredDevices,
 		OnlineDevices:     onlineDevices,
+		PendingDevices:    pendingDevices,
 		ActiveSessions:    activeSessions,
 	}, nil
 }
