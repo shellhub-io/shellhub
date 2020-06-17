@@ -169,7 +169,7 @@ func (s *Store) DeleteDevice(ctx context.Context, uid models.UID) error {
 		return err
 	}
 
-	if _, err := s.db.Collection("sessions").DeleteOne(ctx, bson.M{"device": uid}); err != nil {
+	if _, err := s.db.Collection("sessions").DeleteMany(ctx, bson.M{"device_uid": uid}); err != nil {
 		return err
 	}
 
