@@ -125,13 +125,10 @@
               </template>
               <span>Details</span>
             </v-tooltip>
-            <v-icon
+            <SessionClose
               v-if="item.active"
-              class="icons ml-1"
-              @click="closeSession(item)"
-            >
-              mdi-close-circle
-            </v-icon>
+              :session="item"
+            />
           </template>
         </v-data-table>
       </v-card-text>
@@ -146,8 +143,15 @@
 </template>
 
 <script>
+
+import SessionClose from '@/components/session/SessionClose.vue'; 
+
 export default {
   name: 'SessionList',
+
+  components: {
+    SessionClose
+  },
 
   data() {
     return {
@@ -217,15 +221,6 @@ export default {
   methods: {
     detailsSession(session) {
       this.$router.push('/session/' + session.uid);
-    },
-    async closeSession(session) {
-      if (confirm('Are you sure?', session)) {
-        this.$store.dispatch('sessions/close', session);
-        this.sessionSnack = true;
-
-        await this.$store.dispatch('sessions/fetch');
-        this.listSessions = this.$store.getters['sessions/list'];
-      }
     },
   }
 };
