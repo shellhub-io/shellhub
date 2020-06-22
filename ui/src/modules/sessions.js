@@ -8,12 +8,14 @@ export default {
     sessions: [],
     session: [],
     numberSessions: 0,
+    logSession: {},
   },
 
   getters: {
     list: (state) => state.sessions,
     get: (state) => state.session,
     getNumberSessions: (state) => state.numberSessions,
+    getLogSession: (state) => state.logSession,
   },
 
   mutations: {
@@ -24,6 +26,7 @@ export default {
     setSession: (state, data) => {
       if (data) {
         Vue.set(state, 'session', data);
+        Vue.set(state, 'logSession', data);
       }
     },
   },
@@ -39,6 +42,10 @@ export default {
     },
     close: async (context, session) => {
       await apiSession.closeSession(session);
+    },
+    getLogSession: async (context, uid) => {
+      const res = await apiSession.getLog(uid);
+      context.commit('setSession', res.data);
     },
   },
 };
