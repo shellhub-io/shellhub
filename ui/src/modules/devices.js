@@ -46,7 +46,6 @@ export default {
 
     remove: async (context, uid) => {
       await apiDevice.removeDevice(uid);
-      context.commit('removeDevice', uid);
     },
 
     rename: async (context, data) => {

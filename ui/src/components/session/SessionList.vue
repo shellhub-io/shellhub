@@ -128,6 +128,7 @@
             <SessionClose
               v-if="item.active"
               :session="item"
+              @update="refresh"
             />
           </template>
         </v-data-table>
@@ -207,11 +208,8 @@ export default {
 
   watch: {
     pagination: {
-      async handler() {
-        const data = { perPage: this.pagination.itemsPerPage, page: this.pagination.page };
-        await this.$store.dispatch('sessions/fetch', data);
-        this.listSessions = this.$store.getters['sessions/list'];
-        this.numberSessions = this.$store.getters['sessions/getNumberSessions'];
+      handler() {
+        this.getSessions();
       },
       deep: true,
     },
@@ -220,6 +218,17 @@ export default {
   methods: {
     detailsSession(session) {
       this.$router.push(`/session/${session.uid}`);
+    },
+
+    refresh() {
+      this.getSessions();
+    },
+
+    async getSessions() {
+      const data = { perPage: this.pagination.itemsPerPage, page: this.pagination.page };
+      await this.$store.dispatch('sessions/fetch', data);
+      this.listSessions = this.$store.getters['sessions/list'];
+      this.numberSessions = this.$store.getters['sessions/getNumberSessions'];
     },
   },
 };

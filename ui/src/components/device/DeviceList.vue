@@ -108,6 +108,7 @@
 
             <DeviceDelete
               :uid="item.uid"
+              @update="refresh"
             />
           </template>
         </v-data-table>
@@ -228,6 +229,10 @@ export default {
 
     showCopySnack() {
       this.copySnack = true;
+    },
+
+    refresh() {
+      this.getDevices();
     },
 
     save(item) {

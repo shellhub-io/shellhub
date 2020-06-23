@@ -70,6 +70,7 @@ export default {
     async close() {
       await this.$store.dispatch('sessions/close', this.session);
       this.dialog = false;
+      this.$emit('update');
     },
   },
 };
