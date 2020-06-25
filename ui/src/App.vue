@@ -47,6 +47,7 @@
       <v-menu
         transition="scale-transition"
         origin="top left"
+        offset-y
       >
         <template v-slot:activator="{ on }">
           <v-chip v-on="on">
@@ -67,8 +68,7 @@
         <v-icon>notifications</v-icon>
       </v-chip>
       <v-menu
-        transition="scale-transition"
-        origin="top right"
+        offset-y
       >
         <template v-slot:activator="{ on }">
           <v-chip v-on="on">
@@ -105,15 +105,19 @@
             </v-list-item-content>
           </v-list-item>
 
-          <v-card-actions>
-            <v-btn
-              small
-              text
-              @click="logout()"
-            >
-              Logout
-            </v-btn>
-          </v-card-actions>
+          <v-divider />
+
+          <v-list-item
+            v-for="(item, index) in menu"
+            :key="index"
+            router
+            :to="item.path"
+            @click.prevent="triggerClick(item)"
+          >
+            <v-list-item-title>
+              {{ item.title }}
+            </v-list-item-title>
+          </v-list-item>
         </v-card>
       </v-menu>
     </v-app-bar>
@@ -166,6 +170,13 @@ export default {
           path: '/firewall/rules',
         },
       ],
+      menu: [
+        {
+          title: 'Logout',
+          type: 'method',
+          method: 'logout',
+        },
+      ],
     };
   },
 
@@ -184,6 +195,18 @@ export default {
       this.$store.dispatch('auth/logout').then(() => {
         this.$router.push('/login');
       });
+    },
+    triggerClick(item) {
+      switch (item.type) {
+      case 'path':
+        this.$router.push(item.path);
+        break;
+      case 'method':
+        this[item.method]();
+        break;
+      default:
+        break;
+      }
     },
   },
 };
