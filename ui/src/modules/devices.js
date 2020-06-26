@@ -57,5 +57,9 @@ export default {
       const res = await apiDevice.getDevice(uid);
       context.commit('setDevice', res.data);
     },
+
+    accept: async (context, uid) => {
+      await apiDevice.acceptDevice(uid);
+    },
   },
 };
