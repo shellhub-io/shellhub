@@ -17,6 +17,7 @@
     "is-valid-hostname": "0.0.1",
     "moment": "^2.26.0",
     "v-clipboard": "^2.2.3",
+    "vee-validate": "^3.3.5",
     "vue": "^2.6.11",
     "vue-fragment": "^1.5.1",
     "vue-moment": "^4.1.0",
