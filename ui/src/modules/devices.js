@@ -40,7 +40,7 @@ export default {
 
   actions: {
     fetch: async (context, data) => {
-      const res = await apiDevice.fetchDevices(data.perPage, data.page, data.filter);
+      const res = await apiDevice.fetchDevices(data.perPage, data.page, data.filter, data.pending);
       context.commit('setDevices', res);
     },
 
