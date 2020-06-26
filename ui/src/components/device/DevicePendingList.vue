@@ -47,7 +47,11 @@
             {{ item.info.pretty_name }}
           </template>
 
-          <template v-slot:item.actions="{}" />
+          <template v-slot:item.actions="{ item }">
+            <DeviceAccept
+              :uid="item.uid"
+            />
+          </template>
         </v-data-table>
       </v-card-text>
     </v-card>
@@ -58,6 +62,7 @@
 
 import DeviceAdd from '@/components/device/DeviceAdd';
 import DeviceIcon from '@/components/device//DeviceIcon';
+import DeviceAccept from '@/components/device//DeviceAccept';
 
 export default {
   name: 'DevicePendingList',
@@ -65,6 +70,7 @@ export default {
   components: {
     DeviceAdd,
     DeviceIcon,
+    DeviceAccept,
   },
 
   data() {

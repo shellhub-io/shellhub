@@ -15,3 +15,5 @@ export const removeDevice = async (uid) => http().delete(`/devices/${uid}`);
 export const renameDevice = async (data) => http().patch(`/devices/${data.uid}`, { name: data.name });
 
 export const getDevice = async (uid) => http().get(`/devices/${uid}`);
+
+export const acceptDevice = async (uid) => http().patch(`/devices/${uid}/allow`);
