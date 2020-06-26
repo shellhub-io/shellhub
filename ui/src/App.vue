@@ -64,9 +64,20 @@
       <v-chip>
         <v-icon>help</v-icon>
       </v-chip>
-      <v-chip>
-        <v-icon>notifications</v-icon>
-      </v-chip>
+
+      <v-badge
+        bordered
+        color="green"
+        :content="stats.pending_devices"
+        :value="stats.pending_devices"
+        overlap
+        class="mr-2"
+      >
+        <v-chip>
+          <v-icon>notifications</v-icon>
+        </v-chip>
+      </v-badge>
+
       <v-menu
         offset-y
       >
@@ -188,6 +199,14 @@ export default {
     isLoggedIn() {
       return this.$store.getters['auth/isLoggedIn'];
     },
+
+    stats() {
+      return this.$store.getters['stats/stats'];
+    },
+  },
+
+  async created() {
+    await this.$store.dispatch('stats/get');
   },
 
   methods: {
