@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/pkg/store"
+	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type Service interface {
-	ListSessions(ctx context.Context, perPage, page int) ([]models.Session, int, error)
+	ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error)
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)
 	DeactivateSession(ctx context.Context, uid models.UID) error
@@ -23,8 +24,8 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) ListSessions(ctx context.Context, perPage, page int) ([]models.Session, int, error) {
-	return s.store.ListSessions(ctx, perPage, page)
+func (s *service) ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error) {
+	return s.store.ListSessions(ctx, pagination)
 }
 
 func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {

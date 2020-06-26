@@ -5,13 +5,14 @@ import (
 	"regexp"
 
 	"github.com/shellhub-io/shellhub/api/pkg/store"
+	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type Service interface {
 	Evaluate(ctx context.Context, req Request) (bool, error)
 	CreateRule(ctx context.Context, rule *models.FirewallRule) error
-	ListRules(ctx context.Context, perPage, page int) ([]models.FirewallRule, int, error)
+	ListRules(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error)
 	GetRule(ctx context.Context, id string) (*models.FirewallRule, error)
 	UpdateRule(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error)
 	DeleteRule(ctx context.Context, id string) error
@@ -40,7 +41,7 @@ func (s *service) Evaluate(ctx context.Context, req Request) (bool, error) {
 
 	ctx = context.WithValue(ctx, "tenant", user.TenantID)
 
-	rules, count, err := s.store.ListFirewallRules(ctx, -1, -1)
+	rules, count, err := s.store.ListFirewallRules(ctx, paginator.Query{-1, -1})
 	if err != nil {
 		return false, err
 	}
@@ -91,8 +92,8 @@ func (s *service) CreateRule(ctx context.Context, rule *models.FirewallRule) err
 	return s.store.CreateFirewallRule(ctx, rule)
 }
 
-func (s *service) ListRules(ctx context.Context, perPage, page int) ([]models.FirewallRule, int, error) {
-	return s.store.ListFirewallRules(ctx, perPage, page)
+func (s *service) ListRules(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error) {
+	return s.store.ListFirewallRules(ctx, pagination)
 }
 
 func (s *service) GetRule(ctx context.Context, id string) (*models.FirewallRule, error) {

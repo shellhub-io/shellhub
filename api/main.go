@@ -20,6 +20,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/services/sessionmngr"
 	"github.com/shellhub-io/shellhub/api/pkg/store/mongo"
 	api "github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	mgo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -140,24 +141,15 @@ func main() {
 		svc := deviceadm.NewService(store)
 
 		var query struct {
-			Page    int    `query:"page"`
-			PerPage int    `query:"per_page"`
-			Filter  string `query:"filter"`
+			Filter string `query:"filter"`
+			paginator.Query
 		}
 		c.Bind(&query)
 
-		page := query.Page
-		perPage := query.PerPage
-		if perPage < 1 || perPage > 100 {
-			perPage = 10
-		}
-		if page < 1 {
-			page = 1
-		}
+		// TODO: normalize is not required when request is privileged
+		query.Normalize()
 
-		filter := query.Filter
-
-		devices, count, err := svc.ListDevices(ctx, perPage, page, filter)
+		devices, count, err := svc.ListDevices(ctx, query.Query, query.Filter)
 		if err != nil {
 			return err
 		}
@@ -291,22 +283,13 @@ func main() {
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := sessionmngr.NewService(store)
 
-		var query struct {
-			Page    int `query:"page"`
-			PerPage int `query:"per_page"`
-		}
-		c.Bind(&query)
+		query := paginator.NewQuery()
+		c.Bind(query)
 
-		page := query.Page
-		perPage := query.PerPage
-		if perPage < 1 || perPage > 100 {
-			perPage = 10
-		}
-		if page < 1 {
-			page = 1
-		}
+		// TODO: normalize is not required when request is privileged
+		query.Normalize()
 
-		sessions, count, err := svc.ListSessions(ctx, perPage, page)
+		sessions, count, err := svc.ListSessions(ctx, *query)
 		if err != nil {
 			return err
 		}
@@ -420,23 +403,13 @@ func main() {
 		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
 		svc := firewall.NewService(store)
 
-		var query struct {
-			Page    int    `query:"page"`
-			PerPage int    `query:"per_page"`
-			Filter  string `query:"filter"`
-		}
-		c.Bind(&query)
+		query := paginator.NewQuery()
+		c.Bind(query)
 
-		page := query.Page
-		perPage := query.PerPage
-		if perPage < 1 || perPage > 100 {
-			perPage = 10
-		}
-		if page < 1 {
-			page = 1
-		}
+		// TODO: normalize is not required when request is privileged
+		query.Normalize()
 
-		rules, _, _ := svc.ListRules(ctx, perPage, page)
+		rules, _, _ := svc.ListRules(ctx, *query)
 
 		return c.JSON(http.StatusOK, rules)
 	})
