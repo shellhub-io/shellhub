@@ -26,6 +26,11 @@ const router = new Router({
       component: () => import(/* webpackChunkName: 'details-device' */ './../views/DetailsDevice.vue'),
     },
     {
+      path: '/devices/pending',
+      name: 'pendingDevice',
+      component: () => import('./../components/device/DevicePendingList.vue'),
+    },
+    {
       path: '/sessions',
       name: 'sessions',
       component: () => import('./../views/Sessions.vue'),

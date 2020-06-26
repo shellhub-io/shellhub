@@ -65,18 +65,20 @@
         <v-icon>help</v-icon>
       </v-chip>
 
-      <v-badge
-        bordered
-        color="green"
-        :content="stats.pending_devices"
-        :value="stats.pending_devices"
-        overlap
-        class="mr-2"
-      >
-        <v-chip>
-          <v-icon>notifications</v-icon>
-        </v-chip>
-      </v-badge>
+      <router-link to="/devices/pending">
+        <v-badge
+          bordered
+          color="green"
+          :content="stats.pending_devices"
+          :value="stats.pending_devices"
+          overlap
+          class="mr-2"
+        >
+          <v-chip>
+            <v-icon>notifications</v-icon>
+          </v-chip>
+        </v-badge>
+      </router-link>
 
       <v-menu
         offset-y
