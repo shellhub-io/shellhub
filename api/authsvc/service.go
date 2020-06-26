@@ -10,7 +10,7 @@ import (
 
 	"github.com/cnf/structhash"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/shellhub-io/shellhub/api/pkg/store"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
