@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/store"
+	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -27,9 +28,7 @@ func NewStore(db *mongo.Database) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []models.Filter) ([]models.Device, int, error) {
-	skip := perPage * (page - 1)
-
+func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.Device, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, err
@@ -88,7 +87,7 @@ func (s *Store) ListDevices(ctx context.Context, perPage, page int, filters []mo
 		return nil, 0, err
 	}
 
-	query = append(query, buildPaginationQuery(skip, perPage)...)
+	query = append(query, buildPaginationQuery(pagination)...)
 
 	devices := make([]models.Device, 0)
 
@@ -241,8 +240,7 @@ func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online b
 	return nil
 }
 
-func (s *Store) ListSessions(ctx context.Context, perPage, page int) ([]models.Session, int, error) {
-	skip := perPage * (page - 1)
+func (s *Store) ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error) {
 	query := []bson.M{
 		{
 			"$sort": bson.M{
@@ -280,7 +278,7 @@ func (s *Store) ListSessions(ctx context.Context, perPage, page int) ([]models.S
 		return nil, 0, err
 	}
 
-	query = append(query, buildPaginationQuery(skip, perPage)...)
+	query = append(query, buildPaginationQuery(pagination)...)
 
 	sessions := make([]models.Session, 0)
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
@@ -575,8 +573,7 @@ func (s *Store) CreateFirewallRule(ctx context.Context, rule *models.FirewallRul
 	return nil
 }
 
-func (s *Store) ListFirewallRules(ctx context.Context, perPage, page int) ([]models.FirewallRule, int, error) {
-	skip := perPage * (page - 1)
+func (s *Store) ListFirewallRules(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error) {
 	query := []bson.M{
 		{
 			"$sort": bson.M{
@@ -600,7 +597,7 @@ func (s *Store) ListFirewallRules(ctx context.Context, perPage, page int) ([]mod
 		return nil, 0, err
 	}
 
-	query = append(query, buildPaginationQuery(skip, perPage)...)
+	query = append(query, buildPaginationQuery(pagination)...)
 
 	rules := make([]models.FirewallRule, 0)
 	cursor, err := s.db.Collection("firewall_rules").Aggregate(ctx, query)
@@ -709,14 +706,14 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	return queryMatch, nil
 }
 
-func buildPaginationQuery(skip, perPage int) []bson.M {
-	if perPage == -1 {
+func buildPaginationQuery(pagination paginator.Query) []bson.M {
+	if pagination.PerPage == -1 {
 		return nil
 	}
 
 	return []bson.M{
-		bson.M{"$skip": skip},
-		bson.M{"$limit": perPage},
+		bson.M{"$skip": pagination.PerPage * (pagination.Page - 1)},
+		bson.M{"$limit": pagination.PerPage},
 	}
 }
 

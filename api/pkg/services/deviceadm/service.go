@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/shellhub-io/shellhub/api/pkg/store"
+	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -14,7 +15,7 @@ import (
 var ErrUnauthorized = errors.New("unauthorized")
 
 type Service interface {
-	ListDevices(ctx context.Context, perPage, page int, filter string) ([]models.Device, int, error)
+	ListDevices(ctx context.Context, pagination paginator.Query, filter string) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
@@ -30,7 +31,7 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) ListDevices(ctx context.Context, perPage, page int, filterB64 string) ([]models.Device, int, error) {
+func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filterB64 string) ([]models.Device, int, error) {
 	raw, err := base64.StdEncoding.DecodeString(filterB64)
 	if err != nil {
 		return nil, 0, err
@@ -42,7 +43,7 @@ func (s *service) ListDevices(ctx context.Context, perPage, page int, filterB64 
 		return nil, 0, err
 	}
 
-	return s.store.ListDevices(ctx, perPage, page, filter)
+	return s.store.ListDevices(ctx, pagination, filter)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
