@@ -14,6 +14,7 @@
     <v-dialog
       v-model="dialog"
       max-width="450"
+      @click:outside="cancel"
     >
       <v-card>
         <v-card-title class="headline grey lighten-2 text-center">
@@ -23,7 +24,6 @@
           <v-text-field
             v-model="editName"
             require
-            :placeholder="device.name"
             messages="Examples: (foobar, foo-bar.ba-z.qux, foo.example.com, 127.0.0.1)"
           />
         </v-card-text>
@@ -53,7 +53,6 @@
             color="primary"
             text
             @click="check"
-            @click:outside="cancel"
           >
             Rename
           </v-btn>
@@ -71,8 +70,12 @@ export default {
   name: 'DeviceRename',
 
   props: {
-    device: {
-      type: Object,
+    name: {
+      type: String,
+      required: true,
+    },
+    uid: {
+      type: String,
       required: true,
     },
   },
@@ -80,15 +83,23 @@ export default {
   data() {
     return {
       dialog: false,
-      editName: '',
       invalid: false,
+      // editName: '',
     };
+  },
+
+  created() {
+    this.editName = this.name;
+  },
+
+  updated() {
+    this.editName = this.name;
   },
 
   methods: {
     save() {
       this.$store.dispatch('devices/rename', {
-        uid: this.device.uid,
+        uid: this.uid,
         name: this.editName,
       });
       this.dialog = false;

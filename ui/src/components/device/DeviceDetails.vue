@@ -35,7 +35,9 @@
           {{ device.name }}
         </v-toolbar-title>
         <DeviceRename
-          :device="device"
+          :key="device.name"
+          :name="device.name"
+          :uid="device.uid"
           @newHostname="receiveName"
         />
 
