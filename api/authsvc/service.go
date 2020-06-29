@@ -6,6 +6,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/cnf/structhash"
@@ -17,15 +19,25 @@ import (
 type Service interface {
 	AuthDevice(ctx context.Context, req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error)
+	PublicKey() *rsa.PublicKey
 }
 
 type service struct {
 	store   store.Store
 	privKey *rsa.PrivateKey
+	pubKey  *rsa.PublicKey
 }
 
-func NewService(store store.Store, privKey *rsa.PrivateKey) Service {
-	return &service{store, privKey}
+func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey) Service {
+	if privKey == nil || pubKey == nil {
+		var err error
+		privKey, pubKey, err = loadKeys()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return &service{store, privKey, pubKey}
 }
 
 func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
@@ -121,4 +133,34 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 	}
 
 	return nil, errors.New("unauthorized")
+}
+
+func (s *service) PublicKey() *rsa.PublicKey {
+	return s.pubKey
+}
+
+func loadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
+	signBytes, err := ioutil.ReadFile(os.Getenv("PRIVATE_KEY"))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	privKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	verifyBytes, err := ioutil.ReadFile(os.Getenv("PUBLIC_KEY"))
+	if err != nil {
+		return nil, nil, err
+
+	}
+
+	pubKey, err := jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
+	if err != nil {
+		return nil, nil, err
+
+	}
+
+	return privKey, pubKey, nil
 }
