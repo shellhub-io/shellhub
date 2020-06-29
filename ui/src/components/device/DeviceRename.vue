@@ -20,43 +20,42 @@
         <v-card-title class="headline grey lighten-2 text-center">
           Rename Device
         </v-card-title>
-        <v-card-text class="caption mb-0">
-          <v-text-field
-            v-model="editName"
-            require
-            messages="Examples: (foobar, foo-bar.ba-z.qux, foo.example.com, 127.0.0.1)"
-          />
-        </v-card-text>
-        <v-card-text
-          v-if="invalid"
-          class="red--text"
+        <ValidationObserver
+          ref="obs"
+          v-slot="{ validated, passes }"
         >
-          You entered an invalid hostname,
-          it must follow the
-          <a
-            target="_blank"
-            href="https://tools.ietf.org/html/rfc1123"
-          >
-            RFC1123
-          </a>
-          specifications
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            text
-            @click="cancel"
-          >
-            Close
-          </v-btn>
-          <v-btn
-            color="primary"
-            text
-            @click="check"
-          >
-            Rename
-          </v-btn>
-        </v-card-actions>
+          <v-card-text class="caption mb-0">
+            <ValidationProvider
+              v-slot="{ errors }"
+              name="Hostname"
+              rules="required|rfc1123"
+            >
+              <v-text-field
+                v-model="editName"
+                label="Hostname"
+                :error-messages="errors"
+                require
+                messages="Examples: (foobar, foo-bar.ba-z.qux, foo.example.com, 127.0.0.1)"
+              />
+            </ValidationProvider>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              text
+              @click="cancel"
+            >
+              Close
+            </v-btn>
+            <v-btn
+              color="primary"
+              text
+              @click="passes(edit)"
+            >
+              Rename
+            </v-btn>
+          </v-card-actions>
+        </ValidationObserver>
       </v-card>
     </v-dialog>
   </fragment>
@@ -64,10 +63,18 @@
 
 <script>
 
-import isValidHostname from 'is-valid-hostname';
+import {
+  ValidationObserver,
+  ValidationProvider,
+} from 'vee-validate';
 
 export default {
   name: 'DeviceRename',
+
+  components: {
+    ValidationProvider,
+    ValidationObserver,
+  },
 
   props: {
     name: {
@@ -84,42 +91,44 @@ export default {
     return {
       dialog: false,
       invalid: false,
-      // editName: '',
+      editName: '',
     };
   },
 
+  computed: {
+    device: {
+      get() {
+        return {
+          name: this.name,
+          uid: this.uid,
+        };
+      },
+    },
+  },
+
   created() {
-    this.editName = this.name;
+    this.editName = this.device.name;
   },
 
   updated() {
-    this.editName = this.name;
+    this.editName = this.device.name;
   },
 
   methods: {
-    save() {
-      this.$store.dispatch('devices/rename', {
-        uid: this.uid,
-        name: this.editName,
-      });
-      this.dialog = false;
-    },
-
     cancel() {
       this.dialog = false;
       this.invalid = false;
       this.editName = '';
     },
 
-    check() {
-      if (isValidHostname(this.editName)) {
-        this.save();
-        this.dialog = false;
-        this.$emit('newHostname', this.editName);
-        this.editName = '';
-      } else {
-        this.invalid = true;
-      }
+    edit() {
+      this.$store.dispatch('devices/rename', {
+        uid: this.device.uid,
+        name: this.editName,
+      });
+      this.dialog = false;
+      this.$emit('newHostname', this.editName);
+      this.editName = '';
     },
   },
 };
