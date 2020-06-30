@@ -65,20 +65,7 @@
         <v-icon>help</v-icon>
       </v-chip>
 
-      <router-link to="/devices/pending">
-        <v-badge
-          bordered
-          color="green"
-          :content="stats.pending_devices"
-          :value="stats.pending_devices"
-          overlap
-          class="mr-2"
-        >
-          <v-chip>
-            <v-icon>notifications</v-icon>
-          </v-chip>
-        </v-badge>
-      </router-link>
+      <Notification />
 
       <v-menu
         offset-y
@@ -139,7 +126,7 @@
         class="pa-8"
         fluid
       >
-        <router-view />
+        <router-view :key="$route.fullPath" />
       </v-container>
       <v-snackbar
         v-model="copySnack"
@@ -153,8 +140,14 @@
 
 <script>
 
+import Notification from '@/components/app_bar/notification/Notification';
+
 export default {
   name: 'App',
+
+  components: {
+    Notification,
+  },
 
   data() {
     return {
@@ -171,6 +164,11 @@ export default {
           icon: 'devices',
           title: 'Devices',
           path: '/devices',
+          items: [
+            { title: 'List Devices', path: '/devices' },
+            { title: 'Pending Devices', path: '/devices/pending' },
+            { title: 'Reject Devices' },
+          ],
         },
         {
           icon: 'history',
@@ -190,6 +188,10 @@ export default {
           method: 'logout',
         },
       ],
+      admins: [
+        ['Management', 'people_outline'],
+        ['Settings', 'settings'],
+      ],
     };
   },
 
@@ -201,14 +203,6 @@ export default {
     isLoggedIn() {
       return this.$store.getters['auth/isLoggedIn'];
     },
-
-    stats() {
-      return this.$store.getters['stats/stats'];
-    },
-  },
-
-  async created() {
-    await this.$store.dispatch('stats/get');
   },
 
   methods: {
@@ -228,6 +222,10 @@ export default {
       default:
         break;
       }
+    },
+    redirect(path) {
+      // eslint-disable-next-line no-console
+      this.$router.push(path);
     },
   },
 };

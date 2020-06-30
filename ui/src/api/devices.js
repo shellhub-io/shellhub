@@ -17,3 +17,5 @@ export const renameDevice = async (data) => http().patch(`/devices/${data.uid}`,
 export const getDevice = async (uid) => http().get(`/devices/${uid}`);
 
 export const acceptDevice = async (uid) => http().patch(`/devices/${uid}/accept`);
+
+export const rejectDevice = async (uid) => http().patch(`/devices/${uid}/reject`);
