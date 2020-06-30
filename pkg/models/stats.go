@@ -5,4 +5,5 @@ type Stats struct {
 	OnlineDevices     int `json:"online_devices"`
 	ActiveSessions    int `json:"active_sessions"`
 	PendingDevices    int `json:"pending_devices"`
+	RejectedDevices   int `json:"rejected_devices"`
 }

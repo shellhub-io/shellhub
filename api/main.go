@@ -69,6 +69,7 @@ func main() {
 	publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(routes.RenameDevice))
 	internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(routes.OfflineDevice))
 	internalAPI.GET(routes.LookupDeviceURL, apicontext.Handler(routes.LookupDevice))
+	publicAPI.PATCH(routes.UpdateStatusURL, apicontext.Handler(routes.UpdatePendingStatus))
 
 	publicAPI.GET(routes.GetSessionsURL, apicontext.Handler(routes.GetSessionList))
 	publicAPI.GET(routes.GetSessionURL, apicontext.Handler(routes.GetSession))
@@ -83,18 +84,6 @@ func main() {
 	publicAPI.DELETE(routes.DeleteFirewallRuleURL, apicontext.Handler(routes.DeleteFirewallRule))
 
 	publicAPI.GET(routes.GetStatsURL, apicontext.Handler(routes.GetStats))
-
-	publicAPI.PATCH("/devices/:uid/allow", func(c echo.Context) error {
-		ctx := c.Get("ctx").(context.Context)
-		store := mongo.NewStore(ctx.Value("db").(*mgo.Database))
-		svc := deviceadm.NewService(store)
-
-		err := svc.UpdatePendingStatus(ctx, models.UID(c.Param("uid")), false)
-		if err != nil {
-			return err
-		}
-		return c.JSON(http.StatusOK, nil)
-	})
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
