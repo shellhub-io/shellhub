@@ -127,7 +127,7 @@ export default {
         perPage: this.pagination.itemsPerPage,
         page: this.pagination.page,
         filter: encodedFilter,
-        pending: true,
+        status: 'pending',
       };
 
       await this.$store.dispatch('devices/fetch', data);
