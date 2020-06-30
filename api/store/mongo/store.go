@@ -28,7 +28,7 @@ func NewStore(db *mongo.Database) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter, pending bool) ([]models.Device, int, error) {
+func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string) ([]models.Device, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, err
@@ -37,7 +37,7 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 	query := []bson.M{
 		{
 			"$match": bson.M{
-				"pending": pending,
+				"status": status,
 			},
 		},
 		{
@@ -186,8 +186,8 @@ func (s *Store) AddDevice(ctx context.Context, d models.Device) error {
 
 	q := bson.M{
 		"$setOnInsert": bson.M{
-			"name":    hostname,
-			"pending": true,
+			"name":   hostname,
+			"status": "pending",
 		},
 		"$set": d,
 	}
@@ -210,7 +210,7 @@ func (s *Store) LookupDevice(ctx context.Context, namespace, name string) (*mode
 	}
 
 	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": user.TenantID, "name": name}).Decode(&device); err != nil {
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": user.TenantID, "name": name, "status": "accepted"}).Decode(&device); err != nil {
 		return nil, err
 	}
 
@@ -238,7 +238,7 @@ func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online b
 		UID:      device.UID,
 		TenantID: device.TenantID,
 		LastSeen: time.Now(),
-		Pending:  device.Pending,
+		Status:   device.Status,
 	}
 	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
 		return err
@@ -247,14 +247,14 @@ func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online b
 	return nil
 }
 
-func (s *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, pending bool) error {
+func (s *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, status string) error {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
 		return err
 	}
 
 	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"pending": pending}}, opts)
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"status": status}}, opts)
 	if err != nil {
 		return err
 	}
@@ -262,7 +262,7 @@ func (s *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, pending
 		UID:      device.UID,
 		TenantID: device.TenantID,
 		LastSeen: time.Now(),
-		Pending:  pending,
+		Status:   status,
 	}
 	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
 		return err
@@ -433,7 +433,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 
 	query = append([]bson.M{{
 		"$match": bson.M{
-			"pending": false,
+			"status": "accepted",
 		},
 	}}, query...)
 
@@ -456,7 +456,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	}
 	query = append([]bson.M{{
 		"$match": bson.M{
-			"pending": false,
+			"status": "accepted",
 		},
 	}}, query...)
 
@@ -480,11 +480,35 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 
 	query = append([]bson.M{{
 		"$match": bson.M{
-			"pending": true,
+			"status": "pending",
 		},
 	}}, query...)
 
 	pendingDevices, err := aggregateCount(ctx, s.db.Collection("devices"), query)
+	if err != nil {
+		return nil, err
+	}
+
+	query = []bson.M{
+		{"$count": "count"},
+	}
+
+	// Only match for the respective tenant if requested
+	if tenant := store.TenantFromContext(ctx); tenant != nil {
+		query = append([]bson.M{{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
+			},
+		}}, query...)
+	}
+
+	query = append([]bson.M{{
+		"$match": bson.M{
+			"status": "rejected",
+		},
+	}}, query...)
+
+	rejectedDevices, err := aggregateCount(ctx, s.db.Collection("devices"), query)
 	if err != nil {
 		return nil, err
 	}
@@ -532,6 +556,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		RegisteredDevices: registeredDevices,
 		OnlineDevices:     onlineDevices,
 		PendingDevices:    pendingDevices,
+		RejectedDevices:   rejectedDevices,
 		ActiveSessions:    activeSessions,
 	}, nil
 }

@@ -18,6 +18,7 @@ const (
 	RenameDeviceURL  = "/devices/:uid"
 	OfflineDeviceURL = "/devices/:uid/offline"
 	LookupDeviceURL  = "/lookup"
+	UpdateStatusURL  = "/devices/:uid/:status"
 )
 
 const TenantIDHeader = "X-Tenant-ID"
@@ -25,6 +26,7 @@ const TenantIDHeader = "X-Tenant-ID"
 type filterQuery struct {
 	Filter string `query:"filter"`
 	paginator.Query
+	Status string `query:"status"`
 }
 
 func GetDeviceList(c apicontext.Context) error {
@@ -37,7 +39,7 @@ func GetDeviceList(c apicontext.Context) error {
 
 	query.Normalize()
 
-	devices, count, err := svc.ListDevices(c.Ctx(), query.Query, query.Filter)
+	devices, count, err := svc.ListDevices(c.Ctx(), query.Query, query.Filter, query.Status)
 	if err != nil {
 		return err
 	}
@@ -149,4 +151,20 @@ func LookupDevice(c apicontext.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, device)
+}
+
+func UpdatePendingStatus(c apicontext.Context) error {
+	svc := deviceadm.NewService(c.Store())
+
+	status := map[string]string{
+		"accept":  "accepted",
+		"reject":  "rejected",
+		"pending": "pending",
+		"unused":  "unused",
+	}
+	err := svc.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")])
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, nil)
 }
