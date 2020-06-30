@@ -17,18 +17,26 @@ const router = new Router({
     {
       path: '/devices',
       name: 'devices',
-
       component: () => import(/* webpackChunkName: 'devices' */ './../views/Devices.vue'),
+      children: [
+        {
+          path: '',
+          component: () => import('./../components/device/DeviceList.vue'),
+        },
+        {
+          path: 'pending',
+          component: () => import('./../components/device/DevicePendingList.vue'),
+        },
+        {
+          path: 'rejected',
+          component: () => import('./../components/device/DeviceRejectedList.vue'),
+        },
+      ],
     },
     {
       path: '/device/:id',
       name: 'detailsDevice',
       component: () => import(/* webpackChunkName: 'details-device' */ './../views/DetailsDevice.vue'),
-    },
-    {
-      path: '/devices/pending',
-      name: 'pendingDevice',
-      component: () => import('./../components/device/DevicePendingList.vue'),
     },
     {
       path: '/sessions',

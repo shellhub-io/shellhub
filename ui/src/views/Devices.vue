@@ -6,7 +6,7 @@
 
 <script>
 
-import DeviceList from '@/components/device/DeviceList';
+import DeviceList from '@/components/device/Device';
 
 export default {
   name: 'Devices',
