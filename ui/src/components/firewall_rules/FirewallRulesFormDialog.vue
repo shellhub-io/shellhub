@@ -215,21 +215,29 @@ export default {
   },
 
   async created() {
-    if (this.createRule) {
-      this.ruleFirewallLocal = {
-        active: false,
-        priority: '',
-        action: '',
-        source_ip: '',
-        username: '',
-        hostname: '',
-      };
-    } else {
-      this.ruleFirewallLocal = await { ...this.firewallRule };
-    }
+    await this.setLocalVariable();
+  },
+
+  async updated() {
+    await this.setLocalVariable();
   },
 
   methods: {
+    setLocalVariable() {
+      if (this.createRule) {
+        this.ruleFirewallLocal = {
+          active: false,
+          priority: '',
+          action: '',
+          source_ip: '',
+          username: '',
+          hostname: '',
+        };
+      } else {
+        this.ruleFirewallLocal = { ...this.firewallRule };
+      }
+    },
+
     async create() {
       await this.$store.dispatch('firewallrules/post', this.ruleFirewallLocal);
       this.update();
@@ -246,9 +254,6 @@ export default {
     },
 
     close() {
-      requestAnimationFrame(() => {
-        this.$refs.obs.reset();
-      });
       this.dialog = !this.dialog;
     },
   },
