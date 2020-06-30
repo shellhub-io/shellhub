@@ -1,11 +1,11 @@
 import http from '@/helpers/http';
 
-export const fetchDevices = async (perPage, page, search, pending) => {
+export const fetchDevices = async (perPage, page, search, status) => {
   let query = '';
   if (search === null) {
-    query = `/devices?per_page=${perPage}&page=${page}&pending=${pending}`;
+    query = `/devices?per_page=${perPage}&page=${page}&status=${status}`;
   } else {
-    query = `/devices?per_page=${perPage}&page=${page}&filter=${search}&pending=${pending}`;
+    query = `/devices?per_page=${perPage}&page=${page}&filter=${search}&status=${status}`;
   }
   return http().get(query);
 };
@@ -16,4 +16,4 @@ export const renameDevice = async (data) => http().patch(`/devices/${data.uid}`,
 
 export const getDevice = async (uid) => http().get(`/devices/${uid}`);
 
-export const acceptDevice = async (uid) => http().patch(`/devices/${uid}/allow`);
+export const acceptDevice = async (uid) => http().patch(`/devices/${uid}/accept`);
