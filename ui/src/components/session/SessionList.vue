@@ -130,6 +130,9 @@
               :session="item"
               @update="refresh"
             />
+            <SessionPlay
+              :uid="item.uid"
+            />
           </template>
         </v-data-table>
       </v-card-text>
@@ -146,12 +149,14 @@
 <script>
 
 import SessionClose from '@/components/session/SessionClose';
+import SessionPlay from '@/components/session/SessionPlay';
 
 export default {
   name: 'SessionList',
 
   components: {
     SessionClose,
+    SessionPlay,
   },
 
   data() {

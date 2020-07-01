@@ -39,7 +39,9 @@
 
         <v-spacer />
 
-        <SessionPlay :logs="logs" />
+        <SessionPlay
+          :uid="session.uid"
+        />
 
         <v-icon
           v-if="session.active"
@@ -194,10 +196,6 @@ export default {
     try {
       await this.$store.dispatch('sessions/get', this.uid);
       this.session = this.$store.getters['sessions/get'];
-      await this.$store.dispatch('sessions/getLogSession', this.uid);
-      this.logs = this.$store.getters['sessions/getLogSession'];
-      // eslint-disable-next-line no-console
-      // console.log(this.logs);
     } catch (error) {
       this.hide = false;
       this.dialog = true;
