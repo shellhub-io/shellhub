@@ -16,6 +16,7 @@
     "eslint-plugin-import": "^2.21.2",
     "is-valid-hostname": "0.0.1",
     "moment": "^2.26.0",
+    "moment-duration-format": "^2.3.2",
     "v-clipboard": "^2.2.3",
     "vee-validate": "^3.3.5",
     "vue": "^2.6.11",

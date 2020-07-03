@@ -41,6 +41,7 @@
 
         <SessionPlay
           :uid="session.uid"
+          :recorded="session.authenticated && session.recorded"
         />
 
         <v-icon
@@ -181,7 +182,6 @@ export default {
       closeSessionSnack: false,
       dialog: false,
       hide: true,
-      logs: [],
     };
   },
 

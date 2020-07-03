@@ -8,7 +8,7 @@ export default {
     sessions: [],
     session: [],
     numberSessions: 0,
-    logSession: {},
+    logSession: [],
   },
 
   getters: {

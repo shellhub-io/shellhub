@@ -131,6 +131,7 @@
               @update="refresh"
             />
             <SessionPlay
+              :recorded="item.authenticated && item.recorded"
               :uid="item.uid"
             />
           </template>
