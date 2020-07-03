@@ -21,24 +21,37 @@ jobs:
 
     steps:
 
+    - name: Check out code
+      uses: actions/checkout@v2
+    
+    - uses: dorny/paths-filter@v2.2.0
+      id: filter
+      with:
+        # inline YAML or path to separate file (e.g.: .github/filters.yaml)
+        filters: |
+          ui:
+            - 'ui/**'
+          go:
+            - 'api/**'
+            - 'agent/**'
+            - 'pkg/**'
+            - 'ssh/**'
+
     - name: Set up Go 1.x [Go]
-      if: matrix.project != 'ui'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       uses: actions/setup-go@v2
       with:
         go-version: 1.14
       id: go
 
-    - name: Check out code
-      uses: actions/checkout@v2
-
     - name: Get Go dependencies [Go]
-      if: matrix.project != 'ui'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       working-directory: ${{ matrix.project }}
       run: go mod download
 
     - name: Cache Go files [Go]
       uses: actions/cache@v1
-      if: matrix.project != 'ui'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -46,7 +59,7 @@ jobs:
           ${{ runner.os }}-go-
 
     - name: Run Revive Action [Go]
-      if: matrix.project != 'ui'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       uses: docker://morphy/revive-action:v1
       with:
         config: .revive.toml
@@ -54,40 +67,40 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Unit test [Go]
-      if: matrix.project != 'ui'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       working-directory: ${{ matrix.project }}
       run: go test -v ./...
     
     - name: SonarCloud Scan [Go]
-      if: matrix.project == 'api'
+      if: matrix.project == 'api' && steps.filter.outputs.go == 'true'
       uses: sonarsource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     - name: Go build [Go]
-      if: matrix.project != 'ui'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       working-directory: ${{ matrix.project }}
       run: go build -v ./...
 
     - name: Go build (with docker tag) [Go]
-      if: matrix.project == 'agent'
+      if: matrix.project == 'agent' && steps.filter.outputs.go == 'true'
       working-directory: ${{ matrix.project }}
       run: go build -tags docker -v ./...
     
     - name: Set up Node.JS 12.16 [UI]
-      if: matrix.project == 'ui'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
       uses: actions/setup-node@v1
       with:
           node-version: "12.16"
 
     - name: Install Node Dependencies [UI]
-      if: matrix.project == 'ui'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
       working-directory: ${{ matrix.project }}
       run: npm install
 
     - name: Cache node modules [UI]
-      if: matrix.project == 'ui'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
       uses: actions/cache@v1
       with:
         path: ui/node_modules
@@ -98,18 +111,27 @@ jobs:
           ${{ runner.OS }}-
 
     - name: Unit test [UI]
-      if: matrix.project == 'ui'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
       working-directory: ${{ matrix.project }}
       run: npm run test:unit -- -u
+    
+    - name: SonarCloud Scan [UI]
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
+      uses: sonarsource/sonarcloud-github-action@master
+      with:
+        projectBaseDir: ui
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     - name: Save Code Linting Report JSON [UI]
-      if: matrix.project == 'ui'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
       working-directory: ${{ matrix.project }}
       run: npm run --silent lint:report | tee eslint_report.json
       continue-on-error: true
 
     - name: Annotate Code Linting Results [UI]
-      if: matrix.project == 'ui'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
       uses: ataylorme/eslint-annotate-action@1.0.4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
