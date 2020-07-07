@@ -17,7 +17,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/parnurzeal/gorequest v0.2.16 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/shellhub-io/shellhub v0.3.2
+	github.com/shellhub-io/shellhub v0.3.3
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	github.com/xakep666/mongo-migrate v0.2.1
