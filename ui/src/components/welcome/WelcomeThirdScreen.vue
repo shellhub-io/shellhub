@@ -2,39 +2,78 @@
   <fragment>
     <div class="pa-4">
       <p class="mb-4">
-        Your device has been succesfully added.
+        A device connection has been detected.
       </p>
       <p class="mb-4">
-        Now you can take advantage of all the tools made available by ShellHub, viewing the
-        registered devices, the sessions in each of them and getting access through the terminal
-        interface.
+        Please confirm that this device is yours to enroll into your account. After confirmation,
+        you will go to the last step of introducing <strong>ShellHub</strong>.
       </p>
-      <p class="mb-2">
-        For more details, consult our <a
-          target="_blank"
-          href="http://docs.shellhub.io/"
-        >
-          documentation
-        </a>
-        and, if you have any questions, contact us through the
-        <a
-          target="_blank"
-          href="https://gitter.im/shellhub-io/community"
-        >
-          Gitter
-        </a>.
-      </p>
-      <p>
-        Thank you for choosing Shellhub.
-      </p>
+
+      <v-row no-gutters>
+        <v-col>
+          <v-card
+            class="pa-2 grey lighten-4"
+            tile
+            :elevation="0"
+          >
+            <strong>Hostname</strong>
+          </v-card>
+          <v-card
+            class="pa-2 grey lighten-4"
+            tile
+            :elevation="0"
+          >
+            {{ getPendingDevice.name }}
+          </v-card>
+        </v-col>
+        <v-col>
+          <v-card
+            class="pa-2 grey lighten-4"
+            tile
+            :elevation="0"
+          >
+            <strong>Operation System</strong>
+          </v-card>
+          <v-card
+            class="pa-2 grey lighten-4"
+            tile
+            :elevation="0"
+          >
+            <div
+              v-if="getPendingDevice.info"
+            >
+              <DeviceIcon
+                :icon-name="getPendingDevice.info.id"
+              />
+              {{ getPendingDevice.info.pretty_name }}
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
     </div>
   </fragment>
 </template>
 
 <script>
 
+import DeviceIcon from '@/components/device/DeviceIcon';
+
 export default {
   name: 'WelcomeThirdScreen',
+
+  components: {
+    DeviceIcon,
+  },
+
+  computed: {
+    getPendingDevice() {
+      return this.$store.getters['devices/getFirstPending'];
+    },
+  },
+
+  created() {
+    this.$store.dispatch('devices/setFirstPending');
+  },
 };
 
 </script>

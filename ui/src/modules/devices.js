@@ -23,6 +23,7 @@ export default {
     getPerPage: (state) => state.perPage,
     getFilter: (state) => state.filter,
     getStatus: (state) => state.status,
+    getFirstPending: (state) => state.device,
   },
 
   mutations: {
@@ -98,6 +99,11 @@ export default {
         state.status,
       );
       commit('setDevices', res);
+    },
+
+    setFirstPending: async (context) => {
+      const res = await apiDevice.fetchDevices(1, 1, null, 'pending');
+      context.commit('setDevice', res.data[0]);
     },
   },
 };

@@ -26,7 +26,16 @@
 
           <v-divider />
 
-          <v-stepper-step step="3">
+          <v-stepper-step
+            :complete="e1 > 3"
+            step="3"
+          >
+            Authorizing device
+          </v-stepper-step>
+
+          <v-divider />
+
+          <v-stepper-step step="4">
             Finish
           </v-stepper-step>
         </v-stepper-header>
@@ -89,7 +98,6 @@
               </v-btn>
               <v-btn
                 v-else
-                id="autoclick"
                 color="primary"
                 @click="e1 = 3"
               >
@@ -110,7 +118,45 @@
               color="grey lighten-4"
               height="250px"
             >
-              <WelcomeThirdScreen :command="command()" />
+              <WelcomeThirdScreen
+                v-if="enable"
+              />
+            </v-card>
+            <v-card-actions>
+              <v-btn
+                text
+                @click="finished"
+              >
+                Close
+              </v-btn>
+              <v-spacer />
+              <v-btn
+                @click="e1 = 2"
+              >
+                Back
+              </v-btn>
+              <v-btn
+                color="primary"
+                @click="acceptDevice()"
+              >
+                Accept
+              </v-btn>
+            </v-card-actions>
+            <v-snackbar
+              v-model="copy"
+              :timeout="3000"
+            >
+              Command copied to clipboard
+            </v-snackbar>
+          </v-stepper-content>
+
+          <v-stepper-content step="4">
+            <v-card
+              class="mb-12"
+              color="grey lighten-4"
+              height="250px"
+            >
+              <WelcomeFourthScreen :command="command()" />
             </v-card>
             <v-card-actions>
               <v-spacer />
@@ -118,7 +164,7 @@
                 color="primary"
                 @click="finished"
               >
-                Continue
+                Finish
               </v-btn>
             </v-card-actions>
           </v-stepper-content>
@@ -133,6 +179,7 @@
 import WelcomeFirstScreen from '@/components/welcome/WelcomeFirstScreen';
 import WelcomeSecondScreen from '@/components/welcome/WelcomeSecondScreen';
 import WelcomeThirdScreen from '@/components/welcome/WelcomeThirdScreen';
+import WelcomeFourthScreen from '@/components/welcome/WelcomeFourthScreen';
 
 export default {
   name: 'Welcome',
@@ -141,6 +188,7 @@ export default {
     WelcomeFirstScreen,
     WelcomeSecondScreen,
     WelcomeThirdScreen,
+    WelcomeFourthScreen,
   },
 
   props: {
@@ -206,20 +254,23 @@ export default {
         await this.$store.dispatch('stats/get', {});
         this.enable = this.checkDevice();
         if (this.enable) {
-          this.autoNext();
+          this.e1 = 3;
         }
       }, 3000);
     },
 
     checkDevice() {
-      return this.$store.getters['stats/stats'].registered_devices !== 0;
+      return this.$store.getters['stats/stats'].pending_devices !== 0;
     },
 
-    autoNext() {
-      this.trigger = setTimeout(() => {
-        document.getElementById('autoclick').click();
-      }, 4000);
-      this.beforeDestroy();
+    acceptDevice() {
+      const device = this.$store.getters['devices/getFirstPending'];
+      this.$store.dispatch('devices/accept', device.uid);
+
+      this.$store.dispatch('notifications/fetch');
+      this.$store.dispatch('stats/get');
+
+      this.e1 = 4;
     },
   },
 };
