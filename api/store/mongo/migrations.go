@@ -67,6 +67,24 @@ var migrations = []migrate.Migration{
 			return err
 		},
 	},
+	{
+		Version: 6,
+		Up: func(db *mongo.Database) error {
+			mod := mongo.IndexModel{
+				Keys:    bson.D{{"status", 1}},
+				Options: options.Index().SetName("status").SetUnique(false),
+			}
+			_, err := db.Collection("devices").Indexes().CreateOne(context.TODO(), mod)
+			_, err = db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"status": "allow"}})
+
+			return err
+		},
+		Down: func(db *mongo.Database) error {
+			_, err := db.Collection("status").Indexes().DropOne(context.TODO(), "status")
+
+			return err
+		},
+	},
 }
 
 func ApplyMigrations(db *mongo.Database) error {
