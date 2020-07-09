@@ -14,7 +14,7 @@ type Service interface {
 	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)
 	DeactivateSession(ctx context.Context, uid models.UID) error
 	SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error
-	RecordSession(ctx context.Context, uid models.UID, recordString string) error
+	RecordSession(ctx context.Context, uid models.UID, recordString string, width int, height int) error
 	GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
 }
 
@@ -45,8 +45,8 @@ func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
 func (s *service) SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
 	return s.store.SetSessionAuthenticated(ctx, uid, authenticated)
 }
-func (s *service) RecordSession(ctx context.Context, uid models.UID, recordString string) error {
-	if err := s.store.RecordSession(ctx, uid, recordString); err != nil {
+func (s *service) RecordSession(ctx context.Context, uid models.UID, recordString string, width, height int) error {
+	if err := s.store.RecordSession(ctx, uid, recordString, width, height); err != nil {
 		return err
 	}
 	return nil
