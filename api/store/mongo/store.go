@@ -606,11 +606,13 @@ func (s *Store) DeactivateSession(ctx context.Context, uid models.UID) error {
 	_, err = s.db.Collection("active_sessions").DeleteMany(ctx, bson.M{"uid": session.UID})
 	return err
 }
-func (s *Store) RecordSession(ctx context.Context, uid models.UID, recordMessage string) error {
+func (s *Store) RecordSession(ctx context.Context, uid models.UID, recordMessage string, width, height int) error {
 	record := new(models.RecordedSession)
 	session, _ := s.GetSession(ctx, uid)
 	record.UID = uid
 	record.Message = recordMessage
+	record.Width = width
+	record.Height = height
 	record.TenantID = session.TenantID
 	record.Time = time.Now()
 

@@ -27,4 +27,6 @@ type RecordedSession struct {
 	Message  string    `json:"message", bson:"message"`
 	TenantID string    `json:"tenant_id" bson:"tenant_id,omitempty"`
 	Time     time.Time `json:"time" bson:"time,omitempty"`
+	Width    int       `json:"width" bson:"width,omitempty"`
+	Height   int       `json:"height" bson:"height,omitempty"`
 }
