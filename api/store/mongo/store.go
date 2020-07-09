@@ -756,6 +756,59 @@ func (s *Store) DeleteFirewallRule(ctx context.Context, id string) error {
 	return nil
 }
 
+func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error) {
+	sessionRecord := make([]models.RecordedSession, 0)
+
+	query := []bson.M{
+		{
+			"$match": bson.M{"uid": uid},
+		},
+	}
+
+	//Only match for the respective tenant if requested
+	if tenant := store.TenantFromContext(ctx); tenant != nil {
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
+			},
+		})
+	}
+	cursor, err := s.db.Collection("recorded_sessions").Aggregate(ctx, query)
+	if err != nil {
+		return sessionRecord, 0, err
+	}
+
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		record := new(models.RecordedSession)
+		err = cursor.Decode(&record)
+		if err != nil {
+			return sessionRecord, 0, err
+		}
+
+		sessionRecord = append(sessionRecord, *record)
+	}
+
+	if tenant := store.TenantFromContext(ctx); tenant != nil {
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
+			},
+		})
+	}
+
+	query = append(query, bson.M{
+		"$count": "count",
+	})
+
+	count, err := aggregateCount(ctx, s.db.Collection("recorded_sessions"), query)
+	if err != nil {
+		return nil, 0, err
+	}
+	return sessionRecord, count, nil
+}
+
 func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	var queryMatch []bson.M
 	var queryFilter []bson.M
