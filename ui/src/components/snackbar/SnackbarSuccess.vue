@@ -3,7 +3,7 @@
     <v-snackbar
       v-model="snackbar"
       :timeout="4000"
-      color="#bd4147"
+      color="#4caf50"
       top
       outlined
       text
@@ -16,7 +16,7 @@
 <script>
 
 export default {
-  name: 'SnackbarError',
+  name: 'SnackbarSuccess',
 
   computed: {
     snackbar: {
