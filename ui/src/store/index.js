@@ -7,11 +7,12 @@ import devices from '@/store/modules/devices';
 import modals from '@/store/modules/modals';
 import firewallrules from '@/store/modules/firewall_rules';
 import notifications from '@/store/modules/notifications';
+import users from '@/store/modules/users';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
   modules: {
-    devices, modals, stats, sessions, auth, firewallrules, notifications,
+    devices, modals, stats, sessions, auth, firewallrules, notifications, users,
   },
 });

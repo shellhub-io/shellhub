@@ -14,6 +14,7 @@ export default {
     terminal: (state) => state.terminal,
     addDevice: (state) => state.addDevice,
     snackbarSuccess: (state) => state.snackbarSuccess,
+    snackbarError: (state) => state.snackbarError,
   },
 
   mutations: {
@@ -27,6 +28,10 @@ export default {
 
     setSnackbarSuccess: (state, data) => {
       Vue.set(state, 'snackbarSuccess', data);
+    },
+
+    setSnackbarError: (state, data) => {
+      Vue.set(state, 'snackbarError', data);
     },
   },
 

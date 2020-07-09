@@ -10,6 +10,7 @@ export default {
     user: localStorage.getItem('user') || '',
     name: localStorage.getItem('name') || '',
     tenant: localStorage.getItem('tenant') || '',
+    email: localStorage.getItem('email') || '',
   },
 
   getters: {
@@ -18,6 +19,7 @@ export default {
     currentUser: (state) => state.user,
     currentName: (state) => state.name,
     tenant: (state) => state.tenant,
+    email: (state) => state.email,
   },
 
   mutations: {
@@ -31,6 +33,7 @@ export default {
       Vue.set(state, 'user', data.user);
       Vue.set(state, 'name', data.name);
       Vue.set(state, 'tenant', data.tenant);
+      Vue.set(state, 'email', data.email);
     },
 
     authError(state) {
@@ -43,6 +46,12 @@ export default {
       Vue.set(state, 'name', '');
       Vue.set(state, 'user', '');
       Vue.set(state, 'tenant', '');
+      Vue.set(state, 'email', '');
+    },
+
+    changeData(state, data) {
+      Vue.set(state, 'user', data.username);
+      Vue.set(state, 'email', data.email);
     },
   },
 
@@ -57,6 +66,7 @@ export default {
         localStorage.setItem('user', resp.data.user);
         localStorage.setItem('name', resp.data.name);
         localStorage.setItem('tenant', resp.data.tenant);
+        localStorage.setItem('email', resp.data.email);
 
         context.commit('authSuccess', resp.data);
       } catch (err) {
@@ -89,6 +99,13 @@ export default {
       localStorage.removeItem('user');
       localStorage.removeItem('tenant');
       localStorage.removeItem('onceWelcome');
+      localStorage.removeItem('email');
+    },
+
+    changeUserData(context, data) {
+      localStorage.setItem('user', data.username);
+      localStorage.setItem('email', data.email);
+      context.commit('changeData', data);
     },
   },
 };

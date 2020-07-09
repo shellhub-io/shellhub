@@ -65,6 +65,21 @@ const router = new Router({
       component: () => import('./../views/FirewallRules.vue'),
     },
     {
+      path: '/settings',
+      name: 'settings',
+      component: () => import(/* webpackChunkName: 'settings' */ './../views/Settings.vue'),
+      redirect: {
+        name: 'profileSettings',
+      },
+      children: [
+        {
+          path: 'profile',
+          name: 'profileSettings',
+          component: () => import('./../components/setting/SettingProfile.vue'),
+        },
+      ],
+    },
+    {
       path: '*',
       name: 'NotFound',
       component: Dashboard,
