@@ -17,6 +17,7 @@ const (
 	CreateSessionURL           = "/sessions"
 	FinishSessionURL           = "/sessions/:uid/finish"
 	RecordSessionURL           = "/sessions/:uid/record"
+	PlaySessionURL             = "/sessions/:uid/play"
 )
 
 func GetSessionList(c apicontext.Context) error {
@@ -97,4 +98,14 @@ func RecordSession(c apicontext.Context) error {
 	svc := sessionmngr.NewService(c.Store())
 
 	return svc.RecordSession(c.Ctx(), models.UID(c.Param("uid")), req.Record)
+}
+
+func PlaySession(c apicontext.Context) error {
+	svc := sessionmngr.NewService(c.Store())
+
+	record, _, err := svc.GetRecord(c.Ctx(), models.UID(c.Param("uid")))
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, record)
 }
