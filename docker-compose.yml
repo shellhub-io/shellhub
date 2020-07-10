@@ -23,6 +23,8 @@ services:
       - api_public_key
   ui:
     image: shellhubio/ui:${SHELLHUB_VERSION}
+    environment:
+      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
     depends_on:
       - api
   gateway:
