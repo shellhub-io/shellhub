@@ -14,9 +14,9 @@ WORKDIR /src
 
 COPY --from=base /app/node_modules /node_modules
 
-COPY entrypoint-dev.sh /entrypoint.sh
+COPY scripts /scripts
 
-CMD ["/entrypoint.sh"]
+CMD ["/scripts/entrypoint-dev.sh"]
 
 FROM base as builder
 
@@ -35,4 +35,6 @@ COPY nginx.conf /etc/nginx/conf.d
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-CMD ["nginx-debug", "-g", "daemon off;"]
+COPY scripts /scripts
+
+CMD ["/scripts/entrypoint.sh"]

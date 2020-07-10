@@ -2,12 +2,15 @@ import Vue from 'vue';
 import App from './App';
 import router from './router';
 import store from './store';
+import env from './env';
 import './vee-validate';
 import vuetify from './plugins/vuetify';
 
 Vue.config.productionTip = false;
 
 Vue.use(require('vue-moment'));
+
+Vue.use(env);
 
 new Vue({
   vuetify,
