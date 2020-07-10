@@ -393,6 +393,7 @@ func (s *Store) SetSessionAuthenticated(ctx context.Context, uid models.UID, aut
 func (s *Store) CreateSession(ctx context.Context, session models.Session) (*models.Session, error) {
 	session.StartedAt = time.Now()
 	session.LastSeen = session.StartedAt
+	session.Recorded = false
 
 	device, err := s.GetDevice(ctx, session.DeviceUID)
 	if err != nil {
@@ -617,6 +618,10 @@ func (s *Store) RecordSession(ctx context.Context, uid models.UID, recordMessage
 	record.Time = time.Now()
 
 	if _, err := s.db.Collection("recorded_sessions").InsertOne(ctx, &record); err != nil {
+		return err
+	}
+
+	if _, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": true}}); err != nil {
 		return err
 	}
 
