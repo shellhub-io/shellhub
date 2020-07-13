@@ -47,7 +47,7 @@ func (s *service) SetSessionAuthenticated(ctx context.Context, uid models.UID, a
 }
 
 func (s *service) RecordSession(ctx context.Context, uid models.UID, recordString string, width, height int) error {
-	 return s.store.RecordSession(ctx, uid, recordString, width, height)
+	return s.store.RecordSession(ctx, uid, recordString, width, height)
 }
 
 func (s *service) GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error) {

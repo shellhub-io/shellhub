@@ -36,4 +36,5 @@ type Store interface {
 	DeleteFirewallRule(ctx context.Context, id string) error
 	GetStats(ctx context.Context) (*models.Stats, error)
 	GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
+	UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) error
 }

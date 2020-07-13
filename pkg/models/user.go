@@ -6,9 +6,9 @@ import (
 
 type User struct {
 	Name     string `json:"name"`
-	Email    string `json:"email" validate:"email"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Email    string `json:"email" bson:",omitempty" validate:"email"`
+	Username string `json:"username" bson:",omitempty"`
+	Password string `json:"password" bson:",omitempty"`
 	TenantID string `json:"tenant_id" bson:"tenant_id"`
 }
 
@@ -22,6 +22,7 @@ type UserAuthResponse struct {
 	User   string `json:"user"`
 	Name   string `json:"name"`
 	Tenant string `json:"tenant"`
+	Email  string `json:"email"`
 }
 
 type UserAuthClaims struct {
