@@ -23,7 +23,7 @@ export default {
 
   actions: {
     fetch: async (context) => {
-      const res = await apiDevice.fetchDevices(10, 1, null, 'pending');
+      const res = await apiDevice.fetchDevices(10, 1, null, 'pending', null, '');
       context.commit('setNotifications', res);
     },
   },

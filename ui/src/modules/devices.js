@@ -12,6 +12,8 @@ export default {
     perPage: 0,
     filter: null,
     status: '',
+    sortStatusField: null,
+    sortStatusString: '',
   },
 
   getters: {
@@ -51,6 +53,8 @@ export default {
       Vue.set(state, 'perPage', data.perPage);
       Vue.set(state, 'filter', data.filter);
       Vue.set(state, 'status', data.status);
+      Vue.set(state, 'sortStatusField', data.sortStatusField);
+      Vue.set(state, 'sortStatusString', data.sortStatusString);
     },
 
     setFilter: (state, filter) => {
@@ -60,7 +64,8 @@ export default {
 
   actions: {
     fetch: async (context, data) => {
-      const res = await apiDevice.fetchDevices(data.perPage, data.page, data.filter, data.status);
+      const res = await apiDevice.fetchDevices(data.perPage, data.page, data.filter, data.status,
+        data.sortStatusField, data.sortStatusString);
       context.commit('setDevices', res);
       context.commit('setPagePerpageFilter', data);
     },
@@ -97,6 +102,8 @@ export default {
         state.page,
         state.filter,
         state.status,
+        state.sortStatusField,
+        state.sortStatusString,
       );
       commit('setDevices', res);
     },
