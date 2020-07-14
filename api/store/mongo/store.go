@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -78,7 +79,7 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -147,7 +148,7 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -295,7 +296,7 @@ func (s *Store) ListSessions(ctx context.Context, pagination paginator.Query) ([
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -355,7 +356,7 @@ func (s *Store) GetSession(ctx context.Context, uid models.UID) (*models.Session
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -423,7 +424,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append([]bson.M{{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -447,7 +448,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append([]bson.M{{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -535,7 +536,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -675,7 +676,7 @@ func (s *Store) ListFirewallRules(ctx context.Context, pagination paginator.Quer
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
