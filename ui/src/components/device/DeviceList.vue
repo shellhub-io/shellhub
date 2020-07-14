@@ -4,15 +4,11 @@
       <v-data-table
         class="elevation-1"
         :headers="headers"
-        :items="getListDevices"
-        item-key="uid"
-        :sort-by="['started_at']"
-        :sort-desc="[true]"
+        :items="listDevices"
         :items-per-page="10"
         :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
-        :server-items-length="getNumberDevices"
+        :server-items-length="numberDevices"
         :options.sync="pagination"
-        :disable-sort="true"
         :search="search"
       >
         <template v-slot:item.online="{ item }">
@@ -94,7 +90,6 @@
     </v-snackbar>
   </fragment>
 </template>
-
 <script>
 
 import TerminalDialog from '@/components/terminal/TerminalDialog';
@@ -113,11 +108,15 @@ export default {
   data() {
     return {
       hostname: window.location.hostname,
+      numberDevices: 0,
+      sortFlag: false,
+      listDevices: [],
       dialogDelete: false,
       pagination: {},
       copySnack: false,
       editName: '',
       search: '',
+      currentField: '',
       headers: [
         {
           text: 'Online',
@@ -133,11 +132,13 @@ export default {
           text: 'Operating System',
           value: 'info.pretty_name',
           align: 'center',
+          sortable: false,
         },
         {
           text: 'SSHID',
           value: 'namespace',
           align: 'center',
+          sortable: false,
         },
         {
           text: 'Actions',
@@ -181,14 +182,23 @@ export default {
         encodedFilter = btoa(JSON.stringify(filter));
       }
 
+      let sortStatusMap = {};
+      sortStatusMap = this.formatSortObject();
+
       const data = {
         perPage: this.pagination.itemsPerPage,
         page: this.pagination.page,
         filter: encodedFilter,
         status: 'accepted',
+        sortStatusField: sortStatusMap.field,
+        sortStatusString: sortStatusMap.statusString,
       };
 
-      this.$store.dispatch('devices/fetch', data);
+      await this.$store.dispatch('devices/fetch', data);
+      this.listDevices = this.$store.getters['devices/list'];
+      this.numberDevices = this.$store.getters['devices/getNumberDevices'];
+      // eslint-disable-next-line no-console
+      console.log(this.listDevices);
     },
 
     detailsDevice(value) {
@@ -201,6 +211,34 @@ export default {
 
     copy(device) {
       this.$clipboard(device.uid);
+    },
+
+    formatSortObject() {
+      const field = this.pagination.sortBy[0];
+      const isDesc = this.pagination.sortDesc[0];
+
+      let formatedField = null;
+      let formatedStatus = null;
+      let ascOrDesc = 'asc';
+
+      if (field !== undefined) {
+        formatedField = field === 'hostname' ? 'name' : field; // customize to api field
+      }
+
+      if (isDesc !== undefined) {
+        // eslint-disable-next-line prefer-destructuring
+        formatedStatus = isDesc;
+      }
+
+      if (formatedStatus !== true) {
+        ascOrDesc = 'desc';
+      }
+
+      return {
+        field: formatedField,
+        status: formatedStatus,
+        statusString: ascOrDesc,
+      };
     },
 
     showCopySnack() {
