@@ -29,7 +29,7 @@ func NewStore(db *mongo.Database) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string) ([]models.Device, int, error) {
+func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, err
@@ -69,9 +69,20 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 		},
 	}
 
-	query = append(query, bson.M{
-		"$sort": bson.M{"last_seen": -1},
-	})
+	orderVal := map[string]int{
+		"asc":  1,
+		"desc": -1,
+	}
+
+	if sort != "" {
+		query = append(query, bson.M{
+			"$sort": bson.M{sort: orderVal[order]},
+		})
+	} else {
+		query = append(query, bson.M{
+			"$sort": bson.M{"last_seen": -1},
+		})
+	}
 
 	// Apply filters if any
 	if len(queryMatch) > 0 {

@@ -26,7 +26,9 @@ const TenantIDHeader = "X-Tenant-ID"
 type filterQuery struct {
 	Filter string `query:"filter"`
 	paginator.Query
-	Status string `query:"status"`
+	Status  string `query:"status"`
+	SortBy  string `query:"sort_by"`
+	OrderBy string `query:"order_by"`
 }
 
 func GetDeviceList(c apicontext.Context) error {
@@ -39,7 +41,7 @@ func GetDeviceList(c apicontext.Context) error {
 
 	query.Normalize()
 
-	devices, count, err := svc.ListDevices(c.Ctx(), query.Query, query.Filter, query.Status)
+	devices, count, err := svc.ListDevices(c.Ctx(), query.Query, query.Filter, query.Status, query.SortBy, query.OrderBy)
 	if err != nil {
 		return err
 	}
