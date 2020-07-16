@@ -109,18 +109,18 @@ export default {
   watch: {
     pagination: {
       handler() {
-        this.getDevices();
+        this.getPendingDevices();
       },
       deep: true,
     },
 
     search() {
-      this.getDevices();
+      this.getPendingDevices();
     },
   },
 
   methods: {
-    getDevices() {
+    getPendingDevices() {
       let filter = null;
       let encodedFilter = null;
 
