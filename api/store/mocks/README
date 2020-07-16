@@ -1,0 +1,3 @@
+Generated using the following command:
+
+mockery -name Store -dir ./store/ --filename store.go
