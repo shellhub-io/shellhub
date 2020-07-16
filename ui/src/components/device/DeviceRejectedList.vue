@@ -4,13 +4,13 @@
       <v-data-table
         class="elevation-1"
         :headers="headers"
-        :items="getListPendingDevices"
+        :items="getListRejectedDevices"
         item-key="uid"
         :sort-by="['started_at']"
         :sort-desc="[true]"
         :items-per-page="10"
         :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
-        :server-items-length="getNumberPendingDevices"
+        :server-items-length="getNumberRejectedDevices"
         :options.sync="pagination"
         :disable-sort="true"
         :search="search"
@@ -98,11 +98,11 @@ export default {
   },
 
   computed: {
-    getListPendingDevices() {
+    getListRejectedDevices() {
       return this.$store.getters['devices/list'];
     },
 
-    getNumberPendingDevices() {
+    getNumberRejectedDevices() {
       return this.$store.getters['devices/getNumberDevices'];
     },
   },
