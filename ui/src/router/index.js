@@ -18,17 +18,23 @@ const router = new Router({
       path: '/devices',
       name: 'devices',
       component: () => import(/* webpackChunkName: 'devices' */ './../views/Devices.vue'),
+      redirect: {
+        name: 'listDevices',
+      },
       children: [
         {
           path: '',
+          name: 'listDevices',
           component: () => import('./../components/device/DeviceList.vue'),
         },
         {
           path: 'pending',
+          name: 'pendingDevices',
           component: () => import('./../components/device/DevicePendingList.vue'),
         },
         {
           path: 'rejected',
+          name: 'rejectedDevices',
           component: () => import('./../components/device/DeviceRejectedList.vue'),
         },
       ],
