@@ -38,7 +38,7 @@
             <v-list-item-content>
               <v-list-item-title>
                 <router-link :to="{ name: 'detailsDevice', params: { id: item.uid } }">
-                {{ item.name }}
+                  {{ item.name }}
                 </router-link>
               </v-list-item-title>
             </v-list-item-content>
