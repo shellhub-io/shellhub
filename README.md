@@ -68,7 +68,7 @@ $ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 Wait for all services to be ready then create initial user running:
 
 ```
-$ ./bin/add-user <username> <password>
+$ ./bin/add-user <username> <password> <email>
 ```
 
 ## Authors
