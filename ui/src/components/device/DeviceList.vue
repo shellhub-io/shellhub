@@ -95,6 +95,7 @@
 import TerminalDialog from '@/components/terminal/TerminalDialog';
 import DeviceIcon from '@/components/device//DeviceIcon';
 import DeviceDelete from '@/components/device//DeviceDelete';
+import formatOrdering from '@/components/device//Device';
 
 export default {
   name: 'DeviceList',
@@ -104,6 +105,8 @@ export default {
     DeviceIcon,
     DeviceDelete,
   },
+
+  mixins: [formatOrdering],
 
   data() {
     return {
@@ -116,7 +119,6 @@ export default {
       copySnack: false,
       editName: '',
       search: '',
-      currentField: '',
       headers: [
         {
           text: 'Online',
@@ -183,7 +185,7 @@ export default {
       }
 
       let sortStatusMap = {};
-      sortStatusMap = this.formatSortObject();
+      sortStatusMap = this.formatSortObject(this.pagination.sortBy[0], this.pagination.sortDesc[0]);
 
       const data = {
         perPage: this.pagination.itemsPerPage,
@@ -197,8 +199,6 @@ export default {
       await this.$store.dispatch('devices/fetch', data);
       this.listDevices = this.$store.getters['devices/list'];
       this.numberDevices = this.$store.getters['devices/getNumberDevices'];
-      // eslint-disable-next-line no-console
-      console.log(this.listDevices);
     },
 
     detailsDevice(value) {
@@ -211,34 +211,6 @@ export default {
 
     copy(device) {
       this.$clipboard(device.uid);
-    },
-
-    formatSortObject() {
-      const field = this.pagination.sortBy[0];
-      const isDesc = this.pagination.sortDesc[0];
-
-      let formatedField = null;
-      let formatedStatus = null;
-      let ascOrDesc = 'asc';
-
-      if (field !== undefined) {
-        formatedField = field === 'hostname' ? 'name' : field; // customize to api field
-      }
-
-      if (isDesc !== undefined) {
-        // eslint-disable-next-line prefer-destructuring
-        formatedStatus = isDesc;
-      }
-
-      if (formatedStatus !== true) {
-        ascOrDesc = 'desc';
-      }
-
-      return {
-        field: formatedField,
-        status: formatedStatus,
-        statusString: ascOrDesc,
-      };
     },
 
     showCopySnack() {

@@ -5,14 +5,10 @@
         class="elevation-1"
         :headers="headers"
         :items="getListPendingDevices"
-        item-key="uid"
-        :sort-by="['started_at']"
-        :sort-desc="[true]"
         :items-per-page="10"
         :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
         :server-items-length="getNumberPendingDevices"
         :options.sync="pagination"
-        :disable-sort="true"
         :search="search"
       >
         <template slot="no-data">
@@ -56,6 +52,7 @@
 
 import DeviceIcon from '@/components/device//DeviceIcon';
 import DeviceActionButton from '@/components/device/DeviceActionButton';
+import formatOrdering from '@/components/device//Device';
 
 export default {
   name: 'DeviceList',
@@ -64,6 +61,8 @@ export default {
     DeviceIcon,
     DeviceActionButton,
   },
+
+  mixins: [formatOrdering],
 
   data() {
     return {
@@ -80,11 +79,13 @@ export default {
           text: 'Operating System',
           value: 'info.pretty_name',
           align: 'center',
+          sortable: false,
         },
         {
           text: 'Request Time',
           value: 'request_time',
           align: 'center',
+          sortable: false,
         },
         {
           text: 'Actions',
@@ -129,11 +130,16 @@ export default {
         encodedFilter = btoa(JSON.stringify(filter));
       }
 
+      let sortStatusMap = {};
+      sortStatusMap = this.formatSortObject(this.pagination.sortBy[0], this.pagination.sortDesc[0]);
+
       const data = {
         perPage: this.pagination.itemsPerPage,
         page: this.pagination.page,
         filter: encodedFilter,
         status: 'pending',
+        sortStatusField: sortStatusMap.field,
+        sortStatusString: sortStatusMap.statusString,
       };
 
       this.$store.dispatch('devices/fetch', data);
