@@ -125,13 +125,13 @@ export default {
     async getRejectedDevices() {
       let filter = null;
       let encodedFilter = null;
+      let sortStatusMap = {};
 
       if (this.search) {
         filter = [{ type: 'property', params: { name: 'name', operator: 'like', value: this.search } }];
         encodedFilter = btoa(JSON.stringify(filter));
       }
 
-      let sortStatusMap = {};
       sortStatusMap = this.formatSortObject(this.pagination.sortBy[0], this.pagination.sortDesc[0]);
 
       const data = {
