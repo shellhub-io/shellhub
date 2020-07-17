@@ -76,32 +76,7 @@ export default {
     };
   },
 
-  watch: {
-    pagination: {
-      handler() {
-        this.getDevices();
-      },
-      deep: true,
-    },
-
-    search() {
-      this.getDevices();
-    },
-  },
-
   methods: {
-    async getDevices() {
-      let encodedFilter = null;
-
-      if (this.search) {
-        const filter = [{ type: 'property', params: { name: 'name', operator: 'like', value: this.search } }];
-        encodedFilter = btoa(JSON.stringify(filter));
-      }
-
-      await this.$store.dispatch('devices/setFilter', encodedFilter);
-      this.$store.dispatch('devices/refresh');
-    },
-
     formatSortObject(field, isDesc) {
       let formatedField = null;
       let formatedStatus = false;
