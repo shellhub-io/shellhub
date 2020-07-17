@@ -1,16 +1,20 @@
 import http from '@/helpers/http';
 
-export const fetchDevices = async (perPage, page, search, status, sortStatusField,
+export const fetchDevices = async (
+  perPage,
+  page,
+  search,
+  status,
+  sortStatusField,
   sortStatusString) => {
-  let query = '';
-  let concatSortString = '';
-  if (sortStatusField !== null) {
-    concatSortString = `&sort_by=${sortStatusField}&order_by=${sortStatusString}`;
+  let query = `/devices?per_page=${perPage}&page=${page}&status=${status}`;
+
+  if (search !== null) {
+    query += `&filter=${search}`;
   }
-  if (search === null) {
-    query = `/devices?per_page=${perPage}&page=${page}&status=${status}${concatSortString}`;
-  } else {
-    query = `/devices?per_page=${perPage}&page=${page}&filter=${search}&status=${status}${concatSortString}`;
+
+  if (sortStatusField !== null) {
+    query += `&sort_by=${sortStatusField}&order_by=${sortStatusString}`;
   }
   return http().get(query);
 };
