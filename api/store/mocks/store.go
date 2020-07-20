@@ -360,13 +360,13 @@ func (_m *Store) KeepAliveSession(ctx context.Context, uid models.UID) error {
 	return r0
 }
 
-// ListDevices provides a mock function with given fields: ctx, pagination, filters, status
-func (_m *Store) ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string) ([]models.Device, int, error) {
-	ret := _m.Called(ctx, pagination, filters, status)
+// ListDevices provides a mock function with given fields: ctx, pagination, filters, status, sort, order
+func (_m *Store) ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
+	ret := _m.Called(ctx, pagination, filters, status, sort, order)
 
 	var r0 []models.Device
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, string) []models.Device); ok {
-		r0 = rf(ctx, pagination, filters, status)
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, string, string, string) []models.Device); ok {
+		r0 = rf(ctx, pagination, filters, status, sort, order)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
@@ -374,15 +374,15 @@ func (_m *Store) ListDevices(ctx context.Context, pagination paginator.Query, fi
 	}
 
 	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, string) int); ok {
-		r1 = rf(ctx, pagination, filters, status)
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, string, string, string) int); ok {
+		r1 = rf(ctx, pagination, filters, status, sort, order)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, string) error); ok {
-		r2 = rf(ctx, pagination, filters, status)
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, string, string, string) error); ok {
+		r2 = rf(ctx, pagination, filters, status, sort, order)
 	} else {
 		r2 = ret.Error(2)
 	}

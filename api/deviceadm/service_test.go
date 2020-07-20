@@ -36,10 +36,10 @@ func TestListDevices(t *testing.T) {
 
 	query := paginator.Query{Page: 1, PerPage: 10}
 
-	mock.On("ListDevices", ctx, query, filters, "accepted").
+	mock.On("ListDevices", ctx, query, filters, "accepted", "name", "asc").
 		Return(devices, len(devices), nil).Once()
 
-	returnedDevices, count, err := s.ListDevices(ctx, query, encodedFilter, "accepted")
+	returnedDevices, count, err := s.ListDevices(ctx, query, encodedFilter, "accepted", "name", "asc")
 	assert.NoError(t, err)
 	assert.Equal(t, devices, returnedDevices)
 	assert.Equal(t, count, len(devices))
