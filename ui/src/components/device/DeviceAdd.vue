@@ -73,6 +73,7 @@ export default {
   data() {
     return {
       hostname: window.location.hostname,
+      port: window.location.port,
       copySnack: false,
     };
   },
@@ -95,7 +96,10 @@ export default {
 
   methods: {
     command() {
-      return `curl "${window.location.protocol}//${this.hostname}/install.sh?tenant_id=${this.tenant}" | sh`;
+      let port = '';
+      if (window.location.port !== '') port = `:${this.port}`;
+
+      return `curl "${window.location.protocol}//${this.hostname}${port}/install.sh?tenant_id=${this.tenant}" | sh`;
     },
 
     copyCommand() {
