@@ -97,3 +97,37 @@ func TestSetSessionAuthenticated(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
+func TestRecordSession(t *testing.T) {
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
+
+	ctx := context.TODO()
+
+	recordedSession := &models.RecordedSession{UID: "uid"}
+	mock.On("RecordSession", ctx, models.UID(recordedSession.UID), "message", 0, 0).
+		Return(nil).Once()
+	err := s.RecordSession(ctx, models.UID(recordedSession.UID), "message", 0, 0)
+	assert.NoError(t, err)
+
+	mock.AssertExpectations(t)
+}
+func TestGetRecord(t *testing.T) {
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
+	ctx := context.TODO()
+
+	recordedSession := []models.RecordedSession{
+		models.RecordedSession{UID: "uid"},
+	}
+
+	mock.On("GetRecord", ctx, models.UID("uid")).
+		Return(recordedSession, len(recordedSession), nil).Once()
+
+	returnedRecord, count, err := s.GetRecord(ctx, models.UID("uid"))
+	assert.NoError(t, err)
+	assert.Equal(t, recordedSession, returnedRecord)
+	assert.Equal(t, len(recordedSession), count)
+
+	mock.AssertExpectations(t)
+
+}
