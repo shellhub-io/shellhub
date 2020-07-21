@@ -31,6 +31,7 @@ require (
 	golang.org/x/sys v0.0.0-20200610111108-226ff32320da // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0
+	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
 	moul.io/http2curl v1.0.0 // indirect
 )
 
