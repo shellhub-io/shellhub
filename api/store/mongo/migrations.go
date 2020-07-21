@@ -74,14 +74,17 @@ var migrations = []migrate.Migration{
 				Keys:    bson.D{{"status", 1}},
 				Options: options.Index().SetName("status").SetUnique(false),
 			}
-			_, err := db.Collection("devices").Indexes().CreateOne(context.TODO(), mod)
-			_, err = db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"status": "allow"}})
-
+			if _, err := db.Collection("devices").Indexes().CreateOne(context.TODO(), mod); err != nil {
+				return err
+			}
+			_, err := db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"status": "accepted"}})
 			return err
 		},
 		Down: func(db *mongo.Database) error {
+			if _, err := db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"status": ""}}); err != nil {
+				return err
+			}
 			_, err := db.Collection("status").Indexes().DropOne(context.TODO(), "status")
-
 			return err
 		},
 	},
