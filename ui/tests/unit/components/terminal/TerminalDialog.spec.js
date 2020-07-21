@@ -1,6 +1,6 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import TerminalDialog from '@/components/terminal/TerminalDialog.vue';
+import TerminalDialog from '@/components/terminal/TerminalDialog';
 
 describe('TerminalDialog', () => {
   const localVue = createLocalVue();
@@ -19,7 +19,7 @@ describe('TerminalDialog', () => {
     actions: {
       'modals/toggleTerminal': () => {
       },
-    }
+    },
   });
 
   beforeEach(() => {
@@ -31,12 +31,12 @@ describe('TerminalDialog', () => {
       store,
       localVue,
       stubs: ['fragment'],
-      propsData: { uid, username, password }
+      propsData: { uid, username, password },
     });
   });
 
   it('Is a Vue instance', () => {
-    expect(wrapper.isVueInstance()).toBeTruthy();
+    expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();

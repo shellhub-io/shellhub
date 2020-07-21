@@ -1,6 +1,6 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import Dashboard from '@/views/Dashboard.vue';
+import Dashboard from '@/views/Dashboard';
 
 const localVue = createLocalVue();
 localVue.use(Vuex);
@@ -12,25 +12,26 @@ const store = new Vuex.Store({
       registeredDevices: 2,
       onlineDevices: 1,
       activeSessions: 1,
-    }
+    },
   },
   getters: {
     'stats/stats': (state) => state.stats,
   },
   actions: {
     'stats/get': () => {
-    }
-  }
+    },
+  },
 });
 
 describe('Dashboard', () => {
   const wrapper = shallowMount(Dashboard, {
     store,
     localVue,
-    stubs: ['fragment']
+    stubs: ['fragment'],
   });
+
   it('Is a Vue instance', () => {
-    expect(wrapper.isVueInstance()).toBeTruthy();
+    expect(wrapper).toBeTruthy();
   });
   it('has restered devices', () => {
     expect(wrapper.vm.stats.registeredDevices).toBe(2);

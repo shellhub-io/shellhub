@@ -1,6 +1,6 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import Login from '@/views/Login.vue';
+import Login from '@/views/Login';
 
 const localVue = createLocalVue();
 localVue.use(Vuex);
@@ -11,20 +11,21 @@ const store = new Vuex.Store({
       status: true,
       token: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
       user: 'user',
-      tenant: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoibGV'
-    }
+      tenant: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoibGV',
+    },
   },
   getters: {
-  }
+  },
 });
 
 describe('Login', () => {
   const wrapper = shallowMount(Login, {
     store,
-    localVue
+    localVue,
   });
+
   it('Is a Vue instance', () => {
-    expect(wrapper.isVueInstance()).toBeTruthy();
+    expect(wrapper).toBeTruthy();
   });
   it('has a username field', () => {
     expect(wrapper.find('[data-cy="username-text"]').exists()).toBe(true);

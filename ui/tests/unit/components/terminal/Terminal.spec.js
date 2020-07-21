@@ -1,6 +1,6 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import Terminal from '@/components/terminal/Terminal.vue';
+import Terminal from '@/components/terminal/Terminal';
 
 describe('Terminal', () => {
   const localVue = createLocalVue();
@@ -16,12 +16,12 @@ describe('Terminal', () => {
     wrapper = shallowMount(Terminal, {
       localVue,
       stubs: ['fragment'],
-      propsData: { uid, username, password }
+      propsData: { uid, username, password },
     });
   });
 
   it('Is a Vue instance', () => {
-    expect(wrapper.isVueInstance()).toBeTruthy();
+    expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();

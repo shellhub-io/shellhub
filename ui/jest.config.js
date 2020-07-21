@@ -4,6 +4,6 @@ module.exports = {
   verbose: true,
   moduleNameMapper: {
     '\\.(css|less|sass|scss)$': '<rootDir>/tests/__mocks__/styleMock.js',
-    '\\.(gif|ttf|eot|svg)$': '<rootDir>/tests/__mocks__/fileMock.js'
+    '\\.(gif|ttf|eot|svg)$': '<rootDir>/tests/__mocks__/fileMock.js',
   },
 };
