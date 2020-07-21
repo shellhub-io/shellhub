@@ -45,13 +45,11 @@ func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
 func (s *service) SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
 	return s.store.SetSessionAuthenticated(ctx, uid, authenticated)
 }
+
 func (s *service) RecordSession(ctx context.Context, uid models.UID, recordString string, width, height int) error {
-	if err := s.store.RecordSession(ctx, uid, recordString, width, height); err != nil {
-		return err
-	}
-	return nil
+	 return s.store.RecordSession(ctx, uid, recordString, width, height)
 }
+
 func (s *service) GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error) {
 	return s.store.GetRecord(ctx, uid)
-
 }
