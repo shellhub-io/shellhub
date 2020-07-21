@@ -471,7 +471,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append([]bson.M{{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -495,7 +495,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := store.TenantFromContext(ctx); tenant != nil {
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append([]bson.M{{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
