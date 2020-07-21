@@ -1,34 +1,34 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import DeviceRename from '@/components/device/DeviceRename.vue';
+import DeviceRename from '@/components/device/DeviceRename';
 
 describe('DeviceRename', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
   let wrapper;
-  let device = {};
+  const uid = 'a582b47a42d';
+  const name = '39-5e-2a';
 
   const store = new Vuex.Store({
     namespaced: true,
     actions: {
       'devices/rename': () => {
-      }
-    }
+      },
+    },
   });
 
   beforeEach(() => {
-
     wrapper = shallowMount(DeviceRename, {
       store,
       localVue,
       stubs: ['fragment'],
-      propsData: { device }
+      propsData: { name, uid },
     });
   });
 
   it('Is a Vue instance', () => {
-    expect(wrapper.isVueInstance()).toBeTruthy();
+    expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();

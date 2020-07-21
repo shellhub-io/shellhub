@@ -1,13 +1,13 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import DeviceIcon from '@/components/device/DeviceIcon.vue';
+import DeviceIcon from '@/components/device/DeviceIcon';
 
 describe('DeviceIcon', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
   let wrapper;
-  let iconName = 'alpine';
+  const iconName = 'alpine';
 
   const iconsMap = {
     alpine: 'fl-alpine',
@@ -33,32 +33,31 @@ describe('DeviceIcon', () => {
     raspbian: 'fl-raspberry-pi',
     'ubuntu-core': 'fl-ubuntu',
     void: 'fl-void',
-    default: 'fl-tux'
+    default: 'fl-tux',
   };
 
   beforeEach(() => {
-
     wrapper = shallowMount(DeviceIcon, {
       localVue,
       stubs: ['fragment'],
-      propsData: { iconName }
+      propsData: { iconName },
     });
   });
 
   it('Is a Vue instance', () => {
-    expect(wrapper.isVueInstance()).toBeTruthy();
+    expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  for (iconName in iconsMap) {
-    it(`Has the ${iconName} icon`, () => {
+  Object.keys(iconsMap).forEach((iconKey) => {
+    it(`Has the ${iconKey} icon`, () => {
       wrapper = shallowMount(DeviceIcon, {
         localVue,
         stubs: ['fragment'],
-        propsData: { iconName }
+        propsData: { iconName: iconKey },
       });
-      expect(wrapper.find('[data-cy="type-icon"]').text()).toBe(iconsMap[iconName]);
+      expect(wrapper.find('[data-cy="type-icon"]').text()).toBe(iconsMap[iconKey]);
     });
-  }
+  });
 });

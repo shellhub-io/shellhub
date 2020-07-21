@@ -1,4 +1,4 @@
-import store from '../../../src/store.js';
+import store from '@/store';
 
 describe('Auth', () => {
   it('returns status', () => {
@@ -31,7 +31,7 @@ describe('Auth', () => {
     store.commit('auth/authError');
     expect(store.getters['auth/authStatus']).toEqual(statusError);
 
-    store.commit('auth/authSuccess', {token: token, user: user, tenant: tenant});
+    store.commit('auth/authSuccess', { token, user, tenant });
     expect(store.getters['auth/authStatus']).toEqual(statusSuccess);
     expect(store.getters['auth/isLoggedIn']).toEqual(true);
     expect(store.getters['auth/currentUser']).toEqual(user);
@@ -41,6 +41,6 @@ describe('Auth', () => {
     expect(store.getters['auth/authStatus']).toEqual('');
     expect(store.getters['auth/isLoggedIn']).toEqual(false);
     expect(store.getters['auth/currentUser']).toEqual('');
-    expect(store.getters['auth/tenant']).toEqual('');    
+    expect(store.getters['auth/tenant']).toEqual('');
   });
 });

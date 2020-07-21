@@ -1,6 +1,6 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import DetailsSession from '@/views/DetailsSession.vue';
+import DetailsSession from '@/views/DetailsSession';
 
 describe('Terminal', () => {
   const localVue = createLocalVue();
@@ -16,7 +16,7 @@ describe('Terminal', () => {
   });
 
   it('Is a Vue instance', () => {
-    expect(wrapper.isVueInstance()).toBeTruthy();
+    expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();

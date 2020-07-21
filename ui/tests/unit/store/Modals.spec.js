@@ -1,4 +1,4 @@
-import store from '../../../src/store.js';
+import store from '@/store';
 
 describe('Modals', () => {
   it('returns terminal', () => {

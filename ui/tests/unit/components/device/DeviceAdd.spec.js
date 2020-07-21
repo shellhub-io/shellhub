@@ -1,6 +1,6 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import DeviceAdd from '@/components/device/DeviceAdd.vue';
+import DeviceAdd from '@/components/device/DeviceAdd';
 
 describe('DeviceAdd', () => {
   const localVue = createLocalVue();
@@ -20,21 +20,20 @@ describe('DeviceAdd', () => {
     },
     actions: {
       'modals/showAddDevice': () => {
-      }
-    }
+      },
+    },
   });
 
   beforeEach(() => {
-
     wrapper = shallowMount(DeviceAdd, {
       store,
       localVue,
-      stubs: ['fragment']
+      stubs: ['fragment'],
     });
   });
 
   it('Is a Vue instance', () => {
-    expect(wrapper.isVueInstance()).toBeTruthy();
+    expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();

@@ -1,13 +1,13 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import DeviceList from '@/components/device/DeviceList.vue';
+import DeviceList from '@/components/device/DeviceList';
 
 describe('DeviceList', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
   let wrapper;
-  let device = {};
+  const device = {};
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -26,21 +26,20 @@ describe('DeviceList', () => {
       },
       'devices/rename': () => {
       },
-    }
+    },
   });
 
   beforeEach(() => {
-
     wrapper = shallowMount(DeviceList, {
       store,
       localVue,
       stubs: ['fragment'],
-      propsData: { device }
+      propsData: { device },
     });
   });
 
   it('Is a Vue instance', () => {
-    expect(wrapper.isVueInstance()).toBeTruthy();
+    expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
