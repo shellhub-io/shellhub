@@ -294,7 +294,7 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 	return nil
 }
 
-func (s *Session) register(session sshserver.Session) error {
+func (s *Session) register(_ sshserver.Session) error {
 	_, _, errs := gorequest.New().Post("http://api:8080/internal/sessions").Send(*s).End()
 	if len(errs) > 0 {
 		return errs[0]

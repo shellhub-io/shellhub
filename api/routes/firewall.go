@@ -69,11 +69,12 @@ func UpdateFirewallRule(c apicontext.Context) error {
 		return err
 	}
 
-	if value, err := svc.UpdateRule(c.Ctx(), c.Param("id"), rule); err != nil {
+	value, err := svc.UpdateRule(c.Ctx(), c.Param("id"), rule)
+	if err != nil {
 		return err
-	} else {
-		return c.JSON(http.StatusOK, value)
 	}
+
+	return c.JSON(http.StatusOK, value)
 }
 
 func DeleteFirewallRule(c apicontext.Context) error {
