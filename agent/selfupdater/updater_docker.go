@@ -87,6 +87,21 @@ func (d *dockerUpdater) CompleteUpdate() error {
 	return nil
 }
 
+func (d *dockerUpdater) CompleteStopAgent() error {
+	container, err := d.currentContainer()
+	if err != nil {
+		return err
+	}
+
+	if err := d.stopContainer(container); err != nil {
+		return err
+	}
+
+	os.Exit(0)
+	return nil
+
+}
+
 func (d *dockerUpdater) getContainer(id string) (*dockerContainer, error) {
 	ctx := context.Background()
 

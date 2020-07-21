@@ -78,7 +78,7 @@ func DeleteDevice(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
-func DeleteDevice2(c apicontext.Context) error {
+func DeleteDeviceInternal(c apicontext.Context) error {
 	svc := deviceadm.NewService(c.Store())
 
 	tenant := ""

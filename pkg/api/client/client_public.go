@@ -3,6 +3,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -20,6 +22,7 @@ type publicAPI interface {
 	GetInfo() (*models.Info, error)
 	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
+	DeleteDevice(uid string) error
 }
 
 func (c *client) GetInfo() (*models.Info, error) {
@@ -45,9 +48,19 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 func (c *client) Endpoints() (*models.Endpoints, error) {
 	var endpoints *models.Endpoints
 	_, _, errs := c.http.Get(buildURL(c, "/endpoints")).EndStruct(&endpoints)
+
 	if len(errs) > 0 {
 		return nil, errs[0]
 	}
 
 	return endpoints, nil
+}
+
+func (c *client) DeleteDevice(uid string) error {
+	fmt.Println("delete device")
+	_, _, errs := c.http.Delete(buildURL(c, fmt.Sprintf("/internal/devices/%s", uid))).End()
+	if len(errs) > 0 {
+		return errs[0]
+	}
+	return nil
 }

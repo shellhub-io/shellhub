@@ -67,7 +67,7 @@ func main() {
 	publicAPI.GET(routes.GetDeviceListURL, apicontext.Handler(routes.GetDeviceList))
 	publicAPI.GET(routes.GetDeviceURL, apicontext.Handler(routes.GetDevice))
 	publicAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(routes.DeleteDevice))
-	internalAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(routes.DeleteDevice2))
+	internalAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(routes.DeleteDeviceInternal))
 	publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(routes.RenameDevice))
 	internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(routes.OfflineDevice))
 	internalAPI.GET(routes.LookupDeviceURL, apicontext.Handler(routes.LookupDevice))
@@ -80,7 +80,6 @@ func main() {
 	internalAPI.POST(routes.FinishSessionURL, apicontext.Handler(routes.FinishSession))
 	internalAPI.POST(routes.RecordSessionURL, apicontext.Handler(routes.RecordSession))
 	publicAPI.GET(routes.PlaySessionURL, apicontext.Handler(routes.PlaySession))
-
 	publicAPI.GET(routes.GetFirewallRuleListURL, apicontext.Handler(routes.GetFirewallRuleList))
 	publicAPI.GET(routes.GetFirewallRuleURL, apicontext.Handler(routes.GetFirewallRule))
 	publicAPI.POST(routes.CreateFirewallRuleURL, apicontext.Handler(routes.CreateFirewallRule))

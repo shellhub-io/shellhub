@@ -3,6 +3,8 @@
 package selfupdater
 
 import (
+	"os"
+
 	"github.com/Masterminds/semver"
 )
 
@@ -19,6 +21,11 @@ func (n *nativeUpdater) ApplyUpdate(_ *semver.Version) error {
 }
 
 func (n *nativeUpdater) CompleteUpdate() error {
+	return nil
+}
+
+func (n *nativeUpdater) CompleteStopAgent() error {
+	os.Exit(0)
 	return nil
 }
 

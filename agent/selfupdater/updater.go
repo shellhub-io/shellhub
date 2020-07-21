@@ -8,4 +8,5 @@ type Updater interface {
 	CurrentVersion() (*semver.Version, error)
 	ApplyUpdate(v *semver.Version) error
 	CompleteUpdate() error
+	CompleteStopAgent() error
 }

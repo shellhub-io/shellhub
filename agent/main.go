@@ -188,8 +188,12 @@ func main() {
 				PublicKey: string(keygen.EncodePublicKeyToPem(agent.pubKey)),
 			},
 		})
-		if err == nil {
+		if err == nil && auth.Status == "accepted" {
 			server.SetDeviceName(auth.Name)
+		} else {
+			if auth.Status == "removed" {
+				updater.CompleteStopAgent()
+			}
 		}
 	}
 }

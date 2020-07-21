@@ -43,6 +43,7 @@ type DeviceAuthResponse struct {
 	Token     string `json:"token"`
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+	Status    string `json:"status" bson:"status"`
 }
 
 type DeviceIdentity struct {

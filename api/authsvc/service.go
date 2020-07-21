@@ -92,11 +92,16 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		return nil, err
 	}
 
+	if dev.Status == "removed" {
+		s.store.DeleteDevice(ctx, models.UID(dev.UID))
+	}
+
 	return &models.DeviceAuthResponse{
 		UID:       hex.EncodeToString(uid[:]),
 		Token:     tokenStr,
 		Name:      dev.Name,
 		Namespace: user.Username,
+		Status:    dev.Status,
 	}, nil
 }
 
