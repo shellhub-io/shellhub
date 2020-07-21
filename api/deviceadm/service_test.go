@@ -29,10 +29,10 @@ func TestListDevices(t *testing.T) {
 			Params: &models.PropertyParams{Name: "hostname", Operator: "eq"}},
 	}
 
-	filterJson, err := json.Marshal(filters)
+	filterJSON, err := json.Marshal(filters)
 	assert.NoError(t, err)
 
-	encodedFilter := base64.StdEncoding.EncodeToString(filterJson)
+	encodedFilter := base64.StdEncoding.EncodeToString(filterJSON)
 
 	query := paginator.Query{Page: 1, PerPage: 10}
 

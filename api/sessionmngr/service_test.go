@@ -129,5 +129,4 @@ func TestGetRecord(t *testing.T) {
 	assert.Equal(t, len(recordedSession), count)
 
 	mock.AssertExpectations(t)
-
 }
