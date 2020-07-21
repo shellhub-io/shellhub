@@ -17,7 +17,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/parnurzeal/gorequest v0.2.16 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/shellhub-io/shellhub v0.3.4
+	github.com/shellhub-io/shellhub v0.3.5
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/undefinedlabs/go-mpatch v1.0.6
