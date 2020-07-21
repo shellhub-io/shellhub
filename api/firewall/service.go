@@ -68,7 +68,6 @@ func (s *service) Evaluate(ctx context.Context, req Request) (bool, error) {
 		ok, _ = regexp.MatchString(rule.Username, req.Username)
 		if err != nil {
 			return false, err
-
 		}
 		if !ok {
 			continue
