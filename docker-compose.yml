@@ -37,7 +37,7 @@ services:
       - api
       - ui
     ports:
-      - '80:80'
+      - "${SHELLHUB_HTTP_PORT}:80"
   mongo:
     image: mongo:3.4.19
 
