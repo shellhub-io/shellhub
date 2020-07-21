@@ -35,8 +35,11 @@ func (c *Context) Ctx() context.Context {
 }
 
 func TenantFromContext(ctx context.Context) *models.Tenant {
-	c := ctx.Value("ctx").(*Context)
-	return c.Tenant()
+	if c, ok := ctx.Value("ctx").(*Context); ok {
+		return c.Tenant()
+	}
+
+	return nil
 }
 
 func Handler(next func(Context) error) echo.HandlerFunc {
