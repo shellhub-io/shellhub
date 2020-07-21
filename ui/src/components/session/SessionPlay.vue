@@ -52,7 +52,7 @@
                   large
                   class="pl-0"
                   color="primary"
-                  @click="paused = !paused"
+                  @click="pauseHandler"
                 >
                   mdi-pause-circle
                 </v-icon>
@@ -61,7 +61,7 @@
                   large
                   class="pl-0"
                   color="primary"
-                  @click="paused = !paused"
+                  @click="pauseHandler"
                 >
                   mdi-play-circle
                 </v-icon>
@@ -83,6 +83,8 @@
                   :max="totalLength"
                   :label="`${nowTimerDisplay} - ${endTimerDisplay}`"
                   @change="changeSliderTime"
+                  @mousedown="previousPause=paused, paused=true"
+                  @mouseup="paused=previousPause"
                 />
               </v-card>
             </v-col>
@@ -92,19 +94,20 @@
             >
               <v-card
                 :elevation="0"
-                class="pt-4 ml-6"
+                class="pt-4 ml-5"
                 tile
               >
                 <v-select
                   v-model="defaultSpeed"
                   class="pr-8 mt-0 pt-0 mr-4"
                   :items="speedList"
-                  single-line
-                  hide-details
                   menu-props="auto"
                   prepend-icon="mdi-speedometer"
+                  @change="speedChange"
                 >
-                  <v-card />
+                  <template v-slot:selection="{ item }">
+                    <span> {{ item }} </span>
+                  </template>
                 </v-select>
               </v-card>
             </v-col>
@@ -145,6 +148,7 @@ export default {
       endTimerDisplay: 0,
       getTimerNow: 0,
       paused: false,
+      previousPause: false,
       sliderChange: false,
       speedList: [0.5, 1, 1.5, 2, 4],
       logs: [],
@@ -251,30 +255,30 @@ export default {
     },
 
     createFrames() { // create cumulative frames for the exibition in slider
-      let message = '';
       let time = 0;
+      let message = '';
       const arrFrames = [{
-        incMessage: message,
+        incMessage: message += this.logs[0].message,
         incTime: time,
       }];
 
-      for (let i = 0; i < this.logs.length - 1; i += 1) {
-        const future = new Date(this.logs[i + 1].time);
-        const now = new Date(this.logs[i].time);
-        const interval = future - now;
-        message += this.logs[i].message;
+      for (let i = 1; i < this.logs.length; i += 1) {
+        const future = new Date(this.logs[i].time);
+        const now = new Date(this.logs[i - 1].time);
+        const interval = moment.duration(future - now, 'milliseconds').asMilliseconds();
         time += interval;
+        message += this.logs[i].message;
         arrFrames.push({
           incMessage: message,
-          incTime: moment.duration(time, 'milliseconds').asMilliseconds(),
+          incTime: time,
         });
       }
-
       return arrFrames;
     },
 
     speedChange(speed) {
       this.defaultSpeed = speed;
+      this.xtermSyncFrame(this.currentTime);
     },
 
     timer() { // Increments the slider
@@ -287,6 +291,11 @@ export default {
 
     changeSliderTime() { // Moving the Slider
       this.sliderChange = true;
+      this.xtermSyncFrame(this.currentTime);
+    },
+
+    pauseHandler() {
+      this.paused = !this.paused;
       this.xtermSyncFrame(this.currentTime);
     },
 
@@ -307,31 +316,34 @@ export default {
     xtermSyncFrame(givenTime) {
       this.xterm.write('\u001Bc'); // clean screen
       const frame = this.searchClosestFrame(givenTime, this.frames);
-      this.xterm.write(frame.message); // write frame on xterm
       this.clear();
-      this.timer(); // restart printing where it had stopped
-      this.print(frame.index, this.logs);
+      this.xterm.write(frame.message); // write frame on xterm
+      this.iterativeTimer = setTimeout(this.timer.bind(null),
+        1);
+      this.iterativePrinting = setTimeout(this.print.bind(null, frame.index + 1, this.logs),
+        frame.waitForPrint * (1 / this.defaultSpeed));
     },
 
     searchClosestFrame(givenTime, frames) { // applies a binary search to find nearest frame
       let between;
       let lowerBound = 0;
       let higherBound = frames.length - 1;
-      let closestPosition;
+      let nextTimeSetPrint;
 
       for (;higherBound - lowerBound > 1;) { // progressive increment search
         between = Math.floor((lowerBound + higherBound) / 2);
-        if (frames[between].incTime < givenTime) lowerBound = between;
-        else { higherBound = between; } //
+        if (frames[between].incTime < givenTime) {
+          lowerBound = between;
+          nextTimeSetPrint = givenTime - frames[between].incTime;
+        } else {
+          higherBound = between;
+          nextTimeSetPrint = frames[between].incTime - givenTime;
+        }
       }
-
-      if (givenTime - frames[lowerBound] <= frames[higherBound] - givenTime) {
-        closestPosition = lowerBound;
-      } else { closestPosition = higherBound; }
-
       return {
-        message: frames[closestPosition].incMessage,
-        index: closestPosition,
+        message: frames[lowerBound].incMessage,
+        index: lowerBound,
+        waitForPrint: nextTimeSetPrint,
       };
     },
 
@@ -345,8 +357,6 @@ export default {
         const interval = future - nowTimerDisplay;
         this.iterativePrinting = setTimeout(this.print.bind(null, i + 1, logsArray),
           interval * (1 / this.defaultSpeed));
-      } else { // try to execute back every 100 ms
-        this.iterativePrinting = setTimeout(this.print.bind(null, i, logsArray), 100);
       }
     },
   },
