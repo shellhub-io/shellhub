@@ -74,14 +74,17 @@ var migrations = []migrate.Migration{
 				Keys:    bson.D{{"status", 1}},
 				Options: options.Index().SetName("status").SetUnique(false),
 			}
-			_, err := db.Collection("devices").Indexes().CreateOne(context.TODO(), mod)
-			_, err = db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"status": "allow"}})
-
+			if _, err := db.Collection("devices").Indexes().CreateOne(context.TODO(), mod); err != nil {
+				return err
+			}
+			_, err := db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"status": "accepted"}})
 			return err
 		},
 		Down: func(db *mongo.Database) error {
+			if _, err := db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"status": ""}}); err != nil {
+				return err
+			}
 			_, err := db.Collection("status").Indexes().DropOne(context.TODO(), "status")
-
 			return err
 		},
 	},
@@ -92,39 +95,49 @@ var migrations = []migrate.Migration{
 				Keys:    bson.D{{"uid", 1}},
 				Options: options.Index().SetName("uid").SetUnique(false),
 			}
-			_, err := db.Collection("recorded_sessions").Indexes().CreateOne(context.TODO(), mod)
+			if _, err := db.Collection("recorded_sessions").Indexes().CreateOne(context.TODO(), mod); err != nil {
+				return err
+			}
 
 			mod = mongo.IndexModel{
 				Keys:    bson.D{{"uid", 1}},
 				Options: options.Index().SetName("message").SetUnique(false),
 			}
-			_, err = db.Collection("recorded_sessions").Indexes().CreateOne(context.TODO(), mod)
-
+			_, err := db.Collection("recorded_sessions").Indexes().CreateOne(context.TODO(), mod)
 			return err
 		},
 		Down: func(db *mongo.Database) error {
-			_, err := db.Collection("recorded_sessions").Indexes().DropOne(context.TODO(), "uid")
-			_, err = db.Collection("recorded_sessions").Indexes().DropOne(context.TODO(), "message")
-
+			if _, err := db.Collection("recorded_sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"uid": ""}}); err != nil {
+				return err
+			}
+			if _, err := db.Collection("recorded_sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"message": ""}}); err != nil {
+				return err
+			}
+			if _, err := db.Collection("recorded_sessions").Indexes().DropOne(context.TODO(), "uid"); err != nil {
+				return err
+			}
+			_, err := db.Collection("recorded_sessions").Indexes().DropOne(context.TODO(), "message")
 			return err
 		},
 	},
 	{
-		Version: 7,
+		Version: 8,
 		Up: func(db *mongo.Database) error {
 			mod := mongo.IndexModel{
 				Keys:    bson.D{{"recorded", 1}},
 				Options: options.Index().SetName("recorded").SetUnique(false),
 			}
-			_, err := db.Collection("sessions").Indexes().CreateOne(context.TODO(), mod)
-			_, err = db.Collection("sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"recorded": false}})
-
+			if _, err := db.Collection("sessions").Indexes().CreateOne(context.TODO(), mod); err != nil {
+				return err
+			}
+			_, err := db.Collection("sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"recorded": false}})
 			return err
 		},
 		Down: func(db *mongo.Database) error {
-			_, err := db.Collection("sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"recorded": ""}})
-			_, err = db.Collection("sessions").Indexes().DropOne(context.TODO(), "recorded")
-
+			if _, err := db.Collection("sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"recorded": ""}}); err != nil {
+				return err
+			}
+			_, err := db.Collection("sessions").Indexes().DropOne(context.TODO(), "recorded")
 			return err
 		},
 	},
