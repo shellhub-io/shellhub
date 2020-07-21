@@ -100,7 +100,6 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return jwt(next)(c)
 	}
-
 }
 
 func DecodeMap(input, output interface{}) error {
