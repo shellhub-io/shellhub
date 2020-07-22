@@ -36,7 +36,14 @@ func (c *Context) Ctx() context.Context {
 
 func TenantFromContext(ctx context.Context) *models.Tenant {
 	if c, ok := ctx.Value("ctx").(*Context); ok {
-		return c.Tenant()
+		tenant := c.Tenant()
+		if tenant == nil {
+			if value, ok := ctx.Value("tenant").(string); ok {
+				tenant = &models.Tenant{value}
+			}
+		}
+
+		return tenant
 	}
 
 	return nil
