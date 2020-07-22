@@ -1,3 +1,5 @@
+Session Close:
+
 <template>
   <fragment>
     <v-tooltip bottom>
@@ -54,8 +56,12 @@ export default {
   name: 'SessionClose',
 
   props: {
-    session: {
-      type: Object,
+    uid: {
+      type: String,
+      required: true,
+    },
+    device: {
+      type: String,
       required: true,
     },
   },
@@ -63,6 +69,14 @@ export default {
   data() {
     return {
       dialog: false,
+      session: {},
+    };
+  },
+
+  created() {
+    this.session = {
+      uid: this.uid,
+      device_uid: this.device,
     };
   },
 
