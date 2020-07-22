@@ -13,6 +13,26 @@ describe('Devices', () => {
     const actual = store.getters['devices/getNumberDevices'];
     expect(actual).toEqual(0);
   });
+  it('returns number page default', () => {
+    const actual = store.getters['devices/getPage'];
+    expect(actual).toEqual(0);
+  });
+  it('returns number perPage default', () => {
+    const actual = store.getters['devices/getPerPage'];
+    expect(actual).toEqual(0);
+  });
+  it('returns filter default', () => {
+    const actual = store.getters['devices/getFilter'];
+    expect(actual).toEqual(null);
+  });
+  it('returns status default', () => {
+    const actual = store.getters['devices/getStatus'];
+    expect(actual).toEqual('');
+  });
+  it('returns status default', () => {
+    const actual = store.getters['devices/getFirstPending'];
+    expect(actual).toEqual([]);
+  });
   it('complete test', () => {
     const devices = [
       {
@@ -69,11 +89,23 @@ describe('Devices', () => {
     };
     const numberDevices = 2;
 
+    const data = {
+      page: 1,
+      perPage: 10,
+      filter: null,
+      status: 'accepted',
+    };
+
     store.commit('devices/setDevices', { data: devices, headers: { 'x-total-count': numberDevices } });
     store.commit('devices/setDevice', device);
+    store.commit('devices/setPagePerpageFilter', data);
 
     expect(store.getters['devices/list']).toEqual(devices);
     expect(store.getters['devices/get']).toEqual(device);
     expect(store.getters['devices/getNumberDevices']).toEqual(numberDevices);
+    expect(store.getters['devices/getPage']).toEqual(1);
+    expect(store.getters['devices/getPerPage']).toEqual(10);
+    expect(store.getters['devices/getFilter']).toEqual(null);
+    expect(store.getters['devices/getStatus']).toEqual('accepted');
   });
 });
