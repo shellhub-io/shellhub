@@ -85,5 +85,9 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online
 }
 
 func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status string) error {
+	validate := validator.New()
+	if err := validate.Var(status, "oneof=accepted rejected pending removed"); err != nil {
+		return ErrUnauthorized
+	}
 	return s.store.UpdatePendingStatus(ctx, uid, status)
 }
