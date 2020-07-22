@@ -162,7 +162,7 @@ func UpdatePendingStatus(c apicontext.Context) error {
 		"accept":  "accepted",
 		"reject":  "rejected",
 		"pending": "pending",
-		"unused":  "unused",
+		"remove":  "removed",
 	}
 	err := svc.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")])
 	if err != nil {
