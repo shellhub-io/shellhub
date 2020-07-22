@@ -31,11 +31,6 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
 
-    - name: Get Go dependencies [Go]
-      if: matrix.project != 'ui'
-      working-directory: ${{ matrix.project }}
-      run: go mod download
-
     - name: Cache Go files [Go]
       uses: actions/cache@v1
       if: matrix.project != 'ui'
@@ -44,6 +39,11 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
+
+    - name: Get Go dependencies [Go]
+      if: matrix.project != 'ui'
+      working-directory: ${{ matrix.project }}
+      run: go mod download
 
     - name: Run Revive Action [Go]
       if: matrix.project != 'ui'
