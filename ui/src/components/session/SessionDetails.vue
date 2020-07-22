@@ -44,13 +44,12 @@
           :recorded="session.authenticated && session.recorded"
         />
 
-        <v-icon
+        <SessionClose
           v-if="session.active"
-          class="icons ml-1"
-          @click="closeSession()"
-        >
-          desktop_access_disabled
-        </v-icon>
+          :uid="session.uid"
+          :device="session.device_uid"
+          @update="refresh"
+        />
       </v-toolbar>
 
       <v-divider />
@@ -166,6 +165,7 @@
 <script>
 
 import SessionPlay from '@/components/session/SessionPlay';
+import SessionClose from '@/components/session/SessionClose';
 import moment from 'moment';
 
 export default {
@@ -173,6 +173,7 @@ export default {
 
   components: {
     SessionPlay,
+    SessionClose,
   },
 
   data() {
@@ -203,16 +204,15 @@ export default {
   },
 
   methods: {
-    async closeSession() {
-      this.$store.dispatch('sessions/close');
-      this.closeSessionSnack = true;
-      await this.$store.dispatch('sessions/get', this.uid);
-      this.session = this.$store.getters['sessions/get'];
-    },
-
     redirect() {
       this.dialog = false;
       this.$router.push('/sessions');
+    },
+
+    async refresh() {
+      this.closeSessionSnack = true;
+      await this.$store.dispatch('sessions/get', this.uid);
+      this.session = this.$store.getters['sessions/get'];
     },
 
     convertDate(date) {

@@ -127,7 +127,8 @@
             </v-tooltip>
             <SessionClose
               v-if="item.active"
-              :session="item"
+              :uid="item.uid"
+              :device="item.device_uid"
               @update="refresh"
             />
             <SessionPlay
