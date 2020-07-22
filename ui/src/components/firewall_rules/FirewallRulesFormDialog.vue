@@ -226,7 +226,7 @@ export default {
     setLocalVariable() {
       if (this.createRule) {
         this.ruleFirewallLocal = {
-          active: false,
+          active: true,
           priority: '',
           action: '',
           source_ip: '',
