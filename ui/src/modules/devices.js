@@ -20,7 +20,6 @@ export default {
     list: (state) => state.devices,
     get: (state) => state.device,
     getNumberDevices: (state) => state.numberDevices,
-    getStatusCode: (state) => state.statusCode,
     getPage: (state) => state.page,
     getPerPage: (state) => state.perPage,
     getFilter: (state) => state.filter,
