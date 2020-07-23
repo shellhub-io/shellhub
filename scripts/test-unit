@@ -1,0 +1,59 @@
+#!/bin/bash
+
+usage() {
+    cat <<EOF
+Usage: $0 PROJECT [ARG...]
+
+Run unit tests of a project under development machine.
+
+Projects:
+ * api
+ * ssh
+ * agent
+ * ui
+
+Use comma separated for multiple projects, e.g. 'api,ui'
+EOF
+    exit 1
+}
+
+go_test() {
+    local container
+    container=$1
+
+    echo "Running unit tests on $container"
+
+    docker-compose \
+        -f docker-compose.yml -f docker-compose.dev.yml \
+        exec $container go test -v ${@:2} ./...
+}
+
+npm_test() {
+    local container
+    container=$1
+
+    echo "Running unit tests on $container"
+
+    docker-compose \
+        -f docker-compose.yml -f docker-compose.dev.yml \
+        exec $container npm run test:unit ${@:2}
+}
+
+[ -z "$1" ] && usage
+
+projects=($(echo $1 | tr "," "\n"))
+
+for project in "${projects[@]}"; do
+    case "$project" in
+	"api"|"ssh"|"agent")
+            go_test $project ${@:2}
+            ;;
+	"ui")
+            npm_test $project ${@:2}
+            ;;
+	*)
+	    echo "Unknown project: $project"
+            exit 1
+            ;;
+    esac
+done
