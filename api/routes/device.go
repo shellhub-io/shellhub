@@ -142,13 +142,18 @@ func LookupDevice(c apicontext.Context) error {
 func UpdatePendingStatus(c apicontext.Context) error {
 	svc := deviceadm.NewService(c.Store())
 
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
+	}
+
 	status := map[string]string{
 		"accept":  "accepted",
 		"reject":  "rejected",
 		"pending": "pending",
 		"unused":  "unused",
 	}
-	err := svc.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")])
+	err := svc.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenant)
 	if err != nil {
 		return err
 	}
