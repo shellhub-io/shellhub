@@ -26,7 +26,7 @@ type Store interface {
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetUserByTenant(ctx context.Context, tenant string) (*models.User, error)
-	GetDeviceByMac(ctx context.Context, mac, tenant string) (*models.Device, error)
+	GetDeviceByMac(ctx context.Context, mac, tenant, status string) (*models.Device, error)
 	GetDeviceByName(ctx context.Context, name, tenant string) (*models.Device, error)
 	GetDeviceByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error)
 	CreateFirewallRule(ctx context.Context, rule *models.FirewallRule) error
@@ -36,6 +36,7 @@ type Store interface {
 	DeleteFirewallRule(ctx context.Context, id string) error
 	GetStats(ctx context.Context) (*models.Stats, error)
 	GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
+	UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
 	UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) error
 	ListUsers(ctx context.Context, pagination paginator.Query) ([]models.User, int, error)
 }
