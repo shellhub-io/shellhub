@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/shellhub-io/shellhub/pkg/dockerutils"
 )
 
 type dockerContainer struct {
@@ -99,7 +99,7 @@ func (d *dockerUpdater) getContainer(id string) (*dockerContainer, error) {
 }
 
 func (d *dockerUpdater) currentContainer() (*dockerContainer, error) {
-	id, err := currentContainerID()
+	id, err := dockerutils.CurrentContainerID()
 	if err != nil {
 		return nil, err
 	}
@@ -179,29 +179,6 @@ func NewUpdater(_ string) (Updater, error) {
 	}
 
 	return &dockerUpdater{api: api}, nil
-}
-
-func currentContainerID() (string, error) {
-	const idLength = 64
-
-	f, err := os.Open("/proc/self/cgroup")
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	content, err := ioutil.ReadAll(f)
-	if err != nil {
-		return "", err
-	}
-
-	re := regexp.MustCompilePOSIX(`[0-9]+:[a-z_,=]+.*docker[/-]([0-9a-f]{64})`)
-	line := re.FindAllSubmatch(content, -1)
-	if len(line) <= 0 || len(line[0]) != 2 {
-		return "", nil
-	}
-
-	return string(line[0][1]), nil
 }
 
 func replaceOrAppendEnvValues(defaults, overrides []string) []string {
