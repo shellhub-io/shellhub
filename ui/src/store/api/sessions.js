@@ -1,4 +1,4 @@
-import http from '@/helpers/http';
+import http from '@/store/helpers/http';
 
 export const fetchSessions = async (perPage, page) => http().get(`/sessions?per_page=${perPage}&page=${page}`);
 

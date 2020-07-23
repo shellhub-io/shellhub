@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import * as apiDevice from '@/api/devices';
+import * as apiDevice from '@/store/api/devices';
 
 export default {
   namespaced: true,

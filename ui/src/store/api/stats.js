@@ -1,4 +1,4 @@
-import http from '@/helpers/http';
+import http from '@/store/helpers/http';
 
 const getStats = async () => http().get('/stats');
 

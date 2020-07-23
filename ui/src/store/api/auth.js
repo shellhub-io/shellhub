@@ -1,4 +1,4 @@
-import http from '@/helpers/http';
+import http from '@/store/helpers/http';
 
 const login = async (user) => http().post('/login', user);
 

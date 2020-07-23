@@ -1,4 +1,4 @@
-import http from '@/helpers/http';
+import http from '@/store/helpers/http';
 
 export const postFirewall = async (data) => http().post(`/firewall/rules`, {
   priority: parseInt(data.priority, 10),

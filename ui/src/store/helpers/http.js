@@ -1,6 +1,6 @@
 import Axios from 'axios';
-import store from '../store';
-import router from '../router';
+import store from '..';
+import router from '../../router';
 
 export default () => {
   const axios = Axios.create({
