@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import * as apiSession from '@/api/sessions';
+import * as apiSession from '@/store/api/sessions';
 
 export default {
   namespaced: true,

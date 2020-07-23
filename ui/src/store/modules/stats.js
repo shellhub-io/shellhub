@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import getStats from '@/api/stats';
+import getStats from '@/store/api/stats';
 
 export default {
   namespaced: true,

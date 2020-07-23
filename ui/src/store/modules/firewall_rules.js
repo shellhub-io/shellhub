@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import {
   postFirewall, fetchFirewalls, getFirewall, putFirewall, removeFirewall,
-} from '@/api/firewall_rules';
+} from '@/store/api/firewall_rules';
 
 export default {
   namespaced: true,

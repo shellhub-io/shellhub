@@ -1,4 +1,4 @@
-import http from '@/helpers/http';
+import http from '@/store/helpers/http';
 
 export const fetchDevices = async (
   perPage,

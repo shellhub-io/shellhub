@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import login from '@/api/auth';
+import login from '@/store/api/auth';
 
 export default {
   namespaced: true,
