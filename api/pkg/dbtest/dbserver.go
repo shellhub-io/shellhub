@@ -35,6 +35,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/dockerutils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -67,6 +68,7 @@ type DBServer struct {
 	output  bytes.Buffer
 	server  *exec.Cmd
 	host    string
+	network string
 	tomb    tomb.Tomb
 }
 
@@ -84,10 +86,22 @@ func (dbs *DBServer) start() {
 	}
 	addr := l.Addr().(*net.TCPAddr)
 	l.Close()
+
+	dbs.network = "host" // Use same network as docker host
 	dbs.host = addr.String()
 
+	containerID, err := dockerutils.CurrentContainerID()
+	if err != nil {
+		panic("failed to get current container id: " + err.Error())
+	}
+
+	if containerID != "" {
+		// If tests are running in a docker container use the same container network
+		dbs.network = fmt.Sprintf("container:%s", containerID)
+	}
+
 	args := []string{
-		"run", "--rm", "--net=host", "mongo:4.2.8",
+		"run", "--rm", fmt.Sprintf("--net=%s", dbs.network), "mongo:4.2.8",
 		"--bind_ip", "127.0.0.1",
 		"--port", strconv.Itoa(addr.Port),
 		"--nojournal",
