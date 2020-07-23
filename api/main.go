@@ -67,6 +67,7 @@ func main() {
 	publicAPI.GET(routes.GetDeviceListURL, apicontext.Handler(routes.GetDeviceList))
 	publicAPI.GET(routes.GetDeviceURL, apicontext.Handler(routes.GetDevice))
 	publicAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(routes.DeleteDevice))
+	internalAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(routes.DeleteDevice2))
 	publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(routes.RenameDevice))
 	internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(routes.OfflineDevice))
 	internalAPI.GET(routes.LookupDeviceURL, apicontext.Handler(routes.LookupDevice))
