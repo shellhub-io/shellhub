@@ -35,7 +35,15 @@
           <v-tab
             to="/devices/pending"
           >
-            Pending
+            <v-badge
+              :content="getNumberPendingDevices"
+              :value="getNumberPendingDevices"
+              overlap
+              inline
+              color="success"
+            >
+              Pending
+            </v-badge>
           </v-tab>
           <v-tab
             to="/devices/rejected"
@@ -74,6 +82,16 @@ export default {
       copySnack: false,
       search: '',
     };
+  },
+
+  computed: {
+    getNumberPendingDevices() {
+      return this.$store.getters['stats/stats'].pending_devices;
+    },
+  },
+
+  async created() {
+    await this.$store.dispatch('stats/get');
   },
 
   methods: {

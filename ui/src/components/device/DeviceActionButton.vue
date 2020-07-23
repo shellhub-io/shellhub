@@ -110,11 +110,13 @@ export default {
 
     async acceptDevice() {
       await this.$store.dispatch('devices/accept', this.uid);
+      this.refreshStats();
       this.refreshDevices();
     },
 
     async rejectDevice() {
       await this.$store.dispatch('devices/reject', this.uid);
+      this.refreshStats();
       this.refreshDevices();
     },
 
@@ -131,6 +133,10 @@ export default {
       }
 
       this.dialog = !this.dialog;
+    },
+
+    async refreshStats() {
+      await this.$store.dispatch('stats/get');
     },
   },
 };
