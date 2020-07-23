@@ -63,8 +63,14 @@ export default {
 
   actions: {
     fetch: async (context, data) => {
-      const res = await apiDevice.fetchDevices(data.perPage, data.page, data.filter, data.status,
-        data.sortStatusField, data.sortStatusString);
+      const res = await apiDevice.fetchDevices(
+        data.perPage,
+        data.page,
+        data.filter,
+        data.status,
+        data.sortStatusField,
+        data.sortStatusString,
+      );
       context.commit('setDevices', res);
       context.commit('setPagePerpageFilter', data);
     },
