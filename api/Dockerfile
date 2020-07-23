@@ -30,7 +30,7 @@ RUN go build
 # development stage
 FROM base AS development
 
-RUN apk add --update openssl
+RUN apk add --update openssl build-base docker-cli
 RUN go get github.com/markbates/refresh && go get github.com/mgechev/revive
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
