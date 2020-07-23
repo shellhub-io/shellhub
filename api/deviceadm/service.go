@@ -22,7 +22,7 @@ type Service interface {
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
-	UpdatePendingStatus(ctx context.Context, uid models.UID, status string) error
+	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant string) error
 }
 
 type service struct {
@@ -86,6 +86,10 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online
 	return s.store.UpdateDeviceStatus(ctx, uid, online)
 }
 
-func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status string) error {
-	return s.store.UpdatePendingStatus(ctx, uid, status)
+func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant string) error {
+	device, _ := s.store.GetDeviceByUID(ctx, uid, tenant)
+	if device != nil {
+		return s.store.UpdatePendingStatus(ctx, uid, status)
+	}
+	return ErrUnauthorized
 }
