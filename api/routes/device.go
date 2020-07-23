@@ -70,6 +70,13 @@ func DeleteDevice(c apicontext.Context) error {
 		tenant = v.ID
 	}
 
+	err := svc.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")])
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, nil)
+
 	if err := svc.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenant); err != nil {
 		if err == deviceadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
@@ -156,6 +163,7 @@ func LookupDevice(c apicontext.Context) error {
 }
 
 func UpdatePendingStatus(c apicontext.Context) error {
+	//COLOCA O TENANT AQUI!!!!
 	svc := deviceadm.NewService(c.Store())
 
 	status := map[string]string{
