@@ -1,8 +1,8 @@
 #!/bin/sh
 
-type docker &> /dev/null || { echo "Docker is not instaled"; exit 1; }
+type docker > /dev/null 2>&1 || { echo "Docker is not instaled"; exit 1; }
 
-if !docker info &> /dev/null; then
+if ! docker info > /dev/null 2>&1; then
     cat <<EOF
 Docker is not running or your current user is not in docker group.
 You need to manually add your current user to docker group or run this installer using sudo.
