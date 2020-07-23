@@ -19,6 +19,7 @@ services:
     volumes:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
+      - /var/run/docker.sock:/var/run/docker.sock
   ui:
     image: ui
     build:
