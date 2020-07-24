@@ -77,8 +77,8 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 		}
 
 		lookup = map[string]string{
-			"domain":     parts[0],
-			"name":       parts[1],
+			"domain":     strings.ToLower(parts[0]),
+			"name":       strings.ToLower(parts[1]),
 			"username":   s.User,
 			"ip_address": s.IPAddress,
 		}
