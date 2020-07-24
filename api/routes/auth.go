@@ -33,8 +33,9 @@ func AuthRequest(c apicontext.Context) error {
 			return err
 		}
 
-		// Extract tenant from JWT
+		// Extract tenant and username from JWT
 		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
+		c.Response().Header().Set("X-Username", claims.Username)
 
 		return nil
 	case "device":
@@ -85,6 +86,22 @@ func AuthUser(c apicontext.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, res)
+}
+
+func AuthUserInfo(c apicontext.Context) error {
+	username := c.Request().Header.Get("X-Username")
+
+	user, err := c.Store().GetUserByUsername(c.Ctx(), username)
+	if err != nil {
+		return echo.ErrUnauthorized
+	}
+
+	return c.JSON(http.StatusOK, &models.UserAuthResponse{
+		Token:  c.Request().Header.Get(echo.HeaderAuthorization),
+		Name:   user.Name,
+		User:   user.Username,
+		Tenant: user.TenantID,
+	})
 }
 
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {

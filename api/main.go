@@ -62,6 +62,7 @@ func main() {
 	publicAPI.POST(routes.AuthDeviceURLV2, apicontext.Handler(routes.AuthDevice))
 	publicAPI.POST(routes.AuthUserURL, apicontext.Handler(routes.AuthUser))
 	publicAPI.POST(routes.AuthUserURLV2, apicontext.Handler(routes.AuthUser))
+	publicAPI.GET(routes.AuthUserURLV2, apicontext.Handler(routes.AuthUserInfo))
 
 	publicAPI.GET(routes.GetDeviceListURL, apicontext.Handler(routes.GetDeviceList))
 	publicAPI.GET(routes.GetDeviceURL, apicontext.Handler(routes.GetDevice))
