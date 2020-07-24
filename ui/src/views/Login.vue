@@ -79,6 +79,15 @@ export default {
     };
   },
 
+  created() {
+    if (this.$route.query.token) {
+      this.$store.dispatch('auth/logout');
+      this.$store.dispatch('auth/loginToken', this.$route.query.token).then(() => {
+        this.$router.push('/');
+      });
+    }
+  },
+
   methods: {
     login() {
       this.$store

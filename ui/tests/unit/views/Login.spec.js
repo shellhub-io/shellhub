@@ -22,6 +22,11 @@ describe('Login', () => {
   const wrapper = shallowMount(Login, {
     store,
     localVue,
+    mocks: {
+      $route: {
+        query: {},
+      },
+    },
   });
 
   it('Is a Vue instance', () => {

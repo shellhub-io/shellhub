@@ -84,6 +84,9 @@ router.beforeEach((to, from, next) => {
     return next(`/login?redirect=${to.path}`);
   }
   if (store.getters['auth/isLoggedIn']) {
+    if (to.path === '/login' && to.query.token) {
+      return next();
+    }
     return next('/');
   }
   return next();
