@@ -1,7 +1,7 @@
 <template>
   <fragment>
     <p class="ml-4 pt-4">
-      Hello, <strong> {{ capitalizeFirstLetter() }} </strong> !
+      Hello, <strong> {{ name }} </strong> !
     </p>
     <p class="mt-4 ml-4 mr-4">
       ShellHub is a modern SSH server for remotely accessing Linux devices via CLI or web-based user
@@ -17,10 +17,9 @@
 export default {
   name: 'WelcomeFirstScreen',
 
-  methods: {
-    capitalizeFirstLetter() {
-      const user = this.$store.getters['auth/currentUser'].toLowerCase();
-      return user.charAt(0).toUpperCase() + user.slice(1);
+  computed: {
+    name() {
+      return this.$store.getters['auth/currentName'] || this.$store.getters['auth/currentUser'];
     },
   },
 };

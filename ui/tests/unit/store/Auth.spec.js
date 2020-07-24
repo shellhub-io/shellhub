@@ -13,6 +13,10 @@ describe('Auth', () => {
     const actual = store.getters['auth/user'];
     expect(actual).toEqual();
   });
+  it('returns name', () => {
+    const actual = store.getters['auth/name'];
+    expect(actual).toEqual();
+  });
   it('returns tenant', () => {
     const actual = store.getters['auth/tenant'];
     expect(actual).toEqual('');
