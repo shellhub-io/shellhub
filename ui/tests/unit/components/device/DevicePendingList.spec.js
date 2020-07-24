@@ -25,6 +25,8 @@ describe('DevicePendingList', () => {
       },
       'devices/rename': () => {
       },
+      'stats/get': () => {
+      },
     },
   });
 
