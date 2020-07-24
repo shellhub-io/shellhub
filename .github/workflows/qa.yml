@@ -21,6 +21,9 @@ jobs:
 
     steps:
 
+    - name: Check out code
+      uses: actions/checkout@v2
+
     - name: Set up Go 1.x [Go]
       if: matrix.project != 'ui'
       uses: actions/setup-go@v2
@@ -28,17 +31,12 @@ jobs:
         go-version: 1.14
       id: go
 
-    - name: Check out code
-      uses: actions/checkout@v2
-
     - name: Cache Go files [Go]
       uses: actions/cache@v1
       if: matrix.project != 'ui'
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
 
     - name: Get Go dependencies [Go]
       if: matrix.project != 'ui'
@@ -65,17 +63,12 @@ jobs:
       if: matrix.project == 'agent'
       working-directory: ${{ matrix.project }}
       run: go build -tags docker -v ./...
-    
+
     - name: Set up Node.JS 12.16 [UI]
       if: matrix.project == 'ui'
       uses: actions/setup-node@v1
       with:
           node-version: "12.16"
-
-    - name: Install Node Dependencies [UI]
-      if: matrix.project == 'ui'
-      working-directory: ${{ matrix.project }}
-      run: npm install
 
     - name: Cache node modules [UI]
       if: matrix.project == 'ui'
@@ -83,10 +76,11 @@ jobs:
       with:
         path: ui/node_modules
         key: ${{ runner.OS }}-ui-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.OS }}-ui-${{ env.cache-name }}-
-          ${{ runner.OS }}-ui-
-          ${{ runner.OS }}-
+
+    - name: Install Node Dependencies [UI]
+      if: matrix.project == 'ui'
+      working-directory: ${{ matrix.project }}
+      run: npm install
 
     - name: Unit test [UI]
       if: matrix.project == 'ui'
