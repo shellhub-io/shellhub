@@ -109,9 +109,9 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 	password := sha256.Sum256([]byte(req.Password))
 	if user.Password == hex.EncodeToString(password[:]) {
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
-			Name:   user.Username,
-			Admin:  true,
-			Tenant: user.TenantID,
+			Username: user.Username,
+			Admin:    true,
+			Tenant:   user.TenantID,
 			AuthClaims: models.AuthClaims{
 				Claims: "user",
 			},
@@ -127,6 +127,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 
 		return &models.UserAuthResponse{
 			Token:  tokenStr,
+			Name:   user.Name,
 			User:   user.Username,
 			Tenant: user.TenantID,
 		}, nil
