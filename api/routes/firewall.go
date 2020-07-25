@@ -34,11 +34,18 @@ func GetFirewallRuleList(c apicontext.Context) error {
 func GetFirewallRule(c apicontext.Context) error {
 	svc := firewall.NewService(c.Store())
 
-	rule, err := svc.GetRule(c.Ctx(), c.Param("id"))
-	if err != nil {
-		return err
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
 	}
 
+	rule, err := svc.GetRule(c.Ctx(), c.Param("id"), tenant)
+	if err != nil {
+		if err == firewall.ErrUnauthorized {
+			return c.NoContent(http.StatusForbidden)
+		}
+		return err
+	}
 	return c.JSON(http.StatusOK, rule)
 }
 
@@ -69,7 +76,11 @@ func UpdateFirewallRule(c apicontext.Context) error {
 		return err
 	}
 
-	value, err := svc.UpdateRule(c.Ctx(), c.Param("id"), rule)
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
+	}
+	value, err := svc.UpdateRule(c.Ctx(), c.Param("id"), tenant, rule)
 	if err != nil {
 		return err
 	}
@@ -80,7 +91,15 @@ func UpdateFirewallRule(c apicontext.Context) error {
 func DeleteFirewallRule(c apicontext.Context) error {
 	svc := firewall.NewService(c.Store())
 
-	if err := svc.DeleteRule(c.Ctx(), c.Param("id")); err != nil {
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
+	}
+
+	if err := svc.DeleteRule(c.Ctx(), c.Param("id"), tenant); err != nil {
+		if err == firewall.ErrUnauthorized {
+			return c.NoContent(http.StatusForbidden)
+		}
 		return err
 	}
 

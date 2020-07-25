@@ -2,6 +2,7 @@ package firewall
 
 import (
 	"context"
+	"errors"
 	"regexp"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -9,13 +10,15 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+var ErrUnauthorized = errors.New("unauthorized")
+
 type Service interface {
 	Evaluate(ctx context.Context, req Request) (bool, error)
 	CreateRule(ctx context.Context, rule *models.FirewallRule) error
 	ListRules(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error)
-	GetRule(ctx context.Context, id string) (*models.FirewallRule, error)
-	UpdateRule(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error)
-	DeleteRule(ctx context.Context, id string) error
+	GetRule(ctx context.Context, id, tenant string) (*models.FirewallRule, error)
+	UpdateRule(ctx context.Context, id, tenant string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error)
+	DeleteRule(ctx context.Context, id, tenant string) error
 }
 
 type Request struct {
@@ -95,14 +98,24 @@ func (s *service) ListRules(ctx context.Context, pagination paginator.Query) ([]
 	return s.store.ListFirewallRules(ctx, pagination)
 }
 
-func (s *service) GetRule(ctx context.Context, id string) (*models.FirewallRule, error) {
-	return s.store.GetFirewallRule(ctx, id)
+func (s *service) GetRule(ctx context.Context, id, tenant string) (*models.FirewallRule, error) {
+
+	return s.store.GetFirewallRule(ctx, id, tenant)
 }
 
-func (s *service) UpdateRule(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error) {
-	return s.store.UpdateFirewallRule(ctx, id, rule)
+func (s *service) UpdateRule(ctx context.Context, id, tenant string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error) {
+	r, _ := s.store.GetFirewallRule(ctx, id, tenant)
+	if r != nil {
+		return s.store.UpdateFirewallRule(ctx, id, tenant, rule)
+	}
+	return nil, ErrUnauthorized
 }
 
-func (s *service) DeleteRule(ctx context.Context, id string) error {
-	return s.store.DeleteFirewallRule(ctx, id)
+func (s *service) DeleteRule(ctx context.Context, id, tenant string) error {
+	r, _ := s.store.GetFirewallRule(ctx, id, tenant)
+	if r != nil {
+		return s.store.DeleteFirewallRule(ctx, id)
+	}
+	return ErrUnauthorized
+
 }

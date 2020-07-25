@@ -30,8 +30,8 @@ type Store interface {
 	GetDeviceByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error)
 	CreateFirewallRule(ctx context.Context, rule *models.FirewallRule) error
 	ListFirewallRules(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error)
-	GetFirewallRule(ctx context.Context, id string) (*models.FirewallRule, error)
-	UpdateFirewallRule(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error)
+	GetFirewallRule(ctx context.Context, id, tenant string) (*models.FirewallRule, error)
+	UpdateFirewallRule(ctx context.Context, id, tenant string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error)
 	DeleteFirewallRule(ctx context.Context, id string) error
 	GetStats(ctx context.Context) (*models.Stats, error)
 	GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)

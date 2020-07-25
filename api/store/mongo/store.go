@@ -744,16 +744,16 @@ func (s *Store) ListFirewallRules(ctx context.Context, pagination paginator.Quer
 	return rules, count, err
 }
 
-func (s *Store) GetFirewallRule(ctx context.Context, id string) (*models.FirewallRule, error) {
+func (s *Store) GetFirewallRule(ctx context.Context, id, tenant string) (*models.FirewallRule, error) {
 	rule := new(models.FirewallRule)
-	if err := s.db.Collection("firewall_rules").FindOne(ctx, bson.M{"_id": id}).Decode(&rule); err != nil {
+	if err := s.db.Collection("firewall_rules").FindOne(ctx, bson.M{"_id": id, "tenant": tenant}).Decode(&rule); err != nil {
 		return nil, err
 	}
 
 	return rule, nil
 }
 
-func (s *Store) UpdateFirewallRule(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error) {
+func (s *Store) UpdateFirewallRule(ctx context.Context, id, tenant string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error) {
 	if err := rule.Validate(); err != nil {
 		return nil, err
 	}
@@ -762,7 +762,7 @@ func (s *Store) UpdateFirewallRule(ctx context.Context, id string, rule models.F
 		return nil, err
 	}
 
-	r, err := s.GetFirewallRule(ctx, id)
+	r, err := s.GetFirewallRule(ctx, id, tenant)
 	return r, err
 }
 
