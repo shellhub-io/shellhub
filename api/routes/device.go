@@ -78,7 +78,7 @@ func DeleteDevice(c apicontext.Context) error {
 		return err
 	}
 
-	return nil
+	return c.NoContent(http.StatusOK)
 }
 
 func RenameDevice(c apicontext.Context) error {
@@ -105,7 +105,7 @@ func RenameDevice(c apicontext.Context) error {
 		return err
 	}
 
-	return nil
+	return c.NoContent(http.StatusOK)
 }
 
 func OfflineDevice(c apicontext.Context) error {
@@ -168,5 +168,5 @@ func UpdatePendingStatus(c apicontext.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
