@@ -19,9 +19,14 @@ export default {
   },
 
   actions: {
-    get: async (context) => {
-      const res = await getStats();
-      context.commit('setStats', res.data);
+    get({
+      commit,
+    }) {
+      return getStats()
+        .then((response) => {
+          commit('setStats', response.data);
+        })
+        .catch(() => Promise.reject());
     },
   },
 };

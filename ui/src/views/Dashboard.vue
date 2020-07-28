@@ -9,7 +9,9 @@
     >
       Sorry, we couldn't find the page you were looking for
     </v-alert>
-    <v-row>
+    <v-row
+      class="mt-4"
+    >
       <v-col
         cols="12"
         md="4"
@@ -140,6 +142,9 @@
         </v-card>
       </v-col>
     </v-row>
+    <SnackbarError
+      :error="error"
+    />
   </fragment>
 </template>
 
@@ -147,6 +152,7 @@
 
 import DeviceAdd from '@/components/device/DeviceAdd';
 import Welcome from '@/components/welcome/Welcome';
+import SnackbarError from '@/components/snackbar/SnackbarError';
 
 export default {
   name: 'Dashboard',
@@ -154,6 +160,7 @@ export default {
   components: {
     DeviceAdd,
     Welcome,
+    SnackbarError,
   },
 
   data() {
@@ -165,6 +172,7 @@ export default {
       flag: false,
       hasDevicesRegistered: false,
       show: false,
+      error: false,
     };
   },
 
@@ -175,7 +183,11 @@ export default {
   },
 
   async created() {
-    await this.$store.dispatch('stats/get');
+    this.$store.dispatch('stats/get')
+      .catch(() => {
+        this.error = true;
+      });
+
     this.hasDevicesRegistered = this.initialState();
     if (localStorage.getItem('onceWelcome') === null) {
       localStorage.setItem('onceWelcome', true);
