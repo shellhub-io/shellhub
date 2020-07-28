@@ -11,12 +11,13 @@ export default () => {
   });
 
   axios.interceptors.response.use(
-    (response) => response,
+    (response) => Promise.resolve(response),
     (error) => {
       if (error.response.status === 401) {
         store.dispatch('auth/logout');
         router.push('/login');
       }
+      return Promise.reject(error);
     },
   );
 
