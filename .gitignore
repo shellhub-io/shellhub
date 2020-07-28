@@ -5,3 +5,4 @@ ssh_private_key
 /go.sum
 /ui/node_modules/
 *.orig
+.env.local
