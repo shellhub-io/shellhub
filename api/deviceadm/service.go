@@ -65,12 +65,14 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 	if device != nil {
 		if device.Name != name {
 			device.Name = name
-			if err := validate.Struct(device); err == nil {
+			err := validate.Struct(device)
+			if err == nil {
 				otherDevice, _ := s.store.GetDeviceByName(ctx, name, tenant)
 				if otherDevice == nil {
 					return s.store.RenameDevice(ctx, uid, name)
 				}
 			}
+			return err
 		}
 	}
 	return ErrUnauthorized
