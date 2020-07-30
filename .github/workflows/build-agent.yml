@@ -1,0 +1,119 @@
+name: Build Agent
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - v*
+    paths:
+    - 'agent/**'
+
+  pull_request:
+    branches: [ master ]
+    paths:
+    - 'agent/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    strategy:    
+      matrix:
+        dockerfile: [amd64, arm32v6, arm32v7, arm64v8]
+        include:
+        # includes a new variable of npm with a value of 2
+        # for the matrix leg matching the os and version
+        - dockerfile: amd64
+          arch: amd64
+        - dockerfile: arm32v6
+          arch: arm/6
+        - dockerfile: arm32v7
+          arch: arm/7
+        - dockerfile: arm64v8
+          arch: arm64/8
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: login to docker hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Set up Docker Buildx
+        uses: crazy-max/ghaction-docker-buildx@v3
+
+      - name: Set github reference env
+        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
+      
+      - name: build image
+        if: "!contains(github.ref, 'refs/tags/v')"
+        run: |
+          docker buildx build --push -f agent/Dockerfile.${{ matrix.dockerfile }} \
+            --tag shellhubio/agent:${{ github.sha }}-${{ matrix.dockerfile }} \
+            --platform ${{ matrix.arch }} .
+
+      - name: build tagged image
+        if: contains(github.ref, 'refs/tags/v')
+        run: |
+          docker buildx build --push -f agent/Dockerfile.${{ matrix.dockerfile }} \
+            --tag shellhubio/agent:${{ env.RELEASE_VERSION }}-${{ matrix.dockerfile }} \
+            --platform ${{ matrix.arch }} .
+  
+  multiarch:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: Set github reference env
+        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
+
+      - name: login to docker hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: build multiarch image
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+        run: |
+            echo "Creating the manifest"
+            docker manifest create -a shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-amd64 shellhubio/agent:${{ github.sha }}-arm32v6 shellhubio/agent:${{ github.sha }}-arm32v7 shellhubio/agent:${{ github.sha }}-arm64v8
+
+            echo "Running amd64 manifest annotation"
+            docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-amd64 --os linux --arch amd64
+          
+            archname=(arm32v6 arm32v7 arm64v8)
+            arch=(arm arm arm64)
+            variant=(6 7 8)
+            
+            for ((i = 0; i < 3; i++))  ; do
+              echo "Running ${archname[i]} manifest annotation"
+              docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-${archname[i]} --os linux --arch ${arch[i]} --variant ${variant[i]}
+            done
+            
+            echo "Pushing multiarch manifest"
+            docker manifest push shellhubio/agent:${{ github.sha }}
+
+      - name: build multiarch image from github tag
+        if: contains(github.ref, 'refs/tags/v')
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+        run: |
+            echo "Creating the manifest"
+            docker manifest create -a shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-amd64 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm32v6 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm32v7 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm64v8
+
+            echo "Running amd64 manifest annotation"
+            docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-amd64 --os linux --arch amd64
+          
+            archname=(arm32v6 arm32v7 arm64v8)
+            arch=(arm arm arm64)
+            variant=(6 7 8)
+            
+            for ((i = 0; i < 3; i++))  ; do
+              echo "Running ${archname[i]} manifest annotation"
+              docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-${archname[i]} --os linux --arch ${arch[i]} --variant ${variant[i]}
+            done
+            
+            echo "Pushing multiarch manifest"
+            docker manifest push shellhubio/agent:${{ env.RELEASE_VERSION }}
