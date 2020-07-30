@@ -24,6 +24,7 @@ type Store interface {
 	DeactivateSession(ctx context.Context, uid models.UID) error
 	RecordSession(ctx context.Context, uid models.UID, record string, width, height int) error
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetUserByTenant(ctx context.Context, tenant string) (*models.User, error)
 	GetDeviceByMac(ctx context.Context, mac, tenant string) (*models.Device, error)
 	GetDeviceByName(ctx context.Context, name, tenant string) (*models.Device, error)
