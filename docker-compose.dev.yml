@@ -33,12 +33,15 @@ services:
       - ./ui:/src
     networks:
       - shellhub
+    environment:
+      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
   gateway:
     image: gateway
     build:
       context: gateway
     environment:
       - SHELLHUB_VERSION=latest
+      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
     networks:
       - shellhub
   agent:
