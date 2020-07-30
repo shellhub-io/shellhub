@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/cnf/structhash"
@@ -101,9 +102,12 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 }
 
 func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error) {
-	user, err := s.store.GetUserByUsername(ctx, req.Username)
+	user, err := s.store.GetUserByUsername(ctx, strings.ToLower(req.Username))
 	if err != nil {
-		return nil, err
+		user, err = s.store.GetUserByEmail(ctx, strings.ToLower(req.Username))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	password := sha256.Sum256([]byte(req.Password))
