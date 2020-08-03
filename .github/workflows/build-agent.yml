@@ -50,14 +50,14 @@ jobs:
         run: |
           docker buildx build --push -f agent/Dockerfile.${{ matrix.dockerfile }} \
             --tag shellhubio/agent:${{ github.sha }}-${{ matrix.dockerfile }} \
-            --platform ${{ matrix.arch }} .
+            --platform linux/${{ matrix.arch }} .
 
       - name: build tagged image
         if: contains(github.ref, 'refs/tags/v')
         run: |
           docker buildx build --push -f agent/Dockerfile.${{ matrix.dockerfile }} \
             --tag shellhubio/agent:${{ env.RELEASE_VERSION }}-${{ matrix.dockerfile }} \
-            --platform ${{ matrix.arch }} .
+            --platform linux/${{ matrix.arch }} .
   
   multiarch:
     needs: build
