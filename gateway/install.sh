@@ -32,4 +32,7 @@ $SUDO docker run -d \
        -e SERVER_ADDRESS={{scheme}}://{{host}} \
        -e PRIVATE_KEY=/host/etc/shellhub.key \
        -e TENANT_ID={{tenant_id}} \
+       {% if keepalive_interval ~= '' and keepalive_interval ~= nil then %}
+       -e KEEPALIVE_INTERVAL={{keepalive_interval}} \
+       {% end %}
        shellhubio/agent:{{version}}
