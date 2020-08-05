@@ -142,12 +142,25 @@ func TestUpdatePendingStatus(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock))
 
+	identity := &models.DeviceIdentity{MAC: "mac"}
+	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: identity}
+	oldDevice := &models.Device{UID: "old_uid", Name: "name", TenantID: "tenant", Identity: identity}
 	ctx := context.TODO()
 
-	mock.On("UpdatePendingStatus", ctx, models.UID("uid"), "accepted").
+	mock.On("GetDeviceByUID", ctx, models.UID(device.UID), device.TenantID).
+		Return(device, nil).Once()
+	mock.On("GetDeviceByMac", ctx, "mac", device.TenantID, "accepted").
+		Return(oldDevice, nil).Once()
+	mock.On("UpdateUID", ctx, models.UID(oldDevice.UID), models.UID(device.UID)).
 		Return(nil).Once()
+	mock.On("DeleteDevice", ctx, models.UID(oldDevice.UID)).
+		Return(nil).Once()
+	mock.On("RenameDevice", ctx, models.UID(device.UID), oldDevice.Name).
+		Return(nil).Once()
+	mock.On("UpdatePendingStatus", ctx, models.UID(device.UID), "accepted").
+		Return(nil).Once()
+	err := s.UpdatePendingStatus(ctx, models.UID("uid"), "accepted", "tenant")
 
-	err := s.UpdatePendingStatus(ctx, "uid", "accepted")
 	assert.NoError(t, err)
 
 	mock.AssertExpectations(t)
