@@ -48,8 +48,6 @@ func TestAuthDevice(t *testing.T) {
 
 	user := &models.User{Username: "user", TenantID: authReq.TenantID}
 
-	mock.On("GetDeviceByMac", ctx, device.Identity.MAC, device.TenantID).
-		Return(nil, nil).Once()
 	mock.On("AddDevice", ctx, *device, "").
 		Return(nil).Once()
 	mock.On("UpdateDeviceStatus", ctx, models.UID(device.UID), true).
@@ -104,36 +102,6 @@ func TestAuthUser(t *testing.T) {
 		Return(user, nil).Once()
 
 	authRes, err := s.AuthUser(ctx, *authReq)
-	assert.NoError(t, err)
-
-	assert.Equal(t, user.Username, authRes.User)
-	assert.Equal(t, user.TenantID, authRes.Tenant)
-	assert.NotEmpty(t, authRes.Token)
-
-	mock.AssertExpectations(t)
-}
-
-func TestAuthGetToken(t *testing.T) {
-	mock := &mocks.Store{}
-
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	assert.NoError(t, err)
-
-	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey)
-
-	ctx := context.TODO()
-
-	tenant := "tenant"
-
-	user := &models.User{
-		Username: "user",
-		TenantID: "tenant",
-	}
-
-	mock.On("GetUserByTenant", ctx, tenant).
-		Return(user, nil).Once()
-
-	authRes, err := s.AuthGetToken(ctx, tenant)
 	assert.NoError(t, err)
 
 	assert.Equal(t, user.Username, authRes.User)
