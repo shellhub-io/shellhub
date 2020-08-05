@@ -33,17 +33,19 @@ func (c *sshConn) Close() error {
 }
 
 type SSHServer struct {
-	sshd       *sshserver.Server
-	cmds       map[string]*exec.Cmd
-	Sessions   map[string]net.Conn
-	deviceName string
-	mu         sync.Mutex
+	sshd              *sshserver.Server
+	cmds              map[string]*exec.Cmd
+	Sessions          map[string]net.Conn
+	deviceName        string
+	mu                sync.Mutex
+	keepAliveInterval int
 }
 
-func NewSSHServer(privateKey string) *SSHServer {
+func NewSSHServer(privateKey string, keepAliveInterval int) *SSHServer {
 	s := &SSHServer{
-		cmds:     make(map[string]*exec.Cmd),
-		Sessions: make(map[string]net.Conn),
+		cmds:              make(map[string]*exec.Cmd),
+		Sessions:          make(map[string]net.Conn),
+		keepAliveInterval: keepAliveInterval,
 	}
 
 	s.sshd = &sshserver.Server{
@@ -90,7 +92,7 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 	sspty, winCh, isPty := session.Pty()
 
 	go func() {
-		ticker := time.NewTicker(time.Second * 30)
+		ticker := time.NewTicker(time.Second * time.Duration(s.keepAliveInterval))
 		defer ticker.Stop()
 
 	loop:

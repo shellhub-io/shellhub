@@ -28,9 +28,10 @@ import (
 var AgentVersion string
 
 type ConfigOptions struct {
-	ServerAddress string `envconfig:"server_address"`
-	PrivateKey    string `envconfig:"private_key"`
-	TenantID      string `envconfig:"tenant_id"`
+	ServerAddress     string `envconfig:"server_address"`
+	PrivateKey        string `envconfig:"private_key"`
+	TenantID          string `envconfig:"tenant_id"`
+	KeepAliveInterval int    `envconfig:"keepalive_interval" default:"30"`
 }
 
 type Information struct {
@@ -112,7 +113,7 @@ func main() {
 		return
 	}
 
-	server := sshd.NewSSHServer(opts.PrivateKey)
+	server := sshd.NewSSHServer(opts.PrivateKey, opts.KeepAliveInterval)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -171,7 +172,7 @@ func main() {
 		}()
 	}
 
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(time.Duration(opts.KeepAliveInterval) * time.Second)
 
 	for range ticker.C {
 		sessions := make([]string, 0, len(server.Sessions))
