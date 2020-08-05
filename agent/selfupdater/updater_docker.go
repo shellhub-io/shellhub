@@ -178,6 +178,8 @@ func NewUpdater(_ string) (Updater, error) {
 		return nil, err
 	}
 
+	api.NegotiateAPIVersion(context.Background())
+
 	return &dockerUpdater{api: api}, nil
 }
 
