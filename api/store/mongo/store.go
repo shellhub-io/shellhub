@@ -37,11 +37,6 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 
 	query := []bson.M{
 		{
-			"$match": bson.M{
-				"status": status,
-			},
-		},
-		{
 
 			"$lookup": bson.M{
 				"from":         "connected_devices",
@@ -67,6 +62,14 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 		{
 			"$unwind": "$namespace",
 		},
+	}
+
+	if status != "" {
+		query = append([]bson.M{{
+			"$match": bson.M{
+				"status": status,
+			},
+		}}, query...)
 	}
 
 	orderVal := map[string]int{
