@@ -928,6 +928,52 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	return queryMatch, nil
 }
 
+func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query) ([]models.User, int, error) {
+	query := []bson.M{
+		{
+			"$sort": bson.M{
+				"priority": 1,
+			},
+		},
+	}
+
+	// Only match for the respective tenant if requested
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
+			},
+		})
+	}
+
+	queryCount := append(query, bson.M{"$count": "count"})
+	count, err := aggregateCount(ctx, s.db.Collection("users"), queryCount)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	query = append(query, buildPaginationQuery(pagination)...)
+
+	users := make([]models.User, 0)
+	cursor, err := s.db.Collection("users").Aggregate(ctx, query)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		user := new(models.User)
+		err = cursor.Decode(&user)
+		if err != nil {
+			return users, count, err
+		}
+
+		users = append(users, *user)
+	}
+
+	return users, count, err
+}
+
 func buildPaginationQuery(pagination paginator.Query) []bson.M {
 	if pagination.PerPage == -1 {
 		return nil
