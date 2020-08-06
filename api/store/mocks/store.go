@@ -473,6 +473,36 @@ func (_m *Store) ListSessions(ctx context.Context, pagination paginator.Query) (
 	return r0, r1, r2
 }
 
+// ListUsers provides a mock function with given fields: ctx, pagination
+func (_m *Store) ListUsers(ctx context.Context, pagination paginator.Query) ([]models.User, int, error) {
+	ret := _m.Called(ctx, pagination)
+
+	var r0 []models.User
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) []models.User); ok {
+		r0 = rf(ctx, pagination)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.User)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query) int); ok {
+		r1 = rf(ctx, pagination)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query) error); ok {
+		r2 = rf(ctx, pagination)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // LookupDevice provides a mock function with given fields: ctx, namespace, name
 func (_m *Store) LookupDevice(ctx context.Context, namespace string, name string) (*models.Device, error) {
 	ret := _m.Called(ctx, namespace, name)
