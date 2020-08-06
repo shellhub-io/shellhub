@@ -1,6 +1,6 @@
 import http from '@/store/helpers/http';
 
-export const postFirewall = async (data) => http().post(`/firewall/rules`, {
+export const postFirewall = async (data) => http().post('/firewall/rules', {
   priority: parseInt(data.priority, 10),
   action: data.action,
   active: data.active,
