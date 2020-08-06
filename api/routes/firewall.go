@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/firewall"
@@ -26,7 +27,12 @@ func GetFirewallRuleList(c apicontext.Context) error {
 	// TODO: normalize is not required when request is privileged
 	query.Normalize()
 
-	rules, _, _ := svc.ListRules(c.Ctx(), *query)
+	rules, count, err := svc.ListRules(c.Ctx(), *query)
+	if err != nil {
+		return err
+	}
+
+	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
 
 	return c.JSON(http.StatusOK, rules)
 }
