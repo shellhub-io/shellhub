@@ -83,7 +83,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"target":   sess.Target,
 			"username": sess.User,
 			"session":  session.Context().Value(sshserver.ContextKeySessionID),
-		}).Error("Faield to register session")
+		}).Error("Failed to register session")
 	}
 
 	passwd, ok := session.Context().Value("password").(string)
