@@ -15,12 +15,12 @@ require (
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/pires/go-proxyproto v0.1.3
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/shellhub-io/shellhub v0.3.4
+	github.com/shellhub-io/shellhub v0.3.6
 	github.com/sirupsen/logrus v1.6.0
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
-	golang.org/x/net v0.0.0-20200602114024-627f9648deb9
-	golang.org/x/sys v0.0.0-20200610111108-226ff32320da // indirect
+	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381
+	golang.org/x/sys v0.0.0-20200806125547-5acd03effb82 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
 	moul.io/http2curl v1.0.0 // indirect
 )
