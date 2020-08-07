@@ -169,7 +169,6 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 			n, err := stdout.Read(buf)
 			waitingString := ""
 			if err == nil {
-				if bytes.Contains(buf[:n], []byte("\n")) {
 					waitingString = string(buf[:n])
 					var sessionRecord struct {
 						Record string `json:"record"`
@@ -181,19 +180,18 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 					sessionRecord.Width = pty.Window.Width
 					_, _, _ = gorequest.New().Post(fmt.Sprintf("http://api:8080/internal/sessions/%s/record", s.UID)).Send(sessionRecord).End()
 					waitingString = ""
-				}
 			}
 			for {
-				n, err = stdout.Read(buf)
-				if err != nil {
-					break
-				}
 				bufReader := bytes.NewReader(buf[:n])
 				if _, err = io.Copy(s.session, bufReader); err != nil {
 					logrus.WithFields(logrus.Fields{
 						"session": s.UID,
 						"err":     err,
 					}).Error("Failed to copy from stdout in pty session")
+				}
+				n, err = stdout.Read(buf)
+				if err != nil {
+					break
 				}
 				waitingString += string(buf[:n])
 				var sessionRecord struct {
