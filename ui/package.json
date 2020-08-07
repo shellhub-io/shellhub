@@ -7,8 +7,7 @@
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
-    "lint:no-fix": "vue-cli-service lint --no-fix",
-    "lint:report": "vue-cli-service lint --no-fix --format json"
+    "lint:no-fix": "vue-cli-service lint --no-fix"
   },
   "dependencies": {
     "axios": "^0.19.2",

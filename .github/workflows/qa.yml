@@ -45,11 +45,9 @@ jobs:
 
     - name: Run Revive Action [Go]
       if: matrix.project != 'ui'
-      uses: docker://morphy/revive-action:v1
-      with:
-        config: .revive.toml
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        go get -u github.com/mgechev/revive
+        revive -config .revive.toml --formatter stylish ./${{ matrix.project }}/...
 
     - name: Unit test [Go]
       if: matrix.project != 'ui'
@@ -92,12 +90,4 @@ jobs:
     - name: Save Code Linting Report JSON [UI]
       if: matrix.project == 'ui'
       working-directory: ${{ matrix.project }}
-      run: npm run --silent lint:report | tee eslint_report.json
-      continue-on-error: true
-
-    - name: Annotate Code Linting Results [UI]
-      if: matrix.project == 'ui'
-      uses: ataylorme/eslint-annotate-action@1.0.4
-      with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
-        report-json: "ui/eslint_report.json"
+      run: npm run lint:no-fix
