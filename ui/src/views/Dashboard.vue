@@ -152,7 +152,6 @@
 
 import DeviceAdd from '@/components/device/DeviceAdd';
 import Welcome from '@/components/welcome/Welcome';
-import SnackbarError from '@/components/snackbar/SnackbarError';
 
 export default {
   name: 'Dashboard',
@@ -160,7 +159,6 @@ export default {
   components: {
     DeviceAdd,
     Welcome,
-    SnackbarError,
   },
 
   data() {
