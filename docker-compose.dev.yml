@@ -12,6 +12,8 @@ services:
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
     networks:
       - shellhub
+    environment:
+      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
   api:
     image: api
     build:

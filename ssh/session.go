@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -95,6 +96,13 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	}
 
 	s.Target = device.UID
+
+	if os.Getenv("SHELLHUB_HOSTED") == "true" {
+		res, _, errs := gorequest.New().Get("http://cloud-api:8080/internal/firewall/rules/evaluate").Query(lookup).End()
+		if len(errs) > 0 || res.StatusCode != http.StatusOK {
+			return nil, ErrInvalidSessionTarget
+		}
+	}
 
 	return s, nil
 }

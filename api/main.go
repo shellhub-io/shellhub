@@ -80,12 +80,6 @@ func main() {
 	internalAPI.POST(routes.RecordSessionURL, apicontext.Handler(routes.RecordSession))
 	publicAPI.GET(routes.PlaySessionURL, apicontext.Handler(routes.PlaySession))
 
-	publicAPI.GET(routes.GetFirewallRuleListURL, apicontext.Handler(routes.GetFirewallRuleList))
-	publicAPI.GET(routes.GetFirewallRuleURL, apicontext.Handler(routes.GetFirewallRule))
-	publicAPI.POST(routes.CreateFirewallRuleURL, apicontext.Handler(routes.CreateFirewallRule))
-	publicAPI.PUT(routes.UpdateFirewallRuleURL, apicontext.Handler(routes.UpdateFirewallRule))
-	publicAPI.DELETE(routes.DeleteFirewallRuleURL, apicontext.Handler(routes.DeleteFirewallRule))
-
 	publicAPI.GET(routes.GetStatsURL, apicontext.Handler(routes.GetStats))
 
 	e.Logger.Fatal(e.Start(":8080"))
