@@ -61,6 +61,7 @@ export default {
         context.commit('authSuccess', resp.data);
       } catch (err) {
         context.commit('authError');
+        throw err;
       }
     },
 
