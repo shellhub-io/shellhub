@@ -1,6 +1,5 @@
 import Axios from 'axios';
 import store from '..';
-import router from '../../router';
 
 export default () => {
   const axios = Axios.create({
@@ -15,7 +14,6 @@ export default () => {
     (error) => {
       if (error.response.status === 401) {
         store.dispatch('auth/logout');
-        router.push('/login');
       }
       return Promise.reject(error);
     },
