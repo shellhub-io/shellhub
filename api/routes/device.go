@@ -6,7 +6,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/deviceadm"
-	"github.com/shellhub-io/shellhub/api/firewall"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -131,25 +130,10 @@ func LookupDevice(c apicontext.Context) error {
 	}
 
 	svc := deviceadm.NewService(c.Store())
-	fw := firewall.NewService(c.Store())
 
 	device, err := svc.LookupDevice(c.Ctx(), query.Domain, query.Name)
 	if err != nil {
 		return nil
-	}
-
-	ok, err := fw.Evaluate(c.Ctx(), firewall.Request{
-		Hostname:  query.Name,
-		Namespace: query.Domain,
-		Username:  query.Username,
-		IPAddress: query.IPAddress,
-	})
-	if err != nil {
-		return err
-	}
-
-	if !ok {
-		return c.NoContent(http.StatusForbidden)
 	}
 
 	return c.JSON(http.StatusOK, device)

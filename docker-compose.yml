@@ -5,6 +5,7 @@ services:
     image: shellhubio/ssh:${SHELLHUB_VERSION}
     environment:
       - PRIVATE_KEY=/run/secrets/ssh_private_key
+      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
     ports:
       - "${SHELLHUB_SSH_PORT}:2222"
     secrets:
