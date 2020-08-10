@@ -64,6 +64,10 @@
         </v-form>
       </v-card>
     </v-flex>
+
+    <SnackbarError
+      :error="error"
+    />
   </v-layout>
 </template>
 
@@ -76,6 +80,7 @@ export default {
     return {
       username: null,
       password: null,
+      error: false,
     };
   },
 
@@ -89,19 +94,22 @@ export default {
   },
 
   methods: {
-    login() {
-      this.$store
-        .dispatch('auth/login', {
-          username: this.username,
-          password: this.password,
-        })
-        .then(() => {
-          if (this.$route.query.redirect) {
-            this.$router.push(this.$route.query.redirect);
-          } else {
-            this.$router.push('/');
-          }
-        });
+    async login() {
+      try {
+        await this.$store
+          .dispatch('auth/login', {
+            username: this.username,
+            password: this.password,
+          });
+
+        if (this.$route.query.redirect) {
+          this.$router.push(this.$route.query.redirect);
+        } else {
+          this.$router.push('/');
+        }
+      } catch {
+        this.error = true;
+      }
     },
   },
 };
