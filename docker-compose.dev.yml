@@ -27,7 +27,8 @@ services:
   ui:
     image: ui
     build:
-      context: ui
+      context: .
+      dockerfile: ui/Dockerfile
       target: development
     volumes:
       - ./ui:/src
@@ -38,7 +39,8 @@ services:
   gateway:
     image: gateway
     build:
-      context: gateway
+      context: .
+      dockerfile: gateway/Dockerfile
     environment:
       - SHELLHUB_VERSION=latest
       - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
