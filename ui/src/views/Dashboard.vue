@@ -77,10 +77,6 @@
       :curl="curl"
       @finishedEvent="receiveFinish"
     />
-
-    <SnackbarError
-      :error="error"
-    />
   </fragment>
 </template>
 
@@ -106,7 +102,6 @@ export default {
       flag: false,
       hasDevicesRegistered: false,
       show: false,
-      error: false,
       items: [
         {
           title: 'Registered Devices',
@@ -148,7 +143,7 @@ export default {
   async created() {
     this.$store.dispatch('stats/get')
       .catch(() => {
-        this.error = true;
+        this.$store.dispatch('modals/showSnackbarError', true);
       });
 
     this.hasDevicesRegistered = this.initialState();

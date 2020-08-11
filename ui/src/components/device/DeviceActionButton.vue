@@ -109,34 +109,54 @@ export default {
     },
 
     async acceptDevice() {
-      await this.$store.dispatch('devices/accept', this.uid);
-      this.refreshStats();
-      this.refreshDevices();
+      try {
+        await this.$store.dispatch('devices/accept', this.uid);
+        this.refreshStats();
+        this.refreshDevices();
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
 
     async rejectDevice() {
-      await this.$store.dispatch('devices/reject', this.uid);
-      this.refreshStats();
-      this.refreshDevices();
+      try {
+        await this.$store.dispatch('devices/reject', this.uid);
+        this.refreshStats();
+        this.refreshDevices();
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
 
     async removeDevice() {
-      await this.$store.dispatch('devices/remove', this.uid);
-      this.refreshDevices();
+      try {
+        await this.$store.dispatch('devices/remove', this.uid);
+        this.refreshDevices();
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
 
     refreshDevices() {
-      this.$emit('update');
-      if (window.location.pathname === '/devices/pending' || window.location.pathname === '/devices') {
-        this.$store.dispatch('devices/refresh');
-        this.$store.dispatch('notifications/fetch');
-      }
+      try {
+        this.$emit('update');
+        if (window.location.pathname === '/devices/pending' || window.location.pathname === '/devices') {
+          this.$store.dispatch('devices/refresh');
+          this.$store.dispatch('notifications/fetch');
+        }
 
-      this.dialog = !this.dialog;
+        this.dialog = !this.dialog;
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
 
     async refreshStats() {
-      await this.$store.dispatch('stats/get');
+      try {
+        await this.$store.dispatch('stats/get');
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
   },
 };

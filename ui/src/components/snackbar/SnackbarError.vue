@@ -1,10 +1,9 @@
 <template>
   <fragment>
     <v-snackbar
+      v-model="snackbar"
       :timeout="4000"
-      :value="error"
       color="#bd4147"
-      absolute
       top
       outlined
       text
@@ -19,13 +18,17 @@
 export default {
   name: 'SnackbarError',
 
-  props: {
-    error: {
-      type: Boolean,
-      required: true,
+  computed: {
+    snackbar: {
+      get() {
+        return this.$store.getters['modals/snackbarError'];
+      },
+
+      set(value) {
+        this.$store.dispatch('modals/showSnackbarError', value);
+      },
     },
   },
-
 };
 
 </script>

@@ -91,7 +91,11 @@ export default {
   },
 
   async created() {
-    await this.$store.dispatch('stats/get');
+    try {
+      await this.$store.dispatch('stats/get');
+    } catch {
+      this.$store.dispatch('modals/showSnackbarError', true);
+    }
   },
 
   methods: {

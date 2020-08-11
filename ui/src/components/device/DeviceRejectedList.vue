@@ -143,7 +143,11 @@ export default {
         sortStatusString: sortStatusMap.statusString,
       };
 
-      this.$store.dispatch('devices/fetch', data);
+      try {
+        await this.$store.dispatch('devices/fetch', data);
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
 
     refresh() {
