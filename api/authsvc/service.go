@@ -15,6 +15,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type Service interface {
@@ -57,7 +58,13 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		return nil, errors.New("device with this mac address already authored")
 	}
 
-	if err := s.store.AddDevice(ctx, device); err != nil {
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		return nil, err
+	}
+	hostname := strings.ToLower(req.DeviceAuth.Hostname)
+
+	if err := s.store.AddDevice(ctx, device, hostname); err != nil {
 		return nil, err
 	}
 

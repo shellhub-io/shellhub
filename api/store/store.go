@@ -11,7 +11,7 @@ type Store interface {
 	ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID) error
-	AddDevice(ctx context.Context, d models.Device) error
+	AddDevice(ctx context.Context, d models.Device, hostname string) error
 	RenameDevice(ctx context.Context, uid models.UID, name string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error

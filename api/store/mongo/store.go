@@ -196,8 +196,11 @@ func (s *Store) DeleteDevice(ctx context.Context, uid models.UID) error {
 	return nil
 }
 
-func (s *Store) AddDevice(ctx context.Context, d models.Device) error {
-	hostname := strings.Replace(d.Identity.MAC, ":", "-", -1)
+func (s *Store) AddDevice(ctx context.Context, d models.Device, hostname string) error {
+	mac := strings.Replace(d.Identity.MAC, ":", "-", -1)
+	if hostname == "" {
+		hostname = mac
+	}
 
 	q := bson.M{
 		"$setOnInsert": bson.M{
