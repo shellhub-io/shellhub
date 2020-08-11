@@ -143,7 +143,6 @@ export default {
       dialogError: false,
       uid: '',
       hostname: window.location.hostname,
-      editName: '',
       hide: true,
       device: null,
     };
@@ -167,6 +166,7 @@ export default {
     } catch (error) {
       this.hide = false;
       this.dialogError = true;
+      this.$store.dispatch('modals/showSnackbarError', true);
     }
   },
 

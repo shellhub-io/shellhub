@@ -6,7 +6,7 @@ export default {
 
   state: {
     devices: [],
-    device: [],
+    device: {},
     numberDevices: 0,
     page: 0,
     perPage: 0,
@@ -42,9 +42,7 @@ export default {
     },
 
     setDevice: (state, data) => {
-      if (data) {
-        Vue.set(state, 'device', data);
-      }
+      Vue.set(state, 'device', data);
     },
 
     setPagePerpageFilter: (state, data) => {
@@ -59,20 +57,34 @@ export default {
     setFilter: (state, filter) => {
       Vue.set(state, 'filter', filter);
     },
+
+    clearListDevices: (state) => {
+      Vue.set(state, 'devices', []);
+      Vue.set(state, 'numberDevices', 0);
+    },
+
+    clearObjectDevice: (state) => {
+      Vue.set(state, 'device', []);
+    },
   },
 
   actions: {
     fetch: async (context, data) => {
-      const res = await apiDevice.fetchDevices(
-        data.perPage,
-        data.page,
-        data.filter,
-        data.status,
-        data.sortStatusField,
-        data.sortStatusString,
-      );
-      context.commit('setDevices', res);
-      context.commit('setPagePerpageFilter', data);
+      try {
+        const res = await apiDevice.fetchDevices(
+          data.perPage,
+          data.page,
+          data.filter,
+          data.status,
+          data.sortStatusField,
+          data.sortStatusString,
+        );
+        context.commit('setDevices', res);
+        context.commit('setPagePerpageFilter', data);
+      } catch (error) {
+        context.commit('clearListDevices');
+        throw error;
+      }
     },
 
     remove: async (context, uid) => {
@@ -85,8 +97,13 @@ export default {
     },
 
     get: async (context, uid) => {
-      const res = await apiDevice.getDevice(uid);
-      context.commit('setDevice', res.data);
+      try {
+        const res = await apiDevice.getDevice(uid);
+        context.commit('setDevice', res.data);
+      } catch (error) {
+        context.commit('clearObjectDevice');
+        throw error;
+      }
     },
 
     accept: async (context, uid) => {
@@ -102,20 +119,30 @@ export default {
     },
 
     refresh: async ({ commit, state }) => {
-      const res = await apiDevice.fetchDevices(
-        state.perPage,
-        state.page,
-        state.filter,
-        state.status,
-        state.sortStatusField,
-        state.sortStatusString,
-      );
-      commit('setDevices', res);
+      try {
+        const res = await apiDevice.fetchDevices(
+          state.perPage,
+          state.page,
+          state.filter,
+          state.status,
+          state.sortStatusField,
+          state.sortStatusString,
+        );
+        commit('setDevices', res);
+      } catch (error) {
+        commit('clearListDevices');
+        throw error;
+      }
     },
 
     setFirstPending: async (context) => {
-      const res = await apiDevice.fetchDevices(1, 1, null, 'pending');
-      context.commit('setDevice', res.data[0]);
+      try {
+        const res = await apiDevice.fetchDevices(1, 1, null, 'pending');
+        context.commit('setDevice', res.data[0]);
+      } catch (error) {
+        context.commit('clearObjectDevice');
+        throw error;
+      }
     },
   },
 };

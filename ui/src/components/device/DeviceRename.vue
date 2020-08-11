@@ -121,14 +121,18 @@ export default {
       this.editName = '';
     },
 
-    edit() {
-      this.$store.dispatch('devices/rename', {
-        uid: this.device.uid,
-        name: this.editName,
-      });
-      this.dialog = false;
-      this.$emit('newHostname', this.editName);
-      this.editName = '';
+    async edit() {
+      try {
+        await this.$store.dispatch('devices/rename', {
+          uid: this.device.uid,
+          name: this.editName,
+        });
+        this.dialog = false;
+        this.$emit('newHostname', this.editName);
+        this.editName = '';
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
   },
 };

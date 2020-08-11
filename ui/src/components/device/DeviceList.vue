@@ -4,10 +4,10 @@
       <v-data-table
         class="elevation-1"
         :headers="headers"
-        :items="listDevices"
+        :items="getListDevices"
         :items-per-page="10"
         :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
-        :server-items-length="numberDevices"
+        :server-items-length="getNumberDevices"
         :options.sync="pagination"
         :search="search"
       >
@@ -111,13 +111,9 @@ export default {
   data() {
     return {
       hostname: window.location.hostname,
-      numberDevices: 0,
       sortFlag: false,
-      listDevices: [],
-      dialogDelete: false,
       pagination: {},
       copySnack: false,
-      editName: '',
       search: '',
       headers: [
         {
@@ -196,9 +192,11 @@ export default {
         sortStatusString: sortStatusMap.statusString,
       };
 
-      await this.$store.dispatch('devices/fetch', data);
-      this.listDevices = this.$store.getters['devices/list'];
-      this.numberDevices = this.$store.getters['devices/getNumberDevices'];
+      try {
+        await this.$store.dispatch('devices/fetch', data);
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
 
     detailsDevice(value) {

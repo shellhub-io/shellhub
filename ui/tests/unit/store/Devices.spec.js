@@ -7,7 +7,7 @@ describe('Devices', () => {
   });
   it('return device default', () => {
     const actual = store.getters['devices/get'];
-    expect(actual).toEqual([]);
+    expect(actual).toEqual({});
   });
   it('returns number devices default', () => {
     const actual = store.getters['devices/getNumberDevices'];
@@ -31,7 +31,7 @@ describe('Devices', () => {
   });
   it('returns status default', () => {
     const actual = store.getters['devices/getFirstPending'];
-    expect(actual).toEqual([]);
+    expect(actual).toEqual({});
   });
   it('complete test', () => {
     const devices = [

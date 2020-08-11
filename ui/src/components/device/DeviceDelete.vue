@@ -72,12 +72,18 @@ export default {
 
   methods: {
     async remove() {
-      await this.$store.dispatch('devices/remove', this.uid);
-      this.dialog = !this.dialog;
-      if (this.redirect) {
-        this.$router.push('/devices');
+      try {
+        await this.$store.dispatch('devices/remove', this.uid);
+        this.dialog = !this.dialog;
+
+        if (this.redirect) {
+          this.$router.push('/devices');
+        }
+
+        this.$emit('update');
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
       }
-      this.$emit('update');
     },
   },
 };
