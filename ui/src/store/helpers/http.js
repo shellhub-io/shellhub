@@ -10,12 +10,12 @@ export default () => {
   });
 
   axios.interceptors.response.use(
-    (response) => Promise.resolve(response),
+    (response) => response,
     (error) => {
       if (error.response.status === 401) {
         store.dispatch('auth/logout');
       }
-      return Promise.reject(error);
+      throw error;
     },
   );
 
