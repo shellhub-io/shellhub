@@ -22,14 +22,16 @@ services:
   ui:
     image: ui
     build:
-      context: ui
+      context: .
+      dockerfile: ui/Dockerfile
       target: development
     volumes:
       - ./ui:/src
   gateway:
     image: gateway
     build:
-      context: gateway
+      context: .
+      dockerfile: gateway/Dockerfile
     environment:
       - SHELLHUB_VERSION=latest
   agent:
