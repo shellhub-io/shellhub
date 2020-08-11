@@ -16,13 +16,13 @@ type Store struct {
 	mock.Mock
 }
 
-// AddDevice provides a mock function with given fields: ctx, d
-func (_m *Store) AddDevice(ctx context.Context, d models.Device) error {
-	ret := _m.Called(ctx, d)
+// AddDevice provides a mock function with given fields: ctx, d, name
+func (_m *Store) AddDevice(ctx context.Context, d models.Device, name string) error {
+	ret := _m.Called(ctx, d, name)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.Device) error); ok {
-		r0 = rf(ctx, d)
+	if rf, ok := ret.Get(0).(func(context.Context, models.Device, string) error); ok {
+		r0 = rf(ctx, d, name)
 	} else {
 		r0 = ret.Error(0)
 	}
