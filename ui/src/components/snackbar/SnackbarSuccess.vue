@@ -2,8 +2,8 @@
   <fragment>
     <v-snackbar
       :timeout="4000"
-      :value="error"
-      color="#bd4147"
+      :value="ok"
+      color="#4caf50"
       top
       outlined
       text
@@ -19,13 +19,13 @@ export default {
   name: 'SnackbarError',
 
   props: {
-    error: {
+    ok: {
       type: Boolean,
       required: true,
     },
     message: {
       type: String,
-      default: 'The request has failed, please try again.',
+      default: 'The request was a success.',
     },
   },
 
