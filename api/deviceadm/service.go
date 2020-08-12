@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -62,6 +63,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
 	device, _ := s.store.GetDeviceByUID(ctx, uid, tenant)
 	validate := validator.New()
+	name = strings.ToLower(name)
 	if device != nil {
 		if device.Name != name {
 			device.Name = name
