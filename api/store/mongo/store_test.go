@@ -40,7 +40,7 @@ func TestAddDevice(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device)
+	err := mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 }
 
