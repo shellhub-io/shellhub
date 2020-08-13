@@ -86,7 +86,7 @@ jobs:
 
             archname=(arm32v6 arm32v7 arm64v8)
             arch=(arm arm arm64)
-            variant=(6 7 8)
+            variant=(v6l v7l v8)
 
             for ((i = 0; i < 3; i++))  ; do
               echo "Running ${archname[i]} manifest annotation"
@@ -109,7 +109,7 @@ jobs:
 
             archname=(arm32v6 arm32v7 arm64v8)
             arch=(arm arm arm64)
-            variant=(6 7 8)
+            variant=(v6l v7l v8)
 
             for ((i = 0; i < 3; i++))  ; do
               echo "Running ${archname[i]} manifest annotation"
