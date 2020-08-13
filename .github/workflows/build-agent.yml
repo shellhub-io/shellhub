@@ -7,11 +7,13 @@ on:
       - v*
     paths:
     - 'agent/**'
+    - '.github/workflows/build-agent.yml'
 
   pull_request:
     branches: [ master ]
     paths:
     - 'agent/**'
+    - '.github/workflows/build-agent.yml'
 
 jobs:
   build:
