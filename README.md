@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://circleci.com/gh/shellhub-io/shellhub">
-    <img src="https://circleci.com/gh/shellhub-io/shellhub.svg?style=shield" alt="CircleCI">
+    <img src="https://github.com/shellhub-io/shellhub/workflows/QA/badge.svg" alt="GitHub Workflow">
   </a>
   <a href="https://gitter.im/shellhub-io/community">
     <img src="https://badges.gitter.im/shellhub-io/shellhub.svg">
