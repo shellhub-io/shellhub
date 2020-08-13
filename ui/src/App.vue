@@ -9,7 +9,7 @@
     >
       <v-list>
         <v-list-item
-          v-for="item in items"
+          v-for="item in visibleItems"
           :key="item.title"
           :to="item.path"
           two-line
@@ -179,6 +179,7 @@ export default {
           icon: 'security',
           title: 'Firewall Rules',
           path: '/firewall/rules',
+          hidden: !this.$env.isHosted,
         },
       ],
       menu: [
@@ -202,6 +203,10 @@ export default {
 
     isLoggedIn() {
       return this.$store.getters['auth/isLoggedIn'];
+    },
+
+    visibleItems() {
+      return this.items.filter((item) => !item.hidden);
     },
   },
 
