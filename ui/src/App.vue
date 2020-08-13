@@ -135,7 +135,7 @@
         Tenant ID copied to clipboard
       </v-snackbar>
 
-      <snackbarError />
+      <snackbar />
     </v-main>
   </v-app>
 </template>
