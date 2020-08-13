@@ -7,12 +7,13 @@ export default {
     terminal: '',
     addDevice: false,
     snackbarError: false,
+    snackbarSuccess: false,
   },
 
   getters: {
     terminal: (state) => state.terminal,
     addDevice: (state) => state.addDevice,
-    snackbarError: (state) => state.snackbarError,
+    snackbarSuccess: (state) => state.snackbarSuccess,
   },
 
   mutations: {
@@ -24,8 +25,8 @@ export default {
       Vue.set(state, 'addDevice', data);
     },
 
-    setSnackbarError: (state, data) => {
-      Vue.set(state, 'snackbarError', data);
+    setSnackbarSuccess: (state, data) => {
+      Vue.set(state, 'snackbarSuccess', data);
     },
   },
 
@@ -40,6 +41,10 @@ export default {
 
     showSnackbarError: (context, value) => {
       context.commit('setSnackbarError', value);
+    },
+
+    showSnackbarSuccess: (context, value) => {
+      context.commit('setSnackbarSuccess', value);
     },
   },
 };

@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-import SnackbarError from '@/components/snackbar/SnackbarError';
+import Snackbar from '@/components/snackbar/Snackbar';
 
 import App from './App';
 import router from './router';
@@ -11,7 +11,7 @@ import vuetify from './plugins/vuetify';
 
 Vue.config.productionTip = false;
 
-Vue.component('SnackbarError', SnackbarError);
+Vue.component('Snackbar', Snackbar);
 
 Vue.use(require('vue-moment'));
 
