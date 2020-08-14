@@ -34,6 +34,17 @@ extend('password', (value) => {
   return true;
 });
 
+extend('comparePasswords', {
+  validate(value, { currentPassword }) {
+    if (value === currentPassword) {
+      return false;
+    }
+    return true;
+  },
+  params: ['currentPassword'],
+  message: 'The passwords are the same',
+});
+
 extend('confirmed', {
   ...confirmed,
   message: 'The passwords do not match',
