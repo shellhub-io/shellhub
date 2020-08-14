@@ -8,7 +8,7 @@
       outlined
       text
     >
-      The request has succeeded.
+      {{ message[typeMessage] }}
     </v-snackbar>
   </fragment>
 </template>
@@ -17,6 +17,21 @@
 
 export default {
   name: 'SnackbarSuccess',
+
+  props: {
+    typeMessage: {
+      type: String,
+      required: true,
+    },
+  },
+
+  data() {
+    return {
+      message: {
+        default: 'The request has succeeded.',
+      },
+    };
+  },
 
   computed: {
     snackbar: {
