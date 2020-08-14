@@ -131,7 +131,7 @@
                 v-slot="{ errors }"
                 name="Priority"
                 rules="required|password"
-                vid="newPassword"
+                vid="currentPassword"
               >
                 <v-text-field
                   v-model="currentPassword"
@@ -147,7 +147,7 @@
               <ValidationProvider
                 v-slot="{ errors }"
                 name="Priority"
-                rules="required|password"
+                rules="required|password|comparePasswords:@currentPassword"
                 vid="newPassword"
               >
                 <v-text-field
