@@ -19,12 +19,22 @@ export default {
       Vue.set(state, 'notifications', res.data);
       Vue.set(state, 'numberNotifications', parseInt(res.headers['x-total-count'], 10));
     },
+
+    clearListNotifications: (state) => {
+      Vue.set(state, 'notifications', []);
+      Vue.set(state, 'numberNotifications', 0);
+    },
   },
 
   actions: {
     fetch: async (context) => {
-      const res = await apiDevice.fetchDevices(10, 1, null, 'pending', null, '');
-      context.commit('setNotifications', res);
+      try {
+        const res = await apiDevice.fetchDevices(10, 1, null, 'pending', null, '');
+        context.commit('setNotifications', res);
+      } catch (error) {
+        context.commit('clearListNotifications');
+        throw error;
+      }
     },
   },
 };

@@ -13,20 +13,24 @@ export default {
   },
 
   mutations: {
-    setStats: (state, data) => {
-      Vue.set(state, 'stats', data);
+    setStats: (state, res) => {
+      Vue.set(state, 'stats', res.data);
+    },
+
+    clearListState: (state) => {
+      Vue.set(state, 'stats', []);
     },
   },
 
   actions: {
-    get({
-      commit,
-    }) {
-      return getStats()
-        .then((response) => {
-          commit('setStats', response.data);
-        })
-        .catch(() => Promise.reject());
+    get: async (context) => {
+      try {
+        const res = await getStats();
+        context.commit('setStats', res);
+      } catch (error) {
+        context.commit('clearListState');
+        throw error;
+      }
     },
   },
 };

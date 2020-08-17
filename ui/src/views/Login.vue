@@ -64,10 +64,6 @@
         </v-form>
       </v-card>
     </v-flex>
-
-    <SnackbarError
-      :error="error"
-    />
   </v-layout>
 </template>
 
@@ -108,7 +104,7 @@ export default {
           this.$router.push('/');
         }
       } catch {
-        this.error = true;
+        this.$store.dispatch('modals/showSnackbarError', true);
       }
     },
   },

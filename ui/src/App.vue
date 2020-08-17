@@ -165,11 +165,6 @@ export default {
           icon: 'devices',
           title: 'Devices',
           path: '/devices',
-          items: [
-            { title: 'List Devices', path: '/devices' },
-            { title: 'Pending Devices', path: '/devices/pending' },
-            { title: 'Reject Devices' },
-          ],
         },
         {
           icon: 'history',

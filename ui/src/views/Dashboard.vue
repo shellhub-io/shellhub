@@ -141,15 +141,16 @@ export default {
   },
 
   async created() {
-    this.$store.dispatch('stats/get')
-      .catch(() => {
-        this.$store.dispatch('modals/showSnackbarError', true);
-      });
+    try {
+      await this.$store.dispatch('stats/get');
 
-    this.hasDevicesRegistered = this.initialState();
-    if (localStorage.getItem('onceWelcome') === null) {
-      localStorage.setItem('onceWelcome', true);
-      this.show = !this.hasDevicesRegistered;
+      this.hasDevicesRegistered = this.initialState();
+      if (localStorage.getItem('onceWelcome') === null) {
+        localStorage.setItem('onceWelcome', true);
+        this.show = !this.hasDevicesRegistered;
+      }
+    } catch {
+      this.$store.dispatch('modals/showSnackbarError', true);
     }
   },
 

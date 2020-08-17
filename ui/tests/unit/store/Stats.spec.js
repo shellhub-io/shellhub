@@ -8,7 +8,7 @@ describe('Stats', () => {
   it('complete test', () => {
     const stats = { registered_devices: 2, online_devices: 1, active_sessions: 1 };
 
-    store.commit('stats/setStats', stats);
+    store.commit('stats/setStats', { data: stats });
 
     expect(store.getters['stats/stats']).toEqual(stats);
   });
