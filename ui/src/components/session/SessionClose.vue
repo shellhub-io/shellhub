@@ -82,9 +82,13 @@ export default {
 
   methods: {
     async close() {
-      await this.$store.dispatch('sessions/close', this.session);
-      this.dialog = false;
-      this.$emit('update');
+      try {
+        await this.$store.dispatch('sessions/close', this.session);
+        this.dialog = false;
+        this.$emit('update');
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
   },
 };

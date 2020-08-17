@@ -7,15 +7,11 @@ describe('Sessions', () => {
   });
   it('return session', () => {
     const actual = store.getters['sessions/get'];
-    expect(actual).toEqual([]);
+    expect(actual).toEqual({});
   });
   it('returns number session', () => {
     const actual = store.getters['sessions/getNumberSessions'];
     expect(actual).toEqual(0);
-  });
-  it('returns logs session', () => {
-    const actual = store.getters['sessions/getLogSession'];
-    expect(actual).toEqual([]);
   });
   it('complete test', () => {
     const sessions = [
@@ -105,37 +101,10 @@ describe('Sessions', () => {
       authenticated: false,
     };
     const numberSessions = 2;
-    const logSession = [
-      {
-        height: 24,
-        message: '\r\n\u001b]0;user@host: ~\u0007user@host:~$',
-        tenant_id: '12345678-1234-1234-1234-1234567890',
-        time: '2020-07-22T21:29:03.148Z',
-        uid: '9f79b9ea797894a74',
-        width: 110,
-      },
-      {
-        height: 24,
-        message: 'l',
-        tenant_id: '12345678-1234-1234-1234-1234567890',
-        time: '2020-07-22T21:29:04.143Z',
-        uid: '9f79b9ea797894a74',
-        width: 110,
-      },
-      {
-        height: 24,
-        message: 's',
-        tenant_id: '12345678-1234-1234-1234-1234567890',
-        time: '2020-07-22T21:29:04.223Z',
-        uid: '9f79b9ea797894a74',
-        width: 110,
-      },
-    ];
+
     store.commit('sessions/setSessions', { data: sessions, headers: { 'x-total-count': numberSessions } });
-    store.commit('sessions/setSession', session);
+    store.commit('sessions/setSession', { data: session });
     expect(store.getters['sessions/get']).toEqual(session);
-    store.commit('sessions/setSession', logSession);
-    expect(store.getters['sessions/getLogSession']).toEqual(logSession);
     expect(store.getters['sessions/list']).toEqual(sessions);
     expect(store.getters['sessions/getNumberSessions']).toEqual(numberSessions);
   });

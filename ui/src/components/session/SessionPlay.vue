@@ -191,7 +191,7 @@ export default {
       if (this.auth) {
         // receive data
         await this.$store.dispatch('sessions/getLogSession', this.uid);
-        this.logs = this.$store.getters['sessions/getLogSession'];
+        this.logs = this.$store.getters['sessions/get'];
         this.totalLength = this.getDisplaySliderInfo(null).intervalLength;
         this.endTimerDisplay = this.getDisplaySliderInfo(null).display;
         this.getTimerNow = this.getDisplaySliderInfo(this.currentTime).display;

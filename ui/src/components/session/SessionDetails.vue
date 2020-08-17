@@ -200,6 +200,7 @@ export default {
     } catch (error) {
       this.hide = false;
       this.dialog = true;
+      this.$store.dispatch('modals/showSnackbarError', true);
     }
   },
 
@@ -210,9 +211,13 @@ export default {
     },
 
     async refresh() {
-      this.closeSessionSnack = true;
-      await this.$store.dispatch('sessions/get', this.uid);
-      this.session = this.$store.getters['sessions/get'];
+      try {
+        this.closeSessionSnack = true;
+        await this.$store.dispatch('sessions/get', this.uid);
+        this.session = this.$store.getters['sessions/get'];
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
 
     convertDate(date) {

@@ -13,10 +13,10 @@ describe('SessionPlay', () => {
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      logSession: [],
+      session: [],
     },
     getters: {
-      'sessions/getLogSession': (state) => state.logSession,
+      'sessions/get': (state) => state.session,
     },
     actions: {
       'sessions/getLogSession': () => {
