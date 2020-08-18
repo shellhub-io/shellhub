@@ -1,0 +1,27 @@
+version: 2
+
+updates:
+- package-ecosystem: npm
+  directory: "/ui"
+  schedule:
+    interval: daily
+  commit-message:
+    prefix: "ui"
+- package-ecosystem: gomod
+  directory: "/agent"
+  schedule:
+    interval: daily
+  commit-message:
+    prefix: "agent"
+- package-ecosystem: gomod
+  directory: "/api"
+  schedule:
+    interval: daily
+  commit-message:
+    prefix: "api"
+- package-ecosystem: gomod
+  directory: "/ssh"
+  schedule:
+    interval: daily
+  commit-message:
+    prefix: "ssh"
