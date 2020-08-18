@@ -13,15 +13,21 @@ updates:
     interval: daily
   commit-message:
     prefix: "agent"
+  ignore:
+      - dependency-name: "github.com/shellhub-io/shellhub"
 - package-ecosystem: gomod
   directory: "/api"
   schedule:
     interval: daily
   commit-message:
     prefix: "api"
+  ignore:
+      - dependency-name: "github.com/shellhub-io/shellhub"
 - package-ecosystem: gomod
   directory: "/ssh"
   schedule:
     interval: daily
   commit-message:
     prefix: "ssh"
+  ignore:
+      - dependency-name: "github.com/shellhub-io/shellhub"
