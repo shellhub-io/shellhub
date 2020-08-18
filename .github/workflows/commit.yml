@@ -1,5 +1,8 @@
 name: 'Commit Message Check'
-on: [push]
+on:
+  push:
+    branches-ignore:
+      - 'dependabot/*'
 
 jobs:
   check-commit-message:
