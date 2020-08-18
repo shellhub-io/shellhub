@@ -4,21 +4,16 @@ import (
 	"C"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/exec"
-	"syscall"
-	"unsafe"
-
-	sshserver "github.com/gliderlabs/ssh"
-	"github.com/kr/pty"
-	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
-	"github.com/sirupsen/logrus"
-)
-
-import (
-	"net"
 	"sync"
 	"time"
+
+	"github.com/creack/pty"
+	sshserver "github.com/gliderlabs/ssh"
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
+	"github.com/sirupsen/logrus"
 )
 
 type sshConn struct {
@@ -120,7 +115,7 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 
 		go func() {
 			for win := range winCh {
-				setWinsize(spty, win.Width, win.Height)
+				_ = pty.Setsize(spty, &pty.Winsize{uint16(win.Height), uint16(win.Width), 0, 0})
 			}
 		}()
 
@@ -198,9 +193,4 @@ func newShellCmd(s *SSHServer, username, term string) *exec.Cmd {
 	cmd := newCmd(u, shell, term, s.deviceName, shell, "--login")
 
 	return cmd
-}
-
-func setWinsize(f *os.File, w, h int) {
-	size := &struct{ h, w, x, y uint16 }{uint16(h), uint16(w), 0, 0}
-	syscall.Syscall(syscall.SYS_IOCTL, f.Fd(), uintptr(syscall.TIOCSWINSZ), uintptr(unsafe.Pointer(size)))
 }
