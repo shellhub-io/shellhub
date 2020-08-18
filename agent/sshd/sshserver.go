@@ -7,10 +7,10 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
 	"sync"
 	"time"
 
-	"github.com/creack/pty"
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	"github.com/sirupsen/logrus"
@@ -108,37 +108,22 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 	if isPty {
 		scmd := newShellCmd(s, session.User(), sspty.Term)
 
-		spty, err := pty.Start(scmd)
+		pts, err := startPty(scmd, session, winCh)
 		if err != nil {
 			logrus.Warn(err)
 		}
 
-		go func() {
-			for win := range winCh {
-				_ = pty.Setsize(spty, &pty.Winsize{uint16(win.Height), uint16(win.Width), 0, 0})
-			}
-		}()
+		u := osauth.LookupUser(session.User())
 
-		go func() {
-			_, err := io.Copy(session, spty)
-			if err != nil {
-				logrus.Warn(err)
-			}
-		}()
+		uid, _ := strconv.Atoi(u.UID)
 
-		go func() {
-			_, err := io.Copy(spty, session)
-			if err != nil {
-				logrus.Warn(err)
-			}
-		}()
+		os.Chown(pts.Name(), uid, -1)
 
 		s.mu.Lock()
 		s.cmds[session.Context().Value(sshserver.ContextKeySessionID).(string)] = scmd
 		s.mu.Unlock()
 
-		err = scmd.Wait()
-		if err != nil {
+		if err := scmd.Wait(); err != nil {
 			logrus.Warn(err)
 		}
 	} else {
