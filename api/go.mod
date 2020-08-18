@@ -19,7 +19,7 @@ require (
 	github.com/parnurzeal/gorequest v0.2.16 // indirect
 	github.com/shellhub-io/shellhub v0.3.6
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/undefinedlabs/go-mpatch v1.0.6
 	github.com/valyala/fasttemplate v1.2.0 // indirect
 	github.com/vektra/mockery v1.1.2 // indirect
