@@ -68,6 +68,7 @@ services:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - /:/host
+      - /dev:/dev
       - /etc/passwd:/etc/passwd
       - /etc/group:/etc/group
       - /var/run/docker.sock:/var/run/docker.sock

@@ -26,6 +26,7 @@ $SUDO docker run -d \
        --net=host \
        --pid=host \
        -v /:/host \
+       -v /dev:/dev \
        -v /var/run/docker.sock:/var/run/docker.sock \
        -v /etc/passwd:/etc/passwd \
        -v /etc/group:/etc/group \
