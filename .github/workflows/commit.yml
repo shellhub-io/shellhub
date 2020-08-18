@@ -1,8 +1,16 @@
 name: 'Commit Message Check'
 on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+    branches-ignore:
+      - '*dependabot/*'
   push:
     branches-ignore:
-      - 'dependabot/*'
+      - '*dependabot/*'
 
 jobs:
   check-commit-message:
