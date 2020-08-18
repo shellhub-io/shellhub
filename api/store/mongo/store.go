@@ -929,13 +929,7 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 }
 
 func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query) ([]models.User, int, error) {
-	query := []bson.M{
-		{
-			"$sort": bson.M{
-				"priority": 1,
-			},
-		},
-	}
+	query := []bson.M{}
 
 	// Only match for the respective tenant if requested
 	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
