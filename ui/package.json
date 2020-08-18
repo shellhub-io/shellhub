@@ -37,7 +37,7 @@
     "@vue/cli-plugin-eslint": "^4.5.4",
     "@vue/cli-plugin-unit-jest": "^4.5.3",
     "@vue/cli-service": "^4.5.4",
-    "@vue/test-utils": "^1.0.3",
+    "@vue/test-utils": "^1.0.4",
     "babel-eslint": "^10.1.0",
     "deepmerge": "^4.2.2",
     "eslint": "^7.7.0",
