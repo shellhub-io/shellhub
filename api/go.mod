@@ -17,7 +17,7 @@ require (
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/parnurzeal/gorequest v0.2.16 // indirect
-	github.com/shellhub-io/shellhub v0.3.6
+	github.com/shellhub-io/shellhub v0.3.7
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/testify v1.5.1
 	github.com/undefinedlabs/go-mpatch v1.0.6
