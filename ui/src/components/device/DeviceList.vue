@@ -9,7 +9,6 @@
         :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
         :server-items-length="getNumberDevices"
         :options.sync="pagination"
-        :search="search"
       >
         <template v-slot:item.online="{ item }">
           <v-icon
@@ -93,9 +92,9 @@
 <script>
 
 import TerminalDialog from '@/components/terminal/TerminalDialog';
-import DeviceIcon from '@/components/device//DeviceIcon';
-import DeviceDelete from '@/components/device//DeviceDelete';
-import formatOrdering from '@/components/device//Device';
+import DeviceIcon from '@/components/device/DeviceIcon';
+import DeviceDelete from '@/components/device/DeviceDelete';
+import formatOrdering from '@/components/device/Device';
 
 export default {
   name: 'DeviceList',
@@ -111,10 +110,8 @@ export default {
   data() {
     return {
       hostname: window.location.hostname,
-      sortFlag: false,
       pagination: {},
       copySnack: false,
-      search: '',
       headers: [
         {
           text: 'Online',
@@ -165,28 +162,18 @@ export default {
       },
       deep: true,
     },
-
-    search() {
-      this.getDevices();
-    },
   },
 
   methods: {
     async getDevices() {
-      let encodedFilter = null;
       let sortStatusMap = {};
-
-      if (this.search) {
-        const filter = [{ type: 'property', params: { name: 'name', operator: 'like', value: this.search } }];
-        encodedFilter = btoa(JSON.stringify(filter));
-      }
 
       sortStatusMap = this.formatSortObject(this.pagination.sortBy[0], this.pagination.sortDesc[0]);
 
       const data = {
         perPage: this.pagination.itemsPerPage,
         page: this.pagination.page,
-        filter: encodedFilter,
+        filter: this.$store.getters['devices/getFilter'],
         status: 'accepted',
         sortStatusField: sortStatusMap.field,
         sortStatusString: sortStatusMap.statusString,

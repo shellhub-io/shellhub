@@ -9,7 +9,6 @@
         :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
         :server-items-length="getNumberRejectedDevices"
         :options.sync="pagination"
-        :search="search"
       >
         <template slot="no-data">
           There are no more pending devices
@@ -69,7 +68,6 @@ export default {
       pagination: {},
       copySnack: false,
       editName: '',
-      search: '',
       headers: [
         {
           text: 'Hostname',
@@ -115,29 +113,18 @@ export default {
       },
       deep: true,
     },
-
-    search() {
-      this.getRejectedDevices();
-    },
   },
 
   methods: {
     async getRejectedDevices() {
-      let filter = null;
-      let encodedFilter = null;
       let sortStatusMap = {};
-
-      if (this.search) {
-        filter = [{ type: 'property', params: { name: 'name', operator: 'like', value: this.search } }];
-        encodedFilter = btoa(JSON.stringify(filter));
-      }
 
       sortStatusMap = this.formatSortObject(this.pagination.sortBy[0], this.pagination.sortDesc[0]);
 
       const data = {
         perPage: this.pagination.itemsPerPage,
         page: this.pagination.page,
-        filter: encodedFilter,
+        filter: this.$store.getters['devices/getFilter'],
         status: 'rejected',
         sortStatusField: sortStatusMap.field,
         sortStatusString: sortStatusMap.statusString,
