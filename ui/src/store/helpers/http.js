@@ -1,4 +1,5 @@
 import Axios from 'axios';
+import router from '@/router/index';
 import store from '..';
 
 export default () => {
@@ -11,9 +12,10 @@ export default () => {
 
   axios.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
       if (error.response.status === 401) {
-        store.dispatch('auth/logout');
+        await store.dispatch('auth/logout');
+        await router.push({ name: 'login' });
       }
       throw error;
     },
