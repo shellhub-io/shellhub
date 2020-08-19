@@ -137,7 +137,7 @@ export default {
 
     setFirstPending: async (context) => {
       try {
-        const res = await apiDevice.fetchDevices(1, 1, null, 'pending');
+        const res = await apiDevice.fetchDevices(1, 1, null, 'pending', null, '');
         context.commit('setDevice', res.data[0]);
       } catch (error) {
         context.commit('clearObjectDevice');
