@@ -13,6 +13,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/shellhub-io/shellhub/pkg/dockerutils"
@@ -57,7 +58,6 @@ func (d *dockerUpdater) ApplyUpdate(v *semver.Version) error {
 	image, _ := container.splitImageVersion()
 	_, err = d.updateContainer(container, fmt.Sprintf("%s:%s", image, v.Original()), "", true)
 	return err
-
 }
 
 func (d *dockerUpdater) CompleteUpdate() error {
@@ -74,6 +74,22 @@ func (d *dockerUpdater) CompleteUpdate() error {
 	if parent != nil {
 		if err := d.stopContainer(parent); err != nil {
 			return err
+		}
+
+		_, pv := parent.splitImageVersion()
+		v, _ := semver.NewVersion(pv)
+		v0_4_0, _ := semver.NewVersion("v0.4.0")
+
+		// Append /dev to mount if old container version is less than v0.4.0
+		// since /dev from host is required inside container to mount a pseudo-tty
+		if v.LessThan(v0_4_0) {
+			parent.info.HostConfig.Mounts = []mount.Mount{
+				mount.Mount{
+					Type:   mount.TypeBind,
+					Source: "/dev",
+					Target: "/dev",
+				},
+			}
 		}
 
 		_, err = d.updateContainer(parent, container.info.Config.Image, parent.info.Name, false)
