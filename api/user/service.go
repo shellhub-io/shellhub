@@ -29,5 +29,13 @@ func (s *service) UpdateDataUser(ctx context.Context, username, email, currentPa
 	if newPassword != "" && user.Password != currentPassword {
 		return ErrUnauthorized
 	}
+	user, err = s.store.GetUserByUsername(ctx, username)
+	if err == nil && user.TenantID != tenant {
+		return ErrUnauthorized
+	}
+	user, err = s.store.GetUserByEmail(ctx, email)
+	if err == nil && user.TenantID != tenant {
+		return ErrUnauthorized
+	}
 	return s.store.UpdateUser(ctx, username, email, currentPassword, newPassword, tenant)
 }
