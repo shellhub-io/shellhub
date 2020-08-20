@@ -239,13 +239,21 @@ export default {
     },
 
     async create() {
-      await this.$store.dispatch('firewallrules/post', this.ruleFirewallLocal);
-      this.update();
+      try {
+        await this.$store.dispatch('firewallrules/post', this.ruleFirewallLocal);
+        this.update();
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
 
     async edit() {
-      await this.$store.dispatch('firewallrules/put', this.ruleFirewallLocal);
-      this.update();
+      try {
+        await this.$store.dispatch('firewallrules/put', this.ruleFirewallLocal);
+        this.update();
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
 
     update() {

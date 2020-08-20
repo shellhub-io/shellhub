@@ -15,12 +15,14 @@ export default {
   getters: {
     list: (state) => state.firewalls,
     get: (state) => state.firewall,
-    getNumberSessions: (state) => state.numberFirewalls,
+    getNumberFirewalls: (state) => state.numberFirewalls,
   },
 
   mutations: {
     setFirewalls: (state, res) => {
+      console.log(res);
       Vue.set(state, 'firewalls', res.data);
+      Vue.set(state, 'numberFirewalls', parseInt(res.headers['x-total-count'], 10));
     },
 
     setFirewall: (state, res) => {
@@ -30,6 +32,15 @@ export default {
     removeFirewalls: (state, id) => {
       state.firewalls.splice(state.firewalls.findIndex((d) => d.id === id), 1);
     },
+
+    clearListFirewalls: (state) => {
+      Vue.set(state, 'Firewalls', []);
+      Vue.set(state, 'numberFirewalls', 0);
+    },
+
+    clearObjectFirewalls: (state) => {
+      Vue.set(state, 'Firewalls', []);
+    },
   },
 
   actions: {
@@ -37,14 +48,24 @@ export default {
       await postFirewall(data);
     },
 
-    fetch: async (context) => {
-      const res = await fetchFirewalls();
-      context.commit('setFirewalls', res);
+    fetch: async (context, data) => {
+      try {
+        const res = await fetchFirewalls(data.perPage, data.page);
+        context.commit('setFirewalls', res);
+      } catch (error) {
+        context.commit('clearListFirewalls');
+        throw error;
+      }
     },
 
     get: async (context, id) => {
-      const res = await getFirewall(id);
-      context.commit('setFirewall', res);
+      try {
+        const res = await getFirewall(id);
+        context.commit('setFirewall', res);
+      } catch (error) {
+        context.commit('clearObjectFirewalls');
+        throw error;
+      }
     },
 
     put: async (context, data) => {
