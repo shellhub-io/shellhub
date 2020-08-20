@@ -130,7 +130,7 @@
               <ValidationProvider
                 v-slot="{ errors }"
                 name="Priority"
-                rules="required|password"
+                rules="required"
                 vid="currentPassword"
               >
                 <v-text-field
@@ -272,16 +272,19 @@ export default {
       }
     },
 
-    updateData() {
+    async updateData() {
       const data = {
         username: this.username,
         email: this.email,
       };
 
-      this.$store.dispatch('users/put', data);
-      this.$store.dispatch('auth/changeUserData', data);
-
-      this.enableEdit();
+      try {
+        await this.$store.dispatch('users/put', data);
+        this.$store.dispatch('auth/changeUserData', data);
+        this.enableEdit();
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
 
     async updatePassword() {
