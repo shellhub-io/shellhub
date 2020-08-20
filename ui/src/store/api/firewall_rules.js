@@ -9,7 +9,7 @@ export const postFirewall = async (data) => http().post('/firewall/rules', {
   hostname: data.hostname,
 });
 
-export const fetchFirewalls = async () => http().get('/firewall/rules');
+export const fetchFirewalls = async (perPage, page) => http().get(`/firewall/rules?per_page=${perPage}&page=${page}`);
 
 export const getFirewall = async (id) => http().get(`/firewall/rules/${id}`);
 
