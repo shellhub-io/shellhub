@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/parnurzeal/gorequest"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -27,7 +28,7 @@ func NewClient(opts ...Opt) Client {
 	retryClient := retryablehttp.NewClient()
 	retryClient.HTTPClient = &http.Client{}
 	retryClient.RetryMax = math.MaxInt32
-	retryClient.Logger = nil
+	retryClient.Logger = logrus.New()
 	retryClient.CheckRetry = func(ctx context.Context, resp *http.Response, err error) (bool, error) {
 		if _, ok := err.(net.Error); ok {
 			return true, nil

@@ -117,6 +117,17 @@ func main() {
 
 	server := sshd.NewSSHServer(opts.PrivateKey, opts.KeepAliveInterval)
 
+	servername := strings.Split(info.Endpoints.SSH, ":")[0]
+
+	logrus.WithFields(logrus.Fields{
+		"server": servername,
+		"namespace": auth.Namespace,
+		"device": auth.Name,
+		"http_port": strings.Split(info.Endpoints.SSH, ":")[1],
+		"ssh_port": strings.Split(info.Endpoints.SSH, ":")[2],
+		"sshid": auth.Namespace + "." + auth.Name + "@" + servername,
+		}).Info("Server connection established")
+
 	router := mux.NewRouter()
 	router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
