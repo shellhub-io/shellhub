@@ -10,7 +10,7 @@
     "lint:no-fix": "vue-cli-service lint --no-fix"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.20.0",
     "core-js": "^3.6.5",
     "eslint-plugin-import": "^2.21.2",
     "is-valid-hostname": "0.1.0",
