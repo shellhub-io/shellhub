@@ -119,6 +119,13 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 
 		os.Chown(pts.Name(), uid, -1)
 
+		logrus.WithFields(logrus.Fields{
+			"user": session.User(),
+			"pty": pts.Name(),
+			"remoteaddr": session.RemoteAddr().String(),
+			"localaddr": session.LocalAddr().String(),
+			}).Info("Session started")
+
 		s.mu.Lock()
 		s.cmds[session.Context().Value(sshserver.ContextKeySessionID).(string)] = scmd
 		s.mu.Unlock()
@@ -126,12 +133,26 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 		if err := scmd.Wait(); err != nil {
 			logrus.Warn(err)
 		}
+
+		logrus.WithFields(logrus.Fields{
+			"user": session.User(),
+			"pty": pts.Name(),
+			"remoteaddr": session.RemoteAddr().String(),
+			"localaddr": session.LocalAddr().String(),
+			}).Info("Session ended")
 	} else {
 		u := osauth.LookupUser(session.User())
 		cmd := newCmd(u, "", "", s.deviceName, session.Command()...)
 
 		stdout, _ := cmd.StdoutPipe()
 		stdin, _ := cmd.StdinPipe()
+
+		logrus.WithFields(logrus.Fields{
+			"user": session.User(),
+			"remoteaddr": session.RemoteAddr().String(),
+			"localaddr": session.LocalAddr().String(),
+			"Raw command": session.RawCommand(),
+			}).Info("Command started")
 
 		cmd.Start()
 
@@ -148,6 +169,13 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 		}()
 
 		cmd.Wait()
+
+		logrus.WithFields(logrus.Fields{
+			"user": session.User(),
+			"remoteaddr": session.RemoteAddr().String(),
+			"localaddr": session.LocalAddr().String(),
+			"Raw command": session.RawCommand(),
+			}).Info("Command ended")
 	}
 }
 
