@@ -13,7 +13,7 @@
     "axios": "^0.19.2",
     "core-js": "^3.6.5",
     "eslint-plugin-import": "^2.21.2",
-    "is-valid-hostname": "0.0.1",
+    "is-valid-hostname": "0.1.0",
     "moment": "^2.26.0",
     "moment-duration-format": "^2.3.2",
     "v-clipboard": "^2.2.3",
