@@ -23,13 +23,13 @@
       <v-card-text class="pa-0">
         <v-data-table
           :headers="headers"
-          :items="listFirewalls"
+          :items="getFirewallRules"
           item-key="uid"
           :sort-by="['started_at']"
           :sort-desc="[true]"
           :items-per-page="10"
           :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
-          :server-items-length="numberFirewalls"
+          :server-items-length="getNumberFirewallRules"
           :options.sync="pagination"
           :disable-sort="true"
         >
@@ -100,8 +100,6 @@ export default {
 
   data() {
     return {
-      numberFirewalls: 0,
-      listFirewalls: [],
       pagination: {},
 
       headers: [
@@ -144,6 +142,16 @@ export default {
     };
   },
 
+  computed: {
+    getFirewallRules() {
+      return this.$store.getters['firewallrules/list'];
+    },
+
+    getNumberFirewallRules() {
+      return this.$store.getters['firewallrules/getNumberFirewalls'];
+    },
+  },
+
   watch: {
     pagination: {
       handler() {
@@ -159,9 +167,16 @@ export default {
     },
 
     async getFirewalls() {
-      await this.$store.dispatch('firewallrules/fetch');
-      this.listFirewalls = this.$store.getters['firewallrules/list'];
-      this.numberFirewalls = this.$store.getters['firewallrules/getNumberFirewalls'];
+      const data = {
+        perPage: this.pagination.itemsPerPage,
+        page: this.pagination.page,
+      };
+
+      try {
+        await this.$store.dispatch('firewallrules/fetch', data);
+      } catch {
+        this.$store.dispatch('modals/showSnackbarError', true);
+      }
     },
   },
 };
