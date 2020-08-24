@@ -58,21 +58,33 @@
           <div class="overline">
             UID
           </div>
-          <div>{{ device.uid }}</div>
+          <div
+            data-test="deviceUid-field"
+          >
+            {{ device.uid }}
+          </div>
         </div>
 
         <div class="mt-2">
           <div class="overline">
             MAC
           </div>
-          <code v-if="device.identity">{{ device.identity['mac'] }}</code>
+          <code
+            v-if="device.identity"
+            data-test="deviceMac-field"
+          >
+            {{ device.identity['mac'] }}
+          </code>
         </div>
 
         <div class="mt-2">
           <div class="overline">
             Operating System
           </div>
-          <div v-if="device.info">
+          <div
+            v-if="device.info"
+            data-test="devicePrettyName-field"
+          >
             <DeviceIcon :icon-name="device.info.id" />
             {{ device.info.pretty_name }}
           </div>
@@ -82,7 +94,11 @@
           <div class="overline">
             Last Seen
           </div>
-          <div>{{ convertDate }}</div>
+          <div
+            data-test="deviceConvertDate-field"
+          >
+            {{ convertDate }}
+          </div>
         </div>
       </v-card-text>
     </v-card>

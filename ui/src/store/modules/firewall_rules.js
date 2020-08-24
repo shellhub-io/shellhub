@@ -20,7 +20,6 @@ export default {
 
   mutations: {
     setFirewalls: (state, res) => {
-      console.log(res);
       Vue.set(state, 'firewalls', res.data);
       Vue.set(state, 'numberFirewalls', parseInt(res.headers['x-total-count'], 10));
     },

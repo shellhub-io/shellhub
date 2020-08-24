@@ -31,6 +31,7 @@
           dense
           append-icon="mdi-content-copy"
           :value="command()"
+          data-test="command-field"
           @click:append="copyCommand"
         />
 

@@ -59,4 +59,16 @@ describe('DeviceDetails', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Compare data and method with store', () => {
+    expect(wrapper.vm.device.uid).toEqual('a582b47a42d');
+    expect(wrapper.vm.device.identity.mac).toEqual('00:00:00:00:00:00');
+    expect(wrapper.vm.device.info.pretty_name).toEqual('Linux Mint 19.3');
+    expect(wrapper.vm.convertDate).toEqual('Wednesday, May 20th 2020, 6:58:53 pm');
+  });
+  it('Has a elements field and compare with store', () => {
+    expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual('a582b47a42d');
+    expect(wrapper.find('[data-test="deviceMac-field"]').text()).toEqual('00:00:00:00:00:00');
+    expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual('Linux Mint 19.3');
+    expect(wrapper.find('[data-test="deviceConvertDate-field"]').text()).toEqual('Wednesday, May 20th 2020, 6:58:53 pm');
+  });
 });

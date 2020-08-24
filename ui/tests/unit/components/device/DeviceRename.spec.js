@@ -33,4 +33,8 @@ describe('DeviceRename', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Receive params in props', () => {
+    expect(wrapper.vm.name).toEqual(name);
+    expect(wrapper.vm.uid).toEqual(uid);
+  });
 });

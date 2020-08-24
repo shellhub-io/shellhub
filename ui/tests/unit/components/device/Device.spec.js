@@ -27,6 +27,10 @@ describe('Device', () => {
     actions: {
       'stats/get': () => {
       },
+      'devices/setFilter': () => {
+      },
+      'devices/refresh': () => {
+      },
     },
   });
 
@@ -43,5 +47,15 @@ describe('Device', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Has a search field and verify variable', () => {
+    expect(wrapper.find('[data-test="search-text"]').exists()).toBe(true);
+
+    wrapper.setData({ search: 'ShellHub' });
+    expect(wrapper.vm.search).toEqual('ShellHub');
+
+    const textInputSearch = wrapper.find('[data-test="search-text"]');
+    textInputSearch.element.value = 'ShellHub';
+    expect(wrapper.find('[data-test="search-text"]').element.value).toEqual('ShellHub');
   });
 });

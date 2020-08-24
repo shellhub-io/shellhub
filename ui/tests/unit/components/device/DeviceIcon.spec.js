@@ -57,7 +57,7 @@ describe('DeviceIcon', () => {
         stubs: ['fragment'],
         propsData: { iconName: iconKey },
       });
-      expect(wrapper.find('[data-cy="type-icon"]').text()).toBe(iconsMap[iconKey]);
+      expect(wrapper.find('[data-test="type-icon"]').text()).toBe(iconsMap[iconKey]);
     });
   });
 });
