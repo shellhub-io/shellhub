@@ -12,7 +12,7 @@ describe('DeviceAdd', () => {
     namespaced: true,
     state: {
       addDevice: false,
-      tenant: '',
+      tenant: '00000000',
     },
     getters: {
       'modals/addDevice': (state) => state.addDevice,
@@ -37,5 +37,8 @@ describe('DeviceAdd', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Has a command field', () => {
+    expect(wrapper.find('[data-test="command-field"]').exists()).toBe(true);
   });
 });

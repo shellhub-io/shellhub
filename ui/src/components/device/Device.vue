@@ -10,6 +10,7 @@
         class="mx-6"
         single-line
         hide-details
+        data-test="search-text"
       />
       <v-spacer />
       <DeviceAdd />
