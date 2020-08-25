@@ -39,6 +39,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: login to docker hub
+        if: "github.event_name != 'pull_request'"
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Set up Docker Buildx
@@ -47,21 +48,26 @@ jobs:
       - name: Set github reference env
         run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
 
+      - name: Set docker build option env
+        if: "github.event_name != 'pull_request'"
+        run: echo "::set-env name=BUILD_OPTION::--push"
+
       - name: build image
         if: "!contains(github.ref, 'refs/tags/v')"
         run: |
-          docker buildx build --push -f agent/Dockerfile.${{ matrix.dockerfile }} \
+          docker buildx build ${{ env.BUILD_OPTION }} -f agent/Dockerfile.${{ matrix.dockerfile }} \
             --tag shellhubio/agent:${{ github.sha }}-${{ matrix.dockerfile }} \
             --platform linux/${{ matrix.arch }} .
 
-      - name: build tagged image
-        if: contains(github.ref, 'refs/tags/v')
+      - name: build image from github tag
+        if: "contains(github.ref, 'refs/tags/v')"
         run: |
-          docker buildx build --push -f agent/Dockerfile.${{ matrix.dockerfile }} \
+          docker buildx build ${{ env.BUILD_OPTION }} -f agent/Dockerfile.${{ matrix.dockerfile }} \
             --tag shellhubio/agent:${{ env.RELEASE_VERSION }}-${{ matrix.dockerfile }} \
             --platform linux/${{ matrix.arch }} .
 
   multiarch:
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
 
