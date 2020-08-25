@@ -86,24 +86,7 @@ func (s *SSHServer) SetDeviceName(name string) {
 func (s *SSHServer) sessionHandler(session sshserver.Session) {
 	sspty, winCh, isPty := session.Pty()
 
-	go func() {
-		ticker := time.NewTicker(time.Second * time.Duration(s.keepAliveInterval))
-		defer ticker.Stop()
-
-	loop:
-		for {
-			select {
-			case <-ticker.C:
-				_, err := session.SendRequest("keepalive@ssh.shellhub.io", false, nil)
-				if err != nil {
-					return
-				}
-			case <-session.Context().Done():
-				ticker.Stop()
-				break loop
-			}
-		}
-	}()
+	go StartKeepAliveLoop(time.Second*time.Duration(s.keepAliveInterval), session)
 
 	if isPty {
 		scmd := newShellCmd(s, session.User(), sspty.Term)
