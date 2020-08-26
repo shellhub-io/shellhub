@@ -44,9 +44,7 @@ func NewServer(privateKey string, keepAliveInterval int) *Server {
 	}
 
 	s.sshd = &sshserver.Server{
-		PasswordHandler: func(ctx sshserver.Context, pass string) bool {
-			return osauth.AuthUser(ctx.User(), pass)
-		},
+		PasswordHandler:  s.passwordHandler,
 		PublicKeyHandler: s.publicKeyHandler,
 		Handler:          s.sessionHandler,
 		RequestHandlers:  sshserver.DefaultRequestHandlers,
@@ -85,6 +83,13 @@ func (s *Server) SetDeviceName(name string) {
 
 func (s *Server) sessionHandler(session sshserver.Session) {
 	sspty, winCh, isPty := session.Pty()
+
+	log := logrus.WithFields(logrus.Fields{
+		"user": session.User(),
+		"pty":  isPty,
+	})
+
+	log.Info("New session request")
 
 	go StartKeepAliveLoop(time.Second*time.Duration(s.keepAliveInterval), session)
 
@@ -160,6 +165,22 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"Raw command": session.RawCommand(),
 			}).Info("Command ended")
 	}
+}
+
+func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
+	log := logrus.WithFields(logrus.Fields{
+		"user": ctx.User(),
+	})
+
+	ok := osauth.AuthUser(ctx.User(), pass)
+
+	if ok {
+		log.Info("Accepted password")
+	} else {
+		log.Info("Failed password")
+	}
+
+	return ok
 }
 
 func (s *Server) publicKeyHandler(_ sshserver.Context, _ sshserver.PublicKey) bool {
