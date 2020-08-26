@@ -12,6 +12,7 @@ import (
 	"time"
 
 	sshserver "github.com/gliderlabs/ssh"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -27,6 +28,10 @@ type Session struct {
 	UID           string            `json:"uid"`
 	IPAddress     string            `json:"ip_address"`
 	Authenticated bool              `json:"authenticated"`
+}
+
+type ConfigOptions struct {
+	RecordURL string `envconfig:"record_url"`
 }
 
 func NewSession(target string, session sshserver.Session) (*Session, error) {
@@ -108,6 +113,9 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 }
 
 func (s *Session) connect(passwd string, session sshserver.Session, conn net.Conn) error {
+	opts := ConfigOptions{}
+	err := envconfig.Process("", &opts)
+
 	config := &ssh.ClientConfig{
 		User: s.User,
 		Auth: []ssh.AuthMethod{
@@ -177,17 +185,17 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 			n, err := stdout.Read(buf)
 			waitingString := ""
 			if err == nil {
-					waitingString = string(buf[:n])
-					var sessionRecord struct {
-						Record string `json:"record"`
-						Height int    `json:"height"`
-						Width  int    `json:"width"`
-					}
-					sessionRecord.Record = waitingString
-					sessionRecord.Height = pty.Window.Height
-					sessionRecord.Width = pty.Window.Width
-					_, _, _ = gorequest.New().Post(fmt.Sprintf("http://api:8080/internal/sessions/%s/record", s.UID)).Send(sessionRecord).End()
-					waitingString = ""
+				waitingString = string(buf[:n])
+				var sessionRecord struct {
+					Record string `json:"record"`
+					Height int    `json:"height"`
+					Width  int    `json:"width"`
+				}
+				sessionRecord.Record = waitingString
+				sessionRecord.Height = pty.Window.Height
+				sessionRecord.Width = pty.Window.Width
+				_, _, _ = gorequest.New().Post(fmt.Sprintf("http://"+opts.RecordURL+"/internal/sessions/%s/record", s.UID)).Send(sessionRecord).End()
+				waitingString = ""
 			}
 			for {
 				bufReader := bytes.NewReader(buf[:n])
@@ -210,7 +218,7 @@ func (s *Session) connect(passwd string, session sshserver.Session, conn net.Con
 				sessionRecord.Record = waitingString
 				sessionRecord.Height = pty.Window.Height
 				sessionRecord.Width = pty.Window.Width
-				_, _, _ = gorequest.New().Post(fmt.Sprintf("http://api:8080/internal/sessions/%s/record", s.UID)).Send(sessionRecord).End()
+				_, _, _ = gorequest.New().Post(fmt.Sprintf("http://"+opts.RecordURL+"/internal/sessions/%s/record", s.UID)).Send(sessionRecord).End()
 				waitingString = ""
 			}
 		}()
