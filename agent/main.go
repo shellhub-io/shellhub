@@ -157,6 +157,8 @@ func main() {
 				continue
 			}
 
+			logrus.WithFields(logrus.Fields{"server": serverURL}).Info("Connected to secure reverse tunnel")
+
 			if err := sv.Serve(listener); err != nil {
 				continue
 			}
