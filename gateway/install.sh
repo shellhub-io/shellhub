@@ -30,13 +30,13 @@ $SUDO docker run -d \
        -v /var/run/docker.sock:/var/run/docker.sock \
        -v /etc/passwd:/etc/passwd \
        -v /etc/group:/etc/group \
-       -e SERVER_ADDRESS={{scheme}}://{{host}} \
-       -e PRIVATE_KEY=/host/etc/shellhub.key \
-       -e TENANT_ID={{tenant_id}} \
+       -e SHELLHUB_SERVER_ADDRESS={{scheme}}://{{host}} \
+       -e SHELLHUB_PRIVATE_KEY=/host/etc/shellhub.key \
+       -e SHELLHUB_TENANT_ID={{tenant_id}} \
        {% if keepalive_interval ~= '' and keepalive_interval ~= nil then %}
-       -e KEEPALIVE_INTERVAL={{keepalive_interval}} \
+       -e SHELLHUB_KEEPALIVE_INTERVAL={{keepalive_interval}} \
        {% end %}
-       {% if device_hostname ~= '' and device_hostname ~= nil then %}
-       -e DEVICE_HOSTNAME={{device_hostname}} \
+       {% if preferred_hostname ~= '' and preferred_hostname ~= nil then %}
+       -e SHELLHUB_PREFERRED_HOSTNAME={{preferred_hostname}} \
        {% end %}
        shellhubio/agent:{{version}}

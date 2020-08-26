@@ -32,7 +32,7 @@ type ConfigOptions struct {
 	PrivateKey        string `envconfig:"private_key"`
 	TenantID          string `envconfig:"tenant_id"`
 	KeepAliveInterval int    `envconfig:"keepalive_interval" default:"30"`
-	DeviceHostname    string `envconfig:"device_hostname"`
+	PreferredHostname string `envconfig:"preferred_hostname"`
 }
 
 type Information struct {
@@ -42,8 +42,12 @@ type Information struct {
 func main() {
 	opts := ConfigOptions{}
 
-	err := envconfig.Process("", &opts)
-	if err != nil {
+	// Process unprefixed env vars for backward compatibility
+	if err := envconfig.Process("", &opts); err != nil {
+		logrus.Panic(err)
+	}
+
+	if err := envconfig.Process("shellhub", &opts); err != nil {
 		logrus.Panic(err)
 	}
 
@@ -100,7 +104,7 @@ func main() {
 		Info:     agent.Info,
 		Sessions: []string{},
 		DeviceAuth: &models.DeviceAuth{
-			Hostname:  opts.DeviceHostname,
+			Hostname:  opts.PreferredHostname,
 			Identity:  agent.Identity,
 			TenantID:  opts.TenantID,
 			PublicKey: string(keygen.EncodePublicKeyToPem(agent.pubKey)),
@@ -186,7 +190,7 @@ func main() {
 			Info:     agent.Info,
 			Sessions: sessions,
 			DeviceAuth: &models.DeviceAuth{
-				Hostname:  opts.DeviceHostname,
+				Hostname:  opts.PreferredHostname,
 				Identity:  agent.Identity,
 				TenantID:  opts.TenantID,
 				PublicKey: string(keygen.EncodePublicKeyToPem(agent.pubKey)),
