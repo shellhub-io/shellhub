@@ -131,7 +131,7 @@ export default {
         this.$emit('newHostname', this.editName);
         this.editName = '';
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.deviceRename);
       }
     },
   },

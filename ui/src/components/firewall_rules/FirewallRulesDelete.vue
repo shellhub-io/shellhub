@@ -72,7 +72,7 @@ export default {
         await this.$store.dispatch('firewallrules/remove', this.id);
         this.dialog = false;
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.firewallRuleDeleting);
       }
     },
   },

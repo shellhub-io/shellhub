@@ -150,7 +150,7 @@ export default {
         this.show = !this.hasDevicesRegistered;
       }
     } catch {
-      this.$store.dispatch('modals/showSnackbarError', true);
+      this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.dashboard);
     }
   },
 

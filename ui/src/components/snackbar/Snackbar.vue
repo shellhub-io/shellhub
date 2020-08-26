@@ -1,10 +1,11 @@
 <template>
   <fragment>
     <snackbarSuccess
-      :type-message="typeMessage"
+      :type-message="message.typeMessage"
     />
     <snackbarError
-      :type-message="typeMessage"
+      :type-message="message.typeMessage"
+      :main-content="message.typeContent"
     />
   </fragment>
 </template>
@@ -22,14 +23,11 @@ export default {
     snackbarError,
   },
 
-  props: {
-    typeMessage: {
-      type: String,
-      default: 'default',
-      validator: (value) => ['default'].includes(value),
+  computed: {
+    message() {
+      return this.$store.getters['modals/SnackbarMessageAndContentType'];
     },
   },
-
 };
 
 </script>

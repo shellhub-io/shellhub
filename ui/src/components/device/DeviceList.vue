@@ -182,7 +182,7 @@ export default {
       try {
         await this.$store.dispatch('devices/fetch', data);
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.deviceList);
       }
     },
 

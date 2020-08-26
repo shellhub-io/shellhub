@@ -113,7 +113,7 @@ export default {
       try {
         this.$store.dispatch('notifications/fetch');
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.notificationList);
       }
     },
 
