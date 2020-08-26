@@ -115,7 +115,7 @@ func main() {
 		return
 	}
 
-	server := sshd.NewSSHServer(opts.PrivateKey, opts.KeepAliveInterval)
+	server := sshd.NewServer(opts.PrivateKey, opts.KeepAliveInterval)
 
 	servername := strings.Split(info.Endpoints.SSH, ":")[0]
 
