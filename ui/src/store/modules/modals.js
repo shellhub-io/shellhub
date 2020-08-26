@@ -8,6 +8,7 @@ export default {
     addDevice: false,
     snackbarError: false,
     snackbarSuccess: false,
+    SnackbarMessageAndContentType: { typeMessage: '', typeContent: '' },
   },
 
   getters: {
@@ -15,6 +16,7 @@ export default {
     addDevice: (state) => state.addDevice,
     snackbarSuccess: (state) => state.snackbarSuccess,
     snackbarError: (state) => state.snackbarError,
+    SnackbarMessageAndContentType: (state) => state.SnackbarMessageAndContentType,
   },
 
   mutations: {
@@ -30,8 +32,18 @@ export default {
       Vue.set(state, 'snackbarSuccess', data);
     },
 
-    setSnackbarError: (state, data) => {
-      Vue.set(state, 'snackbarError', data);
+    setSnackbarErrorLoadingOrAction: (state, data) => {
+      Vue.set(state, 'SnackbarMessageAndContentType', { typeMessage: data.typeMessage, typeContent: data.typeContent });
+      Vue.set(state, 'snackbarError', true);
+    },
+
+    setSnackbarErrorDefault: (state) => {
+      Vue.set(state, 'SnackbarMessageAndContentType', { typeMessage: 'default', typeContent: '' });
+      Vue.set(state, 'snackbarError', true);
+    },
+
+    unsetSnackbarError: (state) => {
+      Vue.set(state, 'snackbarError', false);
     },
   },
 
@@ -44,12 +56,26 @@ export default {
       context.commit('setAddDevice', value);
     },
 
-    showSnackbarError: (context, value) => {
-      context.commit('setSnackbarError', value);
-    },
-
     showSnackbarSuccess: (context, value) => {
       context.commit('setSnackbarSuccess', value);
+    },
+
+    showSnackbarErrorLoading: (context, value) => {
+      const data = { typeMessage: 'loading', typeContent: value };
+      context.commit('setSnackbarErrorLoadingOrAction', data);
+    },
+
+    showSnackbarErrorAction: (context, value) => {
+      const data = { typeMessage: 'action', typeContent: value };
+      context.commit('setSnackbarErrorLoadingOrAction', data);
+    },
+
+    showSnackbarErrorDefault: (context, data) => {
+      context.commit('setSnackbarErrorDefault', data);
+    },
+
+    unsetShowStatusSnackbarError: (context) => {
+      context.commit('unsetSnackbarError');
     },
   },
 };

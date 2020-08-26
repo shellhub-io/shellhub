@@ -192,22 +192,26 @@ export default {
     async openPlay() {
       if (this.auth) {
         // receive data
-        await this.$store.dispatch('sessions/getLogSession', this.uid);
-        this.logs = this.$store.getters['sessions/get'];
-        this.totalLength = this.getDisplaySliderInfo(null).intervalLength;
-        this.endTimerDisplay = this.getDisplaySliderInfo(null).display;
-        this.getTimerNow = this.getDisplaySliderInfo(this.currentTime).display;
-        this.frames = this.createFrames();
+        try {
+          await this.$store.dispatch('sessions/getLogSession', this.uid);
+          this.logs = this.$store.getters['sessions/get'];
+          this.totalLength = this.getDisplaySliderInfo(null).intervalLength;
+          this.endTimerDisplay = this.getDisplaySliderInfo(null).display;
+          this.getTimerNow = this.getDisplaySliderInfo(this.currentTime).display;
+          this.frames = this.createFrames();
 
-        this.xterm = new Terminal({ // instantiate Terminal
-          cursorBlink: true,
-          fontFamily: 'monospace',
-        });
+          this.xterm = new Terminal({ // instantiate Terminal
+            cursorBlink: true,
+            fontFamily: 'monospace',
+          });
 
-        this.fitAddon = new FitAddon(); // load fit
-        this.xterm.loadAddon(this.fitAddon); // adjust screen in container
-        if (this.xterm.element) {
-          this.xterm.reset();
+          this.fitAddon = new FitAddon(); // load fit
+          this.xterm.loadAddon(this.fitAddon); // adjust screen in container
+          if (this.xterm.element) {
+            this.xterm.reset();
+          }
+        } catch {
+          this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.sessionPlay);
         }
       }
     },

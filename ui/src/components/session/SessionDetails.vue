@@ -222,7 +222,7 @@ export default {
     } catch (error) {
       this.hide = false;
       this.dialog = true;
-      this.$store.dispatch('modals/showSnackbarError', true);
+      this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.sessionDetails);
     }
   },
 
@@ -238,7 +238,7 @@ export default {
         await this.$store.dispatch('sessions/get', this.uid);
         this.session = this.$store.getters['sessions/get'];
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.sessionDetails);
       }
     },
 

@@ -182,7 +182,7 @@ export default {
     } catch (error) {
       this.hide = false;
       this.dialogError = true;
-      this.$store.dispatch('modals/showSnackbarError', true);
+      this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.deviceDetails);
     }
   },
 

@@ -243,7 +243,7 @@ export default {
         await this.$store.dispatch('firewallrules/post', this.ruleFirewallLocal);
         this.update();
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.firewallRuleCreating);
       }
     },
 
@@ -252,7 +252,7 @@ export default {
         await this.$store.dispatch('firewallrules/put', this.ruleFirewallLocal);
         this.update();
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.firewallRuleEditing);
       }
     },
 

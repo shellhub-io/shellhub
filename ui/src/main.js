@@ -6,6 +6,7 @@ import App from './App';
 import router from './router';
 import store from './store';
 import env from './env';
+import errors from './errors';
 import './vee-validate';
 import vuetify from './plugins/vuetify';
 
@@ -16,6 +17,7 @@ Vue.component('Snackbar', Snackbar);
 Vue.use(require('vue-moment'));
 
 Vue.use(env);
+Vue.use(errors);
 
 new Vue({
   vuetify,

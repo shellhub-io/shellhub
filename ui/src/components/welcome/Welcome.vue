@@ -251,10 +251,14 @@ export default {
 
     pollingDevices() {
       this.polling = setInterval(async () => {
-        await this.$store.dispatch('stats/get', {});
-        this.enable = this.checkDevice();
-        if (this.enable) {
-          this.e1 = 3;
+        try {
+          await this.$store.dispatch('stats/get', {});
+          this.enable = this.checkDevice();
+          if (this.enable) {
+            this.e1 = 3;
+          }
+        } catch {
+          this.$store.dispatch('modals/showSnackbarErrorDefault');
         }
       }, 3000);
     },
@@ -265,12 +269,16 @@ export default {
 
     acceptDevice() {
       const device = this.$store.getters['devices/getFirstPending'];
-      this.$store.dispatch('devices/accept', device.uid);
+      try {
+        this.$store.dispatch('devices/accept', device.uid);
 
-      this.$store.dispatch('notifications/fetch');
-      this.$store.dispatch('stats/get');
+        this.$store.dispatch('notifications/fetch');
+        this.$store.dispatch('stats/get');
 
-      this.e1 = 4;
+        this.e1 = 4;
+      } catch {
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.deviceAccepting);
+      }
     },
   },
 };

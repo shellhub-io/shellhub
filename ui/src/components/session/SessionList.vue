@@ -239,7 +239,7 @@ export default {
         this.listSessions = this.$store.getters['sessions/list'];
         this.numberSessions = this.$store.getters['sessions/getNumberSessions'];
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.sessionList);
       }
     },
   },

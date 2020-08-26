@@ -87,7 +87,7 @@ export default {
         this.dialog = false;
         this.$emit('update');
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.sessionClose);
       }
     },
   },

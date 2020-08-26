@@ -283,7 +283,7 @@ export default {
         this.$store.dispatch('auth/changeUserData', data);
         this.enableEdit();
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorDefault');
       }
     },
 
@@ -298,7 +298,7 @@ export default {
         this.$store.dispatch('modals/showSnackbarSuccess', true);
         this.enableEdit();
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorDefault');
       }
     },
   },

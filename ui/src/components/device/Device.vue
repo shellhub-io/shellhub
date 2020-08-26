@@ -101,7 +101,7 @@ export default {
     try {
       await this.$store.dispatch('stats/get');
     } catch {
-      this.$store.dispatch('modals/showSnackbarError', true);
+      this.$store.dispatch('modals/showSnackbarErrorDefault');
     }
   },
 
@@ -118,7 +118,12 @@ export default {
         encodedFilter = btoa(JSON.stringify(filter));
       }
       await this.$store.dispatch('devices/setFilter', encodedFilter);
-      this.$store.dispatch('devices/refresh');
+
+      try {
+        this.$store.dispatch('devices/refresh');
+      } catch {
+        this.$store.dispatch('modals/showSnackbarErrorDefault');
+      }
     },
 
     formatSortObject(field, isDesc) {
