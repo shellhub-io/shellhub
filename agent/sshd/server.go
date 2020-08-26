@@ -27,7 +27,7 @@ func (c *sshConn) Close() error {
 	return c.Conn.Close()
 }
 
-type SSHServer struct {
+type Server struct {
 	sshd              *sshserver.Server
 	cmds              map[string]*exec.Cmd
 	Sessions          map[string]net.Conn
@@ -36,8 +36,8 @@ type SSHServer struct {
 	keepAliveInterval int
 }
 
-func NewSSHServer(privateKey string, keepAliveInterval int) *SSHServer {
-	s := &SSHServer{
+func NewServer(privateKey string, keepAliveInterval int) *Server {
+	s := &Server{
 		cmds:              make(map[string]*exec.Cmd),
 		Sessions:          make(map[string]net.Conn),
 		keepAliveInterval: keepAliveInterval,
@@ -71,19 +71,19 @@ func NewSSHServer(privateKey string, keepAliveInterval int) *SSHServer {
 	return s
 }
 
-func (s *SSHServer) ListenAndServe() error {
+func (s *Server) ListenAndServe() error {
 	return s.sshd.ListenAndServe()
 }
 
-func (s *SSHServer) HandleConn(conn net.Conn) {
+func (s *Server) HandleConn(conn net.Conn) {
 	s.sshd.HandleConn(conn)
 }
 
-func (s *SSHServer) SetDeviceName(name string) {
+func (s *Server) SetDeviceName(name string) {
 	s.deviceName = name
 }
 
-func (s *SSHServer) sessionHandler(session sshserver.Session) {
+func (s *Server) sessionHandler(session sshserver.Session) {
 	sspty, winCh, isPty := session.Pty()
 
 	go StartKeepAliveLoop(time.Second*time.Duration(s.keepAliveInterval), session)
@@ -162,18 +162,18 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 	}
 }
 
-func (s *SSHServer) publicKeyHandler(_ sshserver.Context, _ sshserver.PublicKey) bool {
+func (s *Server) publicKeyHandler(_ sshserver.Context, _ sshserver.PublicKey) bool {
 	return true
 }
 
-func (s *SSHServer) CloseSession(id string) {
+func (s *Server) CloseSession(id string) {
 	if session, ok := s.Sessions[id]; ok {
 		session.Close()
 		delete(s.Sessions, id)
 	}
 }
 
-func newShellCmd(s *SSHServer, username, term string) *exec.Cmd {
+func newShellCmd(s *Server, username, term string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
 	u := osauth.LookupUser(username)
