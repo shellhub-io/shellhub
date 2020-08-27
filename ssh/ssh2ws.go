@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"strconv"
 	"time"
+	"unicode/utf8"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/websocket"
@@ -79,7 +81,11 @@ func HandlerWebsocket(ws *websocket.Conn) {
 	doneCh := make(chan bool)
 
 	go copyWorker(sshIn, ws, doneCh)
-	go copyWorker(ws, sshOut, doneCh)
+
+	go func() {
+		redirToWs(sshOut, ws)
+		doneCh <- true
+	}()
 
 	conn := &wsconn{
 		pinger: time.NewTicker(pingInterval),
@@ -95,6 +101,48 @@ func HandlerWebsocket(ws *websocket.Conn) {
 	ws.Close()
 
 	<-doneCh
+}
+
+func redirToWs(rd io.Reader, ws *websocket.Conn) error {
+	var buf [32 * 1024]byte
+	var start, end, buflen int
+
+	for {
+		nr, err := rd.Read(buf[start:])
+		if err != nil {
+			return err
+		}
+
+		buflen = start + nr
+		for end = buflen - 1; end >= 0; end-- {
+			if utf8.RuneStart(buf[end]) {
+				ch, width := utf8.DecodeRune(buf[end:buflen])
+				if ch != utf8.RuneError {
+					end += width
+				}
+				break
+			}
+
+			if buflen-end >= 6 {
+				end = nr
+				break
+			}
+		}
+
+		_, err = ws.Write([]byte(string(bytes.Runes(buf[0:end]))))
+
+		start = buflen - end
+
+		if start > 0 {
+			// copy remaning read bytes from the end to the beginning of a buffer
+			// so that we will get normal bytes
+			for i := 0; i < start; i++ {
+				buf[i] = buf[end+i]
+			}
+		}
+	}
+
+	return nil
 }
 
 const pingInterval = time.Second * 30
