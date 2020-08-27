@@ -132,7 +132,6 @@
               @update="refresh"
             />
             <SessionPlay
-              v-if="hidden()"
               :recorded="item.authenticated && item.recorded"
               :uid="item.uid"
             />
@@ -242,10 +241,6 @@ export default {
       } catch {
         this.$store.dispatch('modals/showSnackbarError', true);
       }
-    },
-
-    hidden() {
-      return this.$env.isHosted;
     },
   },
 };
