@@ -1,5 +1,7 @@
 <template>
-  <fragment>
+  <fragment
+    v-if="hidden()"
+  >
     <v-tooltip bottom>
       <template v-slot:activator="{ on }">
         <v-icon
@@ -358,6 +360,10 @@ export default {
         this.iterativePrinting = setTimeout(this.print.bind(null, i + 1, logsArray),
           interval * (1 / this.defaultSpeed));
       }
+    },
+
+    hidden() {
+      return this.$env.isHosted;
     },
   },
 };

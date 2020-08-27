@@ -30,6 +30,9 @@ describe('SessionPlay', () => {
       localVue,
       stubs: ['fragment'],
       propsData: { uid, recorded },
+      mocks: {
+        $env: (isHosted) => isHosted,
+      },
     });
   });
 
