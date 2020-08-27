@@ -33,4 +33,10 @@ describe('SessionClose', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Receive uid in props', () => {
+    expect(wrapper.vm.uid).toEqual(uid);
+  });
+  it('Receive device in props', () => {
+    expect(wrapper.vm.device).toEqual(device);
+  });
 });
