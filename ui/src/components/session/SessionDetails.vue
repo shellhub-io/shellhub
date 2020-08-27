@@ -59,18 +59,28 @@
           <div class="overline">
             Uid
           </div>
-          <div>{{ session.uid }}</div>
+          <div
+            data-test="sessionUid-field"
+          >
+            {{ session.uid }}
+          </div>
         </div>
 
         <div class="mt-2">
           <div class="overline">
             User
           </div>
-          <div>{{ session.username }}</div>
+          <div
+            data-test="sessionUser-field"
+          >
+            {{ session.username }}
+          </div>
         </div>
 
         <div class="mt-2">
-          <div class="overline">
+          <div
+            class="overline"
+          >
             Authenticated
           </div>
           <v-tooltip bottom>
@@ -104,21 +114,33 @@
           <div class="overline">
             Ip Address
           </div>
-          <code>{{ session.ip_address }}</code>
+          <code
+            data-test="sessionIpAddress-field"
+          >
+            {{ session.ip_address }}
+          </code>
         </div>
 
         <div class="mt-2">
           <div class="overline">
             Started
           </div>
-          <div>{{ convertDate(session.started_at) }}</div>
+          <div
+            data-test="sessionStartedAt-field"
+          >
+            {{ convertDate(session.started_at) }}
+          </div>
         </div>
 
         <div class="mt-2">
           <div class="overline">
             Last Seen
           </div>
-          <div>{{ convertDate(session.last_seen) }}</div>
+          <div
+            data-test="sessionLastSeen-field"
+          >
+            {{ convertDate(session.last_seen) }}
+          </div>
         </div>
       </v-card-text>
 
