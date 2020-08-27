@@ -30,7 +30,10 @@
           <v-spacer />
         </v-toolbar>
 
-        <v-form @submit.prevent="login()">
+        <v-form
+          @submit.prevent="login()"
+          @keyup.native.enter="submit"
+        >
           <v-card-text>
             <v-text-field
               v-model="username"
