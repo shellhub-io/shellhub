@@ -4,10 +4,14 @@ on:
     branches-ignore:
       - 'dependabot/*'
 
+  pull_request:
+    branches-ignore:
+      - 'dependabot/*' 
+
 jobs:
   check-commit-message:
     name: Check Commit Message
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
 
       - name: Check Commit Type
@@ -15,6 +19,7 @@ jobs:
         with:
           pattern: '^[\(\)\-a-z0-9,\s]+: .+(?:\n(?:\n.+)+)?(?:\n\n.+)?$'
           error: 'Your message must have the correct format "<scope>: <subject>" with an optional body and footer separated by blank lines.'
+          excludeDescription: '1'
 
       - name: Check Title Capitalize
         uses: gsactions/commit-message-checker@v1
@@ -22,6 +27,7 @@ jobs:
           pattern: '^[^A-Z]'
           flags: ''
           error: 'Your title should not capitalize first word.'
+          excludeDescription: '1'
 
       - name: Check Title Length
         uses: gsactions/commit-message-checker@v1
@@ -29,6 +35,7 @@ jobs:
           pattern: '^[^\s]+([ \t]+[^\s]+){2,}[ \t]*(\n.*)?$'
           flags: 's'
           error: 'A meaningful title should contain at least 3 words.'
+          excludeDescription: '1'
 
       - name: Check Title Line Length
         uses: gsactions/commit-message-checker@v1
@@ -36,6 +43,7 @@ jobs:
           pattern: '^([^\n]{1,80}|Merge pull request.*)(\n.*)?$'
           flags: 's'
           error: 'The maximum title line length of 80 characters is exceeded.'
+          excludeDescription: '1'
 
       - name: Check Title Line Separator
         uses: gsactions/commit-message-checker@v1
@@ -43,6 +51,7 @@ jobs:
           pattern: '^[^\n]+(\n\n.+)?$'
           flags: 's'
           error: 'Should leave an empty line after title.'
+          excludeDescription: '1'
 
       - name: Check Line Length
         uses: gsactions/commit-message-checker@v1
@@ -50,3 +59,4 @@ jobs:
           pattern: '^[^\n]+(\n[^\n]{0,80})*$'
           flags: 's'
           error: 'The maximum line length of 80 characters is exceeded.'
+          excludeDescription: '1'
