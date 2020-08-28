@@ -59,6 +59,15 @@
       "contributions": [
         "platform"
       ]
+    },
+    {
+      "login": "gomex",
+      "name": "Rafael Gomes",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/95132?v=4",
+      "profile": "http://gomex.me",
+      "contributions": [
+        "infra"
+      ]
     }
   ],
   "contributorsPerLine": 7,
