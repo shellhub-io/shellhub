@@ -1,7 +1,4 @@
 <h1 align="center">
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
   <a href="https://shellhub.io"><img src="http://docs.shellhub.io/img/logo.png" alt="ShellHub"></a>
 </h1>
 
@@ -14,6 +11,11 @@
   <a href="https://gitter.im/shellhub-io/community">
     <img src="https://badges.gitter.im/shellhub-io/shellhub.svg">
   </a>
+  <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+   <a href="#contributors-">
+    <img src="https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square">
+  </a>
+  <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
 <p align="center">
