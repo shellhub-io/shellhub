@@ -1,0 +1,24 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "gustavosbarreto",
+      "name": "Luis Gustavo S. Barreto",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/86747?v=4",
+      "profile": "https://github.com/gustavosbarreto",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "shellhub",
+  "projectOwner": "shellhub-io",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
