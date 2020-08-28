@@ -32,6 +32,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "fbertux",
+      "name": "Fabio Berton",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/2940537?v=4",
+      "profile": "https://github.com/fbertux",
+      "contributions": [
+        "platform"
+      ]
     }
   ],
   "contributorsPerLine": 7,
