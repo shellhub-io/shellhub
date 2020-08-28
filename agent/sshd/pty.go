@@ -34,7 +34,6 @@ func openPty(c *exec.Cmd) (*os.File, *os.File, error) {
 
 	c.SysProcAttr.Setsid = true
 	c.SysProcAttr.Setctty = true
-	c.SysProcAttr.Ctty = int(tty.Fd())
 
 	if err := c.Start(); err != nil {
 		_ = ptmx.Close()
