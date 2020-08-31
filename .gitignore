@@ -5,3 +5,5 @@ ssh_private_key
 /go.sum
 /ui/node_modules/
 *.orig
+.env.override
+docker-compose.override.yml
