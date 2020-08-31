@@ -121,17 +121,6 @@ func main() {
 
 	server := sshd.NewServer(opts.PrivateKey, opts.KeepAliveInterval)
 
-	servername := strings.Split(info.Endpoints.SSH, ":")[0]
-
-	logrus.WithFields(logrus.Fields{
-		"server": servername,
-		"namespace": auth.Namespace,
-		"device": auth.Name,
-		"http_port": strings.Split(info.Endpoints.SSH, ":")[1],
-		"ssh_port": strings.Split(info.Endpoints.SSH, ":")[2],
-		"sshid": auth.Namespace + "." + auth.Name + "@" + servername,
-		}).Info("Server connection established")
-
 	router := mux.NewRouter()
 	router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -161,7 +150,13 @@ func main() {
 				continue
 			}
 
-			logrus.WithFields(logrus.Fields{"server": serverURL}).Info("Connected to secure reverse tunnel")
+			logrus.WithFields(logrus.Fields{
+				"namespace":      auth.Namespace,
+				"hostname":       auth.Name,
+				"server_address": opts.ServerAddress,
+				"ssh_server":     info.Endpoints.SSH,
+				"sshid":          auth.Namespace + "." + auth.Name + "@" + strings.Split(info.Endpoints.SSH, ":")[0],
+			}).Info("Server connection established")
 
 			if err := sv.Serve(listener); err != nil {
 				continue
