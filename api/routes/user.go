@@ -41,12 +41,15 @@ func UpdateUser(c apicontext.Context) error {
 
 	svc := user.NewService(c.Store())
 
-	if err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.CurrentPassword, req.NewPassword, tenant); err != nil {
-		if err == user.ErrUnauthorized {
+	if invalidFields, err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.CurrentPassword, req.NewPassword, tenant); err != nil {
+		switch {
+		case err == user.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
+		case err == user.ErrConflict:
+			return c.JSON(http.StatusConflict, invalidFields)
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.JSON(http.StatusOK, nil)

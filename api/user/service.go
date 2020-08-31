@@ -8,34 +8,56 @@ import (
 )
 
 var ErrUnauthorized = errors.New("unauthorized")
+var ErrConflict = errors.New("conflict")
 
 type Service interface {
-	UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) error
+	UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) ([]InvalidField, error)
 }
 
 type service struct {
 	store store.Store
 }
 
+const (
+	conflictName = "This username already exists"
+	conflictEmail = "This email already exists"
+)
+
+type InvalidField struct {
+	Name string
+	Message string
+	Kind string
+}
+
 func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) error {
+func (s *service) UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) ([]InvalidField, error) {
+	var invalidFields []InvalidField
 	user, err := s.store.GetUserByTenant(ctx, tenant)
+
 	if err != nil {
-		return err
+		return invalidFields, err
 	}
 	if newPassword != "" && user.Password != currentPassword {
-		return ErrUnauthorized
+		return invalidFields, ErrUnauthorized
 	}
+
+	var checkName, checkEmail bool
+
 	user, err = s.store.GetUserByUsername(ctx, username)
 	if err == nil && user.TenantID != tenant {
-		return ErrUnauthorized
+		checkName = true
+		invalidFields = append(invalidFields, InvalidField{"username", conflictName, "conflict"})
 	}
 	user, err = s.store.GetUserByEmail(ctx, email)
 	if err == nil && user.TenantID != tenant {
-		return ErrUnauthorized
+		checkEmail = true
+		invalidFields = append(invalidFields, InvalidField{"email", conflictEmail, "conflict"})
 	}
-	return s.store.UpdateUser(ctx, username, email, currentPassword, newPassword, tenant)
+	if checkName || checkEmail {
+		return invalidFields, ErrConflict
+	}
+	return invalidFields, s.store.UpdateUser(ctx, username, email, currentPassword, newPassword, tenant)
 }

@@ -32,7 +32,7 @@ func TestUpdateDataUser(t *testing.T) {
 	mock.On("GetUserByTenant", ctx, updateUser1.TenantID).Return(user, nil).Once()
 	mock.On("UpdateUser", ctx, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.TenantID).Return(nil).Once()
 
-	err := s.UpdateDataUser(ctx, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.TenantID)
+	_, err := s.UpdateDataUser(ctx, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.TenantID)
 
 	assert.NoError(t, err)
 	mock.AssertExpectations(t)
@@ -43,7 +43,7 @@ func TestUpdateDataUser(t *testing.T) {
 	mock.On("GetUserByTenant", ctx, updateUser2.TenantID).Return(user2, nil).Once()
 	mock.On("UpdateUser", ctx, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.TenantID).Return(nil).Once()
 
-	err = s.UpdateDataUser(ctx, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.TenantID)
+	_, err = s.UpdateDataUser(ctx, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.TenantID)
 
 	assert.NoError(t, err)
 	mock.AssertExpectations(t)
@@ -57,7 +57,7 @@ func TestUpdateDataUser(t *testing.T) {
 	mock.On("GetUserByTenant", ctx, updateUser3.TenantID).Return(user3, nil).Once()
 	mock.On("UpdateUser", ctx, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.TenantID).Return(nil).Once()
 
-	err = s.UpdateDataUser(ctx, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.TenantID)
+	_, err = s.UpdateDataUser(ctx, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.TenantID)
 
 	assert.NoError(t, err)
 	mock.AssertExpectations(t)
