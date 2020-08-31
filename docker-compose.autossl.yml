@@ -1,0 +1,12 @@
+version: '3.7'
+
+services:
+  nginx:
+    image: valian/docker-nginx-auto-ssl:1.2.0
+    restart: on-failure
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      ALLOWED_DOMAINS: '${SHELLHUB_DOMAIN}'
+      SITES: '${SHELLHUB_DOMAIN}=gateway:80'
