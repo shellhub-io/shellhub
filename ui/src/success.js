@@ -8,6 +8,8 @@ export default {
       firewallRuleCreating: 'creating rule',
       firewallRuleEditing: 'editing rule',
       firewallRuleDeleting: 'deleting rule',
+      profileData: 'updating data',
+      profilePassword: 'updating password',
     };
 
     Vue.success = success;
