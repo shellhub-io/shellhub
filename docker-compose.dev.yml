@@ -80,6 +80,10 @@ services:
   mongo:
     networks:
       - shellhub
+  autossl:
+    image: tianon/true
+    networks:
+      - shellhub
 
 networks:
   shellhub:

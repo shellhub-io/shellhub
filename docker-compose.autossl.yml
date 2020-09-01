@@ -1,9 +1,13 @@
 version: '3.7'
 
 services:
-  nginx:
+  autossl:
     image: valian/docker-nginx-auto-ssl:1.2.0
     restart: on-failure
+    depends_on:
+      - gateway
+    links:
+      - gateway
     ports:
       - 80:80
       - 443:443
