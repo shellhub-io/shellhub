@@ -241,6 +241,7 @@ export default {
     async create() {
       try {
         await this.$store.dispatch('firewallrules/post', this.ruleFirewallLocal);
+        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.firewallRuleCreating);
         this.update();
       } catch {
         this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.firewallRuleCreating);
@@ -250,6 +251,7 @@ export default {
     async edit() {
       try {
         await this.$store.dispatch('firewallrules/put', this.ruleFirewallLocal);
+        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.firewallRuleEditing);
         this.update();
       } catch {
         this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.firewallRuleEditing);

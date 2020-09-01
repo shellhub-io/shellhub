@@ -8,7 +8,7 @@
       outlined
       text
     >
-      {{ message[typeMessage] }}
+      {{ message }}
     </v-snackbar>
   </fragment>
 </template>
@@ -23,14 +23,12 @@ export default {
       type: String,
       required: true,
     },
-  },
 
-  data() {
-    return {
-      message: {
-        default: 'The request has succeeded.',
-      },
-    };
+    mainContent: {
+      type: String,
+      default: '',
+      required: false,
+    },
   },
 
   computed: {
@@ -39,9 +37,18 @@ export default {
         return this.$store.getters['modals/snackbarSuccess'];
       },
 
-      set(value) {
-        this.$store.dispatch('modals/showSnackbarSuccess', value);
+      set() {
+        this.$store.dispatch('modals/unsetShowStatusSnackbarSuccess');
       },
+    },
+
+    message() {
+      switch (this.typeMessage) {
+      case 'action':
+        return `The ${this.mainContent} has succeeded.`;
+      default:
+        return 'The request has succeeded.';
+      }
     },
   },
 };

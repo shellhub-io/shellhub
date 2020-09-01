@@ -2,6 +2,7 @@
   <fragment>
     <snackbarSuccess
       :type-message="message.typeMessage"
+      :main-content="message.typeContent"
     />
     <snackbarError
       :type-message="message.typeMessage"

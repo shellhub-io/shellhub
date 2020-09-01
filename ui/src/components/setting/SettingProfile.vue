@@ -281,6 +281,7 @@ export default {
       try {
         await this.$store.dispatch('users/put', data);
         this.$store.dispatch('auth/changeUserData', data);
+        this.$store.dispatch('modals/showSnackbarSuccessDefault');
         this.enableEdit();
       } catch {
         this.$store.dispatch('modals/showSnackbarErrorDefault');
@@ -295,7 +296,7 @@ export default {
 
       try {
         await this.$store.dispatch('users/put', data);
-        this.$store.dispatch('modals/showSnackbarSuccess', true);
+        this.$store.dispatch('modals/showSnackbarSuccessDefault');
         this.enableEdit();
       } catch {
         this.$store.dispatch('modals/showSnackbarErrorDefault');

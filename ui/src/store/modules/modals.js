@@ -28,12 +28,22 @@ export default {
       Vue.set(state, 'addDevice', data);
     },
 
-    setSnackbarSuccess: (state, data) => {
-      Vue.set(state, 'snackbarSuccess', data);
+    setSnackbarSuccessAction: (state, data) => {
+      Vue.set(state, 'SnackbarMessageAndContentType', data);
+      Vue.set(state, 'snackbarSuccess', true);
+    },
+
+    setSnackbarSuccessDefault: (state) => {
+      Vue.set(state, 'snackbarSuccess', { typeMessage: 'default', typeContent: '' });
+      Vue.set(state, 'snackbarSuccess', true);
+    },
+
+    unsetSnackbarSuccess: (state) => {
+      Vue.set(state, 'snackbarSuccess', false);
     },
 
     setSnackbarErrorLoadingOrAction: (state, data) => {
-      Vue.set(state, 'SnackbarMessageAndContentType', { typeMessage: data.typeMessage, typeContent: data.typeContent });
+      Vue.set(state, 'SnackbarMessageAndContentType', data);
       Vue.set(state, 'snackbarError', true);
     },
 
@@ -56,8 +66,17 @@ export default {
       context.commit('setAddDevice', value);
     },
 
-    showSnackbarSuccess: (context, value) => {
-      context.commit('setSnackbarSuccess', value);
+    showSnackbarSuccessAction: (context, value) => {
+      const data = { typeMessage: 'action', typeContent: value };
+      context.commit('setSnackbarSuccessAction', data);
+    },
+
+    showSnackbarSuccessDefault: (context) => {
+      context.commit('setSnackbarSuccessDefault');
+    },
+
+    unsetShowStatusSnackbarSuccess: (context) => {
+      context.commit('unsetSnackbarSuccess');
     },
 
     showSnackbarErrorLoading: (context, value) => {
@@ -70,8 +89,8 @@ export default {
       context.commit('setSnackbarErrorLoadingOrAction', data);
     },
 
-    showSnackbarErrorDefault: (context, data) => {
-      context.commit('setSnackbarErrorDefault', data);
+    showSnackbarErrorDefault: (context) => {
+      context.commit('setSnackbarErrorDefault');
     },
 
     unsetShowStatusSnackbarError: (context) => {
