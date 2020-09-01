@@ -21,6 +21,7 @@ import (
 type Service interface {
 	AuthDevice(ctx context.Context, req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error)
+	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }
 
@@ -146,6 +147,38 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 	}
 
 	return nil, errors.New("unauthorized")
+}
+
+func (s *service) AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error) {
+	user, err := s.store.GetUserByTenant(ctx, tenant)
+	if err != nil {
+		return nil, err
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
+		Username: user.Username,
+		Admin:    true,
+		Tenant:   user.TenantID,
+		AuthClaims: models.AuthClaims{
+			Claims: "user",
+		},
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+		},
+	})
+
+	tokenStr, err := token.SignedString(s.privKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.UserAuthResponse{
+		Token:  tokenStr,
+		Name:   user.Name,
+		User:   user.Username,
+		Tenant: user.TenantID,
+		Email:  user.Email,
+	}, nil
 }
 
 func (s *service) PublicKey() *rsa.PublicKey {
