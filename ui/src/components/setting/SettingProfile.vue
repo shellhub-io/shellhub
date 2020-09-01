@@ -51,7 +51,7 @@
           <v-divider />
 
           <ValidationObserver
-            ref="obs"
+            ref="data"
             v-slot="{ validated, passes }"
           >
             <div
@@ -59,6 +59,7 @@
             >
               <ValidationProvider
                 v-slot="{ errors }"
+                vid="username"
                 name="Priority"
                 rules="required"
               >
@@ -74,6 +75,7 @@
               <ValidationProvider
                 v-slot="{ errors }"
                 name="Priority"
+                vid="email"
                 rules="required|email"
               >
                 <v-text-field
@@ -118,7 +120,7 @@
           </ValidationObserver>
 
           <ValidationObserver
-            ref="obs"
+            ref="pass"
             v-slot="{ invalid, validated, passes }"
           >
             <v-divider class="mt-6" />
@@ -281,10 +283,25 @@ export default {
       try {
         await this.$store.dispatch('users/put', data);
         this.$store.dispatch('auth/changeUserData', data);
-        this.$store.dispatch('modals/showSnackbarSuccessDefault');
+        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.profileData);
         this.enableEdit();
-      } catch {
-        this.$store.dispatch('modals/showSnackbarErrorDefault');
+      } catch (error) {
+        if (error.response.status === 409) { // user data already exists
+          error.response.data.forEach((item) => {
+            if (item.Name === 'username') {
+              this.$refs.data.setErrors({
+                username: item.Message,
+              });
+            }
+            if (item.Name === 'email') {
+              this.$refs.data.setErrors({
+                email: item.Message,
+              });
+            }
+          });
+        } else {
+          this.$store.dispatch('modals/showSnackbarErrorDefault');
+        }
       }
     },
 
@@ -296,10 +313,16 @@ export default {
 
       try {
         await this.$store.dispatch('users/put', data);
-        this.$store.dispatch('modals/showSnackbarSuccessDefault');
+        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.profilePassword);
         this.enableEdit();
-      } catch {
-        this.$store.dispatch('modals/showSnackbarErrorDefault');
+      } catch (error) {
+        if (error.response.status === 403) { // failed password
+          this.$refs.pass.setErrors({
+            currentPassword: ['Your password doesn\'t match'],
+          });
+        } else {
+          this.$store.dispatch('modals/showSnackbarErrorDefault');
+        }
       }
     },
   },
