@@ -130,6 +130,7 @@ export default {
         this.dialog = false;
         this.$emit('newHostname', this.editName);
         this.editName = '';
+        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.deviceRename);
       } catch {
         this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.deviceRename);
       }
