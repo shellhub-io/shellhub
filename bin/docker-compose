@@ -15,10 +15,13 @@ set +o allexport
 COMPOSE_FILE="docker-compose.yml"
 
 [ "$SHELLHUB_AUTO_SSL" = "true" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.autossl.yml"
+[ "$SHELLHUB_ENV" = "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.dev.yml"
 [ -f docker-compose.override.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.override.yml"
 
 [ "$SHELLHUB_AUTO_SSL" = "true" ] && [ "$SHELLHUB_HTTP_PORT" != "0" ] && cat <<EOF >&2
 WARNING: When using SHELLHUB_AUTO_SSL=true you need to set SHELLHUB_HTTP_PORT=0 to avoid exposing plain HTTP service to the internet
 EOF
+
+export COMPOSE_FILE
 
 docker-compose $*
