@@ -50,6 +50,7 @@ services:
       - shellhub
   agent:
     image: agent
+    restart: on-failure
     build:
       context: .
       dockerfile: agent/Dockerfile
