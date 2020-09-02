@@ -2,11 +2,11 @@ name: 'Commit Message Check'
 on:
   push:
     branches-ignore:
-      - 'dependabot/*'
+      - 'dependabot/**'
 
   pull_request:
     branches-ignore:
-      - 'dependabot/*' 
+      - 'dependabot/**'
 
 jobs:
   check-commit-message:
