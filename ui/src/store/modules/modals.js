@@ -9,6 +9,7 @@ export default {
     snackbarError: false,
     snackbarSuccess: false,
     SnackbarMessageAndContentType: { typeMessage: '', typeContent: '' },
+    snackbarCopy: false,
   },
 
   getters: {
@@ -17,6 +18,7 @@ export default {
     snackbarSuccess: (state) => state.snackbarSuccess,
     snackbarError: (state) => state.snackbarError,
     SnackbarMessageAndContentType: (state) => state.SnackbarMessageAndContentType,
+    snackbarCopy: (state) => state.snackbarCopy,
   },
 
   mutations: {
@@ -54,6 +56,15 @@ export default {
 
     unsetSnackbarError: (state) => {
       Vue.set(state, 'snackbarError', false);
+    },
+
+    setSnackbarCopy: (state, value) => {
+      Vue.set(state, 'SnackbarMessageAndContentType', { typeMessage: '', typeContent: value });
+      Vue.set(state, 'snackbarCopy', true);
+    },
+
+    unsetSnackbarCopy: (state) => {
+      Vue.set(state, 'snackbarCopy', false);
     },
   },
 
@@ -95,6 +106,14 @@ export default {
 
     unsetShowStatusSnackbarError: (context) => {
       context.commit('unsetSnackbarError');
+    },
+
+    showSnackbarCopy: (context, value) => {
+      context.commit('setSnackbarCopy', value);
+    },
+
+    unsetShowStatusSnackbarCopy: (context) => {
+      context.commit('unsetSnackbarCopy');
     },
   },
 };

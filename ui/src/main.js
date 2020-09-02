@@ -8,6 +8,7 @@ import store from './store';
 import env from './env';
 import success from './success';
 import errors from './errors';
+import copy from './copy';
 import './vee-validate';
 import vuetify from './plugins/vuetify';
 
@@ -20,6 +21,7 @@ Vue.use(require('vue-moment'));
 Vue.use(env);
 Vue.use(success);
 Vue.use(errors);
+Vue.use(copy);
 
 new Vue({
   vuetify,

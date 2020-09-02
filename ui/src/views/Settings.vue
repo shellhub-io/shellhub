@@ -28,15 +28,6 @@
       >
         <router-view />
       </v-container>
-
-      <v-main>
-        <v-snackbar
-          v-model="copySnack"
-          :timeout="3000"
-        >
-          Tenant ID copied to clipboard
-        </v-snackbar>
-      </v-main>
     </v-card>
   </v-container>
 </template>
@@ -50,7 +41,6 @@ export default {
     return {
       drawer: true,
       clipped: false,
-      copySnack: false,
       items: [
         {
           title: 'Profile',

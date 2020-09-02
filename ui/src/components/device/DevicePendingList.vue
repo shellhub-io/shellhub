@@ -66,7 +66,6 @@ export default {
   data() {
     return {
       pagination: {},
-      copySnack: false,
       headers: [
         {
           text: 'Hostname',
