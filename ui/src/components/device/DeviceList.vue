@@ -43,7 +43,8 @@
 
         <template v-slot:item.namespace="{ item }">
           <v-chip class="list-itens">
-            {{ address(item) }}<v-icon
+            {{ address(item) }}
+            <v-icon
               v-clipboard="() => address(item)"
               v-clipboard:success="showCopySnack"
               small
@@ -81,12 +82,6 @@
         </template>
       </v-data-table>
     </v-card-text>
-    <v-snackbar
-      v-model="copySnack"
-      :timeout="3000"
-    >
-      Device SSHID copied to clipboard
-    </v-snackbar>
   </fragment>
 </template>
 <script>
@@ -111,7 +106,6 @@ export default {
     return {
       hostname: window.location.hostname,
       pagination: {},
-      copySnack: false,
       headers: [
         {
           text: 'Online',
@@ -199,7 +193,7 @@ export default {
     },
 
     showCopySnack() {
-      this.copySnack = true;
+      this.$store.dispatch('modals/showSnackbarCopy', this.$copy.deviceSSHID);
     },
 
     refresh() {

@@ -204,10 +204,6 @@ export default {
         this.attachAddon.dispose();
       };
     },
-
-    showCopySnack() {
-      this.copySnack = true;
-    },
   },
 };
 

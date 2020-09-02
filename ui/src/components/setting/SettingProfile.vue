@@ -36,7 +36,9 @@
                     </span>
                     <v-icon
                       v-clipboard="tenant"
-                      v-clipboard:success="() => { copySnack = true; }"
+                      v-clipboard:success="() => {
+                        this.$store.dispatch('modals/showSnackbarCopy', this.$copy.tenantId);
+                      }"
                       right
                     >
                       mdi-content-copy
@@ -209,12 +211,6 @@
           </ValidationObserver>
         </v-col>
       </v-row>
-      <v-snackbar
-        v-model="copySnack"
-        :timeout="3000"
-      >
-        Tenant ID copied do clipboard
-      </v-snackbar>
     </v-container>
   </v-form>
 </template>
@@ -244,7 +240,6 @@ export default {
       editDataStatus: false,
       editPasswordStatus: false,
       show: false,
-      copySnack: false,
     };
   },
 

@@ -56,13 +56,6 @@
       <v-divider />
 
       <router-view />
-
-      <v-snackbar
-        v-model="copySnack"
-        :timeout="3000"
-      >
-        Device SSHID copied to clipboard
-      </v-snackbar>
     </v-card>
   </fragment>
 </template>
@@ -80,7 +73,6 @@ export default {
 
   data() {
     return {
-      copySnack: false,
       search: '',
     };
   },
@@ -148,10 +140,6 @@ export default {
         status: formatedStatus,
         statusString: ascOrDesc,
       };
-    },
-
-    showCopySnack() {
-      this.copySnack = true;
     },
   },
 };

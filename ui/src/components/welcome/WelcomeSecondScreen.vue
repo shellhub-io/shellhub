@@ -30,12 +30,6 @@
         for more information and alternative install methods.
       </p>
     </div>
-    <v-snackbar
-      v-model="copySnack"
-      :timeout="3000"
-    >
-      Command copied to clipboard
-    </v-snackbar>
   </fragment>
 </template>
 
@@ -54,7 +48,6 @@ export default {
   data() {
     return {
       hostname: window.location.hostname,
-      copySnack: false,
       allowsUserContinue: false,
     };
   },
@@ -62,8 +55,7 @@ export default {
   methods: {
     copyCommand() {
       this.$clipboard(this.command);
-      this.copySnack = true;
-      this.$emit('expClip', this.copySnack);
+      this.$store.dispatch('modals/showSnackbarCopy', this.$copy.command);
     },
   },
 
