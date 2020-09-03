@@ -138,12 +138,6 @@
           </template>
         </v-data-table>
       </v-card-text>
-      <v-snackbar
-        v-model="sessionSnack"
-        :timeout="3000"
-      >
-        Session closed
-      </v-snackbar>
     </v-card>
   </fragment>
 </template>
@@ -163,7 +157,6 @@ export default {
 
   data() {
     return {
-      sessionSnack: false,
       numberSessions: 0,
       listSessions: [],
       pagination: {},

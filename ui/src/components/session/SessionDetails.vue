@@ -143,13 +143,6 @@
           </div>
         </div>
       </v-card-text>
-
-      <v-snackbar
-        v-model="closeSessionSnack"
-        :timeout="3000"
-      >
-        Closed session conection to the device
-      </v-snackbar>
     </v-card>
 
     <div class="text-center">
@@ -202,7 +195,6 @@ export default {
     return {
       uid: '',
       session: null,
-      closeSessionSnack: false,
       dialog: false,
       hide: true,
     };
@@ -234,7 +226,6 @@ export default {
 
     async refresh() {
       try {
-        this.closeSessionSnack = true;
         await this.$store.dispatch('sessions/get', this.uid);
         this.session = this.$store.getters['sessions/get'];
       } catch {
