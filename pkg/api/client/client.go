@@ -28,7 +28,6 @@ func NewClient(opts ...Opt) Client {
 	retryClient := retryablehttp.NewClient()
 	retryClient.HTTPClient = &http.Client{}
 	retryClient.RetryMax = math.MaxInt32
-	retryClient.Logger = logrus.New()
 	retryClient.CheckRetry = func(ctx context.Context, resp *http.Response, err error) (bool, error) {
 		if _, ok := err.(net.Error); ok {
 			return true, nil
@@ -54,6 +53,10 @@ func NewClient(opts ...Opt) Client {
 		}
 	}
 
+	if c.logger != nil {
+		retryClient.Logger = &leveledLogger{c.logger}
+	}
+
 	return c
 }
 
@@ -67,6 +70,7 @@ type client struct {
 	host   string
 	port   int
 	http   *gorequest.SuperAgent
+	logger *logrus.Logger
 }
 
 func (c *client) ListDevices() ([]models.Device, error) {

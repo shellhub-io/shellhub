@@ -3,6 +3,8 @@ package client
 import (
 	"net/url"
 	"strconv"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Opt func(*client) error
@@ -49,6 +51,13 @@ func WithHost(host string) Opt {
 func WithPort(port int) Opt {
 	return func(c *client) error {
 		c.port = port
+		return nil
+	}
+}
+
+func WithLogger(logger *logrus.Logger) Opt {
+	return func(c *client) error {
+		c.logger = logger
 		return nil
 	}
 }
