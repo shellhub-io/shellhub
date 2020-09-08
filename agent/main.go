@@ -1,27 +1,17 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/Masterminds/semver"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
 	"github.com/shellhub-io/shellhub/agent/selfupdater"
 	"github.com/shellhub-io/shellhub/agent/sshd"
-	"github.com/shellhub-io/shellhub/pkg/api/client"
-	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/revdial"
-	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	"github.com/sirupsen/logrus"
 )
 
@@ -70,95 +60,52 @@ func main() {
 		}
 	}
 
-	serverAddress, err := url.Parse(opts.ServerAddress)
+	logrus.WithFields(logrus.Fields{
+		"version": AgentVersion,
+	}).Info("Starting ShellHub")
+
+	agent, err := NewAgent(&opts)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	cli := client.NewClient(client.WithURL(serverAddress))
-
-	info, err := cli.GetInfo()
-	if err != nil {
-		logrus.WithFields(logrus.Fields{"err": err}).Fatal("Failed to get endpoints")
+	if err := agent.initialize(); err != nil {
+		logrus.WithFields(logrus.Fields{"err": err}).Fatal("Failed to initialize agent")
 	}
 
-	agent, err := NewAgent()
-	if err != nil {
-		logrus.Fatal(err)
-	}
+	sshserver := sshd.NewServer(opts.PrivateKey, opts.KeepAliveInterval)
 
-	agent.opts = &opts
-	agent.Info.Version = AgentVersion
-
-	if err := agent.generatePrivateKey(); err != nil {
-		logrus.Fatal(err)
-	}
-
-	if err := agent.readPublicKey(); err != nil {
-		logrus.Fatal(err)
-	}
-
-	serverURL, _ := url.Parse(opts.ServerAddress)
-
-	auth, err := cli.AuthDevice(&models.DeviceAuthRequest{
-		Info:     agent.Info,
-		Sessions: []string{},
-		DeviceAuth: &models.DeviceAuth{
-			Hostname:  opts.PreferredHostname,
-			Identity:  agent.Identity,
-			TenantID:  opts.TenantID,
-			PublicKey: string(keygen.EncodePublicKeyToPem(agent.pubKey)),
-		},
-	})
-
-	if err != nil {
-		logrus.WithFields(logrus.Fields{"err": err}).Panic("Failed authenticate device")
-	}
-	if l := len(os.Args); l > 1 && os.Args[1] == "info" {
-		fmt.Println(getInfo(auth.Namespace + "." + auth.Name + "@" + strings.Split(info.Endpoints.SSH, ":")[0]))
-		return
-	}
-
-	server := sshd.NewServer(opts.PrivateKey, opts.KeepAliveInterval)
-
-	router := mux.NewRouter()
-	router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
+	tunnel := NewTunnel()
+	tunnel.connHandler = func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		conn := r.Context().Value("http-conn").(net.Conn)
-		server.Sessions[vars["id"]] = conn
-		server.HandleConn(conn)
-	})
-	router.HandleFunc("/ssh/close/{id}", func(w http.ResponseWriter, r *http.Request) {
+		sshserver.Sessions[vars["id"]] = conn
+		sshserver.HandleConn(conn)
+	}
+	tunnel.closeHandler = func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		server.CloseSession(vars["id"])
-	}).Methods("DELETE")
-
-	sv := http.Server{
-		Handler: router,
-		ConnContext: func(ctx context.Context, c net.Conn) context.Context {
-			return context.WithValue(ctx, "http-conn", c)
-		},
+		sshserver.CloseSession(vars["id"])
 	}
 
-	server.SetDeviceName(auth.Name)
+	sshserver.SetDeviceName(agent.authData.Name)
 
 	go func() {
 		for {
-			listener, err := NewListener(info.Endpoints.API, serverURL.Scheme, auth.Token)
+			listener, err := agent.newReverseListener()
 			if err != nil {
 				time.Sleep(time.Second * 10)
 				continue
 			}
 
 			logrus.WithFields(logrus.Fields{
-				"namespace":      auth.Namespace,
-				"hostname":       auth.Name,
+				"namespace":      agent.authData.Namespace,
+				"hostname":       agent.authData.Name,
 				"server_address": opts.ServerAddress,
-				"ssh_server":     info.Endpoints.SSH,
-				"sshid":          auth.Namespace + "." + auth.Name + "@" + strings.Split(info.Endpoints.SSH, ":")[0],
+				"ssh_server":     agent.serverInfo.Endpoints.SSH,
+				"sshid":          agent.authData.Namespace + "." + agent.authData.Name + "@" + strings.Split(agent.serverInfo.Endpoints.SSH, ":")[0],
 			}).Info("Server connection established")
 
-			if err := sv.Serve(listener); err != nil {
+			if err := tunnel.Listen(listener); err != nil {
 				continue
 			}
 		}
@@ -168,7 +115,7 @@ func main() {
 	if AgentVersion != "latest" {
 		go func() {
 			for {
-				nextVersion, err := CheckUpdate(cli)
+				nextVersion, err := agent.checkUpdate()
 				if err != nil {
 					logrus.Error(err)
 					goto sleep
@@ -189,64 +136,15 @@ func main() {
 	ticker := time.NewTicker(time.Duration(opts.KeepAliveInterval) * time.Second)
 
 	for range ticker.C {
-		sessions := make([]string, 0, len(server.Sessions))
-		for key := range server.Sessions {
+		sessions := make([]string, 0, len(sshserver.Sessions))
+		for key := range sshserver.Sessions {
 			sessions = append(sessions, key)
 		}
 
-		auth, err := cli.AuthDevice(&models.DeviceAuthRequest{
-			Info:     agent.Info,
-			Sessions: sessions,
-			DeviceAuth: &models.DeviceAuth{
-				Hostname:  opts.PreferredHostname,
-				Identity:  agent.Identity,
-				TenantID:  opts.TenantID,
-				PublicKey: string(keygen.EncodePublicKeyToPem(agent.pubKey)),
-			},
-		})
-		if err == nil {
-			server.SetDeviceName(auth.Name)
+		agent.sessions = sessions
+
+		if err := agent.authorize(); err != nil {
+			sshserver.SetDeviceName(agent.authData.Name)
 		}
 	}
-}
-
-func NewListener(host, protocol, token string) (*revdial.Listener, error) {
-	req, _ := http.NewRequest("GET", "", nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-
-	protocol = strings.Replace(protocol, "http", "ws", 1)
-	wsConn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("%s://%s/ssh/connection", protocol, host), req.Header)
-	if err != nil {
-		return nil, err
-	}
-
-	listener := revdial.NewListener(wsconnadapter.New(wsConn), func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
-		return Revdial(ctx, protocol, host, path)
-	})
-
-	return listener, nil
-}
-
-func Revdial(ctx context.Context, protocol, address, path string) (*websocket.Conn, *http.Response, error) {
-	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s", protocol, address), path}, ""), nil)
-}
-
-func CheckUpdate(cli client.Client) (*semver.Version, error) {
-	info, err := cli.GetInfo()
-	if err != nil {
-		return nil, err
-	}
-
-	return semver.NewVersion(info.Version)
-}
-
-func getInfo(input string) string {
-	info := Information{
-		SSHID: input,
-	}
-	prettyJSON, err := json.MarshalIndent(info, "", "    ")
-	if err != nil {
-		logrus.WithFields(logrus.Fields{"err": err}).Fatal("Failed to generate json")
-	}
-	return string(prettyJSON)
 }

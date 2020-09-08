@@ -8,18 +8,22 @@ require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
 	github.com/creack/pty v1.1.11
+	github.com/davecgh/go-spew v1.1.1
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v0.0.0-20190404075923-dbe4a30928d4
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/elazarl/goproxy v0.0.0-20200426045556-49ad98f6dac1 // indirect
+	github.com/fatih/color v1.9.0 // indirect
 	github.com/gliderlabs/ssh v0.3.0
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
+	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/kr/pretty v0.2.1
 	github.com/mattn/go-shellwords v1.0.10
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
