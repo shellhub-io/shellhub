@@ -193,7 +193,8 @@ func (s *Store) DeleteDevice(ctx context.Context, uid models.UID) error {
 		return err
 	}
 
-	return nil
+	_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
+	return err
 }
 
 func (s *Store) AddDevice(ctx context.Context, d models.Device, hostname string) error {
