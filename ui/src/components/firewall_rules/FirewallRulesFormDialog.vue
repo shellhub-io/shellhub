@@ -260,11 +260,12 @@ export default {
 
     update() {
       this.$emit('update');
-      this.dialog = !this.dialog;
+      this.close();
     },
 
     close() {
       this.dialog = !this.dialog;
+      this.$refs.obs.reset();
     },
   },
 };
