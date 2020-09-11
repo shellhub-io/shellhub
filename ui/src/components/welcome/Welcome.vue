@@ -238,6 +238,7 @@ export default {
           this.enable = this.checkDevice();
           if (this.enable) {
             this.e1 = 3;
+            clearTimeout(this.polling);
           }
         } catch {
           this.$store.dispatch('modals/showSnackbarErrorDefault');
