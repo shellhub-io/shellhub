@@ -32,7 +32,6 @@
 
         <v-form
           @submit.prevent="login()"
-          @keyup.native.enter="submit"
         >
           <v-card-text>
             <v-text-field
@@ -51,6 +50,7 @@
               label="Password"
               type="password"
               data-test="password-text"
+              @keyup.enter="login()"
             />
           </v-card-text>
 
