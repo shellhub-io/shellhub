@@ -166,7 +166,9 @@ export default {
     },
 
     initialState() {
-      return this.stats.registered_devices !== 0;
+      return this.stats.registered_devices !== 0
+        || this.stats.pending_devices !== 0
+        || this.stats.rejected_devices !== 0;
     },
   },
 };
