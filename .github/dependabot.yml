@@ -4,13 +4,13 @@ updates:
 - package-ecosystem: npm
   directory: "/ui"
   schedule:
-    interval: daily
+    interval: weekly
   commit-message:
     prefix: "ui"
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
-    interval: daily
+    interval: weekly
   commit-message:
     prefix: "agent"
   ignore:
@@ -18,7 +18,7 @@ updates:
 - package-ecosystem: gomod
   directory: "/api"
   schedule:
-    interval: daily
+    interval: weekly
   commit-message:
     prefix: "api"
   ignore:
@@ -26,7 +26,7 @@ updates:
 - package-ecosystem: gomod
   directory: "/ssh"
   schedule:
-    interval: daily
+    interval: weekly
   commit-message:
     prefix: "ssh"
   ignore:
