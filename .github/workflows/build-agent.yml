@@ -64,6 +64,7 @@ jobs:
         run: |
           docker buildx build ${{ env.BUILD_OPTION }} -f agent/Dockerfile.${{ matrix.dockerfile }} \
             --tag shellhubio/agent:${{ env.RELEASE_VERSION }}-${{ matrix.dockerfile }} \
+            --build-arg SHELLHUB_VERSION=${{ env.RELEASE_VERSION }} \
             --platform linux/${{ matrix.arch }} .
 
   multiarch:
