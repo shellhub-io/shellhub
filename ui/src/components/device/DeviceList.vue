@@ -158,6 +158,10 @@ export default {
     },
   },
 
+  mounted() {
+    this.$store.dispatch('devices/resetListDevices');
+  },
+
   methods: {
     async getDevices() {
       let sortStatusMap = {};

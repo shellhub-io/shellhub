@@ -144,5 +144,9 @@ export default {
         throw error;
       }
     },
+
+    resetListDevices: async (context) => {
+      context.commit('clearListDevices');
+    },
   },
 };
