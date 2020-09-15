@@ -28,6 +28,12 @@ func (f *Filter) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		f.Params = &property
+	case "int_property":
+		var property IntParams
+		if err := json.Unmarshal(params, &property); err != nil {
+			return err
+		}
+		f.Params = &property
 	case "operator":
 		var operator OperatorParams
 		if err := json.Unmarshal(params, &operator); err != nil {
@@ -45,6 +51,12 @@ type PropertyParams struct {
 	Name     string `json:"name"`
 	Operator string `json:"operator"`
 	Value    string `json:"value"`
+}
+
+type IntParams struct {
+	Name     string `json:"name"`
+	Operator string `json:"operator"`
+	Value    int    `json:"value"`
 }
 
 type OperatorParams struct {

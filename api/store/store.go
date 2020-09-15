@@ -38,5 +38,5 @@ type Store interface {
 	GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
 	UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
 	UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) error
-	ListUsers(ctx context.Context, pagination paginator.Query) ([]models.User, int, error)
+	ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error)
 }

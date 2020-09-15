@@ -10,6 +10,8 @@ type User struct {
 	Username string `json:"username" bson:",omitempty"`
 	Password string `json:"password" bson:",omitempty"`
 	TenantID string `json:"tenant_id" bson:"tenant_id"`
+	Devices  int    `json:"devices" bson:",omitempty"`
+	Sessions int    `json:"sessions" bson:",omitempty"`
 }
 
 type UserAuthRequest struct {
