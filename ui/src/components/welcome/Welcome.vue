@@ -1,11 +1,11 @@
 <template>
-  <v-dialog
-    v-model="show"
-    :retain-focus="false"
-    max-width="800px"
-    persistent
-  >
-    <v-card>
+  <v-card>
+    <v-dialog
+      v-model="show"
+      :retain-focus="false"
+      max-width="800px"
+      persistent
+    >
       <v-stepper v-model="e1">
         <v-stepper-header>
           <v-stepper-step
@@ -52,14 +52,14 @@
             <v-card-actions>
               <v-btn
                 text
-                @click="finished"
+                @click="close"
               >
                 Close
               </v-btn>
               <v-spacer />
               <v-btn
                 color="primary"
-                @click="e1 = 2"
+                @click="activePollingDevices()"
               >
                 Next
               </v-btn>
@@ -79,7 +79,7 @@
             <v-card-actions>
               <v-btn
                 text
-                @click="finished"
+                @click="close"
               >
                 Close
               </v-btn>
@@ -118,7 +118,7 @@
             <v-card-actions>
               <v-btn
                 text
-                @click="finished"
+                @click="close"
               >
                 Close
               </v-btn>
@@ -143,13 +143,13 @@
               color="grey lighten-4"
               height="250px"
             >
-              <WelcomeFourthScreen :command="command()" />
+              <WelcomeFourthScreen />
             </v-card>
             <v-card-actions>
               <v-spacer />
               <v-btn
                 color="primary"
-                @click="finished"
+                @click="close"
               >
                 Finish
               </v-btn>
@@ -157,8 +157,8 @@
           </v-stepper-content>
         </v-stepper-items>
       </v-stepper>
-    </v-card>
-  </v-dialog>
+    </v-dialog>
+  </v-card>
 </template>
 
 <script>
@@ -179,13 +179,8 @@ export default {
   },
 
   props: {
-    dialog: {
+    show: {
       type: Boolean,
-      required: true,
-    },
-
-    curl: {
-      type: Object,
       required: true,
     },
   },
@@ -195,47 +190,29 @@ export default {
       e1: 1,
       enable: false,
       polling: null,
-      trigger: null,
+      curl: {
+        hostname: window.location.hostname,
+        tenant: this.$store.getters['auth/tenant'],
+      },
     };
   },
 
-  computed: {
-    show: {
-      get() {
-        return this.dialog;
-      },
-
-      set(value) {
-        this.$emit('show', value);
-      },
-    },
-  },
-
-  created() {
-    this.pollingDevices();
-  },
-
   methods: {
-    beforeDestroy() {
-      clearInterval(this.polling);
-    },
-
     command() {
       return `curl "${window.location.protocol}//${this.curl.hostname}/install.sh?tenant_id=${this.curl.tenant}" | sh`;
     },
 
-    finished() {
-      clearTimeout(this.trigger);
-      this.show = false;
-      this.$emit('finishedEvent', false);
-      this.beforeDestroy();
+    activePollingDevices() {
+      this.e1 = 2;
+      this.pollingDevices();
     },
 
     pollingDevices() {
       this.polling = setInterval(async () => {
         try {
-          await this.$store.dispatch('stats/get', {});
-          this.enable = this.checkDevice();
+          await this.$store.dispatch('stats/get');
+
+          this.enable = this.$store.getters['stats/stats'].pending_devices !== 0;
           if (this.enable) {
             this.e1 = 3;
             clearTimeout(this.polling);
@@ -246,14 +223,10 @@ export default {
       }, 3000);
     },
 
-    checkDevice() {
-      return this.$store.getters['stats/stats'].pending_devices !== 0;
-    },
-
-    acceptDevice() {
+    async acceptDevice() {
       const device = this.$store.getters['devices/getFirstPending'];
       try {
-        this.$store.dispatch('devices/accept', device.uid);
+        await this.$store.dispatch('devices/accept', device.uid);
 
         this.$store.dispatch('notifications/fetch');
         this.$store.dispatch('stats/get');
@@ -263,7 +236,12 @@ export default {
         this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.deviceAccepting);
       }
     },
+
+    close() {
+      this.$emit('update:show', false);
+      localStorage.setItem('onceWelcome', true);
+      clearTimeout(this.polling);
+    },
   },
 };
-
 </script>

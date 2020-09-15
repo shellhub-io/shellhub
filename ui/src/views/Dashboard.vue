@@ -72,10 +72,7 @@
     </v-row>
 
     <Welcome
-      v-if="show"
-      :dialog="true"
-      :curl="curl"
-      @finishedEvent="receiveFinish"
+      :show.sync="show"
     />
   </fragment>
 </template>
@@ -95,12 +92,7 @@ export default {
 
   data() {
     return {
-      curl: {
-        hostname: window.location.hostname,
-        tenant: this.$store.getters['auth/tenant'],
-      },
       flag: false,
-      hasDevicesRegistered: false,
       show: false,
       items: [
         {
@@ -143,12 +135,7 @@ export default {
   async created() {
     try {
       await this.$store.dispatch('stats/get');
-
-      this.hasDevicesRegistered = this.initialState();
-      if (localStorage.getItem('onceWelcome') === null) {
-        localStorage.setItem('onceWelcome', true);
-        this.show = !this.hasDevicesRegistered;
-      }
+      this.showScreenWelcome();
     } catch {
       this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.dashboard);
     }
@@ -160,15 +147,21 @@ export default {
   },
 
   methods: {
-    receiveFinish(params) {
-      this.hasDevicesRegistered = params;
-      this.show = false;
+    showScreenWelcome() {
+      let status = false;
+
+      if (localStorage.getItem('onceWelcome') === null && this.hasNoRegisteredDevice()) {
+        localStorage.setItem('onceWelcome', true);
+
+        status = true;
+      }
+      this.show = status;
     },
 
-    initialState() {
-      return this.stats.registered_devices !== 0
-        || this.stats.pending_devices !== 0
-        || this.stats.rejected_devices !== 0;
+    hasNoRegisteredDevice() {
+      return this.stats.registered_devices === 0
+        && this.stats.pending_devices === 0
+        && this.stats.rejected_devices === 0;
     },
   },
 };

@@ -45,13 +45,6 @@ export default {
     },
   },
 
-  data() {
-    return {
-      hostname: window.location.hostname,
-      allowsUserContinue: false,
-    };
-  },
-
   methods: {
     copyCommand() {
       this.$clipboard(this.command);
