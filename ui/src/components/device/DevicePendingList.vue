@@ -113,6 +113,10 @@ export default {
     },
   },
 
+  mounted() {
+    this.$store.dispatch('devices/resetListDevices');
+  },
+
   methods: {
     async getPendingDevices() {
       let sortStatusMap = {};
