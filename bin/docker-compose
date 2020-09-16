@@ -2,8 +2,44 @@
 
 command -v docker-compose >/dev/null 2>&1 || { echo >&2 "ERROR: Please install docker-compose."; exit 1; }
 
-WORKDIR=$(dirname $(readlink -f $0))/../
 
+# Store the command for detecting the host machine
+# [Host: command output]; Linux: Linux; Mac: Darwin
+unameOut="$(uname -s)"
+
+# Detect the host machine
+case "${unameOut}" in
+    Linux*)     HOSTMACHINE=Linux;;
+    Darwin*)    HOSTMACHINE=Darwin;;
+    *)          HOSTMACHINE="UNKNOWN:${unameOut}"
+esac
+
+# Check, if the host machine is supported
+if [ $HOSTMACHINE == 'Linux' ] || [ $HOSTMACHINE == 'Darwin' ]
+then
+    # host machine is supported! Set the appropriate working directory
+    echo "You are working on a supported host machine! Happy dockering!"
+    echo "Your host machine is: " ${HOSTMACHINE}
+
+    # Supported Linux host machine
+    if [ $HOSTMACHINE == 'Linux' ]
+    then
+        WORKDIR=$(dirname $(readlink -f $0))/../
+    fi
+
+    # Supported Darwin host machine
+    if [ $HOSTMACHINE == 'Darwin' ]
+    then
+        WORKDIR=$(dirname $(greadlink -f $0))/../
+    fi
+
+else
+    # The host machine is not supported. Give feedback and terminate with error
+    echo "ERROR: You are not working on a supported host machine! Currently shellhub supports Linux and Darwin(Mac)."
+    exit 1
+fi
+
+# Change to working directory
 cd $WORKDIR
 
 set -o allexport
