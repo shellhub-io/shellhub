@@ -38,7 +38,7 @@ describe('DeviceAdd', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Has a command field', () => {
+  it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="command-field"]').exists()).toBe(true);
   });
 });
