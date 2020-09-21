@@ -8,11 +8,33 @@ describe('DeviceRejectedList', () => {
 
   let wrapper;
 
+  const numberDevices = 1;
+  const devices = [
+    {
+      uid: '2378hj238',
+      name: '37-23-hf-1c',
+      identity: {
+        mac: '00:00:00:00:00:00',
+      },
+      info: {
+        id: 'linuxmint',
+        pretty_name: 'Linux Mint 20.0',
+        version: '',
+      },
+      public_key: '---pub_key---',
+      tenant_id: '8490393000',
+      last_seen: '2020-05-22T18:58:53.276Z',
+      online: true,
+      namespace: 'user',
+      status: 'rejected',
+    },
+  ];
+
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      devices: [],
-      numberDevices: 0,
+      devices,
+      numberDevices,
     },
     getters: {
       'devices/list': (state) => state.devices,
@@ -24,6 +46,10 @@ describe('DeviceRejectedList', () => {
       'devices/fetch': () => {
       },
       'devices/rename': () => {
+      },
+      'devices/resetListDevices': () => {
+      },
+      'stats/get': () => {
       },
     },
   });
@@ -41,5 +67,10 @@ describe('DeviceRejectedList', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Renders the template with data', () => {
+    const dt = wrapper.find('[data-test="dataTable-field"]');
+    const dataTableProps = dt.vm.$options.propsData;
+    expect(dataTableProps.items).toHaveLength(numberDevices);
   });
 });

@@ -7,13 +7,52 @@ describe('DeviceList', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  const device = {};
+
+  const numberDevices = 2;
+  const devices = [
+    {
+      uid: 'a582b47a42d',
+      name: '39-5e-2a',
+      identity: {
+        mac: '00:00:00:00:00:00',
+      },
+      info: {
+        id: 'linuxmint',
+        pretty_name: 'Linux Mint 19.3',
+        version: '',
+      },
+      public_key: '----- PUBLIC KEY -----',
+      tenant_id: '00000000',
+      last_seen: '2020-05-20T18:58:53.276Z',
+      online: false,
+      namespace: 'user',
+      status: 'accepted',
+    },
+    {
+      uid: 'a582b47a42e',
+      name: '39-5e-2b',
+      identity: {
+        mac: '00:00:00:00:00:00',
+      },
+      info: {
+        id: 'linuxmint',
+        pretty_name: 'Linux Mint 19.3',
+        version: '',
+      },
+      public_key: '----- PUBLIC KEY -----',
+      tenant_id: '00000001',
+      last_seen: '2020-05-20T19:58:53.276Z',
+      online: true,
+      namespace: 'user',
+      status: 'accepted',
+    },
+  ];
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      devices: [],
-      numberDevices: 0,
+      devices,
+      numberDevices,
     },
     getters: {
       'devices/list': (state) => state.devices,
@@ -26,6 +65,10 @@ describe('DeviceList', () => {
       },
       'devices/rename': () => {
       },
+      'devices/resetListDevices': () => {
+      },
+      'stats/get': () => {
+      },
     },
   });
 
@@ -34,7 +77,6 @@ describe('DeviceList', () => {
       store,
       localVue,
       stubs: ['fragment'],
-      propsData: { device },
     });
   });
 
@@ -43,5 +85,10 @@ describe('DeviceList', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Renders the template with data', () => {
+    const dt = wrapper.find('[data-test="dataTable-field"]');
+    const dataTableProps = dt.vm.$options.propsData;
+    expect(dataTableProps.items).toHaveLength(numberDevices);
   });
 });
