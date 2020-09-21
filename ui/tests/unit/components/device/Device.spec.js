@@ -48,11 +48,14 @@ describe('Device', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Has a search field and verify variable', () => {
-    expect(wrapper.find('[data-test="search-text"]').exists()).toBe(true);
+  it('Compare data with the default and defined value', () => {
+    expect(wrapper.vm.search).toEqual('');
 
     wrapper.setData({ search: 'ShellHub' });
     expect(wrapper.vm.search).toEqual('ShellHub');
+  });
+  it('Renders the template with data', () => {
+    expect(wrapper.find('[data-test="search-text"]').exists()).toBe(true);
 
     const textInputSearch = wrapper.find('[data-test="search-text"]');
     textInputSearch.element.value = 'ShellHub';

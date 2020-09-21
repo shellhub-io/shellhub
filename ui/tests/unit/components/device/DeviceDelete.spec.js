@@ -33,7 +33,7 @@ describe('DeviceDelete', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Receive uid in props', () => {
+  it('Receive data in props', () => {
     expect(wrapper.vm.uid).toEqual(uid);
   });
 });
