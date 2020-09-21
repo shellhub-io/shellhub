@@ -5,6 +5,7 @@
         class="elevation-1"
         :headers="headers"
         :items="getListDevices"
+        data-test="dataTable-field"
         :items-per-page="10"
         :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
         :server-items-length="getNumberDevices"
