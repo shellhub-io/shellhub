@@ -7,7 +7,8 @@ describe('SessionPlay', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  const uid = 'a582b47a42d';
+
+  const uid = '8c354a00f50';
   const recorded = true;
 
   const store = new Vuex.Store({

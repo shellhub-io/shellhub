@@ -7,11 +7,16 @@ describe('SessionClose', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  const uid = 'cfe65e6a847ffafd62de34fc75c1faf0ebdbb477d';
-  const device = 'a1aa7d06927cc3b30cdf0d0db8c39b488891576';
+
+  const uid = '8c354a00f51';
+  const device = 'a582b47a42d';
 
   const store = new Vuex.Store({
     namespaced: true,
+    state: {
+    },
+    getters: {
+    },
     actions: {
       'sessions/close': () => {
       },
@@ -33,10 +38,8 @@ describe('SessionClose', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Receive uid in props', () => {
+  it('Receive data in props', () => {
     expect(wrapper.vm.uid).toEqual(uid);
-  });
-  it('Receive device in props', () => {
     expect(wrapper.vm.device).toEqual(device);
   });
 });

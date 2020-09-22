@@ -79,7 +79,7 @@ describe('SessionDetails', () => {
       expect(wrapper.vm.session[field]).toEqual(session[field]);
     });
   });
-  it('Renders the HTML fields of stored data', () => {
+  it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="sessionUid-field"]').text()).toEqual(session.uid);
     expect(wrapper.find('[data-test="sessionUser-field"]').text()).toEqual(session.username);
     expect(wrapper.find('[data-test="sessionIpAddress-field"]').text()).toEqual(session.ip_address);
