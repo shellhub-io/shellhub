@@ -12,8 +12,16 @@ describe('DeviceDelete', () => {
 
   const store = new Vuex.Store({
     namespaced: true,
+    state: {
+    },
+    getters: {
+    },
     actions: {
       'devices/remove': () => {
+      },
+      'modals/showSnackbarSuccessAction': () => {
+      },
+      'modals/showSnackbarErrorAction': () => {
       },
     },
   });
@@ -35,5 +43,9 @@ describe('DeviceDelete', () => {
   });
   it('Receive data in props', () => {
     expect(wrapper.vm.uid).toEqual(uid);
+    expect(wrapper.vm.redirect).toEqual(redirect);
+  });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.dialog).toEqual(false);
   });
 });
