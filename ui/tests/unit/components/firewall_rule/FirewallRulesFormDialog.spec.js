@@ -7,28 +7,28 @@ describe('FirewallRulesFormDialog', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  const firewallRule = [
+
+  const firewallRule = {
+    id: '5f1996c84d2190a22d5857bb',
+    tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    priority: 4,
+    action: 'allow',
+    active: true,
+    source_ip: '127.0.0.1',
+    username: 'shellhub',
+    hostname: 'shellhub',
+  };
+  const createRule = true;
+  const state = [
     {
-      id: '5f1996c84d2190a22d5857bb',
-      tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-      priority: 4,
-      action: 'allow',
-      active: true,
-      source_ip: '127.0.0.1',
-      username: 'shellhub',
-      hostname: 'shellhub',
+      id: 'allow',
+      name: 'allow',
     },
     {
-      id: '5f1996fe4d2190a22d5857c1',
-      tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-      priority: 18,
-      action: 'deny',
-      active: true,
-      source_ip: '127.0.0.2',
-      username: 'shellhub',
-      hostname: '.*',
-    }];
-  const createRule = true;
+      id: 'deny',
+      name: 'deny',
+    },
+  ];
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -49,7 +49,7 @@ describe('FirewallRulesFormDialog', () => {
       store,
       localVue,
       stubs: ['fragment'],
-      props: { firewallRule, createRule },
+      propsData: { firewallRule, createRule },
     });
   });
 
@@ -58,5 +58,13 @@ describe('FirewallRulesFormDialog', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Receive data in props', () => {
+    expect(wrapper.vm.firewallRule).toEqual(firewallRule);
+    expect(wrapper.vm.createRule).toEqual(createRule);
+  });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.dialog).toEqual(false);
+    expect(wrapper.vm.state).toEqual(state);
   });
 });
