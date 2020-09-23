@@ -1,6 +1,16 @@
 import Vuex from 'vuex';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { config, shallowMount, createLocalVue } from '@vue/test-utils';
 import DeviceAdd from '@/components/device/DeviceAdd';
+
+// mocks global vars and clipboard function
+config.mocks = {
+  $copy: {
+    command: 'Command',
+    deviceSSHID: 'Device SSHID',
+    tenantId: 'Tenant ID',
+  },
+  $clipboard: () => {},
+};
 
 describe('DeviceAdd', () => {
   const localVue = createLocalVue();
@@ -21,6 +31,8 @@ describe('DeviceAdd', () => {
     actions: {
       'modals/showAddDevice': () => {
       },
+      'modals/showSnackbarCopy': () => {
+      },
     },
   });
 
@@ -29,6 +41,7 @@ describe('DeviceAdd', () => {
       store,
       localVue,
       stubs: ['fragment'],
+      mocks: ['$copy', '$command'],
     });
   });
 
@@ -40,5 +53,17 @@ describe('DeviceAdd', () => {
   });
   it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="command-field"]').exists()).toBe(true);
+  });
+  it('Proccess computed data in computed', () => {
+    expect(wrapper.vm.show).toBe(false);
+    expect(wrapper.vm.tenant).toBe('00000000');
+  });
+  it('Process data in methods', () => {
+    const command = 'curl "http://localhost/install.sh?tenant_id=00000000" | sh';
+    expect(wrapper.vm.command()).toBe(command);
+
+    jest.spyOn(wrapper.vm, 'copyCommand');
+    wrapper.vm.copyCommand();
+    expect(wrapper.vm.copyCommand).toHaveBeenCalled();
   });
 });

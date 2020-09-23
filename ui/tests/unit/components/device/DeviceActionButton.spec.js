@@ -46,4 +46,10 @@ describe('DeviceActionButton', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Receive data in props', () => {
+    expect(wrapper.vm.uid).toEqual(uid);
+    expect(wrapper.vm.notificationStatus).toEqual(notificationStatus);
+    expect(wrapper.vm.action).toEqual(action);
+    expect(wrapper.vm.dialog).toEqual(false);
+  });
 });
