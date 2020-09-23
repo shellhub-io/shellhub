@@ -7,6 +7,7 @@ describe('FirewallRulesDelete', () => {
   localVue.use(Vuex);
 
   let wrapper;
+
   const id = '5f1996c84d2190a22d5857bb';
 
   const store = new Vuex.Store({
@@ -26,7 +27,7 @@ describe('FirewallRulesDelete', () => {
       store,
       localVue,
       stubs: ['fragment'],
-      props: { id },
+      propsData: { id },
     });
   });
 
@@ -35,5 +36,11 @@ describe('FirewallRulesDelete', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Receive data in props', () => {
+    expect(wrapper.vm.id).toEqual(id);
+  });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.dialog).toEqual(false);
   });
 });
