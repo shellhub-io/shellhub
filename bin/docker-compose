@@ -1,42 +1,47 @@
 #!/bin/sh
 
-command -v docker-compose >/dev/null 2>&1 || { echo >&2 "ERROR: Please install docker-compose."; exit 1; }
+# Check if following packages are installed:
+#   -) docker-compose
+#   -) on Linux: readlink
+#   -) on Darwin(Mac): greadlink
+#   (docker-compose && (readlink || greadlink)) || echo ERROR; exit;
+command -v docker-compose >/dev/null 2>&1 && (command -v readlink >/dev/null 2>&1 || command -v greadlink >/dev/null 2>&1) || { echo >&2 "ERROR"; exit 1; }
 
-
-# Store the command for detecting the host machine
+# Store the command for detecting the OS (operating system)
 # [Host: command output]; Linux: Linux; Mac: Darwin
 unameOut="$(uname -s)"
 
-# Detect the host machine
+# Comment for future tasks - Include other operating systems
+# ==> these OS's have to be included in the case-esac statement and mybe some other changes are requiered
+# CYGWIN*)    machine=Cygwin;;  Another OS => currently not supported;
+#       Translater to run GNU/Linux, BSD, and Unix programms on Windows
+# MINGW*)     machine=MinGw;;   Another OS => currently not supported;
+#       open source software development environment to create Microsoft Windows applications
+
+# Detect the OS
 case "${unameOut}" in
-    Linux*)     HOSTMACHINE=Linux;;
-    Darwin*)    HOSTMACHINE=Darwin;;
-    *)          HOSTMACHINE="UNKNOWN:${unameOut}"
+                # Supported OS
+    Linux*)     OS=Linux;;
+    Darwin*)    OS=Darwin;;
+
+                # The OS is not supported. Give feedback and terminate with error
+    *)          { echo >&2 "ERROR: You are not working on a supported OS! Currently shellhub supports Linux and Darwin(Mac)."; exit 1; }
 esac
 
-# Check, if the host machine is supported
-if [ $HOSTMACHINE == 'Linux' ] || [ $HOSTMACHINE == 'Darwin' ]
+# OS is already checked before in the case statement -> as of now the OS is supported
+echo "You are working on a supported OS! Happy dockering!"
+echo "Your OS is: " ${OS}
+
+# Set the appropriate working directories for the specific OS
+# Supported Linux OS
+if [ $OS == 'Linux' ]
 then
-    # host machine is supported! Set the appropriate working directory
-    echo "You are working on a supported host machine! Happy dockering!"
-    echo "Your host machine is: " ${HOSTMACHINE}
-
-    # Supported Linux host machine
-    if [ $HOSTMACHINE == 'Linux' ]
-    then
-        WORKDIR=$(dirname $(readlink -f $0))/../
-    fi
-
-    # Supported Darwin host machine
-    if [ $HOSTMACHINE == 'Darwin' ]
-    then
-        WORKDIR=$(dirname $(greadlink -f $0))/../
-    fi
-
-else
-    # The host machine is not supported. Give feedback and terminate with error
-    echo "ERROR: You are not working on a supported host machine! Currently shellhub supports Linux and Darwin(Mac)."
-    exit 1
+    WORKDIR=$(dirname $(readlink -f $0))/../
+fi
+# Supported Darwin (Mac) OS
+if [ $OS == 'Darwin' ]
+then
+    WORKDIR=$(dirname $(greadlink -f $0))/../
 fi
 
 # Change to working directory
