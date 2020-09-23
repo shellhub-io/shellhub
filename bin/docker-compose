@@ -5,7 +5,7 @@
 #   -) on Linux: readlink
 #   -) on Darwin(Mac): greadlink
 #   (docker-compose && (readlink || greadlink)) || echo ERROR; exit;
-command -v docker-compose >/dev/null 2>&1 && (command -v readlink >/dev/null 2>&1 || command -v greadlink >/dev/null 2>&1) || { echo >&2 "ERROR"; exit 1; }
+command -v docker-compose >/dev/null 2>&1 && (command -v readlink >/dev/null 2>&1 || command -v greadlink >/dev/null 2>&1) || { echo >&2 "ERROR: docker-compose or command readling or command greadlink is not available on your system.\nPlease install the appropriate software tools!\nGood bye and hope we see you soon!"; exit 1; }
 
 # Store the command for detecting the OS (operating system)
 # [Host: command output]; Linux: Linux; Mac: Darwin
