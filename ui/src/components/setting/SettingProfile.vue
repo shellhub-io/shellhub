@@ -71,6 +71,7 @@
                   :error-messages="errors"
                   required
                   :disabled="!editDataStatus"
+                  data-test="username-text"
                 />
               </ValidationProvider>
 
@@ -87,6 +88,7 @@
                   :error-messages="errors"
                   required
                   :disabled="!editDataStatus"
+                  data-test="email-text"
                 />
               </ValidationProvider>
 
@@ -145,6 +147,7 @@
                   :error-messages="errors"
                   required
                   :disabled="!editPasswordStatus"
+                  data-test="password-text"
                 />
               </ValidationProvider>
 
@@ -162,6 +165,7 @@
                   :error-messages="errors"
                   required
                   :disabled="!editPasswordStatus"
+                  data-test="newPassword-text"
                 />
               </ValidationProvider>
 
@@ -178,6 +182,7 @@
                   :error-messages="errors"
                   required
                   :disabled="!editPasswordStatus"
+                  data-test="confirmNewPassword-text"
                 />
               </ValidationProvider>
 
