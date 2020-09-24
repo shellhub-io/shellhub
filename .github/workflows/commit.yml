@@ -2,6 +2,7 @@ name: 'Commit Message Check'
 on:
   push:
     branches-ignore:
+      - 'master'
       - 'dependabot/**'
 
   pull_request:
