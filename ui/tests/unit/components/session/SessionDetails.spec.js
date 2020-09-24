@@ -79,6 +79,15 @@ describe('SessionDetails', () => {
       expect(wrapper.vm.session[field]).toEqual(session[field]);
     });
   });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.lastActive).toEqual('fro30');
+  });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.uid).toEqual(session.uid);
+    expect(wrapper.vm.session).toEqual(session);
+    expect(wrapper.vm.dialog).toEqual(false);
+    expect(wrapper.vm.hide).toEqual(true);
+  });
   it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="sessionUid-field"]').text()).toEqual(session.uid);
     expect(wrapper.find('[data-test="sessionUser-field"]').text()).toEqual(session.username);
