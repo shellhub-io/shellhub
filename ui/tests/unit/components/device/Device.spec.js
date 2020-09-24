@@ -10,6 +10,8 @@ describe('Device', () => {
 
   let wrapper;
 
+  const pendingDevices = 2;
+
   const store = new Vuex.Store({
     namespaced: true,
     state: {
@@ -17,7 +19,7 @@ describe('Device', () => {
         registered_devices: 0,
         online_devices: 0,
         active_sessions: 0,
-        pending_devices: 0,
+        pending_devices: pendingDevices,
         rejected_devices: 0,
       },
     },
@@ -60,5 +62,11 @@ describe('Device', () => {
     const textInputSearch = wrapper.find('[data-test="search-text"]');
     textInputSearch.element.value = 'ShellHub';
     expect(wrapper.find('[data-test="search-text"]').element.value).toEqual('ShellHub');
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getNumberPendingDevices).toEqual(pendingDevices);
+  });
+  it('Renders the template with data', () => {
+    expect(wrapper.find('[data-test="badge-field"]').vm.$options.propsData.content).toEqual(pendingDevices);
   });
 });

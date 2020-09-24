@@ -73,4 +73,8 @@ describe('DeviceRejectedList', () => {
     const dataTableProps = dt.vm.$options.propsData;
     expect(dataTableProps.items).toHaveLength(numberDevices);
   });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getListRejectedDevices).toEqual(devices);
+    expect(wrapper.vm.getNumberRejectedDevices).toEqual(numberDevices);
+  });
 });

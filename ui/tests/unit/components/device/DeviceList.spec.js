@@ -91,4 +91,8 @@ describe('DeviceList', () => {
     const dataTableProps = dt.vm.$options.propsData;
     expect(dataTableProps.items).toHaveLength(numberDevices);
   });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getListDevices).toEqual(devices);
+    expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
+  });
 });
