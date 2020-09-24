@@ -42,4 +42,8 @@ describe('SessionClose', () => {
     expect(wrapper.vm.uid).toEqual(uid);
     expect(wrapper.vm.device).toEqual(device);
   });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.dialog).toEqual(false);
+    expect(wrapper.vm.session).toEqual({ uid, device_uid: device });
+  });
 });
