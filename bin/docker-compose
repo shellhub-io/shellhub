@@ -1,18 +1,31 @@
 #!/bin/sh
 
+# Subfunction: Checks the rquirements
+check_requirement() {
+    command -v $1 >/dev/null 2>&1 || fatal "\
+$1 is not available on your system.
+Please install it and try again. Good bye and hope we see you soon!"
+}
+
+# Subfunction: Print out the Error message
+fatal() {
+    echo >&2 "ERROR: $*"
+    exit 1
+}
+
 # Check if following packages are installed:
 #   -) docker-compose
 #   -) on Linux: readlink
 #   -) on Darwin(Mac): greadlink
-#   (docker-compose && (readlink || greadlink)) || echo ERROR; exit;
-command -v docker-compose >/dev/null 2>&1 && (command -v readlink >/dev/null 2>&1 || command -v greadlink >/dev/null 2>&1) || { echo >&2 "ERROR: docker-compose or command readling or command greadlink is not available on your system.\nPlease install the appropriate software tools!\nGood bye and hope we see you soon!"; exit 1; }
+check_requirement docker-compose
+check_requirement readlink || check_requirement greadlink
 
 # Store the command for detecting the OS (operating system)
 # [Host: command output]; Linux: Linux; Mac: Darwin
 unameOut="$(uname -s)"
 
 # Comment for future tasks - Include other operating systems
-# ==> these OS's have to be included in the case-esac statement and mybe some other changes are requiered
+# ==> these OS checks can be included in the case-esac statement and mybe some other changes are requiered
 # CYGWIN*)    machine=Cygwin;;  Another OS => currently not supported;
 #       Translater to run GNU/Linux, BSD, and Unix programms on Windows
 # MINGW*)     machine=MinGw;;   Another OS => currently not supported;
@@ -25,7 +38,7 @@ case "${unameOut}" in
     Darwin*)    OS=Darwin;;
 
                 # The OS is not supported. Give feedback and terminate with error
-    *)          { echo >&2 "ERROR: You are not working on a supported OS! Currently shellhub supports Linux and Darwin(Mac)."; exit 1; }
+    *)          fatal "You are not working on a supported OS! Currently ShellHub supports Linux and Darwin(Mac)."
 esac
 
 # OS is already checked before in the case statement -> as of now the OS is supported
