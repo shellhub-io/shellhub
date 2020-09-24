@@ -39,6 +39,7 @@
             <v-badge
               :content="getNumberPendingDevices"
               :value="getNumberPendingDevices"
+              data-test="badge-field"
               overlap
               inline
               color="success"
