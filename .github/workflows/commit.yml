@@ -23,7 +23,7 @@ jobs:
           excludeDescription: 'true'
           excludeTitle: 'true'
           checkAllCommitMessages: 'true'
-
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check Title Capitalize
         uses: gsactions/commit-message-checker@v1
@@ -34,6 +34,7 @@ jobs:
           excludeDescription: 'true'
           excludeTitle: 'true'
           checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check Title Length
         uses: gsactions/commit-message-checker@v1
@@ -44,6 +45,7 @@ jobs:
           excludeDescription: 'true'
           excludeTitle: 'true'
           checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check Title Line Length
         uses: gsactions/commit-message-checker@v1
@@ -54,6 +56,7 @@ jobs:
           excludeDescription: 'true'
           excludeTitle: 'true'
           checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check Title Line Separator
         uses: gsactions/commit-message-checker@v1
@@ -64,6 +67,7 @@ jobs:
           excludeDescription: 'true'
           excludeTitle: 'true'
           checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check Line Length
         uses: gsactions/commit-message-checker@v1
@@ -74,3 +78,4 @@ jobs:
           excludeDescription: 'true'
           excludeTitle: 'true'
           checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
