@@ -2,7 +2,7 @@ import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import Sessions from '@/views/Sessions';
 
-describe('Terminal', () => {
+describe('Sessions', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
