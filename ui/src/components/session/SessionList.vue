@@ -19,13 +19,14 @@
       <v-card-text class="pa-0">
         <v-data-table
           :headers="headers"
-          :items="listSessions"
+          :items="getListSessions"
+          data-test="dataTable-field"
           item-key="uid"
           :sort-by="['started_at']"
           :sort-desc="[true]"
           :items-per-page="10"
           :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
-          :server-items-length="numberSessions"
+          :server-items-length="getNumberSessions"
           :options.sync="pagination"
           :disable-sort="true"
         >
@@ -157,8 +158,6 @@ export default {
 
   data() {
     return {
-      numberSessions: 0,
-      listSessions: [],
       pagination: {},
 
       headers: [
@@ -206,6 +205,16 @@ export default {
     };
   },
 
+  computed: {
+    getListSessions() {
+      return this.$store.getters['sessions/list'];
+    },
+
+    getNumberSessions() {
+      return this.$store.getters['sessions/getNumberSessions'];
+    },
+  },
+
   watch: {
     pagination: {
       handler() {
@@ -229,8 +238,6 @@ export default {
 
       try {
         await this.$store.dispatch('sessions/fetch', data);
-        this.listSessions = this.$store.getters['sessions/list'];
-        this.numberSessions = this.$store.getters['sessions/getNumberSessions'];
       } catch {
         this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.sessionList);
       }
