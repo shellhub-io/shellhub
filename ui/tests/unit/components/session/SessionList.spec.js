@@ -100,4 +100,13 @@ describe('DeviceAdd', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getListSessions).toEqual(sessions);
+    expect(wrapper.vm.getNumberSessions).toEqual(numberSessions);
+  });
+  it('Renders the template with data', () => {
+    const dt = wrapper.find('[data-test="dataTable-field"]');
+    const dataTableProps = dt.vm.$options.propsData;
+    expect(dataTableProps.items).toHaveLength(numberSessions);
+  });
 });

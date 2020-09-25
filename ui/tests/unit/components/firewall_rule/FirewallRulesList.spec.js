@@ -66,4 +66,9 @@ describe('FirewallRulesList', () => {
     expect(wrapper.vm.getFirewallRules).toEqual(firewalls);
     expect(wrapper.vm.getNumberFirewallRules).toEqual(numberFirewalls);
   });
+  it('Renders the template with data', () => {
+    const dt = wrapper.find('[data-test="dataTable-field"]');
+    const dataTableProps = dt.vm.$options.propsData;
+    expect(dataTableProps.items).toHaveLength(numberFirewalls);
+  });
 });

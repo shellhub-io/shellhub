@@ -24,6 +24,7 @@
         <v-data-table
           :headers="headers"
           :items="getFirewallRules"
+          data-test="dataTable-field"
           item-key="uid"
           :sort-by="['started_at']"
           :sort-desc="[true]"
