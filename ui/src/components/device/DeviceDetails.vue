@@ -30,7 +30,7 @@
                 check_circle
               </v-icon>
             </template>
-            <span>active {{ lastActive }}</span>
+            <span>active {{ device.last_seen | lastSeen }}</span>
           </v-tooltip>
           {{ device.name }}
         </v-toolbar-title>
@@ -97,7 +97,7 @@
           <div
             data-test="deviceConvertDate-field"
           >
-            {{ convertDate }}
+            {{ device.last_seen | formatDate }}
           </div>
         </div>
       </v-card-text>
@@ -137,11 +137,11 @@
 
 <script>
 
-import moment from 'moment';
 import TerminalDialog from '@/components/terminal/TerminalDialog';
 import DeviceIcon from '@/components/device/DeviceIcon';
 import DeviceDelete from '@/components/device/DeviceDelete';
 import DeviceRename from '@/components/device/DeviceRename';
+import { formatDate, lastSeen } from '@/components/filter/date';
 
 export default {
   name: 'DeviceDetails',
@@ -153,25 +153,17 @@ export default {
     DeviceRename,
   },
 
+  filters: { formatDate, lastSeen },
+
   data() {
     return {
-      dialogDelete: false,
-      dialogError: false,
       uid: '',
       hostname: window.location.hostname,
       hide: true,
       device: null,
+      dialogDelete: false,
+      dialogError: false,
     };
-  },
-
-  computed: {
-    lastActive() {
-      return moment(this.device.last_seen).format('from', 'now');
-    },
-
-    convertDate() {
-      return moment(this.device.last_seen).format('dddd, MMMM Do YYYY, h:mm:ss a');
-    },
   },
 
   async created() {

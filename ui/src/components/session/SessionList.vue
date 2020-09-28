@@ -46,7 +46,7 @@
                   check_circle
                 </v-icon>
               </template>
-              <span>active {{ item.last_seen | moment("from", "now") }}</span>
+              <span>active {{ item.last_seen | lastSeen }}</span>
             </v-tooltip>
           </template>
 
@@ -106,11 +106,11 @@
           </template>
 
           <template v-slot:item.started="{ item }">
-            {{ item.started_at | moment("ddd, MMM Do YY, h:mm:ss a") }}
+            {{ item.started_at | formatDate }}
           </template>
 
           <template v-slot:item.last_seen="{ item }">
-            {{ item.last_seen | moment("ddd, MMM Do YY, h:mm:ss a") }}
+            {{ item.last_seen | formatDate }}
           </template>
 
           <template v-slot:item.actions="{ item }">
@@ -147,6 +147,7 @@
 
 import SessionClose from '@/components/session/SessionClose';
 import SessionPlay from '@/components/session/SessionPlay';
+import { formatDate, lastSeen } from '@/components/filter/date';
 
 export default {
   name: 'SessionList',
@@ -155,6 +156,8 @@ export default {
     SessionClose,
     SessionPlay,
   },
+
+  filters: { formatDate, lastSeen },
 
   data() {
     return {

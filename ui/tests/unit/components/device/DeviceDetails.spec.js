@@ -48,7 +48,7 @@ describe('DeviceDetails', () => {
       mocks: {
         $route: {
           params: {
-            id: 'a582b47a42d',
+            id: device.uid,
           },
         },
       },
@@ -67,9 +67,9 @@ describe('DeviceDetails', () => {
     });
   });
   it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual('a582b47a42d');
-    expect(wrapper.find('[data-test="deviceMac-field"]').text()).toEqual('00:00:00:00:00:00');
-    expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual('Linux Mint 19.3');
+    expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(device.uid);
+    expect(wrapper.find('[data-test="deviceMac-field"]').text()).toEqual(device.identity.mac);
+    expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(device.info.pretty_name);
     expect(wrapper.find('[data-test="deviceConvertDate-field"]').text()).toEqual('Wednesday, May 20th 2020, 6:58:53 pm');
   });
 });
