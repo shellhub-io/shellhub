@@ -79,9 +79,6 @@ describe('SessionDetails', () => {
       expect(wrapper.vm.session[field]).toEqual(session[field]);
     });
   });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.lastActive).toEqual('fro30');
-  });
   it('Compare data with default value', () => {
     expect(wrapper.vm.uid).toEqual(session.uid);
     expect(wrapper.vm.session).toEqual(session);
@@ -92,7 +89,7 @@ describe('SessionDetails', () => {
     expect(wrapper.find('[data-test="sessionUid-field"]').text()).toEqual(session.uid);
     expect(wrapper.find('[data-test="sessionUser-field"]').text()).toEqual(session.username);
     expect(wrapper.find('[data-test="sessionIpAddress-field"]').text()).toEqual(session.ip_address);
-    expect(wrapper.find('[data-test="sessionStartedAt-field"]').text()).toEqual(wrapper.vm.convertDate(session.started_at));
-    expect(wrapper.find('[data-test="sessionLastSeen-field"]').text()).toEqual(wrapper.vm.convertDate(session.last_seen));
+    expect(wrapper.find('[data-test="sessionStartedAt-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:28 pm');
+    expect(wrapper.find('[data-test="sessionLastSeen-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:30 pm');
   });
 });

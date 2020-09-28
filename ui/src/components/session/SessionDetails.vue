@@ -32,7 +32,7 @@
                 check_circle
               </v-icon>
             </template>
-            <span>active {{ lastActive }}</span>
+            <span>active {{ session.last_seen | lastSeen }}</span>
           </v-tooltip>
           {{ session.device.name }}
         </v-toolbar-title>
@@ -128,7 +128,7 @@
           <div
             data-test="sessionStartedAt-field"
           >
-            {{ convertDate(session.started_at) }}
+            {{ session.started_at | formatDate }}
           </div>
         </div>
 
@@ -139,7 +139,7 @@
           <div
             data-test="sessionLastSeen-field"
           >
-            {{ convertDate(session.last_seen) }}
+            {{ session.last_seen | formatDate }}
           </div>
         </div>
       </v-card-text>
@@ -181,7 +181,7 @@
 
 import SessionPlay from '@/components/session/SessionPlay';
 import SessionClose from '@/components/session/SessionClose';
-import moment from 'moment';
+import { formatDate, lastSeen } from '@/components/filter/date';
 
 export default {
   name: 'SessionDetails',
@@ -191,6 +191,8 @@ export default {
     SessionClose,
   },
 
+  filters: { formatDate, lastSeen },
+
   data() {
     return {
       uid: '',
@@ -198,12 +200,6 @@ export default {
       dialog: false,
       hide: true,
     };
-  },
-
-  computed: {
-    lastActive() {
-      return moment(this.session.last_seen).format('from', 'now');
-    },
   },
 
   async created() {
@@ -231,10 +227,6 @@ export default {
       } catch {
         this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.sessionDetails);
       }
-    },
-
-    convertDate(date) {
-      return moment(date).format('dddd, MMMM Do YYYY, h:mm:ss a');
     },
   },
 };

@@ -27,7 +27,7 @@
                 check_circle
               </v-icon>
             </template>
-            <span>last seen {{ item.last_seen | moment("from", "now") }}</span>
+            <span>last seen {{ item.last_seen | lastSeen }}</span>
           </v-tooltip>
         </template>
 
@@ -91,6 +91,7 @@ import TerminalDialog from '@/components/terminal/TerminalDialog';
 import DeviceIcon from '@/components/device/DeviceIcon';
 import DeviceDelete from '@/components/device/DeviceDelete';
 import formatOrdering from '@/components/device/Device';
+import { lastSeen } from '@/components/filter/date';
 
 export default {
   name: 'DeviceList',
@@ -100,6 +101,8 @@ export default {
     DeviceIcon,
     DeviceDelete,
   },
+
+  filters: { lastSeen },
 
   mixins: [formatOrdering],
 
