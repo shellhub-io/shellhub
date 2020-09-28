@@ -27,7 +27,7 @@ export default {
     },
 
     clearListSessions: (state) => {
-      Vue.set(state, 'devices', []);
+      Vue.set(state, 'sessions', []);
       Vue.set(state, 'numberSessions', 0);
     },
 
