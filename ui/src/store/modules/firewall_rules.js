@@ -8,7 +8,7 @@ export default {
 
   state: {
     firewalls: [],
-    firewall: [],
+    firewall: {},
     numberFirewalls: 0,
   },
 
@@ -33,12 +33,12 @@ export default {
     },
 
     clearListFirewalls: (state) => {
-      Vue.set(state, 'Firewalls', []);
+      Vue.set(state, 'firewalls', []);
       Vue.set(state, 'numberFirewalls', 0);
     },
 
     clearObjectFirewalls: (state) => {
-      Vue.set(state, 'Firewalls', []);
+      Vue.set(state, 'firewall', {});
     },
   },
 

@@ -1,77 +1,26 @@
 import store from '@/store';
 
 describe('Devices', () => {
-  it('returns devices default', () => {
-    const actual = store.getters['devices/list'];
-    expect(actual).toEqual([]);
-  });
-  it('return device default', () => {
-    const actual = store.getters['devices/get'];
-    expect(actual).toEqual({});
-  });
-  it('returns number devices default', () => {
-    const actual = store.getters['devices/getNumberDevices'];
-    expect(actual).toEqual(0);
-  });
-  it('returns number page default', () => {
-    const actual = store.getters['devices/getPage'];
-    expect(actual).toEqual(0);
-  });
-  it('returns number perPage default', () => {
-    const actual = store.getters['devices/getPerPage'];
-    expect(actual).toEqual(0);
-  });
-  it('returns filter default', () => {
-    const actual = store.getters['devices/getFilter'];
-    expect(actual).toEqual(null);
-  });
-  it('returns status default', () => {
-    const actual = store.getters['devices/getStatus'];
-    expect(actual).toEqual('');
-  });
-  it('returns status default', () => {
-    const actual = store.getters['devices/getFirstPending'];
-    expect(actual).toEqual({});
-  });
-  it('complete test', () => {
-    const devices = [
-      {
-        uid: 'a582b47a42d',
-        name: '39-5e-2a',
-        identity: {
-          mac: '00:00:00:00:00:00',
-        },
-        info: {
-          id: 'debian',
-          pretty_name: 'Debian GNU/Linux 10 (buster)',
-          version: 'v0.2.5',
-        },
-        public_key: '----- PUBLIC KEY -----',
-        tenant_id: '00000000',
-        last_seen: '2020-05-18T13:27:02.498Z',
-        online: false,
-        namespace: 'user',
-      },
-      {
-        uid: 'a582b47a42d',
-        name: '39-5e-2a',
-        identity: {
-          mac: '00:00:00:00:00:00',
-        },
-        info: {
-          id: 'debian',
-          pretty_name: 'Debian GNU/Linux 10 (buster)',
-          version: 'v0.2.5',
-        },
-        public_key: '----- PUBLIC KEY -----',
-        tenant_id: '00000000',
-        last_seen: '2020-05-18T13:27:02.498Z',
-        online: false,
-        namespace: 'user',
-      },
-    ];
-    const device = {
+  const devices = [
+    {
       uid: 'a582b47a42d',
+      name: '49-5e-2a',
+      identity: {
+        mac: '00:00:00:00:00:00',
+      },
+      info: {
+        id: 'debian',
+        pretty_name: 'Debian GNU/Linux 10 (buster)',
+        version: 'v0.2.5',
+      },
+      public_key: '----- PUBLIC KEY -----',
+      tenant_id: '00000000',
+      last_seen: '2020-05-18T13:27:02.498Z',
+      online: false,
+      namespace: 'user',
+    },
+    {
+      uid: 'a582b47a42f',
       name: '39-5e-2a',
       identity: {
         mac: '00:00:00:00:00:00',
@@ -86,26 +35,81 @@ describe('Devices', () => {
       last_seen: '2020-05-18T13:27:02.498Z',
       online: false,
       namespace: 'user',
-    };
-    const numberDevices = 2;
+    },
+  ];
+  const device = {
+    uid: 'a582b47a42d',
+    name: '39-5e-2a',
+    identity: {
+      mac: '00:00:00:00:00:00',
+    },
+    info: {
+      id: 'debian',
+      pretty_name: 'Debian GNU/Linux 10 (buster)',
+      version: 'v0.2.5',
+    },
+    public_key: '----- PUBLIC KEY -----',
+    tenant_id: '00000000',
+    last_seen: '2020-05-18T13:27:02.498Z',
+    online: false,
+    namespace: 'user',
+  };
+  const numberDevices = 2;
 
-    const data = {
-      page: 1,
-      perPage: 10,
-      filter: null,
-      status: 'accepted',
-    };
+  // filter
+  const searchString = '4';
+  const filter = [{ type: 'property', params: { name: 'name', operator: 'like', value: searchString } }];
+  const encodedFilter = btoa(JSON.stringify(filter));
 
+  const data = {
+    page: 1,
+    perPage: 10,
+    filter: null,
+    status: 'accepted',
+    name: 'newDeviceName',
+    uid: 'a582b47a42f',
+  };
+
+  it('Return device default variables', () => {
+    expect(store.getters['devices/list']).toEqual([]);
+    expect(store.getters['devices/get']).toEqual({});
+    expect(store.getters['devices/getNumberDevices']).toEqual(0);
+    expect(store.getters['devices/getPage']).toEqual(0);
+    expect(store.getters['devices/getPerPage']).toEqual(0);
+    expect(store.getters['devices/getFilter']).toEqual(null);
+    expect(store.getters['devices/getStatus']).toEqual('');
+    expect(store.getters['devices/getFirstPending']).toEqual({});
+  });
+  it('Verify initial states change for mutation setDevices', () => {
     store.commit('devices/setDevices', { data: devices, headers: { 'x-total-count': numberDevices } });
-    store.commit('devices/setDevice', device);
-    store.commit('devices/setPagePerpageFilter', data);
 
     expect(store.getters['devices/list']).toEqual(devices);
-    expect(store.getters['devices/get']).toEqual(device);
     expect(store.getters['devices/getNumberDevices']).toEqual(numberDevices);
+  });
+  it('Verify initial states change for mutation serPagePerpageFilter', () => {
+    store.commit('devices/setPagePerpageFilter', data);
+
     expect(store.getters['devices/getPage']).toEqual(1);
     expect(store.getters['devices/getPerPage']).toEqual(10);
     expect(store.getters['devices/getFilter']).toEqual(null);
     expect(store.getters['devices/getStatus']).toEqual('accepted');
+  });
+  it('Verify initial state change for mutation setDevice', () => {
+    store.commit('devices/setDevice', device);
+
+    expect(store.getters['devices/get']).toEqual(device);
+  });
+  it('Verify changed filter state in setFilter mutation', () => {
+    // converted to base64 filter
+    store.commit('devices/setFilter', encodedFilter);
+    expect(store.getters['devices/getFilter']).toEqual('W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJsaWtlIiwidmFsdWUiOiI0In19XQ==');
+  });
+  it('Verify changed name state in renameDevice mutation', () => {
+    store.commit('devices/renameDevice', data);
+    expect(store.getters['devices/list'][1].name).toEqual('newDeviceName');
+  });
+  it('Verify empty devices state for clearListDevices mutation', () => {
+    store.commit('devices/clearListDevices');
+    expect(store.getters['devices/list']).toEqual([]);
   });
 });
