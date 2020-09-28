@@ -42,7 +42,7 @@
     "deepmerge": "^4.2.2",
     "eslint": "^7.10.0",
     "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-import-resolver-webpack": "^0.12.2",
+    "eslint-import-resolver-webpack": "^0.13.0",
     "eslint-plugin-vue": "^6.2.2",
     "fibers": "^5.0.0",
     "font-logos": "^0.14.0",
