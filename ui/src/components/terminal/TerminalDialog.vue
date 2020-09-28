@@ -46,6 +46,7 @@
             <v-text-field
               ref="username"
               v-model="username"
+              data-test="username"
               label="Username"
               autofocus
               :rules="[rules.required]"
@@ -53,6 +54,7 @@
             />
             <v-text-field
               v-model="passwd"
+              data-test="passwd"
               label="Password"
               type="password"
               :rules="[rules.required]"
