@@ -77,7 +77,7 @@ export default {
     try {
       this.$store.dispatch('devices/setFirstPending');
     } catch {
-      this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.devicePending);
+      this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.devicePending);
     }
   },
 };

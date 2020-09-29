@@ -55,9 +55,9 @@ describe('Welcome', () => {
       },
       'notifications/fetch': () => {
       },
-      'modals/showSnackbarErrorAction': () => {
+      'snackbar/showSnackbarErrorAction': () => {
       },
-      'modals/showSnackbarErrorDefault': () => {
+      'snackbar/showSnackbarErrorDefault': () => {
       },
     },
   });

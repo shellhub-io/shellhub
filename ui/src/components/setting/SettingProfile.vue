@@ -37,7 +37,7 @@
                     <v-icon
                       v-clipboard="tenant"
                       v-clipboard:success="() => {
-                        this.$store.dispatch('modals/showSnackbarCopy', this.$copy.tenantId);
+                        this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
                       }"
                       right
                     >
@@ -283,7 +283,7 @@ export default {
       try {
         await this.$store.dispatch('users/put', data);
         this.$store.dispatch('auth/changeUserData', data);
-        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.profileData);
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.profileData);
         this.enableEdit();
       } catch (error) {
         if (error.response.status === 409) { // user data already exists
@@ -300,7 +300,7 @@ export default {
             }
           });
         } else {
-          this.$store.dispatch('modals/showSnackbarErrorDefault');
+          this.$store.dispatch('snackbar/showSnackbarErrorDefault');
         }
       }
     },
@@ -313,7 +313,7 @@ export default {
 
       try {
         await this.$store.dispatch('users/put', data);
-        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.profilePassword);
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.profilePassword);
         this.enableEdit();
       } catch (error) {
         if (error.response.status === 403) { // failed password
@@ -321,7 +321,7 @@ export default {
             currentPassword: ['Your password doesn\'t match'],
           });
         } else {
-          this.$store.dispatch('modals/showSnackbarErrorDefault');
+          this.$store.dispatch('snackbar/showSnackbarErrorDefault');
         }
       }
     },

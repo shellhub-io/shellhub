@@ -18,10 +18,10 @@ describe('SnackbarCopy', () => {
       snackbarCopy,
     },
     getters: {
-      'modals/snackbarCopy': (state) => state.snackbarCopy,
+      'snackbar/snackbarCopy': (state) => state.snackbarCopy,
     },
     actions: {
-      'modals/unsetShowStatusSnackbarCopy': () => {
+      'snackbar/unsetShowStatusSnackbarCopy': () => {
       },
     },
   });

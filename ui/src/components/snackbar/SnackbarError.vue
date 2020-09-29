@@ -34,11 +34,11 @@ export default {
   computed: {
     snackbar: {
       get() {
-        return this.$store.getters['modals/snackbarError'];
+        return this.$store.getters['snackbar/snackbarError'];
       },
 
       set() {
-        this.$store.dispatch('modals/unsetShowStatusSnackbarError');
+        this.$store.dispatch('snackbar/unsetShowStatusSnackbarError');
       },
     },
 

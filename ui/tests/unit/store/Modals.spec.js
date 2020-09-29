@@ -1,22 +1,21 @@
 import store from '@/store';
 
 describe('Modals', () => {
-  it('returns terminal', () => {
-    const actual = store.getters['modals/terminal'];
-    expect(actual).toEqual('');
-  });
-  it('return addDevice', () => {
-    const actual = store.getters['modals/addDevice'];
-    expect(actual).toEqual(false);
-  });
-  it('complete test', () => {
-    const terminal = '';
-    const addDevice = true;
+  const terminal = '';
+  const addDevice = true;
 
+  it('Return modal default variables', () => {
+    expect(store.getters['modals/terminal']).toEqual('');
+    expect(store.getters['modals/addDevice']).toEqual(false);
+  });
+  it('Verify initial states change for mutation setTerminal', () => {
     store.commit('modals/setTerminal', terminal);
-    store.commit('modals/setAddDevice', addDevice);
 
     expect(store.getters['modals/terminal']).toEqual(terminal);
+  });
+  it('Verify initial states change for mutation addDevice', () => {
+    store.commit('modals/setAddDevice', addDevice);
+
     expect(store.getters['modals/addDevice']).toEqual(addDevice);
   });
 });

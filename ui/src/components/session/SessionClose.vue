@@ -86,10 +86,10 @@ export default {
         await this.$store.dispatch('sessions/close', this.session);
         this.dialog = false;
 
-        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.sessionClose);
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.sessionClose);
         this.$emit('update');
       } catch {
-        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.sessionClose);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.sessionClose);
       }
     },
   },

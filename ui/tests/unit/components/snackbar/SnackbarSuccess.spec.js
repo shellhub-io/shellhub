@@ -20,10 +20,10 @@ describe('SnackbarSuccess', () => {
       snackbarSuccess,
     },
     getters: {
-      'modals/snackbarSuccess': (state) => state.snackbarSuccess,
+      'snackbar/snackbarSuccess': (state) => state.snackbarSuccess,
     },
     actions: {
-      'modals/unsetShowStatusSnackbarSuccess': () => {
+      'snackbar/unsetShowStatusSnackbarSuccess': () => {
       },
     },
   });

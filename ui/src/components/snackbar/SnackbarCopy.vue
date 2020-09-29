@@ -25,11 +25,11 @@ export default {
   computed: {
     snackbar: {
       get() {
-        return this.$store.getters['modals/snackbarCopy'];
+        return this.$store.getters['snackbar/snackbarCopy'];
       },
 
       set() {
-        this.$store.dispatch('modals/unsetShowStatusSnackbarCopy');
+        this.$store.dispatch('snackbar/unsetShowStatusSnackbarCopy');
       },
     },
 

@@ -242,7 +242,7 @@ export default {
       try {
         await this.$store.dispatch('sessions/fetch', data);
       } catch {
-        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.sessionList);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.sessionList);
       }
     },
   },

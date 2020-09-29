@@ -96,7 +96,7 @@
                   <v-icon
                     v-clipboard="tenant"
                     v-clipboard:success="() => {
-                      this.$store.dispatch('modals/showSnackbarCopy', this.$copy.tenantId);
+                      this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
                     }"
                     right
                   >

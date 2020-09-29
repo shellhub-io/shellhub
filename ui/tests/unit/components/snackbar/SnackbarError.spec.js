@@ -21,10 +21,10 @@ describe('SnackbarError', () => {
       snackbarError,
     },
     getters: {
-      'modals/snackbarError': (state) => state.snackbarError,
+      'snackbar/snackbarError': (state) => state.snackbarError,
     },
     actions: {
-      'modals/unsetShowStatusSnackbarError': () => {
+      'snackbar/unsetShowStatusSnackbarError': () => {
       },
     },
   });

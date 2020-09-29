@@ -94,7 +94,7 @@ export default {
     try {
       await this.$store.dispatch('stats/get');
     } catch {
-      this.$store.dispatch('modals/showSnackbarErrorDefault');
+      this.$store.dispatch('snackbar/showSnackbarErrorDefault');
     }
   },
 
@@ -115,7 +115,7 @@ export default {
       try {
         this.$store.dispatch('devices/refresh');
       } catch {
-        this.$store.dispatch('modals/showSnackbarErrorDefault');
+        this.$store.dispatch('snackbar/showSnackbarErrorDefault');
       }
     },
 

@@ -19,7 +19,7 @@ describe('Snackbar', () => {
       snackbarMessageAndContentType,
     },
     getters: {
-      'modals/SnackbarMessageAndContentType': (state) => state.snackbarMessageAndContentType,
+      'snackbar/snackbarMessageAndContentType': (state) => state.snackbarMessageAndContentType,
     },
     actions: {
     },
