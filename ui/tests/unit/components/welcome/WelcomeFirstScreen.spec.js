@@ -8,11 +8,14 @@ describe('WelcomeFirstScreen', () => {
 
   let wrapper;
 
+  const user = 'ShellHub';
+  const name = 'ShellHub';
+
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      user: 'ShellHub',
-      name: 'ShellHub',
+      user,
+      name,
     },
     getters: {
       'auth/currentUser': (state) => state.user,
@@ -35,5 +38,8 @@ describe('WelcomeFirstScreen', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.name).toEqual(user);
   });
 });

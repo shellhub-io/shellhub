@@ -8,7 +8,7 @@ describe('WelcomeSecondScreen', () => {
 
   let wrapper;
 
-  const command = '';
+  const command = 'curl "http://localhost/install.sh?tenant_id=a582b47a42e" | sh';
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -36,5 +36,13 @@ describe('WelcomeSecondScreen', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Receive data in props', () => {
+    expect(wrapper.vm.command).toEqual(command);
+  });
+  it('Renders the template with data', () => {
+    const commandText = wrapper.find('[data-test="command-text"]');
+    commandText.element.value = command;
+    expect(commandText.element.value).toEqual(command);
   });
 });
