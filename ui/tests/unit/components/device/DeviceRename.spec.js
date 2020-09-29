@@ -21,9 +21,9 @@ describe('DeviceRename', () => {
     actions: {
       'devices/rename': () => {
       },
-      'modals/showSnackbarSuccessAction': () => {
+      'snackbar/showSnackbarSuccessAction': () => {
       },
-      'modals/showSnackbarErrorAction': () => {
+      'snackbar/showSnackbarErrorAction': () => {
       },
     },
   });

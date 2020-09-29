@@ -137,7 +137,7 @@ export default {
       await this.$store.dispatch('stats/get');
       this.showScreenWelcome();
     } catch {
-      this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.dashboard);
+      this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.dashboard);
     }
   },
 

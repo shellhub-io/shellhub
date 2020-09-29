@@ -222,7 +222,7 @@ export default {
             clearTimeout(this.polling);
           }
         } catch {
-          this.$store.dispatch('modals/showSnackbarErrorDefault');
+          this.$store.dispatch('snackbar/showSnackbarErrorDefault');
         }
       }, 3000);
     },
@@ -237,7 +237,7 @@ export default {
 
         this.e1 = 4;
       } catch {
-        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.deviceAccepting);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.deviceAccepting);
       }
     },
 

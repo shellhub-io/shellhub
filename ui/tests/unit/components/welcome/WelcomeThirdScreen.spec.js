@@ -37,7 +37,7 @@ describe('WelcomeThirdScreen', () => {
     actions: {
       'devices/setFirstPending': () => {
       },
-      'modals/showSnackbarErrorLoading': () => {
+      'snackbar/showSnackbarErrorLoading': () => {
       },
     },
   });

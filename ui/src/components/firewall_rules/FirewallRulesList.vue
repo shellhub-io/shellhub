@@ -176,7 +176,7 @@ export default {
       try {
         await this.$store.dispatch('firewallrules/fetch', data);
       } catch {
-        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.firewallRuleList);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
       }
     },
   },

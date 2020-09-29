@@ -31,7 +31,7 @@ export default {
 
   computed: {
     message() {
-      return this.$store.getters['modals/SnackbarMessageAndContentType'];
+      return this.$store.getters['snackbar/snackbarMessageAndContentType'];
     },
   },
 };

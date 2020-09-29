@@ -107,7 +107,7 @@ export default {
           this.$router.push('/');
         }
       } catch {
-        this.$store.dispatch('modals/showSnackbarErrorDefault');
+        this.$store.dispatch('snackbar/showSnackbarErrorDefault');
       }
     },
   },

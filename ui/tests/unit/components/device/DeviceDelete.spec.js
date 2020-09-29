@@ -19,9 +19,9 @@ describe('DeviceDelete', () => {
     actions: {
       'devices/remove': () => {
       },
-      'modals/showSnackbarSuccessAction': () => {
+      'snackbar/showSnackbarSuccessAction': () => {
       },
-      'modals/showSnackbarErrorAction': () => {
+      'snackbar/showSnackbarErrorAction': () => {
       },
     },
   });

@@ -211,7 +211,7 @@ export default {
             this.xterm.reset();
           }
         } catch {
-          this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.sessionPlay);
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.sessionPlay);
         }
       }
     },

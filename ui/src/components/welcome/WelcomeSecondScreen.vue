@@ -49,7 +49,7 @@ export default {
   methods: {
     copyCommand() {
       this.$clipboard(this.command);
-      this.$store.dispatch('modals/showSnackbarCopy', this.$copy.command);
+      this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.command);
     },
   },
 

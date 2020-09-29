@@ -136,7 +136,7 @@ export default {
       try {
         await this.$store.dispatch('devices/fetch', data);
       } catch {
-        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.deviceListRejected);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.deviceListRejected);
       }
     },
 

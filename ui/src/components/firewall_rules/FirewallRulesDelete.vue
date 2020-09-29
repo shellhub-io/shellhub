@@ -70,10 +70,10 @@ export default {
     async remove() {
       try {
         await this.$store.dispatch('firewallrules/remove', this.id);
-        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.firewallRuleDeleting);
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.firewallRuleDeleting);
         this.dialog = false;
       } catch {
-        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.firewallRuleDeleting);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.firewallRuleDeleting);
       }
     },
   },

@@ -17,7 +17,7 @@ describe('WelcomeSecondScreen', () => {
     getters: {
     },
     actions: {
-      'modals/showSnackbarCopy': () => {
+      'snackbar/showSnackbarCopy': () => {
       },
     },
   });

@@ -31,7 +31,7 @@ describe('DeviceAdd', () => {
     actions: {
       'modals/showAddDevice': () => {
       },
-      'modals/showSnackbarCopy': () => {
+      'snackbar/showSnackbarCopy': () => {
       },
     },
   });

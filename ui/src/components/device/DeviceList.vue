@@ -184,7 +184,7 @@ export default {
       try {
         await this.$store.dispatch('devices/fetch', data);
       } catch {
-        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.deviceList);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.deviceList);
       }
     },
 
@@ -201,7 +201,7 @@ export default {
     },
 
     showCopySnack() {
-      this.$store.dispatch('modals/showSnackbarCopy', this.$copy.deviceSSHID);
+      this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.deviceSSHID);
     },
 
     refresh() {
