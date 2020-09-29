@@ -56,4 +56,11 @@ describe('WelcomeThirdScreen', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getPendingDevice).toEqual(device);
+  });
+  it('Renders the template with data', () => {
+    expect(wrapper.find('[data-test="deviceName-field"]').text()).toEqual(device.name);
+    expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(device.info.pretty_name);
+  });
 });

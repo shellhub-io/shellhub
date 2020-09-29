@@ -22,6 +22,7 @@
             class="pa-2 grey lighten-4"
             tile
             :elevation="0"
+            data-test="deviceName-field"
           >
             {{ getPendingDevice.name }}
           </v-card>
@@ -38,6 +39,7 @@
             class="pa-2 grey lighten-4"
             tile
             :elevation="0"
+            data-test="devicePrettyName-field"
           >
             <div
               v-if="getPendingDevice.info"

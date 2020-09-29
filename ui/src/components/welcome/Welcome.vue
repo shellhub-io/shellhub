@@ -59,6 +59,7 @@
               <v-spacer />
               <v-btn
                 color="primary"
+                data-test="firstClick-btn"
                 @click="activePollingDevices()"
               >
                 Next
@@ -79,6 +80,7 @@
             <v-card-actions>
               <v-btn
                 text
+                data-test="close-btn"
                 @click="close"
               >
                 Close
@@ -98,6 +100,7 @@
               <v-btn
                 v-else
                 color="primary"
+                data-test="secondClick-btn"
                 @click="e1 = 3"
               >
                 Next
@@ -130,6 +133,7 @@
               </v-btn>
               <v-btn
                 color="primary"
+                data-test="thirdClick-btn"
                 @click="acceptDevice()"
               >
                 Accept
