@@ -1,8 +1,32 @@
 #!/bin/sh
 
+readlink_f() {
+    (if uname | grep -q 'Darwin'; then
+	# Use greadlink if available, otherwise it behaves like "readlink -f" option
+        if command -v greadlink >/dev/null 2>&1; then
+            greadlink -f "$1"
+        else
+	    target_file="$1"
+	    cd "$(dirname "$target_file")"
+	    target_file=$(basename "$target_file")
+
+	    while [ -L "$target_file" ]
+	    do
+		target_file=$(readlink "$target_file")
+		cd "$(dirname "$target_file")"
+		target_file=$(basename "$target_file")
+	    done
+
+	    echo "$(pwd -P)/$target_file"
+        fi
+    else
+        readlink -f "$1"
+    fi)
+}
+
 command -v docker-compose >/dev/null 2>&1 || { echo >&2 "ERROR: Please install docker-compose."; exit 1; }
 
-WORKDIR=$(dirname $(readlink -f $0))/../
+WORKDIR=$(dirname $(readlink_f $0))/../
 
 cd $WORKDIR
 
