@@ -19,7 +19,10 @@
           </v-list-item-action>
 
           <v-list-item-content>
-            <v-list-item-title v-text="item.title" />
+            <v-list-item-title
+              :data-test="item.icon"
+              v-text="item.title"
+            />
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -85,12 +88,17 @@
         <v-card>
           <v-list-item three-line>
             <v-list-item-content>
-              <v-list-item-title class="mb-1">
+              <v-list-item-title
+                class="mb-1"
+                data-test="tenantID-field"
+              >
                 Tenant ID
               </v-list-item-title>
               <v-list-item-subtitle>
                 <v-chip>
-                  <span>
+                  <span
+                    data-test="tenantID-text"
+                  >
                     {{ tenant }}
                   </span>
                   <v-icon
@@ -113,6 +121,7 @@
             v-for="(item, index) in menu"
             :key="index"
             router
+            :data-test="item.title"
             @click.prevent="triggerClick(item)"
           >
             <v-list-item-title>
