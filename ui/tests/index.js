@@ -6,9 +6,9 @@ import {
   ValidationProvider,
 } from 'vee-validate/dist/vee-validate.full';
 
-import SnackbarError from '@/components/snackbar/SnackbarError';
+import Snackbar from '@/components/snackbar/Snackbar';
 
-Vue.component('SnackbarError', SnackbarError);
+Vue.component('Snackbar', Snackbar);
 Vue.component('ValidationObserver', ValidationObserver);
 Vue.component('ValidationProvider', ValidationProvider);
 
