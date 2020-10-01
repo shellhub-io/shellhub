@@ -14,7 +14,6 @@ services:
       - shellhub
     environment:
       - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
-      - RECORD_URL=${RECORD_URL}
   api:
     image: api
     build:
