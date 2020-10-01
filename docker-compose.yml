@@ -11,6 +11,8 @@ services:
       - "${SHELLHUB_SSH_PORT}:2222"
     secrets:
       - ssh_private_key
+    networks:
+      - shellhub
   api:
     image: shellhubio/api:${SHELLHUB_VERSION}
     environment:
@@ -23,12 +25,16 @@ services:
     secrets:
       - api_private_key
       - api_public_key
+    networks:
+      - shellhub
   ui:
     image: shellhubio/ui:${SHELLHUB_VERSION}
     environment:
       - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
     depends_on:
       - api
+    networks:
+      - shellhub
   gateway:
     image: shellhubio/gateway:${SHELLHUB_VERSION}
     environment:
@@ -40,8 +46,12 @@ services:
       - ui
     ports:
       - "${SHELLHUB_HTTP_PORT}:80"
+    networks:
+      - shellhub
   mongo:
     image: mongo:3.4.19
+    networks:
+      - shellhub
 
 secrets:
   ssh_private_key:
@@ -50,3 +60,7 @@ secrets:
     file: ./api_private_key
   api_public_key:
     file: ./api_public_key
+
+networks:
+  shellhub:
+    name: shellhub_network

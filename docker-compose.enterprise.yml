@@ -1,0 +1,18 @@
+version: '3.7'
+
+services:
+  ssh:
+    environment:
+      - RECORD_URL=cloud-api:8080
+  cloud-api:
+    image: docker-registry.ossystems.com.br/shellhubio/cloud-api:${SHELLHUB_VERSION}
+    networks:
+      - shellhub
+  admin-api:
+    image: docker-registry.ossystems.com.br/shellhubio/admin-api:${SHELLHUB_VERSION}
+    networks:
+      - shellhub
+  dashboard:
+    image: docker-registry.ossystems.com.br/shellhubio/dashboard:${SHELLHUB_VERSION}
+    networks:
+      - shellhub
