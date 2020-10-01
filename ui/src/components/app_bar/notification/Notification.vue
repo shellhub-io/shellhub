@@ -37,7 +37,10 @@
           >
             <v-list-item-content>
               <v-list-item-title>
-                <router-link :to="{ name: 'detailsDevice', params: { id: item.uid } }">
+                <router-link
+                  :to="{ name: 'detailsDevice', params: { id: item.uid } }"
+                  :data-test="item.uid+'-field'"
+                >
                   {{ item.name }}
                 </router-link>
               </v-list-item-title>
@@ -48,6 +51,7 @@
                 :uid="item.uid"
                 :notification-status="true"
                 action="accept"
+                :data-test="item.uid+'-btn'"
                 @update="refresh"
               />
             </v-list-item-action>
