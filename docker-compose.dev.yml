@@ -10,8 +10,6 @@ services:
     volumes:
       - ./ssh:/go/src/github.com/shellhub-io/shellhub/ssh
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
-    networks:
-      - shellhub
     environment:
       - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
   api:
@@ -24,8 +22,6 @@ services:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - shellhub
   ui:
     image: ui
     build:
@@ -34,8 +30,6 @@ services:
       target: development
     volumes:
       - ./ui:/src
-    networks:
-      - shellhub
     environment:
       - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
   gateway:
@@ -46,8 +40,6 @@ services:
     environment:
       - SHELLHUB_VERSION=latest
       - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
-    networks:
-      - shellhub
   agent:
     image: agent
     restart: on-failure
@@ -78,13 +70,5 @@ services:
       - ssh
       - gateway
   mongo:
-    networks:
-      - shellhub
   autossl:
     image: tianon/true
-    networks:
-      - shellhub
-
-networks:
-  shellhub:
-    name: shellhub_network
