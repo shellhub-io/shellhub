@@ -41,6 +41,7 @@ services:
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - SHELLHUB_SSH_PORT=${SHELLHUB_SSH_PORT}
       - SHELLHUB_PROXY=${SHELLHUB_PROXY}
+      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
     depends_on:
       - api
       - ui
