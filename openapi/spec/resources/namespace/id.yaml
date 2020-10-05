@@ -1,0 +1,90 @@
+parameters:
+  - name: id
+    description: Namespace ID
+    schema:
+      type: integer
+    in: path
+get:
+  summary: Get namespace
+  description: Get a namespace from its `ID`.
+  tags:
+    - namespace
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success get namespace
+      content:
+        application/json:
+          schema:
+            $ref: model/namespace.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+post:
+  summary: Create namespace
+  description: Create a namespace from its `ID`.
+  tags:
+    - namespace
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Namespace name
+              type: string
+  responses:
+    '200':
+      description: Success create namespace
+      content:
+        application/json:
+          schema:
+            $ref: model/namespace.yaml
+    '400':
+      $ref: ../../shared/responses/BadRequestResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '409':
+      $ref: ../../shared/responses/ConflictResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+put:
+  summary: Edit namespace
+  description: Edit a namespace from its `ID`.
+  tags:
+    - namespace
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Namespace name
+              type: string
+  responses:
+    '200':
+      description: Success edit namespace
+      content:
+        application/json:
+          schema:
+            $ref: model/namespace.yaml
+    '400':
+      $ref: ../../shared/responses/BadRequestResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '404':
+      $ref: ../../shared/responses/NotFoundResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

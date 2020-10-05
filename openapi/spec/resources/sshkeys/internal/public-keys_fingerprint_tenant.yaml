@@ -1,0 +1,20 @@
+get:
+  summary: Get public key
+  description: Get public key.
+  tags:
+    - ssh
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success get public key
+      content:
+        application/json:
+          schema:
+            $ref: ../model/public_key.yaml
+    '401':
+      $ref: ../../../shared/responses/UnauthorizedResponse.yaml
+    '404':
+      $ref: ../../../shared/responses/NotFoundResponse.yaml
+    '500':
+      $ref: ../../../shared/responses/AnyInternalErrorResponse.yaml

@@ -1,0 +1,58 @@
+post:
+  summary: Create firewall rule
+  description: Create firewall rule.
+  tags:
+    - firewall
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: model/firewall_rules.yaml
+  responses:
+    '200':
+      description: Success create firewall rule
+      content:
+        application/json:
+          schema:
+            $ref: model/firewall_rules.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+get:
+  summary: Get firewall rules
+  description: ''
+  tags:
+    - firewall
+  security:
+    - Auth: []
+  parameters:
+    - name: X-Total-Count
+      schema:
+        description: Rules max returned number
+        type: integer
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../../shared/models/QueryModel.yaml
+  responses:
+    '200':
+      description: Success get firewall rules
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: model/firewall_rules.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

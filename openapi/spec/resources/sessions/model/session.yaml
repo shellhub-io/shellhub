@@ -1,0 +1,40 @@
+type: object
+properties:
+  uid:
+    description: Session UID
+    type: string
+  device_uid:
+    description: Session device UID
+    type: object
+    properties:
+      claims:
+        type: string
+  device:
+    $ref: ../../devices/model/device.yaml
+  tenant_id:
+    description: Session tenant ID
+    type: string
+  username:
+    description: Session username
+    type: string
+  ip_address:
+    description: Session IP address
+    type: string
+  started_at:
+    description: Session started date
+    type: string
+  last_seen:
+    description: Session last seen date
+    type: string
+  active:
+    description: Session active status
+    type: boolean
+  '-':
+    description: Session closed status
+    type: boolean
+  authenticated:
+    description: Session authenticated status
+    type: boolean
+  recorded:
+    description: Session record status
+    type: boolean

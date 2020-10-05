@@ -1,0 +1,26 @@
+type: object
+properties:
+  uid:
+    description: Firewall rule UID
+    type: string
+  tenant_id:
+    description: Firewall rule tenant ID
+    type: string
+  priority:
+    description: Firewall rule priority
+    type: integer
+  action:
+    description: Firewall rule action
+    type: string
+  active:
+    description: Firewall rule active status
+    type: boolean
+  source_ip:
+    description: Firewall rule source IP
+    type: string
+  username:
+    description: Firewall rule username
+    type: string
+  hostname:
+    description: Firewall rule hostname
+    type: string

@@ -1,0 +1,62 @@
+post:
+  summary: Auth device v2
+  description: >
+    Authentic a device.
+
+    `X-Real-IP` header is used to set a geolocation position to device when
+    `geoip` feature is enable.
+
+    Every 30 seconds, this route is hit by internal ShellHub to check device
+    availability.
+  tags:
+    - device
+  security:
+    - Auth: []
+  parameters:
+    - name: X-Real-IP
+      schema:
+        description: Device IP
+        type: string
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            uid:
+              description: Device UID
+              type: string
+            token:
+              description: Device token
+              type: string
+            name:
+              description: Device name
+              type: string
+            namespace:
+              description: Device owner namespace
+              type: string
+  responses:
+    '200':
+      description: Success get auth device
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              UID:
+                description: Device UID
+                type: string
+              Token:
+                description: Device token
+                type: string
+              Name:
+                description: Device name
+                type: string
+              Namespace:
+                description: Device owner namespace
+                type: string
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

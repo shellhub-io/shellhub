@@ -1,0 +1,38 @@
+get:
+  summary: Get sessions list
+  description: Get a list from all opened session.
+  tags:
+    - session
+  security:
+    - Auth: []
+  parameters:
+    - name: X-Total-Count
+      description: Session max returned number
+      schema:
+        type: integer
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            page:
+              description: Device list page
+              type: string
+            per_page:
+              description: Device number per page
+              type: string
+  responses:
+    '200':
+      description: Success got session list
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: model/session.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

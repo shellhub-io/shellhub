@@ -1,0 +1,39 @@
+type: object
+properties:
+  name:
+    description: Namespace name
+    type: string
+  owner:
+    description: Namespace owner
+    type: string
+  tenant_id:
+    description: Namespace tenant ID
+    type: string
+  members:
+    description: Namespace members
+    type: object
+  settings:
+    description: Namespace settings
+    type: object
+    properties:
+      session_record:
+        description: Namespace session record
+        type: boolean
+  devices:
+    description: Namespace device number
+    type: integer
+  session:
+    description: Namespace opened session
+    type: integer
+  max_devices:
+    description: Namespace max device numbers
+    type: integer
+  device_count:
+    description: Namespace device count number
+    type: integer
+  created_at:
+    description: Namespace creation date
+    type: string
+  billing:
+    description: Namespace  billing
+    type: string

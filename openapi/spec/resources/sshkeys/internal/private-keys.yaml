@@ -1,0 +1,28 @@
+post:
+  summary: Create private key
+  description: Create private key.
+  tags:
+    - ssh
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success create private key
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Private key  data
+                type: string
+              fingerprint:
+                description: Private key  fingerprint
+                type: string
+              created_at:
+                description: Private key  creation date
+                type: string
+    '401':
+      $ref: ../../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../../shared/responses/AnyInternalErrorResponse.yaml

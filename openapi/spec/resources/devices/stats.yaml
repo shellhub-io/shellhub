@@ -1,0 +1,35 @@
+get:
+  summary: Get status from device
+  description: |
+    Get states about active, pending, rejected, online and registered devices"
+  tags:
+    - device
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success get stats from device
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              registered_devices:
+                description: Registered devices
+                type: integer
+              online_devices:
+                description: Online devices
+                type: integer
+              active_sessions:
+                description: Active sessions
+                type: integer
+              pending_devices:
+                description: Pending devices
+                type: integer
+              rejected_devices:
+                description: Rejected devices
+                type: integer
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

@@ -1,0 +1,58 @@
+parameters:
+  - name: uid
+    description: Device UID
+    schema:
+      type: string
+    in: header
+  - name: name
+    description: Tag name
+    schema:
+      type: string
+    in: header
+delete:
+  summary: Delete a tag
+  description: Delete a tag
+  tags:
+    - device
+  security:
+    - Auth: []
+  responses:
+    '200':
+      $ref: ../../shared/responses/OkResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '404':
+      $ref: ../../shared/responses/NotFoundResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+put:
+  summary: Update a tag name
+  description: Update a tag name
+  tags:
+    - device
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            new_name:
+              description: New tag name
+              type: string
+  responses:
+    '200':
+      $ref: ../../shared/responses/OkResponse.yaml
+    '400':
+      $ref: ../../shared/responses/BadRequestResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '404':
+      $ref: ../../shared/responses/NotFoundResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

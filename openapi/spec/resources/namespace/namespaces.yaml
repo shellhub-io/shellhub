@@ -1,0 +1,58 @@
+get:
+  summary: Get namespace list
+  description: Get a list from all namespaces.
+  tags:
+    - namespace
+  security:
+    - Auth: []
+  parameters:
+    - name: X-Total-Count
+      schema:
+        description: Namespace max returned number
+        type: integer
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../../shared/models/QueryModel.yaml
+  responses:
+    '200':
+      description: Success get namespace list
+      content:
+        application/json:
+          schema:
+            $ref: model/namespace.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+post:
+  summary: Create namespace
+  description: Create a namespace.
+  tags:
+    - namespace
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: model/namespace.yaml
+  responses:
+    '200':
+      description: Success create namespace
+      content:
+        application/json:
+          schema:
+            $ref: model/namespace.yaml
+    '400':
+      $ref: ../../shared/responses/BadRequestResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '409':
+      $ref: ../../shared/responses/ConflictResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

@@ -1,0 +1,22 @@
+openapi: 3.0.2
+$ref: spec/shared/common-openapi.yaml
+paths:
+  $ref: community-openapi.yaml#/paths
+  /firewall/rules:
+    $ref: spec/resources/firewall/rules.yaml
+  '/firewall/rules/{id}':
+    $ref: spec/resources/firewall/rules_id.yaml
+  '/sessions/{uid}/play':
+    $ref: spec/resources/sessions/play.yaml
+  '/sessions/{uid}/record':
+    $ref: spec/resources/sessions/record_del.yaml
+  /register:
+    $ref: spec/resources/user/register.yaml
+  /user/resend_email:
+    $ref: spec/resources/user/resend_email.yaml
+  '/user/{uid}/update_password':
+    $ref: spec/resources/user/uid_update_password.yaml
+  /user/validation_account:
+    $ref: spec/resources/user/validation_account.yaml
+  /user/recover_password:
+    $ref: spec/resources/user/recover_password.yaml

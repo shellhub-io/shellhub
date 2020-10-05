@@ -1,0 +1,65 @@
+parameters:
+  - name: uid
+    schema:
+      description: Device UID
+      type: string
+    in: path
+get:
+  summary: Get a device
+  description: Get a device from `UID`.
+  tags:
+    - device
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success get a device
+      content:
+        application/json:
+          schema:
+            $ref: model/device.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+delete:
+  summary: Delete a device
+  description: Delete a device from its `UID`.
+  tags:
+    - device
+  security:
+    - Auth: []
+  responses:
+    '200':
+      $ref: ../../shared/responses/OkResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+patch:
+  summary: Update device name
+  description: Update a device name from its `UID` to `name` in request body.
+  tags:
+    - device
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Device new name
+              type: string
+  responses:
+    '200':
+      $ref: ../../shared/responses/OkResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

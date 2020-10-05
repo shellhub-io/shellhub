@@ -1,0 +1,8 @@
+type: object
+properties:
+  page:
+    description: Device list page
+    type: integer
+  per_page:
+    description: Device number per page
+    type: integer

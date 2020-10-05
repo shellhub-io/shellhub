@@ -1,0 +1,29 @@
+post:
+  summary: Open session
+  description: Open a new session to a device.
+  tags:
+    - session
+  security:
+    - Auth: []
+  parameters:
+    - name: X-Real-IP
+      description: Device IP
+      schema:
+        type: string
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../model/session.yaml
+  responses:
+    '200':
+      description: Success open session
+      content:
+        'application:json':
+          schema:
+            $ref: ../model/session.yaml
+    '401':
+      $ref: ../../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../../shared/responses/AnyInternalErrorResponse.yaml

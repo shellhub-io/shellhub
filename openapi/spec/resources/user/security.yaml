@@ -1,0 +1,20 @@
+get:
+  summary: Get session record
+  description: Get status from if `session record` feature is enable.
+  tags:
+    - user
+    - session
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success get session record status
+      content:
+        application/json:
+          schema:
+            description: Session record status
+            type: boolean
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

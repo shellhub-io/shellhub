@@ -1,0 +1,43 @@
+get:
+  summary: Get token
+  description: Get a token from its tenant.
+  tags:
+    - user
+  security:
+    - Auth: []
+  parameters:
+    - name: tenant
+      description: Tenant
+      schema:
+        type: string
+      in: path
+  responses:
+    '200':
+      description: Success get token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                description: User  token
+                type: string
+              user:
+                description: User
+                type: string
+              name:
+                description: User  name
+                type: string
+              id:
+                description: User  ID
+                type: string
+              tenant:
+                description: User  tenant
+                type: string
+              email:
+                description: User  e-mail
+                type: string
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
