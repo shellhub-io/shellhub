@@ -17,7 +17,7 @@
     "moment": "^2.29.0",
     "moment-duration-format": "^2.3.2",
     "v-clipboard": "^2.2.3",
-    "vee-validate": "^3.3.11",
+    "vee-validate": "^3.4.0",
     "vue": "^2.6.12",
     "vue-fragment": "^1.5.1",
     "vue-moment": "^4.1.0",
