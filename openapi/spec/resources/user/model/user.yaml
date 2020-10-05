@@ -1,0 +1,29 @@
+type: object
+properties:
+  id:
+    description: User ID
+    type: string
+  name:
+    description: User name
+    type: string
+  email:
+    description: User email
+    type: string
+  username:
+    description: User name
+    type: string
+  password:
+    description: User password
+    type: string
+  namespaces:
+    description: User namespace number
+    type: integer
+  authenticated:
+    description: User authentication status
+    type: boolean
+  created_at:
+    description: User created date
+    type: string
+  last_login:
+    description: User last login date
+    type: string

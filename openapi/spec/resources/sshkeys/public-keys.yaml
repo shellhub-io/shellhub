@@ -1,0 +1,64 @@
+get:
+  summary: Get public keys list
+  description: Get a list from all public keys.
+  tags:
+    - ssh
+  security:
+    - Auth: []
+  parameters:
+    - name: X-Total-Count
+      description: Public key max returned number
+      schema:
+        type: integer
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../../shared/models/QueryModel.yaml
+  responses:
+    '200':
+      description: Success get public key
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: model/public_key.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+post:
+  summary: Create public key
+  description: Create a new public key.
+  tags:
+    - ssh
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: model/public_key.yaml
+  responses:
+    '200':
+      description: Success create public key
+      content:
+        application/json:
+          schema:
+            $ref: model/public_key.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '409':
+#      // TODO This response is not correct, because it returns directly a `echo.NewHTTPError` and the documentation says it returns a null body
+      $ref: ../../shared/responses/ConflictResponse.yaml
+    '422':
+      description: UnprocessableEntity
+      content:
+        application/json:
+          schema:
+            description: Invalid format
+            type: null
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

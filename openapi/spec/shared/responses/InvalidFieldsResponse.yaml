@@ -1,0 +1,21 @@
+# TODO Invalid Fields in Go code does not have JSON notation.
+description: Invalid Fields
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            description: Name
+            type: string
+          kind:
+            description: Kind
+            type: string
+          param:
+            description: Param
+            type: string
+          extra:
+            description: Extra
+            type: string

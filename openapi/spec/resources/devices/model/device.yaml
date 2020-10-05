@@ -1,0 +1,68 @@
+type: object
+properties:
+  uid:
+    description: Device UID
+    type: string
+  name:
+    description: Device name
+    type: string
+  identity:
+    description: Device identity
+    type: object
+    properties:
+      mac:
+        description: Device MAC
+        type: string
+  info:
+    description: Device info
+    type: object
+    properties:
+      id:
+        description: Device ID
+        type: string
+      pretty_name:
+        description: Device OS pretty name
+        type: string
+      version:
+        description: Device OS version
+        type: string
+      arch:
+        description: Device OS arch
+        type: string
+      platform:
+        description: Device OS platform
+        type: string
+  public_key:
+    description: Device public key
+    type: string
+  tenant_id:
+    description: Device tenant
+    type: string
+  last_seen:
+    description: Device last seen
+    type: string
+  online:
+    description: Device availability status
+    type: boolean
+  namespace:
+    description: Device namespace
+    type: string
+  status:
+    description: Device status
+    type: string
+  created_at:
+    description: Device creation date
+    type: string
+  remote_addr:
+    description: Device remote address
+    type: string
+  position:
+    description: Device geolocation position
+    type: object
+    properties:
+      longitude:
+        description: Device longitude position
+        type: integer
+      latitude:
+        description: Device latitude position
+        type: integer

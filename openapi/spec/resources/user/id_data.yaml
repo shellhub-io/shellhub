@@ -1,0 +1,57 @@
+patch:
+  summary: Update user data
+  description: Update all user information.
+  tags:
+    - user
+  security:
+    - Auth: []
+  parameters:
+    - name: id
+      description: User ID
+      schema:
+        type: string
+      in: path
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            id:
+              description: User ID
+              type: string
+            name:
+              description: User name
+              type: string
+            email:
+              description: User e-mail
+              type: string
+            username:
+              description: User
+              type: string
+            password:
+              description: User password
+              type: string
+            namespaces:
+              description: User namespace
+              type: integer
+            authenticated:
+              description: User authentication state
+              type: boolean
+            created_at:
+              description: User creation date
+              type: string
+            last_login:
+              description: User last login date
+              type: string
+  responses:
+    '200':
+      $ref: ../../shared/responses/OkResponse.yaml
+    '400':
+      $ref: ../../shared/responses/InvalidFieldsResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '409':
+      $ref: ../../shared/responses/InvalidFieldsResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

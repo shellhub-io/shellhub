@@ -1,0 +1,29 @@
+post:
+  summary: Register user
+  description: ''
+  tags:
+    - user
+  security:
+    - Auth: []
+  parameters:
+    - name: X-Forwarded-Host
+      description: ''
+      schema:
+        type: string
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: model/user.yaml
+  responses:
+    '200':
+      $ref: ../../shared/responses/OkResponse.yaml
+    '400':
+      $ref: ../../shared/responses/BadRequestResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '409':
+      $ref: ../../shared/responses/ConflictResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

@@ -1,0 +1,24 @@
+info:
+  title: ShellHub
+  description: >
+    Shellhub description
+
+
+    Note:
+
+    `/public` routes are accessible through API gateway and `/internal` routes
+    only by other services in the local container network.
+  contact:
+    email: contato@ossystems.com.br
+  license:
+    name: Apache License 2.0
+    url: 'https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md'
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:80'
+components:
+  securitySchemes:
+    Auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

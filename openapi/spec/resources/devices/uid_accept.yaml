@@ -1,0 +1,28 @@
+put:
+  summary: Accept device
+  description: Change device status to `accept`.
+  tags:
+    - device
+  security:
+    - Auth: []
+  parameters:
+    - name: uid
+      schema:
+        description: Device UID
+        type: string
+      in: path
+  responses:
+    '200':
+      description: Success accept device
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Device accepted status
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

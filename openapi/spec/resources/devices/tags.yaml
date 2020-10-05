@@ -1,0 +1,26 @@
+get:
+  summary: Get all tags
+  description: Get all tags
+  tags:
+    - device
+  security:
+    - Auth: []
+  parameters:
+    - name: X-Total-Count
+      schema:
+        description: tags max returned number
+        type: string
+      in: header
+  responses:
+    '200':
+      description: Success get all tags
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: string
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

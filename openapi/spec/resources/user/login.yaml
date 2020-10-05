@@ -1,0 +1,23 @@
+post:
+  summary: Login
+  description: Retrieve JWT token what's need to access protected API's routes.
+  tags:
+    - user
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: request/login.yaml
+  responses:
+    '200':
+      description: Success login
+      content:
+        application/json:
+          schema:
+            $ref: response/login.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

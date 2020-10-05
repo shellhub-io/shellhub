@@ -1,0 +1,37 @@
+get:
+  summary: Get Lookup
+  description: ''
+  tags:
+    - device
+  security:
+    - Auth: []
+  parameters:
+    - name: domain
+      schema:
+        type: string
+      in: query
+    - name: name
+      schema:
+        type: string
+      in: query
+    - name: username
+      schema:
+        type: string
+      in: query
+    - name: id_address
+      schema:
+        type: string
+      in: query
+  responses:
+    '200':
+      description: Success lookup device
+      content:
+        application/json:
+          schema:
+            $ref: ../model/device.yaml
+    '401':
+      $ref: ../../../shared/responses/UnauthorizedResponse.yaml
+    '404':
+      $ref: ../../../shared/responses/NotFoundResponse.yaml
+    '500':
+      $ref: ../../../shared/responses/AnyInternalErrorResponse.yaml

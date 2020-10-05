@@ -1,0 +1,32 @@
+post:
+  summary: Set SSH key
+  description: Set a SSH public key.
+  tags:
+    - ssh
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            fingerprint:
+              description: Device fingerprint
+              type: string
+            data:
+              description: Device SSH public key
+              type: string
+  responses:
+    '200':
+      description: Success set SSH key
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              signature:
+                description: Device signature
+                type: string
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

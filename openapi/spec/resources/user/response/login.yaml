@@ -1,0 +1,20 @@
+type: object
+properties:
+  token:
+    description: Token
+    type: string
+  user:
+    description: User
+    type: string
+  name:
+    description: Name
+    type: string
+  id:
+    description: ID
+    type: integer
+  tenant:
+    description: Tenant
+    type: string
+  email:
+    description: E-mail
+    type: string

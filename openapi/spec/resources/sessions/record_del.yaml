@@ -1,0 +1,26 @@
+delete:
+  summary: Delete session record
+  description: ''
+  tags:
+    - session
+  security:
+    - Auth: []
+  parameters:
+    - name: uid
+      schema:
+        description: Session UID
+        type: string
+      in: path
+  responses:
+    '200':
+      $ref: ../../shared/responses/OkResponse.yaml
+    '400':
+      $ref: ../../shared/responses/BadRequestResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '404':
+      $ref: ../../shared/responses/NotFoundResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

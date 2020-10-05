@@ -103,3 +103,13 @@ services:
   mongo:
   autossl:
     image: tianon/true
+  openapi:
+    image: openapi
+    build:
+      context: .
+      dockerfile: openapi/Dockerfile
+      target: openapi
+    volumes:
+      - ./openapi:/openapi
+    networks:
+      - shellhub

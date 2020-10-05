@@ -1,0 +1,23 @@
+type: object
+properties:
+  data:
+    description: Public key  data
+    type: string
+  fingerprint:
+    description: Public key  fingerprint
+    type: string
+  created_at:
+    description: Public key creation date
+    type: string
+  tenant_id:
+    description: Public key tenant
+    type: string
+  name:
+    description: Public key name
+    type: string
+  hostname:
+    description: Public key hostname
+    type: string
+  username:
+    description: Public key username
+    type: string

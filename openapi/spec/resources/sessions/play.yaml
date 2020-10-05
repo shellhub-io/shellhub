@@ -1,0 +1,26 @@
+get:
+  summary: Get session record data
+  description: ''
+  tags:
+    - session
+  security:
+    - Auth: []
+  parameters:
+    - name: uid
+      schema:
+        description: Session UID
+        type: string
+      in: path
+  responses:
+    '200':
+      description: Success get session data
+      content:
+        application/json:
+          schema:
+            $ref: model/record.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

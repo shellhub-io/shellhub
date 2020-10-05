@@ -1,0 +1,68 @@
+parameters:
+  - name: uid
+    description: Device UID
+    schema:
+      type: string
+    in: header
+post:
+  summary: Create a tag
+  description: Create a tag
+  tags:
+    - device
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Tag name
+              type: string
+  responses:
+    '200':
+      $ref: ../../shared/responses/OkResponse.yaml
+    '400':
+      $ref: ../../shared/responses/BadRequestResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '406':
+      $ref: ../../shared/responses/NotAcceptable.yaml
+    '409':
+      $ref: ../../shared/responses/ConflictResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+put:
+  summary: Update a tag
+  description: Update a tag
+  tags:
+    - device
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tags:
+              description: List of tags
+              type: array
+              items:
+                type: string
+  responses:
+    '200':
+      $ref: ../../shared/responses/OkResponse.yaml
+    '400':
+      $ref: ../../shared/responses/BadRequestResponse.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '404':
+      $ref: ../../shared/responses/NotFoundResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

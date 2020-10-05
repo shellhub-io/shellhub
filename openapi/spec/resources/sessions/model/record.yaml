@@ -1,0 +1,20 @@
+type: object
+properties:
+  uid:
+    description: Record UID
+    type: string
+  message:
+    description: Record message
+    type: string
+  tenant_id:
+    description: Record tenant ID
+    type: string
+  time:
+    description: Record date
+    type: string
+  width:
+    description: Record width
+    type: integer
+  height:
+    description: Record height
+    type: integer

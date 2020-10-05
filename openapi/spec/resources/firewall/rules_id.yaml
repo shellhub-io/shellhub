@@ -1,0 +1,65 @@
+parameters:
+  - name: id
+    schema:
+      description: Firewall rule ID
+      type: integer
+    in: path
+get:
+  summary: Get Firewall rule
+  description: Get Firewall rule.
+  tags:
+    - firewall
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success get firewall rule
+      content:
+        application/json:
+          schema:
+            $ref: model/firewall_rules.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+put:
+  summary: Update Firewall rule
+  description: Update Firewall rule.
+  tags:
+    - firewall
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: model/firewall_rules.yaml
+  responses:
+    '200':
+      description: Success update firewall rule
+      content:
+        application/json:
+          schema:
+            $ref: model/firewall_rules.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+delete:
+  summary: Delete firewall rule
+  description: ''
+  tags:
+    - firewall
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success delete firewall rule
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../../shared/responses/ForbiddenResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

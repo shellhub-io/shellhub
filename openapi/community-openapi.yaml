@@ -1,0 +1,67 @@
+openapi: 3.0.2
+$ref: spec/shared/common-openapi.yaml
+paths:
+  /api/login:
+    $ref: spec/resources/user/login.yaml
+  /api/auth/user:
+    $ref: spec/resources/user/login.yaml
+  /api/devices/auth:
+    $ref: spec/resources/devices/auth.yaml
+  /api/auth/device:
+    $ref: spec/resources/auth/device.yaml
+  /api/auth/ssh:
+    $ref: spec/resources/auth/ssh.yaml
+  '/api/token/{tenant}':
+    $ref: spec/resources/user/token_tenant.yaml
+  '/api/devices/{uid}/accept':
+    $ref: spec/resources/devices/uid_accept.yaml
+  '/api/users/{id}/data':
+    $ref: spec/resources/user/id_data.yaml
+  '/api/users/{id}/password':
+    $ref: spec/resources/user/id_password.yaml
+  '/users/security/{id}':
+    $ref: spec/resources/user/security_id.yaml
+  /users/security:
+    $ref: spec/resources/user/security.yaml
+  /api/devices:
+    $ref: spec/resources/devices/devices.yaml
+  '/api/devices/{uid}':
+    $ref: spec/resources/devices/uid.yaml
+  '/internal/devices/{uid}/offline':
+    $ref: spec/resources/devices/internal/offline.yaml
+  '/api/devices/{uid}/{status}':
+    $ref: spec/resources/devices/uid_status.yaml
+  /internal/lookup:
+    $ref: spec/resources/devices/internal/lookup.yaml
+  /api/sessions:
+    $ref: spec/resources/sessions/sessions.yaml
+  /internal/session:
+    $ref: spec/resources/sessions/internal/open.yaml
+  '/api/sessions/{uid}':
+    $ref: spec/resources/sessions/uid.yaml
+  /api/sshkeys/public-keys:
+    $ref: spec/resources/sshkeys/public-keys.yaml
+  '/api/sshkeys/public-keys/{fingerprint}':
+    $ref: spec/resources/sshkeys/public-keys_fingerprint.yaml
+  '/internal/sshkeys/public-keys/{fingerprint}/{tenant}':
+    $ref: spec/resources/sshkeys/internal/public-keys_fingerprint_tenant.yaml
+  '/internal/sshkeys/public-keys/evaluate/{fingerprint}/{username}':
+    $ref: spec/resources/sshkeys/internal/public-keys_evaluate_fingerprint_username.yaml
+  /internal/sshkeys/private-keys:
+    $ref: spec/resources/sshkeys/internal/private-keys.yaml
+  /api/stats:
+    $ref: spec/resources/devices/stats.yaml
+  /api/namespaces:
+    $ref: spec/resources/namespace/namespaces.yaml
+  '/api/namespace/{id}':
+    $ref: spec/resources/namespace/id.yaml
+  '/api/namespace/{id}/add':
+    $ref: spec/resources/namespace/id_add.yaml
+  '/api/namespace/{id}/del':
+    $ref: spec/resources/namespace/id_del.yaml
+  '/api/devices/{uid}/tags':
+    $ref: spec/resources/devices/uid_tags.yaml
+  '/api/devices/{uid}/tags/{name}':
+    $ref: spec/resources/devices/uid_tags_name.yaml
+  '/api/devices/tags':
+    $ref: spec/resources/devices/tags.yaml

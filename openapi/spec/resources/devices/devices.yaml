@@ -1,0 +1,56 @@
+get:
+  summary: Get device list
+  description: Get a list from all devices.
+  tags:
+    - device
+  security:
+    - Auth: []
+  parameters:
+    - name: X-Total-Count
+      description: Device max returned number
+      schema:
+        type: string
+      in: header
+    - name: filter
+      description: Device filter
+      schema:
+        type: string
+      in: query
+    - name: page
+      description: Device page
+      schema:
+        type: integer
+      in: query
+    - name: per_page
+      description: Device number by page
+      schema:
+        type: integer
+      in: query
+    - name: status
+      description: Device status
+      schema:
+        type: string
+      in: query
+    - name: sort_by
+      description: Device sort
+      schema:
+        type: string
+      in: query
+    - name: order_by
+      schema:
+        description: Device list order
+        type: string
+      in: query
+  responses:
+    '200':
+      description: Success get device list
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: model/device.yaml
+    '401':
+      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
