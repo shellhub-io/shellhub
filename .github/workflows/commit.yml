@@ -3,14 +3,11 @@ on:
   push:
     branches-ignore:
       - 'master'
-      - 'dependabot/**'
-
   pull_request:
-    branches-ignore:
-      - 'dependabot/**'
 
 jobs:
   check-commit-message:
+    if: github.actor != 'dependabot'
     name: Check Commit Message
     runs-on: ubuntu-20.04
     steps:
