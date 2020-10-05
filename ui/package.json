@@ -50,7 +50,7 @@
     "sass": "^1.26.11",
     "sass-loader": "^10.0.2",
     "stylus": "^0.54.8",
-    "stylus-loader": "^3.0.1",
+    "stylus-loader": "^4.1.0",
     "vue-cli-plugin-vuetify": "^2.0.7",
     "vue-template-compiler": "^2.6.12",
     "vuetify-loader": "^1.6.0"
