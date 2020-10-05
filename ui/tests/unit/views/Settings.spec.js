@@ -14,6 +14,9 @@ describe('Settings', () => {
     wrapper = shallowMount(Settings, {
       localVue,
       stubs: ['fragment'],
+      mocks: {
+        $env: (isHosted) => isHosted,
+      },
     });
   });
 
