@@ -5,7 +5,7 @@
 <h4 align="center">Centralized SSH for the edge and cloud computing.</h4>
 
 <p align="center">
-  <a href="https://circleci.com/gh/shellhub-io/shellhub">
+  <a href="https://github.com/shellhub-io/shellhub/actions?query=workflow%3AQA">
     <img src="https://github.com/shellhub-io/shellhub/workflows/QA/badge.svg" alt="GitHub Workflow">
   </a>
   <a href="https://gitter.im/shellhub-io/community">
