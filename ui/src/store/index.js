@@ -9,11 +9,21 @@ import snackbar from '@/store/modules/snackbar';
 import firewallrules from '@/store/modules/firewall_rules';
 import notifications from '@/store/modules/notifications';
 import users from '@/store/modules/users';
+import security from '@/store/modules/security';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
   modules: {
-    devices, modals, snackbar, stats, sessions, auth, firewallrules, notifications, users,
+    devices,
+    modals,
+    snackbar,
+    stats,
+    sessions,
+    auth,
+    firewallrules,
+    notifications,
+    users,
+    security,
   },
 });

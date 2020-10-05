@@ -77,6 +77,11 @@ const router = new Router({
           name: 'profileSettings',
           component: () => import('./../components/setting/SettingProfile.vue'),
         },
+        {
+          path: 'security',
+          name: 'securitySettings',
+          component: () => import('./../components/setting/SettingSecurity.vue'),
+        },
       ],
     },
     {

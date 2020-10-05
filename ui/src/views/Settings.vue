@@ -11,7 +11,7 @@
           centered
         >
           <v-tab
-            v-for="item in items"
+            v-for="item in visibleItems"
             :key="item.title"
             :to="item.path"
           >
@@ -46,8 +46,19 @@ export default {
           title: 'Profile',
           path: '/settings',
         },
+        {
+          title: 'Security',
+          path: '/settings/security',
+          hidden: !this.$env.isHosted,
+        },
       ],
     };
+  },
+
+  computed: {
+    visibleItems() {
+      return this.items.filter((item) => !item.hidden);
+    },
   },
 };
 </script>

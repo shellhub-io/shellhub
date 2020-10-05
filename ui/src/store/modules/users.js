@@ -1,4 +1,4 @@
-import putUser from '@/store/api/users';
+import * as apiUser from '@/store/api/users';
 
 export default {
   namespaced: true,
@@ -14,7 +14,7 @@ export default {
 
   actions: {
     async put(context, data) {
-      await putUser(data);
+      await apiUser.putUser(data);
     },
   },
 };
