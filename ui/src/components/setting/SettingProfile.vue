@@ -61,6 +61,7 @@
             >
               <ValidationProvider
                 v-slot="{ errors }"
+                ref="providerName"
                 vid="username"
                 name="Priority"
                 rules="required"
@@ -77,6 +78,7 @@
 
               <ValidationProvider
                 v-slot="{ errors }"
+                ref="providerEmail"
                 name="Priority"
                 vid="email"
                 rules="required|email"
@@ -135,6 +137,7 @@
             >
               <ValidationProvider
                 v-slot="{ errors }"
+                ref="providerCurrentPassword"
                 name="Priority"
                 rules="required"
                 vid="currentPassword"
@@ -153,6 +156,7 @@
 
               <ValidationProvider
                 v-slot="{ errors }"
+                ref="providerNewPassword"
                 name="Priority"
                 rules="required|password|comparePasswords:@currentPassword"
                 vid="newPassword"
@@ -171,6 +175,7 @@
 
               <ValidationProvider
                 v-slot="{ errors }"
+                ref="providerConfirmPassword"
                 rules="required|confirmed:newPassword"
                 name="confirm"
               >
