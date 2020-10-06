@@ -944,6 +944,30 @@ func TestUpdateUser(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestGetDataUserSecurity(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant", SessionRecord: true}
+	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	returnedStatus, err := mongostore.GetDataUserSecurity(ctx, user.TenantID)
+	assert.Equal(t, returnedStatus, user.SessionRecord)
+	assert.NoError(t, err)
+}
+func TestUpdateDataUserSecurity(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant", SessionRecord: true}
+	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	err := mongostore.UpdateDataUserSecurity(ctx, false, user.TenantID)
+	assert.NoError(t, err)
+}
+
 func TestListUsers(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()

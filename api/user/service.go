@@ -12,6 +12,8 @@ var ErrConflict = errors.New("conflict")
 
 type Service interface {
 	UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) ([]InvalidField, error)
+	UpdateDataUserSecurity(ctx context.Context, status bool, tenant string) error
+	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
 }
 
 type service struct {
@@ -19,14 +21,14 @@ type service struct {
 }
 
 const (
-	conflictName = "This username already exists"
+	conflictName  = "This username already exists"
 	conflictEmail = "This email already exists"
 )
 
 type InvalidField struct {
-	Name string
+	Name    string
 	Message string
-	Kind string
+	Kind    string
 }
 
 func NewService(store store.Store) Service {
@@ -60,4 +62,12 @@ func (s *service) UpdateDataUser(ctx context.Context, username, email, currentPa
 		return invalidFields, ErrConflict
 	}
 	return invalidFields, s.store.UpdateUser(ctx, username, email, currentPassword, newPassword, tenant)
+}
+
+func (s *service) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
+	return s.store.UpdateDataUserSecurity(ctx, sessionRecord, tenant)
+}
+
+func (s *service) GetDataUserSecurity(ctx context.Context, tenant string) (bool, error) {
+	return s.store.GetDataUserSecurity(ctx, tenant)
 }
