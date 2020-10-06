@@ -30,7 +30,7 @@
       <v-card>
         <ValidationObserver
           ref="obs"
-          v-slot="{ invalid, validated, passes }"
+          v-slot="{ passes }"
         >
           <v-card-title
             v-if="createRule"

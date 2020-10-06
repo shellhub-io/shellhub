@@ -15,22 +15,22 @@
           There are no more pending devices
         </template>
 
-        <template v-slot:item.hostname="{ item }">
+        <template #[`item.hostname`]="{ item }">
           <router-link :to="{ name: 'detailsDevice', params: { id: item.uid } }">
             {{ item.name }}
           </router-link>
         </template>
 
-        <template v-slot:item.info.pretty_name="{ item }">
+        <template #[`item.info.pretty_name`]="{ item }">
           <DeviceIcon :icon-name="item.info.id" />
           {{ item.info.pretty_name }}
         </template>
 
-        <template v-slot:item.request_time="{ item }">
+        <template #[`item.request_time`]="{ item }">
           {{ item.last_seen | moment("ddd, MMM Do YY, h:mm:ss a") }}
         </template>
 
-        <template v-slot:item.actions="{ item }">
+        <template #[`item.actions`]="{ item }">
           <DeviceActionButton
             :uid="item.uid"
             action="accept"

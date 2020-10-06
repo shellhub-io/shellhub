@@ -1,7 +1,7 @@
 <template>
   <fragment>
     <v-tooltip bottom>
-      <template v-slot:activator="{ on }">
+      <template #activator="{ on }">
         <v-icon
           v-on="on"
           @click="dialog = !dialog"
@@ -22,7 +22,7 @@
         </v-card-title>
         <ValidationObserver
           ref="obs"
-          v-slot="{ validated, passes }"
+          v-slot="{ passes }"
         >
           <v-card-text class="caption mb-0">
             <ValidationProvider
@@ -128,7 +128,7 @@ export default {
           name: this.editName,
         });
         this.dialog = false;
-        this.$emit('newHostname', this.editName);
+        this.$emit('new-hostname', this.editName);
         this.editName = '';
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceRename);
       } catch {

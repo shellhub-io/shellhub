@@ -11,7 +11,7 @@ import Fragment from 'vue-fragment';
 // import 'vuetify/dist/vuetify.min.css'
 // import '../styles/variables.scss'
 
-Vue.component('font-awesome-icon', FontAwesomeIcon); // Register component globally
+Vue.component('FontAwesomeIcon', FontAwesomeIcon); // Register component globally
 library.add(fas); // Include needed icons.
 
 Vue.use(Vuetify);

@@ -3,7 +3,7 @@
     v-if="hidden()"
   >
     <v-tooltip bottom>
-      <template v-slot:activator="{ on }">
+      <template #activator="{ on }">
         <v-icon
           v-if="auth"
           v-on="on"
@@ -107,7 +107,7 @@
                   prepend-icon="mdi-speedometer"
                   @change="speedChange"
                 >
-                  <template v-slot:selection="{ item }">
+                  <template #selection="{ item }">
                     <span> {{ item }} </span>
                   </template>
                 </v-select>

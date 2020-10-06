@@ -34,7 +34,7 @@
           :options.sync="pagination"
           :disable-sort="true"
         >
-          <template v-slot:item.active="{ item }">
+          <template #[`item.active`]="{ item }">
             <v-icon
               v-if="item.active"
               color="success"
@@ -49,27 +49,27 @@
             </v-icon>
           </template>
 
-          <template v-slot:item.priority="{ item }">
+          <template #[`item.priority`]="{ item }">
             {{ item.priority }}
           </template>
 
-          <template v-slot:item.action="{ item }">
+          <template #[`item.action`]="{ item }">
             {{ item.action }}
           </template>
 
-          <template v-slot:item.source_ip="{ item }">
+          <template #[`item.source_ip`]="{ item }">
             {{ item.source_ip }}
           </template>
 
-          <template v-slot:item.username="{ item }">
+          <template #[`item.username`]="{ item }">
             {{ item.username }}
           </template>
 
-          <template v-slot:item.hostname="{ item }">
+          <template #[`item.hostname`]="{ item }">
             {{ item.hostname }}
           </template>
 
-          <template v-slot:item.actions="{ item }">
+          <template #[`item.actions`]="{ item }">
             <FirewallRuleFormDialog
               :firewall-rule="item"
               :create-rule="false"

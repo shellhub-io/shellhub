@@ -1,7 +1,7 @@
 <template>
   <fragment>
     <v-tooltip bottom>
-      <template v-slot:activator="{ on }">
+      <template #activator="{ on }">
         <v-icon
           v-on="on"
           @click="open()"

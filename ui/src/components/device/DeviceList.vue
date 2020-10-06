@@ -11,7 +11,7 @@
         :server-items-length="getNumberDevices"
         :options.sync="pagination"
       >
-        <template v-slot:item.online="{ item }">
+        <template #[`item.online`]="{ item }">
           <v-icon
             v-if="item.online"
             color="success"
@@ -31,18 +31,18 @@
           </v-tooltip>
         </template>
 
-        <template v-slot:item.hostname="{ item }">
+        <template #[`item.hostname`]="{ item }">
           <router-link :to="{ name: 'detailsDevice', params: { id: item.uid } }">
             {{ item.name }}
           </router-link>
         </template>
 
-        <template v-slot:item.info.pretty_name="{ item }">
+        <template #[`item.info.pretty_name`]="{ item }">
           <DeviceIcon :icon-name="item.info.id" />
           {{ item.info.pretty_name }}
         </template>
 
-        <template v-slot:item.namespace="{ item }">
+        <template #[`item.namespace`]="{ item }">
           <v-chip class="list-itens">
             {{ address(item) }}
             <v-icon
@@ -57,7 +57,7 @@
           </v-chip>
         </template>
 
-        <template v-slot:item.actions="{ item }">
+        <template #[`item.actions`]="{ item }">
           <v-tooltip bottom>
             <template #activator="{ on }">
               <v-icon
