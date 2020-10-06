@@ -66,6 +66,8 @@ func main() {
 	internalAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(routes.AuthGetToken))
 
 	publicAPI.PUT(routes.UpdateUserURL, apicontext.Handler(routes.UpdateUser))
+	publicAPI.PUT(routes.UserSecurityURL, apicontext.Handler(routes.UpdateUserSecurity))
+	publicAPI.GET(routes.UserSecurityURL, apicontext.Handler(routes.GetUserSecurity))
 
 	publicAPI.GET(routes.GetDeviceListURL, apicontext.Handler(routes.GetDeviceList))
 	publicAPI.GET(routes.GetDeviceURL, apicontext.Handler(routes.GetDevice))

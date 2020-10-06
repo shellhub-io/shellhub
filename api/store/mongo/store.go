@@ -881,6 +881,38 @@ func (s *Store) UpdateUser(ctx context.Context, username, email, currentPassword
 	return nil
 }
 
+func (s *Store) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
+	_, err := s.GetUserByTenant(ctx, tenant)
+
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"session_record": sessionRecord}}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) GetDataUserSecurity(ctx context.Context, tenant string) (bool, error) {
+	_, err := s.GetUserByTenant(ctx, tenant)
+
+	if err != nil {
+		return false, err
+	}
+
+	var status struct {
+		SessionRecord bool `json:"session_record" bson:"session_record"`
+	}
+
+	if err := s.db.Collection("users").FindOne(ctx, bson.M{"tenant_id": tenant}).Decode(&status); err != nil {
+		return false, err
+	}
+
+	return status.SessionRecord, nil
+}
+
 func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	var queryMatch []bson.M
 	var queryFilter []bson.M

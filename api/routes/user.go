@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	UpdateUserURL = "/user"
+	UpdateUserURL   = "/user"
+	UserSecurityURL = "/user/security"
 )
 
 func UpdateUser(c apicontext.Context) error {
@@ -53,4 +54,43 @@ func UpdateUser(c apicontext.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, nil)
+}
+
+func UpdateUserSecurity(c apicontext.Context) error {
+	var req struct {
+		SessionRecord bool `json:"sessionRecord"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
+	}
+
+	svc := user.NewService(c.Store())
+
+	err := svc.UpdateDataUserSecurity(c.Ctx(), req.SessionRecord, tenant)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, nil)
+}
+
+func GetUserSecurity(c apicontext.Context) error {
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
+	}
+
+	svc := user.NewService(c.Store())
+
+	status, err := svc.GetDataUserSecurity(c.Ctx(), tenant)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, status)
 }

@@ -109,6 +109,27 @@ func (_m *Store) DeleteFirewallRule(ctx context.Context, id string) error {
 	return r0
 }
 
+// GetDataUserSecurity provides a mock function with given fields: ctx, tenant
+func (_m *Store) GetDataUserSecurity(ctx context.Context, tenant string) (bool, error) {
+	ret := _m.Called(ctx, tenant)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, tenant)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenant)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetDevice provides a mock function with given fields: ctx, uid
 func (_m *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	ret := _m.Called(ctx, uid)
@@ -561,6 +582,20 @@ func (_m *Store) SetSessionAuthenticated(ctx context.Context, uid models.UID, au
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, bool) error); ok {
 		r0 = rf(ctx, uid, authenticated)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateDataUserSecurity provides a mock function with given fields: ctx, sessionRecord, tenant
+func (_m *Store) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
+	ret := _m.Called(ctx, sessionRecord, tenant)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, bool, string) error); ok {
+		r0 = rf(ctx, sessionRecord, tenant)
 	} else {
 		r0 = ret.Error(0)
 	}
