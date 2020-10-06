@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-dialog
-      v-model="show"
+      v-model="showWelcome"
       :retain-focus="false"
       max-width="800px"
       persistent
@@ -199,6 +199,18 @@ export default {
         tenant: this.$store.getters['auth/tenant'],
       },
     };
+  },
+
+  computed: {
+    showWelcome: {
+      get() {
+        return this.show;
+      },
+
+      set(value) {
+        this.$emit('show', value);
+      },
+    },
   },
 
   methods: {

@@ -54,7 +54,7 @@
 
           <ValidationObserver
             ref="data"
-            v-slot="{ validated, passes }"
+            v-slot="{ passes }"
           >
             <div
               class="mt-6 pl-4 pr-4"
@@ -125,7 +125,7 @@
 
           <ValidationObserver
             ref="pass"
-            v-slot="{ invalid, validated, passes }"
+            v-slot="{ passes }"
           >
             <v-divider class="mt-6" />
             <v-divider class="mb-6" />

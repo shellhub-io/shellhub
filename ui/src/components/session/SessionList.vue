@@ -30,7 +30,7 @@
           :options.sync="pagination"
           :disable-sort="true"
         >
-          <template v-slot:item.active="{ item }">
+          <template #[`item.active`]="{ item }">
             <v-icon
               v-if="item.active"
               color="success"
@@ -50,18 +50,18 @@
             </v-tooltip>
           </template>
 
-          <template v-slot:item.device="{ item }">
+          <template #[`item.device`]="{ item }">
             <router-link :to="{ name: 'detailsDevice', params: { id: item.device.uid } }">
               {{ item.device.name }}
             </router-link>
           </template>
 
-          <template v-slot:item.username="{ item }">
+          <template #[`item.username`]="{ item }">
             <v-tooltip
               v-if="!item.authenticated"
               bottom
             >
-              <template v-slot:activator="{ on, attrs }">
+              <template #activator="{ on, attrs }">
                 <span
                   v-bind="attrs"
                   v-on="on"
@@ -76,7 +76,7 @@
             </template>
           </template>
 
-          <template v-slot:item.authenticated="{ item }">
+          <template #[`item.authenticated`]="{ item }">
             <v-tooltip bottom>
               <template #activator="{ on }">
                 <v-icon
@@ -101,19 +101,19 @@
             </v-tooltip>
           </template>
 
-          <template v-slot:item.ip_address="{ item }">
+          <template #[`item.ip_address`]="{ item }">
             <code>{{ item.ip_address }}</code>
           </template>
 
-          <template v-slot:item.started="{ item }">
+          <template #[`item.started`]="{ item }">
             {{ item.started_at | formatDate }}
           </template>
 
-          <template v-slot:item.last_seen="{ item }">
+          <template #[`item.last_seen`]="{ item }">
             {{ item.last_seen | formatDate }}
           </template>
 
-          <template v-slot:item.actions="{ item }">
+          <template #[`item.actions`]="{ item }">
             <v-tooltip bottom>
               <template #activator="{ on }">
                 <v-icon

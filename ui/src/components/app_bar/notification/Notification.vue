@@ -5,7 +5,7 @@
     :value="shown"
     :disabled="getStatusNotifications"
   >
-    <template v-slot:activator="{ on }">
+    <template #activator="{ on }">
       <v-badge
         :content="getNumberNotifications"
         :value="getNumberNotifications"

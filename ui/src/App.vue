@@ -52,7 +52,7 @@
         origin="top left"
         offset-y
       >
-        <template v-slot:activator="{ on }">
+        <template #activator="{ on }">
           <v-chip v-on="on">
             <v-icon left>
               mdi-server
@@ -73,7 +73,7 @@
       <v-menu
         offset-y
       >
-        <template v-slot:activator="{ on }">
+        <template #activator="{ on }">
           <v-chip v-on="on">
             <v-icon left>
               mdi-account
