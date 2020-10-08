@@ -39,6 +39,7 @@ services:
       dockerfile: gateway/Dockerfile
     environment:
       - SHELLHUB_VERSION=latest
+      - SHELLHUB_ENV=${SHELLHUB_ENV}
   agent:
     image: agent
     restart: on-failure
