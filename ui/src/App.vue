@@ -131,7 +131,7 @@
         </v-card>
       </v-menu>
     </v-app-bar>
-    <v-main>
+    <v-main class="grey lighten-3">
       <v-container
         class="pa-8"
         fluid
