@@ -494,13 +494,13 @@ func (_m *Store) ListSessions(ctx context.Context, pagination paginator.Query) (
 	return r0, r1, r2
 }
 
-// ListUsers provides a mock function with given fields: ctx, pagination, filters
-func (_m *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
-	ret := _m.Called(ctx, pagination, filters)
+// ListUsers provides a mock function with given fields: ctx, pagination, filters, countSessionsDevices
+func (_m *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, countSessionsDevices bool) ([]models.User, int, error) {
+	ret := _m.Called(ctx, pagination, filters, countSessionsDevices)
 
 	var r0 []models.User
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter) []models.User); ok {
-		r0 = rf(ctx, pagination, filters)
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, bool) []models.User); ok {
+		r0 = rf(ctx, pagination, filters, countSessionsDevices)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.User)
@@ -508,15 +508,15 @@ func (_m *Store) ListUsers(ctx context.Context, pagination paginator.Query, filt
 	}
 
 	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter) int); ok {
-		r1 = rf(ctx, pagination, filters)
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, bool) int); ok {
+		r1 = rf(ctx, pagination, filters, countSessionsDevices)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter) error); ok {
-		r2 = rf(ctx, pagination, filters)
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, bool) error); ok {
+		r2 = rf(ctx, pagination, filters, countSessionsDevices)
 	} else {
 		r2 = ret.Error(2)
 	}

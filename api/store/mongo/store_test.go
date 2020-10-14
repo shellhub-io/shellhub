@@ -976,7 +976,7 @@ func TestListUsers(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	users, count, err := mongostore.ListUsers(ctx, paginator.Query{-1, -1}, nil)
+	users, count, err := mongostore.ListUsers(ctx, paginator.Query{-1, -1}, nil, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, users)

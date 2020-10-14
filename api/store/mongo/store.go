@@ -992,40 +992,44 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	return queryMatch, nil
 }
 
-func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
+func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, countSessionsDevices bool) ([]models.User, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
-	query := []bson.M{
-		{
-			"$lookup": bson.M{
-				"from":         "devices",
-				"localField":   "tenant_id",
-				"foreignField": "tenant_id",
-				"as":           "devices",
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "sessions",
-				"localField":   "devices.uid",
-				"foreignField": "device_uid",
-				"as":           "sessions",
-			},
-		},
-		{
-			"$project": bson.M{
-				"name":      1,
-				"email":     1,
-				"username":  1,
-				"password":  1,
-				"tenant_id": 1,
-				"devices": bson.M{
-					"$size": "$devices",
-				},
-				"sessions": bson.M{
-					"$size": "$sessions",
+	query := []bson.M{}
+	if countSessionsDevices {
+		query = []bson.M{
+
+			{
+				"$lookup": bson.M{
+					"from":         "devices",
+					"localField":   "tenant_id",
+					"foreignField": "tenant_id",
+					"as":           "devices",
 				},
 			},
-		},
+			{
+				"$lookup": bson.M{
+					"from":         "sessions",
+					"localField":   "devices.uid",
+					"foreignField": "device_uid",
+					"as":           "sessions",
+				},
+			},
+			{
+				"$project": bson.M{
+					"name":      1,
+					"email":     1,
+					"username":  1,
+					"password":  1,
+					"tenant_id": 1,
+					"devices": bson.M{
+						"$size": "$devices",
+					},
+					"sessions": bson.M{
+						"$size": "$sessions",
+					},
+				},
+			},
+		}
 	}
 
 	if len(queryMatch) > 0 {

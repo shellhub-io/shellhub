@@ -40,5 +40,5 @@ type Store interface {
 	UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) error
 	UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error
 	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
-	ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error)
+	ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, countSessionsDevices bool) ([]models.User, int, error)
 }
