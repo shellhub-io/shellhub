@@ -19,7 +19,10 @@
         md="4"
         class="pt-0"
       >
-        <v-card class="pa-2">
+        <v-card
+          outlined
+          elevation="1"
+        >
           <v-list-item three-line>
             <v-list-item-content>
               <div class="overline mb-4">
@@ -28,7 +31,7 @@
               <v-list-item-title class="headline mb-1">
                 {{ stats[item.fieldObject] }}
               </v-list-item-title>
-              <v-list-item-subtitle>
+              <v-list-item-subtitle class="grey--text">
                 {{ item.content }}
               </v-list-item-subtitle>
             </v-list-item-content>
@@ -43,12 +46,14 @@
             </v-list-item-avatar>
           </v-list-item>
 
-          <v-card-actions>
+          <v-card-actions class="ma-2">
             <div v-if="item.pathName == 'addDevice'">
               <DeviceAdd />
               <v-btn
                 class="v-btn--active"
                 text
+                color="primary"
+                small
                 :data-cy="item.nameUseTest"
                 @click="$store.dispatch('modals/showAddDevice', true)"
               >
@@ -61,6 +66,8 @@
                 class="v-btn--active"
                 :to="{ name: item.pathName }"
                 text
+                color="primary"
+                small
                 :data-cy="item.nameUseTest"
               >
                 {{ item.buttonName }}
