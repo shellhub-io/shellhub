@@ -2,7 +2,9 @@
   <fragment>
     <v-btn
       v-if="createRule"
-      outlined
+      class="v-btn--active"
+      text
+      color="primary"
       @click="dialog = !dialog"
     >
       Add Rule

@@ -15,8 +15,9 @@
       <v-spacer />
       <DeviceAdd />
       <v-btn
-        class="mr-2"
-        outlined
+        class="v-btn--active mr-2"
+        text
+        color="primary"
         @click="$store.dispatch('modals/showAddDevice', true)"
       >
         Add Device
