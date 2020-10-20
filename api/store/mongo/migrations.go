@@ -102,7 +102,7 @@ var migrations = []migrate.Migration{
 			}
 
 			mod = mongo.IndexModel{
-				Keys:    bson.D{{"uid", 1}},
+				Keys:    bson.D{{"message", 1}},
 				Options: options.Index().SetName("message").SetUnique(false),
 			}
 			_, err := db.Collection("recorded_sessions").Indexes().CreateOne(context.TODO(), mod)
@@ -179,7 +179,7 @@ var migrations = []migrate.Migration{
 				Options: options.Index().SetName("session_record").SetUnique(false),
 			}
 			if _, err := db.Collection("users").Indexes().CreateOne(context.TODO(), mod); err != nil {
-					return err
+				return err
 			}
 			_, err := db.Collection("users").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"session_record": true}})
 			return err
