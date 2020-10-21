@@ -41,4 +41,6 @@ type Store interface {
 	UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error
 	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
 	ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, countSessionsDevices bool) ([]models.User, int, error)
+	LoadLicense(ctx context.Context) (*models.License, error)
+	SaveLicense(ctx context.Context, license *models.License) error
 }
