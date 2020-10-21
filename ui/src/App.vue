@@ -53,7 +53,11 @@
       />
 
       <v-chip>
-        <v-icon>help</v-icon>
+        <v-icon
+          @click="toggleChat()"
+        >
+          help
+        </v-icon>
       </v-chip>
 
       <Notification />
@@ -101,6 +105,10 @@
 
       <snackbar />
     </v-main>
+    <aside
+      ref="chat"
+      class="gitter-chat-embed is-collapsed"
+    />
   </v-app>
 </template>
 
@@ -108,6 +116,7 @@
 
 import Notification from '@/components/app_bar/notification/Notification';
 import NamespaceMenu from '@/components/app_bar/namespace/NamespaceMenu';
+import GitterSidecar from 'gitter-sidecar';
 
 export default {
   name: 'App',
@@ -122,6 +131,8 @@ export default {
       drawer: true,
       clipped: false,
       showMenu: false,
+      chat: null,
+      chatOpen: false,
       items: [
         {
           icon: 'dashboard',
@@ -206,6 +217,13 @@ export default {
     }
   },
 
+  mounted() {
+    this.chat = new GitterSidecar({ room: 'shellhub-io/community', activationElement: false, targetElement: this.$refs.chat });
+    this.$refs.chat.addEventListener('gitter-chat-toggle', (e) => {
+      this.chatOpen = e.detail.state;
+    });
+  },
+
   methods: {
     logout() {
       this.$store.dispatch('auth/logout').then(() => {
@@ -223,6 +241,9 @@ export default {
       default:
         break;
       }
+    },
+    toggleChat() {
+      this.chat.toggleChat(!this.chatOpen);
     },
   },
 };
