@@ -992,10 +992,10 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	return queryMatch, nil
 }
 
-func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, countSessionsDevices bool) ([]models.User, int, error) {
+func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.User, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
 	query := []bson.M{}
-	if countSessionsDevices {
+	if export {
 		query = []bson.M{
 
 			{
@@ -1051,7 +1051,7 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 		return nil, 0, err
 	}
 
-	if pagination.Page != 0 && pagination.PerPage != 0 {
+	if pagination.Page != 0 && pagination.PerPage != 0 && !export {
 		query = append(query, buildPaginationQuery(pagination)...)
 	}
 
