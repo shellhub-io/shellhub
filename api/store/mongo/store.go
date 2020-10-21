@@ -1075,6 +1075,23 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 	return users, count, err
 }
 
+func (s *Store) LoadLicense(ctx context.Context) (*models.License, error) {
+	findOpts := options.FindOne()
+	findOpts.SetSort(bson.M{"created_at": -1})
+
+	license := new(models.License)
+	if err := s.db.Collection("licenses").FindOne(ctx, bson.M{}, findOpts).Decode(&license); err != nil {
+		return nil, err
+	}
+
+	return license, nil
+}
+
+func (s *Store) SaveLicense(ctx context.Context, license *models.License) error {
+	_, err := s.db.Collection("licenses").InsertOne(ctx, license)
+	return err
+}
+
 func buildPaginationQuery(pagination paginator.Query) []bson.M {
 	if pagination.PerPage == -1 {
 		return nil

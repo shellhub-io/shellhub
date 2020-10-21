@@ -1034,3 +1034,48 @@ func TestGetStats(t *testing.T) {
 	assert.Equal(t, 0, stats.RejectedDevices)
 	assert.Equal(t, 1, stats.ActiveSessions)
 }
+
+func TestLoadLicense(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+
+	err := mongostore.SaveLicense(ctx, &models.License{
+		RawData:   []byte("bar"),
+		CreatedAt: time.Now().Local().Truncate(time.Millisecond),
+	})
+	assert.NoError(t, err)
+
+	license := &models.License{
+		RawData:   []byte("foo"),
+		CreatedAt: time.Now().Local().Truncate(time.Millisecond),
+	}
+
+	err = mongostore.SaveLicense(ctx, license)
+	assert.NoError(t, err)
+
+	loadedLicense, err := mongostore.LoadLicense(ctx)
+	assert.NoError(t, err)
+
+	assert.True(t, license.CreatedAt.Equal(loadedLicense.CreatedAt))
+
+	// decoded value is not in local this won't match with assert.Equal
+	loadedLicense.CreatedAt = loadedLicense.CreatedAt.Local()
+	assert.Equal(t, license, loadedLicense)
+}
+
+func TestSaveLicense(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+
+	err := mongostore.SaveLicense(ctx, &models.License{
+		RawData:   []byte("foo"),
+		CreatedAt: time.Now().Truncate(time.Millisecond),
+	})
+	assert.NoError(t, err)
+}
