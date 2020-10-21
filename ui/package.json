@@ -15,6 +15,7 @@
     "eslint-plugin-import": "^2.22.1",
     "flush-promises": "^1.0.2",
     "is-valid-hostname": "1.0.0",
+    "gitter-sidecar": "^1.5.0",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
     "v-clipboard": "^2.2.3",
