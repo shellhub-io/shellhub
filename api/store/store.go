@@ -49,4 +49,9 @@ type Store interface {
 	CreateUser(ctx context.Context, user *models.User) error
 	LoadLicense(ctx context.Context) (*models.License, error)
 	SaveLicense(ctx context.Context, license *models.License) error
+	ListNamespaces(ctx context.Context, pagination paginator.Query) ([]models.Namespace, int, error)
+	GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error)
+	CreateNamespace(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
+	EditNamespace(ctx context.Context, namespace, name string) error
+	DeleteNamespace(ctx context.Context, namespace string) error
 }

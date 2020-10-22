@@ -144,7 +144,7 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 		},
 		{
 			"$lookup": bson.M{
-				"from":         "users",
+				"from":         "namespaces",
 				"localField":   "tenant_id",
 				"foreignField": "tenant_id",
 				"as":           "namespace",
@@ -153,7 +153,7 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 		{
 			"$addFields": bson.M{
 				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
-				"namespace": "$namespace.username",
+				"namespace": "$namespace.name",
 			},
 		},
 		{
@@ -223,13 +223,13 @@ func (s *Store) RenameDevice(ctx context.Context, uid models.UID, name string) e
 }
 
 func (s *Store) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
-	user := new(models.User)
-	if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": namespace}).Decode(&user); err != nil {
+	ns := new(models.Namespace)
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
 		return nil, err
 	}
 
 	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": user.TenantID, "name": name, "status": "accepted"}).Decode(&device); err != nil {
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": ns.TenantID, "name": name, "status": "accepted"}).Decode(&device); err != nil {
 		return nil, err
 	}
 
@@ -1100,6 +1100,64 @@ func (s *Store) LoadLicense(ctx context.Context) (*models.License, error) {
 
 func (s *Store) SaveLicense(ctx context.Context, license *models.License) error {
 	_, err := s.db.Collection("licenses").InsertOne(ctx, license)
+	return err
+}
+
+func (s *Store) GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error) {
+	ns := new(models.Namespace)
+
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": namespace}).Decode(&ns); err != nil {
+		return nil, err
+	}
+
+	return ns, nil
+}
+
+func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query) ([]models.Namespace, int, error) {
+	query := []bson.M{
+		{
+			"$sort": bson.M{
+				"started_at": -1,
+			},
+		},
+	}
+
+	// Only match for the respective tenant if requested
+
+	queryCount := append(query, bson.M{"$count": "count"})
+	count, err := aggregateCount(ctx, s.db.Collection("namespaces"), queryCount)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	query = append(query, buildPaginationQuery(pagination)...)
+
+	namespaces := make([]models.Namespace, 0)
+	cursor, err := s.db.Collection("namespaces").Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		namespace := new(models.Namespace)
+		err = cursor.Decode(&namespace)
+		if err != nil {
+			return namespaces, count, err
+		}
+		namespaces = append(namespaces, *namespace)
+	}
+
+	return namespaces, count, err
+}
+
+func (s *Store) CreateNamespace(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
+	_, err := s.db.Collection("namespaces").InsertOne(ctx, namespace)
+	return namespace, err
+}
+func (s *Store) DeleteNamespace(ctx context.Context, namespace string) error {
+	_, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": namespace})
+	return err
+}
+func (s *Store) EditNamespace(ctx context.Context, namespace, name string) error {
+	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$set": bson.M{"name": name}})
 	return err
 }
 

@@ -87,5 +87,11 @@ func main() {
 
 	publicAPI.GET(routes.GetStatsURL, apicontext.Handler(routes.GetStats))
 
+	publicAPI.GET(routes.ListNamespaceURL, apicontext.Handler(routes.GetNamespaceList))
+	publicAPI.GET(routes.GetNamespaceURL, apicontext.Handler(routes.GetNamespace))
+	publicAPI.POST(routes.CreateNamespaceURL, apicontext.Handler(routes.CreateNamespace))
+	publicAPI.DELETE(routes.DeleteNamespaceURL, apicontext.Handler(routes.DeleteNamespace))
+	publicAPI.PUT(routes.EditNamespaceURL, apicontext.Handler(routes.EditNamespace))
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
