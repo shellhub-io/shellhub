@@ -1,5 +1,21 @@
 #!/bin/sh
 
+# This file is a template which gets run through the "/kickstart.sh" route to
+# generate the final script file. PLEASE NEVER RUN THIS FILE DIRECTLY, instead
+# run me with:
+#
+# sh <(curl -Ss "http://<SERVER-ADDRESS>/kickstart.sh?tenant_id=<TENANT-ID>")
+#
+# Where:
+# <SERVER-ADDRESS> is the ShellHub server address
+# <TENANT-ID> is your tenant ID
+#
+# List of URL parameters of /kickstart.sh URL:
+#
+# keepalive_interval = Specifies in seconds the keep alive message interval
+# preferred_hostname = The preferred hostname to use rather than generated
+#                      value from ethernet MAC address
+
 type docker > /dev/null 2>&1 || { echo "Docker is not instaled"; exit 1; }
 
 if ! docker info > /dev/null 2>&1; then
