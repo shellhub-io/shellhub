@@ -67,6 +67,20 @@ func (_m *Store) CreateSession(ctx context.Context, session models.Session) (*mo
 	return r0, r1
 }
 
+// CreateUser provides a mock function with given fields: ctx, user
+func (_m *Store) CreateUser(ctx context.Context, user *models.User) error {
+	ret := _m.Called(ctx, user)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.User) error); ok {
+		r0 = rf(ctx, user)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeactivateSession provides a mock function with given fields: ctx, uid
 func (_m *Store) DeactivateSession(ctx context.Context, uid models.UID) error {
 	ret := _m.Called(ctx, uid)

@@ -1075,6 +1075,17 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 	return users, count, err
 }
 
+func (s *Store) CreateUser(ctx context.Context, user *models.User) error {
+	_, err := s.db.Collection("users").InsertOne(ctx, user)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key error") {
+			return store.ErrDuplicateEmail
+		}
+	}
+
+	return err
+}
+
 func (s *Store) LoadLicense(ctx context.Context) (*models.License, error) {
 	findOpts := options.FindOne()
 	findOpts.SetSort(bson.M{"created_at": -1})

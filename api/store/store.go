@@ -2,9 +2,14 @@ package store
 
 import (
 	"context"
+	"errors"
 
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
+)
+
+var (
+	ErrDuplicateEmail = errors.New("email address is already in use")
 )
 
 type Store interface {
@@ -41,6 +46,7 @@ type Store interface {
 	UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error
 	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
 	ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, countSessionsDevices bool) ([]models.User, int, error)
+	CreateUser(ctx context.Context, user *models.User) error
 	LoadLicense(ctx context.Context) (*models.License, error)
 	SaveLicense(ctx context.Context, license *models.License) error
 }
