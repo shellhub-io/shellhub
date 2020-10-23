@@ -1035,6 +1035,22 @@ func TestGetStats(t *testing.T) {
 	assert.Equal(t, 1, stats.ActiveSessions)
 }
 
+func TestCreateUser(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+
+	err := mongostore.CreateUser(ctx, &models.User{
+		Name:     "user",
+		Email:    "user@shellhub.io",
+		Password: "password",
+		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+	})
+	assert.NoError(t, err)
+}
+
 func TestLoadLicense(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
