@@ -34,8 +34,12 @@ func NewTunnel() *Tunnel {
 			panic("closeHandler can not be nil")
 		},
 	}
-	t.router.HandleFunc("/ssh/{id}", t.connHandler)
-	t.router.HandleFunc("/ssh/close/{id}", t.closeHandler).Methods("DELETE")
+	t.router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
+		t.connHandler(w, r)
+	})
+	t.router.HandleFunc("/ssh/close/{id}", func(w http.ResponseWriter, r *http.Request) {
+		t.closeHandler(w, r)
+	})
 
 	return t
 }
