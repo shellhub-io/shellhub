@@ -10,6 +10,7 @@ import firewallrules from '@/store/modules/firewall_rules';
 import notifications from '@/store/modules/notifications';
 import users from '@/store/modules/users';
 import security from '@/store/modules/security';
+import namespaces from '@/store/modules/namespaces';
 
 Vue.use(Vuex);
 
@@ -25,5 +26,6 @@ export default new Vuex.Store({
     notifications,
     users,
     security,
+    namespaces,
   },
 });
