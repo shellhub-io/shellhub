@@ -54,6 +54,8 @@ type DeviceInfo struct {
 	ID         string `json:"id"`
 	PrettyName string `json:"pretty_name"`
 	Version    string `json:"version"`
+	Arch       string `json:"arch"`
+	Platform   string `json:"platform"`
 }
 
 type ConnectedDevice struct {
