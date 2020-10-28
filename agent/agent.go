@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"net/url"
 	"os"
+	"runtime"
 
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
@@ -113,6 +114,8 @@ func (a *Agent) loadDeviceInfo() error {
 		ID:         osrelease.ID,
 		PrettyName: osrelease.Name,
 		Version:    AgentVersion,
+		Arch:       runtime.GOARCH,
+		Platform:   AgentPlatform,
 	}
 
 	return nil
