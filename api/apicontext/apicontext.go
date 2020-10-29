@@ -30,6 +30,14 @@ func (c *Context) Tenant() *models.Tenant {
 	return nil
 }
 
+func (c *Context) Username() *models.Username {
+	username := c.Request().Header.Get("X-Username")
+	if username != "" {
+		return &models.Username{username}
+	}
+	return nil
+}
+
 func (c *Context) Ctx() context.Context {
 	return c.Request().Context()
 }
@@ -46,6 +54,19 @@ func TenantFromContext(ctx context.Context) *models.Tenant {
 		return tenant
 	}
 
+	return nil
+}
+
+func UsernameFromContext(ctx context.Context) *models.Username {
+	if c, ok := ctx.Value("ctx").(*Context); ok {
+		username := c.Username()
+		if username == nil {
+			if value, ok := ctx.Value("username").(string); ok {
+				username = &models.Username{value}
+			}
+		}
+		return username
+	}
 	return nil
 }
 
