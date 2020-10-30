@@ -92,6 +92,8 @@ func main() {
 	publicAPI.POST(routes.CreateNamespaceURL, apicontext.Handler(routes.CreateNamespace))
 	publicAPI.DELETE(routes.DeleteNamespaceURL, apicontext.Handler(routes.DeleteNamespace))
 	publicAPI.PUT(routes.EditNamespaceURL, apicontext.Handler(routes.EditNamespace))
+	publicAPI.PATCH(routes.AddNamespaceUserURL, apicontext.Handler(routes.AddNamespaceUser))
+	publicAPI.PATCH(routes.RemoveNamespaceUserURL, apicontext.Handler(routes.RemoveNamespaceUser))
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

@@ -11,11 +11,13 @@ import (
 )
 
 const (
-	ListNamespaceURL   = "/namespace"
-	CreateNamespaceURL = "/namespace"
-	GetNamespaceURL    = "/namespace/:id"
-	DeleteNamespaceURL = "/namespace/:id"
-	EditNamespaceURL   = "/namespace/:id"
+	ListNamespaceURL       = "/namespace"
+	CreateNamespaceURL     = "/namespace"
+	GetNamespaceURL        = "/namespace/:id"
+	DeleteNamespaceURL     = "/namespace/:id"
+	EditNamespaceURL       = "/namespace/:id"
+	AddNamespaceUserURL    = "/namespace/:id/add"
+	RemoveNamespaceUserURL = "/namespace/:id/del"
 )
 
 func GetNamespaceList(c apicontext.Context) error {
@@ -41,7 +43,12 @@ func CreateNamespace(c apicontext.Context) error {
 		return err
 	}
 
-	if _, err := svc.CreateNamespace(c.Ctx(), &namespace); err != nil {
+	username := ""
+	if v := c.Username(); v != nil {
+		username = v.ID
+	}
+
+	if _, err := svc.CreateNamespace(c.Ctx(), &namespace, username); err != nil {
 		return err
 	}
 
@@ -62,7 +69,12 @@ func GetNamespace(c apicontext.Context) error {
 func DeleteNamespace(c apicontext.Context) error {
 	svc := nsadm.NewService(c.Store())
 
-	if err := svc.DeleteNamespace(c.Ctx(), c.Param("id")); err != nil {
+	username := ""
+	if v := c.Username(); v != nil {
+		username = v.ID
+	}
+
+	if err := svc.DeleteNamespace(c.Ctx(), c.Param("id"), username); err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
@@ -80,11 +92,68 @@ func EditNamespace(c apicontext.Context) error {
 		Name string `json:"name"`
 	}
 
+	username := ""
+	if v := c.Username(); v != nil {
+		username = v.ID
+	}
+
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	if err := svc.EditNamespace(c.Ctx(), c.Param("id"), req.Name); err != nil {
+	if err := svc.EditNamespace(c.Ctx(), c.Param("id"), req.Name, username); err != nil {
+		if err == nsadm.ErrUnauthorized {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func AddNamespaceUser(c apicontext.Context) error {
+	svc := nsadm.NewService(c.Store())
+
+	var req struct {
+		Username string `json:"username"`
+	}
+
+	ownerUsername := ""
+	if v := c.Username(); v != nil {
+		ownerUsername = v.ID
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := svc.AddNamespaceUser(c.Ctx(), c.Param("id"), req.Username, ownerUsername); err != nil {
+		if err == nsadm.ErrUnauthorized {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return err
+	}
+
+	return nil
+}
+func RemoveNamespaceUser(c apicontext.Context) error {
+	svc := nsadm.NewService(c.Store())
+
+	var req struct {
+		Username string `json:"username"`
+	}
+
+	ownerUsername := ""
+	if v := c.Username(); v != nil {
+		ownerUsername = v.ID
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+	if err := svc.RemoveNamespaceUser(c.Ctx(), c.Param("id"), req.Username, ownerUsername); err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}

@@ -47,7 +47,7 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 		},
 		{
 			"$lookup": bson.M{
-				"from":         "users",
+				"from":         "namespaces",
 				"localField":   "tenant_id",
 				"foreignField": "tenant_id",
 				"as":           "namespace",
@@ -56,7 +56,7 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 		{
 			"$addFields": bson.M{
 				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
-				"namespace": "$namespace.username",
+				"namespace": "$namespace.name",
 			},
 		},
 		{
@@ -1123,6 +1123,17 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query) 
 	}
 
 	// Only match for the respective tenant if requested
+	if username := apicontext.UsernameFromContext(ctx); username != nil {
+		user := new(models.User)
+		if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": username.ID}).Decode(&user); err != nil {
+			return nil, 0, err
+		}
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"members": bson.M{
+					"$elemMatch": bson.M{
+						"$exists": user.ID}}}})
+	}
 
 	queryCount := append(query, bson.M{"$count": "count"})
 	count, err := aggregateCount(ctx, s.db.Collection("namespaces"), queryCount)
@@ -1158,6 +1169,16 @@ func (s *Store) DeleteNamespace(ctx context.Context, namespace string) error {
 }
 func (s *Store) EditNamespace(ctx context.Context, namespace, name string) error {
 	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$set": bson.M{"name": name}})
+	return err
+}
+
+func (s *Store) AddNamespaceUser(ctx context.Context, namespace, ID string) error {
+	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$push": bson.M{"members": ID}})
+	return err
+}
+
+func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) error {
+	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$pull": bson.M{"members": ID}})
 	return err
 }
 
