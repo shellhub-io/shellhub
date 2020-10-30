@@ -3,8 +3,9 @@
 package client
 
 const (
-	apiHost = "api"
-	apiPort = 8080
+	apiHost   = "api"
+	apiPort   = 8080
+	apiScheme = "http"
 )
 
 type Client interface {

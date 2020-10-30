@@ -42,9 +42,10 @@ func NewClient(opts ...Opt) Client {
 	httpClient.Client = retryClient.StandardClient()
 
 	c := &client{
-		host: apiHost,
-		port: apiPort,
-		http: httpClient,
+		host:   apiHost,
+		port:   apiPort,
+		scheme: apiScheme,
+		http:   httpClient,
 	}
 
 	for _, opt := range opts {
