@@ -47,23 +47,9 @@
       </router-link>
       <span class="overline mt-3">BETA</span>
       <v-spacer />
-      <v-menu
-        transition="scale-transition"
-        origin="top left"
-        offset-y
-      >
-        <template #activator="{ on }">
-          <v-chip v-on="on">
-            <v-icon left>
-              mdi-server
-            </v-icon>
-            My Device Fleet
-            <v-icon right>
-              mdi-chevron-down
-            </v-icon>
-          </v-chip>
-        </template>
-      </v-menu>
+
+      <NamespaceMenu />
+
       <v-chip>
         <v-icon>help</v-icon>
       </v-chip>
@@ -147,12 +133,14 @@
 <script>
 
 import Notification from '@/components/app_bar/notification/Notification';
+import NamespaceMenu from '@/components/namespace/NamespaceMenu';
 
 export default {
   name: 'App',
 
   components: {
     Notification,
+    NamespaceMenu,
   },
 
   data() {

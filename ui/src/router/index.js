@@ -82,6 +82,11 @@ const router = new Router({
           name: 'securitySettings',
           component: () => import('./../components/setting/SettingSecurity.vue'),
         },
+        {
+          path: 'namespace-manager',
+          name: 'namespaceSettings',
+          component: () => import('./../components/setting/SettingNamespace.vue'),
+        },
       ],
     },
     {

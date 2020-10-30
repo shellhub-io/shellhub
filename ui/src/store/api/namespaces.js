@@ -4,7 +4,7 @@ export const postNamespace = async (data) => http().post('/namespace', {
   name: data.name,
 });
 
-export const fetchNamespaces = async (perPage, page) => http().get(`/namespace?per_page=${perPage}&page=${page}`);
+export const fetchNamespaces = async () => http().get('/namespace');
 
 export const getNamespace = async (id) => http().get(`/namespace/${id}`);
 

@@ -10,6 +10,7 @@ export default {
       firewallRuleDeleting: 'deleting rule',
       profileData: 'updating data',
       profilePassword: 'updating password',
+      NamespaceCreating: 'creating namespace',
     };
 
     Vue.success = success;

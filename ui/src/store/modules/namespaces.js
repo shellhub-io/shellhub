@@ -50,8 +50,8 @@ export default {
       await postNamespace(data);
     },
 
-    fetch: async (context, data) => {
-      const res = await fetchNamespaces(data.perPage, data.page);
+    fetch: async (context) => {
+      const res = await fetchNamespaces();
       context.commit('setNamespaces', res);
     },
 

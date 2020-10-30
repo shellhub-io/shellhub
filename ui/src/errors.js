@@ -22,6 +22,8 @@ export default {
       firewallRuleCreating: 'creating rule',
       firewallRuleEditing: 'editing rule',
       firewallRuleDeleting: 'deleting rule',
+      namespaceList: 'namespace list',
+      namespacesCreating: 'creating namespace',
     };
 
     Vue.errors = errors;
