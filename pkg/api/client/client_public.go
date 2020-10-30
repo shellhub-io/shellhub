@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	apiHost = "ssh.shellhub.io"
-	apiPort = 80
+	apiHost   = "ssh.shellhub.io"
+	apiPort   = 80
+	apiScheme = "https"
 )
 
 type Client interface {
