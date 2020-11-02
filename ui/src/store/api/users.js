@@ -8,7 +8,7 @@ export const putUser = async (data) => http().put('/user', {
 });
 
 export const putSecurity = async (status) => http().put('/user/security', {
-  sessionRecord: status,
+  session_record: status,
 });
 
 export const getSecurity = async () => http().get('/user/security');

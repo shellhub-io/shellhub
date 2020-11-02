@@ -100,6 +100,8 @@ export default {
       localStorage.removeItem('tenant');
       localStorage.removeItem('onceWelcome');
       localStorage.removeItem('email');
+      localStorage.removeItem('id');
+      localStorage.removeItem('name');
     },
 
     changeUserData(context, data) {
