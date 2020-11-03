@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 
+	uuid "github.com/satori/go.uuid"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -42,6 +43,9 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	}
 	namespace.Owner = user.ID
 	namespace.Members = []string{user.ID}
+	if namespace.TenantID == "" {
+		namespace.TenantID = uuid.Must(uuid.NewV4(), nil).String()
+	}
 	return s.store.CreateNamespace(ctx, namespace)
 }
 
