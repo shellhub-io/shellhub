@@ -1,6 +1,9 @@
 import store from '@/store';
 
 describe('Auth', () => {
+  beforeEach(() => {
+    store.commit('auth/logout');
+  });
   it('returns status', () => {
     const actual = store.getters['auth/status'];
     expect(actual).toEqual();
