@@ -2,9 +2,14 @@ package authsvc
 
 import (
 	"context"
+	"crypto"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/pem"
 	"errors"
 	"io/ioutil"
 	"os"
@@ -22,6 +27,7 @@ type Service interface {
 	AuthDevice(ctx context.Context, req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
+	AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }
 
@@ -174,6 +180,33 @@ func (s *service) AuthGetToken(ctx context.Context, tenant string) (*models.User
 		User:   user.Username,
 		Tenant: user.TenantID,
 		Email:  user.Email,
+	}, nil
+}
+
+func (s *service) AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error) {
+	privKey, err := s.store.GetPrivateKey(ctx, req.Fingerprint)
+	if err != nil {
+		return nil, err
+	}
+
+	block, _ := pem.Decode(privKey.Data)
+	if block == nil {
+		return nil, err
+	}
+
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	digest := sha256.Sum256([]byte(req.Data))
+	signature, err := rsa.SignPKCS1v15(rand.Reader, key, crypto.SHA256, digest[:])
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.PublicKeyAuthResponse{
+		Signature: base64.StdEncoding.EncodeToString(signature),
 	}, nil
 }
 

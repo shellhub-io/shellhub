@@ -1103,6 +1103,37 @@ func (s *Store) SaveLicense(ctx context.Context, license *models.License) error 
 	return err
 }
 
+func (s *Store) GetPublicKey(ctx context.Context, fingerprint string) (*models.PublicKey, error) {
+	pubKey := new(models.PublicKey)
+	if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint}).Decode(&pubKey); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, store.ErrRecordNotFound
+		}
+
+		return nil, err
+	}
+
+	return pubKey, nil
+}
+
+func (s *Store) CreatePrivateKey(ctx context.Context, key *models.PrivateKey) error {
+	_, err := s.db.Collection("private_keys").InsertOne(ctx, key)
+	return err
+}
+
+func (s *Store) GetPrivateKey(ctx context.Context, fingerprint string) (*models.PrivateKey, error) {
+	privKey := new(models.PrivateKey)
+	if err := s.db.Collection("private_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint}).Decode(&privKey); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, store.ErrRecordNotFound
+		}
+
+		return nil, err
+	}
+
+	return privKey, nil
+}
+
 func buildPaginationQuery(pagination paginator.Query) []bson.M {
 	if pagination.PerPage == -1 {
 		return nil

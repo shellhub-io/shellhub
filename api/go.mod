@@ -7,6 +7,7 @@ require (
 	github.com/cnf/structhash v0.0.0-20180104161610-62a607eb0224
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elazarl/goproxy v0.0.0-20200426045556-49ad98f6dac1 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.7 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kisielk/errcheck v1.2.0 // indirect
