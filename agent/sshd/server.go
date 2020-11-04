@@ -15,6 +15,17 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	"github.com/sirupsen/logrus"
 )
+import (
+	"crypto"
+	"crypto/rsa"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
+
+	"github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/models"
+	"golang.org/x/crypto/ssh"
+)
 
 type sshConn struct {
 	net.Conn
@@ -29,6 +40,8 @@ func (c *sshConn) Close() error {
 
 type Server struct {
 	sshd              *sshserver.Server
+	api               client.Client
+	authData          *models.DeviceAuthResponse
 	cmds              map[string]*exec.Cmd
 	Sessions          map[string]net.Conn
 	deviceName        string
@@ -36,8 +49,10 @@ type Server struct {
 	keepAliveInterval int
 }
 
-func NewServer(privateKey string, keepAliveInterval int) *Server {
+func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int) *Server {
 	s := &Server{
+		api:               api,
+		authData:          authData,
 		cmds:              make(map[string]*exec.Cmd),
 		Sessions:          make(map[string]net.Conn),
 		keepAliveInterval: keepAliveInterval,
@@ -108,11 +123,11 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		os.Chown(pts.Name(), uid, -1)
 
 		logrus.WithFields(logrus.Fields{
-			"user": session.User(),
-			"pty": pts.Name(),
+			"user":       session.User(),
+			"pty":        pts.Name(),
 			"remoteaddr": session.RemoteAddr().String(),
-			"localaddr": session.LocalAddr().String(),
-			}).Info("Session started")
+			"localaddr":  session.LocalAddr().String(),
+		}).Info("Session started")
 
 		s.mu.Lock()
 		s.cmds[session.Context().Value(sshserver.ContextKeySessionID).(string)] = scmd
@@ -123,11 +138,11 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		}
 
 		logrus.WithFields(logrus.Fields{
-			"user": session.User(),
-			"pty": pts.Name(),
+			"user":       session.User(),
+			"pty":        pts.Name(),
 			"remoteaddr": session.RemoteAddr().String(),
-			"localaddr": session.LocalAddr().String(),
-			}).Info("Session ended")
+			"localaddr":  session.LocalAddr().String(),
+		}).Info("Session ended")
 	} else {
 		u := osauth.LookupUser(session.User())
 		cmd := newCmd(u, "", "", s.deviceName, session.Command()...)
@@ -136,11 +151,11 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		stdin, _ := cmd.StdinPipe()
 
 		logrus.WithFields(logrus.Fields{
-			"user": session.User(),
-			"remoteaddr": session.RemoteAddr().String(),
-			"localaddr": session.LocalAddr().String(),
+			"user":        session.User(),
+			"remoteaddr":  session.RemoteAddr().String(),
+			"localaddr":   session.LocalAddr().String(),
 			"Raw command": session.RawCommand(),
-			}).Info("Command started")
+		}).Info("Command started")
 
 		cmd.Start()
 
@@ -159,11 +174,11 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		cmd.Wait()
 
 		logrus.WithFields(logrus.Fields{
-			"user": session.User(),
-			"remoteaddr": session.RemoteAddr().String(),
-			"localaddr": session.LocalAddr().String(),
+			"user":        session.User(),
+			"remoteaddr":  session.RemoteAddr().String(),
+			"localaddr":   session.LocalAddr().String(),
 			"Raw command": session.RawCommand(),
-			}).Info("Command ended")
+		}).Info("Command ended")
 	}
 }
 
@@ -183,7 +198,45 @@ func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
 	return ok
 }
 
-func (s *Server) publicKeyHandler(_ sshserver.Context, _ sshserver.PublicKey) bool {
+func (s *Server) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey) bool {
+	type Signature struct {
+		Username  string
+		Namespace string
+	}
+
+	sig := &Signature{
+		Username:  ctx.User(),
+		Namespace: s.deviceName,
+	}
+
+	sigBytes, err := json.Marshal(sig)
+	if err != nil {
+		return false
+	}
+
+	sigHash := sha256.Sum256(sigBytes)
+
+	res, err := s.api.AuthPublicKey(&models.PublicKeyAuthRequest{
+		Fingerprint: ssh.FingerprintLegacyMD5(key),
+		Data:        string(sigBytes),
+	}, s.authData.Token)
+	if err != nil {
+		return false
+	}
+
+	digest, err := base64.StdEncoding.DecodeString(res.Signature)
+	if err != nil {
+		return false
+	}
+
+	cryptoKey := key.(ssh.CryptoPublicKey)
+	pubCrypto := cryptoKey.CryptoPublicKey()
+	pubKey := pubCrypto.(*rsa.PublicKey)
+
+	if err = rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, sigHash[:], digest); err != nil {
+		return false
+	}
+
 	return true
 }
 
