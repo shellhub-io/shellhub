@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/rsa"
 	"errors"
 	"fmt"
 	"io"
@@ -112,18 +113,31 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	return s, nil
 }
 
-func (s *Session) connect(passwd string, session sshserver.Session, conn net.Conn) error {
+func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn) error {
 	opts := ConfigOptions{}
 	err := envconfig.Process("", &opts)
 
 	config := &ssh.ClientConfig{
 		User: s.User,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(passwd),
-		},
+		Auth: []ssh.AuthMethod{},
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
+	}
+
+	if key != nil {
+		signer, err := ssh.NewSignerFromKey(key)
+		if err != nil {
+			return err
+		}
+
+		config.Auth = []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		}
+	} else {
+		config.Auth = []ssh.AuthMethod{
+			ssh.Password(passwd),
+		}
 	}
 
 	sshConn, err := NewClientConnWithDeadline(conn, "tcp", config)

@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"net"
@@ -10,8 +13,10 @@ import (
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
+	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
 )
 
 type Server struct {
@@ -86,8 +91,28 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		}).Error("Failed to register session")
 	}
 
+	var privKey *rsa.PrivateKey
+
+	publicKey, ok := session.Context().Value("public_key").(string)
+	if publicKey != "" && ok {
+		apiClient := client.NewClient()
+		key, err := apiClient.CreatePrivateKey()
+		if err != nil {
+			session.Close()
+			return
+		}
+
+		block, _ := pem.Decode([]byte(key.Data))
+
+		privKey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			session.Close()
+			return
+		}
+	}
+
 	passwd, ok := session.Context().Value("password").(string)
-	if !ok {
+	if !ok && privKey == nil {
 		logrus.WithFields(logrus.Fields{
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
 		}).Error("Failed to get password from context")
@@ -98,7 +123,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/ssh/%s", sess.UID), nil)
 	err = req.Write(conn)
-	err = sess.connect(passwd, session, conn)
+	err = sess.connect(passwd, privKey, session, conn)
+
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"err":     err,
@@ -123,13 +149,21 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	sess.finish()
 }
 
-func (*Server) publicKeyHandler(_ sshserver.Context, _ sshserver.PublicKey) bool {
-	logrus.Error("Unknown public key authentication type")
+func (*Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKey) bool {
+	fingerprint := ssh.FingerprintLegacyMD5(pubKey)
 
-	return false
+	apiClient := client.NewClient()
+	_, err := apiClient.GetPublicKey(fingerprint)
+	if err != nil {
+		return false
+	}
+
+	ctx.SetValue("public_key", fingerprint)
+
+	return true
 }
 
-func (*Server) passwordHandler(ctx sshserver.Context, pass string) bool {
+func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
 	// Store password in session context for later use in session handling
 	ctx.SetValue("password", pass)
 
