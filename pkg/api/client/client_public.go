@@ -31,6 +31,7 @@ type publicAPI interface {
 	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	NewReverseListener(token string) (*revdial.Listener, error)
+	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
 }
 
 func (c *client) GetInfo() (*models.Info, error) {
@@ -80,6 +81,17 @@ func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
 	)
 
 	return listener, nil
+}
+
+func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error) {
+	var res *models.PublicKeyAuthResponse
+	_, _, errs := c.http.Post(buildURL(c, "/api/auth/ssh")).Set("Authorization", fmt.Sprintf("Bearer %s", token)).Send(req).EndStruct(&res)
+
+	if len(errs) > 0 {
+		return nil, errs[0]
+	}
+
+	return res, nil
 }
 
 func tunnelDial(ctx context.Context, protocol, address, path string) (*websocket.Conn, *http.Response, error) {
