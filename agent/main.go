@@ -73,7 +73,7 @@ func main() {
 		logrus.WithFields(logrus.Fields{"err": err}).Fatal("Failed to initialize agent")
 	}
 
-	sshserver := sshd.NewServer(opts.PrivateKey, opts.KeepAliveInterval)
+	sshserver := sshd.NewServer(agent.cli, agent.authData, opts.PrivateKey, opts.KeepAliveInterval)
 
 	tunnel := NewTunnel()
 	tunnel.connHandler = func(w http.ResponseWriter, r *http.Request) {
