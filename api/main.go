@@ -64,6 +64,7 @@ func main() {
 	publicAPI.POST(routes.AuthUserURLV2, apicontext.Handler(routes.AuthUser))
 	publicAPI.GET(routes.AuthUserURLV2, apicontext.Handler(routes.AuthUserInfo))
 	internalAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(routes.AuthGetToken))
+	publicAPI.POST(routes.AuthPublicKeyURL, apicontext.Handler(routes.AuthPublicKey))
 
 	publicAPI.PUT(routes.UpdateUserURL, apicontext.Handler(routes.UpdateUser))
 	publicAPI.PUT(routes.UserSecurityURL, apicontext.Handler(routes.UpdateUserSecurity))
@@ -86,6 +87,9 @@ func main() {
 	publicAPI.GET(routes.PlaySessionURL, apicontext.Handler(routes.PlaySession))
 
 	publicAPI.GET(routes.GetStatsURL, apicontext.Handler(routes.GetStats))
+
+	internalAPI.GET(routes.GetPublicKeyURL, apicontext.Handler(routes.GetPublicKey))
+	internalAPI.POST(routes.CreatePrivateKeyURL, apicontext.Handler(routes.CreatePrivateKey))
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

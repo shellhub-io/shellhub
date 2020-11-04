@@ -20,6 +20,7 @@ const (
 	AuthUserURL      = "/login"
 	AuthUserURLV2    = "/auth/user"
 	AuthUserTokenURL = "/auth/token/:tenant"
+	AuthPublicKeyURL = "/auth/ssh"
 )
 
 func AuthRequest(c apicontext.Context) error {
@@ -111,6 +112,23 @@ func AuthGetToken(c apicontext.Context) error {
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
+	return c.JSON(http.StatusOK, res)
+}
+
+func AuthPublicKey(c apicontext.Context) error {
+	var req models.PublicKeyAuthRequest
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	svc := authsvc.NewService(c.Store(), nil, nil)
+
+	res, err := svc.AuthPublicKey(c.Ctx(), &req)
+	if err != nil {
+		return echo.ErrUnauthorized
+	}
+
 	return c.JSON(http.StatusOK, res)
 }
 

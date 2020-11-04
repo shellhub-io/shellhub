@@ -10,6 +10,7 @@ import (
 
 var (
 	ErrDuplicateEmail = errors.New("email address is already in use")
+	ErrRecordNotFound = errors.New("public key not found")
 )
 
 type Store interface {
@@ -49,4 +50,7 @@ type Store interface {
 	CreateUser(ctx context.Context, user *models.User) error
 	LoadLicense(ctx context.Context) (*models.License, error)
 	SaveLicense(ctx context.Context, license *models.License) error
+	GetPublicKey(ctx context.Context, fingerprint string) (*models.PublicKey, error)
+	CreatePrivateKey(ctx context.Context, key *models.PrivateKey) error
+	GetPrivateKey(ctx context.Context, fingerprint string) (*models.PrivateKey, error)
 }
