@@ -18,8 +18,8 @@ func TestListNamespaces(t *testing.T) {
 	ctx := context.TODO()
 
 	namespaces := []models.Namespace{
-		{Name: "group1", Owner: "user1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"},
-		{Name: "group2", Owner: "user2", TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4"},
+		{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"},
+		{Name: "group2", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4"},
 	}
 	query := paginator.Query{Page: 1, PerPage: 10}
 	mock.On("ListNamespaces", ctx, query).Return(namespaces, len(namespaces), nil).Once()
@@ -36,7 +36,7 @@ func TestGetNamespace(t *testing.T) {
 
 	ctx := context.TODO()
 
-	namespace := &models.Namespace{Name: "group1", Owner: "user1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 
 	mock.On("GetNamespace", ctx, namespace.TenantID).Return(namespace, nil).Once()
 
@@ -53,11 +53,14 @@ func TestCreateNamespace(t *testing.T) {
 
 	ctx := context.TODO()
 
-	namespace := &models.Namespace{Name: "group1", Owner: "user1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
+	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
 
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1"}
+
+	mock.On("GetUserByUsername", ctx, user.Username).Return(user, nil).Once()
 	mock.On("CreateNamespace", ctx, namespace).Return(namespace, nil).Once()
 
-	returnedNamespace, err := s.CreateNamespace(ctx, namespace)
+	returnedNamespace, err := s.CreateNamespace(ctx, namespace, namespace.Owner)
 	assert.NoError(t, err)
 	assert.Equal(t, namespace, returnedNamespace)
 	mock.AssertExpectations(t)
@@ -69,16 +72,20 @@ func TestEditNamespace(t *testing.T) {
 
 	ctx := context.TODO()
 
-	namespace := &models.Namespace{Name: "group1", Owner: "user1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
-	renamedNamespace := &models.Namespace{Name: "group2", Owner: "user1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
+	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
 
-	mock.On("EditNamespace", ctx, namespace.TenantID, renamedNamespace.Name).Return(nil).Once()
+	newName := "newname"
+	namespace := &models.Namespace{Name: "oldname", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
+
+	mock.On("GetUserByUsername", ctx, user.Username).Return(user, nil).Once()
 	mock.On("GetNamespace", ctx, namespace.TenantID).Return(namespace, nil).Twice()
-	err := s.EditNamespace(ctx, namespace.TenantID, renamedNamespace.Name)
+	mock.On("EditNamespace", ctx, namespace.TenantID, newName).Return(nil).Once()
+	err := s.EditNamespace(ctx, namespace.TenantID, newName, namespace.Owner)
+
 	assert.NoError(t, err)
 	returnedNamespace, err := s.GetNamespace(ctx, namespace.TenantID)
 	assert.NoError(t, err)
-	assert.Equal(t, renamedNamespace, returnedNamespace)
+	assert.Equal(t, newName, returnedNamespace.Name)
 	mock.AssertExpectations(t)
 }
 
@@ -88,12 +95,14 @@ func TestDeleteNamespace(t *testing.T) {
 
 	ctx := context.TODO()
 
-	namespace := &models.Namespace{Name: "group1", Owner: "user1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
+	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 
+	mock.On("GetUserByUsername", ctx, user.Username).Return(user, nil).Once()
 	mock.On("DeleteNamespace", ctx, namespace.TenantID).Return(nil).Once()
 	mock.On("GetNamespace", ctx, namespace.TenantID).Return(namespace, nil).Once()
 
-	err := s.DeleteNamespace(ctx, namespace.TenantID)
+	err := s.DeleteNamespace(ctx, namespace.TenantID, namespace.Owner)
 	assert.NoError(t, err)
 
 	mock.AssertExpectations(t)
