@@ -1,10 +1,22 @@
 package models
 
+import "time"
+
+type PublicKeyFields struct {
+	Name string `json:"name"`
+}
+
 type PublicKey struct {
-	Name        string `json:"name"`
-	Data        []byte `json:"data"`
-	Fingerprint string `json:"fingerprint"`
-	TenantID    string `json:"tenant_id" bson:"tenant_id"`
+	ID              string    `json:"-" bson:"_id"`
+	Data            []byte    `json:"data"`
+	Fingerprint     string    `json:"fingerprint"`
+	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
+	TenantID        string    `json:"tenant_id" bson:"tenant_id"`
+	PublicKeyFields `bson:",inline"`
+}
+
+type PublicKeyUpdate struct {
+	PublicKeyFields `bson:",inline"`
 }
 
 type PublicKeyAuthRequest struct {
