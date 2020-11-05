@@ -16,6 +16,17 @@ jobs:
       fail-fast: false
       matrix:
         project: [ api,  agent,  pkg,  ssh, ui ]
+        include:
+          - project: api
+            extra_args: ""
+          - project: agent
+            extra_args: "-tags docker"
+          - project: pkg
+            extra_args: ""
+          - project: ssh
+            extra_args: "-tags internal_api"
+          - project: ui
+            extra_args: ""
 
     runs-on: ubuntu-latest
 
@@ -65,17 +76,17 @@ jobs:
     - name: Unit test [Go]
       if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       working-directory: ${{ matrix.project }}
-      run: go test -v ./...
-
+      run: go test -v ${{ matrix.extra_args }} ./...
+      
     - name: Go build [Go]
       if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       working-directory: ${{ matrix.project }}
-      run: go build -v ./...
+      run: go build -v ${{ matrix.extra_args }} ./...
 
-    - name: Go build (with docker tag) [Go]
+    - name: Go build [Go]
       if: matrix.project == 'agent' && steps.filter.outputs.go == 'true'
       working-directory: ${{ matrix.project }}
-      run: go build -tags docker -v ./...
+      run: go build -v ${{ matrix.extra_args }} ./...
 
     - name: Set up Node.JS 12.16 [UI]
       if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
