@@ -26,6 +26,13 @@
               </v-list-item-title>
             </v-list-item-content>
           </template>
+          <v-list-item
+            class="ml-4"
+          >
+            <v-list-item-title>
+              <NamespaceAdd />
+            </v-list-item-title>
+          </v-list-item>
           <v-virtual-scroll
             :height="adaptHeight"
             item-height="40"
@@ -92,8 +99,14 @@
 
 <script>
 
+import NamespaceAdd from '@/components/namespace/NamespaceAdd';
+
 export default {
   name: 'NamespaceMenu',
+
+  components: {
+    NamespaceAdd,
+  },
 
   computed: {
     namespaceNames() {
