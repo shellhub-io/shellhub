@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -46,6 +47,7 @@ func (s *service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, err
 			Bytes: x509.MarshalPKCS1PrivateKey(key),
 		}),
 		Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+		CreatedAt:   time.Now(),
 	}
 
 	if err := s.store.CreatePrivateKey(ctx, privateKey); err != nil {
