@@ -44,9 +44,8 @@
                     class="mt-2"
                   >
                     <v-btn
-                      v-if="!editDataStatus"
                       outlined
-                      @click="passes(addNamespace)"
+                      @click="passes(rename)"
                     >
                       Rename Namespace
                     </v-btn>
@@ -68,12 +67,7 @@
             </v-col>
             <v-spacer />
             <v-col>
-              <v-btn
-                class="ml-8"
-                outlined
-              >
-                Add Member
-              </v-btn>
+              <NamespaceNewMember />
             </v-col>
           </v-row>
           <div
@@ -86,9 +80,7 @@
               >
                 <v-row>
                   <v-col>
-                    <v-icon
-                      v-on="on"
-                    >
+                    <v-icon>
                       mdi-account
                     </v-icon>
                   </v-col>
@@ -171,18 +163,28 @@ import {
   ValidationProvider,
 } from 'vee-validate';
 
+import NamespaceNewMember from '@/components/namespace/NamespaceNewMember';
+
 export default {
   name: 'SettingNamespace',
 
   components: {
     ValidationProvider,
     ValidationObserver,
+    NamespaceNewMember,
   },
 
   data() {
     return {
+      name: '',
       namespaceNames: ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7'],
     };
+  },
+
+  methods: {
+    rename() {
+      console.log('Namespace renamed');
+    },
   },
 };
 </script>
