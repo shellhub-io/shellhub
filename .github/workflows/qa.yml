@@ -67,6 +67,11 @@ jobs:
       working-directory: ${{ matrix.project }}
       run: go test -v ./...
 
+    - name: Unit test [Go]
+      if: matrix.project == 'ssh' && steps.filter.outputs.go == 'true'
+      working-directory: ${{ matrix.project }}
+      run: go test -tags internal_api -v ./...
+
     - name: Go build [Go]
       if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       working-directory: ${{ matrix.project }}
