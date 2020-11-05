@@ -88,6 +88,10 @@ func main() {
 
 	publicAPI.GET(routes.GetStatsURL, apicontext.Handler(routes.GetStats))
 
+	publicAPI.GET(routes.GetPublicKeysURL, apicontext.Handler(routes.GetPublicKeys))
+	publicAPI.POST(routes.CreatePublicKeyURL, apicontext.Handler(routes.CreatePublicKey))
+	publicAPI.PUT(routes.UpdatePublicKeyURL, apicontext.Handler(routes.UpdatePublicKey))
+	publicAPI.DELETE(routes.DeletePublicKeyURL, apicontext.Handler(routes.DeletePublicKey))
 	internalAPI.GET(routes.GetPublicKeyURL, apicontext.Handler(routes.GetPublicKey))
 	internalAPI.POST(routes.CreatePrivateKeyURL, apicontext.Handler(routes.CreatePrivateKey))
 
