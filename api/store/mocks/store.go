@@ -44,6 +44,34 @@ func (_m *Store) CreateFirewallRule(ctx context.Context, rule *models.FirewallRu
 	return r0
 }
 
+// CreatePrivateKey provides a mock function with given fields: ctx, key
+func (_m *Store) CreatePrivateKey(ctx context.Context, key *models.PrivateKey) error {
+	ret := _m.Called(ctx, key)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.PrivateKey) error); ok {
+		r0 = rf(ctx, key)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CreatePublicKey provides a mock function with given fields: ctx, key
+func (_m *Store) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
+	ret := _m.Called(ctx, key)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.PublicKey) error); ok {
+		r0 = rf(ctx, key)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // CreateSession provides a mock function with given fields: ctx, session
 func (_m *Store) CreateSession(ctx context.Context, session models.Session) (*models.Session, error) {
 	ret := _m.Called(ctx, session)
@@ -116,6 +144,20 @@ func (_m *Store) DeleteFirewallRule(ctx context.Context, id string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
 		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeletePublicKey provides a mock function with given fields: ctx, fingerprint
+func (_m *Store) DeletePublicKey(ctx context.Context, fingerprint string) error {
+	ret := _m.Called(ctx, fingerprint)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, fingerprint)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -252,6 +294,52 @@ func (_m *Store) GetFirewallRule(ctx context.Context, id string) (*models.Firewa
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPrivateKey provides a mock function with given fields: ctx, fingerprint
+func (_m *Store) GetPrivateKey(ctx context.Context, fingerprint string) (*models.PrivateKey, error) {
+	ret := _m.Called(ctx, fingerprint)
+
+	var r0 *models.PrivateKey
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.PrivateKey); ok {
+		r0 = rf(ctx, fingerprint)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.PrivateKey)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, fingerprint)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPublicKey provides a mock function with given fields: ctx, fingerprint
+func (_m *Store) GetPublicKey(ctx context.Context, fingerprint string) (*models.PublicKey, error) {
+	ret := _m.Called(ctx, fingerprint)
+
+	var r0 *models.PublicKey
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.PublicKey); ok {
+		r0 = rf(ctx, fingerprint)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.PublicKey)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, fingerprint)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -458,6 +546,36 @@ func (_m *Store) ListFirewallRules(ctx context.Context, pagination paginator.Que
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.FirewallRule)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query) int); ok {
+		r1 = rf(ctx, pagination)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query) error); ok {
+		r2 = rf(ctx, pagination)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// ListPublicKeys provides a mock function with given fields: ctx, pagination
+func (_m *Store) ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
+	ret := _m.Called(ctx, pagination)
+
+	var r0 []models.PublicKey
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) []models.PublicKey); ok {
+		r0 = rf(ctx, pagination)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.PublicKey)
 		}
 	}
 
@@ -703,6 +821,29 @@ func (_m *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, status
 	}
 
 	return r0
+}
+
+// UpdatePublicKey provides a mock function with given fields: ctx, fingerprint, key
+func (_m *Store) UpdatePublicKey(ctx context.Context, fingerprint string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
+	ret := _m.Called(ctx, fingerprint, key)
+
+	var r0 *models.PublicKey
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.PublicKeyUpdate) *models.PublicKey); ok {
+		r0 = rf(ctx, fingerprint, key)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.PublicKey)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, *models.PublicKeyUpdate) error); ok {
+		r1 = rf(ctx, fingerprint, key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateUID provides a mock function with given fields: ctx, oldUID, newUID
