@@ -101,7 +101,8 @@ func EditNamespace(c apicontext.Context) error {
 		return err
 	}
 
-	if err := svc.EditNamespace(c.Ctx(), c.Param("id"), req.Name, username); err != nil {
+	namespace, err := svc.EditNamespace(c.Ctx(), c.Param("id"), req.Name, username)
+	if err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
@@ -109,7 +110,7 @@ func EditNamespace(c apicontext.Context) error {
 		return err
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, namespace)
 }
 
 func AddNamespaceUser(c apicontext.Context) error {
@@ -128,7 +129,8 @@ func AddNamespaceUser(c apicontext.Context) error {
 		return err
 	}
 
-	if err := svc.AddNamespaceUser(c.Ctx(), c.Param("id"), req.Username, ownerUsername); err != nil {
+	namespace, err := svc.AddNamespaceUser(c.Ctx(), c.Param("id"), req.Username, ownerUsername)
+	if err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
@@ -136,7 +138,7 @@ func AddNamespaceUser(c apicontext.Context) error {
 		return err
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, namespace)
 }
 func RemoveNamespaceUser(c apicontext.Context) error {
 	svc := nsadm.NewService(c.Store())
@@ -153,7 +155,8 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
-	if err := svc.RemoveNamespaceUser(c.Ctx(), c.Param("id"), req.Username, ownerUsername); err != nil {
+	namespace, err := svc.RemoveNamespaceUser(c.Ctx(), c.Param("id"), req.Username, ownerUsername)
+	if err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
@@ -161,5 +164,5 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 		return err
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, namespace)
 }

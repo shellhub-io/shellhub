@@ -19,9 +19,9 @@ type Service interface {
 	CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, namespace, ownerUsername string) error
-	EditNamespace(ctx context.Context, namespace, name, ownerUsername string) error
-	AddNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) error
-	RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) error
+	EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error)
+	AddNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
+	RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
 }
 
 type service struct {
@@ -64,7 +64,7 @@ func (s *service) DeleteNamespace(ctx context.Context, namespace, ownerUsername 
 	return ErrUnauthorized
 }
 
-func (s *service) EditNamespace(ctx context.Context, namespace, name, ownerUsername string) error {
+func (s *service) EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error) {
 	if ns, _ := s.store.GetNamespace(ctx, namespace); ns != nil {
 		if user, _ := s.store.GetUserByUsername(ctx, ownerUsername); user != nil {
 			validate := validator.New()
@@ -77,10 +77,10 @@ func (s *service) EditNamespace(ctx context.Context, namespace, name, ownerUsern
 			}
 		}
 	}
-	return ErrUnauthorized
+	return nil, ErrUnauthorized
 }
 
-func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) error {
+func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error) {
 	if ns, _ := s.store.GetNamespace(ctx, namespace); ns != nil {
 		if OwnerUser, _ := s.store.GetUserByUsername(ctx, ownerUsername); OwnerUser != nil {
 			if user, _ := s.store.GetUserByUsername(ctx, username); user != nil {
@@ -90,9 +90,9 @@ func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, own
 			}
 		}
 	}
-	return ErrUnauthorized
+	return nil, ErrUnauthorized
 }
-func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) error {
+func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error) {
 	if ns, _ := s.store.GetNamespace(ctx, namespace); ns != nil {
 		if OwnerUser, _ := s.store.GetUserByUsername(ctx, ownerUsername); OwnerUser != nil {
 			if user, _ := s.store.GetUserByUsername(ctx, username); user != nil {
@@ -102,5 +102,5 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, 
 			}
 		}
 	}
-	return ErrUnauthorized
+	return nil, ErrUnauthorized
 }

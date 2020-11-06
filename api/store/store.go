@@ -52,8 +52,8 @@ type Store interface {
 	ListNamespaces(ctx context.Context, pagination paginator.Query) ([]models.Namespace, int, error)
 	GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error)
 	CreateNamespace(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
-	EditNamespace(ctx context.Context, namespace, name string) error
+	EditNamespace(ctx context.Context, namespace, name string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, namespace string) error
-	AddNamespaceUser(ctx context.Context, namespace, ID string) error
-	RemoveNamespaceUser(ctx context.Context, namespace, ID string) error
+	AddNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error)
+	RemoveNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error)
 }

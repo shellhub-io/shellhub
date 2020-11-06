@@ -1167,19 +1167,25 @@ func (s *Store) DeleteNamespace(ctx context.Context, namespace string) error {
 	_, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": namespace})
 	return err
 }
-func (s *Store) EditNamespace(ctx context.Context, namespace, name string) error {
-	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$set": bson.M{"name": name}})
-	return err
+func (s *Store) EditNamespace(ctx context.Context, namespace, name string) (*models.Namespace, error) {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$set": bson.M{"name": name}}); err != nil {
+		return nil, err
+	}
+	return s.GetNamespace(ctx, namespace)
 }
 
-func (s *Store) AddNamespaceUser(ctx context.Context, namespace, ID string) error {
-	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$push": bson.M{"members": ID}})
-	return err
+func (s *Store) AddNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$push": bson.M{"members": ID}}); err != nil {
+		return nil, err
+	}
+	return s.GetNamespace(ctx, namespace)
 }
 
-func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) error {
-	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$pull": bson.M{"members": ID}})
-	return err
+func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$pull": bson.M{"members": ID}}); err != nil {
+		return nil, err
+	}
+	return s.GetNamespace(ctx, namespace)
 }
 
 func buildPaginationQuery(pagination paginator.Query) []bson.M {
