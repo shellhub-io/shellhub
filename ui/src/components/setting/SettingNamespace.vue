@@ -9,7 +9,9 @@
         <v-col
           sm="8"
         >
-          <h3 id="edit">
+          <h3
+            class="ml-6"
+          >
             Edit namespace
           </h3>
           <ValidationObserver
@@ -121,7 +123,9 @@
           </div>
           <v-divider class="mt-6" />
           <v-divider class="mb-6" />
-          <h3 id="dz">
+          <h3
+            class="pl-6"
+          >
             Danger Zone
           </h3>
           <br>
@@ -131,23 +135,17 @@
             <v-col
               cols="8"
             >
-              <p>
-                Delete this namespace.
-              </p>
-              <p>
-                Once you delete a namespace, there is no going back. Please be certain.
+              <p
+                class="mt-4"
+              >
+                Delete this namespace
               </p>
             </v-col>
             <v-col
               cols="2"
               class="mt-2"
             >
-              <v-btn
-                color="red darken-1"
-                outlined
-              >
-                Delete namespace
-              </v-btn>
+              <NamespaceDelete />
             </v-col>
           </v-row>
         </v-col>
@@ -164,6 +162,7 @@ import {
 } from 'vee-validate';
 
 import NamespaceNewMember from '@/components/namespace/NamespaceNewMember';
+import NamespaceDelete from '@/components/namespace/NamespaceDelete';
 
 export default {
   name: 'SettingNamespace',
@@ -172,6 +171,7 @@ export default {
     ValidationProvider,
     ValidationObserver,
     NamespaceNewMember,
+    NamespaceDelete,
   },
 
   data() {
@@ -188,9 +188,3 @@ export default {
   },
 };
 </script>
-
-<style>
-    #edit, #dz {
-      text-align: center;
-    }
-</style>
