@@ -79,6 +79,10 @@ func DeleteNamespace(c apicontext.Context) error {
 			return c.NoContent(http.StatusForbidden)
 		}
 
+		if err == nsadm.ErrNamespaceNotFound {
+			return c.String(http.StatusNotFound, err.Error())
+		}
+
 		return err
 	}
 
@@ -105,6 +109,9 @@ func EditNamespace(c apicontext.Context) error {
 	if err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
+		}
+		if err == nsadm.ErrNamespaceNotFound {
+			return c.String(http.StatusNotFound, err.Error())
 		}
 
 		return err
@@ -134,6 +141,12 @@ func AddNamespaceUser(c apicontext.Context) error {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
+		if err == nsadm.ErrUserNotFound {
+			return c.String(http.StatusNotFound, err.Error())
+		}
+		if err == nsadm.ErrNamespaceNotFound {
+			return c.String(http.StatusNotFound, err.Error())
+		}
 
 		return err
 	}
@@ -159,6 +172,12 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 	if err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
+		}
+		if err == nsadm.ErrUserNotFound {
+			return c.String(http.StatusNotFound, err.Error())
+		}
+		if err == nsadm.ErrNamespaceNotFound {
+			return c.String(http.StatusNotFound, err.Error())
 		}
 
 		return err
