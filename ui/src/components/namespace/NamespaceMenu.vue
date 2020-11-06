@@ -11,13 +11,41 @@
           >
             mdi-server
           </v-icon>
-          My Device Fleet
+          {{ namespace.name }}
           <v-icon right>
             mdi-chevron-down
           </v-icon>
         </v-chip>
       </template>
       <v-card>
+        <v-list-item three-line>
+          <v-list-item-content>
+            <v-list-item-title
+              data-test="tenantID-field"
+              class="mb-1"
+            >
+              Tenant ID
+            </v-list-item-title>
+            <v-list-item-subtitle>
+              <v-chip>
+                <span
+                  data-test="tenantID-text"
+                >
+                  {{ tenant }}
+                </span>
+                <v-icon
+                  v-clipboard="tenant"
+                  v-clipboard:success="() => {
+                    this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
+                  }"
+                  right
+                >
+                  mdi-content-copy
+                </v-icon>
+              </v-chip>
+            </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
         <v-list-group>
           <template #activator>
             <v-list-item-content>
@@ -26,28 +54,48 @@
               </v-list-item-title>
             </v-list-item-content>
           </template>
-          <v-list-item
-            class="ml-4"
-          >
+          <v-list-item>
             <v-list-item-title>
               <NamespaceAdd />
             </v-list-item-title>
           </v-list-item>
           <v-virtual-scroll
-            :height="adaptHeight"
+            :height="150"
             item-height="40"
-            :items="namespaceNames"
+            :items="namespaces"
           >
-            <template #default="{item}">
-              <v-list-item :key="item">
+            <template #default="{ item }">
+              <v-list-item :key="item.tenant_id">
                 <v-row>
                   <v-col
+                    v-if="formatName(item.name).mode"
                     class="mt-1"
                   >
+                    <v-tooltip
+                      bottom
+                    >
+                      <template
+                        #activator="{ on }"
+                      >
+                        <v-list-item-title
+                          v-on="on"
+                        >
+                          {{ formatName(item.name).name }}
+                        </v-list-item-title>
+                      </template>
+                      <span>
+                        {{ item.name }}
+                      </span>
+                    </v-tooltip>
+                  </v-col>
+                  <v-col
+                    v-else
+                  >
                     <v-list-item-title>
-                      {{ item }}
+                      {{ item.name }}
                     </v-list-item-title>
                   </v-col>
+                  <v-spacer />
                   <v-spacer />
                   <v-col>
                     <v-btn
@@ -55,6 +103,7 @@
                       class="v-btn--active"
                       text
                       color="primary"
+                      @click="switchIn(item.tenant_id)"
                     >
                       <v-tooltip
                         bottom
@@ -109,12 +158,20 @@ export default {
   },
 
   computed: {
-    namespaceNames() {
-      return this.$store.getters['namespaces/list'].map((namespace) => namespace.name);
+    namespace() {
+      return this.$store.getters['namespaces/get'];
     },
 
-    adaptHeight() {
-      return (this.namespaceNames).length > 3 ? 150 : (this.namespaceNames).length * 45;
+    namespaces() {
+      return this.$store.getters['namespaces/list'];
+    },
+
+    tenant() {
+      return localStorage.getItem('tenant');
+    },
+
+    show() {
+      return this.$env.isHosted;
     },
   },
 
@@ -124,11 +181,30 @@ export default {
 
   methods: {
     async getNamespaces() {
-      try {
+      try { // load namespaces
         await this.$store.dispatch('namespaces/fetch');
+        await this.$store.dispatch('namespaces/get', this.tenant);
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceList);
       }
+    },
+
+    async switchIn(tenant) {
+      try {
+        await this.$store.dispatch('namespaces/switchNamespace', {
+          tenant_id: tenant,
+        });
+        localStorage.setItem('tenant', tenant);
+        window.location.reload();
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceSwitch);
+      }
+    },
+
+    formatName(name, limit = 11) {
+      const formatObj = { name, mode: true };
+      if (name.length > limit) formatObj.name = `${name.slice(0, limit - 3)}...`; formatObj.format = false;
+      return formatObj;
     },
   },
 };

@@ -26,7 +26,7 @@
                 ref="providerName"
                 vid="name"
                 name="Priority"
-                rules="required"
+                rules="required|rfc1123"
               >
                 <v-row>
                   <v-col
@@ -47,7 +47,7 @@
                   >
                     <v-btn
                       outlined
-                      @click="passes(rename)"
+                      @click="passes(editNamespace)"
                     >
                       Rename Namespace
                     </v-btn>
@@ -69,7 +69,7 @@
             </v-col>
             <v-spacer />
             <v-col>
-              <NamespaceNewMember />
+              <NamespaceNewMember :ns-tenant="tenant" />
             </v-col>
           </v-row>
           <div
@@ -77,7 +77,7 @@
           >
             <v-list>
               <v-list-item
-                v-for="item in namespaceNames"
+                v-for="item in namespace.member_names"
                 :key="item"
               >
                 <v-row>
@@ -100,6 +100,7 @@
                     <v-btn
                       class="ml-10"
                       outlined
+                      @click="remove(item)"
                     >
                       <v-tooltip
                         bottom
@@ -145,7 +146,7 @@
               cols="2"
               class="mt-2"
             >
-              <NamespaceDelete />
+              <NamespaceDelete :ns-tenant="tenant" />
             </v-col>
           </v-row>
         </v-col>
@@ -177,14 +178,52 @@ export default {
   data() {
     return {
       name: '',
-      namespaceNames: ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7'],
     };
   },
 
+  computed: {
+    namespace() {
+      return this.$store.getters['namespaces/get'];
+    },
+
+    tenant() {
+      return localStorage.getItem('tenant');
+    },
+  },
+
+  async created() {
+    await this.getNamespace();
+    this.name = this.namespace.name;
+  },
+
   methods: {
-    rename() {
-      console.log('Namespace renamed');
+    async editNamespace() {
+      try {
+        await this.$store.dispatch('namespaces/put', { id: this.tenant, name: this.name });
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceEdit);
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceEdit);
+      }
+    },
+
+    async getNamespace() {
+      await this.$store.dispatch('namespaces/get', this.tenant);
+    },
+
+    async remove(username) {
+      try {
+        await this.$store.dispatch('namespaces/removeUser', {
+          username,
+          tenant_id: this.tenant,
+        });
+        this.dialog = false;
+        this.username = '';
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceRemoveUser);
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceRemoveUser);
+      }
     },
   },
 };
+
 </script>

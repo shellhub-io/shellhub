@@ -55,10 +55,7 @@ describe('App', () => {
     expect(wrapper.find('[data-test="devices"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="history"]').exists()).toEqual(true);
 
-    expect(wrapper.find('[data-test="tenantID-field"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="Settings"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="Logout"]').exists()).toEqual(true);
-
-    expect(wrapper.find('[data-test="tenantID-text"]').text()).toEqual(tenant);
   });
 });

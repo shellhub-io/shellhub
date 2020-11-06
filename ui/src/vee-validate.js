@@ -24,7 +24,7 @@ extend('email', {
 
 extend('rfc1123', {
   validate: (value) => isValidHostname(value),
-  message: 'You entered an invalid RFC1123 hostname',
+  message: 'You entered an invalid RFC1123 name',
 });
 
 extend('password', (value) => {

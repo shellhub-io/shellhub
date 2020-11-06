@@ -23,7 +23,12 @@ export default {
       firewallRuleEditing: 'editing rule',
       firewallRuleDeleting: 'deleting rule',
       namespaceList: 'namespace list',
-      namespacesCreating: 'creating namespace',
+      namespaceCreating: 'creating namespace',
+      namespaceNewMember: 'adding new member',
+      namespaceDelete: 'deleting namespace',
+      namespaceSwitch: 'switching namespace',
+      namespaceEdit: 'editing namespace',
+      namespaceRemoveUser: 'removing user',
     };
 
     Vue.errors = errors;

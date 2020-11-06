@@ -72,37 +72,6 @@
         </template>
 
         <v-card>
-          <v-list-item three-line>
-            <v-list-item-content>
-              <v-list-item-title
-                class="mb-1"
-                data-test="tenantID-field"
-              >
-                Tenant ID
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                <v-chip>
-                  <span
-                    data-test="tenantID-text"
-                  >
-                    {{ tenant }}
-                  </span>
-                  <v-icon
-                    v-clipboard="tenant"
-                    v-clipboard:success="() => {
-                      this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
-                    }"
-                    right
-                  >
-                    mdi-content-copy
-                  </v-icon>
-                </v-chip>
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-divider />
-
           <v-list-item
             v-for="(item, index) in menu"
             :key="index"

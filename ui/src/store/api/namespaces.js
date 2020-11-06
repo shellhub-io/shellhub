@@ -21,3 +21,5 @@ export const addUserToNamespace = async (data) => http().patch(`/namespace/${dat
 export const removeUserFromNamespace = async (data) => http().patch(`/namespace/${data.tenant_id}/del`, {
   username: data.username,
 });
+
+export const tenantSwitch = async (data) => http().get(`/auth/token/${data.tenant_id}`);
