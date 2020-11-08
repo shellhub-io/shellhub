@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -648,6 +649,7 @@ func (s *Store) RecordSession(ctx context.Context, uid models.UID, recordMessage
 
 func (s *Store) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	user := new(models.User)
+	fmt.Println(username)
 
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": username}).Decode(&user); err != nil {
 		return nil, err
@@ -669,6 +671,14 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*models.User,
 func (s *Store) GetUserByTenant(ctx context.Context, tenant string) (*models.User, error) {
 	user := new(models.User)
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"tenant_id": tenant}).Decode(&user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (s *Store) GetUserByID(ctx context.Context, ID string) (*models.User, error) {
+	user := new(models.User)
+	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": ID}).Decode(&user); err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -888,7 +898,7 @@ func (s *Store) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, 
 		return err
 	}
 
-	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"session_record": sessionRecord}}); err != nil {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"settings.session_record": sessionRecord}}); err != nil {
 		return err
 	}
 
@@ -902,15 +912,17 @@ func (s *Store) GetDataUserSecurity(ctx context.Context, tenant string) (bool, e
 		return false, err
 	}
 
-	var status struct {
-		SessionRecord bool `json:"session_record" bson:"session_record"`
+	var settings struct {
+		Settings *models.NamespaceSettings `json:"settings" bson:"settings"`
 	}
 
-	if err := s.db.Collection("users").FindOne(ctx, bson.M{"tenant_id": tenant}).Decode(&status); err != nil {
+	//var status *models.NamespaceSettings
+
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenant}).Decode(&settings); err != nil {
 		return false, err
 	}
 
-	return status.SessionRecord, nil
+	return settings.Settings.SessionRecord, nil
 }
 
 func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
@@ -1186,6 +1198,16 @@ func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) (
 		return nil, err
 	}
 	return s.GetNamespace(ctx, namespace)
+}
+
+func (s *Store) GetSomeNamespace(ctx context.Context, ID string) (*models.Namespace, error) {
+	ns := new(models.Namespace)
+
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": bson.M{"$elemMatch": bson.M{"$exists": ID}}}).Decode(&ns); err != nil {
+		return nil, err
+	}
+
+	return ns, nil
 }
 
 func buildPaginationQuery(pagination paginator.Query) []bson.M {

@@ -31,6 +31,7 @@ type Store interface {
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetUserByTenant(ctx context.Context, tenant string) (*models.User, error)
+	GetUserByID(ctx context.Context, ID string) (*models.User, error)
 	GetDeviceByMac(ctx context.Context, mac, tenant, status string) (*models.Device, error)
 	GetDeviceByName(ctx context.Context, name, tenant string) (*models.Device, error)
 	GetDeviceByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error)
@@ -56,4 +57,5 @@ type Store interface {
 	DeleteNamespace(ctx context.Context, namespace string) error
 	AddNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error)
+	GetSomeNamespace(ctx context.Context, ID string) (*models.Namespace, error)
 }

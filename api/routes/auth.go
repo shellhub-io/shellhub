@@ -114,6 +114,22 @@ func AuthGetToken(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+func AuthSwapToken(c apicontext.Context) error {
+	svc := authsvc.NewService(c.Store(), nil, nil)
+
+	username := ""
+	if v := c.Username(); v != nil {
+		username = v.ID
+	}
+
+	res, err := svc.AuthSwapToken(c.Ctx(), username, c.Param("tenant"))
+	if err != nil {
+		return echo.ErrUnauthorized
+	}
+	return c.JSON(http.StatusOK, res)
+
+}
+
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Get("ctx").(*apicontext.Context)
