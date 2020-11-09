@@ -37,6 +37,12 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint string) (*models
 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
 	key.CreatedAt = time.Now()
+
+	// Assign current tenant from ctx
+	if tenant := c.Tenant(); tenant != nil {
+		key.TenantID = tenant.ID
+	}
+
 	return s.store.CreatePublicKey(ctx, key)
 }
 
