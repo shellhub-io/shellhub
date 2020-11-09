@@ -6,7 +6,8 @@ export const fetchDevices = async (
   search,
   status,
   sortStatusField,
-  sortStatusString) => {
+  sortStatusString,
+) => {
   let query = `/devices?per_page=${perPage}&page=${page}&status=${status}`;
 
   if (search !== null) {
