@@ -112,7 +112,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, own
 func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error) {
 	ns, _ := s.store.GetNamespace(ctx, namespace)
 	if ns != nil {
-		if OwnerUser, _ := s.store.GetUserByUsername(ctx, ownerUsername); OwnerUser != nil {
+		if OwnerUser, _ := s.store.GetUserByUsername(ctx, ownerUsername); OwnerUser != nil && OwnerUser.Username != username {
 			if ns.Owner == OwnerUser.ID {
 				if user, _ := s.store.GetUserByUsername(ctx, username); user != nil {
 					return s.store.RemoveNamespaceUser(ctx, namespace, user.ID)
