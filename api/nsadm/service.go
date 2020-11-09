@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/google/go-cmp/cmp"
 	uuid "github.com/satori/go.uuid"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -15,6 +16,7 @@ import (
 var ErrUnauthorized = errors.New("unauthorized")
 var ErrUserNotFound = errors.New("user not found")
 var ErrNamespaceNotFound = errors.New("namespace not found")
+var ErrDuplicateID = errors.New("user already member of this namespace")
 
 type Service interface {
 	ListNamespaces(ctx context.Context, pagination paginator.Query) ([]models.Namespace, int, error)
@@ -94,7 +96,11 @@ func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, own
 		if OwnerUser, _ := s.store.GetUserByUsername(ctx, ownerUsername); OwnerUser != nil {
 			if ns.Owner == OwnerUser.ID {
 				if user, _ := s.store.GetUserByUsername(ctx, username); user != nil {
-					return s.store.AddNamespaceUser(ctx, namespace, user.ID)
+					if namespaceWithMember, err := s.store.AddNamespaceUser(ctx, namespace, user.ID); !cmp.Equal(ns, namespaceWithMember) {
+
+						return namespaceWithMember, err
+					}
+					return nil, ErrDuplicateID
 				}
 				return nil, ErrUserNotFound
 			}

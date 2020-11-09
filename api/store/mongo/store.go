@@ -1175,7 +1175,7 @@ func (s *Store) EditNamespace(ctx context.Context, namespace, name string) (*mod
 }
 
 func (s *Store) AddNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
-	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$push": bson.M{"members": ID}}); err != nil {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$addToSet": bson.M{"members": ID}}); err != nil {
 		return nil, err
 	}
 	return s.GetNamespace(ctx, namespace)

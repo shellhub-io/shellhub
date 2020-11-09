@@ -148,6 +148,10 @@ func AddNamespaceUser(c apicontext.Context) error {
 			return c.String(http.StatusNotFound, err.Error())
 		}
 
+		if err == nsadm.ErrDuplicateID {
+			return c.String(http.StatusConflict, err.Error())
+		}
+
 		return err
 	}
 
