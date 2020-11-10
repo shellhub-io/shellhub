@@ -47,11 +47,6 @@ export default {
           path: '/settings',
         },
         {
-          title: 'Security',
-          path: '/settings/security',
-          hidden: !this.$env.isHosted,
-        },
-        {
           title: 'Namespace',
           path: '/settings/namespace-manager',
         },

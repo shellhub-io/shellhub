@@ -54,7 +54,9 @@
               </v-list-item-title>
             </v-list-item-content>
           </template>
-          <v-list-item>
+          <v-list-item
+            v-show="show"
+          >
             <v-list-item-title>
               <NamespaceAdd />
             </v-list-item-title>
