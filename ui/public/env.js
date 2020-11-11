@@ -1,3 +1,1 @@
-window.env = {
-    HOSTED: "false",
-};
+{};
