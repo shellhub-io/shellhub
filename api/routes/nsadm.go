@@ -6,7 +6,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/nsadm"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -22,11 +21,15 @@ const (
 
 func GetNamespaceList(c apicontext.Context) error {
 	svc := nsadm.NewService(c.Store())
-	query := paginator.NewQuery()
-	c.Bind(query)
+
+	query := filterQuery{}
+	if err := c.Bind(&query); err != nil {
+		return err
+	}
 
 	query.Normalize()
-	namespaces, count, err := svc.ListNamespaces(c.Ctx(), *query)
+
+	namespaces, count, err := svc.ListNamespaces(c.Ctx(), query.Query, query.Filter, false)
 	if err != nil {
 		return err
 	}

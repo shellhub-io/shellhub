@@ -2,6 +2,9 @@ package nsadm
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
+
 	"errors"
 	"strings"
 
@@ -19,7 +22,7 @@ var ErrNamespaceNotFound = errors.New("namespace not found")
 var ErrDuplicateID = errors.New("user already member of this namespace")
 
 type Service interface {
-	ListNamespaces(ctx context.Context, pagination paginator.Query) ([]models.Namespace, int, error)
+	ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error)
 	CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, namespace, ownerUsername string) error
@@ -36,8 +39,19 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query) ([]models.Namespace, int, error) {
-	return s.store.ListNamespaces(ctx, pagination)
+func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
+	raw, err := base64.StdEncoding.DecodeString(filterB64)
+	if err != nil {
+		return nil, 0, err
+	}
+	var filter []models.Filter
+
+	if err := json.Unmarshal([]byte(raw), &filter); len(raw) > 0 && err != nil {
+		return nil, 0, err
+	}
+
+	return s.store.ListNamespaces(ctx, pagination, filter, export)
+
 }
 
 func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error) {
