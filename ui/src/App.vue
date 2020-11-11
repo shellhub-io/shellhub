@@ -47,23 +47,9 @@
       </router-link>
       <span class="overline mt-3">BETA</span>
       <v-spacer />
-      <v-menu
-        transition="scale-transition"
-        origin="top left"
-        offset-y
-      >
-        <template #activator="{ on }">
-          <v-chip v-on="on">
-            <v-icon left>
-              mdi-server
-            </v-icon>
-            My Device Fleet
-            <v-icon right>
-              mdi-chevron-down
-            </v-icon>
-          </v-chip>
-        </template>
-      </v-menu>
+
+      <NamespaceMenu />
+
       <v-chip>
         <v-icon>help</v-icon>
       </v-chip>
@@ -86,37 +72,6 @@
         </template>
 
         <v-card>
-          <v-list-item three-line>
-            <v-list-item-content>
-              <v-list-item-title
-                class="mb-1"
-                data-test="tenantID-field"
-              >
-                Tenant ID
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                <v-chip>
-                  <span
-                    data-test="tenantID-text"
-                  >
-                    {{ tenant }}
-                  </span>
-                  <v-icon
-                    v-clipboard="tenant"
-                    v-clipboard:success="() => {
-                      this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
-                    }"
-                    right
-                  >
-                    mdi-content-copy
-                  </v-icon>
-                </v-chip>
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-divider />
-
           <v-list-item
             v-for="(item, index) in menu"
             :key="index"
@@ -150,12 +105,14 @@
 <script>
 
 import Notification from '@/components/app_bar/notification/Notification';
+import NamespaceMenu from '@/components/namespace/NamespaceMenu';
 
 export default {
   name: 'App',
 
   components: {
     Notification,
+    NamespaceMenu,
   },
 
   data() {

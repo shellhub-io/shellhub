@@ -299,7 +299,11 @@ export default {
     },
 
     async getNamespace() {
-      await this.$store.dispatch('namespaces/get', this.tenant);
+      try {
+        await this.$store.dispatch('namespaces/get', this.tenant);
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceLoad);
+      }
     },
 
     async remove(username) {

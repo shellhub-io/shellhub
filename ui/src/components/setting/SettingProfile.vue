@@ -9,49 +9,6 @@
         <v-col
           sm="8"
         >
-          <div
-            class="mt-6 pl-4 pr-4"
-          >
-            <v-row>
-              <v-col md="auto">
-                <v-card
-                  tile
-                  :elevation="0"
-                >
-                  Tenant ID:
-                </v-card>
-              </v-col>
-              <v-col
-                md="auto"
-                class="ml-auto"
-              >
-                <v-card
-                  class="auto"
-                  tile
-                  :elevation="0"
-                >
-                  <v-chip>
-                    <span>
-                      {{ tenant }}
-                    </span>
-                    <v-icon
-                      v-clipboard="tenant"
-                      v-clipboard:success="() => {
-                        this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
-                      }"
-                      right
-                    >
-                      mdi-content-copy
-                    </v-icon>
-                  </v-chip>
-                </v-card>
-              </v-col>
-            </v-row>
-          </div>
-
-          <v-divider />
-          <v-divider />
-
           <ValidationObserver
             ref="data"
             v-slot="{ passes }"

@@ -13,6 +13,11 @@ export default {
       publicKeyDeleting: 'deleting public key',
       profileData: 'updating data',
       profilePassword: 'updating password',
+      namespaceCreating: 'creating namespace',
+      namespaceNewMember: 'adding new member',
+      namespaceDelete: 'deleting namespace',
+      namespaceEdit: 'editing namespace',
+      namespaceRemoveUser: 'removing member',
     };
 
     Vue.success = success;
