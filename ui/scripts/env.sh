@@ -11,9 +11,7 @@ env | while read line; do
     # Ignore variables that don't starts with 'prefix'
     echo $VAR | grep -q "^$PREFIX" || continue
 
-    [ -n "$PREFIX" ] && VAR=$(echo $VAR | sed "s,^${PREFIX}_,,g")
-
-    echo -e "\t${VAR}: \"${VALUE}\","
+    echo -e "\tVUE_APP_${VAR}: \"${VALUE}\","
 done
 
 echo "};"

@@ -1,0 +1,1 @@
+process.env.VUE_APP_SHELLHUB_HOSTED = process.env.SHELLHUB_HOSTED;
