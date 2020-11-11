@@ -18,6 +18,8 @@ import (
 )
 
 var ErrWrongParamsType = errors.New("wrong parameters type")
+var ErrDuplicateID = errors.New("user already member of this namespace")
+var ErrUserOwner = errors.New("cannot remove this user")
 
 type Store struct {
 	db *mongo.Database
@@ -1193,15 +1195,23 @@ func (s *Store) EditNamespace(ctx context.Context, namespace, name string) (*mod
 }
 
 func (s *Store) AddNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
-	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$addToSet": bson.M{"members": ID}}); err != nil {
+	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$addToSet": bson.M{"members": ID}})
+	if err != nil {
 		return nil, err
+	}
+	if result.ModifiedCount == 0 {
+		return nil, ErrDuplicateID
 	}
 	return s.GetNamespace(ctx, namespace)
 }
 
 func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
-	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$pull": bson.M{"members": ID}}); err != nil {
+	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$pull": bson.M{"members": ID}})
+	if err != nil {
 		return nil, err
+	}
+	if result.ModifiedCount == 0 {
+		return nil, ErrUserOwner
 	}
 	return s.GetNamespace(ctx, namespace)
 }

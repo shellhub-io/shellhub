@@ -13,7 +13,7 @@ const (
 	ListNamespaceURL       = "/namespace"
 	CreateNamespaceURL     = "/namespace"
 	GetNamespaceURL        = "/namespace/:id"
-	DeleteNamespaceURL     = "/namespace/:id"
+	DeleteNamespaceURL     = "/namepace/:id"
 	EditNamespaceURL       = "/namespace/:id"
 	AddNamespaceUserURL    = "/namespace/:id/add"
 	RemoveNamespaceUserURL = "/namespace/:id/del"
@@ -184,6 +184,10 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 		}
 		if err == nsadm.ErrNamespaceNotFound {
 			return c.String(http.StatusNotFound, err.Error())
+		}
+
+		if err == nsadm.ErrDuplicateID {
+			return c.String(http.StatusConflict, err.Error())
 		}
 
 		return err
