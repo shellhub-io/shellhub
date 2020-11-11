@@ -97,7 +97,6 @@ func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, own
 			if ns.Owner == OwnerUser.ID {
 				if user, _ := s.store.GetUserByUsername(ctx, username); user != nil {
 					if namespaceWithMember, err := s.store.AddNamespaceUser(ctx, namespace, user.ID); !cmp.Equal(ns, namespaceWithMember) {
-
 						return namespaceWithMember, err
 					}
 					return nil, ErrDuplicateID

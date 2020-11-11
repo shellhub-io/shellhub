@@ -25,9 +25,9 @@ func UpdateUser(c apicontext.Context) error {
 		return err
 	}
 
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
+	ID := ""
+	if v := c.ID(); v != nil {
+		ID = v.ID
 	}
 	if req.CurrentPassword != "" {
 		sum := sha256.Sum256([]byte(req.CurrentPassword))
@@ -42,7 +42,7 @@ func UpdateUser(c apicontext.Context) error {
 
 	svc := user.NewService(c.Store())
 
-	if invalidFields, err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.CurrentPassword, req.NewPassword, tenant); err != nil {
+	if invalidFields, err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.CurrentPassword, req.NewPassword, ID); err != nil {
 		switch {
 		case err == user.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)

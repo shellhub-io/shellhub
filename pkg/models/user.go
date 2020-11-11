@@ -25,6 +25,7 @@ type UserAuthResponse struct {
 	Token  string `json:"token"`
 	User   string `json:"user"`
 	Name   string `json:"name"`
+	ID     string `json:"id"`
 	Tenant string `json:"tenant"`
 	Email  string `json:"email"`
 }
@@ -33,6 +34,7 @@ type UserAuthClaims struct {
 	Username string `json:"name"`
 	Admin    bool   `json:"admin"`
 	Tenant   string `json:"tenant"`
+	ID       string `json:"id"`
 
 	AuthClaims         `json:",squash"`
 	jwt.StandardClaims `json:",squash"`

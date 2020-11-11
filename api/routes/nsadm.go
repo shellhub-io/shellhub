@@ -47,7 +47,6 @@ func CreateNamespace(c apicontext.Context) error {
 	if v := c.Username(); v != nil {
 		username = v.ID
 	}
-
 	if _, err := svc.CreateNamespace(c.Ctx(), &namespace, username); err != nil {
 		return err
 	}

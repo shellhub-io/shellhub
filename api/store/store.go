@@ -43,7 +43,7 @@ type Store interface {
 	GetStats(ctx context.Context) (*models.Stats, error)
 	GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
 	UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
-	UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) error
+	UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, ID string) error
 	UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error
 	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
 	ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, countSessionsDevices bool) ([]models.User, int, error)
