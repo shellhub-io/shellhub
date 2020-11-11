@@ -11,6 +11,7 @@ export default {
     name: localStorage.getItem('name') || '',
     tenant: localStorage.getItem('tenant') || '',
     email: localStorage.getItem('email') || '',
+    id: localStorage.getItem('id') || '',
   },
 
   getters: {
@@ -20,6 +21,7 @@ export default {
     currentName: (state) => state.name,
     tenant: (state) => state.tenant,
     email: (state) => state.email,
+    id: (state) => state.id,
   },
 
   mutations: {
@@ -34,6 +36,7 @@ export default {
       Vue.set(state, 'name', data.name);
       Vue.set(state, 'tenant', data.tenant);
       Vue.set(state, 'email', data.email);
+      Vue.set(state, 'id', data.id);
     },
 
     authError(state) {
@@ -67,6 +70,7 @@ export default {
         localStorage.setItem('name', resp.data.name);
         localStorage.setItem('tenant', resp.data.tenant);
         localStorage.setItem('email', resp.data.email);
+        localStorage.setItem('id', resp.data.id);
 
         context.commit('authSuccess', resp.data);
       } catch (err) {

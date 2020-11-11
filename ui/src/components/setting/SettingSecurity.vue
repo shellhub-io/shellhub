@@ -1,38 +1,29 @@
 <template>
-  <v-form>
-    <v-container>
-      <v-row
-        align="center"
-        justify="center"
-        class="mt-4"
+  <v-form
+    v-show="show"
+  >
+    <v-row>
+      <v-col
+        md="auto"
+        class="pr-0"
       >
-        <v-col
-          sm="8"
-        >
-          <div
-            class="mt-6 pl-4 pr-4"
-          >
-            <v-row>
-              <v-col
-                md="auto"
-                class="pr-0"
-              >
-                <b>
-                  <!-- @change="setSessionRecord" -->
-                  <v-checkbox
-                    v-model="sessionRecord"
-                    label="Enable session record"
-                    class="pt-0 mt-0"
-                  />
-                </b>
-                Session record is a feature that allows you to check logged activity when
-                connecting to a device.
-              </v-col>
-            </v-row>
-          </div>
-        </v-col>
-      </v-row>
-    </v-container>
+        <h3 class="mb-8 ml-6">
+          Security
+        </h3>
+        <b>
+          <!-- @change="setSessionRecord" -->
+          <v-checkbox
+            v-model="sessionRecord"
+            label="Enable session record"
+            class="pt-0 mt-0 ml-6"
+          />
+        </b>
+        <p class="ml-6">
+          Session record is a feature that allows you to check logged activity when
+          connecting to a device.
+        </p>
+      </v-col>
+    </v-row>
   </v-form>
 </template>
 
@@ -40,6 +31,13 @@
 
 export default {
   name: 'SettingSecurity',
+
+  props: {
+    show: {
+      type: Boolean,
+      required: true,
+    },
+  },
 
   computed: {
     sessionRecord: {
@@ -58,10 +56,12 @@ export default {
   },
 
   async created() {
-    try {
-      await this.$store.dispatch('security/get');
-    } catch {
-      this.$store.dispatch('snackbar/showSnackbarErrorDefault');
+    if (this.show) {
+      try {
+        await this.$store.dispatch('security/get');
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorDefault');
+      }
     }
   },
 };
