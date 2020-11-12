@@ -30,6 +30,7 @@ describe('SettingSecurity', () => {
     wrapper = shallowMount(SettingSecurity, {
       store,
       localVue,
+      propsData: { show: true },
       stubs: ['fragment'],
     });
   });
@@ -39,6 +40,9 @@ describe('SettingSecurity', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Receives props data', () => {
+    expect(wrapper.vm.show).toBe(true);
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.sessionRecord).toEqual(sessionRecord);
