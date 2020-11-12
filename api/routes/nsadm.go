@@ -63,6 +63,12 @@ func GetNamespace(c apicontext.Context) error {
 		return err
 	}
 
+	members, err := svc.ListMembers(c.Ctx(), c.Param("id"))
+	if err != nil {
+		return err
+	}
+	namespace.MemberNames = members
+
 	return c.JSON(http.StatusOK, namespace)
 }
 

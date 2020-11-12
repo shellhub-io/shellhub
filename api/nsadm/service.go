@@ -29,6 +29,7 @@ type Service interface {
 	EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error)
 	AddNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
+	ListMembers(ctx context.Context, namespace string) ([]string, error)
 }
 
 type service struct {
@@ -83,6 +84,20 @@ func (s *service) DeleteNamespace(ctx context.Context, namespace, ownerUsername 
 		return ErrUnauthorized
 	}
 	return ErrNamespaceNotFound
+}
+
+func (s *service) ListMembers(ctx context.Context, namespace string) ([]string, error){
+	ns, _ := s.store.GetNamespace(ctx, namespace)
+	if ns != nil {
+		member_names := []string{}
+		for _, memberId := range ns.Members {
+			if user, err := s.store.GetUserByID(ctx, memberId); err == nil {
+				member_names = append(member_names, user.Username)
+			}
+		}
+		return member_names, nil
+	}
+	return []string{}, ErrNamespaceNotFound
 }
 
 func (s *service) EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error) {
