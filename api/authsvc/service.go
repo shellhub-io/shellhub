@@ -115,10 +115,10 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			return nil, err
 		}
 	}
-
+	tenant := ""
 	namespace, err := s.store.GetSomeNamespace(ctx, user.ID)
-	if err != nil {
-		return nil, err
+	if namespace != nil {
+		tenant = namespace.TenantID
 	}
 
 	password := sha256.Sum256([]byte(req.Password))
@@ -126,7 +126,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 			Username: user.Username,
 			Admin:    true,
-			Tenant:   namespace.TenantID,
+			Tenant:   tenant,
 			ID:       user.ID,
 			AuthClaims: models.AuthClaims{
 				Claims: "user",
@@ -146,7 +146,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			Name:   user.Name,
 			ID:     user.ID,
 			User:   user.Username,
-			Tenant: namespace.TenantID,
+			Tenant: tenant,
 			Email:  user.Email,
 		}, nil
 	}

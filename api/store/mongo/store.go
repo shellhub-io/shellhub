@@ -1148,9 +1148,7 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 		}
 		query = append(query, bson.M{
 			"$match": bson.M{
-				"members": bson.M{
-					"$elemMatch": bson.M{
-						"$exists": user.ID}}}})
+				"members": user.ID}})
 	}
 
 	queryCount := append(query, bson.M{"$count": "count"})
@@ -1218,8 +1216,7 @@ func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) (
 
 func (s *Store) GetSomeNamespace(ctx context.Context, ID string) (*models.Namespace, error) {
 	ns := new(models.Namespace)
-
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": bson.M{"$elemMatch": bson.M{"$exists": ID}}}).Decode(&ns); err != nil {
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": ID}).Decode(&ns); err != nil {
 		return nil, err
 	}
 
