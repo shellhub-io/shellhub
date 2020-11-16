@@ -22,7 +22,7 @@
     "vue": "^2.6.12",
     "vue-fragment": "^1.5.1",
     "vue-moment": "^4.1.0",
-    "vue-router": "^3.4.5",
+    "vue-router": "^3.4.9",
     "vuetify": "^2.3.16",
     "vuex": "^3.4.0",
     "xterm": "^4.9.0",
