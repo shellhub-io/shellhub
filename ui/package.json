@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "axios": "^0.21.0",
-    "core-js": "^3.6.5",
+    "core-js": "^3.7.0",
     "eslint-plugin-import": "^2.22.1",
     "flush-promises": "^1.0.2",
     "is-valid-hostname": "0.1.1",
