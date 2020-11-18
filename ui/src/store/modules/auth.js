@@ -103,6 +103,7 @@ export default {
       localStorage.removeItem('user');
       localStorage.removeItem('tenant');
       localStorage.removeItem('onceWelcome');
+      localStorage.removeItem('noNamespace');
       localStorage.removeItem('email');
       localStorage.removeItem('id');
       localStorage.removeItem('name');

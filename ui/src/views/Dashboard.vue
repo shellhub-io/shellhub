@@ -81,6 +81,9 @@
     <Welcome
       :show.sync="show"
     />
+    <NamespaceInstructions
+      :show.sync="showInstructions"
+    />
   </fragment>
 </template>
 
@@ -88,6 +91,7 @@
 
 import DeviceAdd from '@/components/device/DeviceAdd';
 import Welcome from '@/components/welcome/Welcome';
+import NamespaceInstructions from '@/components/namespace/NamespaceInstructions';
 
 export default {
   name: 'Dashboard',
@@ -95,12 +99,14 @@ export default {
   components: {
     DeviceAdd,
     Welcome,
+    NamespaceInstructions,
   },
 
   data() {
     return {
       flag: false,
       show: false,
+      showInstructions: false,
       items: [
         {
           title: 'Registered Devices',
@@ -137,14 +143,23 @@ export default {
     stats() {
       return this.$store.getters['stats/stats'];
     },
+
+    hasNamespaces() {
+      return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
+    },
   },
 
   async created() {
     try {
       await this.$store.dispatch('stats/get');
       this.showScreenWelcome();
-    } catch {
-      this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.dashboard);
+    } catch (e) {
+      if (e.response.status === 403) {
+        this.showNamespaceInstructions();
+        this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+      } else {
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.dashboard);
+      }
     }
   },
 
@@ -154,6 +169,17 @@ export default {
   },
 
   methods: {
+    showNamespaceInstructions() {
+      let status = false;
+
+      if (localStorage.getItem('noNamespace') === null && !this.hasNamespaces) {
+        localStorage.setItem('noNamespace', true);
+
+        status = true;
+      }
+      this.showInstructions = status;
+    },
+
     showScreenWelcome() {
       let status = false;
 
