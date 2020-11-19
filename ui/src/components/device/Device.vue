@@ -15,6 +15,7 @@
       <v-spacer />
       <DeviceAdd />
       <v-btn
+        v-if="currentInANamespace"
         class="v-btn--active mr-2"
         text
         color="primary"
@@ -80,6 +81,10 @@ export default {
   },
 
   computed: {
+    currentInANamespace() {
+      return localStorage.getItem('tenant') !== '';
+    },
+
     getNumberPendingDevices() {
       return this.$store.getters['stats/stats'].pending_devices;
     },

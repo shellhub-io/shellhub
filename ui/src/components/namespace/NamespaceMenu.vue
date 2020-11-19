@@ -1,155 +1,146 @@
 <template>
   <fragment>
-    <v-menu
-      :close-on-content-click="false"
-      offset-y
-    >
-      <template #activator="{ on }">
-        <v-chip v-on="on">
-          <v-icon
-            left
-          >
-            mdi-server
-          </v-icon>
-          {{ namespace.name }}
-          <v-icon right>
-            mdi-chevron-down
-          </v-icon>
-        </v-chip>
-      </template>
-      <v-card>
-        <v-list-item three-line>
-          <v-list-item-content>
-            <v-list-item-title
-              data-test="tenantID-field"
-              class="mb-1"
+    <v-row>
+      <v-col
+        v-if="!loggedInNamespace && isHosted"
+      >
+        <v-btn
+          class="v-btn--active float-right"
+          text
+          small
+          @click="addNamespace"
+        >
+          Add Namespace
+        </v-btn>
+      </v-col>
+
+      <v-col
+        v-else
+      >
+        <v-menu
+          v-show="displayMenu"
+          :close-on-content-click="true"
+          offset-y
+        >
+          <template #activator="{ on }">
+            <v-chip
+              v-show="loggedInNamespace"
+              class="float-right"
+              @click="openMenu"
+              v-on="on"
             >
-              Tenant ID
-            </v-list-item-title>
-            <v-list-item-subtitle>
-              <v-chip>
-                <span
-                  data-test="tenantID-text"
-                >
-                  {{ tenant }}
-                </span>
-                <v-icon
-                  v-clipboard="tenant"
-                  v-clipboard:success="() => {
-                    this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
-                  }"
-                  right
-                >
-                  mdi-content-copy
-                </v-icon>
-              </v-chip>
-            </v-list-item-subtitle>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-group>
-          <template #activator>
-            <v-list-item-content>
-              <v-list-item-title>
-                Namespace List
-              </v-list-item-title>
-            </v-list-item-content>
+              <v-icon
+                left
+              >
+                mdi-server
+              </v-icon>
+              {{ namespace.name }}
+              <v-icon right>
+                mdi-chevron-down
+              </v-icon>
+            </v-chip>
           </template>
-          <v-list-item
-            v-show="show"
-          >
-            <v-list-item-title>
-              <NamespaceAdd />
-            </v-list-item-title>
-          </v-list-item>
-          <v-virtual-scroll
-            :height="150"
-            item-height="40"
-            :items="namespaces"
-          >
-            <template #default="{ item }">
-              <v-list-item :key="item.tenant_id">
-                <v-row>
-                  <v-col
-                    v-if="formatName(item.name).mode"
-                    class="mt-1"
-                  >
-                    <v-tooltip
-                      bottom
-                    >
-                      <template
-                        #activator="{ on }"
-                      >
-                        <v-list-item-title
-                          v-on="on"
-                        >
-                          {{ formatName(item.name).name }}
-                        </v-list-item-title>
-                      </template>
-                      <span>
-                        {{ item.name }}
-                      </span>
-                    </v-tooltip>
-                  </v-col>
-                  <v-col
-                    v-else
-                  >
+
+          <v-card>
+            <v-subheader>Tenant ID</v-subheader>
+
+            <v-list
+              class="pt-0 pb-0"
+            >
+              <v-list-item>
+                <v-list-item-content>
+                  <v-chip>
                     <v-list-item-title>
-                      {{ item.name }}
+                      <span data-test="tenantID-text">{{ tenant }}</span>
                     </v-list-item-title>
-                  </v-col>
-                  <v-spacer />
-                  <v-spacer />
-                  <v-col>
-                    <v-btn
-                      small
-                      class="v-btn--active"
-                      text
-                      color="primary"
+                    <v-icon
+                      v-clipboard="tenant"
+                      v-clipboard:success="() => {
+                        this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
+                      }"
+                      right
+                    >
+                      mdi-content-copy
+                    </v-icon>
+                  </v-chip>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+
+            <v-divider />
+
+            <v-list
+              class="pt-0"
+            >
+              <v-subheader>Namespaces</v-subheader>
+
+              <v-list-item-group>
+                <v-virtual-scroll
+                  :height="150"
+                  item-height="50"
+                  :items="availableNamespaces"
+                >
+                  <template #default="{ item }">
+                    <v-list-item
+                      :key="item.tenant_id"
                       @click="switchIn(item.tenant_id)"
                     >
-                      <v-tooltip
-                        bottom
-                      >
-                        <template #activator="{ on }">
-                          <v-icon
-                            v-on="on"
-                          >
-                            mdi-sync
-                          </v-icon>
-                        </template>
-                        <span>
-                          Switch namespace
-                        </span>
-                      </v-tooltip>
-                    </v-btn>
-                  </v-col>
-                </v-row>
-              </v-list-item>
-            </template>
-          </v-virtual-scroll>
-        </v-list-group>
-        <v-list-item
-          key="settings"
-        >
-          <v-list-item-title>
-            <v-btn
-              to="/settings/namespace-manager"
-              class="v-btn--active"
-              text
-              color="primary"
-              small
+                      <v-list-item-icon>
+                        <v-icon>mdi-login</v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-content>
+                        <v-list-item-title>
+                          {{ item.name }}
+                        </v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </template>
+                </v-virtual-scroll>
+              </v-list-item-group>
+            </v-list>
+
+            <v-divider />
+
+            <v-list
+              class="pt-0 pb-0"
             >
-              Namespace manager
-            </v-btn>
-          </v-list-item-title>
-        </v-list-item>
-      </v-card>
-    </v-menu>
+              <v-list-item
+                v-show="isHosted"
+                @click="dialog=!dialog"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-plus-box</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  Create Namespace
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-divider />
+
+              <v-list-item
+                to="/settings/namespace-manager"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-cog</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  Settings
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </v-col>
+      <NamespaceAdd
+        :show.sync="dialog"
+        :first-namespace="first"
+      />
+    </v-row>
   </fragment>
 </template>
 
 <script>
-
 import NamespaceAdd from '@/components/namespace/NamespaceAdd';
 
 export default {
@@ -157,6 +148,22 @@ export default {
 
   components: {
     NamespaceAdd,
+  },
+
+  props: {
+    inANamespace: {
+      type: Boolean,
+      required: true,
+    },
+  },
+
+  data() {
+    return {
+      model: true,
+      dialog: false,
+      displayMenu: false,
+      first: false,
+    };
   },
 
   computed: {
@@ -176,22 +183,50 @@ export default {
       return this.$store.getters['namespaces/list'];
     },
 
+    availableNamespaces() {
+      return this.namespaces.filter((ns) => ns.tenant_id !== this.namespace.tenant_id);
+    },
+
+    loggedInNamespace() {
+      return this.$props.inANamespace;
+    },
+
     tenant() {
       return localStorage.getItem('tenant');
     },
 
-    show() {
+    isHosted() {
       return this.$env.isHosted;
     },
   },
 
-  created() {
-    this.getNamespaces();
+  watch: {
+    dialog(value) {
+      if (!value) {
+        this.model = false;
+      }
+    },
+  },
+
+  async created() {
+    await this.getNamespaces();
   },
 
   methods: {
+    addNamespace() {
+      this.dialog = !this.dialog;
+      this.first = true;
+    },
+
+    async openMenu() {
+      if (!this.displayMenu) {
+        await this.getNamespaces();
+      }
+      this.displayMenu = !this.displayMenu;
+    },
+
     async getNamespaces() {
-      try { // load namespaces
+      try {
         await this.$store.dispatch('namespaces/fetch');
         await this.$store.dispatch('namespaces/get', this.tenant);
       } catch {
@@ -209,13 +244,6 @@ export default {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceSwitch);
       }
     },
-
-    formatName(name, limit = 11) {
-      const formatObj = { name, mode: true };
-      if (name.length > limit) formatObj.name = `${name.slice(0, limit - 3)}...`; formatObj.format = false;
-      return formatObj;
-    },
   },
 };
-
 </script>
