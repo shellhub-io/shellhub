@@ -46,7 +46,7 @@ func TestAuthDevice(t *testing.T) {
 		LastSeen: now,
 	}
 
-	user := &models.User{Username: "user", TenantID: authReq.TenantID}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
 	mock.On("AddDevice", ctx, *device, "").
 		Return(nil).Once()
@@ -56,8 +56,8 @@ func TestAuthDevice(t *testing.T) {
 		Return(nil).Once()
 	mock.On("GetDevice", ctx, models.UID(device.UID)).
 		Return(device, nil).Once()
-	mock.On("GetUserByTenant", ctx, user.TenantID).
-		Return(user, nil).Once()
+	mock.On("GetNamespace", ctx, namespace.TenantID).
+		Return(namespace, nil).Once()
 
 	// Mock time.Now using monkey patch
 	patch, err := mpatch.PatchMethod(time.Now, func() time.Time { return now })
@@ -69,7 +69,7 @@ func TestAuthDevice(t *testing.T) {
 
 	assert.Equal(t, device.UID, authRes.UID)
 	assert.Equal(t, device.Name, authRes.Name)
-	assert.Equal(t, user.Username, authRes.Namespace)
+	assert.Equal(t, namespace.Name, authRes.Namespace)
 	assert.NotEmpty(t, authRes.Token)
 
 	mock.AssertExpectations(t)
@@ -95,17 +95,21 @@ func TestAuthUser(t *testing.T) {
 	user := &models.User{
 		Username: "user",
 		Password: hex.EncodeToString(passwd[:]),
-		TenantID: "tenant",
+		ID:       "id",
 	}
+
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
 	mock.On("GetUserByUsername", ctx, authReq.Username).
 		Return(user, nil).Once()
+	mock.On("GetSomeNamespace", ctx, user.ID).
+		Return(namespace, nil).Once()
 
 	authRes, err := s.AuthUser(ctx, *authReq)
 	assert.NoError(t, err)
 
 	assert.Equal(t, user.Username, authRes.User)
-	assert.Equal(t, user.TenantID, authRes.Tenant)
+	assert.Equal(t, namespace.TenantID, authRes.Tenant)
 	assert.NotEmpty(t, authRes.Token)
 
 	mock.AssertExpectations(t)
