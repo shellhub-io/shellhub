@@ -62,6 +62,10 @@ func CreatePublicKey(c apicontext.Context) error {
 		return err
 	}
 
+	if tenant := c.Tenant(); tenant != nil {
+		key.TenantID = tenant.ID
+	}
+
 	if err := svc.CreatePublicKey(c.Ctx(), &key); err != nil {
 		return err
 	}
