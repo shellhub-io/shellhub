@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-navigation-drawer
-      v-if="isLoggedIn"
+      v-if="isLoggedIn && hasNamespaces"
       v-model="drawer"
       app
       clipped
@@ -48,7 +48,9 @@
       <span class="overline mt-3">BETA</span>
       <v-spacer />
 
-      <NamespaceMenu />
+      <NamespaceMenu
+        :in-a-namespace="hasNamespaces"
+      />
 
       <v-chip>
         <v-icon>help</v-icon>
@@ -119,6 +121,7 @@ export default {
     return {
       drawer: true,
       clipped: false,
+      showMenu: false,
       items: [
         {
           icon: 'dashboard',
@@ -180,6 +183,14 @@ export default {
 
     visibleItems() {
       return this.items.filter((item) => !item.hidden);
+    },
+
+    hasNamespaces() {
+      return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
+    },
+
+    currentInANamespace() {
+      return localStorage.getItem('tenant') !== '';
     },
   },
 

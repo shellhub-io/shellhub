@@ -41,7 +41,20 @@ export default {
     return {
       drawer: true,
       clipped: false,
-      items: [
+    };
+  },
+
+  computed: {
+    visibleItems() {
+      return this.items.filter((item) => item.hidden !== false);
+    },
+
+    currentInANamespace() {
+      return localStorage.getItem('tenant') !== '';
+    },
+
+    items() {
+      return [
         {
           title: 'Profile',
           path: '/settings',
@@ -49,17 +62,13 @@ export default {
         {
           title: 'Namespace',
           path: '/settings/namespace-manager',
+          hidden: this.currentInANamespace,
         },
-      ],
-    };
-  },
-
-  computed: {
-    visibleItems() {
-      return this.items.filter((item) => !item.hidden);
+      ];
     },
   },
 };
+
 </script>
 
 <style>
