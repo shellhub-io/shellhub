@@ -4,21 +4,16 @@ go 1.14
 
 require (
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
-	github.com/elazarl/goproxy v0.0.0-20200426045556-49ad98f6dac1 // indirect
-	github.com/gliderlabs/ssh v0.3.0
+	github.com/gliderlabs/ssh v0.3.1
 	github.com/gorilla/mux v1.8.0
-	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/parnurzeal/gorequest v0.2.16
-	github.com/pires/go-proxyproto v0.2.0
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/shellhub-io/shellhub v0.3.6
+	github.com/pires/go-proxyproto v0.3.2
+	github.com/shellhub-io/shellhub v0.4.2
 	github.com/sirupsen/logrus v1.7.0
-	github.com/smartystreets/goconvey v1.6.4 // indirect
-	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
-	golang.org/x/net v0.0.0-20200602114024-627f9648deb9
-	golang.org/x/sys v0.0.0-20200610111108-226ff32320da // indirect
-	moul.io/http2curl v1.0.0 // indirect
+	golang.org/x/crypto v0.0.0-20201117144127-c1f2f97bffc9
+	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
+	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
 )
 
 replace github.com/shellhub-io/shellhub => ../
