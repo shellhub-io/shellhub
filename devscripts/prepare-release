@@ -1,0 +1,20 @@
+#!/bin/sh
+
+prepare_go_dir() {
+    (
+        cd $1
+        go mod tidy
+    )
+}
+
+echo "ShellHub release script"
+
+go_dirs=$(git ls-files | grep 'go.mod' | xargs dirname)
+
+basedir=$(dirname $(readlink -f $0))/..
+cd $basedir
+
+echo "Running Go related tasks"
+for d in $go_dirs; do
+    prepare_go_dir $d
+done
