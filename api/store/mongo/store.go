@@ -49,7 +49,7 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 		},
 		{
 			"$lookup": bson.M{
-				"from":         "users",
+				"from":         "namespaces",
 				"localField":   "tenant_id",
 				"foreignField": "tenant_id",
 				"as":           "namespace",
@@ -58,7 +58,7 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 		{
 			"$addFields": bson.M{
 				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
-				"namespace": "$namespace.username",
+				"namespace": "$namespace.name",
 			},
 		},
 		{
@@ -146,7 +146,7 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 		},
 		{
 			"$lookup": bson.M{
-				"from":         "users",
+				"from":         "namespaces",
 				"localField":   "tenant_id",
 				"foreignField": "tenant_id",
 				"as":           "namespace",
@@ -155,7 +155,7 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 		{
 			"$addFields": bson.M{
 				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
-				"namespace": "$namespace.username",
+				"namespace": "$namespace.name",
 			},
 		},
 		{
