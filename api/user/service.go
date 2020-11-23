@@ -11,9 +11,7 @@ var ErrUnauthorized = errors.New("unauthorized")
 var ErrConflict = errors.New("conflict")
 
 type Service interface {
-	UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) ([]InvalidField, error)
-	UpdateDataUserSecurity(ctx context.Context, status bool, tenant string) error
-	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
+	UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, ID string) ([]InvalidField, error)
 }
 
 type service struct {
@@ -35,9 +33,10 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) ([]InvalidField, error) {
+func (s *service) UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, ID string) ([]InvalidField, error) {
 	var invalidFields []InvalidField
-	user, err := s.store.GetUserByTenant(ctx, tenant)
+
+	user, err := s.store.GetUserByID(ctx, ID)
 
 	if err != nil {
 		return invalidFields, err
@@ -49,25 +48,17 @@ func (s *service) UpdateDataUser(ctx context.Context, username, email, currentPa
 	var checkName, checkEmail bool
 
 	user, err = s.store.GetUserByUsername(ctx, username)
-	if err == nil && user.TenantID != tenant {
+	if err == nil && user.ID != ID {
 		checkName = true
 		invalidFields = append(invalidFields, InvalidField{"username", conflictName, "conflict"})
 	}
 	user, err = s.store.GetUserByEmail(ctx, email)
-	if err == nil && user.TenantID != tenant {
+	if err == nil && user.ID != ID {
 		checkEmail = true
 		invalidFields = append(invalidFields, InvalidField{"email", conflictEmail, "conflict"})
 	}
 	if checkName || checkEmail {
 		return invalidFields, ErrConflict
 	}
-	return invalidFields, s.store.UpdateUser(ctx, username, email, currentPassword, newPassword, tenant)
-}
-
-func (s *service) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
-	return s.store.UpdateDataUserSecurity(ctx, sessionRecord, tenant)
-}
-
-func (s *service) GetDataUserSecurity(ctx context.Context, tenant string) (bool, error) {
-	return s.store.GetDataUserSecurity(ctx, tenant)
+	return invalidFields, s.store.UpdateUser(ctx, username, email, currentPassword, newPassword, ID)
 }
