@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/routes"
+	"github.com/shellhub-io/shellhub/api/routes/middlewares"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	mgo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -71,23 +72,27 @@ func main() {
 	publicAPI.PUT(routes.UserSecurityURL, apicontext.Handler(routes.UpdateUserSecurity))
 	publicAPI.GET(routes.UserSecurityURL, apicontext.Handler(routes.GetUserSecurity))
 
-	publicAPI.GET(routes.GetDeviceListURL, apicontext.Handler(routes.GetDeviceList))
-	publicAPI.GET(routes.GetDeviceURL, apicontext.Handler(routes.GetDevice))
+	publicAPI.GET(routes.GetDeviceListURL,
+		middlewares.Authorize(apicontext.Handler(routes.GetDeviceList)))
+	publicAPI.GET(routes.GetDeviceURL,
+		middlewares.Authorize(apicontext.Handler(routes.GetDevice)))
 	publicAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(routes.DeleteDevice))
 	publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(routes.RenameDevice))
 	internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(routes.OfflineDevice))
 	internalAPI.GET(routes.LookupDeviceURL, apicontext.Handler(routes.LookupDevice))
 	publicAPI.PATCH(routes.UpdateStatusURL, apicontext.Handler(routes.UpdatePendingStatus))
-
-	publicAPI.GET(routes.GetSessionsURL, apicontext.Handler(routes.GetSessionList))
-	publicAPI.GET(routes.GetSessionURL, apicontext.Handler(routes.GetSession))
+	publicAPI.GET(routes.GetSessionsURL,
+		middlewares.Authorize(apicontext.Handler(routes.GetSessionList)))
+	publicAPI.GET(routes.GetSessionURL,
+		middlewares.Authorize(apicontext.Handler(routes.GetSession)))
 	internalAPI.PATCH(routes.SetSessionAuthenticatedURL, apicontext.Handler(routes.SetSessionAuthenticated))
 	internalAPI.POST(routes.CreateSessionURL, apicontext.Handler(routes.CreateSession))
 	internalAPI.POST(routes.FinishSessionURL, apicontext.Handler(routes.FinishSession))
 	internalAPI.POST(routes.RecordSessionURL, apicontext.Handler(routes.RecordSession))
 	publicAPI.GET(routes.PlaySessionURL, apicontext.Handler(routes.PlaySession))
 
-	publicAPI.GET(routes.GetStatsURL, apicontext.Handler(routes.GetStats))
+publicAPI.GET(routes.GetStatsURL,
+		middlewares.Authorize(apicontext.Handler(routes.GetStats)))
 
 	publicAPI.GET(routes.GetPublicKeysURL, apicontext.Handler(routes.GetPublicKeys))
 	publicAPI.POST(routes.CreatePublicKeyURL, apicontext.Handler(routes.CreatePublicKey))
