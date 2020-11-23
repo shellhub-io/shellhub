@@ -20,6 +20,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -28,6 +29,7 @@ type Service interface {
 	AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error)
+	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)	
 	PublicKey() *rsa.PublicKey
 }
 
@@ -98,7 +100,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		return nil, err
 	}
 
-	user, err := s.store.GetUserByTenant(ctx, device.TenantID)
+	namespace, err := s.store.GetNamespace(ctx, device.TenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +109,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		UID:       hex.EncodeToString(uid[:]),
 		Token:     tokenStr,
 		Name:      dev.Name,
-		Namespace: user.Username,
+		Namespace: namespace.Name,
 	}, nil
 }
 
@@ -119,13 +121,19 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			return nil, err
 		}
 	}
+	tenant := ""
+	namespace, err := s.store.GetSomeNamespace(ctx, user.ID)
+	if namespace != nil {
+		tenant = namespace.TenantID
+	}
 
 	password := sha256.Sum256([]byte(req.Password))
 	if user.Password == hex.EncodeToString(password[:]) {
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 			Username: user.Username,
 			Admin:    true,
-			Tenant:   user.TenantID,
+			Tenant:   tenant,
+			ID:       user.ID,
 			AuthClaims: models.AuthClaims{
 				Claims: "user",
 			},
@@ -138,12 +146,12 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		if err != nil {
 			return nil, err
 		}
-
 		return &models.UserAuthResponse{
 			Token:  tokenStr,
 			Name:   user.Name,
+			ID:     user.ID,
 			User:   user.Username,
-			Tenant: user.TenantID,
+			Tenant: tenant,
 			Email:  user.Email,
 		}, nil
 	}
@@ -151,16 +159,23 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 	return nil, errors.New("unauthorized")
 }
 
-func (s *service) AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error) {
-	user, err := s.store.GetUserByTenant(ctx, tenant)
+func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuthResponse, error) {
+	user, err := s.store.GetUserByID(ctx, ID)
 	if err != nil {
 		return nil, err
+	}
+
+	tenant := ""
+	namespace, err := s.store.GetSomeNamespace(ctx, user.ID)
+	if namespace != nil {
+		tenant = namespace.TenantID
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 		Username: user.Username,
 		Admin:    true,
-		Tenant:   user.TenantID,
+		Tenant:   tenant,
+		ID:       user.ID,
 		AuthClaims: models.AuthClaims{
 			Claims: "user",
 		},
@@ -173,12 +188,12 @@ func (s *service) AuthGetToken(ctx context.Context, tenant string) (*models.User
 	if err != nil {
 		return nil, err
 	}
-
 	return &models.UserAuthResponse{
 		Token:  tokenStr,
 		Name:   user.Name,
+		ID:     user.ID,
 		User:   user.Username,
-		Tenant: user.TenantID,
+		Tenant: tenant,
 		Email:  user.Email,
 	}, nil
 }
@@ -208,6 +223,48 @@ func (s *service) AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRe
 	return &models.PublicKeyAuthResponse{
 		Signature: base64.StdEncoding.EncodeToString(signature),
 	}, nil
+}
+
+func (s *service) AuthSwapToken(ctx context.Context, username, tenant string) (*models.UserAuthResponse, error) {
+	namespace, err := s.store.GetNamespace(ctx, tenant)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.store.GetUserByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, i := range namespace.Members.(primitive.A) {
+		if user.ID == i.(string) {
+			token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
+				Username: user.Username,
+				Admin:    true,
+				Tenant:   namespace.TenantID,
+				AuthClaims: models.AuthClaims{
+					Claims: "user",
+				},
+				StandardClaims: jwt.StandardClaims{
+					ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+				},
+			})
+
+			tokenStr, err := token.SignedString(s.privKey)
+			if err != nil {
+				return nil, err
+			}
+			return &models.UserAuthResponse{
+				Token:  tokenStr,
+				Name:   user.Name,
+				ID:     user.ID,
+				User:   user.Username,
+				Tenant: namespace.TenantID,
+				Email:  user.Email}, nil
+		}
+	}
+
+	return nil, nil
 }
 
 func (s *service) PublicKey() *rsa.PublicKey {

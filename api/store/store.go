@@ -66,4 +66,5 @@ type Store interface {
 	DeleteNamespace(ctx context.Context, namespace string) error
 	AddNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error)
+	GetSomeNamespace(ctx context.Context, ID string) (*models.Namespace, error)
 }

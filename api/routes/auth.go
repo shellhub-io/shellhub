@@ -38,6 +38,7 @@ func AuthRequest(c apicontext.Context) error {
 		// Extract tenant and username from JWT
 		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
 		c.Response().Header().Set("X-Username", claims.Username)
+		c.Response().Header().Set("X-ID", claims.ID)
 
 		return nil
 	case "device":
@@ -92,23 +93,42 @@ func AuthUser(c apicontext.Context) error {
 
 func AuthUserInfo(c apicontext.Context) error {
 	username := c.Request().Header.Get("X-Username")
+	tenant := c.Request().Header.Get("X-Tenant-ID")
 
 	user, err := c.Store().GetUserByUsername(c.Ctx(), username)
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
-
+	namespace, err := c.Store().GetNamespace(c.Ctx(), tenant)
+	if err != nil {
+		return echo.ErrUnauthorized
+	}
 	return c.JSON(http.StatusOK, &models.UserAuthResponse{
 		Token:  c.Request().Header.Get(echo.HeaderAuthorization),
 		Name:   user.Name,
 		User:   user.Username,
-		Tenant: user.TenantID,
+		Tenant: namespace.TenantID,
 	})
 }
 
 func AuthGetToken(c apicontext.Context) error {
 	svc := authsvc.NewService(c.Store(), nil, nil)
 	res, err := svc.AuthGetToken(c.Ctx(), c.Param("tenant"))
+	if err != nil {
+		return echo.ErrUnauthorized
+	}
+	return c.JSON(http.StatusOK, res)
+}
+
+func AuthSwapToken(c apicontext.Context) error {
+	svc := authsvc.NewService(c.Store(), nil, nil)
+
+	username := ""
+	if v := c.Username(); v != nil {
+		username = v.ID
+	}
+
+	res, err := svc.AuthSwapToken(c.Ctx(), username, c.Param("tenant"))
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
