@@ -3,25 +3,22 @@
     v-show="show"
   >
     <v-row>
-      <v-col
-        md="auto"
-        class="pr-0"
-      >
-        <h3 class="mb-8 ml-6">
+      <v-col>
+        <h3 class="mb-5">
           Security
         </h3>
-        <b>
-          <!-- @change="setSessionRecord" -->
+
+        <div
+          class="ml-3"
+        >
           <v-checkbox
             v-model="sessionRecord"
             label="Enable session record"
-            class="pt-0 mt-0 ml-6"
           />
-        </b>
-        <p class="ml-6">
+
           Session record is a feature that allows you to check logged activity when
           connecting to a device.
-        </p>
+        </div>
       </v-col>
     </v-row>
   </v-form>

@@ -21,6 +21,7 @@
               </h3>
               <br>
             </div>
+
             <div
               class="mt-6 pl-4 pr-4"
             >
@@ -66,20 +67,19 @@
 
             <div
               v-show="isOwner"
-              id="editOperation"
+              class="mt-6 mb-6 pl-4 pr-4"
             >
               <h3
-                class="ml-6 mt-8"
+                class="mb-5"
               >
                 Edit namespace
               </h3>
+
               <ValidationObserver
                 ref="data"
                 v-slot="{ passes }"
               >
-                <div
-                  class="mt-6 pl-4 pr-4"
-                >
+                <div>
                   <ValidationProvider
                     v-slot="{ errors }"
                     ref="providerName"
@@ -89,7 +89,6 @@
                   >
                     <v-row>
                       <v-col
-                        cols="8"
                         class="ml-3"
                       >
                         <v-text-field
@@ -101,8 +100,8 @@
                         />
                       </v-col>
                       <v-col
-                        cols="2"
-                        class="mt-2"
+                        md="auto"
+                        class="ml-auto"
                       >
                         <v-btn
                           outlined
@@ -115,55 +114,65 @@
                   </ValidationProvider>
                 </div>
               </ValidationObserver>
-              <v-divider class="mt-6" />
-              <v-divider class="mb-6" />
             </div>
+
+            <v-divider />
+            <v-divider />
+
             <div
               v-show="show"
-              id="userOperation"
+              class="mt-6 mb-6 pl-4 pr-4"
             >
-              <v-row
-                class="ml-3"
-              >
+              <v-row>
                 <v-col>
-                  <h3>
+                  <h3
+                    class="mb-5"
+                  >
                     Members
                   </h3>
                 </v-col>
+
                 <v-spacer />
-                <v-col>
+
+                <v-col
+                  md="auto"
+                  class="ml-auto"
+                >
                   <NamespaceNewMember :ns-tenant="tenant" />
                 </v-col>
               </v-row>
-              <div
-                class="mt-6 pl-4 pr-4"
-              >
+
+              <div>
                 <v-list>
                   <v-list-item
                     v-for="item in namespace.member_names"
                     :key="item"
                   >
                     <v-row>
-                      <v-col>
+                      <v-col
+                        md="auto"
+                        class="ml-auto"
+                      >
                         <v-icon>
                           mdi-account
                         </v-icon>
                       </v-col>
-                      <v-col
-                        class="mt-1 mr-10"
-                      >
+
+                      <v-col>
                         <v-list-item-title
                           :data-test="item"
                         >
                           {{ item }}
                         </v-list-item-title>
                       </v-col>
+
                       <v-spacer />
+
                       <v-col
-                        class="ml-10"
+                        md="auto"
+                        class="ml-auto"
                       >
                         <v-btn
-                          class="ml-10"
                           outlined
                           @click="remove(item)"
                         >
@@ -186,45 +195,47 @@
                     </v-row>
                   </v-list-item>
                 </v-list>
-                <v-divider class="mt-6" />
-                <v-divider class="mb-6" />
               </div>
             </div>
+
+            <v-divider />
+            <v-divider />
+
             <div
               v-show="isOwner"
-              id="deleteOperation"
+              class="mt-6 mb-6 pl-4 pr-4"
             >
               <h3
-                class="pl-6"
+                class="mb-5"
               >
                 Danger Zone
               </h3>
-              <br>
-              <v-row
-                class="ml-3"
-              >
+
+              <v-row>
                 <v-col
-                  cols="8"
+                  class="ml-3"
                 >
-                  <p
-                    class="mt-4"
-                  >
-                    Delete this namespace
-                  </p>
+                  Delete this namespace
                 </v-col>
                 <v-col
-                  cols="2"
-                  class="mt-2"
+                  md="auto"
+                  class="ml-auto"
                 >
                   <NamespaceDelete :ns-tenant="tenant" />
                 </v-col>
               </v-row>
-              <v-divider class="mt-6" />
-              <v-divider class="mb-6" />
             </div>
-            <SettingSecurity
-              :show="show"
-            />
+
+            <v-divider />
+            <v-divider />
+
+            <div
+              class="mt-6 mb-6 pl-4 pr-4"
+            >
+              <SettingSecurity
+                :show="show"
+              />
+            </div>
           </v-col>
         </v-row>
       </v-container>
@@ -301,8 +312,12 @@ export default {
     async getNamespace() {
       try {
         await this.$store.dispatch('namespaces/get', this.tenant);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceLoad);
+      } catch (e) {
+        if (e.response.status === 403) {
+          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceLoad);
+        }
       }
     },
 

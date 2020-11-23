@@ -5,7 +5,7 @@
         v-if="!loggedInNamespace && isHosted"
       >
         <v-btn
-          class="v-btn--active float-right"
+          class="v-btn--active float-right mr-3"
           text
           small
           @click="addNamespace"
@@ -229,8 +229,12 @@ export default {
       try {
         await this.$store.dispatch('namespaces/fetch');
         await this.$store.dispatch('namespaces/get', this.tenant);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceList);
+      } catch (e) {
+        if (e.response.status === 403) {
+          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceList);
+        }
       }
     },
 
