@@ -22,6 +22,10 @@ export default {
       firewallRuleCreating: 'creating rule',
       firewallRuleEditing: 'editing rule',
       firewallRuleDeleting: 'deleting rule',
+      publicKeyList: 'list of public key',
+      publicKeyCreating: 'creating public key',
+      publicKeyEditing: 'editing public key',
+      publicKeyDeleting: 'deleting public key',
     };
 
     Vue.errors = errors;

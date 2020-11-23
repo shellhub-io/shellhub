@@ -8,6 +8,9 @@ export default {
       firewallRuleCreating: 'creating rule',
       firewallRuleEditing: 'editing rule',
       firewallRuleDeleting: 'deleting rule',
+      publicKeyCreating: 'creating public key',
+      publicKeyEditing: 'editing public key',
+      publicKeyDeleting: 'deleting public key',
       profileData: 'updating data',
       profilePassword: 'updating password',
     };
