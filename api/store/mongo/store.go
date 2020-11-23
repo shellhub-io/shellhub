@@ -225,19 +225,18 @@ func (s *Store) RenameDevice(ctx context.Context, uid models.UID, name string) e
 }
 
 func (s *Store) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
-	user := new(models.User)
-	if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": namespace}).Decode(&user); err != nil {
+	ns := new(models.Namespace)
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
 		return nil, err
 	}
 
 	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": user.TenantID, "name": name, "status": "accepted"}).Decode(&device); err != nil {
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": ns.TenantID, "name": name, "status": "accepted"}).Decode(&device); err != nil {
 		return nil, err
 	}
 
 	return device, nil
 }
-
 func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
