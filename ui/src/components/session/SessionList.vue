@@ -241,8 +241,12 @@ export default {
 
       try {
         await this.$store.dispatch('sessions/fetch', data);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.sessionList);
+      } catch (e) {
+        if (e.response.status === 403) {
+          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.sessionList);
+        }
       }
     },
   },

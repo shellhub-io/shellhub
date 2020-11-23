@@ -48,6 +48,8 @@ export default {
         return `Loading the ${this.mainContent} has failed, please try again.`;
       case 'action':
         return `The ${this.mainContent} request has failed, please try again.`;
+      case 'association':
+        return 'There is no namespace associated with your account.';
       default:
         return 'The request has failed, please try again.';
       }
