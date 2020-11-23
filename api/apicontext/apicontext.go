@@ -30,6 +30,22 @@ func (c *Context) Tenant() *models.Tenant {
 	return nil
 }
 
+func (c *Context) Username() *models.Username {
+	username := c.Request().Header.Get("X-Username")
+	if username != "" {
+		return &models.Username{username}
+	}
+	return nil
+}
+
+func (c *Context) ID() *models.ID {
+	ID := c.Request().Header.Get("X-ID")
+	if ID != "" {
+		return &models.ID{ID}
+	}
+	return nil
+}
+
 func (c *Context) Ctx() context.Context {
 	return c.Request().Context()
 }
@@ -49,6 +65,30 @@ func TenantFromContext(ctx context.Context) *models.Tenant {
 	return nil
 }
 
+func UsernameFromContext(ctx context.Context) *models.Username {
+	if c, ok := ctx.Value("ctx").(*Context); ok {
+		username := c.Username()
+		if username == nil {
+			if value, ok := ctx.Value("username").(string); ok {
+				username = &models.Username{value}
+			}
+		}
+		return username
+	}
+	return nil
+}
+func IDFromContext(ctx context.Context) *models.ID {
+	if c, ok := ctx.Value("ctx").(*Context); ok {
+		ID := c.ID()
+		if ID == nil {
+			if value, ok := ctx.Value("ID").(string); ok {
+				ID = &models.ID{value}
+			}
+		}
+		return ID
+	}
+	return nil
+}
 func Handler(next func(Context) error) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := context.WithValue(c.Request().Context(), "ctx", c.(*Context))
