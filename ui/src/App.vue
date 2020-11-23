@@ -181,6 +181,11 @@ export default {
           path: '/firewall/rules',
           hidden: !this.$env.isHosted,
         },
+        {
+          icon: 'mdi-account-key',
+          title: 'Public Key',
+          path: '/sshkeys/public_keys',
+        },
       ],
       menu: [
         {
