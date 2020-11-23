@@ -863,26 +863,27 @@ func (s *Store) UpdateUID(ctx context.Context, oldUID models.UID, newUID models.
 	return err
 }
 
-func (s *Store) UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) error {
-	user, err := s.GetUserByTenant(ctx, tenant)
+func (s *Store) UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, ID string) error {
+	user, err := s.GetUserByID(ctx, ID)
+	objID, _ := primitive.ObjectIDFromHex(ID)
 
 	if err != nil {
 		return err
 	}
 	if username != "" && username != user.Username {
-		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"username": username}}); err != nil {
+		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"username": username}}); err != nil {
 			return err
 		}
 	}
 
 	if email != "" && email != user.Email {
-		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"email": email}}); err != nil {
+		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"email": email}}); err != nil {
 			return err
 		}
 	}
 
 	if newPassword != "" && newPassword != currentPassword {
-		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"password": newPassword}}); err != nil {
+		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"password": newPassword}}); err != nil {
 			return err
 		}
 	}
