@@ -17,6 +17,7 @@ const (
 	EditNamespaceURL       = "/namespace/:id"
 	AddNamespaceUserURL    = "/namespace/:id/add"
 	RemoveNamespaceUserURL = "/namespace/:id/del"
+	UserSecurityURL        = "/user/security"
 )
 
 func GetNamespaceList(c apicontext.Context) error {
@@ -205,4 +206,43 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, namespace)
+}
+
+func UpdateUserSecurity(c apicontext.Context) error {
+	var req struct {
+		SessionRecord bool `json:"session_record"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
+	}
+
+	svc := nsadm.NewService(c.Store())
+
+	err := svc.UpdateDataUserSecurity(c.Ctx(), req.SessionRecord, tenant)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, nil)
+}
+
+func GetUserSecurity(c apicontext.Context) error {
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
+	}
+
+	svc := nsadm.NewService(c.Store())
+
+	status, err := svc.GetDataUserSecurity(c.Ctx(), tenant)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, status)
 }

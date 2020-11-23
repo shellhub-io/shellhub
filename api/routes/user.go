@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	UpdateUserURL   = "/user"
-	UserSecurityURL = "/user/security"
+	UpdateUserURL = "/user"
 )
 
 func UpdateUser(c apicontext.Context) error {
@@ -25,9 +24,9 @@ func UpdateUser(c apicontext.Context) error {
 		return err
 	}
 
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
+	ID := ""
+	if v := c.ID(); v != nil {
+		ID = v.ID
 	}
 	if req.CurrentPassword != "" {
 		sum := sha256.Sum256([]byte(req.CurrentPassword))
@@ -42,7 +41,7 @@ func UpdateUser(c apicontext.Context) error {
 
 	svc := user.NewService(c.Store())
 
-	if invalidFields, err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.CurrentPassword, req.NewPassword, tenant); err != nil {
+	if invalidFields, err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.CurrentPassword, req.NewPassword, ID); err != nil {
 		switch {
 		case err == user.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
@@ -54,43 +53,4 @@ func UpdateUser(c apicontext.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, nil)
-}
-
-func UpdateUserSecurity(c apicontext.Context) error {
-	var req struct {
-		SessionRecord bool `json:"sessionRecord"`
-	}
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
-
-	svc := user.NewService(c.Store())
-
-	err := svc.UpdateDataUserSecurity(c.Ctx(), req.SessionRecord, tenant)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, nil)
-}
-
-func GetUserSecurity(c apicontext.Context) error {
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
-
-	svc := user.NewService(c.Store())
-
-	status, err := svc.GetDataUserSecurity(c.Ctx(), tenant)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, status)
 }

@@ -892,13 +892,13 @@ func (s *Store) UpdateUser(ctx context.Context, username, email, currentPassword
 }
 
 func (s *Store) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
-	_, err := s.GetUserByTenant(ctx, tenant)
+	ns, err := s.GetNamespace(ctx, tenant)
 
-	if err != nil {
+	if err != nil || ns == nil {
 		return err
 	}
 
-	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"session_record": sessionRecord}}); err != nil {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": ns.TenantID}, bson.M{"$set": bson.M{"settings.session_record": sessionRecord}}); err != nil {
 		return err
 	}
 
@@ -906,20 +906,20 @@ func (s *Store) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, 
 }
 
 func (s *Store) GetDataUserSecurity(ctx context.Context, tenant string) (bool, error) {
-	_, err := s.GetUserByTenant(ctx, tenant)
+	ns, err := s.GetNamespace(ctx, tenant)
 
-	if err != nil {
+	if err != nil && ns == nil {
 		return false, err
 	}
 
-	var status struct {
-		SessionRecord bool `json:"session_record" bson:"session_record"`
+	var settings struct {
+		Settings *models.NamespaceSettings `json:"settings" bson:"settings"`
 	}
 
-	if err := s.db.Collection("users").FindOne(ctx, bson.M{"tenant_id": tenant}).Decode(&status); err != nil {
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenant}).Decode(&settings); err != nil {
 		return false, err
 	}
-	return status.SessionRecord, nil
+	return settings.Settings.SessionRecord, nil
 }
 
 func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
