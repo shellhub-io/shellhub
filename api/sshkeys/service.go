@@ -37,6 +37,14 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint string) (*models
 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
 	key.CreatedAt = time.Now()
+
+	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data)
+	if err != nil {
+		return err
+	}
+
+	key.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
+
 	return s.store.CreatePublicKey(ctx, key)
 }
 
