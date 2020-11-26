@@ -182,8 +182,8 @@ export default {
           hidden: !this.$env.isHosted,
         },
         {
-          icon: 'mdi-account-key',
-          title: 'Public Key',
+          icon: 'vpn_key',
+          title: 'Public Keys',
           path: '/sshkeys/public_keys',
         },
       ],
