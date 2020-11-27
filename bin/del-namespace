@@ -1,0 +1,25 @@
+#!/bin/sh
+
+[ -z $1 ] && echo "Usage: $0 <namespace>" && exit 1
+
+NAMESPACE=$1
+
+if [ $(docker inspect --format='{{.State.Running}}' $(docker-compose ps -q mongo)) = false ]; then
+    echo "ERROR: mongo container is not running"
+    exit 1
+fi
+
+EXISTS=$(docker-compose exec -T mongo mongo main --quiet --eval "db.namespaces.find({ name: '$NAMESPACE' })")
+
+if [ -z "$EXISTS" ]; then
+    echo "ERROR: namespace does not exists!"
+    exit 1
+fi
+
+REMOVED=`docker-compose exec -T mongo mongo main --quiet --eval "db.namespaces.remove({name: '$NAMESPACE'}).nRemoved"`
+
+if [ $REMOVED -gt 0 ]; then
+    echo "Namespace deleted"
+else
+    echo "ERROR: Failed to delete namespace"
+fi
