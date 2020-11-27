@@ -1,0 +1,33 @@
+#!/bin/sh
+
+[ $# -ne 2 ] && echo "Usage: $0 <username> <namespace>" && exit 1
+
+USERNAME=$1
+NAMESPACE=$2
+
+if [ $(docker inspect --format='{{.State.Running}}' $(docker-compose ps -q mongo)) = false ]; then
+    echo "ERROR: mongo container is not running"
+    exit 1
+fi
+
+ID=`docker-compose exec -T mongo mongo main --quiet --eval "JSON.stringify(db.users.findOne({ name:'$USERNAME' }))" | docker run --rm -i imega/jq -r '._id."$oid" // empty'`
+
+if [ -z "$ID" ]; then
+    echo "ERROR: user does not exists!"
+    exit 1
+fi
+
+TENANT_ID=`docker-compose exec -T mongo mongo main --quiet --eval "JSON.stringify(db.namespaces.findOne({ name:'$NAMESPACE' }))" | docker run --rm -i imega/jq -r '.tenant_id // empty'`
+
+if [ -z "$TENANT_ID" ]; then
+    echo "ERROR: namespace does not exists!"
+    exit 1
+fi
+
+MODIFIED=`docker-compose exec -T mongo mongo main --quiet --eval "db.namespaces.updateOne({ tenant_id: '$TENANT_ID' }, { \\$addToSet: { members: '$ID' } }).modifiedCount"`
+
+if [ $MODIFIED -eq 1 ]; then
+    echo "User $USERNAME added to namespace $NAMESPACE"
+else
+    echo "ERROR: Failed to add user to namespace"
+fi
