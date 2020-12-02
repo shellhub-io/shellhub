@@ -46,6 +46,8 @@ export default {
       switch (this.typeMessage) {
       case 'action':
         return `The ${this.mainContent} has succeeded.`;
+      case 'notRequest':
+        return `The ${this.mainContent} has succeeded.`;
       default:
         return 'The request has succeeded.';
       }

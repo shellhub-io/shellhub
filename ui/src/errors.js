@@ -34,6 +34,10 @@ export default {
       namespaceEdit: 'editing namespace',
       namespaceRemoveUser: 'removing user',
       namespaceLoad: 'loading namespace',
+      privateKeyList: 'list of private key',
+      privateKeyCreating: 'creating private key',
+      privateKeyEditing: 'editing private key',
+      privateKeyDeleting: 'deleting private key',
     };
 
     Vue.errors = errors;

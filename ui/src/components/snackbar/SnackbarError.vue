@@ -50,6 +50,8 @@ export default {
         return `The ${this.mainContent} request has failed, please try again.`;
       case 'association':
         return 'There is no namespace associated with your account.';
+      case 'notRequest':
+        return `The ${this.mainContent} has failed, please try again.`;
       default:
         return 'The request has failed, please try again.';
       }
