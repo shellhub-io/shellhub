@@ -59,6 +59,16 @@ export default {
     unsetSnackbarCopy: (state) => {
       Vue.set(state, 'snackbarCopy', false);
     },
+
+    setSnackbarSuccessNotRequest: (state, data) => {
+      Vue.set(state, 'snackbarMessageAndContentType', data);
+      Vue.set(state, 'snackbarSuccess', true);
+    },
+
+    setSnackbarErrorNotRequest: (state, data) => {
+      Vue.set(state, 'snackbarMessageAndContentType', data);
+      Vue.set(state, 'snackbarError', true);
+    },
   },
 
   actions: {
@@ -104,6 +114,16 @@ export default {
 
     unsetShowStatusSnackbarCopy: (context) => {
       context.commit('unsetSnackbarCopy');
+    },
+
+    showSnackbarSuccessNotRequest: (context, value) => {
+      const data = { typeMessage: 'notRequest', typeContent: value };
+      context.commit('setSnackbarSuccessNotRequest', data);
+    },
+
+    showSnackbarErrorNotRequest: (context, value) => {
+      const data = { typeMessage: 'notRequest', typeContent: value };
+      context.commit('setSnackbarErrorNotRequest', data);
     },
   },
 };

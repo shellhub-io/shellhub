@@ -8,6 +8,7 @@ import modals from '@/store/modules/modals';
 import snackbar from '@/store/modules/snackbar';
 import firewallrules from '@/store/modules/firewall_rules';
 import publickeys from '@/store/modules/public_keys';
+import privatekeys from '@/store/modules/private_keys';
 import notifications from '@/store/modules/notifications';
 import users from '@/store/modules/users';
 import security from '@/store/modules/security';
@@ -25,6 +26,7 @@ export default new Vuex.Store({
     auth,
     firewallrules,
     publickeys,
+    privatekeys,
     notifications,
     users,
     security,
