@@ -63,7 +63,7 @@ export default {
       type: String,
       default: 'public',
       required: false,
-      validator: (value) => ['public'].includes(value),
+      validator: (value) => ['public', 'private'].includes(value),
     },
   },
 
@@ -83,6 +83,15 @@ export default {
           this.dialog = false;
         } catch {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyDeleting);
+        }
+        break;
+      case 'private':
+        try {
+          await this.$store.dispatch('privatekeys/remove', this.id);
+          this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.privateKeyDeleting);
+          this.dialog = false;
+        } catch {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.privateKeyDeleting);
         }
         break;
       default:

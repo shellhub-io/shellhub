@@ -220,6 +220,8 @@ export default {
   },
 
   mounted() {
+    this.$store.dispatch('privatekeys/fetch');
+
     this.chat = new GitterSidecar({ room: 'shellhub-io/community', activationElement: false, targetElement: this.$refs.chat });
     this.$refs.chat.addEventListener('gitter-chat-toggle', (e) => {
       this.chatOpen = e.detail.state;

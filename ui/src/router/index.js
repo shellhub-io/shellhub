@@ -82,6 +82,11 @@ const router = new Router({
           name: 'namespaceSettings',
           component: () => import('./../components/setting/SettingNamespace.vue'),
         },
+        {
+          path: 'private_keys',
+          name: 'privateKeysSettings',
+          component: () => import('./../components/setting/SettingPrivateKeys.vue'),
+        },
       ],
     },
     {

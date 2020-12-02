@@ -7,6 +7,8 @@ import {
 import { extend } from 'vee-validate';
 import isValidHostname from 'is-valid-hostname';
 
+import { parseKey } from '@/sshpk';
+
 extend('required', {
   ...required,
   message: 'This field is required',
@@ -48,4 +50,13 @@ extend('comparePasswords', {
 extend('confirmed', {
   ...confirmed,
   message: 'The passwords do not match',
+});
+
+extend('parseKey', (value) => {
+  try {
+    parseKey(value);
+    return true;
+  } catch (err) {
+    return 'It\'s not a valid';
+  }
 });

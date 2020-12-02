@@ -64,7 +64,7 @@
             <ValidationProvider
               v-slot="{ errors }"
               name="Data"
-              rules="required"
+              rules="required|parseKey"
               :disabled="!createKey"
             >
               <v-textarea
@@ -140,7 +140,7 @@ export default {
       type: String,
       default: 'public',
       required: false,
-      validator: (value) => ['public'].includes(value),
+      validator: (value) => ['public', 'private'].includes(value),
     },
   },
 
@@ -168,22 +168,31 @@ export default {
         };
       } else {
         this.keyLocal = { ...this.keyObject };
-        this.keyLocal.data = atob(this.keyObject.data);
+        if (this.action === 'public') this.keyLocal.data = atob(this.keyObject.data);
       }
     },
 
     async create() {
       const keySend = this.keyLocal;
-      keySend.data = btoa(this.keyLocal.data);
 
       switch (this.action) {
       case 'public':
         try {
+          keySend.data = btoa(this.keyLocal.data);
           await this.$store.dispatch('publickeys/post', keySend);
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyCreating);
           this.update();
         } catch {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyCreating);
+        }
+        break;
+      case 'private':
+        try {
+          await this.$store.dispatch('privatekeys/set', keySend);
+          this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.privateKeyCreating);
+          this.update();
+        } catch {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.privateKeyCreating);
         }
         break;
       default:
@@ -201,6 +210,15 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyEditing);
         }
         break;
+      case 'private':
+        try {
+          await this.$store.dispatch('privatekeys/edit', this.keyLocal);
+          this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.privateKeyEditing);
+          this.update();
+        } catch {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.privateKeyEditing);
+        }
+        break;
       default:
       }
     },
@@ -212,7 +230,7 @@ export default {
 
     close() {
       this.dialog = !this.dialog;
-      this.$refs.obs.reset();
+      this.$refs.pass.reset();
     },
   },
 };
