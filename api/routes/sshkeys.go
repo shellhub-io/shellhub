@@ -67,6 +67,10 @@ func CreatePublicKey(c apicontext.Context) error {
 	}
 
 	if err := svc.CreatePublicKey(c.Ctx(), &key); err != nil {
+		if err == sshkeys.ErrInvalidFormat {
+			return c.NoContent(http.StatusUnprocessableEntity)
+		}
+
 		return err
 	}
 
