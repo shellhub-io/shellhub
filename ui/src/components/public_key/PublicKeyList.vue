@@ -5,7 +5,7 @@
       <v-spacer />
       <v-spacer />
       <PublicKeyFormDialog
-        :create-public-key="true"
+        :create-key="true"
         @update="refresh"
       />
     </div>
@@ -48,8 +48,8 @@
 
           <template #[`item.actions`]="{ item }">
             <PublicKeyFormDialog
-              :public-key="item"
-              :create-public-key="false"
+              :key-object="item"
+              :create-key="false"
               @update="refresh"
             />
             <PublicKeyDelete
@@ -65,7 +65,7 @@
 
 <script>
 
-import PublicKeyFormDialog from '@/components/public_key/PublicKeyFormDialog';
+import PublicKeyFormDialog from '@/components/public_key/KeyFormDialog';
 import PublicKeyDelete from '@/components/public_key/PublicKeyDelete';
 
 export default {

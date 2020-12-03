@@ -1,21 +1,22 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import PublicKeyFormDialog from '@/components/public_key/PublicKeyFormDialog';
+import KeyFormDialog from '@/components/public_key/KeyFormDialog';
 
-describe('PublicKeyFormDialog', () => {
+describe('KeyFormDialog', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
   let wrapper;
 
-  const publicKey = {
+  const keyObject = {
     data: 'AbGVvbmFyZG8=',
     fingerprint: 'b7:25:f8',
     created_at: '2020-11-23T20:59:13.323Z',
     tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
     name: 'shellhub',
   };
-  const createPublicKey = true;
+  const createKey = true;
+  const action = 'Public';
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -32,11 +33,11 @@ describe('PublicKeyFormDialog', () => {
   });
 
   beforeEach(() => {
-    wrapper = shallowMount(PublicKeyFormDialog, {
+    wrapper = shallowMount(KeyFormDialog, {
       store,
       localVue,
       stubs: ['fragment'],
-      propsData: { publicKey, createPublicKey },
+      propsData: { keyObject, createKey, action },
     });
   });
 
@@ -47,8 +48,9 @@ describe('PublicKeyFormDialog', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
   it('Receive data in props', () => {
-    expect(wrapper.vm.publicKey).toEqual(publicKey);
-    expect(wrapper.vm.createPublicKey).toEqual(createPublicKey);
+    expect(wrapper.vm.keyObject).toEqual(keyObject);
+    expect(wrapper.vm.createKey).toEqual(createKey);
+    expect(wrapper.vm.action).toEqual(action);
   });
   it('Compare data with default value', () => {
     expect(wrapper.vm.dialog).toEqual(false);
