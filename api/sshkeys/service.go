@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -13,6 +14,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"golang.org/x/crypto/ssh"
 )
+
+var ErrInvalidFormat = errors.New("invalid format")
 
 type Service interface {
 	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
@@ -40,7 +43,7 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) er
 
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data)
 	if err != nil {
-		return err
+		return ErrInvalidFormat
 	}
 
 	key.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
