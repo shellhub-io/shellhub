@@ -68,7 +68,7 @@ func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
 	req, _ := http.NewRequest("GET", "", nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
-	url := regexp.MustCompile(`^https?`).ReplaceAllString(buildURL(c, "/ssh/connection"), "ws")
+	url := regexp.MustCompile(`^http`).ReplaceAllString(buildURL(c, "/ssh/connection"), "ws")
 	conn, _, err := websocket.DefaultDialer.Dial(url, req.Header)
 	if err != nil {
 		return nil, err
