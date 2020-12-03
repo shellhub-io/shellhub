@@ -1,13 +1,13 @@
 <template>
   <fragment>
     <v-btn
-      v-if="createPublicKey"
+      v-if="createKey"
       class="v-btn--active"
       text
       color="primary"
       @click="dialog = !dialog"
     >
-      Add Public Key
+      Add {{ action }} Key
     </v-btn>
     <v-tooltip
       v-else
@@ -35,16 +35,16 @@
           v-slot="{ passes }"
         >
           <v-card-title
-            v-if="createPublicKey"
+            v-if="createKey"
             class="headline grey lighten-2 text-center"
           >
-            New Public Key
+            New {{ action }} key
           </v-card-title>
           <v-card-title
             v-else
             class="headline grey lighten-2 text-center"
           >
-            Edit Public Key
+            Edit {{ action }} key
           </v-card-title>
 
           <v-card-text>
@@ -54,7 +54,7 @@
               rules="required"
             >
               <v-text-field
-                v-model="publicKeyLocal.name"
+                v-model="keyLocal.name"
                 label="Name"
                 :error-messages="errors"
                 required
@@ -65,14 +65,14 @@
               v-slot="{ errors }"
               name="Data"
               rules="required"
-              :disabled="!createPublicKey"
+              :disabled="!createKey"
             >
               <v-textarea
-                v-model="publicKeyLocal.data"
+                v-model="keyLocal.data"
                 label="Data"
                 :error-messages="errors"
                 required
-                :disabled="!createPublicKey"
+                :disabled="!createKey"
               />
             </ValidationProvider>
           </v-card-text>
@@ -88,7 +88,7 @@
             </v-btn>
 
             <v-btn
-              v-if="createPublicKey"
+              v-if="createKey"
               text
               @click="passes(create)"
             >
@@ -117,7 +117,7 @@ import {
 } from 'vee-validate';
 
 export default {
-  name: 'PublicKeyFormDialog',
+  name: 'KeyFormDialog',
 
   components: {
     ValidationProvider,
@@ -125,22 +125,29 @@ export default {
   },
 
   props: {
-    publicKey: {
+    keyObject: {
       type: Object,
       required: false,
       default: Object,
     },
 
-    createPublicKey: {
+    createKey: {
       type: Boolean,
       required: true,
+    },
+
+    action: {
+      type: String,
+      default: 'public',
+      required: false,
+      validator: (value) => ['public'].includes(value),
     },
   },
 
   data() {
     return {
       dialog: false,
-      publicKeyLocal: [],
+      keyLocal: [],
     };
   },
 
@@ -154,37 +161,47 @@ export default {
 
   methods: {
     setLocalVariable() {
-      if (this.createPublicKey) {
-        this.publicKeyLocal = {
+      if (this.createKey) {
+        this.keyLocal = {
           name: '',
           data: '',
         };
       } else {
-        this.publicKeyLocal = { ...this.publicKey };
-        this.publicKeyLocal.data = atob(this.publicKey.data);
+        this.keyLocal = { ...this.keyObject };
+        this.keyLocal.data = atob(this.keyObject.data);
       }
     },
 
     async create() {
-      const publicKeySend = this.publicKeyLocal;
-      publicKeySend.data = btoa(this.publicKeyLocal.data);
+      const keySend = this.keyLocal;
+      keySend.data = btoa(this.keyLocal.data);
 
-      try {
-        await this.$store.dispatch('publickeys/post', publicKeySend);
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyCreating);
-        this.update();
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyCreating);
+      switch (this.action) {
+      case 'public':
+        try {
+          await this.$store.dispatch('publickeys/post', keySend);
+          this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyCreating);
+          this.update();
+        } catch {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyCreating);
+        }
+        break;
+      default:
       }
     },
 
     async edit() {
-      try {
-        await this.$store.dispatch('publickeys/put', this.publicKeyLocal);
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyEditing);
-        this.update();
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyEditing);
+      switch (this.action) {
+      case 'public':
+        try {
+          await this.$store.dispatch('publickeys/put', this.keyLocal);
+          this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyEditing);
+          this.update();
+        } catch {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyEditing);
+        }
+        break;
+      default:
       }
     },
 
