@@ -30,6 +30,11 @@ type Information struct {
 }
 
 func main() {
+	if os.Geteuid() != 0 {
+		logrus.Error("ShellHub must be run as root")
+		os.Exit(1)
+	}
+
 	opts := ConfigOptions{}
 
 	// Process unprefixed env vars for backward compatibility
