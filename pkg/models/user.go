@@ -10,7 +10,6 @@ type User struct {
 	Email         string `json:"email" bson:",omitempty" validate:"email"`
 	Username      string `json:"username" bson:",omitempty"`
 	Password      string `json:"password" bson:",omitempty"`
-	TenantID      string `json:"tenant_id" bson:"-"`
 	Devices       int    `json:"devices" bson:",omitempty"`
 	Sessions      int    `json:"sessions" bson:",omitempty"`
 	SessionRecord bool   `json:"session_record" bson:"session_record,omitempty"`
