@@ -92,7 +92,7 @@
 
 import DeviceAdd from '@/components/device/DeviceAdd';
 import Welcome from '@/components/welcome/Welcome';
-import NamespaceInstructions from '@/components/namespace/NamespaceInstructions';
+import NamespaceInstructions from '@/components/app_bar/namespace/NamespaceInstructions';
 
 export default {
   name: 'Dashboard',

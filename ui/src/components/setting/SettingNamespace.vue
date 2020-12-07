@@ -252,8 +252,8 @@ import {
 } from 'vee-validate';
 
 import SettingSecurity from '@/components/setting/SettingSecurity';
-import NamespaceNewMember from '@/components/namespace/NamespaceNewMember';
-import NamespaceDelete from '@/components/namespace/NamespaceDelete';
+import NamespaceNewMember from '@/components/app_bar/namespace/NamespaceNewMember';
+import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
 
 export default {
   name: 'SettingNamespace',

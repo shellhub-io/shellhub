@@ -107,7 +107,7 @@
 <script>
 
 import Notification from '@/components/app_bar/notification/Notification';
-import NamespaceMenu from '@/components/namespace/NamespaceMenu';
+import NamespaceMenu from '@/components/app_bar/namespace/NamespaceMenu';
 
 export default {
   name: 'App',

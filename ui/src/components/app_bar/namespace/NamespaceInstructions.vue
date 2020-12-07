@@ -64,7 +64,7 @@
 
 <script>
 
-import NamespaceAdd from '@/components/namespace/NamespaceAdd';
+import NamespaceAdd from '@/components/app_bar/namespace/NamespaceAdd';
 
 export default {
   name: 'NamespaceInstructions',
