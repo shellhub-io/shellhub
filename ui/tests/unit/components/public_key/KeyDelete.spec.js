@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import PublicKeyDelete from '@/components/public_key/PublicKeyDelete';
+import KeyDelete from '@/components/public_key/KeyDelete';
 
-describe('PublicKeyDelete', () => {
+describe('KeyDelete', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
@@ -23,7 +23,7 @@ describe('PublicKeyDelete', () => {
   });
 
   beforeEach(() => {
-    wrapper = shallowMount(PublicKeyDelete, {
+    wrapper = shallowMount(KeyDelete, {
       store,
       localVue,
       stubs: ['fragment'],
