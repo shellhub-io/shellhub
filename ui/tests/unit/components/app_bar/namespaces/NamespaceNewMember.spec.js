@@ -1,29 +1,29 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import NamespaceDelete from '@/components/namespace/NamespaceDelete';
+import NamespaceNewMember from '@/components/app_bar/namespace/NamespaceNewMember';
 
-describe('NamespaceDelete', () => {
+describe('NamespaceNewMember', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
-  let wrapper;
+  const tenant = 'xxxxx';
 
-  const tenant = 'xxxxxx';
+  let wrapper;
 
   const store = new Vuex.Store({
     namespaced: true,
     actions: {
-      'namespaces/remove': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
+      'namespaces/adduser': () => {
       },
       'snackbar/showSnackbarSuccessAction': () => {
+      },
+      'snackbar/showSnackbarErrorAction': () => {
       },
     },
   });
 
   beforeEach(() => {
-    wrapper = shallowMount(NamespaceDelete, {
+    wrapper = shallowMount(NamespaceNewMember, {
       store,
       localVue,
       stubs: ['fragment'],
@@ -37,7 +37,13 @@ describe('NamespaceDelete', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Receives data in props', () => {
+  it('Receive data in props', () => {
     expect(wrapper.vm.nsTenant).toEqual(tenant);
+  });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.dialog).toEqual(false);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.tenant).toEqual(tenant);
   });
 });

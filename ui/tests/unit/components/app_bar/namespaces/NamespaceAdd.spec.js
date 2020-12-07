@@ -1,6 +1,6 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import NamespaceAdd from '@/components/namespace/NamespaceAdd';
+import NamespaceAdd from '@/components/app_bar/namespace/NamespaceAdd';
 
 describe('NamespaceAdd', () => {
   const localVue = createLocalVue();
