@@ -19,7 +19,10 @@
     </div>
     <p v-if="showHelp">
       Firewall rules gives a fine-grained control over which SSH connections reach the devices.
-      <a target="_blank" href="https://docs.shellhub.io/user-manual/managing-firewall-rules/">See More</a>
+      <a
+        target="_blank"
+        href="https://docs.shellhub.io/user-manual/managing-firewall-rules/"
+      >See More</a>
     </p>
 
     <v-card class="mt-2">
