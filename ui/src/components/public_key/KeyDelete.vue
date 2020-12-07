@@ -22,7 +22,7 @@
         </v-card-title>
 
         <v-card-text class="mt-4 mb-3 pb-1">
-          You are about to remove this publick key
+          You are about to remove this {{ action }} key
         </v-card-text>
 
         <v-card-actions>
@@ -58,6 +58,13 @@ export default {
       type: String,
       required: true,
     },
+
+    action: {
+      type: String,
+      default: 'public',
+      required: false,
+      validator: (value) => ['public'].includes(value),
+    },
   },
 
   data() {
@@ -68,12 +75,17 @@ export default {
 
   methods: {
     async remove() {
-      try {
-        await this.$store.dispatch('publickeys/remove', this.fingerprint);
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyDeleting);
-        this.dialog = false;
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyDeleting);
+      switch (this.action) {
+      case 'public':
+        try {
+          await this.$store.dispatch('publickeys/remove', this.fingerprint);
+          this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyDeleting);
+          this.dialog = false;
+        } catch {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyDeleting);
+        }
+        break;
+      default:
       }
     },
   },
