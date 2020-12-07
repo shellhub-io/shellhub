@@ -1,6 +1,6 @@
 import Vuex from 'vuex';
 import { config, createLocalVue, shallowMount } from '@vue/test-utils';
-import NamespaceMenu from '@/components/namespace/NamespaceMenu';
+import NamespaceMenu from '@/components/app_bar/namespace/NamespaceMenu';
 
 config.mocks = {
   $env: {
