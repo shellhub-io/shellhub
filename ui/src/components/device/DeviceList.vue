@@ -46,11 +46,9 @@
           <v-chip class="list-itens">
             {{ address(item) }}
             <v-icon
-              v-clipboard="() => address(item)"
-              v-clipboard:success="showCopySnack"
               small
               right
-              @click.stop
+              @click="copySSHID(address(item))"
             >
               mdi-content-copy
             </v-icon>
@@ -194,6 +192,11 @@ export default {
 
     address(item) {
       return `${item.namespace}.${item.name}@${this.hostname}`;
+    },
+
+    copySSHID(sshid) {
+      this.$clipboard(sshid);
+      this.showCopySnack();
     },
 
     copy(device) {
