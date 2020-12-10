@@ -124,6 +124,9 @@
             :data-test="item.title"
             @click.prevent="triggerClick(item)"
           >
+            <v-icon left>
+              {{ item.icon }}
+            </v-icon>
             <v-list-item-title>
               {{ item.title }}
             </v-list-item-title>
@@ -192,11 +195,13 @@ export default {
           title: 'Settings',
           type: 'path',
           path: '/settings',
+          icon: 'mdi-cog',
           items: [{ title: 'Profile', path: '/settings/profile' }],
         },
         {
           title: 'Logout',
           type: 'method',
+          icon: 'mdi-logout',
           method: 'logout',
         },
       ],

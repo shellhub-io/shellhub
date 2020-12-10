@@ -9,6 +9,7 @@ describe('Notification', () => {
   let wrapper;
 
   const numberNotifications = 2;
+  const noNotifications = Array(0);
   const notifications = [
     {
       uid: 'a582b47a42d',
@@ -64,6 +65,22 @@ describe('Notification', () => {
     },
   });
 
+  const storeNoNotifications = new Vuex.Store({
+    namespaced: true,
+    state: {
+      notifications: noNotifications,
+      numberNotifications: 0,
+    },
+    getters: {
+      'notifications/list': (state) => state.notifications,
+      'notifications/getNumberNotifications': (state) => state.numberNotifications,
+    },
+    actions: {
+      'notifications/fetch': () => {
+      },
+    },
+  });
+
   beforeEach(() => {
     wrapper = shallowMount(Notification, {
       store,
@@ -83,5 +100,14 @@ describe('Notification', () => {
       expect(wrapper.find(`[data-test="${notifications[field].uid}-field"]`).text()).toEqual(notifications[field].name);
       expect(wrapper.find(`[data-test="${notifications[field].uid}-btn"]`).exists()).toEqual(true);
     });
+  });
+  it('Shows message when no notifications appear on list', () => {
+    wrapper = shallowMount(Notification, {
+      store: storeNoNotifications,
+      localVue,
+      stubs: ['fragment', 'router-link'],
+    });
+    expect(wrapper.find('[data-test="noNotifications"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="noNotifications"]').text()).toEqual('You don\'t have notifications');
   });
 });
