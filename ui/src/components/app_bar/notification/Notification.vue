@@ -3,7 +3,6 @@
     offset-y
     :close-on-content-click="false"
     :value="shown"
-    :disabled="getStatusNotifications"
   >
     <template #activator="{ on }">
       <v-badge
@@ -24,7 +23,9 @@
       </v-badge>
     </template>
 
-    <v-card>
+    <v-card
+      v-if="!getStatusNotifications"
+    >
       <v-subheader>Pending Devices</v-subheader>
 
       <v-divider />
@@ -70,6 +71,15 @@
       >
         Show all Pending Devices
       </v-btn>
+    </v-card>
+    <v-card
+      v-else
+    >
+      <v-subheader
+        data-test="noNotifications"
+      >
+        You don't have notifications
+      </v-subheader>
     </v-card>
   </v-menu>
 </template>
