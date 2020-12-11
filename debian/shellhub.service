@@ -1,0 +1,11 @@
+[Unit]
+Description=ShellHub Agent
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/shellhub
+ExecStart=/usr/bin/shellhub
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

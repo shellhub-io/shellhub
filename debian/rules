@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE=1
+
+export DH_GOPKG                := github.com/shellhub-io/$(PACKAGE)/agent
+export GOCACHE                 := /tmp/go-cache
+export GOPATH                  := /tmp/go
+
+GO := go
+
+%:
+	dh $@ --buildsystem=golang --with-golang --with-systemd
+
+override_dh_auto_build:
+	@mkdir -p build
+ifeq ($(DEB_HOST_ARCH),amd64)
+	cd agent && GOOS=linux GOARCH=amd64 ${GO} build -o build/shellhub
+else ifeq ($(DEB_HOST_ARCH),armhf)
+	GOOS=linux GOARCH=arm GOARM=6 ${GO} build -o build/shellhub
+else
+	@${GO} build -o build/shellhub
+endif
+
+override_dh_auto_install:
+	dh_auto_install -- --no-source
+
+override_dh_auto_test:

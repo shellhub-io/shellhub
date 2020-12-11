@@ -1,0 +1,7 @@
+#!/bin/sh
+
+systemctl unmask shellhub.service
+systemctl restart shellhub.service
+systemctl enable shellhub.service
+
+exit 0
