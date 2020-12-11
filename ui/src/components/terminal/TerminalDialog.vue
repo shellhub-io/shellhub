@@ -151,6 +151,7 @@ import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
 
 import { parsePrivateKey } from '@/sshpk';
+import RSAKey from 'node-rsa';
 
 export default {
   name: 'TerminalDialog',
@@ -250,13 +251,11 @@ export default {
     },
 
     connectWithPrivateKey() {
-      const key = parsePrivateKey(this.privateKey);
-      const sign = key.createSign('sha1');
+      const key = new RSAKey(this.privateKey);
+      key.setOptions({ signingScheme: 'pkcs1-sha1' });
 
-      sign.update(this.username);
-
-      const signature = sign.sign();
-      const fingerprint = key.fingerprint('md5');
+      const signature = key.sign(this.username, 'base64');
+      const fingerprint = parsePrivateKey(this.privateKey).fingerprint('md5');
 
       const params = Object.entries({
         user: `${this.username}@${this.$props.uid}`,
