@@ -2,12 +2,15 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 	"unicode/utf8"
 
+	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/websocket"
 )
@@ -20,14 +23,61 @@ func copyWorker(dst io.Writer, src io.Reader, doneCh chan<- bool) {
 func HandlerWebsocket(ws *websocket.Conn) {
 	user := ws.Request().URL.Query().Get("user")
 	passwd := ws.Request().URL.Query().Get("passwd")
+	fingerprint := ws.Request().URL.Query().Get("fingerprint")
+	signature := ws.Request().URL.Query().Get("signature")
 	cols, _ := strconv.Atoi(ws.Request().URL.Query().Get("cols"))
 	rows, _ := strconv.Atoi(ws.Request().URL.Query().Get("rows"))
 
+	auths := []ssh.AuthMethod{}
+
+	if fingerprint != "" && signature != "" {
+		apiClient := client.NewClient()
+		key, err := apiClient.GetPublicKey(fingerprint)
+		if err != nil {
+			fmt.Println(err)
+			ws.Close()
+			return
+		}
+
+		pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data)
+
+		digest, err := base64.StdEncoding.DecodeString(signature)
+		if err != nil {
+			fmt.Println(err)
+			ws.Close()
+			return
+		}
+
+		parts := strings.SplitN(user, "@", 2)
+		if len(parts) != 2 {
+			ws.Close()
+			return
+		}
+
+		err = pubKey.Verify([]byte(parts[0]), &ssh.Signature{
+			Format: pubKey.Type(),
+			Blob:   digest,
+		})
+		if err != nil {
+			fmt.Println(err)
+			ws.Close()
+			return
+		}
+
+		signer, err := ssh.NewSignerFromKey(magicKey)
+		if err != nil {
+			ws.Close()
+			return
+		}
+
+		auths = []ssh.AuthMethod{ssh.PublicKeys(signer)}
+	} else {
+		auths = []ssh.AuthMethod{ssh.Password(passwd)}
+	}
+
 	config := &ssh.ClientConfig{
-		User: user,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(passwd),
-		},
+		User:            user,
+		Auth:            auths,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
