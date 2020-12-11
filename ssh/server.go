@@ -152,10 +152,17 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 func (*Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKey) bool {
 	fingerprint := ssh.FingerprintLegacyMD5(pubKey)
 
-	apiClient := client.NewClient()
-	_, err := apiClient.GetPublicKey(fingerprint)
+	magicPubKey, err := ssh.NewPublicKey(&magicKey.PublicKey)
 	if err != nil {
 		return false
+	}
+
+	if ssh.FingerprintLegacyMD5(magicPubKey) != fingerprint {
+		apiClient := client.NewClient()
+		_, err = apiClient.GetPublicKey(fingerprint)
+		if err != nil {
+			return false
+		}
 	}
 
 	ctx.SetValue("public_key", fingerprint)

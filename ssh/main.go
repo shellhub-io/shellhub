@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,6 +17,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/sirupsen/logrus"
 )
+
+var magicKey *rsa.PrivateKey
 
 func main() {
 	opts := &Options{
@@ -68,6 +72,12 @@ func main() {
 			}
 		}
 	}()
+
+	var err error
+	magicKey, err = rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	logrus.Fatal(server.ListenAndServe())
 }
