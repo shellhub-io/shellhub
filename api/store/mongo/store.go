@@ -667,14 +667,6 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*models.User,
 	return user, nil
 }
 
-func (s *Store) GetUserByTenant(ctx context.Context, tenant string) (*models.User, error) {
-	user := new(models.User)
-	if err := s.db.Collection("users").FindOne(ctx, bson.M{"tenant_id": tenant}).Decode(&user); err != nil {
-		return nil, err
-	}
-	return user, nil
-}
-
 func (s *Store) GetUserByID(ctx context.Context, ID string) (*models.User, error) {
 	user := new(models.User)
 	objID, _ := primitive.ObjectIDFromHex(ID)
