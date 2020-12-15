@@ -7,10 +7,13 @@ describe('NamespaceAdd', () => {
   localVue.use(Vuex);
   let wrapper;
 
+  const show = true;
+
   beforeEach(() => {
     wrapper = shallowMount(NamespaceAdd, {
       localVue,
       stubs: ['fragment'],
+      propsData: { show },
     });
   });
 
@@ -19,6 +22,9 @@ describe('NamespaceAdd', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Receive data in props', () => {
+    expect(wrapper.vm.show).toEqual(true);
   });
   it('Compare data with default value', () => {
     expect(wrapper.vm.dialog).toEqual(false);
