@@ -1,7 +1,5 @@
 <template>
-  <v-form
-    v-show="show"
-  >
+  <v-form>
     <v-row>
       <v-col>
         <h3 class="mb-5">
@@ -29,13 +27,6 @@
 export default {
   name: 'SettingSecurity',
 
-  props: {
-    show: {
-      type: Boolean,
-      required: true,
-    },
-  },
-
   computed: {
     sessionRecord: {
       get() {
@@ -53,12 +44,10 @@ export default {
   },
 
   async created() {
-    if (this.show) {
-      try {
-        await this.$store.dispatch('security/get');
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorDefault');
-      }
+    try {
+      await this.$store.dispatch('security/get');
+    } catch {
+      this.$store.dispatch('snackbar/showSnackbarErrorDefault');
     }
   },
 };

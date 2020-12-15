@@ -11,7 +11,8 @@
             sm="8"
           >
             <div
-              v-show="!isOwner"
+              v-if="!isOwner"
+              data-test="notTheOwner"
               style="text-align:center"
             >
               <h3
@@ -44,7 +45,9 @@
                     :elevation="0"
                   >
                     <v-chip>
-                      <span>
+                      <span
+                        data-test="tenant"
+                      >
                         {{ tenant }}
                       </span>
                       <v-icon
@@ -60,18 +63,16 @@
                   </v-card>
                 </v-col>
               </v-row>
+              <v-divider />
+              <v-divider />
             </div>
 
-            <v-divider />
-            <v-divider />
-
             <div
-              v-show="isOwner"
+              v-if="isOwner"
               class="mt-6 mb-6 pl-4 pr-4"
+              data-test="editOperation"
             >
-              <h3
-                class="mb-5"
-              >
+              <h3>
                 Edit namespace
               </h3>
 
@@ -120,8 +121,9 @@
             <v-divider />
 
             <div
-              v-show="show"
+              v-if="isHostedOwner"
               class="mt-6 mb-6 pl-4 pr-4"
+              data-test="userOperation"
             >
               <v-row>
                 <v-col>
@@ -145,8 +147,8 @@
               <div>
                 <v-list>
                   <v-list-item
-                    v-for="item in namespace.member_names"
-                    :key="item"
+                    v-for="item in namespace.members"
+                    :key="item.id"
                   >
                     <v-row>
                       <v-col
@@ -160,9 +162,9 @@
 
                       <v-col>
                         <v-list-item-title
-                          :data-test="item"
+                          :data-test="item.name"
                         >
-                          {{ item }}
+                          {{ item.name }}
                         </v-list-item-title>
                       </v-col>
 
@@ -174,7 +176,7 @@
                       >
                         <v-btn
                           outlined
-                          @click="remove(item)"
+                          @click="remove(item.name)"
                         >
                           <v-tooltip
                             bottom
@@ -196,14 +198,14 @@
                   </v-list-item>
                 </v-list>
               </div>
+              <v-divider />
+              <v-divider />
             </div>
 
-            <v-divider />
-            <v-divider />
-
             <div
-              v-show="isOwner"
+              v-if="isOwner"
               class="mt-6 mb-6 pl-4 pr-4"
+              data-test="deleteOperation"
             >
               <h3
                 class="mb-5"
@@ -224,17 +226,16 @@
                   <NamespaceDelete :ns-tenant="tenant" />
                 </v-col>
               </v-row>
+              <v-divider />
+              <v-divider />
             </div>
 
-            <v-divider />
-            <v-divider />
-
             <div
+              v-if="isHostedOwner"
+              data-test="securityOperation"
               class="mt-6 mb-6 pl-4 pr-4"
             >
-              <SettingSecurity
-                :show="show"
-              />
+              <SettingSecurity />
             </div>
           </v-col>
         </v-row>
@@ -284,11 +285,15 @@ export default {
       return this.$store.getters['namespaces/get'];
     },
 
+    members() {
+      return this.$store.getters['namespaces/get'];
+    },
+
     tenant() {
       return localStorage.getItem('tenant');
     },
 
-    show() {
+    isHostedOwner() {
       return this.$env.isHosted && this.isOwner;
     },
   },
