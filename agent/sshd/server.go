@@ -205,6 +205,10 @@ func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
 }
 
 func (s *Server) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey) bool {
+	if osauth.LookupUser(ctx.User()) == nil {
+		return false
+	}
+
 	type Signature struct {
 		Username  string
 		Namespace string
