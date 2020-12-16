@@ -35,6 +35,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 		key, err := apiClient.GetPublicKey(fingerprint)
 		if err != nil {
 			fmt.Println(err)
+			ws.Write([]byte("Permission denied\r\n"))
 			ws.Close()
 			return
 		}
