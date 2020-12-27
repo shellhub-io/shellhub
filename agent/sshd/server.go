@@ -122,12 +122,20 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		os.Chown(pts.Name(), uid, -1)
 
+		remoteAddr := session.RemoteAddr().String()
+
 		logrus.WithFields(logrus.Fields{
 			"user":       session.User(),
 			"pty":        pts.Name(),
-			"remoteaddr": session.RemoteAddr().String(),
+			"remoteaddr": remoteAddr,
 			"localaddr":  session.LocalAddr().String(),
 		}).Info("Session started")
+
+		ut := utmpStartSession(
+			pts.Name(),
+			session.User(),
+			remoteAddr,
+		)
 
 		s.mu.Lock()
 		s.cmds[session.Context().Value(sshserver.ContextKeySessionID).(string)] = scmd
@@ -143,6 +151,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"remoteaddr": session.RemoteAddr().String(),
 			"localaddr":  session.LocalAddr().String(),
 		}).Info("Session ended")
+
+		utmpEndSession(ut)
 	} else {
 		u := osauth.LookupUser(session.User())
 		cmd := newCmd(u, "", "", s.deviceName, session.Command()...)
