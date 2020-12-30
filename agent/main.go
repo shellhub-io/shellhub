@@ -15,6 +15,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Agent version to be embed inside the binary. This is injected using `-ldflags`
+// build option (e.g: `go build -ldflags "-X main.AgentVersion=1.2.3"`).
+//
+// If set to `latest`, the auto-updating mechanism is disabled. This is intended
+// to be used during development only.
 var AgentVersion string
 
 // Provides the configuration for the agent service. The values are load from
