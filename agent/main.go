@@ -17,11 +17,26 @@ import (
 
 var AgentVersion string
 
+// Provides the configuration for the agent service. The values are load from
+// the system environment and control multiple aspects of the service.
 type ConfigOptions struct {
-	ServerAddress     string `envconfig:"server_address"`
-	PrivateKey        string `envconfig:"private_key"`
-	TenantID          string `envconfig:"tenant_id"`
-	KeepAliveInterval int    `envconfig:"keepalive_interval" default:"30"`
+	// Set the ShellHub Cloud server address the agent will use to connect.
+	ServerAddress string `envconfig:"server_address"`
+
+	// Specify the path to the device private key.
+	PrivateKey string `envconfig:"private_key"`
+
+	// Sets the account tenant id used during communication to associate the
+	// device to a specific tenant.
+	TenantID string `envconfig:"tenant_id"`
+
+	// Determine the interval to send the keep alive message to the server. This
+	// has a direct impact of the bandwidth used by the device when in idle
+	// state. Default is 30 seconds.
+	KeepAliveInterval int `envconfig:"keepalive_interval" default:"30"`
+
+	// Set the device preferred hostname. This provides a hint to the server to
+	// use this as hostname if it is available.
 	PreferredHostname string `envconfig:"preferred_hostname"`
 }
 
