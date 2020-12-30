@@ -122,12 +122,22 @@ func main() {
 				continue
 			}
 
+			namespace := agent.authData.Namespace
+			tenantName := agent.authData.Name
+			sshEndpoint := agent.serverInfo.Endpoints.SSH
+
+			sshid := strings.NewReplacer(
+				"{namespace}", namespace,
+				"{tenantName}", tenantName,
+				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
+			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
+
 			logrus.WithFields(logrus.Fields{
-				"namespace":      agent.authData.Namespace,
-				"hostname":       agent.authData.Name,
+				"namespace":      namespace,
+				"hostname":       tenantName,
 				"server_address": opts.ServerAddress,
-				"ssh_server":     agent.serverInfo.Endpoints.SSH,
-				"sshid":          agent.authData.Namespace + "." + agent.authData.Name + "@" + strings.Split(agent.serverInfo.Endpoints.SSH, ":")[0],
+				"ssh_server":     sshEndpoint,
+				"sshid":          sshid,
 			}).Info("Server connection established")
 
 			if err := tunnel.Listen(listener); err != nil {
