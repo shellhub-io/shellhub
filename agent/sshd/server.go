@@ -122,19 +122,19 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		os.Chown(pts.Name(), uid, -1)
 
-		remoteAddr := session.RemoteAddr().String()
+		remoteAddr := session.RemoteAddr()
 
 		logrus.WithFields(logrus.Fields{
 			"user":       session.User(),
 			"pty":        pts.Name(),
 			"remoteaddr": remoteAddr,
-			"localaddr":  session.LocalAddr().String(),
+			"localaddr":  session.LocalAddr(),
 		}).Info("Session started")
 
 		ut := utmpStartSession(
 			pts.Name(),
 			session.User(),
-			remoteAddr,
+			remoteAddr.String(),
 		)
 
 		s.mu.Lock()
@@ -148,8 +148,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		logrus.WithFields(logrus.Fields{
 			"user":       session.User(),
 			"pty":        pts.Name(),
-			"remoteaddr": session.RemoteAddr().String(),
-			"localaddr":  session.LocalAddr().String(),
+			"remoteaddr": remoteAddr,
+			"localaddr":  session.LocalAddr(),
 		}).Info("Session ended")
 
 		utmpEndSession(ut)
@@ -162,8 +162,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		logrus.WithFields(logrus.Fields{
 			"user":        session.User(),
-			"remoteaddr":  session.RemoteAddr().String(),
-			"localaddr":   session.LocalAddr().String(),
+			"remoteaddr":  session.RemoteAddr(),
+			"localaddr":   session.LocalAddr(),
 			"Raw command": session.RawCommand(),
 		}).Info("Command started")
 
@@ -185,8 +185,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		logrus.WithFields(logrus.Fields{
 			"user":        session.User(),
-			"remoteaddr":  session.RemoteAddr().String(),
-			"localaddr":   session.LocalAddr().String(),
+			"remoteaddr":  session.RemoteAddr(),
+			"localaddr":   session.LocalAddr(),
 			"Raw command": session.RawCommand(),
 		}).Info("Command ended")
 	}
