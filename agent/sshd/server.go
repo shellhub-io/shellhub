@@ -1,13 +1,11 @@
 package sshd
 
 import (
-	"C"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"os/exec"
-	"strconv"
 	"sync"
 	"time"
 
@@ -118,9 +116,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		u := osauth.LookupUser(session.User())
 
-		uid, _ := strconv.Atoi(u.UID)
-
-		os.Chown(pts.Name(), uid, -1)
+		os.Chown(pts.Name(), int(u.UID), -1)
 
 		remoteAddr := session.RemoteAddr()
 

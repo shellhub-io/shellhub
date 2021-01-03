@@ -12,10 +12,7 @@ import (
 )
 
 func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
-	uid, _ := strconv.Atoi(u.UID)
-	gid, _ := strconv.Atoi(u.GID)
-
-	nscommand, _ := nsenterCommandWrapper(uid, gid, fmt.Sprintf("/host/%s", u.HomeDir), command...)
+	nscommand, _ := nsenterCommandWrapper(u.UID, u.GID, fmt.Sprintf("/host/%s", u.HomeDir), command...)
 
 	cmd := exec.Command(nscommand[0], nscommand[1:]...)
 	cmd.Env = []string{
@@ -30,7 +27,7 @@ func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 	return cmd
 }
 
-func nsenterCommandWrapper(uid, gid int, home string, command ...string) ([]string, error) {
+func nsenterCommandWrapper(uid, gid uint32, home string, command ...string) ([]string, error) {
 	wrappedCommand := []string{}
 
 	if _, err := os.Stat("/usr/bin/nsenter"); err == nil {
@@ -38,14 +35,14 @@ func nsenterCommandWrapper(uid, gid int, home string, command ...string) ([]stri
 			"/usr/bin/setpriv",
 			"--init-groups",
 			"--ruid",
-			strconv.Itoa(uid),
+			strconv.Itoa(int(uid)),
 			"--regid",
-			strconv.Itoa(gid),
+			strconv.Itoa(int(gid)),
 			"/usr/bin/nsenter",
 			"-t", "1",
 			"-a",
 			"-S",
-			strconv.Itoa(uid),
+			strconv.Itoa(int(uid)),
 			fmt.Sprintf("--wd=%s", home),
 		}, wrappedCommand...)
 	} else if err != nil && !os.IsNotExist(err) {

@@ -12,9 +12,6 @@ import (
 )
 
 func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
-	uid, _ := strconv.Atoi(u.UID)
-	gid, _ := strconv.Atoi(u.GID)
-
 	user, _ := user.Lookup(u.Username)
 	userGroups, _ := user.GroupIds()
 
@@ -25,7 +22,7 @@ func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 		groups = append(groups, uint32(igid))
 	}
 	if len(groups) == 0 {
-		groups = append(groups, uint32(gid))
+		groups = append(groups, u.GID)
 	}
 
 	cmd := exec.Command(command[0], command[1:]...)
@@ -37,6 +34,6 @@ func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 	}
 	cmd.Dir = u.HomeDir
 	cmd.SysProcAttr = &syscall.SysProcAttr{}
-	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid), Groups: groups}
+	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: u.UID, Gid: u.GID, Groups: groups}
 	return cmd
 }
