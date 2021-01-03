@@ -1,61 +1,97 @@
 package osauth
 
-/*
-#cgo LDFLAGS: -lcrypt
-#define _GNU_SOURCE 1
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <pwd.h>
-*/
-import "C"
-
 import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
 	"strconv"
-	"unsafe"
+	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 var DefaultPasswdFilename = "/etc/passwd"
 
 type User struct {
-	UID      string
-	GID      string
+	UID      uint32
+	GID      uint32
 	Username string
+	Password string
 	Name     string
 	HomeDir  string
 	Shell    string
 }
 
 func LookupUser(username string) *User {
-	cuser := C.CString(username)
-	defer C.free(unsafe.Pointer(cuser))
+	passwdFile, err := os.Open(DefaultPasswdFilename)
+	if err != nil {
+		logrus.Errorf("Could not open %s", DefaultPasswdFilename)
+		return nil
+	}
+	defer passwdFile.Close()
 
-	cfilename := C.CString(DefaultPasswdFilename)
-	defer C.free(unsafe.Pointer(cfilename))
-
-	cmode := C.CString("r")
-	defer C.free(unsafe.Pointer(cmode))
-
-	f := C.fopen(cfilename, cmode)
-	defer C.fclose(f)
-
-	var pwd *C.struct_passwd
-	for {
-		if pwd = C.fgetpwent(f); pwd == nil {
-			return nil
-		}
-
-		if C.strcmp(cuser, pwd.pw_name) == 0 {
-			return &User{
-				UID:      strconv.FormatUint(uint64(pwd.pw_uid), 10),
-				GID:      strconv.FormatUint(uint64(pwd.pw_gid), 10),
-				Username: C.GoString(pwd.pw_name),
-				Name:     C.GoString(pwd.pw_gecos),
-				HomeDir:  C.GoString(pwd.pw_dir),
-				Shell:    C.GoString(pwd.pw_shell),
-			}
-		}
+	entries, err := parsePasswdReader(passwdFile)
+	if err != nil {
+		logrus.Printf("Could not parse passwdfile %v", err)
+		return nil
 	}
 
-	return nil
+	user, found := entries[username]
+	if !found {
+		logrus.Error("User not found")
+		return nil
+	}
+
+	return &user
+}
+
+func parsePasswdReader(r io.Reader) (map[string]User, error) {
+	lines := bufio.NewReader(r)
+	entries := make(map[string]User)
+	for {
+		line, _, err := lines.ReadLine()
+		if err != nil {
+			break
+		}
+
+		if len(line) == 0 || strings.HasPrefix(string(line), "#") {
+			continue
+		}
+
+		entry, err := parsePasswdLine(string(line))
+		if err != nil {
+			return nil, err
+		}
+
+		entries[entry.Username] = entry
+	}
+	return entries, nil
+}
+
+func parsePasswdLine(line string) (User, error) {
+	result := User{}
+	parts := strings.Split(strings.TrimSpace(line), ":")
+	if len(parts) != 7 {
+		return result, fmt.Errorf("Passwd line had wrong number of parts %d != 7", len(parts))
+	}
+	result.Username = strings.TrimSpace(parts[0])
+	result.Password = strings.TrimSpace(parts[1])
+
+	uid, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return result, fmt.Errorf("Passwd line had badly formatted uid %s", parts[2])
+	}
+	result.UID = uint32(uid)
+
+	gid, err := strconv.Atoi(parts[3])
+	if err != nil {
+		return result, fmt.Errorf("Passwd line had badly formatted gid %s", parts[3])
+	}
+	result.GID = uint32(gid)
+
+	result.Name = strings.TrimSpace(parts[4])
+	result.HomeDir = strings.TrimSpace(parts[5])
+	result.Shell = strings.TrimSpace(parts[6])
+	return result, nil
 }
