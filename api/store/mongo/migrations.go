@@ -207,6 +207,50 @@ var migrations = []migrate.Migration{
 			return err
 		},
 	},
+{
+		Version: 12,
+		Up: func(db *mongo.Database) error {
+			mod := mongo.IndexModel{
+				Keys:    bson.D{{"tenant_id", 1}},
+				Options: options.Index().SetName("tenant_id").SetUnique(true),
+			}
+			if _, err := db.Collection("namespaces").Indexes().CreateOne(context.TODO(), mod); err != nil {
+				return err
+			}
+			mod = mongo.IndexModel{
+				Keys:    bson.D{{"name", 1}},
+				Options: options.Index().SetName("name").SetUnique(true),
+			}
+			_, err := db.Collection("namespaces").Indexes().CreateOne(context.TODO(), mod)
+			return err
+		},
+		Down: func(db *mongo.Database) error {
+			_, err := db.Collection("namespaces").Indexes().DropOne(context.TODO(), "tenant_id")
+			return err
+		},
+	},
+{
+		Version: 12,
+		Up: func(db *mongo.Database) error {
+			mod := mongo.IndexModel{
+				Keys:    bson.D{{"tenant_id", 1}},
+				Options: options.Index().SetName("tenant_id").SetUnique(true),
+			}
+			if _, err := db.Collection("namespaces").Indexes().CreateOne(context.TODO(), mod); err != nil {
+				return err
+			}
+			mod = mongo.IndexModel{
+				Keys:    bson.D{{"name", 1}},
+				Options: options.Index().SetName("name").SetUnique(true),
+			}
+			_, err := db.Collection("namespaces").Indexes().CreateOne(context.TODO(), mod)
+			return err
+		},
+		Down: func(db *mongo.Database) error {
+			_, err := db.Collection("namespaces").Indexes().DropOne(context.TODO(), "tenant_id")
+			return err
+		},
+	},
 }
 
 func ApplyMigrations(db *mongo.Database) error {
