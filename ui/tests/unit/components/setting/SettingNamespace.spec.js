@@ -18,13 +18,13 @@ describe('SettingNamespace', () => {
 
   const namespace = {
     name: 'namespace3',
-    members: [{ name: 'user6' }, { name: 'user7' }, { name: 'user8' }],
-    owner: '78328974',
+    members: [{ id: '6', name: 'user6' }, { id: '7', name: 'user7' }, { id: '8', name: 'user8' }],
+    owner: '6',
     tenant_id: 'e359bf484715',
   };
 
-  const idOwner = '78328974';
-  const idNotOwner = '78328975';
+  const idOwner = '6';
+  const idNotOwner = '10';
 
   const storeNotOwner = new Vuex.Store({
     namespaced: true,
@@ -119,6 +119,12 @@ describe('SettingNamespace', () => {
     wrapper.vm.$nextTick(() => {
       expect(wrapper.vm.name).toBe(namespace.name);
     });
+  });
+  it('Loads the expected number of delete buttons', () => {
+    expect(wrapper.findAll('[data-test=remove-member]').length).toEqual(namespace.members.length - 1);
+  });
+  it('Loads the owner in template', () => {
+    expect(wrapper.find('[data-test=owner]').text()).toEqual('Owner');
   });
   namespace.members.forEach((member) => {
     it(`Loads ${member.name} member in template`, () => {

@@ -26,8 +26,12 @@
             <div
               class="mt-6 pl-4 pr-4"
             >
-              <v-row>
-                <v-col md="auto">
+              <v-row
+                class="mb-4"
+              >
+                <v-col
+                  md="auto"
+                >
                   <v-card
                     tile
                     :elevation="0"
@@ -80,7 +84,9 @@
                 ref="data"
                 v-slot="{ passes }"
               >
-                <div>
+                <div
+                  class="mt-4 mb-2"
+                >
                   <ValidationProvider
                     v-slot="{ errors }"
                     ref="providerName"
@@ -115,10 +121,9 @@
                   </ValidationProvider>
                 </div>
               </ValidationObserver>
+              <v-divider />
+              <v-divider />
             </div>
-
-            <v-divider />
-            <v-divider />
 
             <div
               v-if="isHostedOwner"
@@ -127,9 +132,7 @@
             >
               <v-row>
                 <v-col>
-                  <h3
-                    class="mb-5"
-                  >
+                  <h3>
                     Members
                   </h3>
                 </v-col>
@@ -149,6 +152,7 @@
                   <v-list-item
                     v-for="item in namespace.members"
                     :key="item.id"
+                    class="mt-5 mb-2"
                   >
                     <v-row>
                       <v-col
@@ -175,6 +179,8 @@
                         class="ml-auto"
                       >
                         <v-btn
+                          data-test="remove-member"
+                          v-if="item.id!==owner"
                           outlined
                           @click="remove(item.name)"
                         >
@@ -193,6 +199,13 @@
                             </span>
                           </v-tooltip>
                         </v-btn>
+                        <p
+                          data-test="owner"
+                          class="mr-3"
+                          v-else
+                        >
+                          Owner
+                        </p>
                       </v-col>
                     </v-row>
                   </v-list-item>
@@ -213,7 +226,9 @@
                 Danger Zone
               </h3>
 
-              <v-row>
+              <v-row
+                class="mt-4 mb-2"
+              >
                 <v-col
                   class="ml-3"
                 >
@@ -221,7 +236,7 @@
                 </v-col>
                 <v-col
                   md="auto"
-                  class="ml-auto"
+                  class="ml-auto mb-4"
                 >
                   <NamespaceDelete :ns-tenant="tenant" />
                 </v-col>
@@ -282,10 +297,6 @@ export default {
     },
 
     namespace() {
-      return this.$store.getters['namespaces/get'];
-    },
-
-    members() {
       return this.$store.getters['namespaces/get'];
     },
 
