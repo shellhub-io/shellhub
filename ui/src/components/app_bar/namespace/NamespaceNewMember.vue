@@ -109,6 +109,7 @@ export default {
         this.dialog = false;
         this.username = '';
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceNewMember);
+        this.$refs.newuser.reset();
       } catch (error) {
         if (error.response.status === 404) {
           this.$refs.newuser.setErrors({
