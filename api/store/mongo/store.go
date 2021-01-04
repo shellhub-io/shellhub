@@ -674,6 +674,15 @@ func (s *Store) GetUserByTenant(ctx context.Context, tenant string) (*models.Use
 	return user, nil
 }
 
+func (s *Store) GetUserByID(ctx context.Context, ID string) (*models.User, error) {
+	user := new(models.User)
+	objID, _ := primitive.ObjectIDFromHex(ID)
+	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 func (s *Store) GetDeviceByMac(ctx context.Context, mac, tenant, status string) (*models.Device, error) {
 	device := new(models.Device)
 	if status != "" {
