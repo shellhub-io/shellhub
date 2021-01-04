@@ -4,6 +4,7 @@ import SettingProfile from '@/components/setting/SettingProfile';
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
 import flushPromises from 'flush-promises';
 import { required, email } from 'vee-validate/dist/rules';
+import Vuetify from 'vuetify';
 import '@/vee-validate';
 
 extend('required', {
@@ -19,6 +20,7 @@ extend('email', {
 describe('SettingProfile', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
+  const vuetify = new Vuetify();
   localVue.component('ValidationProvider', ValidationProvider);
   localVue.component('ValidationObserver', ValidationObserver);
 
@@ -61,6 +63,7 @@ describe('SettingProfile', () => {
       store,
       localVue,
       stubs: ['fragment'],
+      vuetify,
     });
   });
 
