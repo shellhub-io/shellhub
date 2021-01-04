@@ -18,6 +18,8 @@ import (
 )
 
 var ErrWrongParamsType = errors.New("wrong parameters type")
+var ErrDuplicateID = errors.New("user already member of this namespace")
+var ErrUserNotFound = errors.New("user not found")
 
 type Store struct {
 	db *mongo.Database
@@ -868,7 +870,6 @@ func (s *Store) UpdateUser(ctx context.Context, username, email, currentPassword
 	if err != nil {
 		return err
 	}
-
 	if username != "" && username != user.Username {
 		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"username": username}}); err != nil {
 			return err
@@ -918,7 +919,6 @@ func (s *Store) GetDataUserSecurity(ctx context.Context, tenant string) (bool, e
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"tenant_id": tenant}).Decode(&status); err != nil {
 		return false, err
 	}
-
 	return status.SessionRecord, nil
 }
 
@@ -1001,45 +1001,9 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	return queryMatch, nil
 }
 
-func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.User, int, error) {
+func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
 	query := []bson.M{}
-	if export {
-		query = []bson.M{
-
-			{
-				"$lookup": bson.M{
-					"from":         "devices",
-					"localField":   "tenant_id",
-					"foreignField": "tenant_id",
-					"as":           "devices",
-				},
-			},
-			{
-				"$lookup": bson.M{
-					"from":         "sessions",
-					"localField":   "devices.uid",
-					"foreignField": "device_uid",
-					"as":           "sessions",
-				},
-			},
-			{
-				"$project": bson.M{
-					"name":      1,
-					"email":     1,
-					"username":  1,
-					"password":  1,
-					"tenant_id": 1,
-					"devices": bson.M{
-						"$size": "$devices",
-					},
-					"sessions": bson.M{
-						"$size": "$sessions",
-					},
-				},
-			},
-		}
-	}
 
 	if len(queryMatch) > 0 {
 		query = append(query, queryMatch...)
@@ -1060,7 +1024,7 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 		return nil, 0, err
 	}
 
-	if pagination.Page != 0 && pagination.PerPage != 0 && !export {
+	if pagination.Page != 0 && pagination.PerPage != 0 {
 		query = append(query, buildPaginationQuery(pagination)...)
 	}
 
@@ -1205,6 +1169,161 @@ func (s *Store) GetPrivateKey(ctx context.Context, fingerprint string) (*models.
 	}
 
 	return privKey, nil
+}
+func (s *Store) GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error) {
+	ns := new(models.Namespace)
+
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": namespace}).Decode(&ns); err != nil {
+		return nil, err
+	}
+
+	return ns, nil
+}
+
+func (s *Store) GetNamespaceByName(ctx context.Context, namespace string) (*models.Namespace, error) {
+	ns := new(models.Namespace)
+
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
+		return nil, err
+	}
+
+	return ns, nil
+}
+
+func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error) {
+	queryMatch, err := buildFilterQuery(filters)
+	query := []bson.M{
+		{
+			"$sort": bson.M{
+				"started_at": -1,
+			},
+		},
+	}
+
+	if len(queryMatch) > 0 {
+		query = append(query, queryMatch...)
+	}
+
+	if export {
+		query = []bson.M{
+
+			{
+				"$lookup": bson.M{
+					"from":         "devices",
+					"localField":   "tenant_id",
+					"foreignField": "tenant_id",
+					"as":           "devices",
+				},
+			},
+			{
+				"$lookup": bson.M{
+					"from":         "sessions",
+					"localField":   "devices.uid",
+					"foreignField": "device_uid",
+					"as":           "sessions",
+				},
+			},
+			{
+				"$project": bson.M{
+					"name":      1,
+					"owner":     1,
+					"members":   1,
+					"tenant_id": 1,
+					"devices": bson.M{
+						"$size": "$devices",
+					},
+					"sessions": bson.M{
+						"$size": "$sessions",
+					},
+				},
+			},
+		}
+	}
+	if len(queryMatch) > 0 {
+		query = append(query, queryMatch...)
+	}
+
+	// Only match for the respective tenant if requested
+	if username := apicontext.UsernameFromContext(ctx); username != nil {
+		user := new(models.User)
+		if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": username.ID}).Decode(&user); err != nil {
+			return nil, 0, err
+		}
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"members": user.ID}})
+	}
+
+	queryCount := append(query, bson.M{"$count": "count"})
+	count, err := aggregateCount(ctx, s.db.Collection("namespaces"), queryCount)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if pagination.Page != 0 && pagination.PerPage != 0 && !export {
+		query = append(query, buildPaginationQuery(pagination)...)
+	}
+
+	namespaces := make([]models.Namespace, 0)
+	cursor, err := s.db.Collection("namespaces").Aggregate(ctx, query)
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		namespace := new(models.Namespace)
+		err = cursor.Decode(&namespace)
+		if err != nil {
+			return namespaces, count, err
+		}
+		namespaces = append(namespaces, *namespace)
+	}
+
+	return namespaces, count, err
+}
+
+func (s *Store) CreateNamespace(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
+	_, err := s.db.Collection("namespaces").InsertOne(ctx, namespace)
+	return namespace, err
+}
+func (s *Store) DeleteNamespace(ctx context.Context, namespace string) error {
+	_, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": namespace})
+	return err
+}
+func (s *Store) EditNamespace(ctx context.Context, namespace, name string) (*models.Namespace, error) {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$set": bson.M{"name": name}}); err != nil {
+		return nil, err
+	}
+	return s.GetNamespace(ctx, namespace)
+}
+
+func (s *Store) AddNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
+	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$addToSet": bson.M{"members": ID}})
+	if err != nil {
+		return nil, err
+	}
+	if result.ModifiedCount == 0 {
+		return nil, ErrDuplicateID
+	}
+	return s.GetNamespace(ctx, namespace)
+}
+
+func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
+	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$pull": bson.M{"members": ID}})
+	if err != nil {
+		return nil, err
+	}
+	if result.ModifiedCount == 0 {
+		return nil, ErrUserNotFound
+	}
+	return s.GetNamespace(ctx, namespace)
+}
+
+func (s *Store) GetSomeNamespace(ctx context.Context, ID string) (*models.Namespace, error) {
+	ns := new(models.Namespace)
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": ID}).Decode(&ns); err != nil {
+		return nil, err
+	}
+
+	return ns, nil
 }
 
 func buildPaginationQuery(pagination paginator.Query) []bson.M {
