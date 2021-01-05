@@ -23,15 +23,15 @@ type dockerContainer struct {
 	info *types.ContainerJSON
 }
 
-func (c *dockerContainer) splitImageVersion() (string, string) {
+func (c *dockerContainer) splitImageVersion() (image, version string) {
 	parts := strings.SplitN(c.info.Config.Image, ":", 2)
-	image, version := parts[0], ""
+	image, version = parts[0], ""
 
 	if len(parts) == 2 {
 		version = parts[1]
 	}
 
-	return image, version
+	return
 }
 
 type dockerUpdater struct {
@@ -96,8 +96,6 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		if err != nil {
 			return err
 		}
-
-		os.Exit(0)
 	}
 
 	return nil
@@ -141,11 +139,8 @@ func (d *dockerUpdater) stopContainer(container *dockerContainer) error {
 	}
 
 	opts := types.ContainerRemoveOptions{Force: true, RemoveVolumes: true}
-	if err := d.api.ContainerRemove(ctx, container.info.ID, opts); err != nil {
-		return err
-	}
-
-	return nil
+	err := d.api.ContainerRemove(ctx, container.info.ID, opts)
+	return err
 }
 
 func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name string, parent bool) (*dockerContainer, error) {
@@ -185,7 +180,6 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 	}
 
 	return d.getContainer(clone.ID)
-
 }
 
 func NewUpdater(_ string) (Updater, error) {
