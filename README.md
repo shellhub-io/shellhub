@@ -12,7 +12,7 @@
     <img src="https://badges.gitter.im/shellhub-io/shellhub.svg">
   </a>
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors-"><img src="https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square"></a>
+<a href="#contributors-"><img src="https://img.shields.io/badge/all_contributors-12-orange.svg?style=flat-square"></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -101,24 +101,26 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/gustavosbarreto"><img src="https://avatars1.githubusercontent.com/u/86747?v=4" width="100px;" alt=""/><br /><sub><b>Luis Gustavo S. Barreto</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=gustavosbarreto" title="Code">💻</a></td>
-    <td align="center"><a href="http://www.ossystems.com.br/blog"><img src="https://avatars0.githubusercontent.com/u/25278?v=4" width="100px;" alt=""/><br /><sub><b>Otavio Salvador</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=otavio" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/leonardojoao"><img src="https://avatars1.githubusercontent.com/u/15831786?v=4" width="100px;" alt=""/><br /><sub><b>Leonardo da Rosa Silveira João</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=leonardojoao" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/eduardoveiga"><img src="https://avatars3.githubusercontent.com/u/8249343?v=4" width="100px;" alt=""/><br /><sub><b>Eduardo Kluwe Veiga</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=eduardoveiga" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/noreng-jg"><img src="https://avatars2.githubusercontent.com/u/25461720?v=4" width="100px;" alt=""/><br /><sub><b>Vagner Nornberg</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=noreng-jg" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/fbertux"><img src="https://avatars1.githubusercontent.com/u/2940537?v=4" width="100px;" alt=""/><br /><sub><b>Fabio Berton</b></sub></a><br /><a href="#platform-fbertux" title="Packaging/porting to new platform">📦</a></td>
-    <td align="center"><a href="http://gomex.me"><img src="https://avatars3.githubusercontent.com/u/95132?v=4" width="100px;" alt=""/><br /><sub><b>Rafael Gomes</b></sub></a><br /><a href="#infra-gomex" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+    <td align="center"><a href="https://github.com/gustavosbarreto"><img src="https://avatars1.githubusercontent.com/u/86747?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Luis Gustavo S. Barreto</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=gustavosbarreto" title="Code">💻</a></td>
+    <td align="center"><a href="http://www.ossystems.com.br/blog"><img src="https://avatars0.githubusercontent.com/u/25278?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Otavio Salvador</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=otavio" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/leonardojoao"><img src="https://avatars1.githubusercontent.com/u/15831786?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Leonardo da Rosa Silveira João</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=leonardojoao" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/eduardoveiga"><img src="https://avatars3.githubusercontent.com/u/8249343?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Eduardo Kluwe Veiga</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=eduardoveiga" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/noreng-jg"><img src="https://avatars2.githubusercontent.com/u/25461720?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Vagner Nornberg</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=noreng-jg" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/fbertux"><img src="https://avatars1.githubusercontent.com/u/2940537?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Fabio Berton</b></sub></a><br /><a href="#platform-fbertux" title="Packaging/porting to new platform">📦</a></td>
+    <td align="center"><a href="http://gomex.me"><img src="https://avatars3.githubusercontent.com/u/95132?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Rafael Gomes</b></sub></a><br /><a href="#infra-gomex" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/sixhills"><img src="https://avatars1.githubusercontent.com/u/69159771?v=4" width="100px;" alt=""/><br /><sub><b>Mike</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=sixhills" title="Code">💻</a></td>
-    <td align="center"><a href="https://inductor.me"><img src="https://avatars0.githubusercontent.com/u/20236173?v=4" width="100px;" alt=""/><br /><sub><b>inductor(Kohei)</b></sub></a><br /><a href="#infra-inductor" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
-    <td align="center"><a href="https://github.com/u5surf"><img src="https://avatars1.githubusercontent.com/u/14180225?v=4" width="100px;" alt=""/><br /><sub><b>Y.Horie</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=u5surf" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/Robinsondssantos"><img src="https://avatars3.githubusercontent.com/u/29050986?v=4" width="100px;" alt=""/><br /><sub><b>Robinson D. S. Santos</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=Robinsondssantos" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/sixhills"><img src="https://avatars1.githubusercontent.com/u/69159771?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mike</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=sixhills" title="Code">💻</a></td>
+    <td align="center"><a href="https://inductor.me"><img src="https://avatars0.githubusercontent.com/u/20236173?v=4?s=100" width="100px;" alt=""/><br /><sub><b>inductor(Kohei)</b></sub></a><br /><a href="#infra-inductor" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+    <td align="center"><a href="https://github.com/u5surf"><img src="https://avatars1.githubusercontent.com/u/14180225?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Y.Horie</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=u5surf" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Robinsondssantos"><img src="https://avatars3.githubusercontent.com/u/29050986?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robinson D. S. Santos</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=Robinsondssantos" title="Code">💻</a></td>
+    <td align="center"><a href="https://lbsfilm.at"><img src="https://avatars2.githubusercontent.com/u/1556271?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lukas Bachschwell</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=s00500" title="Documentation">📖</a></td>
   </tr>
 </table>
 
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
