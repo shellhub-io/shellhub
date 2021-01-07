@@ -175,6 +175,9 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 	device := new(models.Device)
 
 	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
+	if err != nil {
+		return nil, err
+	}
 	defer cursor.Close(ctx)
 	cursor.Next(ctx)
 
@@ -333,6 +336,9 @@ func (s *Store) ListSessions(ctx context.Context, pagination paginator.Query) ([
 
 	sessions := make([]models.Session, 0)
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
+	if err != nil {
+		return sessions, count, err
+	}
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
@@ -386,6 +392,9 @@ func (s *Store) GetSession(ctx context.Context, uid models.UID) (*models.Session
 	session := new(models.Session)
 
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
+	if err != nil {
+		return nil, err
+	}
 	defer cursor.Close(ctx)
 	cursor.Next(ctx)
 
