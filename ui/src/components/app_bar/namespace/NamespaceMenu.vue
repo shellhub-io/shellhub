@@ -230,10 +230,17 @@ export default {
         await this.$store.dispatch('namespaces/fetch');
         await this.$store.dispatch('namespaces/get', this.tenant);
       } catch (e) {
-        if (e.response.status === 403) {
+        switch (true) {
+        case (!this.inANamespace): { // dialog pops
+          break;
+        }
+        case (e.response.status === 403): {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
-        } else {
+          break;
+        }
+        default: {
           this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceList);
+        }
         }
       }
     },

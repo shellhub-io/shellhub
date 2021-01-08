@@ -152,6 +152,10 @@ export default {
     currentInANamespace() {
       return localStorage.getItem('tenant') !== '';
     },
+
+    onceShow() {
+      return localStorage.getItem('noNamespace') !== null;
+    },
   },
 
   async created() {
@@ -159,11 +163,18 @@ export default {
       await this.$store.dispatch('stats/get');
       this.showScreenWelcome();
     } catch (e) {
-      if (e.response.status === 403) {
-        this.showNamespaceInstructions();
-        this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+      if (this.onceShow) {
+        switch (true) {
+        case (e.response.status === 403): {
+          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+          break;
+        }
+        default: {
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.dashboard);
+        }
+        }
       } else {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.dashboard);
+        this.showNamespaceInstructions();
       }
     }
   },
