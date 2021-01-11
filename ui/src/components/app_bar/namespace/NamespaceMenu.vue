@@ -34,7 +34,7 @@
               >
                 mdi-server
               </v-icon>
-              {{ namespace.name }}
+              {{ displayOnlyTenCharacters(namespace.name) }}
               <v-icon right>
                 mdi-chevron-down
               </v-icon>
@@ -247,6 +247,13 @@ export default {
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceSwitch);
       }
+    },
+
+    displayOnlyTenCharacters(str) {
+      if (str !== undefined) {
+        if (str.length > 10) return `${str.substr(0, 10)}...`;
+      }
+      return str;
     },
   },
 };
