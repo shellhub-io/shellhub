@@ -1,139 +1,78 @@
 <template>
   <fragment>
-    <v-form>
-      <v-container>
-        <v-row
-          align="center"
-          justify="center"
-          class="mt-4"
-        >
-          <v-col
-            sm="8"
+    <v-container>
+      <v-row
+        align="center"
+        justify="center"
+        class="mt-4"
+      >
+        <v-col sm="8">
+          <div
+            v-if="!isOwner"
+            style="text-align:center"
+            data-test="notTheOwner"
           >
-            <div
-              v-if="!isOwner"
-              data-test="notTheOwner"
-              style="text-align:center"
-            >
-              <h3
-                class="pl-6"
-              >
-                You're not the owner of this namespace.
-              </h3>
-              <br>
-            </div>
+            <h3 class="pl-6">
+              You're not the owner of this namespace.
+            </h3>
+            <br>
+          </div>
 
-            <div
-              class="mt-6 pl-4 pr-4"
-            >
-              <v-row
-                class="mb-4"
-              >
-                <v-col
-                  md="auto"
+          <div class="mt-6">
+            <v-row class="mb-2">
+              <v-col md="auto">
+                <v-card
+                  tile
+                  :elevation="0"
                 >
-                  <v-card
-                    tile
-                    :elevation="0"
-                  >
-                    Tenant ID:
-                  </v-card>
-                </v-col>
-                <v-col
-                  md="auto"
-                  class="ml-auto"
-                >
-                  <v-card
-                    class="auto"
-                    tile
-                    :elevation="0"
-                  >
-                    <v-chip>
-                      <span
-                        data-test="tenant"
-                      >
-                        {{ tenant }}
-                      </span>
-                      <v-icon
-                        v-clipboard="tenant"
-                        v-clipboard:success="() => {
-                          this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
-                        }"
-                        right
-                      >
-                        mdi-content-copy
-                      </v-icon>
-                    </v-chip>
-                  </v-card>
-                </v-col>
-              </v-row>
-              <v-divider />
-              <v-divider />
-            </div>
+                  Tenant ID:
+                </v-card>
+              </v-col>
 
-            <div
-              v-if="isOwner"
-              class="mt-6 mb-6 pl-4 pr-4"
-              data-test="editOperation"
-            >
-              <h3>
-                Edit namespace
-              </h3>
-
-              <ValidationObserver
-                ref="data"
-                v-slot="{ passes }"
+              <v-col
+                md="auto"
+                class="ml-auto"
               >
-                <div
-                  class="mt-4 mb-2"
+                <v-card
+                  class="auto"
+                  tile
+                  :elevation="0"
                 >
-                  <ValidationProvider
-                    v-slot="{ errors }"
-                    ref="providerName"
-                    vid="name"
-                    name="Priority"
-                    rules="required|rfc1123"
-                  >
-                    <v-row>
-                      <v-col
-                        class="ml-3"
-                      >
-                        <v-text-field
-                          v-model="name"
-                          label="Name"
-                          :error-messages="errors"
-                          required
-                          data-test="name-text"
-                        />
-                      </v-col>
-                      <v-col
-                        md="auto"
-                        class="ml-auto"
-                      >
-                        <v-btn
-                          outlined
-                          @click="passes(editNamespace)"
-                        >
-                          Rename Namespace
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                  </ValidationProvider>
-                </div>
-              </ValidationObserver>
-              <v-divider />
-              <v-divider />
-            </div>
+                  <v-chip>
+                    <span data-test="tenant">
+                      {{ tenant }}
+                    </span>
+                    <v-icon
+                      v-clipboard="tenant"
+                      v-clipboard:success="() => {
+                        this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
+                      }"
+                      right
+                    >
+                      mdi-content-copy
+                    </v-icon>
+                  </v-chip>
+                </v-card>
+              </v-col>
+            </v-row>
 
-            <div
-              v-if="isHostedOwner"
-              class="mt-6 mb-6 pl-4 pr-4"
-              data-test="userOperation"
+            <v-divider />
+            <v-divider />
+          </div>
+
+          <div
+            v-if="isOwner"
+            class="mt-6"
+            data-test="editOperation"
+          >
+            <ValidationObserver
+              ref="data"
+              v-slot="{ passes }"
             >
               <v-row>
                 <v-col>
                   <h3>
-                    Members
+                    Namespace
                   </h3>
                 </v-col>
 
@@ -143,119 +82,169 @@
                   md="auto"
                   class="ml-auto"
                 >
-                  <NamespaceNewMember :ns-tenant="tenant" />
-                </v-col>
-              </v-row>
-
-              <div>
-                <v-list>
-                  <v-list-item
-                    v-for="item in namespace.members"
-                    :key="item.id"
-                    class="mt-5 mb-2"
+                  <v-btn
+                    outlined
+                    @click="passes(editNamespace)"
                   >
-                    <v-row>
-                      <v-col
-                        md="auto"
-                        class="ml-auto"
-                      >
-                        <v-icon>
-                          mdi-account
-                        </v-icon>
-                      </v-col>
-
-                      <v-col>
-                        <v-list-item-title
-                          :data-test="item.name"
-                        >
-                          {{ item.name }}
-                        </v-list-item-title>
-                      </v-col>
-
-                      <v-spacer />
-
-                      <v-col
-                        md="auto"
-                        class="ml-auto"
-                      >
-                        <v-btn
-                          v-if="item.id!==owner"
-                          data-test="remove-member"
-                          outlined
-                          @click="remove(item.name)"
-                        >
-                          <v-tooltip
-                            bottom
-                          >
-                            <template #activator="{ on }">
-                              <v-icon
-                                v-on="on"
-                              >
-                                delete
-                              </v-icon>
-                            </template>
-                            <span>
-                              Remove user
-                            </span>
-                          </v-tooltip>
-                        </v-btn>
-                        <p
-                          v-else
-                          data-test="owner"
-                          class="mr-3"
-                        >
-                          Owner
-                        </p>
-                      </v-col>
-                    </v-row>
-                  </v-list-item>
-                </v-list>
-              </div>
-              <v-divider />
-              <v-divider />
-            </div>
-
-            <div
-              v-if="isOwner"
-              class="mt-6 mb-6 pl-4 pr-4"
-              data-test="deleteOperation"
-            >
-              <h3
-                class="mb-5"
-              >
-                Danger Zone
-              </h3>
-
-              <v-row
-                class="mt-4 mb-2"
-              >
-                <v-col
-                  class="ml-3"
-                >
-                  Delete this namespace
-                </v-col>
-                <v-col
-                  md="auto"
-                  class="ml-auto mb-4"
-                >
-                  <NamespaceDelete :ns-tenant="tenant" />
+                    Rename Namespace
+                  </v-btn>
                 </v-col>
               </v-row>
-              <v-divider />
-              <v-divider />
+
+              <div class="mt-4 mb-2">
+                <ValidationProvider
+                  v-slot="{ errors }"
+                  ref="providerName"
+                  vid="name"
+                  name="Priority"
+                  rules="required|rfc1123"
+                >
+                  <v-text-field
+                    v-model="name"
+                    class="ml-3"
+                    label="Name"
+                    :error-messages="errors"
+                    required
+                    data-test="name-text"
+                  />
+                </ValidationProvider>
+              </div>
+            </ValidationObserver>
+
+            <v-divider />
+            <v-divider />
+          </div>
+
+          <div
+            v-if="isHostedOwner"
+            class="mt-6"
+            data-test="userOperation"
+          >
+            <v-row>
+              <v-col>
+                <h3>
+                  Members
+                </h3>
+              </v-col>
+
+              <v-spacer />
+
+              <v-col
+                md="auto"
+                class="ml-auto"
+              >
+                <NamespaceNewMember :ns-tenant="tenant" />
+              </v-col>
+            </v-row>
+
+            <div class="mt-5">
+              <v-list>
+                <v-list-item
+                  v-for="item in namespace.members"
+                  :key="item.id"
+                >
+                  <v-row>
+                    <v-col
+                      md="auto"
+                      class="ml-auto"
+                    >
+                      <v-icon>
+                        mdi-account
+                      </v-icon>
+                    </v-col>
+
+                    <v-col>
+                      <v-list-item-title :data-test="item.name">
+                        {{ item.name }}
+                      </v-list-item-title>
+                    </v-col>
+
+                    <v-spacer />
+
+                    <v-col
+                      md="auto"
+                      class="ml-auto"
+                    >
+                      <v-btn
+                        v-if="item.id!==owner"
+                        data-test="remove-member"
+                        outlined
+                        @click="remove(item.name)"
+                      >
+                        <v-tooltip
+                          bottom
+                        >
+                          <template #activator="{ on }">
+                            <v-icon v-on="on">
+                              delete
+                            </v-icon>
+                          </template>
+                          <span>
+                            Remove user
+                          </span>
+                        </v-tooltip>
+                      </v-btn>
+
+                      <p
+                        v-else
+                        data-test="owner"
+                        class="mr-3"
+                      >
+                        Owner
+                      </p>
+                    </v-col>
+                  </v-row>
+                </v-list-item>
+              </v-list>
             </div>
 
-            <div
-              v-if="isHostedOwner"
-              data-test="securityOperation"
-              class="mt-6 mb-6 pl-4 pr-4"
-            >
-              <SettingSecurity />
-            </div>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-form>
+            <v-divider />
+            <v-divider />
+          </div>
+
+          <div
+            v-if="isHostedOwner"
+            class="mt-6"
+            data-test="securityOperation"
+          >
+            <SettingSecurity />
+
+            <v-divider />
+            <v-divider />
+          </div>
+
+          <div
+            v-if="isOwner"
+            class="mt-6"
+            data-test="deleteOperation"
+          >
+            <h3 class="mb-5">
+              Danger Zone
+            </h3>
+
+            <v-row class="mt-4 mb-2">
+              <v-col class="ml-3">
+                <h4>
+                  Delete this namespace
+                </h4>
+                <div class="ml-2">
+                  <subtitle-1>
+                    After deleting a namespace, there is no going back. Be sure.
+                  </subtitle-1>
+                </div>
+              </v-col>
+
+              <v-col
+                md="auto"
+                class="ml-auto mb-4"
+              >
+                <NamespaceDelete :ns-tenant="tenant" />
+              </v-col>
+            </v-row>
+          </div>
+        </v-col>
+      </v-row>
+    </v-container>
   </fragment>
 </template>
 

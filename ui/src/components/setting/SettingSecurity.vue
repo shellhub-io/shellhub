@@ -1,7 +1,7 @@
 <template>
   <v-form>
     <v-row>
-      <v-col>
+      <v-col class="mb-6">
         <h3 class="mb-5">
           Security
         </h3>
