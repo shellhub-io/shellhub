@@ -179,8 +179,8 @@
                         class="ml-auto"
                       >
                         <v-btn
-                          data-test="remove-member"
                           v-if="item.id!==owner"
+                          data-test="remove-member"
                           outlined
                           @click="remove(item.name)"
                         >
@@ -200,9 +200,9 @@
                           </v-tooltip>
                         </v-btn>
                         <p
+                          v-else
                           data-test="owner"
                           class="mr-3"
-                          v-else
                         >
                           Owner
                         </p>
