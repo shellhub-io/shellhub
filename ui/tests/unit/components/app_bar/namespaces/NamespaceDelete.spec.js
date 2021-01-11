@@ -10,8 +10,23 @@ describe('NamespaceDelete', () => {
 
   const tenant = 'xxxxxx';
 
+  const namespace = {
+    name: 'namespace3',
+    owner: 'user1',
+    member_names: ['user6', 'user7', 'user8'],
+    tenant_id: 'a736a52b-5777-4f92-b0b8-e359bf484715',
+  };
+
   const store = new Vuex.Store({
     namespaced: true,
+    state: {
+      stats: {
+        namespace,
+      },
+    },
+    getters: {
+      'namespaces/get': (state) => state.namespace,
+    },
     actions: {
       'namespaces/remove': () => {
       },

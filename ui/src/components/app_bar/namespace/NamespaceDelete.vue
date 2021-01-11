@@ -18,7 +18,9 @@
         </v-card-title>
 
         <v-card-text class="mt-4 mb-3 pb-1">
-          Once you delete a namespace, there is no going back. Please be certain.
+          This action cannot be undone. This will permanently delete the
+          <b> {{ displayOnlyTenCharacters(name) }} </b> namespace and remove all sensors
+          related to this namespace.
         </v-card-text>
 
         <v-card-actions>
@@ -58,6 +60,7 @@ export default {
 
   data() {
     return {
+      name: '',
       dialog: false,
     };
   },
@@ -66,6 +69,10 @@ export default {
     tenant() {
       return this.$props.nsTenant;
     },
+  },
+
+  async created() {
+    this.name = this.$store.getters['namespaces/get'].name;
   },
 
   methods: {
@@ -80,6 +87,13 @@ export default {
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceDelete);
       }
+    },
+
+    displayOnlyTenCharacters(str) {
+      if (str !== undefined) {
+        if (str.length > 10) return `${str.substr(0, 10)}...`;
+      }
+      return str;
     },
   },
 };
