@@ -1,5 +1,5 @@
 <template>
-  <v-form>
+  <fragment>
     <v-container>
       <v-row
         align="center"
@@ -13,8 +13,50 @@
             ref="data"
             v-slot="{ passes }"
           >
+            <v-row>
+              <v-col>
+                <h3>
+                  Account
+                </h3>
+              </v-col>
+
+              <v-spacer />
+
+              <v-col
+                md="auto"
+                class="ml-auto"
+              >
+                <v-btn
+                  v-if="!editDataStatus"
+                  outlined
+                  @click="editDataStatus = !editDataStatus"
+                >
+                  Change Data
+                </v-btn>
+
+                <div
+                  v-if="editDataStatus"
+                >
+                  <v-btn
+                    class="mr-2"
+                    outlined
+                    @click="editDataStatus = !editDataStatus"
+                  >
+                    Cancel
+                  </v-btn>
+
+                  <v-btn
+                    outlined
+                    @click="passes(updateData)"
+                  >
+                    Save
+                  </v-btn>
+                </div>
+              </v-col>
+            </v-row>
+
             <div
-              class="mt-6 pl-4 pr-4"
+              class="mt-4 pl-4 pr-4"
             >
               <ValidationProvider
                 v-slot="{ errors }"
@@ -50,47 +92,60 @@
                   data-test="email-text"
                 />
               </ValidationProvider>
-
-              <v-btn
-                v-if="!editDataStatus"
-                class="mr-2"
-                outlined
-                @click="editDataStatus = !editDataStatus"
-              >
-                Change Data
-              </v-btn>
-
-              <div
-                v-if="editDataStatus"
-              >
-                <v-btn
-                  class="mr-2 mt-4"
-                  outlined
-                  @click="editDataStatus = !editDataStatus"
-                >
-                  Cancel
-                </v-btn>
-
-                <v-btn
-                  class="mr-2 mt-4"
-                  outlined
-                  @click="passes(updateData)"
-                >
-                  Save
-                </v-btn>
-              </div>
             </div>
           </ValidationObserver>
+
+          <v-divider class="mt-6" />
+          <v-divider class="mb-6" />
 
           <ValidationObserver
             ref="pass"
             v-slot="{ passes }"
           >
-            <v-divider class="mt-6" />
-            <v-divider class="mb-6" />
+            <v-row>
+              <v-col>
+                <h3>
+                  Password
+                </h3>
+              </v-col>
+
+              <v-spacer />
+
+              <v-col
+                md="auto"
+                class="ml-auto"
+              >
+                <v-btn
+                  v-if="!editPasswordStatus"
+                  outlined
+                  @click="editPasswordStatus = !editPasswordStatus"
+                >
+                  Change Password
+                </v-btn>
+
+                <div
+                  v-if="editPasswordStatus"
+                >
+                  <v-btn
+                    class="mr-2"
+                    outlined
+                    @click="editPasswordStatus = !editPasswordStatus"
+                  >
+                    Cancel
+                  </v-btn>
+
+                  <v-btn
+                    outlined
+                    @click="passes(updatePassword)"
+                  >
+                    Save
+                  </v-btn>
+                </div>
+              </v-col>
+            </v-row>
 
             <div
-              class="mt-6 pl-4 pr-4"
+              class="mt-4 pl-4 pr-4"
             >
               <ValidationProvider
                 v-slot="{ errors }"
@@ -147,41 +202,12 @@
                   data-test="confirmNewPassword-text"
                 />
               </ValidationProvider>
-
-              <v-btn
-                v-if="!editPasswordStatus"
-                class="mr-2"
-                outlined
-                @click="editPasswordStatus = !editPasswordStatus"
-              >
-                Change Password
-              </v-btn>
-
-              <div
-                v-if="editPasswordStatus"
-              >
-                <v-btn
-                  class="mr-2"
-                  outlined
-                  @click="editPasswordStatus = !editPasswordStatus"
-                >
-                  Cancel
-                </v-btn>
-
-                <v-btn
-                  class="mr-2"
-                  outlined
-                  @click="passes(updatePassword)"
-                >
-                  Save
-                </v-btn>
-              </div>
             </div>
           </ValidationObserver>
         </v-col>
       </v-row>
     </v-container>
-  </v-form>
+  </fragment>
 </template>
 
 <script>
