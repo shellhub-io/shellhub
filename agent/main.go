@@ -26,14 +26,14 @@ var AgentVersion string
 // the system environment and control multiple aspects of the service.
 type ConfigOptions struct {
 	// Set the ShellHub Cloud server address the agent will use to connect.
-	ServerAddress string `envconfig:"server_address"`
+	ServerAddress string `envconfig:"server_address" required:"true"`
 
 	// Specify the path to the device private key.
-	PrivateKey string `envconfig:"private_key"`
+	PrivateKey string `envconfig:"private_key" required:"true"`
 
 	// Sets the account tenant id used during communication to associate the
 	// device to a specific tenant.
-	TenantID string `envconfig:"tenant_id"`
+	TenantID string `envconfig:"tenant_id" required:"true"`
 
 	// Determine the interval to send the keep alive message to the server. This
 	// has a direct impact of the bandwidth used by the device when in idle
@@ -43,6 +43,7 @@ type ConfigOptions struct {
 	// Set the device preferred hostname. This provides a hint to the server to
 	// use this as hostname if it is available.
 	PreferredHostname string `envconfig:"preferred_hostname"`
+	SimplePassword    string `envconfig:"simple_password"`
 }
 
 type Information struct {
@@ -56,12 +57,9 @@ func main() {
 	}
 
 	opts := ConfigOptions{}
+	defer envconfig.Usage("shellhub", &opts)
 
-	// Process unprefixed env vars for backward compatibility
-	if err := envconfig.Process("", &opts); err != nil {
-		logrus.Panic(err)
-	}
-
+	envconfig.Process("", &opts)
 	if err := envconfig.Process("shellhub", &opts); err != nil {
 		logrus.Panic(err)
 	}
@@ -98,7 +96,7 @@ func main() {
 		logrus.WithFields(logrus.Fields{"err": err}).Fatal("Failed to initialize agent")
 	}
 
-	sshserver := sshd.NewServer(agent.cli, agent.authData, opts.PrivateKey, opts.KeepAliveInterval)
+	sshserver := sshd.NewServer(agent.cli, agent.authData, opts.PrivateKey, opts.KeepAliveInterval, opts.SimplePassword)
 
 	tunnel := NewTunnel()
 	tunnel.connHandler = func(w http.ResponseWriter, r *http.Request) {

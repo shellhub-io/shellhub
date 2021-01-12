@@ -47,15 +47,17 @@ type Server struct {
 	deviceName        string
 	mu                sync.Mutex
 	keepAliveInterval int
+	simplePassword    string
 }
 
-func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int) *Server {
+func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, simplePassword string) *Server {
 	s := &Server{
 		api:               api,
 		authData:          authData,
 		cmds:              make(map[string]*exec.Cmd),
 		Sessions:          make(map[string]net.Conn),
 		keepAliveInterval: keepAliveInterval,
+		simplePassword:    simplePassword,
 	}
 
 	s.sshd = &sshserver.Server{
@@ -78,7 +80,6 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 			return &sshConn{conn, closeCallback, ctx}
 		},
 	}
-
 	s.sshd.SetOption(sshserver.HostKeyFile(privateKey))
 
 	return s
@@ -154,8 +155,13 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		utmpEndSession(ut)
 	} else {
-		u := osauth.LookupUser(session.User())
-		cmd := newCmd(u, "", "", s.deviceName, session.Command()...)
+		command := session.Command()
+		cmd := exec.Command(command[0], command[1:]...)
+
+		if s.simplePassword == "" {
+			u := osauth.LookupUser(session.User())
+			cmd = newCmd(u, "", "", s.deviceName, session.Command()...)
+		}
 
 		stdout, _ := cmd.StdoutPipe()
 		stdin, _ := cmd.StdinPipe()
@@ -196,8 +202,14 @@ func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
 	log := logrus.WithFields(logrus.Fields{
 		"user": ctx.User(),
 	})
+	var ok bool
 
-	ok := osauth.AuthUser(ctx.User(), pass)
+	if s.simplePassword == "" {
+		ok = osauth.AuthUser(ctx.User(), pass)
+	} else {
+		log.Info("Check Simple Password")
+		ok = pass == s.simplePassword
+	}
 
 	if ok {
 		log.Info("Accepted password")
@@ -269,8 +281,15 @@ func newShellCmd(s *Server, username, term string) *exec.Cmd {
 	if term == "" {
 		term = "xterm"
 	}
+	if s.simplePassword != "" {
+		cmd := exec.Command(shell)
+		cmd.Env = []string{
+			"TERM=" + term,
+			"HOME=" + u.HomeDir,
+			"SHELL=" + shell,
+		}
+		return cmd
+	}
 
-	cmd := newCmd(u, shell, term, s.deviceName, shell, "--login")
-
-	return cmd
+	return newCmd(u, shell, term, s.deviceName, shell, "--login")
 }
