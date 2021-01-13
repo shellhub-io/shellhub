@@ -28,6 +28,22 @@ type ShadowEntry struct {
 	Expire      int    // Days since Jan 1, 1970 that account is disabled i.e. an absolute date specifying when the login may no longer be used.
 }
 
+func VerifyPasswordHash(hashPassword, passwd string) bool {
+	if hashPassword == "" {
+		logrus.Error("Password entry is empty")
+		return false
+	}
+
+	crypt := crypt.NewFromHash(hashPassword)
+	if crypt == nil {
+		logrus.Error("Could not detect password crypto algorithm from shadow entry")
+		return false
+	}
+
+	err := crypt.Verify(hashPassword, []byte(passwd))
+	return err == nil
+}
+
 func AuthUser(username, passwd string) bool {
 	shadowFile, err := os.Open(DefaultShadowFilename)
 	if err != nil {
@@ -45,18 +61,7 @@ func AuthUser(username, passwd string) bool {
 	}
 
 	if entry, ok := entries[username]; ok {
-		if entry.Password != "" {
-			crypt := crypt.NewFromHash(entry.Password)
-			if crypt == nil {
-				logrus.Error("Could not detect password crypto algorithm from shadow entry")
-				return false
-			}
-
-			err := crypt.Verify(entry.Password, []byte(passwd))
-			return err == nil
-		}
-		logrus.Error("Password entry is empty")
-		return false
+		return VerifyPasswordHash(entry.Password, passwd)
 	}
 
 	logrus.Warn("User not found")
