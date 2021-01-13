@@ -40,7 +40,7 @@
                   <v-btn
                     class="mr-2"
                     outlined
-                    @click="editDataStatus = !editDataStatus"
+                    @click="cancel('data')"
                   >
                     Cancel
                   </v-btn>
@@ -129,7 +129,7 @@
                   <v-btn
                     class="mr-2"
                     outlined
-                    @click="editPasswordStatus = !editPasswordStatus"
+                    @click="cancel('password')"
                   >
                     Cancel
                   </v-btn>
@@ -249,6 +249,20 @@ export default {
   },
 
   methods: {
+    cancel(statusExit) {
+      if (statusExit === 'data') {
+        this.setData();
+        this.$refs.data.reset();
+        this.editDataStatus = !this.editDataStatus;
+      } else if (statusExit === 'password') {
+        this.currentPassword = '';
+        this.newPassword = '';
+        this.newPasswordConfirm = '';
+        this.$refs.pass.reset();
+        this.editPasswordStatus = !this.editPasswordStatus;
+      }
+    },
+
     setData() {
       this.username = this.$store.getters['auth/currentUser'];
       this.email = this.$store.getters['auth/email'];
