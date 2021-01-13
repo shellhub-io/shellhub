@@ -26,14 +26,14 @@ var AgentVersion string
 // the system environment and control multiple aspects of the service.
 type ConfigOptions struct {
 	// Set the ShellHub Cloud server address the agent will use to connect.
-	ServerAddress string `envconfig:"server_address"`
+	ServerAddress string `envconfig:"server_address" required:"true"`
 
 	// Specify the path to the device private key.
-	PrivateKey string `envconfig:"private_key"`
+	PrivateKey string `envconfig:"private_key" required:"true"`
 
 	// Sets the account tenant id used during communication to associate the
 	// device to a specific tenant.
-	TenantID string `envconfig:"tenant_id"`
+	TenantID string `envconfig:"tenant_id" required:"true"`
 
 	// Determine the interval to send the keep alive message to the server. This
 	// has a direct impact of the bandwidth used by the device when in idle
@@ -58,12 +58,11 @@ func main() {
 	opts := ConfigOptions{}
 
 	// Process unprefixed env vars for backward compatibility
-	if err := envconfig.Process("", &opts); err != nil {
-		logrus.Panic(err)
-	}
-
+	envconfig.Process("", &opts)
 	if err := envconfig.Process("shellhub", &opts); err != nil {
-		logrus.Panic(err)
+		// show envconfig usage help users to run agent
+		envconfig.Usage("shellhub", &opts)
+		logrus.Fatal(err)
 	}
 
 	updater, err := selfupdater.NewUpdater(AgentVersion)
