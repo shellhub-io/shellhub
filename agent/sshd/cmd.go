@@ -3,6 +3,7 @@
 package sshd
 
 import (
+	"os"
 	"os/exec"
 	"os/user"
 	"strconv"
@@ -33,7 +34,10 @@ func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 		"SHELLHUB_HOST=" + host,
 	}
 	cmd.Dir = u.HomeDir
-	cmd.SysProcAttr = &syscall.SysProcAttr{}
-	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: u.UID, Gid: u.GID, Groups: groups}
+
+	if os.Geteuid() == 0 {
+		cmd.SysProcAttr = &syscall.SysProcAttr{}
+		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: u.UID, Gid: u.GID, Groups: groups}
+	}
 	return cmd
 }

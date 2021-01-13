@@ -45,6 +45,7 @@ type Server struct {
 	deviceName        string
 	mu                sync.Mutex
 	keepAliveInterval int
+	simplePassword    string
 }
 
 func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int) *Server {
@@ -200,12 +201,24 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	}
 }
 
+func (s *Server) ForceSingleMode(SimplePassword string) {
+	if SimplePassword == "" {
+		return
+	}
+	s.simplePassword = SimplePassword
+}
+
 func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
 	log := logrus.WithFields(logrus.Fields{
 		"user": ctx.User(),
 	})
+	var ok bool
 
-	ok := osauth.AuthUser(ctx.User(), pass)
+	if s.simplePassword != "" {
+		ok = osauth.AuthUser(ctx.User(), pass)
+	} else {
+		ok = osauth.VerifyPasswordHash(s.simplePassword, pass)
+	}
 
 	if ok {
 		log.Info("Accepted password")

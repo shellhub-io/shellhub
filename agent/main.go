@@ -44,14 +44,13 @@ type ConfigOptions struct {
 	// Set the device preferred hostname. This provides a hint to the server to
 	// use this as hostname if it is available.
 	PreferredHostname string `envconfig:"preferred_hostname"`
+
+	// Force act as SimplePassword mode. The hash password could be generated
+	// by ```openssl passwd```.
+	SimplePassword string `envconfig:"simple_password"`
 }
 
 func main() {
-	if os.Geteuid() != 0 {
-		logrus.Error("ShellHub must be run as root")
-		os.Exit(1)
-	}
-
 	opts := ConfigOptions{}
 
 	// Process unprefixed env vars for backward compatibility
@@ -61,6 +60,14 @@ func main() {
 		// show envconfig usage help users to run agent
 		envconfig.Usage("shellhub", &opts) // nolint:errcheck
 		logrus.Fatal(err)
+	}
+
+	if (os.Geteuid() == 0) != (opts.SimplePassword == "") {
+		logrus.Error("ShellHub agent must be run as root w/o SIMPLE_PASSWORD")
+		logrus.Error("or as normal user with SIMPLE_PASSWORD")
+		logrus.Error("example:")
+		logrus.Error(" SIMPLE_PASSWORD=$(openssl passwd -1) ./agent")
+		os.Exit(1)
 	}
 
 	updater, err := selfupdater.NewUpdater(AgentVersion)
@@ -96,6 +103,10 @@ func main() {
 	}
 
 	sshserver := sshd.NewServer(agent.cli, agent.authData, opts.PrivateKey, opts.KeepAliveInterval)
+
+	if opts.SimplePassword != "" {
+		sshserver.ForceSingleMode(opts.SimplePassword)
+	}
 
 	tunnel := NewTunnel()
 	tunnel.connHandler = func(w http.ResponseWriter, r *http.Request) {
