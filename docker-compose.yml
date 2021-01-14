@@ -45,8 +45,6 @@ services:
     depends_on:
       - api
       - ui
-    ports:
-      - "${SHELLHUB_HTTP_PORT}:80"
     networks:
       - shellhub
   mongo:

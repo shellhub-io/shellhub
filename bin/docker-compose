@@ -38,7 +38,10 @@ set +o allexport
 
 COMPOSE_FILE="docker-compose.yml"
 
-[ "$SHELLHUB_AUTO_SSL" = "true" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.autossl.yml"
+[ "$SHELLHUB_AUTO_SSL" = "true" ] && SSL_COMPOSE_FILE=autossl || SSL_COMPOSE_FILE=nossl
+
+COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.${SSL_COMPOSE_FILE}.yml"
+
 [ "$SHELLHUB_ENV" = "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.dev.yml"
 [ "$SHELLHUB_HOSTED" = "true" ] && [ "$SHELLHUB_ENV" != "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.enterprise.yml"
 [ -f docker-compose.override.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.override.yml"
