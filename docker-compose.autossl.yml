@@ -1,6 +1,12 @@
 version: '3.7'
 
 services:
+  gateway:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/info"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
   autossl:
     image: valian/docker-nginx-auto-ssl:1.2.0
     restart: on-failure
