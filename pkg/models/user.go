@@ -5,14 +5,12 @@ import (
 )
 
 type User struct {
-	ID            string `json:"id,omitempty" bson:"_id,omitempty"`
-	Name          string `json:"name"`
-	Email         string `json:"email" bson:",omitempty" validate:"email"`
-	Username      string `json:"username" bson:",omitempty"`
-	Password      string `json:"password" bson:",omitempty"`
-	Devices       int    `json:"devices" bson:",omitempty"`
-	Sessions      int    `json:"sessions" bson:",omitempty"`
-	SessionRecord bool   `json:"session_record" bson:"session_record,omitempty"`
+	ID         string `json:"id,omitempty" bson:"_id,omitempty"`
+	Name       string `json:"name"`
+	Email      string `json:"email" bson:",omitempty" validate:"email"`
+	Username   string `json:"username" bson:",omitempty"`
+	Password   string `json:"password" bson:",omitempty"`
+	Namespaces int    `json:"namespaces" bson:"namespaces,omitempty"`
 }
 
 type UserAuthRequest struct {
