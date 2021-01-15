@@ -1015,7 +1015,7 @@ func TestListUsers(t *testing.T) {
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	users, count, err := mongostore.ListUsers(ctx, paginator.Query{-1, -1}, nil)
+	users, count, err := mongostore.ListUsers(ctx, paginator.Query{-1, -1}, nil, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, users)
