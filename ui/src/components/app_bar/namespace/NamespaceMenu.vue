@@ -45,10 +45,13 @@
             <v-subheader>Tenant ID</v-subheader>
 
             <v-list
-              class="pt-0 pb-0"
+              class="pt-0 pb-0 mx-2"
             >
               <v-list-item>
-                <v-list-item-content>
+                <v-row
+                  justify="center"
+                  align="center"
+                >
                   <v-chip>
                     <v-list-item-title>
                       <span data-test="tenantID-text">{{ tenant }}</span>
@@ -63,7 +66,7 @@
                       mdi-content-copy
                     </v-icon>
                   </v-chip>
-                </v-list-item-content>
+                </v-row>
               </v-list-item>
             </v-list>
 
