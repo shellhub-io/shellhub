@@ -1036,13 +1036,38 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 	}
 	defer cursor.Close(ctx)
 
+	queryNamespaceCount := []bson.M{}
+
 	for cursor.Next(ctx) {
 		user := new(models.User)
 		err = cursor.Decode(&user)
+
+		if err != nil {
+			return users, count, err
+		}
+		queryNamespaceCount = append([]bson.M{}, []bson.M{
+			bson.M{
+				"$match": bson.M{
+					"owner": user.ID,
+				},
+			},
+			bson.M{
+				"$group": bson.M{
+					"_id": nil,
+					"count": bson.M{
+						"$sum": 1,
+					},
+				},
+			},
+		}...)
+
+		countNamespaces, err := aggregateCount(ctx, s.db.Collection("namespaces"), queryNamespaceCount)
+
 		if err != nil {
 			return users, count, err
 		}
 
+		user.Namespaces = countNamespaces
 		users = append(users, *user)
 	}
 
