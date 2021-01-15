@@ -1,0 +1,6 @@
+version: '3.7'
+
+services:
+  autossl:
+    ports:
+      - ${SHELLHUB_HTTP_PORT}:80

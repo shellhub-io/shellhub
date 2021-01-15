@@ -42,13 +42,20 @@ COMPOSE_FILE="docker-compose.yml"
 
 COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.${SSL_COMPOSE_FILE}.yml"
 
+if [ "$SHELLHUB_REDIRECT_TO_HTTPS" = "true" ]; then
+    if [ "$SHELLHUB_AUTO_SSL" != "true" ]; then
+	cat <<EOF >&2
+ERROR: In order to enable HTTPS redirection, you need to have HTTPS enabled
+EOF
+	exit 1
+    fi
+
+    COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.httptohttps.yml"
+fi
+
 [ "$SHELLHUB_ENV" = "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.dev.yml"
 [ "$SHELLHUB_HOSTED" = "true" ] && [ "$SHELLHUB_ENV" != "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.enterprise.yml"
 [ -f docker-compose.override.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.override.yml"
-
-[ "$SHELLHUB_AUTO_SSL" = "true" ] && [ "$SHELLHUB_HTTP_PORT" != "0" ] && cat <<EOF >&2
-WARNING: When using SHELLHUB_AUTO_SSL=true you need to set SHELLHUB_HTTP_PORT=0 to avoid exposing plain HTTP service to the internet
-EOF
 
 export COMPOSE_FILE
 
