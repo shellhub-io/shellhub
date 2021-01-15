@@ -204,6 +204,7 @@ export default {
 
       this.ws.onclose = () => {
         this.attachAddon.dispose();
+        this.show = false;
       };
     },
   },
