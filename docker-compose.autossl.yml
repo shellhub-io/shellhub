@@ -16,7 +16,7 @@ services:
       - gateway
     ports:
       - 80:80
-      - 443:443
+      - ${SHELLHUB_HTTPS_PORT}:443
     environment:
       ALLOWED_DOMAINS: '${SHELLHUB_DOMAIN}'
       SITES: '${SHELLHUB_DOMAIN}=gateway:80'
