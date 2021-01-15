@@ -67,6 +67,29 @@ func (_m *Store) CreateFirewallRule(ctx context.Context, rule *models.FirewallRu
 	return r0
 }
 
+// CreateNamespace provides a mock function with given fields: ctx, namespace
+func (_m *Store) CreateNamespace(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
+	ret := _m.Called(ctx, namespace)
+
+	var r0 *models.Namespace
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace) *models.Namespace); ok {
+		r0 = rf(ctx, namespace)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Namespace)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *models.Namespace) error); ok {
+		r1 = rf(ctx, namespace)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreatePrivateKey provides a mock function with given fields: ctx, key
 func (_m *Store) CreatePrivateKey(ctx context.Context, key *models.PrivateKey) error {
 	ret := _m.Called(ctx, key)
@@ -93,29 +116,6 @@ func (_m *Store) CreatePublicKey(ctx context.Context, key *models.PublicKey) err
 	}
 
 	return r0
-}
-
-// CreateNamespace provides a mock function with given fields: ctx, namespace
-func (_m *Store) CreateNamespace(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
-	ret := _m.Called(ctx, namespace)
-
-	var r0 *models.Namespace
-	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace) *models.Namespace); ok {
-		r0 = rf(ctx, namespace)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Namespace)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *models.Namespace) error); ok {
-		r1 = rf(ctx, namespace)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // CreateSession provides a mock function with given fields: ctx, session
@@ -197,20 +197,6 @@ func (_m *Store) DeleteFirewallRule(ctx context.Context, id string) error {
 	return r0
 }
 
-// DeletePublicKey provides a mock function with given fields: ctx, fingerprint
-func (_m *Store) DeletePublicKey(ctx context.Context, fingerprint string) error {
-	ret := _m.Called(ctx, fingerprint)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, fingerprint)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeleteNamespace provides a mock function with given fields: ctx, namespace
 func (_m *Store) DeleteNamespace(ctx context.Context, namespace string) error {
 	ret := _m.Called(ctx, namespace)
@@ -218,6 +204,20 @@ func (_m *Store) DeleteNamespace(ctx context.Context, namespace string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
 		r0 = rf(ctx, namespace)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeletePublicKey provides a mock function with given fields: ctx, fingerprint
+func (_m *Store) DeletePublicKey(ctx context.Context, fingerprint string) error {
+	ret := _m.Called(ctx, fingerprint)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, fingerprint)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -384,52 +384,6 @@ func (_m *Store) GetFirewallRule(ctx context.Context, id string) (*models.Firewa
 	return r0, r1
 }
 
-// GetPrivateKey provides a mock function with given fields: ctx, fingerprint
-func (_m *Store) GetPrivateKey(ctx context.Context, fingerprint string) (*models.PrivateKey, error) {
-	ret := _m.Called(ctx, fingerprint)
-
-	var r0 *models.PrivateKey
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.PrivateKey); ok {
-		r0 = rf(ctx, fingerprint)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.PrivateKey)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, fingerprint)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetPublicKey provides a mock function with given fields: ctx, fingerprint
-func (_m *Store) GetPublicKey(ctx context.Context, fingerprint string) (*models.PublicKey, error) {
-	ret := _m.Called(ctx, fingerprint)
-
-	var r0 *models.PublicKey
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.PublicKey); ok {
-		r0 = rf(ctx, fingerprint)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.PublicKey)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, fingerprint)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetNamespace provides a mock function with given fields: ctx, namespace
 func (_m *Store) GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, namespace)
@@ -469,6 +423,52 @@ func (_m *Store) GetNamespaceByName(ctx context.Context, namespace string) (*mod
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, namespace)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPrivateKey provides a mock function with given fields: ctx, fingerprint
+func (_m *Store) GetPrivateKey(ctx context.Context, fingerprint string) (*models.PrivateKey, error) {
+	ret := _m.Called(ctx, fingerprint)
+
+	var r0 *models.PrivateKey
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.PrivateKey); ok {
+		r0 = rf(ctx, fingerprint)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.PrivateKey)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, fingerprint)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPublicKey provides a mock function with given fields: ctx, fingerprint
+func (_m *Store) GetPublicKey(ctx context.Context, fingerprint string) (*models.PublicKey, error) {
+	ret := _m.Called(ctx, fingerprint)
+
+	var r0 *models.PublicKey
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.PublicKey); ok {
+		r0 = rf(ctx, fingerprint)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.PublicKey)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, fingerprint)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -741,36 +741,6 @@ func (_m *Store) ListFirewallRules(ctx context.Context, pagination paginator.Que
 	return r0, r1, r2
 }
 
-// ListPublicKeys provides a mock function with given fields: ctx, pagination
-func (_m *Store) ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
-	ret := _m.Called(ctx, pagination)
-
-	var r0 []models.PublicKey
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) []models.PublicKey); ok {
-		r0 = rf(ctx, pagination)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.PublicKey)
-		}
-	}
-
-	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query) int); ok {
-		r1 = rf(ctx, pagination)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query) error); ok {
-		r2 = rf(ctx, pagination)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
 // ListNamespaces provides a mock function with given fields: ctx, pagination, filters, export
 func (_m *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error) {
 	ret := _m.Called(ctx, pagination, filters, export)
@@ -794,6 +764,36 @@ func (_m *Store) ListNamespaces(ctx context.Context, pagination paginator.Query,
 	var r2 error
 	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, bool) error); ok {
 		r2 = rf(ctx, pagination, filters, export)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// ListPublicKeys provides a mock function with given fields: ctx, pagination
+func (_m *Store) ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
+	ret := _m.Called(ctx, pagination)
+
+	var r0 []models.PublicKey
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) []models.PublicKey); ok {
+		r0 = rf(ctx, pagination)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.PublicKey)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query) int); ok {
+		r1 = rf(ctx, pagination)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query) error); ok {
+		r2 = rf(ctx, pagination)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -831,13 +831,13 @@ func (_m *Store) ListSessions(ctx context.Context, pagination paginator.Query) (
 	return r0, r1, r2
 }
 
-// ListUsers provides a mock function with given fields: ctx, pagination, filters
-func (_m *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
-	ret := _m.Called(ctx, pagination, filters)
+// ListUsers provides a mock function with given fields: ctx, pagination, filters, export
+func (_m *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.User, int, error) {
+	ret := _m.Called(ctx, pagination, filters, export)
 
 	var r0 []models.User
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter) []models.User); ok {
-		r0 = rf(ctx, pagination, filters)
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, bool) []models.User); ok {
+		r0 = rf(ctx, pagination, filters, export)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.User)
@@ -845,15 +845,15 @@ func (_m *Store) ListUsers(ctx context.Context, pagination paginator.Query, filt
 	}
 
 	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter) int); ok {
-		r1 = rf(ctx, pagination, filters)
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, bool) int); ok {
+		r1 = rf(ctx, pagination, filters, export)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter) error); ok {
-		r2 = rf(ctx, pagination, filters)
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, bool) error); ok {
+		r2 = rf(ctx, pagination, filters, export)
 	} else {
 		r2 = ret.Error(2)
 	}
