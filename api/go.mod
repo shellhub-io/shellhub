@@ -16,7 +16,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/shellhub-io/shellhub v0.4.2
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/undefinedlabs/go-mpatch v1.0.6
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/xakep666/mongo-migrate v0.2.1
