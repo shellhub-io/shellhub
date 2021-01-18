@@ -8,7 +8,7 @@ describe('WelcomeSecondScreen', () => {
 
   let wrapper;
 
-  const command = 'curl "http://localhost/install.sh?tenant_id=a582b47a42e" | sh';
+  const command = 'sh <(curl "http://localhost/install.sh?tenant_id=a582b47a42e")';
 
   const store = new Vuex.Store({
     namespaced: true,
