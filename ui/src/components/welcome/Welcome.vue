@@ -215,7 +215,7 @@ export default {
 
   methods: {
     command() {
-      return `curl "${window.location.protocol}//${this.curl.hostname}/install.sh?tenant_id=${this.curl.tenant}" | sh`;
+      return `sh<(curl "${window.location.protocol}//${this.curl.hostname}/install.sh?tenant_id=${this.curl.tenant}")`;
     },
 
     activePollingDevices() {
