@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
-    "@fortawesome/free-solid-svg-icons": "^5.15.1",
+    "@fortawesome/free-solid-svg-icons": "^5.15.2",
     "@fortawesome/vue-fontawesome": "^2.0.2",
     "@mdi/font": "^5.8.55",
     "@vue/cli-plugin-babel": "^4.5.10",
