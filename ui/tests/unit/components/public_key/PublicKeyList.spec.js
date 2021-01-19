@@ -34,7 +34,7 @@ describe('PublicKeyList', () => {
     },
     getters: {
       'publickeys/list': (state) => state.publicKeys,
-      'publicKeys/getNumberPublicKeys': (state) => state.numberPublicKeys,
+      'publickeys/getNumberPublicKeys': (state) => state.numberPublicKeys,
     },
     actions: {
       'publickeys/fetch': () => {
