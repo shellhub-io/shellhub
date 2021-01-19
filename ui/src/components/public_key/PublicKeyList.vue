@@ -111,7 +111,7 @@ export default {
     },
 
     getNumberPublicKeys() {
-      return this.$store.getters['publicKeys/getNumberPublicKeys'];
+      return this.$store.getters['publickeys/getNumberPublicKeys'];
     },
   },
 
