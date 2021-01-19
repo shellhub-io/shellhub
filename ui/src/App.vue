@@ -144,11 +144,6 @@ export default {
           path: '/firewall/rules',
           hidden: !this.$env.isHosted,
         },
-        {
-          icon: 'vpn_key',
-          title: 'Public Keys',
-          path: '/sshkeys/public_keys',
-        },
       ],
       menu: [
         {
