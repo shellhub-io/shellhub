@@ -396,6 +396,22 @@ var migrations = []migrate.Migration{
 			return err
 		},
 	},
+	{
+		Version: 15,
+		Up: func(db *mongo.Database) error {
+			mod := mongo.IndexModel{
+				Keys:    bson.D{{"fingerprint", 1}},
+				Options: options.Index().SetName("fingerprint").SetUnique(true),
+			}
+			_, err := db.Collection("public_keys").Indexes().CreateOne(context.TODO(), mod)
+			return err
+		},
+
+		Down: func(db *mongo.Database) error {
+			_, err := db.Collection("public_keys").Indexes().DropOne(context.TODO(), "fingerprint")
+			return err
+		},
+	},
 }
 
 func ApplyMigrations(db *mongo.Database) error {
