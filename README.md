@@ -12,7 +12,7 @@
     <img src="https://badges.gitter.im/shellhub-io/shellhub.svg">
   </a>
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors-"><img src="https://img.shields.io/badge/all_contributors-13-orange.svg?style=flat-square"></a>
+<a href="#contributors-"><img src="https://img.shields.io/badge/all_contributors-14-orange.svg?style=flat-square"></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -116,6 +116,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/Robinsondssantos"><img src="https://avatars3.githubusercontent.com/u/29050986?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robinson D. S. Santos</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=Robinsondssantos" title="Code">💻</a></td>
     <td align="center"><a href="https://lbsfilm.at"><img src="https://avatars2.githubusercontent.com/u/1556271?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lukas Bachschwell</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=s00500" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/shawn111"><img src="https://avatars0.githubusercontent.com/u/346761?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Shawn</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=shawn111" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/brammp"><img src="https://avatars0.githubusercontent.com/u/52255786?v=4?s=100" width="100px;" alt=""/><br /><sub><b>brammp</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=brammp" title="Code">💻</a></td>
   </tr>
 </table>
 
