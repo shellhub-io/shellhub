@@ -65,6 +65,11 @@ const router = new Router({
       component: () => import('./../views/FirewallRules.vue'),
     },
     {
+      path: '/sshkeys/public_keys',
+      name: 'publicKeys',
+      component: () => import('./../views/PublicKeys.vue'),
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import(/* webpackChunkName: 'settings' */ './../views/Settings.vue'),
