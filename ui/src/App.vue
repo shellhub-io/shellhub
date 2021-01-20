@@ -180,6 +180,10 @@ export default {
       return this.items.filter((item) => !item.hidden);
     },
 
+    hasLoggedID() {
+      return this.$store.getters['auth/id'] !== '';
+    },
+
     hasNamespaces() {
       return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
     },
@@ -187,6 +191,19 @@ export default {
     currentInANamespace() {
       return localStorage.getItem('tenant') !== '';
     },
+  },
+
+  created() { // previous user tenant changed into a namespace
+    if (!this.hasLoggedID && this.isLoggedIn) {
+      try {
+        this.$store.dispatch('auth/logout').then(() => {
+          this.$router.push('/login');
+        });
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceReload);
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$error.namespaceLoad);
+      }
+    }
   },
 
   methods: {
