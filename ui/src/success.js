@@ -18,6 +18,7 @@ export default {
       namespaceDelete: 'deleting namespace',
       namespaceEdit: 'editing namespace',
       namespaceRemoveUser: 'removing member',
+      namespaceReload: 'reloading namespace',
     };
 
     Vue.success = success;
