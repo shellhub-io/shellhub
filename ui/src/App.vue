@@ -157,6 +157,11 @@ export default {
           path: '/firewall/rules',
           hidden: !this.$env.isEnterprise,
         },
+        {
+          icon: 'vpn_key',
+          title: 'Public Keys',
+          path: '/sshkeys/public_keys',
+        },
       ],
       menu: [
         {
