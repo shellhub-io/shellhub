@@ -228,9 +228,9 @@
                   Delete this namespace
                 </h4>
                 <div class="ml-2">
-                  <subtitle-1>
+                  <p>
                     After deleting a namespace, there is no going back. Be sure.
-                  </subtitle-1>
+                  </p>
                 </div>
               </v-col>
 

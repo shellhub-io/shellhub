@@ -14,8 +14,10 @@
             label="Enable session record"
           />
 
+          <p>
           Session record is a feature that allows you to check logged activity when
           connecting to a device.
+          </p>
         </div>
       </v-col>
     </v-row>
