@@ -25,6 +25,7 @@ describe('SettingNamespace', () => {
 
   const idOwner = '6';
   const idNotOwner = '10';
+  const textRole = ['Owner', 'Member', 'Member'];
 
   const storeNotOwner = new Vuex.Store({
     namespaced: true,
@@ -120,9 +121,6 @@ describe('SettingNamespace', () => {
       expect(wrapper.vm.name).toBe(namespace.name);
     });
   });
-  it('Loads the expected number of delete buttons', () => {
-    expect(wrapper.findAll('[data-test=remove-member]').length).toEqual(namespace.members.length - 1);
-  });
   it('Loads the owner in template', () => {
     expect(wrapper.find('[data-test=owner]').text()).toEqual('Owner');
   });
@@ -138,6 +136,9 @@ describe('SettingNamespace', () => {
     expect(wrapper.find('[data-test=deleteOperation]').exists()).toEqual(true);
     expect(wrapper.find('[data-test=securityOperation]').exists()).toEqual(true);
     expect(wrapper.find('[data-test=notTheOwner]').exists()).toEqual(false);
+    expect(wrapper.findAll('[data-test=remove-member]').length).toEqual(namespace.members.length - 1);
+    expect(wrapper.find('[data-test=role]').exists()).toEqual(false);
+    expect(wrapper.find('[data-test=new-member]').exists()).toEqual(true);
   });
   it('Check not the owner fields rendering in hosted version of the template.', () => {
     const notTheOwnerMessage = 'You\'re not the owner of this namespace.';
@@ -151,9 +152,16 @@ describe('SettingNamespace', () => {
   // open version tests
   it('Check owner fields rendering in open version of the template.', () => {
     expect(wrapper3.find('[data-test=editOperation]').exists()).toEqual(true);
-    expect(wrapper3.find('[data-test=userOperation]').exists()).toEqual(false);
+    expect(wrapper3.find('[data-test=userOperation]').exists()).toEqual(true);
     expect(wrapper3.find('[data-test=deleteOperation]').exists()).toEqual(true);
     expect(wrapper3.find('[data-test=securityOperation]').exists()).toEqual(false);
     expect(wrapper3.find('[data-test=notTheOwner]').exists()).toEqual(false);
+    expect(wrapper3.findAll('[data-test=remove-member]').exists()).toEqual(false);
+    expect(wrapper3.find('[data-test=role]').exists()).toEqual(true);
+    expect(wrapper3.findAll('[data-test=role]').wrappers.reduce((ac, v) => {
+      ac.push(v.text());
+      return ac;
+    }, [])).toEqual(textRole);
+    expect(wrapper3.find('[data-test=new-member]').exists()).toEqual(false);
   });
 });
