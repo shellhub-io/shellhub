@@ -123,11 +123,19 @@ export default {
   },
 
   methods: {
-    getNotifications() {
+    async getNotifications() {
       try {
-        this.$store.dispatch('notifications/fetch');
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.notificationList);
+        await this.$store.dispatch('notifications/fetch');
+      } catch (e) {
+        switch (true) {
+        case (e.response.status === 403): {
+          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+          break;
+        }
+        default: {
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.notificationList);
+        }
+        }
       }
     },
 
