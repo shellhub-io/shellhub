@@ -116,9 +116,9 @@
           </div>
 
           <div
-            v-if="isHostedOwner"
-            class="mt-6"
+            v-if="isOwner"
             data-test="userOperation"
+            class="mt-6"
           >
             <v-row>
               <v-col>
@@ -129,12 +129,17 @@
 
               <v-spacer />
 
-              <v-col
-                md="auto"
-                class="ml-auto"
+              <div
+                v-if="isHostedOwner"
+                data-test="new-member"
               >
-                <NamespaceNewMember :ns-tenant="tenant" />
-              </v-col>
+                <v-col
+                  md="auto"
+                  class="ml-auto"
+                >
+                  <NamespaceNewMember :ns-tenant="tenant" />
+                </v-col>
+              </div>
             </v-row>
 
             <div class="mt-5">
@@ -161,38 +166,55 @@
 
                     <v-spacer />
 
-                    <v-col
-                      md="auto"
-                      class="ml-auto"
+                    <div
+                      v-if="isHostedOwner"
                     >
-                      <v-btn
-                        v-if="item.id!==owner"
-                        data-test="remove-member"
-                        outlined
-                        @click="remove(item.name)"
+                      <v-col
+                        md="auto"
+                        class="ml-auto"
                       >
-                        <v-tooltip
-                          bottom
+                        <v-btn
+                          v-if="item.id!==owner"
+                          data-test="remove-member"
+                          outlined
+                          @click="remove(item.name)"
                         >
-                          <template #activator="{ on }">
-                            <v-icon v-on="on">
-                              delete
-                            </v-icon>
-                          </template>
-                          <span>
-                            Remove user
-                          </span>
-                        </v-tooltip>
-                      </v-btn>
+                          <v-tooltip
+                            bottom
+                          >
+                            <template #activator="{ on }">
+                              <v-icon v-on="on">
+                                delete
+                              </v-icon>
+                            </template>
+                            <span>
+                              Remove user
+                            </span>
+                          </v-tooltip>
+                        </v-btn>
 
-                      <p
-                        v-else
-                        data-test="owner"
-                        class="mr-3"
+                        <p
+                          v-else
+                          data-test="owner"
+                          class="mr-3"
+                        >
+                          Owner
+                        </p>
+                      </v-col>
+                    </div>
+                    <div
+                      v-else
+                      data-test="role"
+                    >
+                      <v-col
+                        md="auto"
+                        class="ml-auto"
                       >
-                        Owner
-                      </p>
-                    </v-col>
+                        <p data-test="role-text">
+                          {{ item.id === owner ? 'Owner' : 'Member' }}
+                        </p>
+                      </v-col>
+                    </div>
                   </v-row>
                 </v-list-item>
               </v-list>
