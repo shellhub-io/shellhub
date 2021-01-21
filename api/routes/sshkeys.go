@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/labstack/echo"
 	"net/http"
 	"strconv"
 
@@ -70,7 +71,9 @@ func CreatePublicKey(c apicontext.Context) error {
 		if err == sshkeys.ErrInvalidFormat {
 			return c.NoContent(http.StatusUnprocessableEntity)
 		}
-
+		if err == sshkeys.ErrDuplicateFingerprint {
+			return echo.NewHTTPError(http.StatusConflict, err.Error())
+		}
 		return err
 	}
 

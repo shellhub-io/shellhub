@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	ErrDuplicateEmail = errors.New("email address is already in use")
-	ErrRecordNotFound = errors.New("public key not found")
+	ErrDuplicateEmail       = errors.New("email address is already in use")
+	ErrRecordNotFound       = errors.New("public key not found")
+	ErrDuplicateFingerprint = errors.New("this fingerprint already exits")
 )
 
 type Store interface {
