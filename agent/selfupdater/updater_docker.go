@@ -92,24 +92,24 @@ func (d *dockerUpdater) CompleteUpdate() error {
 			}
 		}
 
-                // Append /var/run and /var/log to mount if old container
-                // version is less than v0.4.2 since utmp and wtmp are
-                // required inside container to record login sessions
-                v0_4_2, _ := semver.NewVersion("v0.4.2")
-                if v.LessThan(v0_4_2) {
-                        parent.info.HostConfig.Mounts = []mount.Mount{
-                                mount.Mount{
-                                        Type:   mount.TypeBind,
-                                        Source: "/var/run",
-                                        Target: "/var/run",
-                                },
-                                mount.Mount{
-                                        Type:   mount.TypeBind,
-                                        Source: "/var/log",
-                                        Target: "/var/log",
-                                },
-                        }
-                }
+		// Append /var/run and /var/log to mount if old container
+		// version is less than v0.5.0 since utmp and wtmp are
+		// required inside container to record login sessions
+		v0_5_0, _ := semver.NewVersion("v0.5.0")
+		if v.LessThan(v0_5_0) {
+			parent.info.HostConfig.Mounts = []mount.Mount{
+				mount.Mount{
+					Type:   mount.TypeBind,
+					Source: "/var/run",
+					Target: "/var/run",
+				},
+				mount.Mount{
+					Type:   mount.TypeBind,
+					Source: "/var/log",
+					Target: "/var/log",
+				},
+			}
+		}
 
 		_, err = d.updateContainer(parent, container.info.Config.Image, parent.info.Name, false)
 		if err != nil {
