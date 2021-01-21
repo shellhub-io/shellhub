@@ -1198,11 +1198,23 @@ func (s *Store) ListPublicKeys(ctx context.Context, pagination paginator.Query) 
 
 func (s *Store) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
 	_, err := s.db.Collection("public_keys").InsertOne(ctx, key)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key error") {
+			return store.ErrDuplicateFingerprint
+		}
+	}
+
 	return err
 }
 
 func (s *Store) UpdatePublicKey(ctx context.Context, fingerprint string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
 	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint}, bson.M{"$set": key}); err != nil {
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key error") {
+				return nil, store.ErrDuplicateEmail
+			}
+		}
+
 		return nil, err
 	}
 

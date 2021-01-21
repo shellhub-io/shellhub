@@ -16,6 +16,7 @@ import (
 )
 
 var ErrInvalidFormat = errors.New("invalid format")
+var ErrDuplicateFingerprint = errors.New("This fingerprint already exits")
 
 type Service interface {
 	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
@@ -48,7 +49,11 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) er
 
 	key.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
-	return s.store.CreatePublicKey(ctx, key)
+	err = s.store.CreatePublicKey(ctx, key)
+	if err == store.ErrDuplicateFingerprint {
+		return ErrDuplicateFingerprint
+	}
+	return err
 }
 
 func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
