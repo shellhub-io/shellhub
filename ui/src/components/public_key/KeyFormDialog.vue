@@ -31,7 +31,7 @@
     >
       <v-card>
         <ValidationObserver
-          ref="obs"
+          ref="pass"
           v-slot="{ passes }"
         >
           <v-card-title
@@ -63,6 +63,7 @@
 
             <ValidationProvider
               v-slot="{ errors }"
+              vid="key"
               name="Data"
               rules="required|parseKey"
               :disabled="!createKey"
@@ -182,8 +183,14 @@ export default {
           await this.$store.dispatch('publickeys/post', keySend);
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyCreating);
           this.update();
-        } catch {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyCreating);
+        } catch (error) {
+          if (error.response.status === 409) {
+            this.$refs.pass.setErrors({
+              key: error.response.data.message,
+            });
+          } else {
+            this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyCreating);
+          }
         }
         break;
       case 'private':
