@@ -213,6 +213,7 @@ export default {
 
   async created() {
     await this.getNamespaces();
+    await this.getNamespace();
   },
 
   methods: {
@@ -224,14 +225,33 @@ export default {
     async openMenu() {
       if (!this.displayMenu) {
         await this.getNamespaces();
+        await this.getNamespace();
       }
       this.displayMenu = !this.displayMenu;
+    },
+
+    async getNamespace() {
+      try {
+        await this.$store.dispatch('namespaces/get', this.tenant);
+      } catch (e) {
+        switch (true) {
+        case (e.response.status === 404): { // detects namespace inserted
+          const namespaceFind = this.namespaces[0];
+          if (this.tenant === '' && namespaceFind !== undefined) {
+            this.switchIn(namespaceFind.tenant_id);
+          }
+          break;
+        }
+        default: {
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceLoad);
+        }
+        }
+      }
     },
 
     async getNamespaces() {
       try {
         await this.$store.dispatch('namespaces/fetch');
-        await this.$store.dispatch('namespaces/get', this.tenant);
       } catch (e) {
         switch (true) {
         case (!this.inANamespace): { // dialog pops
