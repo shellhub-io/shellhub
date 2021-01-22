@@ -7,6 +7,7 @@ describe('Notification', () => {
   localVue.use(Vuex);
 
   let wrapper;
+  const inANamespace = false;
 
   const numberNotifications = 2;
   const noNotifications = Array(0);
@@ -86,6 +87,7 @@ describe('Notification', () => {
       store,
       localVue,
       stubs: ['fragment', 'router-link'],
+      propsData: { inANamespace },
     });
   });
 
@@ -106,8 +108,12 @@ describe('Notification', () => {
       store: storeNoNotifications,
       localVue,
       stubs: ['fragment', 'router-link'],
+      propsData: { inANamespace },
     });
     expect(wrapper.find('[data-test="noNotifications"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="noNotifications"]').text()).toEqual('You don\'t have notifications');
+  });
+  it('Receives data in props', () => {
+    expect(wrapper.vm.inANamespace).toEqual(inANamespace);
   });
 });

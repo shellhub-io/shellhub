@@ -95,6 +95,13 @@ export default {
     DeviceActionButton,
   },
 
+  props: {
+    inANamespace: {
+      type: Boolean,
+      required: true,
+    },
+  },
+
   data() {
     return {
       listNotifications: [],
@@ -128,6 +135,9 @@ export default {
         await this.$store.dispatch('notifications/fetch');
       } catch (e) {
         switch (true) {
+        case (!this.inANamespace && e.response.status === 403): { // dialog pops
+          break;
+        }
         case (e.response.status === 403): {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
           break;

@@ -254,7 +254,7 @@ export default {
         await this.$store.dispatch('namespaces/fetch');
       } catch (e) {
         switch (true) {
-        case (!this.inANamespace): { // dialog pops
+        case (!this.inANamespace && e.response.status === 403): { // dialog pops
           break;
         }
         case (e.response.status === 403): {
