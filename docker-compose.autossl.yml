@@ -19,3 +19,5 @@ services:
     environment:
       ALLOWED_DOMAINS: '${SHELLHUB_DOMAIN}'
       SITES: '${SHELLHUB_DOMAIN}=gateway:80'
+    networks:
+      - shellhub
