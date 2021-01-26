@@ -255,7 +255,6 @@ export default {
 
     close() {
       this.$emit('update:show', false);
-      localStorage.setItem('onceWelcome', true);
       clearTimeout(this.polling);
     },
   },
