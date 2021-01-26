@@ -60,7 +60,7 @@ export default {
     },
 
     setShowWelcomeScreen(state, tenantId) {
-      state.namespaceUsedToShowWelcomeScreen.push(tenantId);
+      Vue.set(state, 'state.namespaceUsedToShowWelcomeScreen', tenantId);
     },
   },
 
@@ -103,19 +103,16 @@ export default {
       }
     },
 
-    logout: async ({ commit, state }) => {
+    logout(context) {
+      context.commit('logout');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('tenant');
+      localStorage.removeItem('namespaceUsedToShowWelcomeScreen');
       localStorage.removeItem('noNamespace');
       localStorage.removeItem('email');
       localStorage.removeItem('id');
       localStorage.removeItem('name');
-
-      await state.namespaceUsedToShowWelcomeScreen.forEach((item) => {
-        localStorage.removeItem(item);
-      });
-      commit('logout');
     },
 
     changeUserData(context, data) {
@@ -125,7 +122,11 @@ export default {
     },
 
     setShowWelcomeScreen(context, tenantId) {
-      context.commit('setShowWelcomeScreen', tenantId);
+      const namespaceUsedToShowWelcomeScreen = JSON.parse(localStorage.getItem('namespaceUsedToShowWelcomeScreen')) || [];
+
+      namespaceUsedToShowWelcomeScreen.push({ tenantId });
+      localStorage.setItem('namespaceUsedToShowWelcomeScreen', JSON.stringify(namespaceUsedToShowWelcomeScreen));
+      context.commit('setShowWelcomeScreen', namespaceUsedToShowWelcomeScreen);
     },
   },
 };

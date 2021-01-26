@@ -197,17 +197,18 @@ export default {
     },
 
     async showScreenWelcome() {
-      let status = false;
+      let status = true;
 
       await this.getNamespace();
       const tenantId = await this.$store.getters['namespaces/get'].tenant_id;
+      const namespaceUsedToShowWelcomeScreen = JSON.parse(localStorage.getItem('namespaceUsedToShowWelcomeScreen')) || [];
 
-      if (localStorage.getItem(tenantId) === null && this.hasNoRegisteredDevice()) {
-        localStorage.setItem(tenantId, true);
-        this.$store.dispatch('auth/setShowWelcomeScreen', tenantId);
+      await namespaceUsedToShowWelcomeScreen.forEach((item) => {
+        if (item.tenantId === tenantId && this.hasNoRegisteredDevice()) {
+          status = false;
+        }
+      });
 
-        status = true;
-      }
       this.show = status;
     },
 
