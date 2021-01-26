@@ -12,6 +12,7 @@ export default {
     tenant: localStorage.getItem('tenant') || '',
     email: localStorage.getItem('email') || '',
     id: localStorage.getItem('id') || '',
+    namespaceUsedToShowWelcomeScreen: [],
   },
 
   getters: {
@@ -50,11 +51,16 @@ export default {
       Vue.set(state, 'user', '');
       Vue.set(state, 'tenant', '');
       Vue.set(state, 'email', '');
+      Vue.set(state, 'namespaceUsedToWelcomeScreen', []);
     },
 
     changeData(state, data) {
       Vue.set(state, 'user', data.username);
       Vue.set(state, 'email', data.email);
+    },
+
+    setShowWelcomeScreen(state, tenantId) {
+      state.namespaceUsedToShowWelcomeScreen.push(tenantId);
     },
   },
 
@@ -97,22 +103,29 @@ export default {
       }
     },
 
-    logout(context) {
-      context.commit('logout');
+    logout: async ({ commit, state }) => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('tenant');
-      localStorage.removeItem('onceWelcome');
       localStorage.removeItem('noNamespace');
       localStorage.removeItem('email');
       localStorage.removeItem('id');
       localStorage.removeItem('name');
+
+      await state.namespaceUsedToShowWelcomeScreen.forEach((item) => {
+        localStorage.removeItem(item);
+      });
+      commit('logout');
     },
 
     changeUserData(context, data) {
       localStorage.setItem('user', data.username);
       localStorage.setItem('email', data.email);
       context.commit('changeData', data);
+    },
+
+    setShowWelcomeScreen(context, tenantId) {
+      context.commit('setShowWelcomeScreen', tenantId);
     },
   },
 };

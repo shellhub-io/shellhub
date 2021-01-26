@@ -196,11 +196,15 @@ export default {
       this.showInstructions = status;
     },
 
-    showScreenWelcome() {
+    async showScreenWelcome() {
       let status = false;
 
-      if (localStorage.getItem('onceWelcome') === null && this.hasNoRegisteredDevice()) {
-        localStorage.setItem('onceWelcome', true);
+      await this.getNamespace();
+      const tenantId = await this.$store.getters['namespaces/get'].tenant_id;
+
+      if (localStorage.getItem(tenantId) === null && this.hasNoRegisteredDevice()) {
+        localStorage.setItem(tenantId, true);
+        this.$store.dispatch('auth/setShowWelcomeScreen', tenantId);
 
         status = true;
       }
@@ -211,6 +215,14 @@ export default {
       return this.stats.registered_devices === 0
         && this.stats.pending_devices === 0
         && this.stats.rejected_devices === 0;
+    },
+
+    async getNamespace() {
+      try {
+        await this.$store.dispatch('namespaces/get', localStorage.getItem('tenant'));
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceLoad);
+      }
     },
   },
 };
