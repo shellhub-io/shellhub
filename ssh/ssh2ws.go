@@ -31,8 +31,15 @@ func HandlerWebsocket(ws *websocket.Conn) {
 	auths := []ssh.AuthMethod{}
 
 	if fingerprint != "" && signature != "" {
+		parts := strings.SplitN(user, "@", 2)
+		if len(parts) != 2 {
+			ws.Close()
+			return
+		}
+
 		apiClient := client.NewClient()
-		key, err := apiClient.GetPublicKey(fingerprint)
+		device, err := apiClient.GetDevice(parts[1])
+		key, err := apiClient.GetPublicKey(fingerprint, device.TenantID)
 		if err != nil {
 			fmt.Println(err)
 			ws.Write([]byte("Permission denied\r\n"))
@@ -45,12 +52,6 @@ func HandlerWebsocket(ws *websocket.Conn) {
 		digest, err := base64.StdEncoding.DecodeString(signature)
 		if err != nil {
 			fmt.Println(err)
-			ws.Close()
-			return
-		}
-
-		parts := strings.SplitN(user, "@", 2)
-		if len(parts) != 2 {
 			ws.Close()
 			return
 		}

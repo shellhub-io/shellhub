@@ -11,7 +11,7 @@ import (
 var (
 	ErrDuplicateEmail       = errors.New("email address is already in use")
 	ErrRecordNotFound       = errors.New("public key not found")
-	ErrDuplicateFingerprint = errors.New("this fingerprint already exits")
+	ErrDuplicateFingerprint = errors.New("this fingerprint already exists")
 )
 
 type Store interface {
@@ -55,10 +55,10 @@ type Store interface {
 	LoadLicense(ctx context.Context) (*models.License, error)
 	SaveLicense(ctx context.Context, license *models.License) error
 	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
-	GetPublicKey(ctx context.Context, fingerprint string) (*models.PublicKey, error)
+	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePublicKey(ctx context.Context, key *models.PublicKey) error
-	UpdatePublicKey(ctx context.Context, fingerprint string, key *models.PublicKeyUpdate) (*models.PublicKey, error)
-	DeletePublicKey(ctx context.Context, fingerprint string) error
+	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error)
+	DeletePublicKey(ctx context.Context, fingerprint, tenant string) error
 	CreatePrivateKey(ctx context.Context, key *models.PrivateKey) error
 	GetPrivateKey(ctx context.Context, fingerprint string) (*models.PrivateKey, error)
 	ListNamespaces(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error)
