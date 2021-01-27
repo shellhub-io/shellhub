@@ -1345,3 +1345,110 @@ func TestSaveLicense(t *testing.T) {
 	})
 	assert.NoError(t, err)
 }
+
+func TestCreatePublicKey(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+	newKey := &models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste1"},
+	}
+	err := mongostore.CreatePublicKey(ctx, newKey)
+	assert.NoError(t, err)
+}
+
+func TestListPublicKeys(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+	key := models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+	}
+	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+
+	_, count, err := mongostore.ListPublicKeys(ctx, paginator.Query{-1, -1})
+	assert.Equal(t, 1, count)
+	assert.NoError(t, err)
+}
+
+func TestListGetPublicKey(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+	key := models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+	}
+	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+
+	k, err := mongostore.GetPublicKey(ctx, key.Fingerprint, key.TenantID)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, k)
+}
+
+func TestUpdatePublicKey(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+	//createdAt := time.Now()
+	key := &models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+	}
+	updatedKey := &models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
+	}
+	unexistingKey := &models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint2", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+	}
+
+	update := &models.PublicKeyUpdate{
+		PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
+	}
+	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+
+	k, err := mongostore.UpdatePublicKey(ctx, key.Fingerprint, key.TenantID, update)
+	assert.NoError(t, err)
+	assert.Equal(t, k, updatedKey)
+	_, err = mongostore.UpdatePublicKey(ctx, unexistingKey.Fingerprint, unexistingKey.TenantID, update)
+	assert.EqualError(t, err, "public key not found")
+}
+
+func TestDeletePublicKey(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+	newKey := &models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant", PublicKeyFields: models.PublicKeyFields{Name: "teste1"},
+	}
+
+	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, newKey)
+	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	err := mongostore.DeletePublicKey(ctx, newKey.Fingerprint, newKey.TenantID)
+	assert.NoError(t, err)
+}

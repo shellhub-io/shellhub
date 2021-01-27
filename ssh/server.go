@@ -159,7 +159,7 @@ func (*Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKe
 
 	if ssh.FingerprintLegacyMD5(magicPubKey) != fingerprint {
 		apiClient := client.NewClient()
-		_, err = apiClient.GetPublicKey(fingerprint)
+		_, err = apiClient.GetPublicKey(fingerprint, "")
 		if err != nil {
 			return false
 		}
