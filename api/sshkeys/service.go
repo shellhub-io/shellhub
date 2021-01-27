@@ -20,10 +20,10 @@ var ErrDuplicateFingerprint = errors.New("This fingerprint already exits")
 
 type Service interface {
 	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
-	GetPublicKey(ctx context.Context, fingerprint string) (*models.PublicKey, error)
+	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePublicKey(ctx context.Context, key *models.PublicKey) error
-	UpdatePublicKey(ctx context.Context, fingerprint string, key *models.PublicKeyUpdate) (*models.PublicKey, error)
-	DeletePublicKey(ctx context.Context, fingerprint string) error
+	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error)
+	DeletePublicKey(ctx context.Context, fingerprint, tenant string) error
 	CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error)
 }
 
@@ -35,8 +35,8 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) GetPublicKey(ctx context.Context, fingerprint string) (*models.PublicKey, error) {
-	return s.store.GetPublicKey(ctx, fingerprint)
+func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
+	return s.store.GetPublicKey(ctx, fingerprint, tenant)
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
@@ -60,12 +60,12 @@ func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query
 	return s.store.ListPublicKeys(ctx, pagination)
 }
 
-func (s *service) UpdatePublicKey(ctx context.Context, fingerprint string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	return s.store.UpdatePublicKey(ctx, fingerprint, key)
+func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
+	return s.store.UpdatePublicKey(ctx, fingerprint, tenant, key)
 }
 
-func (s *service) DeletePublicKey(ctx context.Context, fingerprint string) error {
-	return s.store.DeletePublicKey(ctx, fingerprint)
+func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
+	return s.store.DeletePublicKey(ctx, fingerprint, tenant)
 }
 
 func (s *service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error) {

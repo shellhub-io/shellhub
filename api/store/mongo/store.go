@@ -1118,14 +1118,24 @@ func (s *Store) SaveLicense(ctx context.Context, license *models.License) error 
 	return err
 }
 
-func (s *Store) GetPublicKey(ctx context.Context, fingerprint string) (*models.PublicKey, error) {
+func (s *Store) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
 	pubKey := new(models.PublicKey)
-	if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint}).Decode(&pubKey); err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, store.ErrRecordNotFound
-		}
+	if tenant != "" {
+		if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenant}).Decode(&pubKey); err != nil {
+			if err == mongo.ErrNoDocuments {
+				return nil, store.ErrRecordNotFound
+			}
 
-		return nil, err
+			return nil, err
+		}
+	} else {
+		if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint}).Decode(&pubKey); err != nil {
+			if err == mongo.ErrNoDocuments {
+				return nil, store.ErrRecordNotFound
+			}
+
+			return nil, err
+		}
 	}
 
 	return pubKey, nil
@@ -1188,7 +1198,7 @@ func (s *Store) CreatePublicKey(ctx context.Context, key *models.PublicKey) erro
 	return err
 }
 
-func (s *Store) UpdatePublicKey(ctx context.Context, fingerprint string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
+func (s *Store) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
 	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint}, bson.M{"$set": key}); err != nil {
 		if err != nil {
 			if strings.Contains(err.Error(), "duplicate key error") {
@@ -1199,11 +1209,11 @@ func (s *Store) UpdatePublicKey(ctx context.Context, fingerprint string, key *mo
 		return nil, err
 	}
 
-	return s.GetPublicKey(ctx, fingerprint)
+	return s.GetPublicKey(ctx, fingerprint, tenant)
 }
 
-func (s *Store) DeletePublicKey(ctx context.Context, fingerprint string) error {
-	_, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": fingerprint})
+func (s *Store) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
+	_, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenant})
 	return err
 }
 
