@@ -133,7 +133,7 @@
               @update="refresh"
             />
             <SessionPlay
-              :recorded="item.authenticated && item.recorded"
+              :recorded="item.authenticated && item.recorded && isOwner"
               :uid="item.uid"
             />
           </template>
@@ -215,6 +215,14 @@ export default {
 
     getNumberSessions() {
       return this.$store.getters['sessions/getNumberSessions'];
+    },
+
+    isOwner() {
+      return this.owner === this.$store.getters['auth/id'];
+    },
+
+    owner() {
+      return this.$store.getters['namespaces/get'].owner;
     },
   },
 
