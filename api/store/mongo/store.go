@@ -1234,13 +1234,7 @@ func (s *Store) GetNamespaceByName(ctx context.Context, namespace string) (*mode
 
 func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
-	query := []bson.M{
-		{
-			"$sort": bson.M{
-				"started_at": -1,
-			},
-		},
-	}
+	query := []bson.M{}
 
 	if len(queryMatch) > 0 {
 		query = append(query, queryMatch...)
