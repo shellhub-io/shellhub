@@ -2,7 +2,7 @@ export default {
   /* eslint-disable no-param-reassign */
   install(Vue) {
     const env = {
-      isHosted: (window.env || process.env).VUE_APP_SHELLHUB_HOSTED === 'true',
+      isEnterprise: (window.env || process.env).VUE_APP_SHELLHUB_ENTERPRISE === 'true',
     };
 
     Vue.env = env;

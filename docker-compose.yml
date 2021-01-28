@@ -5,7 +5,7 @@ services:
     image: shellhubio/ssh:${SHELLHUB_VERSION}
     environment:
       - PRIVATE_KEY=/run/secrets/ssh_private_key
-      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - RECORD_URL=${SHELLHUB_RECORD_URL}
     ports:
       - "${SHELLHUB_SSH_PORT}:2222"
@@ -30,7 +30,7 @@ services:
   ui:
     image: shellhubio/ui:${SHELLHUB_VERSION}
     environment:
-      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
     depends_on:
       - api
     networks:
@@ -41,7 +41,7 @@ services:
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - SHELLHUB_SSH_PORT=${SHELLHUB_SSH_PORT}
       - SHELLHUB_PROXY=${SHELLHUB_PROXY}
-      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
     depends_on:
       - api
       - ui

@@ -75,7 +75,7 @@ describe('SessionPlay', () => {
       stubs: ['fragment'],
       propsData: { uid, recorded },
       mocks: {
-        $env: (isHosted) => isHosted,
+        $env: (isEnterprise) => isEnterprise,
       },
     });
   });

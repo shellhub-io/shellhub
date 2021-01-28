@@ -98,7 +98,7 @@ export default {
     },
 
     openVersion() {
-      return !this.$env.isHosted;
+      return !this.$env.isEnterprise;
     },
 
     autoSwitch() {

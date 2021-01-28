@@ -155,7 +155,7 @@ export default {
           icon: 'security',
           title: 'Firewall Rules',
           path: '/firewall/rules',
-          hidden: !this.$env.isHosted,
+          hidden: !this.$env.isEnterprise,
         },
       ],
       menu: [

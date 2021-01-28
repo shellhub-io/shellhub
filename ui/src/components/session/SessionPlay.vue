@@ -367,7 +367,7 @@ export default {
     },
 
     hidden() {
-      return this.$env.isHosted;
+      return this.$env.isEnterprise;
     },
   },
 };

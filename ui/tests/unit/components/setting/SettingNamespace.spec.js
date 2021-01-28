@@ -4,7 +4,7 @@ import SettingNamespace from '@/components/setting/SettingNamespace';
 
 config.mocks = {
   $env: {
-    isHosted: true,
+    isEnterprise: true,
   },
 };
 
@@ -96,7 +96,7 @@ describe('SettingNamespace', () => {
       stubs: ['fragment'],
       mocks: {
         $env: {
-          isHosted: false,
+          isEnterprise: false,
         },
       },
     });
@@ -114,7 +114,7 @@ describe('SettingNamespace', () => {
   it('Process data in the computed', () => {
     expect(wrapper.vm.namespace).toEqual(namespace);
     expect(wrapper.vm.tenant).toEqual(namespace.tenant_id);
-    expect(wrapper.vm.isHostedOwner).toEqual(true);
+    expect(wrapper.vm.isEnterpriseOwner).toEqual(true);
   });
   it('Loads name when component is created', () => {
     wrapper.vm.$nextTick(() => {
