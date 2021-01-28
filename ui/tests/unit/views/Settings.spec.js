@@ -15,7 +15,7 @@ describe('Settings', () => {
       localVue,
       stubs: ['fragment'],
       mocks: {
-        $env: (isHosted) => isHosted,
+        $env: (isEnterprise) => isEnterprise,
       },
     });
   });

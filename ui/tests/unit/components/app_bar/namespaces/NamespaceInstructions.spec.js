@@ -4,7 +4,7 @@ import NamespaceInstructions from '@/components/app_bar/namespace/NamespaceInstr
 
 config.mocks = {
   $env: {
-    isHosted: true,
+    isEnterprise: true,
   },
 };
 

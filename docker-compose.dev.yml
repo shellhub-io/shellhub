@@ -11,7 +11,7 @@ services:
       - ./ssh:/go/src/github.com/shellhub-io/shellhub/ssh
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
     environment:
-      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
   api:
     image: api
     build:
@@ -31,7 +31,7 @@ services:
     volumes:
       - ./ui:/src
     environment:
-      - SHELLHUB_HOSTED=${SHELLHUB_HOSTED}
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
   gateway:
     image: gateway
     build:

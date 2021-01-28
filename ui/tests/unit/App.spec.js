@@ -37,7 +37,7 @@ describe('App', () => {
       localVue,
       stubs: ['fragment'],
       mocks: {
-        $env: (isHosted) => isHosted,
+        $env: (isEnterprise) => isEnterprise,
       },
       router,
       vuetify,

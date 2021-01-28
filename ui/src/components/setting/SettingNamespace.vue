@@ -130,7 +130,7 @@
               <v-spacer />
 
               <div
-                v-if="isHostedOwner"
+                v-if="isEnterpriseOwner"
                 data-test="new-member"
               >
                 <v-col
@@ -167,7 +167,7 @@
                     <v-spacer />
 
                     <div
-                      v-if="isHostedOwner"
+                      v-if="isEnterpriseOwner"
                     >
                       <v-col
                         md="auto"
@@ -225,7 +225,7 @@
           </div>
 
           <div
-            v-if="isHostedOwner"
+            v-if="isEnterpriseOwner"
             class="mt-6"
             data-test="securityOperation"
           >
@@ -315,8 +315,8 @@ export default {
       return localStorage.getItem('tenant');
     },
 
-    isHostedOwner() {
-      return this.$env.isHosted && this.isOwner;
+    isEnterpriseOwner() {
+      return this.$env.isEnterprise && this.isOwner;
     },
   },
 

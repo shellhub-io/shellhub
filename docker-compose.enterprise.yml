@@ -10,6 +10,12 @@ services:
       - shellhub
   admin-api:
     image: docker-registry.ossystems.com.br/shellhubio/admin-api:${SHELLHUB_VERSION}
+    environment:
+      - ADMIN_API_USERNAME=${SHELLHUB_ENTERPRISE_ADMIN_USERNAME}
+      - ADMIN_API_PASSWORD=${SHELLHUB_ENTERPRISE_ADMIN_PASSWORD}
+    secrets:
+      - api_private_key
+      - api_public_key
     networks:
       - shellhub
   dashboard:

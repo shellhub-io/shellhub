@@ -2,7 +2,7 @@
   <fragment>
     <v-row>
       <v-col
-        v-if="!loggedInNamespace && isHosted"
+        v-if="!loggedInNamespace && isEnterprise"
       >
         <v-btn
           class="v-btn--active float-right mr-3"
@@ -108,7 +108,7 @@
               class="pt-0 pb-0"
             >
               <v-list-item
-                v-show="isHosted"
+                v-show="isEnterprise"
                 @click="dialog=!dialog"
               >
                 <v-list-item-icon>
@@ -198,8 +198,8 @@ export default {
       return localStorage.getItem('tenant');
     },
 
-    isHosted() {
-      return this.$env.isHosted;
+    isEnterprise() {
+      return this.$env.isEnterprise;
     },
   },
 

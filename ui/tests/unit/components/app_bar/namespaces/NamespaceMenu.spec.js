@@ -4,7 +4,7 @@ import NamespaceMenu from '@/components/app_bar/namespace/NamespaceMenu';
 
 config.mocks = {
   $env: {
-    isHosted: true,
+    isEnterprise: true,
   },
 };
 
