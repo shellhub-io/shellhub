@@ -241,6 +241,9 @@ export default {
           }
           break;
         }
+        case (e.response.status === 500 && this.tenant === null): {
+          break;
+        }
         default: {
           this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceLoad);
         }

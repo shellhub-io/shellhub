@@ -91,6 +91,9 @@ export default {
         localStorage.setItem('user', resp.data.user);
         localStorage.setItem('name', resp.data.name);
         localStorage.setItem('tenant', resp.data.tenant);
+        localStorage.setItem('id', resp.data.id);
+        localStorage.setItem('email', resp.data.email);
+        localStorage.setItem('namespacesWelcome', JSON.stringify({}));
 
         context.commit('authSuccess', resp.data);
       } catch (err) {
