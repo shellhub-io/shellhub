@@ -1251,7 +1251,7 @@ func (s *Store) GetNamespace(ctx context.Context, namespace string) (*models.Nam
 	ns := new(models.Namespace)
 
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": namespace}).Decode(&ns); err != nil {
-		return nil, err
+		return ns, err
 	}
 
 	return ns, nil
