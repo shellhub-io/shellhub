@@ -5,7 +5,7 @@ export default {
   namespaced: true,
 
   state: {
-    stats: [],
+    stats: {},
   },
 
   getters: {
@@ -18,7 +18,7 @@ export default {
     },
 
     clearListState: (state) => {
-      Vue.set(state, 'stats', []);
+      Vue.set(state, 'stats', {});
     },
   },
 
