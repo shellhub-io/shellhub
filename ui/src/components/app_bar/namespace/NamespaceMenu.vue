@@ -225,7 +225,6 @@ export default {
     async openMenu() {
       if (!this.displayMenu) {
         await this.getNamespaces();
-        await this.getNamespace();
       }
       this.displayMenu = !this.displayMenu;
     },

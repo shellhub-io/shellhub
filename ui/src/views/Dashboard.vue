@@ -185,6 +185,10 @@ export default {
   },
 
   methods: {
+    namespaceHasBeenShown(tenant) {
+      return JSON.parse(localStorage.getItem('namespacesWelcome'))[tenant] !== undefined;
+    },
+
     showNamespaceInstructions() {
       let status = false;
 
@@ -196,26 +200,10 @@ export default {
       this.showInstructions = status;
     },
 
-    async showScreenWelcome() {
-      let status = true;
-
-      await this.getNamespace();
-      const tenantId = await this.$store.getters['namespaces/get'].tenant_id;
-      const namespaceUsedToShowWelcomeScreen = JSON.parse(localStorage.getItem('namespaceUsedToShowWelcomeScreen')) || [];
-
-      await namespaceUsedToShowWelcomeScreen.forEach((item) => {
-        if (item.tenantId === tenantId && this.hasNoRegisteredDevice()) {
-          status = false;
-        }
-      });
-
-      this.show = status;
-    },
-
-    hasNoRegisteredDevice() {
-      return this.stats.registered_devices === 0
-        && this.stats.pending_devices === 0
-        && this.stats.rejected_devices === 0;
+    hasDevices() {
+      return this.stats.registered_devices !== 0
+        || this.stats.pending_devices !== 0
+        || this.stats.rejected_devices !== 0;
     },
 
     async getNamespace() {
@@ -224,6 +212,20 @@ export default {
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceLoad);
       }
+    },
+
+    async showScreenWelcome() {
+      let status = false;
+
+      await this.getNamespace();
+      const tenantID = await this.$store.getters['namespaces/get'].tenant_id;
+
+      if (!this.namespaceHasBeenShown(tenantID) && !this.hasDevices()) {
+        this.$store.dispatch('auth/setShowWelcomeScreen', tenantID);
+        status = true;
+      }
+
+      this.show = status;
     },
   },
 };

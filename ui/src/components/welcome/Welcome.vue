@@ -255,7 +255,6 @@ export default {
 
     async close() {
       this.$emit('update:show', false);
-      this.$store.dispatch('auth/setShowWelcomeScreen', await this.$store.getters['namespaces/get'].tenant_id);
       clearTimeout(this.polling);
     },
   },

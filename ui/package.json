@@ -48,6 +48,7 @@
     "eslint-plugin-vue": "^7.5.0",
     "fibers": "^5.0.0",
     "font-logos": "^0.16.0",
+    "mock-local-storage": "^1.1.17",
     "node-sass": "^5.0.0",
     "sass": "^1.32.5",
     "sass-loader": "^10.1.1",

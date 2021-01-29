@@ -12,7 +12,6 @@ export default {
     tenant: localStorage.getItem('tenant') || '',
     email: localStorage.getItem('email') || '',
     id: localStorage.getItem('id') || '',
-    namespaceUsedToShowWelcomeScreen: [],
   },
 
   getters: {
@@ -51,16 +50,11 @@ export default {
       Vue.set(state, 'user', '');
       Vue.set(state, 'tenant', '');
       Vue.set(state, 'email', '');
-      Vue.set(state, 'namespaceUsedToWelcomeScreen', []);
     },
 
     changeData(state, data) {
       Vue.set(state, 'user', data.username);
       Vue.set(state, 'email', data.email);
-    },
-
-    setShowWelcomeScreen(state, tenantId) {
-      Vue.set(state, 'state.namespaceUsedToShowWelcomeScreen', tenantId);
     },
   },
 
@@ -77,6 +71,7 @@ export default {
         localStorage.setItem('tenant', resp.data.tenant);
         localStorage.setItem('email', resp.data.email);
         localStorage.setItem('id', resp.data.id);
+        localStorage.setItem('namespacesWelcome', JSON.stringify({}));
 
         context.commit('authSuccess', resp.data);
       } catch (err) {
@@ -108,7 +103,7 @@ export default {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('tenant');
-      localStorage.removeItem('namespaceUsedToShowWelcomeScreen');
+      localStorage.removeItem('namespacesWelcome');
       localStorage.removeItem('noNamespace');
       localStorage.removeItem('email');
       localStorage.removeItem('id');
@@ -121,12 +116,13 @@ export default {
       context.commit('changeData', data);
     },
 
-    setShowWelcomeScreen(context, tenantId) {
-      const namespaceUsedToShowWelcomeScreen = JSON.parse(localStorage.getItem('namespaceUsedToShowWelcomeScreen')) || [];
-
-      namespaceUsedToShowWelcomeScreen.push({ tenantId });
-      localStorage.setItem('namespaceUsedToShowWelcomeScreen', JSON.stringify(namespaceUsedToShowWelcomeScreen));
-      context.commit('setShowWelcomeScreen', namespaceUsedToShowWelcomeScreen);
+    setShowWelcomeScreen(context, tenantID) {
+      localStorage.setItem('namespacesWelcome', JSON.stringify(
+        Object.assign(
+          JSON.parse(localStorage.getItem('namespacesWelcome')) || {},
+          { ...{ [tenantID]: true } },
+        ),
+      ));
     },
   },
 };
