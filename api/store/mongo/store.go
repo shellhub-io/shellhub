@@ -891,6 +891,11 @@ func (s *Store) UpdateUser(ctx context.Context, username, email, currentPassword
 
 	return nil
 }
+func (s *Store) DeleteUser(ctx context.Context, ID string) error {
+	objID, _ := primitive.ObjectIDFromHex(ID)
+	_, err := s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
+	return err
+}
 
 func (s *Store) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
 	ns, err := s.GetNamespace(ctx, tenant)
