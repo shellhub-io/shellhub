@@ -55,6 +55,6 @@
     "stylus-loader": "^4.3.3",
     "vue-cli-plugin-vuetify": "^2.0.9",
     "vue-template-compiler": "^2.6.12",
-    "vuetify-loader": "^1.6.0"
+    "vuetify-loader": "^1.7.1"
   }
 }
