@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/parnurzeal/gorequest v0.2.16
-	github.com/pires/go-proxyproto v0.4.1
+	github.com/pires/go-proxyproto v0.4.2
 	github.com/shellhub-io/shellhub v0.4.2
 	github.com/sirupsen/logrus v1.7.0
 	golang.org/x/crypto v0.0.0-20201117144127-c1f2f97bffc9
