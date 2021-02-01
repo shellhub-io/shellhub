@@ -225,6 +225,20 @@ func (_m *Store) DeletePublicKey(ctx context.Context, fingerprint string) error 
 	return r0
 }
 
+// DeleteUser provides a mock function with given fields: ctx, ID
+func (_m *Store) DeleteUser(ctx context.Context, ID string) error {
+	ret := _m.Called(ctx, ID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, ID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // EditNamespace provides a mock function with given fields: ctx, namespace, name
 func (_m *Store) EditNamespace(ctx context.Context, namespace string, name string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, namespace, name)
