@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -40,6 +41,8 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
+	fmt.Println("KEY KEY KEY KEY KEY")
+	fmt.Printf("%+v", key)
 	key.CreatedAt = time.Now()
 
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data)
