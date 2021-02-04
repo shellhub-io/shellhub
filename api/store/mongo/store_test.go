@@ -2,19 +2,20 @@ package mongo
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
+	//"crypto/sha256"
+	//"encoding/hex"
 	"testing"
 	"time"
 
-	"github.com/cnf/structhash"
+	//"github.com/cnf/structhash"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	//"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+/*
 func TestAddDevice(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -1283,4 +1284,86 @@ func TestSaveLicense(t *testing.T) {
 		CreatedAt: time.Now().Truncate(time.Millisecond),
 	})
 	assert.NoError(t, err)
+}*/
+
+func TestListPublicKeys(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+	key := models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+	}
+	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+
+	_, count, err := mongostore.ListPublicKeys(ctx, paginator.Query{-1, -1})
+	assert.Equal(t, 1, count)
+	assert.NoError(t, err)
 }
+
+/*	err := mongostore.AddDevice(ctx, device, "")
+	assert.NoError(t, err)
+	d, err := mongostore.GetDevice(ctx, models.UID(device.UID))
+	assert.NoError(t, err)
+	assert.NotEmpty(t, d)
+}*/
+
+func TestListGetPublicKey(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+	key := models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+	}
+	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+
+	k, err := mongostore.GetPublicKey(ctx, key.Fingerprint, key.TenantID)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, k)
+
+}
+
+func TestUpdatePublicKey(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+	//createdAt := time.Now()
+	key := &models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+	}
+	updatedKey := &models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
+	}
+
+	update := &models.PublicKeyUpdate{
+		PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
+	}
+	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+
+	k, err := mongostore.UpdatePublicKey(ctx, key.Fingerprint, key.TenantID, update)
+	assert.NoError(t, err)
+	assert.Equal(t, k, updatedKey)
+
+}
+
+//create
+//update
+//delete
+//createprivate
