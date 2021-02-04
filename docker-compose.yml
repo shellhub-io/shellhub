@@ -48,7 +48,7 @@ services:
     networks:
       - shellhub
   mongo:
-    image: mongo:3.4.19
+    image: mongo:4.2.12
     networks:
       - shellhub
 
