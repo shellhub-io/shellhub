@@ -3,6 +3,17 @@ ifneq (,$(wildcard ./.env.override))
     export
 endif
 
+DOCKER_COMPOSE = ./bin/docker-compose
+
+define COMPOSE_TEMPLATE
+version: '3.7'
+services:
+  mongo:
+    image: mongo:_VERSION_
+endef
+
+export $COMPOSE_TEMPLATE
+
 # Generate required private key for api service
 api_private_key:
 	@openssl genrsa -out api_private_key 2048
@@ -21,26 +32,27 @@ setup: api_private_key api_public_key ssh_private_key
 
 .PHONY: start
 ## Start services
-start: setup
+start: setup upgrade_mongodb
 ifeq ($(SHELLHUB_ENV),development)
 	@echo Starting ShellHub in development mode...
 	@echo
-	@./bin/docker-compose up
+	@$(DOCKER_COMPOSE) up
 else
 	@echo Starting ShellHub in production mode...
 	@echo
-	@./bin/docker-compose up -d
+
+	@$(DOCKER_COMPOSE) up -d
 endif
 
 .PHONY: stop
 ## Stop services
 stop:
-	@./bin/docker-compose stop
+	@$(DOCKER_COMPOSE) stop
 
 .PHONY: build
 ## Build all services (append "SERVICE=<service>" to build a specific one)
 build: check_development_mode
-	@./bin/docker-compose build $(SERVICE)
+	@$(DOCKER_COMPOSE) build $(SERVICE)
 
 .PHONY: check_development
 # Check for development mode
@@ -49,6 +61,72 @@ ifneq ($(SHELLHUB_ENV),development)
 	@echo Development mode disabled!
 	@exit 1
 endif
+
+.SILENT:
+.ONESHELL:
+upgrade_mongodb: SHELL := sh
+upgrade_mongodb:
+	# Wait for mongodb to be available
+	wait_for_mongo() {
+		# Command used to ping mongodb
+		MONGO_PING_CMD=$$(cat <<-EOF
+			db.runCommand({ ping: 1 })
+		EOF
+		)
+
+		while ! $(DOCKER_COMPOSE) exec mongo mongo --quiet --eval "quit($$MONGO_PING_CMD ? 0 : 1)" >/dev/null 2>&1; do
+			sleep 1
+		done
+	}
+
+	# Upgrade mongodb version to $1
+	upgrade_mongo() {
+		export EXTRA_COMPOSE_FILE=$$(mktemp)
+		echo "$$COMPOSE_TEMPLATE" | sed "s,_VERSION_,$$1,g" > $$EXTRA_COMPOSE_FILE
+
+		$(DOCKER_COMPOSE) stop mongo
+		$(DOCKER_COMPOSE) up -d mongo
+
+		wait_for_mongo
+
+		# Command used to set compatibility version
+		MONGO_SET_COMPAT_VERSION_CMD=$$(cat <<-EOF
+			db.adminCommand({
+				setFeatureCompatibilityVersion: '$$1'
+			})
+		EOF
+		)
+
+		$(DOCKER_COMPOSE) exec mongo mongo --quiet --eval "quit($${MONGO_SET_COMPAT_VERSION_CMD}.ok ? 1 : 0)"
+	}
+
+	$(DOCKER_COMPOSE) up -d mongo
+
+	wait_for_mongo
+
+	# Command used to get compatibility version
+	MONGO_GET_COMPAT_VERSION_CMD=$$(cat <<-EOF
+		db.adminCommand({
+			getParameter: 1,
+			featureCompatibilityVersion: 1
+		})['featureCompatibilityVersion'].version
+	EOF
+	)
+
+	# Before upgrading to 4.2-series, we need to upgrade earlier versions first
+	while true; do
+		MONGO_COMPAT_VERSION=$$($(DOCKER_COMPOSE) exec mongo mongo --quiet --eval "$$MONGO_GET_COMPAT_VERSION_CMD" | tr -d '\r')
+		case $$MONGO_COMPAT_VERSION in
+			# Upgrade from 3.4 to 3.6
+			3.4*) upgrade_mongo 3.6.21 ;;
+			# Upgrade from 3.6 to 4.0
+			3.6*) upgrade_mongo 4.0.22 ;;
+			# Upgrade from 4.0 to 4.2
+			4.0*) upgrade_mongo 4.2.12 ;;
+			# Latest version
+			4.2*) break ;;
+	      esac
+	done
 
 .PHONY: help
 help:

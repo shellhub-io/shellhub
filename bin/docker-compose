@@ -57,6 +57,8 @@ fi
 [ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" != "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.enterprise.yml"
 [ -f docker-compose.override.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.override.yml"
 
+[ -n "$EXTRA_COMPOSE_FILE" ] && COMPOSE_FILE="${COMPOSE_FILE}:${EXTRA_COMPOSE_FILE}"
+
 export COMPOSE_FILE
 
-docker-compose $*
+docker-compose "$@"
