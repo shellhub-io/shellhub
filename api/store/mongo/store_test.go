@@ -977,6 +977,22 @@ func TestUpdateUser(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestUpdateUserFromAdmin(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+	result, _ := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	objID := result.InsertedID.(primitive.ObjectID).Hex()
+	err := mongostore.UpdateUserFromAdmin(ctx, "newUsername", "newEmail", "password", objID)
+	assert.NoError(t, err)
+}
+
 func TestGetDataUserSecurity(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()

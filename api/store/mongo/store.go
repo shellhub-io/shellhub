@@ -891,6 +891,36 @@ func (s *Store) UpdateUser(ctx context.Context, username, email, currentPassword
 
 	return nil
 }
+
+func (s *Store) UpdateUserFromAdmin(ctx context.Context, username, email, password, ID string) error {
+	user, err := s.GetUserByID(ctx, ID)
+	objID, _ := primitive.ObjectIDFromHex(ID)
+
+	if err != nil {
+		return err
+	}
+
+	if username != "" && username != user.Username {
+		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"username": username}}); err != nil {
+			return err
+		}
+	}
+
+	if email != "" && email != user.Email {
+		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"email": email}}); err != nil {
+			return err
+		}
+	}
+
+	if password != "" {
+		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"password": password}}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *Store) DeleteUser(ctx context.Context, ID string) error {
 	objID, _ := primitive.ObjectIDFromHex(ID)
 	_, err := s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
