@@ -11,7 +11,7 @@ import (
 var (
 	ErrDuplicateEmail       = errors.New("email address is already in use")
 	ErrRecordNotFound       = errors.New("public key not found")
-	ErrDuplicateFingerprint = errors.New("this fingerprint already exits")
+	ErrDuplicateFingerprint = errors.New("this fingerprint already exists")
 )
 
 type Store interface {

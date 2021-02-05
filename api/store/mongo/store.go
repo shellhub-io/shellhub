@@ -1201,8 +1201,8 @@ func (s *Store) CreatePublicKey(ctx context.Context, key *models.PublicKey) erro
 func (s *Store) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
 	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint}, bson.M{"$set": key}); err != nil {
 		if err != nil {
-			if strings.Contains(err.Error(), "duplicate key error") {
-				return nil, store.ErrDuplicateEmail
+			if strings.Contains(err.Error(), "public key not found") {
+				return nil, store.ErrRecordNotFound
 			}
 		}
 
