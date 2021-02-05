@@ -74,13 +74,16 @@ upgrade_mongodb:
 		EOF
 		)
 
-		while ! $(DOCKER_COMPOSE) exec mongo mongo --quiet --eval "quit($$MONGO_PING_CMD ? 0 : 1)" >/dev/null 2>&1; do
+		while ! $(DOCKER_COMPOSE) exec mongo mongo --quiet --eval "quit($${MONGO_PING_CMD}.ok ? 0 : 1)" >/dev/null 2>&1; do
 			sleep 1
 		done
 	}
 
-	# Upgrade mongodb version to $1
-	upgrade_mongo() {
+	# Start mongodb using version provided by $1
+	start_mongodb() {
+		# Convert version to suitable format for 'setFeatureCompatibilityVersion'
+		SERIES_VERSION=$$(echo $$1 | sed 's,\.[0-9]\+$$,,g')
+
 		export EXTRA_COMPOSE_FILE=$$(mktemp)
 		echo "$$COMPOSE_TEMPLATE" | sed "s,_VERSION_,$$1,g" > $$EXTRA_COMPOSE_FILE
 
@@ -92,7 +95,7 @@ upgrade_mongodb:
 		# Command used to set compatibility version
 		MONGO_SET_COMPAT_VERSION_CMD=$$(cat <<-EOF
 			db.adminCommand({
-				setFeatureCompatibilityVersion: '$$1'
+				setFeatureCompatibilityVersion: '$$SERIES_VERSION'
 			})
 		EOF
 		)
@@ -100,33 +103,64 @@ upgrade_mongodb:
 		$(DOCKER_COMPOSE) exec mongo mongo --quiet --eval "quit($${MONGO_SET_COMPAT_VERSION_CMD}.ok ? 1 : 0)"
 	}
 
-	$(DOCKER_COMPOSE) up -d mongo
+	MONGO_CONTAINER_ID=$$($(DOCKER_COMPOSE) images -q mongo)
+	CURRENT_MONGO_VERSION=$$(docker image inspect \
+		--format '{{range .RepoTags}}{{.}} {{end}}' \
+		$$MONGO_CONTAINER_ID | tr -d ' ' | rev | cut -d' ' -f1 | rev | cut -d':' -f2
+	)
 
-	wait_for_mongo
+	[[ $$CURRENT_MONGO_VERSION == 4.2* ]] && exit 0
+
+	echo "Upgrading MongoDB instance..."
+
+	start_mongodb $$CURRENT_MONGO_VERSION
 
 	# Command used to get compatibility version
 	MONGO_GET_COMPAT_VERSION_CMD=$$(cat <<-EOF
 		db.adminCommand({
 			getParameter: 1,
 			featureCompatibilityVersion: 1
-		})['featureCompatibilityVersion'].version
+		})['featureCompatibilityVersion']
 	EOF
 	)
 
 	# Before upgrading to 4.2-series, we need to upgrade earlier versions first
 	while true; do
-		MONGO_COMPAT_VERSION=$$($(DOCKER_COMPOSE) exec mongo mongo --quiet --eval "$$MONGO_GET_COMPAT_VERSION_CMD" | tr -d '\r')
+		# Starting from 4.0-series the 'featureCompatibilityVersion' is a object with a 'version' key
+		MONGO_COMPAT_VERSION=$$($(DOCKER_COMPOSE) exec mongo mongo \
+			--quiet \
+			--eval "$${MONGO_GET_COMPAT_VERSION_CMD}.version" | tr -d '\r'
+		)
+
+		# Fallback to 3.0-series where the 'featureCompatibilityVersion' is a integer with the version
+		if [ -z "$$MONGO_COMPAT_VERSION" ]; then
+			MONGO_COMPAT_VERSION=$$($(DOCKER_COMPOSE) exec mongo mongo \
+				--quiet \
+				--eval "$$MONGO_GET_COMPAT_VERSION_CMD" | tr -d '\r'
+			)
+		fi
+
 		case $$MONGO_COMPAT_VERSION in
-			# Upgrade from 3.4 to 3.6
-			3.4*) upgrade_mongo 3.6.21 ;;
-			# Upgrade from 3.6 to 4.0
-			3.6*) upgrade_mongo 4.0.22 ;;
-			# Upgrade from 4.0 to 4.2
-			4.0*) upgrade_mongo 4.2.12 ;;
-			# Latest version
-			4.2*) break ;;
+			3.4*)
+				echo "Upgrading MongoDB from 3.4-series to 3.6-series..."
+				start_mongodb 3.6.21
+				;;
+			3.6*)
+				echo "Upgrading MongoDB from 3.6-series to 4.0-series..."
+				start_mongodb 4.0.22
+				;;
+			4.0*)
+				echo "Upgrading MongoDB from 4.0-series to 4.2-series..."
+				start_mongodb 4.2.12
+				;;
+			4.2*)
+				echo "MongoDB upgrade successful!"
+				break
+				;;
 	      esac
 	done
+
+	$(DOCKER_COMPOSE) stop mongo
 
 .PHONY: help
 help:
