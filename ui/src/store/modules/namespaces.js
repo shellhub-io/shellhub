@@ -17,12 +17,14 @@ export default {
     namespace: {},
     namespaces: [],
     numberNamespaces: 0,
+    owner: false,
   },
 
   getters: {
     list: (state) => state.namespaces,
     get: (state) => state.namespace,
     getNumberNamespaces: (state) => state.numberNamespaces,
+    owner: (state) => state.owner,
   },
 
   mutations: {
@@ -52,6 +54,10 @@ export default {
 
     clearObjectNamespace: (state) => {
       Vue.set(state, 'namespace', {});
+    },
+
+    setOwnerStatus: (state, status) => {
+      Vue.set(state, 'owner', status);
     },
   },
 
@@ -99,6 +105,10 @@ export default {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('tenant', data.tenant_id);
       }
+    },
+
+    setOwnerStatus: async (context, status) => {
+      context.commit('setOwnerStatus', status);
     },
   },
 };

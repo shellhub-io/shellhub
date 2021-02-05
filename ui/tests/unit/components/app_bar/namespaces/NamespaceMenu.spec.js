@@ -15,6 +15,7 @@ describe('NamespaceMenu', () => {
   let wrapper;
 
   const numberNamespaces = 4;
+  const owner = true;
 
   const namespaces = [
     {
@@ -57,11 +58,13 @@ describe('NamespaceMenu', () => {
         namespace,
         namespaces,
         numberNamespaces,
+        owner,
       },
     },
     getters: {
       'namespaces/list': (state) => state.namespaces,
       'namespaces/get': (state) => state.namespace,
+      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'namespaces/fetch': () => {
