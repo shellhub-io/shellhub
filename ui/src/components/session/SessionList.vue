@@ -127,7 +127,7 @@
               <span>Details</span>
             </v-tooltip>
             <SessionClose
-              v-if="item.active"
+              v-if="item.active && isOwner"
               :uid="item.uid"
               :device="item.device_uid"
               @update="refresh"

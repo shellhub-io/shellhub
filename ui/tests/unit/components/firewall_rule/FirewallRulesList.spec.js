@@ -31,16 +31,19 @@ describe('FirewallRulesList', () => {
       hostname: 'shellhub',
     },
   ];
+  const owner = true;
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       firewalls,
       numberFirewalls,
+      owner,
     },
     getters: {
       'firewallrules/list': (state) => state.firewalls,
       'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
+      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'firewallrules/fetch': () => {

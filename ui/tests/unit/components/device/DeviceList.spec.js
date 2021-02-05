@@ -47,16 +47,19 @@ describe('DeviceList', () => {
       status: 'accepted',
     },
   ];
+  const owner = true;
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       devices,
       numberDevices,
+      owner,
     },
     getters: {
       'devices/list': (state) => state.devices,
       'devices/getNumberDevices': (state) => state.numberDevices,
+      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'modals/showAddDevice': () => {
