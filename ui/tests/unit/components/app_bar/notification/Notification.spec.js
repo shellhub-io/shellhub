@@ -8,6 +8,7 @@ describe('Notification', () => {
 
   let wrapper;
   const inANamespace = false;
+  const owner = true;
 
   const numberNotifications = 2;
   const noNotifications = Array(0);
@@ -55,10 +56,12 @@ describe('Notification', () => {
     state: {
       notifications,
       numberNotifications,
+      owner,
     },
     getters: {
       'notifications/list': (state) => state.notifications,
       'notifications/getNumberNotifications': (state) => state.numberNotifications,
+      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'notifications/fetch': () => {

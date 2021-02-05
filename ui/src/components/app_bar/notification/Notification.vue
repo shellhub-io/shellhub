@@ -49,6 +49,7 @@
 
             <v-list-item-action>
               <DeviceActionButton
+                v-if="isOwner"
                 :uid="item.uid"
                 :notification-status="true"
                 action="accept"
@@ -122,6 +123,10 @@ export default {
     getStatusNotifications() {
       if (this.getNumberNotifications === 0) { return true; }
       return false;
+    },
+
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
     },
   },
 

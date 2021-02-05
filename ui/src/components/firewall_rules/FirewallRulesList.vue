@@ -13,6 +13,7 @@
       <v-spacer />
       <v-spacer />
       <FirewallRuleFormDialog
+        v-if="isOwner"
         :create-rule="true"
         @update="refresh"
       />
@@ -86,11 +87,13 @@
 
           <template #[`item.actions`]="{ item }">
             <FirewallRuleFormDialog
+              v-if="isOwner"
               :firewall-rule="item"
               :create-rule="false"
               @update="refresh"
             />
             <FirewallDelete
+              v-if="isOwner"
               :id="item.id"
               @update="refresh"
             />
@@ -167,6 +170,10 @@ export default {
 
     getNumberFirewallRules() {
       return this.$store.getters['firewallrules/getNumberFirewalls'];
+    },
+
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
     },
   },
 

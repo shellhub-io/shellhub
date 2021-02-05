@@ -7,6 +7,7 @@ describe('DeviceDetails', () => {
   localVue.use(Vuex);
 
   let wrapper;
+  const owner = true;
 
   const device = {
     uid: 'a582b47a42d',
@@ -30,9 +31,11 @@ describe('DeviceDetails', () => {
     namespaced: true,
     state: {
       device,
+      owner,
     },
     getters: {
       'devices/get': (state) => state.device,
+      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'devices/get': () => {

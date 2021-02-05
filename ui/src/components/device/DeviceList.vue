@@ -75,6 +75,7 @@
           />
 
           <DeviceDelete
+            v-if="isOwner"
             :uid="item.uid"
             @update="refresh"
           />
@@ -148,6 +149,10 @@ export default {
 
     getNumberDevices() {
       return this.$store.getters['devices/getNumberDevices'];
+    },
+
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
     },
   },
 

@@ -32,12 +32,14 @@
 
         <template #[`item.actions`]="{ item }">
           <DeviceActionButton
+            v-if="isOwner"
             :uid="item.uid"
             action="accept"
             @update="refresh"
           />
 
           <DeviceActionButton
+            v-if="isOwner"
             :uid="item.uid"
             action="remove"
             @update="refresh"
@@ -102,6 +104,10 @@ export default {
 
     getNumberRejectedDevices() {
       return this.$store.getters['devices/getNumberDevices'];
+    },
+
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
     },
   },
 
