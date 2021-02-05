@@ -300,7 +300,7 @@ export default {
 
   computed: {
     isOwner() {
-      return this.owner === this.$store.getters['auth/id'];
+      return this.$store.getters['namespaces/owner'];
     },
 
     owner() {

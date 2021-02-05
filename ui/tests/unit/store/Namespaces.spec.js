@@ -36,10 +36,13 @@ describe('Namespace', () => {
     tenant_id: 'a736a52b-5777-4f92-b0b8-e359bf484715',
   };
 
+  const owner = true;
+
   it('Returns namespaces default variables', () => {
     expect(store.getters['namespaces/list']).toEqual([]);
     expect(store.getters['namespaces/get']).toEqual({});
     expect(store.getters['namespaces/getNumberNamespaces']).toEqual(0);
+    expect(store.getters['namespaces/owner']).toEqual(!owner);
   });
   // mutations tests
   it('Verify initial state change for setNamespaces mutation', () => {
@@ -67,6 +70,12 @@ describe('Namespace', () => {
       expect(item.tenant_id === namespace.tenant_id).toBeFalsy();
     });
   });
+
+  it('Verify changed owner for setOwnerStatus mutation', () => {
+    store.commit('namespaces/setOwnerStatus', owner);
+    expect(store.getters['namespaces/owner']).toEqual(owner);
+  });
+
   it('Clears the namespace variables from store', () => {
     store.commit('namespaces/clearNamespaceList');
     store.commit('namespaces/clearObjectNamespace');

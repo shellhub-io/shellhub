@@ -26,16 +26,19 @@ describe('SettingNamespace', () => {
   const idOwner = '6';
   const idNotOwner = '10';
   const textRole = ['Owner', 'Member', 'Member'];
+  const owner = true;
 
   const storeNotOwner = new Vuex.Store({
     namespaced: true,
     state: {
       namespace,
       id: idNotOwner,
+      owner: !owner,
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
       'auth/id': (state) => state.id,
+      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'namespaces/put': () => {
@@ -56,10 +59,12 @@ describe('SettingNamespace', () => {
     state: {
       namespace,
       id: idOwner,
+      owner,
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
       'auth/id': (state) => state.id,
+      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'namespaces/put': () => {

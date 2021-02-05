@@ -7,6 +7,7 @@ describe('DeviceAdd', () => {
   localVue.use(Vuex);
 
   let wrapper;
+  const owner = true;
 
   const numberSessions = 2;
   const sessions = [
@@ -73,10 +74,12 @@ describe('DeviceAdd', () => {
     state: {
       sessions,
       numberSessions,
+      owner,
     },
     getters: {
       'sessions/list': (state) => state.sessions,
       'sessions/getNumberSessions': (state) => state.numberSessions,
+      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'sessions/fetch': () => {
