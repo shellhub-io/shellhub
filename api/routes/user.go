@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	UpdateUserURL = "/user"
+	UpdateUserURL = "/users/:id"
 )
 
 func UpdateUser(c apicontext.Context) error {
@@ -24,10 +24,8 @@ func UpdateUser(c apicontext.Context) error {
 		return err
 	}
 
-	ID := ""
-	if v := c.ID(); v != nil {
-		ID = v.ID
-	}
+	ID := c.Param("id")
+
 	if req.CurrentPassword != "" {
 		sum := sha256.Sum256([]byte(req.CurrentPassword))
 		sumByte := sum[:]
