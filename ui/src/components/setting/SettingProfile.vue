@@ -278,6 +278,7 @@ export default {
 
     async updateData() {
       const data = {
+        id: this.$store.getters['auth/id'],
         username: this.username,
         email: this.email,
       };
@@ -309,6 +310,7 @@ export default {
 
     async updatePassword() {
       const data = {
+        id: this.$store.getters['auth/id'],
         currentPassword: this.currentPassword,
         newPassword: this.newPassword,
       };
