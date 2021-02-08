@@ -17,7 +17,8 @@ const (
 	EditNamespaceURL       = "/namespace/:id"
 	AddNamespaceUserURL    = "/namespace/:id/add"
 	RemoveNamespaceUserURL = "/namespace/:id/del"
-	UserSecurityURL        = "/user/security"
+	UserSecurityURL        = "/users/security"
+	UpdateUserSecurityURL  = "/users/security/:id"
 )
 
 func GetNamespaceList(c apicontext.Context) error {
@@ -216,10 +217,7 @@ func UpdateUserSecurity(c apicontext.Context) error {
 		return err
 	}
 
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
+	tenant := c.Param("id")
 
 	svc := nsadm.NewService(c.Store())
 

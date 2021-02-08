@@ -69,7 +69,7 @@ func main() {
 	publicAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(routes.AuthSwapToken))
 
 	publicAPI.PUT(routes.UpdateUserURL, apicontext.Handler(routes.UpdateUser))
-	publicAPI.PUT(routes.UserSecurityURL, apicontext.Handler(routes.UpdateUserSecurity))
+	publicAPI.PUT(routes.UpdateUserSecurityURL, apicontext.Handler(routes.UpdateUserSecurity))
 	publicAPI.GET(routes.UserSecurityURL, apicontext.Handler(routes.GetUserSecurity))
 
 	publicAPI.GET(routes.GetDeviceListURL,
