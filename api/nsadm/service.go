@@ -61,6 +61,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	if user == nil {
 		return nil, ErrUnauthorized
 	}
+	namespace.Name = strings.ToLower(namespace.Name)
 	namespace.Owner = user.ID
 	members := []string{user.ID}
 	namespace.Members = &members

@@ -396,6 +396,22 @@ var migrations = []migrate.Migration{
 			return err
 		},
 	},
+	{
+		Version: 15,
+		Up: func(db *mongo.Database) error {
+			_, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.M{}, []bson.M{
+				bson.M{
+					"$set": bson.M{
+						"name": bson.M{"$toLower": "$name"},
+					},
+				},
+			})
+			return err
+		},
+		Down: func(db *mongo.Database) error {
+			return nil
+		},
+	},
 }
 
 func ApplyMigrations(db *mongo.Database) error {
