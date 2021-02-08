@@ -1,6 +1,6 @@
 import http from '@/store/helpers/http';
 
-export const putUser = async (data) => http().put('/user', {
+export const putUser = async (data) => http().put(`/users/${data.id}`, {
   username: data.username,
   email: data.email,
   currentPassword: data.currentPassword,
