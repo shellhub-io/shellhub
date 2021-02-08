@@ -76,7 +76,7 @@ func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
 
 	listener := revdial.NewListener(wsconnadapter.New(conn),
 		func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
-			return tunnelDial(ctx, strings.Replace(c.scheme, "http", "ws", 1), c.host, path)
+			return tunnelDial(ctx, strings.Replace(c.scheme, "http", "ws", 1), c.host, c.port, path)
 		},
 	)
 
@@ -94,6 +94,6 @@ func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (
 	return res, nil
 }
 
-func tunnelDial(ctx context.Context, protocol, address, path string) (*websocket.Conn, *http.Response, error) {
-	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s", protocol, address), path}, ""), nil)
+func tunnelDial(ctx context.Context, protocol, address string, port int, path string) (*websocket.Conn, *http.Response, error) {
+	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s:%d", protocol, address, port), path}, ""), nil)
 }
