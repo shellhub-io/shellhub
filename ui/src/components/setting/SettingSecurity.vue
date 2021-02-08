@@ -36,8 +36,12 @@ export default {
       },
 
       async set(value) {
+        const data = {
+          id: localStorage.getItem('tenant'),
+          status: value,
+        };
         try {
-          await this.$store.dispatch('security/set', value);
+          await this.$store.dispatch('security/set', data);
         } catch {
           this.$store.dispatch('snackbar/showSnackbarErrorDefault');
         }
