@@ -19,9 +19,9 @@ export default {
   },
 
   actions: {
-    async set(context, status) {
-      await apiUser.putSecurity(status);
-      context.commit('setSecurity', status);
+    async set(context, data) {
+      await apiUser.putSecurity(data);
+      context.commit('setSecurity', data.status);
     },
 
     async get(context) {

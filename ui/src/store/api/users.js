@@ -7,8 +7,8 @@ export const putUser = async (data) => http().put(`/users/${data.id}`, {
   newPassword: data.newPassword,
 });
 
-export const putSecurity = async (status) => http().put('/user/security', {
-  session_record: status,
+export const putSecurity = async (data) => http().put(`/users/security/${data.id}`, {
+  session_record: data.status,
 });
 
-export const getSecurity = async () => http().get('/user/security');
+export const getSecurity = async () => http().get('/users/security');
