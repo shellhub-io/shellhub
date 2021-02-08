@@ -13,7 +13,7 @@ require (
 	github.com/docker/docker v0.0.0-20190404075923-dbe4a30928d4
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/gliderlabs/ssh v0.3.1
+	github.com/gliderlabs/ssh v0.3.2
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/gorilla/mux v1.8.0
@@ -25,7 +25,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/shellhub-io/shellhub v0.4.2
 	github.com/sirupsen/logrus v1.7.0
-	github.com/smartystreets/goconvey v1.6.4 // indirect
 	golang.org/x/crypto v0.0.0-20201117144127-c1f2f97bffc9
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68
