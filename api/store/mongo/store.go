@@ -977,35 +977,40 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 			case "eq":
 				property = bson.M{"$eq": params.Value}
 			case "bool":
-				operator, _ := strconv.ParseBool(params.Value)
-				property = bson.M{"$eq": operator}
+				var value bool
 
+				switch v := params.Value.(type) {
+				case int:
+					value = v != 0
+				case string:
+					var err error
+					value, err = strconv.ParseBool(v)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				property = bson.M{"$eq": value}
 			case "gt":
-				property = bson.M{"$gt": params.Value}
+				var value int
+
+				switch v := params.Value.(type) {
+				case int:
+					value = v
+				case string:
+					var err error
+					value, err = strconv.Atoi(v)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				property = bson.M{"$gt": value}
 			}
 
 			queryFilter = append(queryFilter, bson.M{
 				params.Name: property,
 			})
-		case "int_property":
-			var property bson.M
-			params, ok := filter.Params.(*models.IntParams)
-			if !ok {
-				return nil, ErrWrongParamsType
-			}
-
-			switch params.Operator {
-			case "eq":
-				property = bson.M{"$eq": params.Value}
-
-			case "gt":
-				property = bson.M{"$gt": params.Value}
-			}
-
-			queryFilter = append(queryFilter, bson.M{
-				params.Name: property,
-			})
-
 		case "operator":
 			var operator string
 			params, ok := filter.Params.(*models.OperatorParams)
