@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# This script is used to generate/update mock objects for testing
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
+	       exec api mockery --name Store --dir ./store/ --output ./store/mocks --filename store.go

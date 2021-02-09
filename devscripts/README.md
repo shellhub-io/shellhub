@@ -16,3 +16,4 @@ They are not intented for regular use by end users.
 * `get-devices`: Get devices from API
 * `lint-code`: Run code linter
 * `test-unit`: Run unit test
+* `gen-mock`: Generate/update mock objects for testing
