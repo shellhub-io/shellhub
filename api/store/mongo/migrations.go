@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -427,6 +428,95 @@ var migrations = []migrate.Migration{
 		Down: func(db *mongo.Database) error {
 			_, err := db.Collection("public_keys").Indexes().DropOne(context.TODO(), "fingerprint")
 			return err
+		},
+	},
+	{
+		Version: 17,
+		Up: func(db *mongo.Database) error {
+			cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
+			if err != nil {
+				return err
+			}
+			for cursor.Next(context.TODO()) {
+				namespace := new(models.Namespace)
+				err = cursor.Decode(&namespace)
+				if err != nil {
+					return err
+				}
+				objID, _ := primitive.ObjectIDFromHex(namespace.Owner)
+				user := new(models.User)
+				if err := db.Collection("users").FindOne(context.TODO(), bson.M{"_id": objID}).Decode(&user); err != nil {
+					if _, err := db.Collection("namespaces").DeleteOne(context.TODO(), bson.M{"tenant_id": namespace.TenantID}); err != nil {
+						return err
+					}
+				}
+			}
+
+			if err := cursor.Err(); err != nil {
+				return err
+			}
+
+			cursor.Close(context.TODO())
+
+			cursor, err = db.Collection("devices").Find(context.TODO(), bson.D{})
+			if err != nil {
+				return err
+			}
+
+			for cursor.Next(context.TODO()) {
+				device := new(models.Device)
+				err = cursor.Decode(&device)
+				if err != nil {
+					return err
+				}
+				namespace := new(models.Namespace)
+				if err := db.Collection("namespaces").FindOne(context.TODO(), device.TenantID).Decode(&namespace); err != nil {
+					if _, err := db.Collection("devices").DeleteOne(context.TODO(), bson.M{"uid": device.UID}); err != nil {
+						return err
+					}
+
+					if _, err := db.Collection("sessions").DeleteMany(context.TODO(), bson.M{"device_uid": device.UID}); err != nil {
+						return err
+					}
+
+					if _, err := db.Collection("connected_devices").DeleteMany(context.TODO(), bson.M{"uid": device.UID}); err != nil {
+						return err
+					}
+				}
+			}
+			if err := cursor.Err(); err != nil {
+				return err
+			}
+
+			cursor.Close(context.TODO())
+
+			cursor, err = db.Collection("recorded_sessions").Find(context.TODO(), bson.D{})
+			if err != nil {
+				return err
+			}
+
+			for cursor.Next(context.TODO()) {
+				record := new(models.RecordedSession)
+				err = cursor.Decode(&record)
+				if err != nil {
+					return err
+				}
+				namespace := new(models.Namespace)
+				if err := db.Collection("namespaces").FindOne(context.TODO(), record.TenantID).Decode(&namespace); err != nil {
+					if _, err := db.Collection("recorded_sessions").DeleteOne(context.TODO(), bson.M{"tenant_id": record.TenantID}); err != nil {
+						return err
+					}
+				}
+			}
+			if err := cursor.Err(); err != nil {
+				return err
+			}
+
+			cursor.Close(context.TODO())
+			return err
+		},
+		Down: func(db *mongo.Database) error {
+			return nil
 		},
 	},
 }
