@@ -42,7 +42,10 @@
 
         <v-spacer />
 
-        <TerminalDialog :uid="device.uid" />
+        <TerminalDialog
+          v-if="device.online"
+          :uid="device.uid"
+        />
 
         <DeviceDelete
           :uid="device.uid"
