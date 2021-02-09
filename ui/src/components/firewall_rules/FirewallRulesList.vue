@@ -14,6 +14,7 @@
       <v-spacer />
       <FirewallRuleFormDialog
         v-if="isOwner"
+        data-test="firewall-dialog-field"
         :create-rule="true"
         @update="refresh"
       />
@@ -88,6 +89,7 @@
           <template #[`item.actions`]="{ item }">
             <FirewallRuleFormDialog
               v-if="isOwner"
+              data-test="firewall-dialog-field-2"
               :firewall-rule="item"
               :create-rule="false"
               @update="refresh"
@@ -95,6 +97,7 @@
             <FirewallDelete
               v-if="isOwner"
               :id="item.id"
+              data-test="firewall-delete-field"
               @update="refresh"
             />
           </template>
