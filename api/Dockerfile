@@ -31,7 +31,9 @@ RUN go build
 FROM base AS development
 
 RUN apk add --update openssl build-base docker-cli
-RUN go get github.com/markbates/refresh && go get github.com/mgechev/revive
+RUN go get github.com/markbates/refresh && \
+    go get github.com/mgechev/revive && \
+    go get github.com/vektra/mockery/v2/.../
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
