@@ -18,11 +18,11 @@ var ErrUnauthorized = errors.New("unauthorized")
 type Service interface {
 	ListDevices(ctx context.Context, pagination paginator.Query, filter string, status string, sort string, order string) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
-	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
-	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
+	DeleteDevice(ctx context.Context, uid models.UID, tenant, username string) error
+	RenameDevice(ctx context.Context, uid models.UID, name, tenant, username string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
-	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant string) error
+	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, username string) error
 }
 
 type service struct {
@@ -31,6 +31,23 @@ type service struct {
 
 func NewService(store store.Store) Service {
 	return &service{store}
+}
+
+func (s *service) isNamespaceOnwer(ctx context.Context, tenant, username string) error {
+	namespace, err := s.store.GetNamespace(ctx, tenant)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.store.GetUserByUsername(ctx, username)
+	if err != nil {
+		return err
+	}
+
+	if user.ID != namespace.Owner {
+		return ErrUnauthorized
+	}
+	return nil
 }
 
 func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filterB64 string, status string, sort string, order string) ([]models.Device, int, error) {
@@ -52,7 +69,12 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 	return s.store.GetDevice(ctx, uid)
 }
 
-func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
+func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, username string) error {
+	err := s.isNamespaceOnwer(ctx, tenant, username)
+	if err != nil {
+		return err
+	}
+
 	device, _ := s.store.GetDeviceByUID(ctx, uid, tenant)
 	if device != nil {
 		return s.store.DeleteDevice(ctx, uid)
@@ -60,7 +82,12 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 	return ErrUnauthorized
 }
 
-func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
+func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant, username string) error {
+	err := s.isNamespaceOnwer(ctx, tenant, username)
+	if err != nil {
+		return err
+	}
+
 	device, _ := s.store.GetDeviceByUID(ctx, uid, tenant)
 	validate := validator.New()
 	name = strings.ToLower(name)
@@ -86,7 +113,12 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online
 	return s.store.UpdateDeviceStatus(ctx, uid, online)
 }
 
-func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant string) error {
+func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, username string) error {
+	err := s.isNamespaceOnwer(ctx, tenant, username)
+	if err != nil {
+		return err
+	}
+
 	device, _ := s.store.GetDeviceByUID(ctx, uid, tenant)
 	if device != nil {
 		if status == "accepted" {
