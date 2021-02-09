@@ -924,6 +924,23 @@ func (s *Store) UpdateUserFromAdmin(ctx context.Context, username, email, passwo
 func (s *Store) DeleteUser(ctx context.Context, ID string) error {
 	objID, _ := primitive.ObjectIDFromHex(ID)
 	_, err := s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
+
+	findOptions := options.Find()
+	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"owner": ID}, findOptions)
+	if err != nil {
+		return err
+	}
+
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		namespace := new(models.Namespace)
+		err = cursor.Decode(&namespace)
+		if err != nil {
+			return err
+		}
+		s.DeleteNamespace(ctx, namespace.TenantID)
+	}
 	return err
 }
 
@@ -1362,8 +1379,18 @@ func (s *Store) CreateNamespace(ctx context.Context, namespace *models.Namespace
 	return namespace, err
 }
 func (s *Store) DeleteNamespace(ctx context.Context, namespace string) error {
-	_, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": namespace})
-	return err
+	if _, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": namespace}); err != nil {
+		return err
+	}
+
+	collections := []string{"devices", "sessions", "connected_devices", "firewall_rules", "public_keys", "recorded_sessions"}
+
+	for _, collection := range collections {
+		if _, err := s.db.Collection(collection).DeleteMany(ctx, bson.M{"tenant_id": namespace}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 func (s *Store) EditNamespace(ctx context.Context, namespace, name string) (*models.Namespace, error) {
 	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$set": bson.M{"name": name}}); err != nil {
