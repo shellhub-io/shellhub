@@ -1028,12 +1028,57 @@ func TestListUsers(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	users, count, err := mongostore.ListUsers(ctx, paginator.Query{-1, -1}, nil, false)
+	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	userID := result.InsertedID.(primitive.ObjectID).Hex()
+	namespace := models.Namespace{Name: "name", Owner: userID, TenantID: "tenant"}
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	users, count, err := mongostore.ListUsers(ctx, paginator.Query{-1, -1}, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
+	assert.NotEmpty(t, users)
+}
+
+func TestListUsersWithFilter(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	namespace := models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	user = models.User{Name: "name", Username: "username-1", Password: "password", Email: "email-1"}
+	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	user = models.User{Name: "name", Username: "username-2", Password: "password", Email: "email-2"}
+	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	user = models.User{Name: "name", Username: "username-3", Password: "password", Email: "email-3"}
+	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
+	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	filters := []models.Filter{
+		models.Filter{
+			Type:   "property",
+			Params: &models.PropertyParams{Name: "namespaces", Operator: "gt", Value: "1"}},
+	}
+
+	users, count, err := mongostore.ListUsers(ctx, paginator.Query{-1, -1}, filters)
+	assert.NoError(t, err)
+	assert.Equal(t, len(users), count)
+	assert.Equal(t, 2, count)
 	assert.NotEmpty(t, users)
 }
 

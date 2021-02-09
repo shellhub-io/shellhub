@@ -49,7 +49,7 @@ type Store interface {
 	DeleteUser(ctx context.Context, ID string) error
 	UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error
 	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
-	ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.User, int, error)
+	ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error)
 	CreateUser(ctx context.Context, user *models.User) error
 	LoadLicense(ctx context.Context) (*models.License, error)
 	SaveLicense(ctx context.Context, license *models.License) error

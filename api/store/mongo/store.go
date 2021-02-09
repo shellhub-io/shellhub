@@ -1042,7 +1042,7 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	return queryMatch, nil
 }
 
-func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.User, int, error) {
+func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
 	query := []bson.M{}
 
 	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
@@ -1053,13 +1053,33 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 		})
 	}
 
-	queryCount := append(query, bson.M{"$count": "count"})
-	count, err := aggregateCount(ctx, s.db.Collection("users"), queryCount)
-	if err != nil {
-		return nil, 0, err
+	query = append(query, []bson.M{
+		{
+			"$addFields": bson.M{
+				"user_id": bson.M{"$toString": "$_id"},
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "namespaces",
+				"localField":   "user_id",
+				"foreignField": "owner",
+				"as":           "namespaces",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"namespaces": bson.M{"$size": "$namespaces"},
+			},
+		},
+	}...)
+
+	queryMatch, err := buildFilterQuery(filters)
+	if len(queryMatch) > 0 {
+		query = append(query, queryMatch...)
 	}
 
-	if pagination.Page != 0 && pagination.PerPage != 0 && !export {
+	if pagination.Page > 0 && pagination.PerPage > 0 {
 		query = append(query, buildPaginationQuery(pagination)...)
 	}
 
@@ -1070,61 +1090,20 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 	}
 	defer cursor.Close(ctx)
 
-	queryNamespaceCount := []bson.M{}
-	filteredUsers := []models.User{}
-
 	for cursor.Next(ctx) {
 		user := new(models.User)
 		err = cursor.Decode(&user)
-
 		if err != nil {
-			return users, count, err
+			return nil, 0, err
 		}
-		queryNamespaceCount = append([]bson.M{}, []bson.M{
-			bson.M{
-				"$match": bson.M{
-					"members": user.ID,
-				},
-			},
-			bson.M{
-				"$group": bson.M{
-					"_id": nil,
-					"count": bson.M{
-						"$sum": 1,
-					},
-				},
-			},
-		}...)
-		countNamespaces, err := aggregateCount(ctx, s.db.Collection("namespaces"), queryNamespaceCount)
 
-		if err != nil {
-			return users, count, err
-		}
-		user.Namespaces = countNamespaces
-		for _, filter := range filters {
-			switch filter.Type {
-			case "int_property":
-				params, ok := filter.Params.(*models.IntParams)
-				if !ok {
-					return nil, 0, ErrWrongParamsType
-				}
-				switch params.Operator {
-				case "eq":
-					if params.Value == user.Namespaces {
-						filteredUsers = append(filteredUsers, *user)
-					}
-				case "gt":
-					if params.Value < user.Namespaces {
-						filteredUsers = append(filteredUsers, *user)
-					}
-				}
-			}
-		}
 		users = append(users, *user)
 	}
 
-	if len(filters) > 0 {
-		return filteredUsers, len(filteredUsers), nil
+	queryCount := append(query, bson.M{"$count": "count"})
+	count, err := aggregateCount(ctx, s.db.Collection("users"), queryCount)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return users, count, err
