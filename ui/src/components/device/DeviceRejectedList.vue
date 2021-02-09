@@ -33,6 +33,7 @@
         <template #[`item.actions`]="{ item }">
           <DeviceActionButton
             v-if="isOwner"
+            data-test="accept-field"
             :uid="item.uid"
             action="accept"
             @update="refresh"
@@ -40,6 +41,7 @@
 
           <DeviceActionButton
             v-if="isOwner"
+            data-test="remove-field"
             :uid="item.uid"
             action="remove"
             @update="refresh"

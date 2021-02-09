@@ -1,12 +1,16 @@
 import Vuex from 'vuex';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { mount, createLocalVue } from '@vue/test-utils';
 import DevicePendingList from '@/components/device/DevicePendingList';
+import Vuetify from 'vuetify';
 
 describe('DevicePendingList', () => {
   const localVue = createLocalVue();
+  const vuetify = new Vuetify();
   localVue.use(Vuex);
+  localVue.filter('moment', () => {});
 
   let wrapper;
+  let wrapper2;
 
   const numberDevices = 4;
   const devices = [
@@ -85,6 +89,32 @@ describe('DevicePendingList', () => {
   ];
   const owner = true;
 
+  const store2 = new Vuex.Store({
+    namespaced: true,
+    state: {
+      devices,
+      numberDevices,
+      owner: false,
+    },
+    getters: {
+      'devices/list': (state) => state.devices,
+      'devices/getNumberDevices': (state) => state.numberDevices,
+      'namespaces/owner': (state) => state.owner,
+    },
+    actions: {
+      'modals/showAddDevice': () => {
+      },
+      'devices/fetch': () => {
+      },
+      'devices/rename': () => {
+      },
+      'stats/get': () => {
+      },
+      'devices/resetListDevices': () => {
+      },
+    },
+  });
+
   const store = new Vuex.Store({
     namespaced: true,
     state: {
@@ -112,10 +142,11 @@ describe('DevicePendingList', () => {
   });
 
   beforeEach(() => {
-    wrapper = shallowMount(DevicePendingList, {
+    wrapper = mount(DevicePendingList, {
       store,
       localVue,
-      stubs: ['fragment'],
+      stubs: ['fragment', 'router-link'],
+      vuetify,
     });
   });
 
@@ -129,6 +160,18 @@ describe('DevicePendingList', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
     expect(dataTableProps.items).toHaveLength(numberDevices);
+    expect(wrapper.find('[data-test="field-accept"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="field-reject"]').exists()).toBe(true);
+  });
+  it('Hides reject and accept button', () => {
+    wrapper2 = mount(DevicePendingList, {
+      store: store2,
+      localVue,
+      stubs: ['fragment', 'router-link'],
+      vuetify,
+    });
+    expect(wrapper2.find('[data-test="field-accept"]').exists()).toBe(false);
+    expect(wrapper2.find('[data-test="field-reject"]').exists()).toBe(false);
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.getListPendingDevices).toEqual(devices);

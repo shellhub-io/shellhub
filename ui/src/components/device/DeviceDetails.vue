@@ -36,6 +36,7 @@
         </v-toolbar-title>
         <DeviceRename
           v-if="isOwner"
+          data-test="rename-field"
           :name="device.name"
           :uid="device.uid"
           @newHostname="receiveName"

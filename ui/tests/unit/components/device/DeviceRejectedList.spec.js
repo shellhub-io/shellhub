@@ -1,12 +1,16 @@
 import Vuex from 'vuex';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { mount, createLocalVue } from '@vue/test-utils';
 import DeviceRejectedList from '@/components/device/DeviceRejectedList';
+import Vuetify from 'vuetify';
 
 describe('DeviceRejectedList', () => {
   const localVue = createLocalVue();
+  const vuetify = new Vuetify();
+  localVue.filter('moment', () => {});
   localVue.use(Vuex);
 
   let wrapper;
+  let wrapper2;
 
   const numberDevices = 1;
   const devices = [
@@ -57,11 +61,38 @@ describe('DeviceRejectedList', () => {
     },
   });
 
+  const store2 = new Vuex.Store({
+    namespaced: true,
+    state: {
+      devices,
+      numberDevices,
+      owner: false,
+    },
+    getters: {
+      'devices/list': (state) => state.devices,
+      'devices/getNumberDevices': (state) => state.numberDevices,
+      'namespaces/owner': (state) => state.owner,
+    },
+    actions: {
+      'modals/showAddDevice': () => {
+      },
+      'devices/fetch': () => {
+      },
+      'devices/rename': () => {
+      },
+      'devices/resetListDevices': () => {
+      },
+      'stats/get': () => {
+      },
+    },
+  });
+
   beforeEach(() => {
-    wrapper = shallowMount(DeviceRejectedList, {
+    wrapper = mount(DeviceRejectedList, {
       store,
       localVue,
-      stubs: ['fragment'],
+      stubs: ['fragment', 'router-link'],
+      vuetify,
     });
   });
 
@@ -75,6 +106,22 @@ describe('DeviceRejectedList', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
     expect(dataTableProps.items).toHaveLength(numberDevices);
+    expect(wrapper.find('[data-test="accept-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="remove-field"]').exists()).toBe(true);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getListRejectedDevices).toEqual(devices);
+    expect(wrapper.vm.getNumberRejectedDevices).toEqual(numberDevices);
+  });
+  it('Hides buttons for user not owner', () => {
+    wrapper2 = mount(DeviceRejectedList, {
+      store: store2,
+      localVue,
+      stubs: ['fragment', 'router-link'],
+      vuetify,
+    });
+    expect(wrapper2.find('[data-test="accept-field"]').exists()).toBe(false);
+    expect(wrapper2.find('[data-test="remove-field"]').exists()).toBe(false);
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.getListRejectedDevices).toEqual(devices);

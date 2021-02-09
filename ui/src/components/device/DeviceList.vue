@@ -76,6 +76,7 @@
 
           <DeviceDelete
             v-if="isOwner"
+            data-test="delete-field"
             :uid="item.uid"
             @update="refresh"
           />

@@ -7,6 +7,7 @@ describe('DeviceDetails', () => {
   localVue.use(Vuex);
 
   let wrapper;
+  let wrapper2;
   const owner = true;
 
   const device = {
@@ -32,6 +33,22 @@ describe('DeviceDetails', () => {
     state: {
       device,
       owner,
+    },
+    getters: {
+      'devices/get': (state) => state.device,
+      'namespaces/owner': (state) => state.owner,
+    },
+    actions: {
+      'devices/get': () => {
+      },
+    },
+  });
+
+  const store2 = new Vuex.Store({
+    namespaced: true,
+    state: {
+      device,
+      owner: false,
     },
     getters: {
       'devices/get': (state) => state.device,
@@ -69,9 +86,25 @@ describe('DeviceDetails', () => {
       expect(wrapper.vm.device[field]).toEqual(device[field]);
     });
   });
+  it('Hides rename field for user not owner', () => {
+    wrapper2 = shallowMount(DeviceDetails, {
+      store: store2,
+      localVue,
+      stubs: ['fragment'],
+      mocks: {
+        $route: {
+          params: {
+            id: device.uid,
+          },
+        },
+      },
+    });
+    expect(wrapper2.find('[data-test="rename-field"]').exists()).toEqual(false);
+  });
   it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(device.uid);
     expect(wrapper.find('[data-test="deviceMac-field"]').text()).toEqual(device.identity.mac);
+    expect(wrapper.find('[data-test="rename-field"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(device.info.pretty_name);
     expect(wrapper.find('[data-test="deviceConvertDate-field"]').text()).toEqual('Wednesday, May 20th 2020, 6:58:53 pm');
   });

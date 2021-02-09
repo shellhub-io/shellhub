@@ -27,12 +27,13 @@
         </template>
 
         <template #[`item.request_time`]="{ item }">
-          {{ item.last_seen | moment("ddd, MMM Do YY, h:mm:ss a") }}
+          {{ [item.last_seen] | moment("ddd, MMM Do YY, h:mm:ss a") }}
         </template>
 
         <template #[`item.actions`]="{ item }">
           <DeviceActionButton
             v-if="isOwner"
+            data-test="field-accept"
             :uid="item.uid"
             action="accept"
             @update="refresh"
@@ -40,6 +41,7 @@
 
           <DeviceActionButton
             v-if="isOwner"
+            data-test="field-reject"
             :uid="item.uid"
             action="reject"
             @update="refresh"

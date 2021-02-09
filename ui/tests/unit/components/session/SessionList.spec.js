@@ -1,12 +1,16 @@
 import Vuex from 'vuex';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { mount, createLocalVue } from '@vue/test-utils';
 import SessionList from '@/components/session/SessionList';
+import Vuetify from 'vuetify';
 
 describe('DeviceAdd', () => {
   const localVue = createLocalVue();
+  const vuetify = new Vuetify();
+
   localVue.use(Vuex);
 
   let wrapper;
+  let wrapper2;
   const owner = true;
 
   const numberSessions = 2;
@@ -36,7 +40,7 @@ describe('DeviceAdd', () => {
       ip_address: '000.000.000.000',
       started_at: '2020-05-18T12:30:28.824Z',
       last_seen: '2020-05-18T12:30:30.205Z',
-      active: false,
+      active: true,
       authenticated: false,
     },
     {
@@ -89,11 +93,35 @@ describe('DeviceAdd', () => {
     },
   });
 
+  const store2 = new Vuex.Store({
+    namespaced: true,
+    state: {
+      sessions,
+      numberSessions,
+      owner: false,
+    },
+    getters: {
+      'sessions/list': (state) => state.sessions,
+      'sessions/getNumberSessions': (state) => state.numberSessions,
+      'namespaces/owner': (state) => state.owner,
+    },
+    actions: {
+      'sessions/fetch': () => {
+      },
+      'sessions/close': () => {
+      },
+    },
+  });
+
   beforeEach(() => {
-    wrapper = shallowMount(SessionList, {
+    wrapper = mount(SessionList, {
       store,
       localVue,
-      stubs: ['fragment'],
+      stubs: ['fragment', 'router-link'],
+      mocks: {
+        $env: (isEnterprise) => isEnterprise,
+      },
+      vuetify,
     });
   });
 
@@ -111,5 +139,18 @@ describe('DeviceAdd', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
     expect(dataTableProps.items).toHaveLength(numberSessions);
+    expect(wrapper.find('[data-test="close-field"]').exists()).toBe(true);
+  });
+  it('Hides the close field when the user is not the owner', () => {
+    wrapper2 = mount(SessionList, {
+      store: store2,
+      localVue,
+      stubs: ['fragment', 'router-link'],
+      mocks: {
+        $env: (isEnterprise) => isEnterprise,
+      },
+      vuetify,
+    });
+    expect(wrapper2.find('[data-test="close-field"]').exists()).toBe(false);
   });
 });

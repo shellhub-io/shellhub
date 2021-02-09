@@ -7,6 +7,7 @@ describe('Notification', () => {
   localVue.use(Vuex);
 
   let wrapper;
+  let wrapper2;
   const inANamespace = false;
   const owner = true;
 
@@ -50,6 +51,24 @@ describe('Notification', () => {
       status: 'pending',
     },
   ];
+
+  const storeNotOwner = new Vuex.Store({
+    namespaced: true,
+    state: {
+      notifications,
+      numberNotifications,
+      owner: false,
+    },
+    getters: {
+      'notifications/list': (state) => state.notifications,
+      'notifications/getNumberNotifications': (state) => state.numberNotifications,
+      'namespaces/owner': (state) => state.owner,
+    },
+    actions: {
+      'notifications/fetch': () => {
+      },
+    },
+  });
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -101,6 +120,18 @@ describe('Notification', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
   it('Renders the template with data', () => {
+    wrapper2 = shallowMount(Notification, {
+      store: storeNotOwner,
+      localVue,
+      stubs: ['fragment', 'router-link'],
+      propsData: { inANamespace },
+    });
+    Object.keys(notifications).forEach((field) => {
+      expect(wrapper2.find(`[data-test="${notifications[field].uid}-field"]`).text()).toEqual(notifications[field].name);
+      expect(wrapper2.find(`[data-test="${notifications[field].uid}-btn"]`).exists()).toEqual(false);
+    });
+  });
+  it('Hides button for user not owner', () => {
     Object.keys(notifications).forEach((field) => {
       expect(wrapper.find(`[data-test="${notifications[field].uid}-field"]`).text()).toEqual(notifications[field].name);
       expect(wrapper.find(`[data-test="${notifications[field].uid}-btn"]`).exists()).toEqual(true);

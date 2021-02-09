@@ -128,6 +128,7 @@
             </v-tooltip>
             <SessionClose
               v-if="item.active && isOwner"
+              data-test="close-field"
               :uid="item.uid"
               :device="item.device_uid"
               @update="refresh"
