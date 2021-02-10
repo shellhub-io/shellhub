@@ -1079,6 +1079,12 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 		query = append(query, queryMatch...)
 	}
 
+	queryCount := append(query, bson.M{"$count": "count"})
+	count, err := aggregateCount(ctx, s.db.Collection("users"), queryCount)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	if pagination.Page > 0 && pagination.PerPage > 0 {
 		query = append(query, buildPaginationQuery(pagination)...)
 	}
@@ -1098,12 +1104,6 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 		}
 
 		users = append(users, *user)
-	}
-
-	queryCount := append(query, bson.M{"$count": "count"})
-	count, err := aggregateCount(ctx, s.db.Collection("users"), queryCount)
-	if err != nil {
-		return nil, 0, err
 	}
 
 	return users, count, err
