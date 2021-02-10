@@ -168,8 +168,12 @@ func UpdatePendingStatus(c apicontext.Context) error {
 		"pending": "pending",
 		"unused":  "unused",
 	}
-	err := svc.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenant, username)
-	if err != nil {
+
+	if err := svc.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenant, username); err != nil {
+		if err == deviceadm.ErrUnauthorized {
+			return c.NoContent(http.StatusForbidden)
+		}
+
 		return err
 	}
 	return c.JSON(http.StatusOK, nil)
