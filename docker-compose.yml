@@ -3,6 +3,7 @@ version: '3.7'
 services:
   ssh:
     image: shellhubio/ssh:${SHELLHUB_VERSION}
+    restart: unless-stopped
     environment:
       - PRIVATE_KEY=/run/secrets/ssh_private_key
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
@@ -15,6 +16,7 @@ services:
       - shellhub
   api:
     image: shellhubio/api:${SHELLHUB_VERSION}
+    restart: unless-stopped
     environment:
       - PRIVATE_KEY=/run/secrets/api_private_key
       - PUBLIC_KEY=/run/secrets/api_public_key
@@ -29,6 +31,7 @@ services:
       - shellhub
   ui:
     image: shellhubio/ui:${SHELLHUB_VERSION}
+    restart: unless-stopped
     environment:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
     depends_on:
@@ -37,6 +40,7 @@ services:
       - shellhub
   gateway:
     image: shellhubio/gateway:${SHELLHUB_VERSION}
+    restart: unless-stopped
     environment:
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - SHELLHUB_SSH_PORT=${SHELLHUB_SSH_PORT}
@@ -49,6 +53,7 @@ services:
       - shellhub
   mongo:
     image: mongo:4.2.12
+    restart: unless-stopped
     networks:
       - shellhub
 
