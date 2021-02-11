@@ -42,7 +42,7 @@ services:
       - SHELLHUB_ENV=${SHELLHUB_ENV}
   agent:
     image: agent
-    restart: on-failure
+    restart: unless-stopped
     build:
       context: .
       dockerfile: agent/Dockerfile

@@ -6,10 +6,12 @@ services:
       - RECORD_URL=cloud-api:8080
   cloud-api:
     image: docker-registry.ossystems.com.br/shellhubio/cloud-api:${SHELLHUB_VERSION}
+    restart: unless-stopped
     networks:
       - shellhub
   admin-api:
     image: docker-registry.ossystems.com.br/shellhubio/admin-api:${SHELLHUB_VERSION}
+    restart: unless-stopped
     environment:
       - ADMIN_API_USERNAME=${SHELLHUB_ENTERPRISE_ADMIN_USERNAME}
       - ADMIN_API_PASSWORD=${SHELLHUB_ENTERPRISE_ADMIN_PASSWORD}
@@ -20,5 +22,6 @@ services:
       - shellhub
   dashboard:
     image: docker-registry.ossystems.com.br/shellhubio/dashboard:${SHELLHUB_VERSION}
+    restart: unless-stopped
     networks:
       - shellhub

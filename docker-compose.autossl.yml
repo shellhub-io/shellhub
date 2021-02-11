@@ -9,7 +9,7 @@ services:
       retries: 10
   autossl:
     image: valian/docker-nginx-auto-ssl:1.2.0
-    restart: on-failure
+    restart: unless-stopped
     depends_on:
       - gateway
     links:
