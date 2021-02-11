@@ -29,7 +29,7 @@ if [ -n "$EXISTS" ]; then
     exit 1
 fi
 
-OWNER_ID=`docker-compose exec -T mongo mongo main --quiet --eval "JSON.stringify(db.users.findOne({ name:'$OWNER' }))" | docker run --rm -i imega/jq -r '._id."$oid" // empty'`
+OWNER_ID=`docker-compose exec -T mongo mongo main --quiet --eval "JSON.stringify(db.users.findOne({ username:'$OWNER' }))" | docker run --rm -i imega/jq -r '._id."$oid" // empty'`
 
 if [ -z "$OWNER_ID" ]; then
     echo "ERROR: owner not found!"
