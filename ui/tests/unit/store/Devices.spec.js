@@ -106,7 +106,7 @@ describe('Devices', () => {
   });
   it('Verify changed name state in renameDevice mutation', () => {
     store.commit('devices/renameDevice', data);
-    expect(store.getters['devices/list'][1].name).toEqual('newDeviceName');
+    expect(store.getters['devices/get'].name).toEqual(data.name);
   });
   it('Verify empty devices state for clearListDevices mutation', () => {
     store.commit('devices/clearListDevices');
