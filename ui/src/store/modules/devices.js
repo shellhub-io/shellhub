@@ -38,7 +38,9 @@ export default {
     },
 
     renameDevice: (state, data) => {
-      Vue.set(state, 'devices', state.devices.map((i) => (i.uid === data.uid ? { ...i, name: data.name } : i)));
+      const { device } = state;
+      device.name = data.name;
+      Vue.set(state, 'device', device);
     },
 
     setDevice: (state, data) => {
