@@ -147,12 +147,15 @@ describe('SettingNamespace', () => {
   });
   it('Check not the owner fields rendering in hosted version of the template.', () => {
     const notTheOwnerMessage = 'You\'re not the owner of this namespace.';
+    const namespaceOwnerMessage = `Contact ${namespace.members[0].name} user for more information.`;
+
     expect(wrapper2.find('[data-test=editOperation]').exists()).toEqual(false);
     expect(wrapper2.find('[data-test=userOperation]').exists()).toEqual(false);
     expect(wrapper2.find('[data-test=deleteOperation]').exists()).toEqual(false);
     expect(wrapper2.find('[data-test=securityOperation]').exists()).toEqual(false);
     expect(wrapper2.find('[data-test=notTheOwner]').exists()).toEqual(true);
     expect(wrapper2.find('[data-test=notTheOwner]').text()).toEqual(notTheOwnerMessage);
+    expect(wrapper2.find('[data-test=namespaceOwnerMessage]').text()).toEqual(namespaceOwnerMessage);
   });
   // open version tests
   it('Check owner fields rendering in open version of the template.', () => {
