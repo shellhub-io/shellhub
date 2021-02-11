@@ -10,10 +10,14 @@
           <div
             v-if="!isOwner"
             style="text-align:center"
-            data-test="notTheOwner"
           >
             <h3 class="pl-6">
-              You're not the owner of this namespace.
+              <span data-test="notTheOwner">
+                You're not the owner of this namespace.
+              </span>
+              <p data-test="namespaceOwnerMessage">
+                Contact {{ namespaceOwnerName() }} user for more information.
+              </p>
             </h3>
             <br>
           </div>
@@ -360,6 +364,13 @@ export default {
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceRemoveUser);
       }
+    },
+
+    namespaceOwnerName() {
+      if (this.namespace.members !== undefined) {
+        return this.namespace.members.find((x) => x.id === this.owner).name;
+      }
+      return null;
     },
   },
 };
