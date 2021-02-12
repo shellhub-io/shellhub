@@ -91,7 +91,7 @@ func main() {
 	internalAPI.POST(routes.RecordSessionURL, apicontext.Handler(routes.RecordSession))
 	publicAPI.GET(routes.PlaySessionURL, apicontext.Handler(routes.PlaySession))
 
-publicAPI.GET(routes.GetStatsURL,
+	publicAPI.GET(routes.GetStatsURL,
 		middlewares.Authorize(apicontext.Handler(routes.GetStats)))
 
 	publicAPI.GET(routes.GetPublicKeysURL, apicontext.Handler(routes.GetPublicKeys))
