@@ -29,7 +29,7 @@ type Service interface {
 	AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error)
-	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)	
+	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }
 

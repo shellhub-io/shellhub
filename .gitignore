@@ -7,3 +7,7 @@ ssh_private_key
 *.orig
 .env.override
 docker-compose.override.yml
+api/api
+ssh/ssh
+agent/agent
+agent/shellhub.key
