@@ -104,6 +104,9 @@ upgrade_mongodb:
 	}
 
 	MONGO_CONTAINER_ID=$$($(DOCKER_COMPOSE) images -q mongo)
+
+	[[ -z "$$MONGO_CONTAINER_ID" ]] && exit 0
+
 	CURRENT_MONGO_VERSION=$$(docker image inspect \
 		--format '{{range .RepoTags}}{{.}} {{end}}' \
 		$$MONGO_CONTAINER_ID | tr -d ' ' | rev | cut -d' ' -f1 | rev | cut -d':' -f2
