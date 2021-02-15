@@ -49,7 +49,7 @@
     "eslint": "^7.19.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-import-resolver-webpack": "^0.13.0",
-    "eslint-plugin-vue": "^7.5.0",
+    "eslint-plugin-vue": "^7.6.0",
     "fibers": "^5.0.0",
     "font-logos": "^0.16.0",
     "mock-local-storage": "^1.1.17",
