@@ -54,7 +54,7 @@
     "font-logos": "^0.16.0",
     "mock-local-storage": "^1.1.17",
     "node-sass": "^5.0.0",
-    "sass": "^1.32.6",
+    "sass": "^1.32.7",
     "sass-loader": "^10.1.1",
     "stylus": "^0.54.8",
     "stylus-loader": "^4.3.3",
