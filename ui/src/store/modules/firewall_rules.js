@@ -10,6 +10,9 @@ export default {
     firewalls: [],
     firewall: {},
     numberFirewalls: 0,
+    page: 0,
+    perPage: 0,
+    filter: null,
   },
 
   getters: {
@@ -32,6 +35,12 @@ export default {
       state.firewalls.splice(state.firewalls.findIndex((d) => d.id === id), 1);
     },
 
+    setPagePerpageFilter: (state, data) => {
+      Vue.set(state, 'page', data.page);
+      Vue.set(state, 'perPage', data.perPage);
+      Vue.set(state, 'filter', data.filter);
+    },
+
     clearListFirewalls: (state) => {
       Vue.set(state, 'firewalls', []);
       Vue.set(state, 'numberFirewalls', 0);
@@ -50,6 +59,20 @@ export default {
     fetch: async (context, data) => {
       try {
         const res = await fetchFirewalls(data.perPage, data.page);
+        context.commit('setFirewalls', res);
+        context.commit('setPagePerpageFilter', data);
+      } catch (error) {
+        context.commit('clearListFirewalls');
+        throw error;
+      }
+    },
+
+    refresh: async (context) => {
+      try {
+        const res = await fetchFirewalls(
+          context.state.perPage,
+          context.state.page,
+        );
         context.commit('setFirewalls', res);
       } catch (error) {
         context.commit('clearListFirewalls');

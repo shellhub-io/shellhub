@@ -1,18 +1,18 @@
 <template>
   <div>
-    <ListFirewall />
+    <Firewall />
   </div>
 </template>
 
 <script>
 
-import ListFirewall from '@/components/firewall_rules/FirewallRulesList';
+import Firewall from '@/components/firewall_rules/FirewallRules';
 
 export default {
   name: 'Firewalls',
 
   components: {
-    ListFirewall,
+    Firewall,
   },
 };
 

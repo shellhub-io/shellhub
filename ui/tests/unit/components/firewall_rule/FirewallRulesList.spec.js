@@ -91,6 +91,13 @@ describe('FirewallRulesList', () => {
     expect(wrapper.vm.getFirewallRules).toEqual(firewalls);
     expect(wrapper.vm.getNumberFirewallRules).toEqual(numberFirewalls);
   });
+  it('Renders the template with data', () => {
+    const dt = wrapper.find('[data-test="dataTable-field"]');
+    const dataTableProps = dt.vm.$options.propsData;
+    expect(dataTableProps.items).toHaveLength(numberFirewalls);
+    expect(wrapper.find('[data-test="firewall-dialog-field-2"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="firewall-delete-field"]').exists()).toBe(true);
+  });
   it('Hides dialogs and delete when the user is not the owner', () => {
     wrapper2 = mount(FirewallRulesList, {
       store: store2,
@@ -98,16 +105,7 @@ describe('FirewallRulesList', () => {
       stubs: ['fragment'],
       vuetify,
     });
-    expect(wrapper2.find('[data-test="firewall-dialog-field"]').exists()).toBe(false);
     expect(wrapper2.find('[data-test="firewall-dialog-field-2"]').exists()).toBe(false);
     expect(wrapper2.find('[data-test="firewall-delete-field"]').exists()).toBe(false);
-  });
-  it('Renders the template with data', () => {
-    const dt = wrapper.find('[data-test="dataTable-field"]');
-    const dataTableProps = dt.vm.$options.propsData;
-    expect(dataTableProps.items).toHaveLength(numberFirewalls);
-    expect(wrapper.find('[data-test="firewall-dialog-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="firewall-dialog-field-2"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="firewall-delete-field"]').exists()).toBe(true);
   });
 });
