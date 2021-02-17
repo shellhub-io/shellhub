@@ -163,6 +163,10 @@ func (s *Store) NamespaceGetByName(ctx context.Context, name string) (*models.Na
 }
 
 func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
+	if namespace.APITokens == nil {
+		namespace.APITokens = []models.Token{}
+	}
+
 	_, err := s.db.Collection("namespaces").InsertOne(ctx, namespace)
 
 	return namespace, err

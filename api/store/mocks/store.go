@@ -1307,6 +1307,103 @@ func (_m *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, 
 	return r0
 }
 
+// TokenCreateAPIToken provides a mock function with given fields: ctx, tenantID
+func (_m *Store) TokenCreateAPIToken(ctx context.Context, tenantID string) (*models.Token, error) {
+	ret := _m.Called(ctx, tenantID)
+
+	var r0 *models.Token
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Token); ok {
+		r0 = rf(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Token)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TokenDeleteAPIToken provides a mock function with given fields: ctx, tenantID, id
+func (_m *Store) TokenDeleteAPIToken(ctx context.Context, tenantID string, id string) error {
+	ret := _m.Called(ctx, tenantID, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, tenantID, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// TokenGetAPIToken provides a mock function with given fields: ctx, tenantID, id
+func (_m *Store) TokenGetAPIToken(ctx context.Context, tenantID string, id string) (*models.Token, error) {
+	ret := _m.Called(ctx, tenantID, id)
+
+	var r0 *models.Token
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Token); ok {
+		r0 = rf(ctx, tenantID, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Token)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenantID, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TokenListAPIToken provides a mock function with given fields: ctx, tenantID
+func (_m *Store) TokenListAPIToken(ctx context.Context, tenantID string) ([]models.Token, error) {
+	ret := _m.Called(ctx, tenantID)
+
+	var r0 []models.Token
+	if rf, ok := ret.Get(0).(func(context.Context, string) []models.Token); ok {
+		r0 = rf(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Token)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TokenUpdateAPIToken provides a mock function with given fields: ctx, tenantID, id, token
+func (_m *Store) TokenUpdateAPIToken(ctx context.Context, tenantID string, id string, token *models.APITokenUpdate) error {
+	ret := _m.Called(ctx, tenantID, id, token)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.APITokenUpdate) error); ok {
+		r0 = rf(ctx, tenantID, id, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UserCreate provides a mock function with given fields: ctx, user
 func (_m *Store) UserCreate(ctx context.Context, user *models.User) error {
 	ret := _m.Called(ctx, user)

@@ -1,0 +1,11 @@
+type: object
+properties:
+  id:
+    description: Token id
+    type: string
+  tenant_id:
+    description: Token tenant ID
+    type: string
+  read_only:
+    description: If the token is only read
+    type: bool

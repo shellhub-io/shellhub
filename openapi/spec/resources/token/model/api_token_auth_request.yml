@@ -1,0 +1,5 @@
+type: object
+properties:
+  tenant_id:
+    description: Token tenant ID
+    type: string

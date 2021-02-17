@@ -41,6 +41,29 @@ func (_m *Service) AddNamespaceUser(ctx context.Context, memberUsername string, 
 	return r0, r1
 }
 
+// AuthAPIToken provides a mock function with given fields: ctx, req
+func (_m *Service) AuthAPIToken(ctx context.Context, req *models.APITokenAuthRequest) (*models.APITokenAuthResponse, error) {
+	ret := _m.Called(ctx, req)
+
+	var r0 *models.APITokenAuthResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *models.APITokenAuthRequest) *models.APITokenAuthResponse); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.APITokenAuthResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *models.APITokenAuthRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AuthDevice provides a mock function with given fields: ctx, req, remoteAddr
 func (_m *Service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAddr string) (*models.DeviceAuthResponse, error) {
 	ret := _m.Called(ctx, req, remoteAddr)
@@ -276,6 +299,29 @@ func (_m *Service) CreateTag(ctx context.Context, uid models.UID, name string) e
 	return r0
 }
 
+// CreateToken provides a mock function with given fields: ctx, tenantID
+func (_m *Service) CreateToken(ctx context.Context, tenantID string) (*models.Token, error) {
+	ret := _m.Called(ctx, tenantID)
+
+	var r0 *models.Token
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Token); ok {
+		r0 = rf(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Token)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeactivateSession provides a mock function with given fields: ctx, uid
 func (_m *Service) DeactivateSession(ctx context.Context, uid models.UID) error {
 	ret := _m.Called(ctx, uid)
@@ -353,6 +399,20 @@ func (_m *Service) DeleteTag(ctx context.Context, uid models.UID, name string) e
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
 		r0 = rf(ctx, uid, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteToken provides a mock function with given fields: ctx, tenantID, ID
+func (_m *Service) DeleteToken(ctx context.Context, tenantID string, ID string) error {
+	ret := _m.Called(ctx, tenantID, ID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, tenantID, ID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -633,6 +693,29 @@ func (_m *Service) GetTags(ctx context.Context, tenant string) ([]string, int, e
 	return r0, r1, r2
 }
 
+// GetToken provides a mock function with given fields: ctx, tenantID, ID
+func (_m *Service) GetToken(ctx context.Context, tenantID string, ID string) (*models.Token, error) {
+	ret := _m.Called(ctx, tenantID, ID)
+
+	var r0 *models.Token
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Token); ok {
+		r0 = rf(ctx, tenantID, ID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Token)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenantID, ID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // HandleReportDelete provides a mock function with given fields: ns
 func (_m *Service) HandleReportDelete(ns *models.Namespace) error {
 	ret := _m.Called(ns)
@@ -848,6 +931,29 @@ func (_m *Service) ListTag(ctx context.Context) ([]string, int, error) {
 	return r0, r1, r2
 }
 
+// ListToken provides a mock function with given fields: ctx, tenantID
+func (_m *Service) ListToken(ctx context.Context, tenantID string) ([]models.Token, error) {
+	ret := _m.Called(ctx, tenantID)
+
+	var r0 []models.Token
+	if rf, ok := ret.Get(0).(func(context.Context, string) []models.Token); ok {
+		r0 = rf(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Token)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // LookupDevice provides a mock function with given fields: ctx, namespace, name
 func (_m *Service) LookupDevice(ctx context.Context, namespace string, name string) (*models.Device, error) {
 	ret := _m.Called(ctx, namespace, name)
@@ -1061,6 +1167,20 @@ func (_m *Service) UpdateTag(ctx context.Context, uid models.UID, tags []string)
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, []string) error); ok {
 		r0 = rf(ctx, uid, tags)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateToken provides a mock function with given fields: ctx, tenantID, ID, token
+func (_m *Service) UpdateToken(ctx context.Context, tenantID string, ID string, token *models.APITokenUpdate) error {
+	ret := _m.Called(ctx, tenantID, ID, token)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.APITokenUpdate) error); ok {
+		r0 = rf(ctx, tenantID, ID, token)
 	} else {
 		r0 = ret.Error(0)
 	}

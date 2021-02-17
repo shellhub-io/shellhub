@@ -49,6 +49,7 @@ func (h *Handler) AuthRequest(c apicontext.Context) error {
 		c.Response().Header().Set("X-Role", claims.Role)
 
 		return c.NoContent(http.StatusOK)
+
 	case "device":
 		var claims models.DeviceAuthClaims
 
@@ -58,6 +59,18 @@ func (h *Handler) AuthRequest(c apicontext.Context) error {
 
 		// Extract device UID from JWT
 		c.Response().Header().Set(client.DeviceUIDHeader, claims.UID)
+
+		return c.NoContent(http.StatusOK)
+
+	case "apiToken":
+		var claims models.APITokenAuthClaims
+
+		if err := DecodeMap(rawClaims, &claims); err != nil {
+			return err
+		}
+
+		c.Response().Header().Set("X-ID", claims.ID)
+		c.Response().Header().Set("X-Tenant-ID", claims.TenantID)
 
 		return c.NoContent(http.StatusOK)
 	}
