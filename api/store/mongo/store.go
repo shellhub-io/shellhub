@@ -48,6 +48,11 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 			},
 		},
 		{
+			"$addFields": bson.M{
+				"online": bson.M{"$anyElementTrue": []interface{}{"$online"}},
+			},
+		},
+		{
 			"$lookup": bson.M{
 				"from":         "namespaces",
 				"localField":   "tenant_id",
@@ -57,7 +62,6 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 		},
 		{
 			"$addFields": bson.M{
-				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
 				"namespace": "$namespace.name",
 			},
 		},
@@ -145,6 +149,11 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 			},
 		},
 		{
+			"$addFields": bson.M{
+				"online": bson.M{"$anyElementTrue": []interface{}{"$online"}},
+			},
+		},
+		{
 			"$lookup": bson.M{
 				"from":         "namespaces",
 				"localField":   "tenant_id",
@@ -154,7 +163,6 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 		},
 		{
 			"$addFields": bson.M{
-				"online":    bson.M{"$anyElementTrue": []interface{}{"$online"}},
 				"namespace": "$namespace.name",
 			},
 		},
@@ -1310,6 +1318,11 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 				},
 			},
 			{
+				"$addFields": bson.M{
+					"devices": bson.M{"$size": "$devices"},
+				},
+			},
+			{
 				"$lookup": bson.M{
 					"from":         "sessions",
 					"localField":   "devices.uid",
@@ -1318,17 +1331,8 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 				},
 			},
 			{
-				"$project": bson.M{
-					"name":      1,
-					"owner":     1,
-					"members":   1,
-					"tenant_id": 1,
-					"devices": bson.M{
-						"$size": "$devices",
-					},
-					"sessions": bson.M{
-						"$size": "$sessions",
-					},
+				"$addFields": bson.M{
+					"sessions": bson.M{"$size": "$sessions"},
 				},
 			},
 		}
