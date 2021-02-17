@@ -62,7 +62,17 @@ const router = new Router({
     {
       path: '/firewall/rules',
       name: 'firewalls',
-      component: () => import('./../views/FirewallRules.vue'),
+      component: () => import(/* webpackChunkName: 'firewalls' */ './../views/FirewallRules.vue'),
+      redirect: {
+        name: 'listFirewalls',
+      },
+      children: [
+        {
+          path: '',
+          name: 'listFirewalls',
+          component: () => import('./../components/firewall_rules/FirewallRulesList.vue'),
+        },
+      ],
     },
     {
       path: '/sshkeys/public_keys',
