@@ -32,7 +32,11 @@
     </p>
 
     <v-card class="mt-2">
-      <router-view />
+      <router-view v-if="hasFirewallRules" />
+      <BoxMessageFirewall
+        v-else
+        type-message="firewall"
+      />
     </v-card>
   </fragment>
 </template>
@@ -40,12 +44,14 @@
 <script>
 
 import FirewallRuleFormDialog from '@/components/firewall_rules/FirewallRulesFormDialog';
+import BoxMessageFirewall from '@/components/box/BoxMessage';
 
 export default {
   name: 'Firewall',
 
   components: {
     FirewallRuleFormDialog,
+    BoxMessageFirewall,
   },
 
   data() {
@@ -58,6 +64,14 @@ export default {
     isOwner() {
       return this.$store.getters['namespaces/owner'];
     },
+
+    hasFirewallRules() {
+      return this.$store.getters['firewallrules/getNumberFirewalls'] > 0;
+    },
+  },
+
+  async created() {
+    await this.refresh();
   },
 
   methods: {
