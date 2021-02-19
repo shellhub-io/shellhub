@@ -96,7 +96,6 @@ export default {
 
     remove: async (context, id) => {
       await removeFirewall(id);
-      context.commit('removeFirewalls', id);
     },
   },
 };
