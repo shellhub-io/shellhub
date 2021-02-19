@@ -71,10 +71,19 @@ export default {
       try {
         await this.$store.dispatch('firewallrules/remove', this.id);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.firewallRuleDeleting);
-        this.dialog = false;
+        this.update();
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.firewallRuleDeleting);
       }
+    },
+
+    update() {
+      this.$emit('update');
+      this.close();
+    },
+
+    close() {
+      this.dialog = !this.dialog;
     },
   },
 };
