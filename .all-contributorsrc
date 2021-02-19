@@ -132,6 +132,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "sammck",
+      "name": "Sam McKelvie",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7035152?v=4",
+      "profile": "http://xevo.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
