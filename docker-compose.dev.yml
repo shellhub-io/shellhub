@@ -53,7 +53,7 @@ services:
     network_mode: host
     pid: host
     environment:
-      - SHELLHUB_SERVER_ADDRESS=http://172.17.0.1
+      - SHELLHUB_SERVER_ADDRESS=http://localhost:${SHELLHUB_HTTP_PORT}
       - SHELLHUB_PRIVATE_KEY=/go/src/github.com/shellhub-io/shellhub/agent/shellhub.key
       - SHELLHUB_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
