@@ -13,6 +13,7 @@ import notifications from '@/store/modules/notifications';
 import users from '@/store/modules/users';
 import security from '@/store/modules/security';
 import namespaces from '@/store/modules/namespaces';
+import boxs from '@/store/modules/boxs';
 
 Vue.use(Vuex);
 
@@ -31,5 +32,6 @@ export default new Vuex.Store({
     users,
     security,
     namespaces,
+    boxs,
   },
 });

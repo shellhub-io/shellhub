@@ -87,11 +87,21 @@ describe('Sessions', () => {
     authenticated: false,
   },
   ];
+  const pagePerpageInitialValue = {
+    page: 0,
+    perPage: 10,
+  };
+  const pagePerpageValue = {
+    page: 1,
+    perPage: 50,
+  };
 
   it('Return device default variables', () => {
     expect(store.getters['sessions/list']).toEqual([]);
     expect(store.getters['sessions/get']).toEqual({});
     expect(store.getters['sessions/getNumberSessions']).toEqual(0);
+    expect(store.getters['sessions/getPage']).toEqual(pagePerpageInitialValue.page);
+    expect(store.getters['sessions/getPerPage']).toEqual(pagePerpageInitialValue.perPage);
   });
 
   it('Verify initial state change for setSessions mutation', () => {
@@ -102,6 +112,16 @@ describe('Sessions', () => {
   it('Verify inital state change for setSession mutation', () => {
     store.commit('sessions/setSession', { data: session });
     expect(store.getters['sessions/get']).toEqual(session);
+  });
+  it('Verify inital state change for setPagePerpage mutation', () => {
+    store.commit('sessions/setPagePerpage', pagePerpageValue);
+    expect(store.getters['sessions/getPage']).toEqual(pagePerpageValue.page);
+    expect(store.getters['sessions/getPerPage']).toEqual(pagePerpageValue.perPage);
+  });
+  it('Verify inital state change for resetPagePerpage mutation', () => {
+    store.commit('sessions/resetPagePerpage');
+    expect(store.getters['sessions/getPage']).toEqual(pagePerpageInitialValue.page);
+    expect(store.getters['sessions/getPerPage']).toEqual(pagePerpageInitialValue.perPage);
   });
   it('Verify changed session object state for clearObjectSession mutation', () => {
     store.commit('sessions/clearObjectSession');

@@ -47,7 +47,17 @@ const router = new Router({
     {
       path: '/sessions',
       name: 'sessions',
-      component: () => import('./../views/Sessions.vue'),
+      component: () => import(/* webpackChunkName: 'sessions' */ './../views/Sessions.vue'),
+      redirect: {
+        name: 'listSessions',
+      },
+      children: [
+        {
+          path: '',
+          name: 'listSessions',
+          component: () => import('./../components/session/SessionList.vue'),
+        },
+      ],
     },
     {
       path: '/session/:id',

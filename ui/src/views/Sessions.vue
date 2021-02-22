@@ -1,18 +1,18 @@
 <template>
   <div>
-    <ListSession />
+    <Session />
   </div>
 </template>
 
 <script>
 
-import ListSession from '@/components/session/SessionList';
+import Session from '@/components/session/Session';
 
 export default {
   name: 'Sessions',
 
   components: {
-    ListSession,
+    Session,
   },
 };
 

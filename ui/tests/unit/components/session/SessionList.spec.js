@@ -11,8 +11,9 @@ describe('DeviceAdd', () => {
 
   let wrapper;
   let wrapper2;
-  const owner = true;
 
+  const owner = true;
+  const status = true;
   const numberSessions = 2;
   const sessions = [
     {
@@ -79,6 +80,7 @@ describe('DeviceAdd', () => {
       sessions,
       numberSessions,
       owner,
+      status,
     },
     getters: {
       'sessions/list': (state) => state.sessions,
@@ -99,16 +101,20 @@ describe('DeviceAdd', () => {
       sessions,
       numberSessions,
       owner: false,
+      status,
     },
     getters: {
       'sessions/list': (state) => state.sessions,
       'sessions/getNumberSessions': (state) => state.numberSessions,
       'namespaces/owner': (state) => state.owner,
+      'boxs/getStatus': (state) => state.status,
     },
     actions: {
       'sessions/fetch': () => {
       },
       'sessions/close': () => {
+      },
+      'boxs/setStatus': () => {
       },
     },
   });
