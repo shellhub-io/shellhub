@@ -51,7 +51,7 @@
 
 <script>
 
-import FirewallRuleFormDialog from '@/components/firewall_rules/FirewallRulesFormDialog';
+import FirewallRuleFormDialog from '@/components/firewall_rule/FirewallRuleFormDialog';
 
 export default {
   name: 'BoxMessage',

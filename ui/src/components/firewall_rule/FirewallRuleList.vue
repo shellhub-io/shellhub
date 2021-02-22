@@ -60,14 +60,14 @@
           </template>
 
           <template #[`item.actions`]="{ item }">
-            <FirewallRuleFormDialog
+            <FirewallRuleEdit
               v-if="isOwner"
               data-test="firewall-dialog-field-2"
               :firewall-rule="item"
               :create-rule="false"
               @update="refresh"
             />
-            <FirewallDelete
+            <FirewallRuleDelete
               v-if="isOwner"
               :id="item.id"
               data-test="firewall-delete-field"
@@ -82,15 +82,15 @@
 
 <script>
 
-import FirewallRuleFormDialog from '@/components/firewall_rules/FirewallRulesFormDialog';
-import FirewallDelete from '@/components/firewall_rules/FirewallRulesDelete';
+import FirewallRuleEdit from '@/components/firewall_rule/FirewallRuleFormDialog';
+import FirewallRuleDelete from '@/components/firewall_rule/FirewallRuleDelete';
 
 export default {
-  name: 'FirewallList',
+  name: 'FirewallRuleList',
 
   components: {
-    FirewallDelete,
-    FirewallRuleFormDialog,
+    FirewallRuleDelete,
+    FirewallRuleEdit,
   },
 
   data() {

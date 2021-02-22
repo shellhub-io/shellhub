@@ -1,9 +1,9 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import FirewallRules from '@/components/firewall_rules/FirewallRules';
+import FirewallRule from '@/components/firewall_rule/FirewallRule';
 import Vuetify from 'vuetify';
 
-describe('FirewallRules', () => {
+describe('FirewallRule', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
   const vuetify = new Vuetify();
@@ -45,7 +45,7 @@ describe('FirewallRules', () => {
   });
 
   beforeEach(() => {
-    wrapper = mount(FirewallRules, {
+    wrapper = mount(FirewallRule, {
       store,
       localVue,
       stubs: ['fragment'],
@@ -66,7 +66,7 @@ describe('FirewallRules', () => {
     expect(wrapper.find('[data-test="firewall-dialog-field"]').exists()).toBe(true);
   });
   it('Hides dialogs when the user is not the owner', () => {
-    const wrapper2 = mount(FirewallRules, {
+    const wrapper2 = mount(FirewallRule, {
       store: store2,
       localVue,
       stubs: ['fragment'],
