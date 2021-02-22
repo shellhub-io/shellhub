@@ -70,7 +70,7 @@ const router = new Router({
         {
           path: '',
           name: 'listFirewalls',
-          component: () => import('./../components/firewall_rules/FirewallRulesList.vue'),
+          component: () => import('./../components/firewall_rule/FirewallRuleList.vue'),
         },
       ],
     },

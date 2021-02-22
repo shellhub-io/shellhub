@@ -15,7 +15,7 @@
       <v-spacer />
       <v-spacer />
 
-      <FirewallRuleFormDialog
+      <FirewallRuleCreate
         v-if="isOwner"
         :create-rule="true"
         data-test="firewall-dialog-field"
@@ -43,14 +43,14 @@
 
 <script>
 
-import FirewallRuleFormDialog from '@/components/firewall_rules/FirewallRulesFormDialog';
+import FirewallRuleCreate from '@/components/firewall_rule/FirewallRuleFormDialog';
 import BoxMessageFirewall from '@/components/box/BoxMessage';
 
 export default {
-  name: 'Firewall',
+  name: 'FirewallRule',
 
   components: {
-    FirewallRuleFormDialog,
+    FirewallRuleCreate,
     BoxMessageFirewall,
   },
 

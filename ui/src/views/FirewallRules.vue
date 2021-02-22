@@ -6,10 +6,10 @@
 
 <script>
 
-import Firewall from '@/components/firewall_rules/FirewallRules';
+import Firewall from '@/components/firewall_rule/FirewallRule';
 
 export default {
-  name: 'Firewalls',
+  name: 'FirewallRules',
 
   components: {
     Firewall,

@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import FirewallRulesDelete from '@/components/firewall_rules/FirewallRulesDelete';
+import FirewallRuleDelete from '@/components/firewall_rule/FirewallRuleDelete';
 
-describe('FirewallRulesDelete', () => {
+describe('FirewallRuleDelete', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
@@ -23,7 +23,7 @@ describe('FirewallRulesDelete', () => {
   });
 
   beforeEach(() => {
-    wrapper = shallowMount(FirewallRulesDelete, {
+    wrapper = shallowMount(FirewallRuleDelete, {
       store,
       localVue,
       stubs: ['fragment'],

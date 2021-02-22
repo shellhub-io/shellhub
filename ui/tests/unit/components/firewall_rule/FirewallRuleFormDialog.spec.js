@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import FirewallRulesFormDialog from '@/components/firewall_rules/FirewallRulesFormDialog';
+import FirewallRuleFormDialog from '@/components/firewall_rule/FirewallRuleFormDialog';
 
-describe('FirewallRulesFormDialog', () => {
+describe('FirewallRuleFormDialog', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
@@ -45,7 +45,7 @@ describe('FirewallRulesFormDialog', () => {
   });
 
   beforeEach(() => {
-    wrapper = shallowMount(FirewallRulesFormDialog, {
+    wrapper = shallowMount(FirewallRuleFormDialog, {
       store,
       localVue,
       stubs: ['fragment'],
