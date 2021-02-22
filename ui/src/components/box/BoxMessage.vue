@@ -38,6 +38,20 @@
         />
       </v-list-item>
 
+      <!-- eslint-disable vue/no-v-html -->
+      <v-list-item
+        v-for="(item, y) in textWithLink()"
+        :key="text().length+y"
+        class="text-center listText"
+      >
+        <v-list-item-content
+          class="justify-center py-2"
+          :data-test="text().length+y+'-boxMessage-text'"
+          v-html="item"
+        />
+      </v-list-item>
+      <!-- eslint-enable vue/no-v-html-->
+
       <v-card-actions class="justify-center pt-8 pb-0">
         <FirewallRuleFormDialog
           v-if="typeMessage == 'firewall'"
@@ -64,7 +78,7 @@ export default {
     typeMessage: {
       type: String,
       default: 'firewall',
-      validator: (value) => ['firewall'].includes(value),
+      validator: (value) => ['session', 'firewall'].includes(value),
     },
   },
 
@@ -72,22 +86,46 @@ export default {
     return {
       items:
       {
+        session:
+        {
+          icon: 'history',
+          title: 'Session',
+          text: [
+            'An SSH session is created when a connection is made to any registered device.',
+          ],
+          textWithLink: [
+            `<p>If you don't know how to connect to your devices, please follow this guide
+            <a
+              target="_blank"
+              href="https://docs.shellhub.io/getting-started/connecting-device/"
+            >See More</a>.</p>`,
+          ],
+        },
         firewall:
         {
           icon: 'security',
           title: 'Firewall Rule',
-          text: [`ShellHub provides flexible firewall for filtering SSH connections.
-            It gives a fine-grained control over which SSH connections reach the devices.`,
-          `Using Firewall Rules you can deny or allow SSH connections from specific
-            IP address to a specific or a group of devices using a given username.`],
+          text: [
+            `ShellHub provides flexible firewall for filtering SSH connections.
+              It gives a fine-grained control over which SSH connections reach the devices.`,
+            `Using Firewall Rules you can deny or allow SSH connections from specific
+              IP address to a specific or a group of devices using a given username.`,
+          ],
+          textWithLink: [],
         },
       },
     };
   },
 
+  async created() {
+    this.$store.dispatch('boxs/setStatus', true);
+  },
+
   methods: {
     icon() {
       switch (this.typeMessage) {
+      case 'session':
+        return this.items.session.icon;
       case 'firewall':
         return this.items.firewall.icon;
       default:
@@ -97,6 +135,8 @@ export default {
 
     title() {
       switch (this.typeMessage) {
+      case 'session':
+        return this.items.session.title;
       case 'firewall':
         return this.items.firewall.title;
       default:
@@ -106,6 +146,8 @@ export default {
 
     text() {
       switch (this.typeMessage) {
+      case 'session':
+        return this.items.session.text;
       case 'firewall':
         return this.items.firewall.text;
       default:
@@ -113,12 +155,22 @@ export default {
       }
     },
 
-    moreInformation() {
+    textWithLink() {
       switch (this.typeMessage) {
+      case 'session':
+        return this.items.session.textWithLink;
       case 'firewall':
-        return this.items.firewall.moreInformation;
+        return this.items.firewall.textWithLink;
       default:
         return null;
+      }
+    },
+
+    async refreshFirewallRule() {
+      try {
+        await this.$store.dispatch('firewallrules/refresh');
+      } catch (e) {
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
       }
     },
 
