@@ -29,6 +29,18 @@ describe('KeyFormDialog', () => {
       },
       'publickeys/put': () => {
       },
+      'privatekeys/set': () => {
+      },
+      'privatekeys/edit': () => {
+      },
+      'snackbar/showSnackbarSuccessAction': () => {
+      },
+      'snackbar/showSnackbarErrorAction': () => {
+      },
+      'snackbar/showSnackbarSuccessNotRequest': () => {
+      },
+      'snackbar/showSnackbarErrorNotRequest': () => {
+      },
     },
   });
 

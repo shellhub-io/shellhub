@@ -87,7 +87,17 @@ const router = new Router({
     {
       path: '/sshkeys/public_keys',
       name: 'publicKeys',
-      component: () => import('./../views/PublicKeys.vue'),
+      component: () => import(/* webpackChunkName: 'publickeys' */'./../views/PublicKeys.vue'),
+      redirect: {
+        name: 'listPublickeys',
+      },
+      children: [
+        {
+          path: '',
+          name: 'listPublickeys',
+          component: () => import('./../components/public_key/PublicKeyList.vue'),
+        },
+      ],
     },
     {
       path: '/settings',
