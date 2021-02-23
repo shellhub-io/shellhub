@@ -1,65 +1,45 @@
 <template>
   <fragment>
-    <div class="d-flex pa-0 align-center">
-      <h1>Public Keys</h1>
-      <v-spacer />
-      <v-spacer />
-      <PublicKeyFormDialog
-        :create-key="true"
-        @update="refresh"
-      />
-    </div>
-
-    <v-card class="mt-2">
-      <v-app-bar
-        flat
-        color="transparent"
+    <v-card-text class="pa-0">
+      <v-data-table
+        :headers="headers"
+        :items="getPublicKeys"
+        data-test="dataTable-field"
+        item-key="fingerprint"
+        :sort-by="['started_at']"
+        :sort-desc="[true]"
+        :items-per-page="10"
+        :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
+        :server-items-length="getNumberPublicKeys"
+        :options.sync="pagination"
+        :disable-sort="true"
       >
-        <v-toolbar-title />
-      </v-app-bar>
+        <template #[`item.name`]="{ item }">
+          {{ item.name }}
+        </template>
 
-      <v-divider />
+        <template #[`item.fingerprint`]="{ item }">
+          {{ item.fingerprint }}
+        </template>
 
-      <v-card-text class="pa-0">
-        <v-data-table
-          :headers="headers"
-          :items="getPublicKeys"
-          data-test="dataTable-field"
-          item-key="fingerprint"
-          :sort-by="['started_at']"
-          :sort-desc="[true]"
-          :items-per-page="10"
-          :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
-          :server-items-length="getNumberPublicKeys"
-          :options.sync="pagination"
-          :disable-sort="true"
-        >
-          <template #[`item.name`]="{ item }">
-            {{ item.name }}
-          </template>
+        <template #[`item.created_at`]="{ item }">
+          {{ item.created_at | moment("ddd, MMM Do YY, h:mm:ss a") }}
+        </template>
 
-          <template #[`item.fingerprint`]="{ item }">
-            {{ item.fingerprint }}
-          </template>
+        <template #[`item.actions`]="{ item }">
+          <PublicKeyFormDialog
+            :key-object="item"
+            :create-key="false"
+            @update="refresh"
+          />
 
-          <template #[`item.created_at`]="{ item }">
-            {{ item.created_at | moment("ddd, MMM Do YY, h:mm:ss a") }}
-          </template>
-
-          <template #[`item.actions`]="{ item }">
-            <PublicKeyFormDialog
-              :key-object="item"
-              :create-key="false"
-              @update="refresh"
-            />
-            <PublicKeyDelete
-              :fingerprint="item.fingerprint"
-              @update="refresh"
-            />
-          </template>
-        </v-data-table>
-      </v-card-text>
-    </v-card>
+          <PublicKeyDelete
+            :fingerprint="item.fingerprint"
+            @update="refresh"
+          />
+        </template>
+      </v-data-table>
+    </v-card-text>
   </fragment>
 </template>
 
@@ -130,15 +110,19 @@ export default {
     },
 
     async getPublicKeysList() {
-      const data = {
-        perPage: this.pagination.itemsPerPage,
-        page: this.pagination.page,
-      };
+      if (!this.$store.getters['boxs/getStatus']) {
+        const data = {
+          perPage: this.pagination.itemsPerPage,
+          page: this.pagination.page,
+        };
 
-      try {
-        await this.$store.dispatch('publickeys/fetch', data);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.publicKeyList);
+        try {
+          await this.$store.dispatch('publickeys/fetch', data);
+        } catch {
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.publicKeyList);
+        }
+      } else {
+        this.$store.dispatch('boxs/setStatus', false);
       }
     },
   },

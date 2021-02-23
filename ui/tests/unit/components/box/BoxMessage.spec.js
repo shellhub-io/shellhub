@@ -13,6 +13,7 @@ describe('BoxMessage', () => {
   const typeMessage = {
     session: 'session',
     firewall: 'firewall',
+    publicKey: 'publicKey',
   };
 
   const items = {
@@ -37,6 +38,16 @@ describe('BoxMessage', () => {
               It gives a fine-grained control over which SSH connections reach the devices.`,
         `Using Firewall Rules you can deny or allow SSH connections from specific
               IP address to a specific or a group of devices using a given username.`,
+      ],
+      textWithLink: [],
+    },
+    publicKey:
+    {
+      icon: 'vpn_key',
+      title: 'Public Keys',
+      text: [
+        'You can connect to your devices using password-based logins, but we strongly recommend using SSH key pairs instead.',
+        'SSH keys are more secure than passwords and can help you log in without having to remember long passwords.',
       ],
       textWithLink: [],
     },
@@ -115,6 +126,28 @@ describe('BoxMessage', () => {
     const lenFirewallText = (items.firewall.text).length;
     Object.keys(items.firewall.textWithLink).forEach((index) => {
       expect(firewallWrapper.find(`[data-test="${lenFirewallText + parseInt(index, 10)}-boxMessage-text"]`).text()).toEqual(items.firewall.textWithLink[index]);
+    });
+  });
+  it('Process data in methods Public Key', () => {
+    const publicKeyWrapper = shallowMount(BoxMessage, {
+      store,
+      localVue,
+      stubs: ['fragment'],
+      vuetify,
+      propsData: { typeMessage: typeMessage.publicKey },
+    });
+
+    const title = `Looks like you don't have any ${items.publicKey.title}`;
+
+    expect(publicKeyWrapper.find('[data-test="boxMessage-icon"]').text()).toEqual(items.publicKey.icon);
+    expect(publicKeyWrapper.find('[data-test="boxMessage-title"]').text()).toEqual(title);
+    Object.keys(items.publicKey.text).forEach((index) => {
+      expect(publicKeyWrapper.find(`[data-test="${index}-boxMessage-text"]`).text()).toEqual(items.publicKey.text[index]);
+    });
+
+    const lenPublicKeyText = (items.publicKey.text).length;
+    Object.keys(items.firewall.textWithLink).forEach((index) => {
+      expect(publicKeyWrapper.find(`[data-test="${lenPublicKeyText + parseInt(index, 10)}-boxMessage-text"]`).text()).toEqual(items.publicKey.textWithLink[index]);
     });
   });
 });

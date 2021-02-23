@@ -8,6 +8,7 @@ describe('PublicKeyList', () => {
 
   let wrapper;
 
+  const status = true;
   const numberPublicKeys = 2;
   const publicKeys = [
     {
@@ -31,13 +32,19 @@ describe('PublicKeyList', () => {
     state: {
       publicKeys,
       numberPublicKeys,
+      status,
     },
     getters: {
       'publickeys/list': (state) => state.publicKeys,
       'publickeys/getNumberPublicKeys': (state) => state.numberPublicKeys,
+      'boxs/getStatus': (state) => state.status,
     },
     actions: {
       'publickeys/fetch': () => {
+      },
+      'snackbar/showSnackbarErrorLoading': () => {
+      },
+      'boxs/setStatus': () => {
       },
     },
   });

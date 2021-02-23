@@ -1,18 +1,18 @@
 <template>
   <div>
-    <ListPublickey />
+    <Publickey />
   </div>
 </template>
 
 <script>
 
-import ListPublickey from '@/components/public_key/PublicKeyList';
+import Publickey from '@/components/public_key/PublicKey';
 
 export default {
   name: 'Publickeys',
 
   components: {
-    ListPublickey,
+    Publickey,
   },
 };
 

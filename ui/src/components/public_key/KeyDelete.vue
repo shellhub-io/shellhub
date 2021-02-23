@@ -51,7 +51,7 @@
 <script>
 
 export default {
-  name: 'PublicKeyDelete',
+  name: 'KeyDelete',
 
   props: {
     fingerprint: {
@@ -80,7 +80,7 @@ export default {
         try {
           await this.$store.dispatch('publickeys/remove', this.fingerprint);
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyDeleting);
-          this.dialog = false;
+          this.update();
         } catch {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyDeleting);
         }
@@ -89,13 +89,22 @@ export default {
         try {
           await this.$store.dispatch('privatekeys/remove', this.id);
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.privateKeyDeleting);
-          this.dialog = false;
+          this.close();
         } catch {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.privateKeyDeleting);
         }
         break;
       default:
       }
+    },
+
+    update() {
+      this.$emit('update');
+      this.close();
+    },
+
+    close() {
+      this.dialog = !this.dialog;
     },
   },
 };

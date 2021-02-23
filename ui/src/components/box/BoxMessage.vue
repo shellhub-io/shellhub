@@ -53,10 +53,16 @@
       <!-- eslint-enable vue/no-v-html-->
 
       <v-card-actions class="justify-center pt-8 pb-0">
-        <FirewallRuleFormDialog
+        <FirewallRuleEdit
           v-if="typeMessage == 'firewall'"
           :create-rule="true"
           @update="refreshFirewallRule"
+        />
+
+        <PublicKeyCreate
+          v-else-if="typeMessage == 'publicKey'"
+          :create-key="true"
+          @update="refreshPublicKey"
         />
       </v-card-actions>
     </v-card>
@@ -65,20 +71,22 @@
 
 <script>
 
-import FirewallRuleFormDialog from '@/components/firewall_rule/FirewallRuleFormDialog';
+import FirewallRuleEdit from '@/components/firewall_rule/FirewallRuleFormDialog';
+import PublicKeyCreate from '@/components/public_key/KeyFormDialog';
 
 export default {
   name: 'BoxMessage',
 
   components: {
-    FirewallRuleFormDialog,
+    FirewallRuleEdit,
+    PublicKeyCreate,
   },
 
   props: {
     typeMessage: {
       type: String,
       default: 'firewall',
-      validator: (value) => ['session', 'firewall'].includes(value),
+      validator: (value) => ['session', 'firewall', 'publicKey'].includes(value),
     },
   },
 
@@ -113,6 +121,16 @@ export default {
           ],
           textWithLink: [],
         },
+        publicKey:
+        {
+          icon: 'vpn_key',
+          title: 'Public Keys',
+          text: [
+            'You can connect to your devices using password-based logins, but we strongly recommend using SSH key pairs instead.',
+            'SSH keys are more secure than passwords and can help you log in without having to remember long passwords.',
+          ],
+          textWithLink: [],
+        },
       },
     };
   },
@@ -128,6 +146,8 @@ export default {
         return this.items.session.icon;
       case 'firewall':
         return this.items.firewall.icon;
+      case 'publicKey':
+        return this.items.publicKey.icon;
       default:
         return null;
       }
@@ -139,6 +159,8 @@ export default {
         return this.items.session.title;
       case 'firewall':
         return this.items.firewall.title;
+      case 'publicKey':
+        return this.items.publicKey.title;
       default:
         return null;
       }
@@ -150,6 +172,8 @@ export default {
         return this.items.session.text;
       case 'firewall':
         return this.items.firewall.text;
+      case 'publicKey':
+        return this.items.publicKey.text;
       default:
         return null;
       }
@@ -161,6 +185,8 @@ export default {
         return this.items.session.textWithLink;
       case 'firewall':
         return this.items.firewall.textWithLink;
+      case 'publicKey':
+        return this.items.publicKey.textWithLink;
       default:
         return null;
       }
@@ -171,6 +197,14 @@ export default {
         await this.$store.dispatch('firewallrules/refresh');
       } catch (e) {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
+      }
+    },
+
+    async refreshPublicKey() {
+      try {
+        await this.$store.dispatch('publickeys/refresh');
+      } catch (e) {
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.publicKeyList);
       }
     },
   },
