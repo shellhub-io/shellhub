@@ -168,19 +168,23 @@ export default {
     },
 
     async getFirewalls() {
-      const data = {
-        perPage: this.pagination.itemsPerPage,
-        page: this.pagination.page,
-      };
+      if (!this.$store.getters['boxs/getStatus']) {
+        const data = {
+          perPage: this.pagination.itemsPerPage,
+          page: this.pagination.page,
+        };
 
-      try {
-        await this.$store.dispatch('firewallrules/fetch', data);
-      } catch (e) {
-        if (e.response.status === 403) {
-          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
-        } else {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
+        try {
+          await this.$store.dispatch('firewallrules/fetch', data);
+        } catch (e) {
+          if (e.response.status === 403) {
+            this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+          } else {
+            this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
+          }
         }
+      } else {
+        this.$store.dispatch('boxs/setStatus', false);
       }
     },
   },

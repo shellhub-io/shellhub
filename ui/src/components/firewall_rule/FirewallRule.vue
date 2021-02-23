@@ -32,9 +32,10 @@
     </p>
 
     <v-card class="mt-2">
-      <router-view v-if="hasFirewallRules" />
+      <router-view v-if="hasFirewallRule" />
+
       <BoxMessageFirewall
-        v-else
+        v-if="showBoxMessage"
         type-message="firewall"
       />
     </v-card>
@@ -57,6 +58,7 @@ export default {
   data() {
     return {
       showHelp: false,
+      show: false,
     };
   },
 
@@ -65,13 +67,21 @@ export default {
       return this.$store.getters['namespaces/owner'];
     },
 
-    hasFirewallRules() {
+    hasFirewallRule() {
       return this.$store.getters['firewallrules/getNumberFirewalls'] > 0;
+    },
+
+    showBoxMessage() {
+      return !this.hasFirewallRule && this.show;
     },
   },
 
   async created() {
+    this.$store.dispatch('boxs/setStatus', true);
+    this.$store.dispatch('firewallrules/resetPagePerpage');
+
     await this.refresh();
+    this.show = true;
   },
 
   methods: {

@@ -34,9 +34,9 @@ describe('BoxMessage', () => {
       title: 'Firewall Rule',
       text: [
         `ShellHub provides flexible firewall for filtering SSH connections.
-            It gives a fine-grained control over which SSH connections reach the devices.`,
+              It gives a fine-grained control over which SSH connections reach the devices.`,
         `Using Firewall Rules you can deny or allow SSH connections from specific
-            IP address to a specific or a group of devices using a given username.`,
+              IP address to a specific or a group of devices using a given username.`,
       ],
       textWithLink: [],
     },

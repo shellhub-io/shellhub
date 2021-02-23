@@ -34,11 +34,21 @@ describe('Firewalls', () => {
     username: 'shellhub',
     hostname: 'shellhub',
   };
+  const pagePerpageInitialValue = {
+    page: 0,
+    perPage: 10,
+  };
+  const pagePerpageValue = {
+    page: 1,
+    perPage: 50,
+  };
 
   it('Return firewall default variables', () => {
     expect(store.getters['firewallrules/list']).toEqual([]);
     expect(store.getters['firewallrules/get']).toEqual({});
     expect(store.getters['firewallrules/getNumberFirewalls']).toEqual(0);
+    expect(store.getters['firewallrules/getPage']).toEqual(pagePerpageInitialValue.page);
+    expect(store.getters['firewallrules/getPerPage']).toEqual(pagePerpageInitialValue.perPage);
   });
 
   it('Verify initial state change for setFirewalls mutation', () => {
@@ -49,6 +59,16 @@ describe('Firewalls', () => {
   it('Verify inital state change for setSession mutation', () => {
     store.commit('firewallrules/setFirewall', { data: firewallRule });
     expect(store.getters['firewallrules/get']).toEqual(firewallRule);
+  });
+  it('Verify inital state change for setPagePerpageFilter mutation', () => {
+    store.commit('firewallrules/setPagePerpageFilter', pagePerpageValue);
+    expect(store.getters['firewallrules/getPage']).toEqual(pagePerpageValue.page);
+    expect(store.getters['firewallrules/getPerPage']).toEqual(pagePerpageValue.perPage);
+  });
+  it('Verify inital state change for resetPagePerpage mutation', () => {
+    store.commit('firewallrules/resetPagePerpage');
+    expect(store.getters['firewallrules/getPage']).toEqual(pagePerpageInitialValue.page);
+    expect(store.getters['firewallrules/getPerPage']).toEqual(pagePerpageInitialValue.perPage);
   });
   it('Verify remove firewall item from list for removeFirewalls mutation', () => {
     store.commit('firewallrules/removeFirewalls', firewallRule.id);
