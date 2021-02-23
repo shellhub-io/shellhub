@@ -11,16 +11,23 @@ describe('FirewallRule', () => {
   let wrapper;
 
   const isOwner = true;
+  const numberFirewalls = 0;
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       isOwner,
+      numberFirewalls,
     },
     getters: {
       'namespaces/owner': (state) => state.isOwner,
+      'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
     },
     actions: {
+      'boxs/setStatus': () => {
+      },
+      'firewallrules/resetPagePerpage': () => {
+      },
       'firewallrules/refresh': () => {
       },
       'snackbar/showSnackbarErrorLoading': () => {
@@ -32,11 +39,17 @@ describe('FirewallRule', () => {
     namespaced: true,
     state: {
       isOwner: !isOwner,
+      numberFirewalls,
     },
     getters: {
       'namespaces/owner': (state) => state.isOwner,
+      'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
     },
     actions: {
+      'boxs/setStatus': () => {
+      },
+      'firewallrules/resetPagePerpage': () => {
+      },
       'firewallrules/refresh': () => {
       },
       'snackbar/showSnackbarErrorLoading': () => {

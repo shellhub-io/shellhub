@@ -56,7 +56,7 @@
         <FirewallRuleFormDialog
           v-if="typeMessage == 'firewall'"
           :create-rule="true"
-          @update="refresh"
+          @update="refreshFirewallRule"
         />
       </v-card-actions>
     </v-card>
@@ -167,14 +167,6 @@ export default {
     },
 
     async refreshFirewallRule() {
-      try {
-        await this.$store.dispatch('firewallrules/refresh');
-      } catch (e) {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
-      }
-    },
-
-    async refresh() {
       try {
         await this.$store.dispatch('firewallrules/refresh');
       } catch (e) {

@@ -11,6 +11,7 @@ describe('FirewallRuleList', () => {
   let wrapper;
   let wrapper2;
 
+  const status = true;
   const numberFirewalls = 2;
   const firewalls = [
     {
@@ -42,14 +43,22 @@ describe('FirewallRuleList', () => {
       firewalls,
       numberFirewalls,
       owner,
+      status,
     },
     getters: {
       'firewallrules/list': (state) => state.firewalls,
       'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
       'namespaces/owner': (state) => state.owner,
+      'boxs/getStatus': (state) => state.status,
     },
     actions: {
       'firewallrules/fetch': () => {
+      },
+      'boxs/setStatus': () => {
+      },
+      'snackbar/showSnackbarErrorAssociation': () => {
+      },
+      'snackbar/showSnackbarErrorLoading': () => {
       },
     },
   });
@@ -65,9 +74,16 @@ describe('FirewallRuleList', () => {
       'firewallrules/list': (state) => state.firewalls,
       'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
       'namespaces/owner': (state) => state.owner,
+      'boxs/getStatus': (state) => state.status,
     },
     actions: {
       'firewallrules/fetch': () => {
+      },
+      'boxs/setStatus': () => {
+      },
+      'snackbar/showSnackbarErrorAssociation': () => {
+      },
+      'snackbar/showSnackbarErrorLoading': () => {
       },
     },
   });

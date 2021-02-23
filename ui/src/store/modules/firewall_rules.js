@@ -11,7 +11,7 @@ export default {
     firewall: {},
     numberFirewalls: 0,
     page: 0,
-    perPage: 0,
+    perPage: 10,
     filter: null,
   },
 
@@ -19,6 +19,8 @@ export default {
     list: (state) => state.firewalls,
     get: (state) => state.firewall,
     getNumberFirewalls: (state) => state.numberFirewalls,
+    getPage: (state) => state.page,
+    getPerPage: (state) => state.perPage,
   },
 
   mutations: {
@@ -39,6 +41,11 @@ export default {
       Vue.set(state, 'page', data.page);
       Vue.set(state, 'perPage', data.perPage);
       Vue.set(state, 'filter', data.filter);
+    },
+
+    resetPagePerpage: (state) => {
+      Vue.set(state, 'page', 0);
+      Vue.set(state, 'perPage', 10);
     },
 
     clearListFirewalls: (state) => {
@@ -92,6 +99,10 @@ export default {
 
     put: async (context, data) => {
       await putFirewall(data);
+    },
+
+    resetPagePerpage: async (context) => {
+      context.commit('resetPagePerpage');
     },
 
     remove: async (context, id) => {
