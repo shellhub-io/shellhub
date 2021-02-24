@@ -14,15 +14,6 @@
       />
       <v-spacer />
       <DeviceAdd />
-      <v-btn
-        v-if="currentInANamespace"
-        class="v-btn--active mr-2"
-        text
-        color="primary"
-        @click="$store.dispatch('modals/showAddDevice', true)"
-      >
-        Add Device
-      </v-btn>
     </div>
     <v-card class="mt-2">
       <v-app-bar
@@ -81,10 +72,6 @@ export default {
   },
 
   computed: {
-    currentInANamespace() {
-      return localStorage.getItem('tenant') !== '';
-    },
-
     getNumberPendingDevices() {
       return this.$store.getters['stats/stats'].pending_devices;
     },
