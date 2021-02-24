@@ -443,9 +443,17 @@ var migrations = []migrate.Migration{
 				if err != nil {
 					return err
 				}
-				objID, _ := primitive.ObjectIDFromHex(namespace.Owner)
+
+				objID, err := primitive.ObjectIDFromHex(namespace.Owner)
+				if err != nil {
+					return err
+				}
+
 				user := new(models.User)
 				if err := db.Collection("users").FindOne(context.TODO(), bson.M{"_id": objID}).Decode(&user); err != nil {
+					if err != mongo.ErrNoDocuments {
+						return err
+					}
 					if _, err := db.Collection("namespaces").DeleteOne(context.TODO(), bson.M{"tenant_id": namespace.TenantID}); err != nil {
 						return err
 					}
@@ -469,20 +477,22 @@ var migrations = []migrate.Migration{
 				if err != nil {
 					return err
 				}
+
 				namespace := new(models.Namespace)
 				if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": device.TenantID}).Decode(&namespace); err != nil {
-					if err == mongo.ErrNoDocuments {
-						if _, err := db.Collection("devices").DeleteOne(context.TODO(), bson.M{"uid": device.UID}); err != nil {
-							return err
-						}
+					if err != mongo.ErrNoDocuments {
+						return err
+					}
+					if _, err := db.Collection("devices").DeleteOne(context.TODO(), bson.M{"uid": device.UID}); err != nil {
+						return err
+					}
 
-						if _, err := db.Collection("sessions").DeleteMany(context.TODO(), bson.M{"device_uid": device.UID}); err != nil {
-							return err
-						}
+					if _, err := db.Collection("sessions").DeleteMany(context.TODO(), bson.M{"device_uid": device.UID}); err != nil {
+						return err
+					}
 
-						if _, err := db.Collection("connected_devices").DeleteMany(context.TODO(), bson.M{"uid": device.UID}); err != nil {
-							return err
-						}
+					if _, err := db.Collection("connected_devices").DeleteMany(context.TODO(), bson.M{"uid": device.UID}); err != nil {
+						return err
 					}
 				}
 			}
@@ -498,16 +508,18 @@ var migrations = []migrate.Migration{
 			}
 			for cursor.Next(context.TODO()) {
 				rule := new(models.FirewallRule)
-				err = cursor.Decode(&rule)
+				err := cursor.Decode(&rule)
 				if err != nil {
 					return err
 				}
+
 				namespace := new(models.Namespace)
 				if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": rule.TenantID}).Decode(&namespace); err != nil {
-					if err == mongo.ErrNoDocuments {
-						if _, err := db.Collection("firewall_rules").DeleteOne(context.TODO(), bson.M{"tenant_id": rule.TenantID}); err != nil {
-							return err
-						}
+					if err != mongo.ErrNoDocuments {
+						return err
+					}
+					if _, err := db.Collection("firewall_rules").DeleteOne(context.TODO(), bson.M{"tenant_id": rule.TenantID}); err != nil {
+						return err
 					}
 				}
 			}
@@ -524,16 +536,17 @@ var migrations = []migrate.Migration{
 
 			for cursor.Next(context.TODO()) {
 				key := new(models.PublicKey)
-				err = cursor.Decode(&key)
+				err := cursor.Decode(&key)
 				if err != nil {
 					return err
 				}
 				namespace := new(models.Namespace)
 				if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": key.TenantID}).Decode(&namespace); err != nil {
-					if err == mongo.ErrNoDocuments {
-						if _, err := db.Collection("public_keys").DeleteOne(context.TODO(), bson.M{"tenant_id": key.TenantID}); err != nil {
-							return err
-						}
+					if err != mongo.ErrNoDocuments {
+						return err
+					}
+					if _, err := db.Collection("public_keys").DeleteOne(context.TODO(), bson.M{"tenant_id": key.TenantID}); err != nil {
+						return err
 					}
 				}
 			}
@@ -549,12 +562,14 @@ var migrations = []migrate.Migration{
 				if err != nil {
 					return err
 				}
+
 				namespace := new(models.Namespace)
 				if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": record.TenantID}).Decode(&namespace); err != nil {
-					if err == mongo.ErrNoDocuments {
-						if _, err := db.Collection("recorded_sessions").DeleteOne(context.TODO(), bson.M{"tenant_id": record.TenantID}); err != nil {
-							return err
-						}
+					if err != mongo.ErrNoDocuments {
+						return err
+					}
+					if _, err := db.Collection("recorded_sessions").DeleteOne(context.TODO(), bson.M{"tenant_id": record.TenantID}); err != nil {
+						return err
 					}
 				}
 			}
