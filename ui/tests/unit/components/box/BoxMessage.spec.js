@@ -11,12 +11,26 @@ describe('BoxMessage', () => {
   let wrapper;
 
   const typeMessage = {
+    device: 'device',
     session: 'session',
     firewall: 'firewall',
     publicKey: 'publicKey',
   };
 
   const items = {
+    device:
+    {
+      icon: 'devices',
+      title: 'Device',
+      text: [
+        'In order to register a device on ShellHub, you need to install ShellHub agent onto it.',
+      ],
+      textWithLink: [
+        `The easiest way to install ShellHub agent is with our automatic one-line installation
+          script, which works with all Linux distributions that have Docker installed and
+          properly set up See More.`,
+      ],
+    },
     session:
     {
       icon: 'history',
@@ -84,6 +98,28 @@ describe('BoxMessage', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Process data in methods Device', () => {
+    const deviceWrapper = shallowMount(BoxMessage, {
+      store,
+      localVue,
+      stubs: ['fragment'],
+      vuetify,
+      propsData: { typeMessage: typeMessage.device },
+    });
+
+    const title = `Looks like you don't have any ${items.device.title}`;
+
+    expect(deviceWrapper.find('[data-test="boxMessage-icon"]').text()).toEqual(items.device.icon);
+    expect(deviceWrapper.find('[data-test="boxMessage-title"]').text()).toEqual(title);
+    Object.keys(items.device.text).forEach((index) => {
+      expect(deviceWrapper.find(`[data-test="${index}-boxMessage-text"]`).text()).toEqual(items.device.text[index]);
+    });
+
+    const lenDeviceText = (items.device.text).length;
+    Object.keys(items.firewall.textWithLink).forEach((index) => {
+      expect(deviceWrapper.find(`[data-test="${lenDeviceText + parseInt(index, 10)}-boxMessage-text"]`).text()).toEqual(items.device.textWithLink[index]);
+    });
   });
   it('Process data in methods Session', () => {
     const sessionWrapper = shallowMount(BoxMessage, {

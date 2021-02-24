@@ -2,8 +2,11 @@
   <fragment>
     <div class="d-flex pa-0 align-center">
       <h1>Devices</h1>
+
       <v-spacer />
+
       <v-text-field
+        v-if="hasDevice"
         v-model="search"
         append-icon="mdi-magnify"
         label="Search by hostname"
@@ -12,10 +15,16 @@
         hide-details
         data-test="search-text"
       />
+
       <v-spacer />
+
       <DeviceAdd />
     </div>
-    <v-card class="mt-2">
+
+    <v-card
+      v-if="hasDevice"
+      class="mt-2"
+    >
       <v-app-bar
         flat
         color="transparent"
@@ -40,6 +49,7 @@
               Pending
             </v-badge>
           </v-tab>
+
           <v-tab
             to="/devices/rejected"
           >
@@ -47,9 +57,18 @@
           </v-tab>
         </v-tabs>
       </v-app-bar>
-      <v-divider />
 
-      <router-view />
+      <v-divider />
+    </v-card>
+
+    <v-card>
+      <router-view v-if="hasDevice" />
+
+      <BoxMessageDevice
+        v-if="showBoxMessage"
+        class="mt-2"
+        type-message="device"
+      />
     </v-card>
   </fragment>
 </template>
@@ -57,23 +76,36 @@
 <script>
 
 import DeviceAdd from '@/components/device/DeviceAdd';
+import BoxMessageDevice from '@/components/box/BoxMessage';
 
 export default {
   name: 'DeviceList',
 
   components: {
     DeviceAdd,
+    BoxMessageDevice,
   },
 
   data() {
     return {
       search: '',
+      show: false,
     };
   },
 
   computed: {
     getNumberPendingDevices() {
       return this.$store.getters['stats/stats'].pending_devices;
+    },
+
+    hasDevice() {
+      return this.$store.getters['stats/stats'].registered_devices > 0
+        || this.$store.getters['stats/stats'].pending_devices > 0
+        || this.$store.getters['stats/stats'].rejected_devices > 0;
+    },
+
+    showBoxMessage() {
+      return !this.hasDevice && this.show;
     },
   },
 
@@ -86,6 +118,7 @@ export default {
   async created() {
     try {
       await this.$store.dispatch('stats/get');
+      this.show = true;
     } catch (e) {
       if (e.response.status === 403) {
         this.$store.dispatch('snackbar/showSnackbarErrorAssociation');

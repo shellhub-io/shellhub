@@ -53,6 +53,8 @@
       <!-- eslint-enable vue/no-v-html-->
 
       <v-card-actions class="justify-center pt-8 pb-0">
+        <DeviceAdd v-if="typeMessage == 'device'" />
+
         <FirewallRuleEdit
           v-if="typeMessage == 'firewall'"
           :create-rule="true"
@@ -71,6 +73,7 @@
 
 <script>
 
+import DeviceAdd from '@/components/device/DeviceAdd';
 import FirewallRuleEdit from '@/components/firewall_rule/FirewallRuleFormDialog';
 import PublicKeyCreate from '@/components/public_key/KeyFormDialog';
 
@@ -78,6 +81,7 @@ export default {
   name: 'BoxMessage',
 
   components: {
+    DeviceAdd,
     FirewallRuleEdit,
     PublicKeyCreate,
   },
@@ -86,7 +90,7 @@ export default {
     typeMessage: {
       type: String,
       default: 'firewall',
-      validator: (value) => ['session', 'firewall', 'publicKey'].includes(value),
+      validator: (value) => ['device', 'session', 'firewall', 'publicKey'].includes(value),
     },
   },
 
@@ -94,6 +98,23 @@ export default {
     return {
       items:
       {
+        device:
+        {
+          icon: 'devices',
+          title: 'Device',
+          text: [
+            'In order to register a device on ShellHub, you need to install ShellHub agent onto it.',
+          ],
+          textWithLink: [
+            `<p>The easiest way to install ShellHub agent is with our automatic one-line installation
+                script, which works with all Linux distributions that have Docker installed and
+                properly set up.
+            <a
+              target="_blank"
+              href="https://docs.shellhub.io/getting-started/registering-device/"
+            >See More</a>.</p>`,
+          ],
+        },
         session:
         {
           icon: 'history',
@@ -148,6 +169,8 @@ export default {
         return this.items.firewall.icon;
       case 'publicKey':
         return this.items.publicKey.icon;
+      case 'device':
+        return this.items.device.icon;
       default:
         return null;
       }
@@ -161,6 +184,8 @@ export default {
         return this.items.firewall.title;
       case 'publicKey':
         return this.items.publicKey.title;
+      case 'device':
+        return this.items.device.title;
       default:
         return null;
       }
@@ -174,6 +199,8 @@ export default {
         return this.items.firewall.text;
       case 'publicKey':
         return this.items.publicKey.text;
+      case 'device':
+        return this.items.device.text;
       default:
         return null;
       }
@@ -187,6 +214,8 @@ export default {
         return this.items.firewall.textWithLink;
       case 'publicKey':
         return this.items.publicKey.textWithLink;
+      case 'device':
+        return this.items.device.textWithLink;
       default:
         return null;
       }
