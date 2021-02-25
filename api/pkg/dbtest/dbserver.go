@@ -50,7 +50,7 @@ func init() {
 	cmd.Stderr = &out
 	if err := cmd.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "---- Failed to initialize dbtest:\n")
-		fmt.Fprintf(os.Stderr, out.String())
+		fmt.Fprint(os.Stderr, out.String())
 		panic("Docker is not installed or is not running properly")
 	}
 }
