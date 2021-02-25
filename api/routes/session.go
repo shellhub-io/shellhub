@@ -24,7 +24,9 @@ func GetSessionList(c apicontext.Context) error {
 	svc := sessionmngr.NewService(c.Store())
 
 	query := paginator.NewQuery()
-	c.Bind(query)
+	if err := c.Bind(query); err != nil {
+		return err
+	}
 
 	// TODO: normalize is not required when request is privileged
 	query.Normalize()
