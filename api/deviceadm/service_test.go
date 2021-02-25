@@ -20,11 +20,11 @@ func TestListDevices(t *testing.T) {
 	ctx := context.TODO()
 
 	devices := []models.Device{
-		models.Device{UID: "uid"},
+		{UID: "uid"},
 	}
 
 	filters := []models.Filter{
-		models.Filter{
+		{
 			Type:   "property",
 			Params: &models.PropertyParams{Name: "hostname", Operator: "eq"}},
 	}

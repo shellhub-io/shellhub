@@ -1070,7 +1070,7 @@ func TestListUsersWithFilter(t *testing.T) {
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 
 	filters := []models.Filter{
-		models.Filter{
+		{
 			Type:   "property",
 			Params: &models.PropertyParams{Name: "namespaces", Operator: "gt", Value: "1"}},
 	}

@@ -18,7 +18,7 @@ func TestListSessions(t *testing.T) {
 	ctx := context.TODO()
 
 	sessions := []models.Session{
-		models.Session{UID: "uid"},
+		{UID: "uid"},
 	}
 
 	query := paginator.Query{Page: 1, PerPage: 10}

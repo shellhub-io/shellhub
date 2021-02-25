@@ -1440,7 +1440,7 @@ func buildPaginationQuery(pagination paginator.Query) []bson.M {
 	}
 
 	return []bson.M{
-		bson.M{"$skip": pagination.PerPage * (pagination.Page - 1)},
-		bson.M{"$limit": pagination.PerPage},
+		{"$skip": pagination.PerPage * (pagination.Page - 1)},
+		{"$limit": pagination.PerPage},
 	}
 }
