@@ -1280,7 +1280,7 @@ func TestCreateUser(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func testCreateNamespace(t *testing.T) {
+func TestCreateNamespace(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -1300,7 +1300,7 @@ func testCreateNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 }
-func testDeleteNamespace(t *testing.T) {
+func TestDeleteNamespace(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -1323,7 +1323,7 @@ func testDeleteNamespace(t *testing.T) {
 	err = mongostore.DeleteNamespace(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 }
-func testGetNamespace(t *testing.T) {
+func TestGetNamespace(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -1346,7 +1346,7 @@ func testGetNamespace(t *testing.T) {
 	_, err = mongostore.GetNamespace(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 }
-func testListNamespaces(t *testing.T) {
+func TestListNamespaces(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -1370,7 +1370,7 @@ func testListNamespaces(t *testing.T) {
 	assert.Equal(t, 1, count)
 	assert.NoError(t, err)
 }
-func testAddNamespaceUser(t *testing.T) {
+func TestAddNamespaceUser(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -1402,7 +1402,8 @@ func testAddNamespaceUser(t *testing.T) {
 	_, err = mongostore.AddNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
 }
-func testRemoveNamespaceUser(t *testing.T) {
+
+func TestRemoveNamespaceUser(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
