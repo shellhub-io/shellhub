@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"os"
 	"strings"
 
 	uuid "github.com/satori/go.uuid"
@@ -70,6 +71,12 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	if namespace.TenantID == "" {
 		namespace.TenantID = uuid.Must(uuid.NewV4(), nil).String()
 	}
+	if os.Getenv("SHELLHUB_ENTERPRISE") == "true" {
+		namespace.MaxDevices = 3
+	} else {
+		namespace.MaxDevices = -1
+	}
+
 	return s.store.CreateNamespace(ctx, namespace)
 }
 

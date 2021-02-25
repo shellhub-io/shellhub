@@ -1298,6 +1298,7 @@ func TestCreateNamespace(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 		Members:  []string{"owner"},
+		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
 }
@@ -1319,6 +1320,7 @@ func TestDeleteNamespace(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 		Members:  []string{"owner"},
+		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
 
@@ -1343,6 +1345,7 @@ func TestGetNamespace(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 		Members:  []string{"owner"},
+		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
 
@@ -1367,6 +1370,7 @@ func TestListNamespaces(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 		Members:  []string{"owner"},
+		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
 
@@ -1400,6 +1404,7 @@ func TestAddNamespaceUser(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 		Members:  []string{"owner"},
+		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
 
@@ -1434,6 +1439,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 		Members:  []string{"owner"},
+		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
 
