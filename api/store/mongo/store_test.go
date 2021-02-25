@@ -365,7 +365,7 @@ func TestListSessions(t *testing.T) {
 
 	_, err = mongostore.CreateSession(ctx, session)
 	assert.NoError(t, err)
-	sessions, count, err := mongostore.ListSessions(ctx, paginator.Query{-1, -1})
+	sessions, count, err := mongostore.ListSessions(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, sessions)
@@ -786,7 +786,7 @@ func TestGetFirewallRule(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
-	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{-1, -1})
+	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{Page: -1, PerPage: -1})
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
@@ -816,7 +816,7 @@ func TestUpdateFirewallRule(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{-1, -1})
+	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, rules)
@@ -853,7 +853,7 @@ func TestDeleteFirewallRule(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
-	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{-1, -1})
+	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, rules)
@@ -895,7 +895,7 @@ func TestListDevices(t *testing.T) {
 	err := mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
-	devices, count, err := mongostore.ListDevices(ctx, paginator.Query{-1, -1}, nil, "", "last_seen", "asc")
+	devices, count, err := mongostore.ListDevices(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, devices)
@@ -920,7 +920,7 @@ func TestListFirewallRules(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{-1, -1})
+	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, rules)
@@ -1032,7 +1032,7 @@ func TestListUsers(t *testing.T) {
 	userID := result.InsertedID.(primitive.ObjectID).Hex()
 	namespace := models.Namespace{Name: "name", Owner: userID, TenantID: "tenant"}
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	users, count, err := mongostore.ListUsers(ctx, paginator.Query{-1, -1}, nil)
+	users, count, err := mongostore.ListUsers(ctx, paginator.Query{Page: -1, PerPage: -1}, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, users)
@@ -1075,7 +1075,7 @@ func TestListUsersWithFilter(t *testing.T) {
 			Params: &models.PropertyParams{Name: "namespaces", Operator: "gt", Value: "1"}},
 	}
 
-	users, count, err := mongostore.ListUsers(ctx, paginator.Query{-1, -1}, filters)
+	users, count, err := mongostore.ListUsers(ctx, paginator.Query{Page: -1, PerPage: -1}, filters)
 	assert.NoError(t, err)
 	assert.Equal(t, len(users), count)
 	assert.Equal(t, 2, count)
@@ -1236,7 +1236,7 @@ func testListNamespaces(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	_, count, err := mongostore.ListNamespaces(ctx, paginator.Query{-1, -1}, nil, false)
+	_, count, err := mongostore.ListNamespaces(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, false)
 	assert.Equal(t, 1, count)
 	assert.NoError(t, err)
 }
@@ -1374,7 +1374,7 @@ func TestListPublicKeys(t *testing.T) {
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
 
-	_, count, err := mongostore.ListPublicKeys(ctx, paginator.Query{-1, -1})
+	_, count, err := mongostore.ListPublicKeys(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.Equal(t, 1, count)
 	assert.NoError(t, err)
 }
