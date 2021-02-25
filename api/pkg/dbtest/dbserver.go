@@ -132,7 +132,11 @@ func (dbs *DBServer) monitor() error {
 		cmd := exec.Command("/bin/sh", "-c", "docker ps --filter ancestor=mongo")
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
-		cmd.Run()
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+
 		fmt.Fprintf(os.Stderr, "----------------------------------------\n")
 
 		panic("mongod container died unexpectedly")
