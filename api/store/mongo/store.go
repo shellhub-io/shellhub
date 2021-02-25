@@ -1364,6 +1364,9 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 
 	namespaces := make([]models.Namespace, 0)
 	cursor, err := s.db.Collection("namespaces").Aggregate(ctx, query)
+	if err != nil {
+		return nil, 0, err
+	}
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
