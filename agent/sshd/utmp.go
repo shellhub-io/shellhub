@@ -16,41 +16,41 @@ package sshd
 */
 
 import (
-	"os"
-	"unsafe"
 	"bytes"
-	"net"
-	"strings"
 	"encoding/binary"
-	"golang.org/x/sys/unix"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sys/unix"
+	"net"
+	"os"
+	"strings"
+	"unsafe"
 )
 
 type ExitStatus struct {
-	ETermination	int16		// Process temination status - not used
-	EExit		int16		// Process exit status - not used
+	ETermination int16 // Process temination status - not used
+	EExit        int16 // Process exit status - not used
 }
 
 type Utmpx struct {
-	Type		int16		// UserProcess or DeadProcess
-	Padding		[2]byte		// Padding to align rest of struct
-	Pid		int32		// PID of the ShellHub agent
-	Line		[32]byte	// tty associated with the process
-	ID		[4]byte		// Index, last 4 characters of Line
-	User		[32]byte	// Username
-	Host		[256]byte	// Source IP address
-	Exit		ExitStatus	// Exit status - not used
-	Session		int32		// Session ID - not used
-	Tv		unix.Timeval	// Time entry was made
-	AddrV6		[4]uint32	// Source IP address. IPv4 in AddrV6[0]
-	Reserved	[20]byte	// Not used
+	Type     int16        // UserProcess or DeadProcess
+	Padding  [2]byte      // Padding to align rest of struct
+	Pid      int32        // PID of the ShellHub agent
+	Line     [32]byte     // tty associated with the process
+	ID       [4]byte      // Index, last 4 characters of Line
+	User     [32]byte     // Username
+	Host     [256]byte    // Source IP address
+	Exit     ExitStatus   // Exit status - not used
+	Session  int32        // Session ID - not used
+	Tv       unix.Timeval // Time entry was made
+	AddrV6   [4]uint32    // Source IP address. IPv4 in AddrV6[0]
+	Reserved [20]byte     // Not used
 }
 
 const (
 	UtmpxFile   = "/var/run/utmp"
 	WtmpxFile   = "/var/log/wtmp"
-	UserProcess = 0x7		// Normal process
-	DeadProcess = 0x8		// Terminated process
+	UserProcess = 0x7 // Normal process
+	DeadProcess = 0x8 // Terminated process
 )
 
 // This function updates the utmp and wtmp files at the start of a user session
@@ -78,7 +78,7 @@ func utmpStartSession(line, user, remoteAddr string) Utmpx {
 		// Check whether IPv4 or IPv6
 		if ip4 := ip.To4(); ip4 != nil {
 			// This is a 32-bit IPv4 address to be
-			// stored in the first element of u.AddrV6 
+			// stored in the first element of u.AddrV6
 			u.AddrV6[0] = binary.LittleEndian.Uint32(ip4)
 		} else {
 			// This is a 128-bit IPv6 address. Each 4 bytes
@@ -91,7 +91,7 @@ func utmpStartSession(line, user, remoteAddr string) Utmpx {
 		}
 	}
 
-	line = strings.TrimPrefix(line,"/dev/")
+	line = strings.TrimPrefix(line, "/dev/")
 	// The index to the utmp record is the last 4 chars of line
 	id := line[len(line)-4:]
 
@@ -126,13 +126,13 @@ func utmpEndSession(u Utmpx) {
 // id if present; otherwise by appending the new record to the file
 func updUtmp(u Utmpx, id string) {
 	file, err := os.OpenFile(
-			UtmpxFile,
-			os.O_RDWR|os.O_CREATE,
-			0644)
+		UtmpxFile,
+		os.O_RDWR|os.O_CREATE,
+		0644)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": UtmpxFile,
-			"err": err,
+			"err":  err,
 		}).Warn("Open failed")
 		return
 	}
@@ -143,13 +143,13 @@ func updUtmp(u Utmpx, id string) {
 	lk := unix.Flock_t{
 		Type: int16(unix.F_WRLCK),
 		Pid:  int32(os.Getpid()),
-		}
+	}
 
 	err = unix.FcntlFlock(file.Fd(), unix.F_SETLKW, &lk)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": UtmpxFile,
-			"err": err,
+			"err":  err,
 		}).Warn("Lock failed")
 		return
 	}
@@ -162,14 +162,14 @@ func updUtmp(u Utmpx, id string) {
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"file": UtmpxFile,
-				"err": err,
+				"err":  err,
 			}).Warn("Null seek failed")
 			return
 		}
 
 		err = binary.Read(file, binary.LittleEndian, &ut)
 		if err != nil {
-			break  // EOF found: no record with index id
+			break // EOF found: no record with index id
 		}
 
 		utID := string(bytes.Trim(ut.ID[:], "\x00"))
@@ -180,7 +180,7 @@ func updUtmp(u Utmpx, id string) {
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"file": UtmpxFile,
-					"err": err,
+					"err":  err,
 				}).Warn("Back seek failed")
 				return
 			}
@@ -192,7 +192,7 @@ func updUtmp(u Utmpx, id string) {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": UtmpxFile,
-			"err": err,
+			"err":  err,
 		}).Warn("Write failed")
 	}
 
@@ -202,13 +202,13 @@ func updUtmp(u Utmpx, id string) {
 // This function updates the wtmp file by appending the record to the file
 func updWtmp(u Utmpx) {
 	file, err := os.OpenFile(
-			WtmpxFile,
-			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
-			0644)
+		WtmpxFile,
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+		0644)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": WtmpxFile,
-			"err": err,
+			"err":  err,
 		}).Warn("Open failed")
 		return
 	}
@@ -224,7 +224,7 @@ func updWtmp(u Utmpx) {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": WtmpxFile,
-			"err": err,
+			"err":  err,
 		}).Warn("Lock failed")
 	}
 
@@ -232,24 +232,24 @@ func updWtmp(u Utmpx) {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": WtmpxFile,
-			"err": err,
+			"err":  err,
 		}).Warn("Seek to end failed")
 		return
 	}
 
 	// Check that the file is a multiple of the record size
-	rem := fileSize%int64(unsafe.Sizeof(Utmpx{}))
+	rem := fileSize % int64(unsafe.Sizeof(Utmpx{}))
 	if rem != 0 {
 		fileSize -= rem
 		logrus.WithFields(logrus.Fields{
-			"file": WtmpxFile,
+			"file":     WtmpxFile,
 			"filesize": fileSize,
 		}).Warn("Database size invalid, truncating")
 		err := file.Truncate(fileSize)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"file": WtmpxFile,
-				"err": err,
+				"err":  err,
 			}).Warn("Database truncate failed")
 			return
 		}
@@ -260,7 +260,7 @@ func updWtmp(u Utmpx) {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": WtmpxFile,
-			"err": err,
+			"err":  err,
 		}).Warn("Write failed")
 		file.Truncate(fileSize)
 	}

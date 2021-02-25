@@ -84,7 +84,7 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		// since /dev from host is required inside container to mount a pseudo-tty
 		if v.LessThan(v0_4_0) {
 			parent.info.HostConfig.Mounts = []mount.Mount{
-				mount.Mount{
+				{
 					Type:   mount.TypeBind,
 					Source: "/dev",
 					Target: "/dev",
@@ -98,12 +98,12 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		v0_5_0, _ := semver.NewVersion("v0.5.0")
 		if v.LessThan(v0_5_0) {
 			parent.info.HostConfig.Mounts = []mount.Mount{
-				mount.Mount{
+				{
 					Type:   mount.TypeBind,
 					Source: "/var/run",
 					Target: "/var/run",
 				},
-				mount.Mount{
+				{
 					Type:   mount.TypeBind,
 					Source: "/var/log",
 					Target: "/var/log",
