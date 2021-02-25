@@ -189,7 +189,7 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 	}
 
 	// Create a new container using the cloned container config
-	clone, err := d.api.ContainerCreate(ctx, config, container.info.HostConfig, netConfig, name)
+	clone, err := d.api.ContainerCreate(ctx, config, container.info.HostConfig, netConfig, nil, name)
 	if err != nil {
 		return nil, err
 	}
