@@ -932,13 +932,16 @@ func (s *Store) UpdateUserFromAdmin(ctx context.Context, username, email, passwo
 func (s *Store) DeleteUser(ctx context.Context, ID string) error {
 	objID, _ := primitive.ObjectIDFromHex(ID)
 	_, err := s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
-
-	findOptions := options.Find()
-	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"owner": ID}, findOptions)
 	if err != nil {
 		return err
 	}
 
+	findOptions := options.Find()
+
+	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"owner": ID}, findOptions)
+	if err != nil {
+		return err
+	}
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
@@ -947,7 +950,11 @@ func (s *Store) DeleteUser(ctx context.Context, ID string) error {
 		if err != nil {
 			return err
 		}
-		s.DeleteNamespace(ctx, namespace.TenantID)
+
+		err = s.DeleteNamespace(ctx, namespace.TenantID)
+		if err != nil {
+			return err
+		}
 	}
 	return err
 }
@@ -1303,8 +1310,11 @@ func (s *Store) GetNamespaceByName(ctx context.Context, namespace string) (*mode
 }
 
 func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error) {
-	queryMatch, err := buildFilterQuery(filters)
 	query := []bson.M{}
+	queryMatch, err := buildFilterQuery(filters)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	if len(queryMatch) > 0 {
 		query = append(query, queryMatch...)

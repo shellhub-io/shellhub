@@ -391,7 +391,11 @@ var migrations = []migrate.Migration{
 				if err != nil {
 					return err
 				}
+
 				_, err = db.Collection("users").UpdateOne(context.TODO(), bson.M{"_id": namespace.Owner}, bson.M{"$set": bson.M{"tenant": namespace.TenantID}})
+				if err != nil {
+					return err
+				}
 			}
 
 			return err

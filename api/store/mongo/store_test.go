@@ -171,6 +171,8 @@ func TestLookupDevice(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = mongostore.UpdatePendingStatus(ctx, models.UID(device.UID), "accepted")
+	assert.NoError(t, err)
+
 	d, err := mongostore.LookupDevice(ctx, "name", "device")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
@@ -1135,9 +1137,13 @@ func TestListUsers(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
 	userID := result.InsertedID.(primitive.ObjectID).Hex()
 	namespace := models.Namespace{Name: "name", Owner: userID, TenantID: "tenant"}
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
 	users, count, err := mongostore.ListUsers(ctx, paginator.Query{Page: -1, PerPage: -1}, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
@@ -1153,12 +1159,15 @@ func TestListUsersWithFilter(t *testing.T) {
 
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
 	namespace := models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
 	user = models.User{Name: "name", Username: "username-1", Password: "password", Email: "email-1"}
 	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
 
 	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -1166,18 +1175,24 @@ func TestListUsersWithFilter(t *testing.T) {
 
 	user = models.User{Name: "name", Username: "username-2", Password: "password", Email: "email-2"}
 	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
 	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
+
 	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
 	user = models.User{Name: "name", Username: "username-3", Password: "password", Email: "email-3"}
 	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
 	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
+
 	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
@@ -1330,6 +1345,7 @@ func testGetNamespace(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = mongostore.GetNamespace(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	assert.NoError(t, err)
 }
 func testListNamespaces(t *testing.T) {
 	db := dbtest.DBServer{}
@@ -1380,7 +1396,10 @@ func testAddNamespaceUser(t *testing.T) {
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 	})
 	assert.NoError(t, err)
+
 	u, err := mongostore.GetUserByUsername(ctx, "user")
+	assert.NoError(t, err)
+
 	_, err = mongostore.AddNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
 }
@@ -1409,9 +1428,13 @@ func testRemoveNamespaceUser(t *testing.T) {
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 	})
 	assert.NoError(t, err)
+
 	u, err := mongostore.GetUserByUsername(ctx, "user")
+	assert.NoError(t, err)
+
 	_, err = mongostore.AddNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
+
 	_, err = mongostore.AddNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
 }
