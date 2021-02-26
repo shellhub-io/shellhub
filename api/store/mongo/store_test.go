@@ -23,8 +23,12 @@ func TestAddDevice(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -45,7 +49,7 @@ func TestAddDevice(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 }
 
@@ -57,8 +61,12 @@ func TestGetDevice(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -79,7 +87,7 @@ func TestGetDevice(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 	d, err := mongostore.GetDevice(ctx, models.UID(device.UID))
 	assert.NoError(t, err)
@@ -94,8 +102,12 @@ func TestRenameDevice(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -116,7 +128,7 @@ func TestRenameDevice(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 	err = mongostore.RenameDevice(ctx, models.UID(device.UID), "newHostname")
 	assert.NoError(t, err)
@@ -129,8 +141,12 @@ func TestLookupDevice(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -151,8 +167,9 @@ func TestLookupDevice(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "device")
+	err = mongostore.AddDevice(ctx, device, "device")
 	assert.NoError(t, err)
+
 	err = mongostore.UpdatePendingStatus(ctx, models.UID(device.UID), "accepted")
 	d, err := mongostore.LookupDevice(ctx, "name", "device")
 	assert.NoError(t, err)
@@ -167,8 +184,12 @@ func TestUpdatePendingStatus(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -189,8 +210,9 @@ func TestUpdatePendingStatus(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "device")
+	err = mongostore.AddDevice(ctx, device, "device")
 	assert.NoError(t, err)
+
 	err = mongostore.UpdatePendingStatus(ctx, models.UID(device.UID), "accepted")
 	assert.NoError(t, err)
 }
@@ -202,8 +224,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -224,7 +250,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 	err = mongostore.UpdateDeviceStatus(ctx, models.UID(device.UID), true)
 	assert.NoError(t, err)
@@ -237,8 +263,12 @@ func TestCreateSession(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -259,7 +289,7 @@ func TestCreateSession(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -283,8 +313,12 @@ func TestGetSession(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -305,7 +339,7 @@ func TestGetSession(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -330,8 +364,12 @@ func TestListSessions(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -352,7 +390,7 @@ func TestListSessions(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -378,8 +416,12 @@ func TestSetSessionAuthenticated(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -400,7 +442,7 @@ func TestSetSessionAuthenticated(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -425,8 +467,12 @@ func TestKeepAliveSession(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -447,7 +493,7 @@ func TestKeepAliveSession(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -471,8 +517,12 @@ func TestDeactivateSession(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -493,7 +543,7 @@ func TestDeactivateSession(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -518,8 +568,12 @@ func TestRecordSession(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -540,7 +594,7 @@ func TestRecordSession(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -565,8 +619,13 @@ func TestGetRecord(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -587,7 +646,7 @@ func TestGetRecord(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -616,8 +675,13 @@ func TestGetUserByUsername(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "owner"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
 	u, err := mongostore.GetUserByUsername(ctx, "username")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, u)
@@ -631,7 +695,10 @@ func TestGetUserByEmail(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
 	u, err := mongostore.GetUserByEmail(ctx, "email")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, u)
@@ -645,8 +712,12 @@ func TestGetDeviceByMac(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -667,7 +738,7 @@ func TestGetDeviceByMac(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 	d, err := mongostore.GetDeviceByMac(ctx, "mac", "tenant", "pending")
 	assert.NoError(t, err)
@@ -682,8 +753,12 @@ func TestGetDeviceByName(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -704,7 +779,7 @@ func TestGetDeviceByName(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "hostname")
+	err = mongostore.AddDevice(ctx, device, "hostname")
 	assert.NoError(t, err)
 	d, err := mongostore.GetDeviceByName(ctx, "hostname", "tenant")
 	assert.NoError(t, err)
@@ -719,8 +794,12 @@ func TestGetDeviceByUID(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -741,7 +820,7 @@ func TestGetDeviceByUID(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 	d, err := mongostore.GetDeviceByUID(ctx, models.UID(device.UID), "tenant")
 	assert.NoError(t, err)
@@ -870,8 +949,12 @@ func TestListDevices(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
@@ -892,7 +975,7 @@ func TestListDevices(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
 	devices, count, err := mongostore.ListDevices(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
@@ -934,8 +1017,13 @@ func TestUpdateUID(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
 			TenantID: "tenant",
@@ -955,7 +1043,7 @@ func TestUpdateUID(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 	err = mongostore.UpdateUID(ctx, models.UID(device.UID), models.UID("newUID"))
 	assert.NoError(t, err)
@@ -969,11 +1057,15 @@ func TestUpdateUser(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	result, _ := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
-	err := mongostore.UpdateUser(ctx, "newUsername", "newEmail", "password", "newPassword", objID)
+	err = mongostore.UpdateUser(ctx, "newUsername", "newEmail", "password", "newPassword", objID)
 	assert.NoError(t, err)
 }
 
@@ -985,11 +1077,15 @@ func TestUpdateUserFromAdmin(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	result, _ := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
-	err := mongostore.UpdateUserFromAdmin(ctx, "newUsername", "newEmail", "password", objID)
+	err = mongostore.UpdateUserFromAdmin(ctx, "newUsername", "newEmail", "password", objID)
 	assert.NoError(t, err)
 }
 
@@ -1001,8 +1097,13 @@ func TestGetDataUserSecurity(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "hash1"}
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: true}}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
 	returnedStatus, err := mongostore.GetDataUserSecurity(ctx, namespace.TenantID)
 	assert.Equal(t, returnedStatus, namespace.Settings.SessionRecord)
 	assert.NoError(t, err)
@@ -1015,9 +1116,14 @@ func TestUpdateDataUserSecurity(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "hash1"}
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: true}}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	err := mongostore.UpdateDataUserSecurity(ctx, false, namespace.TenantID)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	err = mongostore.UpdateDataUserSecurity(ctx, false, namespace.TenantID)
 	assert.NoError(t, err)
 }
 
@@ -1048,26 +1154,33 @@ func TestListUsersWithFilter(t *testing.T) {
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	namespace := models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	user = models.User{Name: "name", Username: "username-1", Password: "password", Email: "email-1"}
 	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+
 	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	user = models.User{Name: "name", Username: "username-2", Password: "password", Email: "email-2"}
 	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	user = models.User{Name: "name", Username: "username-3", Password: "password", Email: "email-3"}
 	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 	namespace = models.Namespace{Name: "name", Owner: result.InsertedID.(primitive.ObjectID).Hex(), TenantID: "tenant"}
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 
 	filters := []models.Filter{
 		{
@@ -1090,8 +1203,10 @@ func TestGetStats(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
 			TenantID: "tenant",
@@ -1111,7 +1226,7 @@ func TestGetStats(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err := mongostore.AddDevice(ctx, device, "")
+	err = mongostore.AddDevice(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -1370,9 +1485,14 @@ func TestListPublicKeys(t *testing.T) {
 	key := models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+	assert.NoError(t, err)
 
 	_, count, err := mongostore.ListPublicKeys(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.Equal(t, 1, count)
@@ -1390,9 +1510,14 @@ func TestListGetPublicKey(t *testing.T) {
 	key := models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+	assert.NoError(t, err)
 
 	k, err := mongostore.GetPublicKey(ctx, key.Fingerprint, key.TenantID)
 	assert.NoError(t, err)
@@ -1421,9 +1546,15 @@ func TestUpdatePublicKey(t *testing.T) {
 	update := &models.PublicKeyUpdate{
 		PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
 	}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
+	assert.NoError(t, err)
 
 	k, err := mongostore.UpdatePublicKey(ctx, key.Fingerprint, key.TenantID, update)
 	assert.NoError(t, err)
@@ -1445,10 +1576,15 @@ func TestDeletePublicKey(t *testing.T) {
 		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant", PublicKeyFields: models.PublicKeyFields{Name: "teste1"},
 	}
 
-	db.Client().Database("test").Collection("public_keys").InsertOne(ctx, newKey)
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err := db.Client().Database("test").Collection("public_keys").InsertOne(ctx, newKey)
+	assert.NoError(t, err)
 
-	err := mongostore.DeletePublicKey(ctx, newKey.Fingerprint, newKey.TenantID)
+	_, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	err = mongostore.DeletePublicKey(ctx, newKey.Fingerprint, newKey.TenantID)
 	assert.NoError(t, err)
 }
