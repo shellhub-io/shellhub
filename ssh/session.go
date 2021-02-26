@@ -368,12 +368,3 @@ func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientCon
 	}
 	return ssh.NewClient(c, chans, reqs), nil
 }
-
-func DialWithDeadline(network, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
-	conn, err := net.DialTimeout(network, addr, config.Timeout)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewClientConnWithDeadline(conn, addr, config)
-}
