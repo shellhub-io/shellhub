@@ -54,10 +54,11 @@ func main() {
 	opts := ConfigOptions{}
 
 	// Process unprefixed env vars for backward compatibility
-	envconfig.Process("", &opts)
+	envconfig.Process("", &opts) // nolint:errcheck
+
 	if err := envconfig.Process("shellhub", &opts); err != nil {
 		// show envconfig usage help users to run agent
-		envconfig.Usage("shellhub", &opts)
+		envconfig.Usage("shellhub", &opts) // nolint:errcheck
 		logrus.Fatal(err)
 	}
 
