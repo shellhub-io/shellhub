@@ -1297,6 +1297,7 @@ func TestCreateNamespace(t *testing.T) {
 		Name:     "namespace",
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:  []string{"owner"},
 	})
 	assert.NoError(t, err)
 }
@@ -1317,6 +1318,7 @@ func TestDeleteNamespace(t *testing.T) {
 		Name:     "namespace",
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:  []string{"owner"},
 	})
 	assert.NoError(t, err)
 
@@ -1340,6 +1342,7 @@ func TestGetNamespace(t *testing.T) {
 		Name:     "namespace",
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:  []string{"owner"},
 	})
 	assert.NoError(t, err)
 
@@ -1354,7 +1357,7 @@ func TestListNamespaces(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 
 	err := mongostore.CreateUser(ctx, &models.User{
-		Name:     "user",
+		Username: "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
 	})
@@ -1363,6 +1366,7 @@ func TestListNamespaces(t *testing.T) {
 		Name:     "namespace",
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:  []string{"owner"},
 	})
 	assert.NoError(t, err)
 
@@ -1378,21 +1382,24 @@ func TestAddNamespaceUser(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 
 	err := mongostore.CreateUser(ctx, &models.User{
-		Name:     "user",
+		Username: "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
+		ID:       "user_id",
 	})
 	assert.NoError(t, err)
 	err = mongostore.CreateUser(ctx, &models.User{
-		Name:     "user2",
+		Username: "user2",
 		Email:    "user@shellhub.io",
 		Password: "password",
+		ID:       "user2_id",
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
 		Name:     "namespace",
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:  []string{"owner"},
 	})
 	assert.NoError(t, err)
 
@@ -1411,13 +1418,13 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"))
 
 	err := mongostore.CreateUser(ctx, &models.User{
-		Name:     "user",
+		Username: "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
 	})
 	assert.NoError(t, err)
 	err = mongostore.CreateUser(ctx, &models.User{
-		Name:     "user2",
+		Username: "user2",
 		Email:    "user@shellhub.io",
 		Password: "password",
 	})
@@ -1426,6 +1433,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 		Name:     "namespace",
 		Owner:    "owner",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:  []string{"owner"},
 	})
 	assert.NoError(t, err)
 
@@ -1435,7 +1443,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	_, err = mongostore.AddNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
 
-	_, err = mongostore.AddNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	_, err = mongostore.RemoveNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
 }
 
