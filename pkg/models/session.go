@@ -7,7 +7,7 @@ import (
 type Session struct {
 	UID           string    `json:"uid"`
 	DeviceUID     UID       `json:"device_uid,omitempty" bson:"device_uid"`
-	Device        *Device   `json:"device" bson:",omitempty"`
+	Device        *Device   `json:"device" bson:"device,omitempty"`
 	TenantID      string    `json:"tenant_id" bson:"tenant_id"`
 	Username      string    `json:"username"`
 	IPAddress     string    `json:"ip_address" bson:"ip_address"`
@@ -25,7 +25,7 @@ type ActiveSession struct {
 
 type RecordedSession struct {
 	UID      UID       `json:"uid"`
-	Message  string    `json:"message", bson:"message"`
+	Message  string    `json:"message" bson:"message"`
 	TenantID string    `json:"tenant_id" bson:"tenant_id,omitempty"`
 	Time     time.Time `json:"time" bson:"time,omitempty"`
 	Width    int       `json:"width" bson:"width,omitempty"`
