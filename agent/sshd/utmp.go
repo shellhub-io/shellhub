@@ -20,6 +20,7 @@ import (
 	"encoding/binary"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
+	"io"
 	"net"
 	"os"
 	"strings"
@@ -164,7 +165,7 @@ func updUtmp(u Utmpx, id string) {
 
 	// Read through the utmp file looking for a record with index id
 	for {
-		offset, err := file.Seek(0, os.SEEK_CUR)
+		offset, err := file.Seek(0, io.SeekCurrent)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"file": UtmpxFile,
@@ -182,7 +183,7 @@ func updUtmp(u Utmpx, id string) {
 
 		if utID == id {
 			// Required record found, rewind to overwrite it
-			_, err = file.Seek(offset, os.SEEK_SET)
+			_, err = file.Seek(offset, io.SeekStart)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"file": UtmpxFile,
