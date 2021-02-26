@@ -62,7 +62,7 @@ func TestAuthDevice(t *testing.T) {
 	// Mock time.Now using monkey patch
 	patch, err := mpatch.PatchMethod(time.Now, func() time.Time { return now })
 	assert.NoError(t, err)
-	defer patch.Unpatch()
+	defer patch.Unpatch() //nolint:errcheck
 
 	authRes, err := s.AuthDevice(ctx, authReq)
 	assert.NoError(t, err)
