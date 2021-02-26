@@ -20,11 +20,9 @@ import (
 )
 
 type Server struct {
-	sshd       *sshserver.Server
-	opts       *Options
-	channels   map[uint32]chan bool
-	forwarding map[uint32]string
-	tunnel     *httptunnel.Tunnel
+	sshd   *sshserver.Server
+	opts   *Options
+	tunnel *httptunnel.Tunnel
 }
 
 func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
