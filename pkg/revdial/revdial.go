@@ -83,13 +83,13 @@ func NewDialer(c net.Conn, connPath string) *Dialer {
 	}
 	d.pickupPath = connPath + join + dialerUniqParam + "=" + d.uniqID
 	d.register()
-	go d.serve()
+	go d.serve() // nolint:errcheck
 	return d
 }
 
 func newUniqID() string {
 	buf := make([]byte, 16)
-	rand.Read(buf)
+	rand.Read(buf) // nolint:errcheck
 	return fmt.Sprintf("%x", buf)
 }
 
@@ -207,12 +207,22 @@ func (d *Dialer) serve() error {
 }
 
 func (d *Dialer) sendMessage(m controlMsg) error {
+	if err := d.conn.SetWriteDeadline(time.Now().Add(10 * time.Second)); err != nil {
+		return err
+	}
+
 	j, _ := json.Marshal(m)
-	d.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 	j = append(j, '\n')
-	_, err := d.conn.Write(j)
-	d.conn.SetWriteDeadline(time.Time{})
-	return err
+
+	if _, err := d.conn.Write(j); err != nil {
+		return err
+	}
+
+	if err := d.conn.SetWriteDeadline(time.Time{}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // NewListener returns a new Listener, accepting connections which
