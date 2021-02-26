@@ -1,0 +1,26 @@
+run:
+  build-tags:
+    - internal_api
+
+output:
+  # sorts results by: filepath, line and column
+  sort-results: true
+
+issues:
+  exclude:
+    # govet: unkeyed fields use
+    - composite
+
+  exclude-rules:
+    - linters:
+        - staticcheck
+
+      # TODO: We should rework the code to avoid this issue; this will be done
+      # during more deep code rework so for now, we'll skip it.
+      text: "SA1029:"
+
+    - linters:
+        - govet
+
+      # validate is unknown but it is a valid tag.
+      text: "structtag: struct field tag .* validate:"
