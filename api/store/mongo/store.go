@@ -1100,6 +1100,10 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 	}...)
 
 	queryMatch, err := buildFilterQuery(filters)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	if len(queryMatch) > 0 {
 		query = append(query, queryMatch...)
 	}
