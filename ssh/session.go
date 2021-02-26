@@ -23,12 +23,12 @@ import (
 var ErrInvalidSessionTarget = errors.New("Invalid session target")
 
 type Session struct {
-	session       sshserver.Session `json:"-"`
-	User          string            `json:"username"`
-	Target        string            `json:"device_uid"`
-	UID           string            `json:"uid"`
-	IPAddress     string            `json:"ip_address"`
-	Authenticated bool              `json:"authenticated"`
+	session       sshserver.Session
+	User          string `json:"username"`
+	Target        string `json:"device_uid"`
+	UID           string `json:"uid"`
+	IPAddress     string `json:"ip_address"`
+	Authenticated bool   `json:"authenticated"`
 }
 
 type ConfigOptions struct {
@@ -256,12 +256,12 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		}
 
 		go func() {
-			serverConn.Wait()
+			serverConn.Wait() // nolint:errcheck
 			disconnected <- true
 		}()
 
 		go func() {
-			client.Wait()
+			client.Wait() // nolint:errcheck
 			disconnected <- true
 		}()
 
@@ -357,14 +357,21 @@ func loadEnv(env []string) map[string]string {
 
 func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
 	if config.Timeout > 0 {
-		conn.SetReadDeadline(time.Now().Add(config.Timeout))
+		if err := conn.SetReadDeadline(time.Now().Add(config.Timeout)); err != nil {
+			return nil, err
+		}
 	}
+
 	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
 	if err != nil {
 		return nil, err
 	}
+
 	if config.Timeout > 0 {
-		conn.SetReadDeadline(time.Time{})
+		if err := conn.SetReadDeadline(time.Time{}); err != nil {
+			return nil, err
+		}
 	}
+
 	return ssh.NewClient(c, chans, reqs), nil
 }
