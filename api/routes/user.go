@@ -18,7 +18,7 @@ func UpdateUser(c apicontext.Context) error {
 		Username        string `json:"username"`
 		Email           string `json:"email"`
 		CurrentPassword string `json:"currentPassword"`
-		NewPassword     string `json: "newPassword"`
+		NewPassword     string `json:"newPassword"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return err
