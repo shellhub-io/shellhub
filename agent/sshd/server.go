@@ -68,7 +68,7 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 				defer s.mu.Unlock()
 
 				if v, ok := s.cmds[id]; ok {
-					v.Process.Kill()
+					v.Process.Kill() // nolint:errcheck
 					delete(s.cmds, id)
 				}
 			}
@@ -77,7 +77,10 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		},
 	}
 
-	s.sshd.SetOption(sshserver.HostKeyFile(privateKey))
+	err := s.sshd.SetOption(sshserver.HostKeyFile(privateKey))
+	if err != nil {
+		logrus.Warn(err)
+	}
 
 	return s
 }
@@ -116,7 +119,10 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		u := osauth.LookupUser(session.User())
 
-		os.Chown(pts.Name(), int(u.UID), -1)
+		err = os.Chown(pts.Name(), int(u.UID), -1)
+		if err != nil {
+			logrus.Warn(err)
+		}
 
 		remoteAddr := session.RemoteAddr()
 
@@ -163,7 +169,10 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"Raw command": session.RawCommand(),
 		}).Info("Command started")
 
-		cmd.Start()
+		err := cmd.Start()
+		if err != nil {
+			logrus.Warn(err)
+		}
 
 		go func() {
 			if _, err := io.Copy(stdin, session); err != nil {
@@ -177,7 +186,10 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			}
 		}()
 
-		cmd.Wait()
+		err = cmd.Wait()
+		if err != nil {
+			logrus.Warn(err)
+		}
 
 		logrus.WithFields(logrus.Fields{
 			"user":        session.User(),
