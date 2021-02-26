@@ -121,11 +121,13 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			return nil, err
 		}
 	}
-	tenant := ""
+
 	namespace, err := s.store.GetSomeNamespace(ctx, user.ID)
-	if namespace != nil {
-		tenant = namespace.TenantID
+	if err != nil {
+		return nil, err
 	}
+
+	tenant := namespace.TenantID
 
 	password := sha256.Sum256([]byte(req.Password))
 	if user.Password == hex.EncodeToString(password[:]) {
@@ -165,11 +167,12 @@ func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuth
 		return nil, err
 	}
 
-	tenant := ""
 	namespace, err := s.store.GetSomeNamespace(ctx, user.ID)
-	if namespace != nil {
-		tenant = namespace.TenantID
+	if err != nil {
+		return nil, err
 	}
+
+	tenant := namespace.TenantID
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 		Username: user.Username,
