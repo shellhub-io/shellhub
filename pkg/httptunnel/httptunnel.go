@@ -107,7 +107,7 @@ func (t *Tunnel) ForwardResponse(resp *http.Response, w http.ResponseWriter) {
 	}
 
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
+	io.Copy(w, resp.Body) // nolint:errcheck
 	resp.Body.Close()
 }
 
