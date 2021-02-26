@@ -57,9 +57,12 @@ const (
 func utmpStartSession(line, user, remoteAddr string) Utmpx {
 	var u Utmpx
 
-	u.Type = UserProcess
 	a := unix.Timeval{}
-	unix.Gettimeofday(&a)
+	if err := unix.Gettimeofday(&a); err != nil {
+		logrus.Warn(err)
+	}
+
+	u.Type = UserProcess
 	u.Tv.Sec, u.Tv.Usec = a.Sec, a.Usec
 	u.Pid = int32(os.Getpid())
 
@@ -107,11 +110,14 @@ func utmpStartSession(line, user, remoteAddr string) Utmpx {
 
 // This function updates the utmp and wtmp files at the end of a user session
 func utmpEndSession(u Utmpx) {
+	a := unix.Timeval{}
+	if err := unix.Gettimeofday(&a); err != nil {
+		logrus.Warn(err)
+	}
+
 	u.Type = DeadProcess
 	u.User = [32]byte{}
 	u.Host = [256]byte{}
-	a := unix.Timeval{}
-	unix.Gettimeofday(&a)
 	u.Tv.Sec, u.Tv.Usec = a.Sec, a.Usec
 
 	updUtmp(u, string(u.ID[:]))
@@ -195,8 +201,6 @@ func updUtmp(u Utmpx, id string) {
 			"err":  err,
 		}).Warn("Write failed")
 	}
-
-	return
 }
 
 // This function updates the wtmp file by appending the record to the file
@@ -210,6 +214,7 @@ func updWtmp(u Utmpx) {
 			"file": WtmpxFile,
 			"err":  err,
 		}).Warn("Open failed")
+
 		return
 	}
 
@@ -234,6 +239,7 @@ func updWtmp(u Utmpx) {
 			"file": WtmpxFile,
 			"err":  err,
 		}).Warn("Seek to end failed")
+
 		return
 	}
 
@@ -245,13 +251,12 @@ func updWtmp(u Utmpx) {
 			"file":     WtmpxFile,
 			"filesize": fileSize,
 		}).Warn("Database size invalid, truncating")
-		err := file.Truncate(fileSize)
-		if err != nil {
+
+		if err := file.Truncate(fileSize); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"file": WtmpxFile,
 				"err":  err,
 			}).Warn("Database truncate failed")
-			return
 		}
 	}
 
@@ -262,6 +267,12 @@ func updWtmp(u Utmpx) {
 			"file": WtmpxFile,
 			"err":  err,
 		}).Warn("Write failed")
-		file.Truncate(fileSize)
+
+		if err := file.Truncate(fileSize); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"file": WtmpxFile,
+				"err":  err,
+			}).Warn("Database truncate failed")
+		}
 	}
 }
