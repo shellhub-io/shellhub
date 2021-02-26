@@ -628,7 +628,6 @@ func TestGetRecord(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-
 	authReq := &models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
 			TenantID: "tenant",
