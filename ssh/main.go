@@ -60,7 +60,7 @@ func main() {
 	})
 	router.Handle("/ws/ssh", websocket.Handler(HandlerWebsocket))
 
-	go http.ListenAndServe(":8080", router)
+	go http.ListenAndServe(":8080", router) // nolint:errcheck
 
 	server := NewServer(opts, tunnel)
 
