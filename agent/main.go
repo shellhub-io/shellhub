@@ -45,10 +45,6 @@ type ConfigOptions struct {
 	PreferredHostname string `envconfig:"preferred_hostname"`
 }
 
-type Information struct {
-	SSHID string `json:"sshid"`
-}
-
 func main() {
 	if os.Geteuid() != 0 {
 		logrus.Error("ShellHub must be run as root")
