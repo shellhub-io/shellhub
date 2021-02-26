@@ -8,8 +8,6 @@ import (
 
 // CurrentContainerID returns the current running container ID
 func CurrentContainerID() (string, error) {
-	const idLength = 64
-
 	f, err := os.Open("/proc/self/cgroup")
 	if err != nil {
 		return "", err
