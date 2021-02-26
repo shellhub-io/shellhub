@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"os"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -582,6 +583,21 @@ var migrations = []migrate.Migration{
 			}
 
 			cursor.Close(context.TODO())
+			return err
+		},
+		Down: func(db *mongo.Database) error {
+			return nil
+		},
+	},
+	{
+		Version: 18,
+		Up: func(db *mongo.Database) error {
+			if os.Getenv("SHELLHUB_ENTERPRISE") == "true" {
+				_, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"max_devices": 3}})
+				return err
+			}
+			_, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"max_devices": -1}})
+
 			return err
 		},
 		Down: func(db *mongo.Database) error {
