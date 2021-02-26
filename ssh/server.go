@@ -44,7 +44,9 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 		logrus.Fatal("Private key not found!")
 	}
 
-	s.sshd.SetOption(sshserver.HostKeyFile(os.Getenv("PRIVATE_KEY")))
+	if err := s.sshd.SetOption(sshserver.HostKeyFile(os.Getenv("PRIVATE_KEY"))); err != nil {
+		logrus.Fatal("Host key not found!")
+	}
 
 	return s
 }
@@ -61,7 +63,12 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
 		}).Error(err)
 
-		io.WriteString(session, fmt.Sprintf("%s\n", err))
+		if _, err = io.WriteString(session, fmt.Sprintf("%s\n", err)); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"session": session.Context().Value(sshserver.ContextKeySessionID),
+			}).Error(err)
+		}
+
 		session.Close()
 		return
 	}
@@ -122,8 +129,26 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	}
 
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/ssh/%s", sess.UID), nil)
-	err = req.Write(conn)
-	err = sess.connect(passwd, privKey, session, conn)
+
+	if err = req.Write(conn); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"err":     err,
+			"session": session.Context().Value(sshserver.ContextKeySessionID),
+		}).Error("Failed to write")
+
+		session.Close()
+		return
+	}
+
+	if err = sess.connect(passwd, privKey, session, conn); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"err":     err,
+			"session": session.Context().Value(sshserver.ContextKeySessionID),
+		}).Error("Failed to connect")
+
+		session.Close()
+		return
+	}
 
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -131,7 +156,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
 		}).Info("Connection closed")
 
-		session.Write([]byte("Permission denied\n"))
+		session.Write([]byte("Permission denied\n")) // nolint:errcheck
 		session.Close()
 	}
 
@@ -146,7 +171,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		fmt.Println(err)
 	}
 
-	sess.finish()
+	sess.finish() // nolint:errcheck
 }
 
 func (*Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKey) bool {
