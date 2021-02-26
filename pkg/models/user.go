@@ -33,6 +33,6 @@ type UserAuthClaims struct {
 	Tenant   string `json:"tenant"`
 	ID       string `json:"id"`
 
-	AuthClaims         `json:",squash"`
-	jwt.StandardClaims `json:",squash"`
+	AuthClaims         `mapstruct:",squash"`
+	jwt.StandardClaims `mapstruct:",squash"`
 }
