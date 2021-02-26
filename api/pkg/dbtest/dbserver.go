@@ -122,7 +122,10 @@ func (dbs *DBServer) start() {
 }
 
 func (dbs *DBServer) monitor() error {
-	dbs.server.Process.Wait()
+	if _, err := dbs.server.Process.Wait(); err != nil {
+		return err
+	}
+
 	if dbs.tomb.Alive() {
 		// Present some debugging information.
 		fmt.Fprintf(os.Stderr, "---- mongod container died unexpectedly:\n")
@@ -132,8 +135,7 @@ func (dbs *DBServer) monitor() error {
 		cmd := exec.Command("/bin/sh", "-c", "docker ps --filter ancestor=mongo")
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
+		if err := cmd.Run(); err != nil {
 			return err
 		}
 
@@ -154,19 +156,27 @@ func (dbs *DBServer) monitor() error {
 // there is a client leak.
 func (dbs *DBServer) Stop() {
 	if dbs.client != nil {
-		if dbs.client != nil {
-			dbs.client.Disconnect(dbs.Ctx)
-			dbs.client = nil
+		if err := dbs.client.Disconnect(dbs.Ctx); err != nil {
+			panic("fail to disconnect the datbase")
 		}
+
+		dbs.client = nil
 	}
+
 	if dbs.server != nil {
 		dbs.tomb.Kill(nil)
+
 		// Windows doesn't support Interrupt
 		if runtime.GOOS == "windows" {
-			dbs.server.Process.Signal(os.Kill)
+			if err := dbs.server.Process.Signal(os.Kill); err != nil {
+				panic("fail to send os.Kill to the server")
+			}
 		} else {
-			dbs.server.Process.Signal(os.Interrupt)
+			if err := dbs.server.Process.Signal(os.Interrupt); err != nil {
+				panic("fail to send os.Interrupt to the server")
+			}
 		}
+
 		select {
 		case <-dbs.tomb.Dead():
 		case <-time.After(5 * time.Second):
