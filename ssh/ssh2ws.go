@@ -16,7 +16,7 @@ import (
 )
 
 func copyWorker(dst io.Writer, src io.Reader, doneCh chan<- bool) {
-	io.Copy(dst, src)
+	io.Copy(dst, src) // nolint:errcheck
 	doneCh <- true
 }
 
@@ -28,7 +28,10 @@ func HandlerWebsocket(ws *websocket.Conn) {
 	cols, _ := strconv.Atoi(ws.Request().URL.Query().Get("cols"))
 	rows, _ := strconv.Atoi(ws.Request().URL.Query().Get("rows"))
 
-	auths := []ssh.AuthMethod{}
+	config := &ssh.ClientConfig{
+		User:            user,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
 
 	if fingerprint != "" && signature != "" {
 		parts := strings.SplitN(user, "@", 2)
@@ -38,16 +41,24 @@ func HandlerWebsocket(ws *websocket.Conn) {
 		}
 
 		apiClient := client.NewClient()
+
 		device, err := apiClient.GetDevice(parts[1])
+		if err != nil {
+			return
+		}
+
 		key, err := apiClient.GetPublicKey(fingerprint, device.TenantID)
 		if err != nil {
 			fmt.Println(err)
-			ws.Write([]byte("Permission denied\r\n"))
+			ws.Write([]byte("Permission denied\r\n")) // nolint:errcheck
 			ws.Close()
 			return
 		}
 
 		pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data)
+		if err != nil {
+			return
+		}
 
 		digest, err := base64.StdEncoding.DecodeString(signature)
 		if err != nil {
@@ -72,15 +83,9 @@ func HandlerWebsocket(ws *websocket.Conn) {
 			return
 		}
 
-		auths = []ssh.AuthMethod{ssh.PublicKeys(signer)}
+		config.Auth = []ssh.AuthMethod{ssh.PublicKeys(signer)}
 	} else {
-		auths = []ssh.AuthMethod{ssh.Password(passwd)}
-	}
-
-	config := &ssh.ClientConfig{
-		User:            user,
-		Auth:            auths,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		config.Auth = []ssh.AuthMethod{ssh.Password(passwd)}
 	}
 
 	client, err := ssh.Dial("tcp", "localhost:2222", config)
@@ -103,7 +108,12 @@ func HandlerWebsocket(ws *websocket.Conn) {
 		return
 	}
 
-	session.Setenv("IP_ADDRESS", ws.Request().Header.Get("X-Real-Ip"))
+	err = session.Setenv("IP_ADDRESS", ws.Request().Header.Get("X-Real-Ip"))
+	if err != nil {
+		session.Close()
+		ws.Close()
+		return
+	}
 
 	sshOut, err := session.StdoutPipe()
 	if err != nil {
@@ -135,7 +145,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 	go copyWorker(sshIn, ws, doneCh)
 
 	go func() {
-		redirToWs(sshOut, ws)
+		redirToWs(sshOut, ws) // nolint:errcheck
 		doneCh <- true
 	}()
 
@@ -182,6 +192,9 @@ func redirToWs(rd io.Reader, ws *websocket.Conn) error {
 		}
 
 		_, err = ws.Write([]byte(string(bytes.Runes(buf[0:end]))))
+		if err != nil {
+			return err
+		}
 
 		start = buflen - end
 
@@ -193,8 +206,6 @@ func redirToWs(rd io.Reader, ws *websocket.Conn) error {
 			}
 		}
 	}
-
-	return nil
 }
 
 const pingInterval = time.Second * 30
@@ -205,7 +216,10 @@ type wsconn struct {
 
 func (w *wsconn) keepAlive(ws *websocket.Conn) {
 	for {
-		ws.SetDeadline(time.Now().Add(pingInterval * 2))
+		if err := ws.SetDeadline(time.Now().Add(pingInterval * 2)); err != nil {
+			return
+		}
+
 		if fw, err := ws.NewFrameWriter(websocket.PingFrame); err != nil {
 			return
 		} else if _, err = fw.Write([]byte{}); err != nil {
