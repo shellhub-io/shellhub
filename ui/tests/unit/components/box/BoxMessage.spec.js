@@ -78,6 +78,8 @@ describe('BoxMessage', () => {
       },
       'firewallrules/refresh': () => {
       },
+      'publickeys/refresh': () => {
+      },
       'snackbar/showSnackbarErrorLoading': () => {
       },
     },
@@ -123,6 +125,7 @@ describe('BoxMessage', () => {
   });
   it('Process data in methods Session', () => {
     const sessionWrapper = shallowMount(BoxMessage, {
+      store,
       localVue,
       stubs: ['fragment'],
       vuetify,

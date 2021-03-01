@@ -16,6 +16,7 @@ describe('NamespaceMenu', () => {
 
   const numberNamespaces = 4;
   const owner = true;
+  const inANamespace = false;
 
   const namespaces = [
     {
@@ -54,12 +55,10 @@ describe('NamespaceMenu', () => {
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      stats: {
-        namespace,
-        namespaces,
-        numberNamespaces,
-        owner,
-      },
+      namespace,
+      namespaces,
+      numberNamespaces,
+      owner,
     },
     getters: {
       'namespaces/list': (state) => state.namespaces,
@@ -73,6 +72,8 @@ describe('NamespaceMenu', () => {
       },
       'namespaces/switchNamespace': () => {
       },
+      'namespaces/setOwnerStatus': () => {
+      },
       'snackbar/showSnackbarErrorLoading': () => {
       },
     },
@@ -83,6 +84,7 @@ describe('NamespaceMenu', () => {
       store,
       localVue,
       stubs: ['fragment'],
+      propsData: { inANamespace },
       mocks: ['$env'],
     });
   });

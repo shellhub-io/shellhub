@@ -16,7 +16,7 @@ describe('KeyFormDialog', () => {
     name: 'shellhub',
   };
   const createKey = true;
-  const action = 'Public';
+  const action = 'public';
 
   const store = new Vuex.Store({
     namespaced: true,
