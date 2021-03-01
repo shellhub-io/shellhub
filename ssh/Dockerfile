@@ -1,7 +1,7 @@
 # base stage
 FROM golang:1.13-alpine3.11 AS base
 
-RUN apk add --update git ca-certificates openssh-client
+RUN apk add --update git ca-certificates build-base openssh-client
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -31,7 +31,7 @@ RUN go build -tags internal_api
 FROM base AS development
 
 RUN apk add --update openssl
-RUN go get github.com/markbates/refresh && go get github.com/mgechev/revive
+RUN go get github.com/markbates/refresh && go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.37.1
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 

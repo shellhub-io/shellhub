@@ -23,7 +23,7 @@ go() {
         # Run revive on a running container
         docker-compose \
             -f docker-compose.yml -f docker-compose.dev.yml \
-            exec $container revive -config /.revive.toml -formatter stylish && echo "No lint errors found!"
+            exec $container golangci-lint run ./... && echo "No lint errors found!"
     done
 }
 
