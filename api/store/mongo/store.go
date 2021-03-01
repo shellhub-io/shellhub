@@ -1460,6 +1460,9 @@ func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) (
 func (s *Store) GetSomeNamespace(ctx context.Context, ID string) (*models.Namespace, error) {
 	ns := new(models.Namespace)
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": ID}).Decode(&ns); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, store.ErrNamespaceNoDocuments
+		}
 		return nil, err
 	}
 
