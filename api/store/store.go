@@ -12,6 +12,7 @@ var (
 	ErrDuplicateEmail       = errors.New("email address is already in use")
 	ErrRecordNotFound       = errors.New("public key not found")
 	ErrDuplicateFingerprint = errors.New("this fingerprint already exists")
+	ErrNamespaceNoDocuments = errors.New("mongo: no documents in result")
 )
 
 type Store interface {
