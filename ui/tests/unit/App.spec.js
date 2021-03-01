@@ -28,6 +28,8 @@ describe('App', () => {
     actions: {
       'auth/logout': () => {
       },
+      'privatekeys/fetch': () => {
+      },
     },
   });
 

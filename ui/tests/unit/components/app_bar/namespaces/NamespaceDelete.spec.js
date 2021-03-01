@@ -20,15 +20,15 @@ describe('NamespaceDelete', () => {
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      stats: {
-        namespace,
-      },
+      namespace,
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
     },
     actions: {
       'namespaces/remove': () => {
+      },
+      'auth/logout': () => {
       },
       'snackbar/showSnackbarErrorLoading': () => {
       },
