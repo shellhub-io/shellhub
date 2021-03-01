@@ -77,6 +77,10 @@ jobs:
       working-directory: ${{ matrix.project }}
       run: go build -v ${{ matrix.extra_args }} ./...
 
+    - name: Code format [Go]
+      run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
+      if: matrix.os == 'ubuntu-latest'
+
     - name: Code linting [Go]
       if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       uses: golangci/golangci-lint-action@v2
