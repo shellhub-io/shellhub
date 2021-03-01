@@ -49,17 +49,10 @@
 
           <v-card-actions class="ma-2">
             <div v-if="item.pathName == 'addDevice'">
-              <DeviceAdd />
-              <v-btn
-                class="v-btn--active"
-                text
-                color="primary"
-                small
-                :data-cy="item.nameUseTest"
-                @click="$store.dispatch('modals/showAddDevice', true)"
-              >
-                {{ item.buttonName }}
-              </v-btn>
+              <DeviceAdd
+                :small-button="true"
+                data-cy="addDevice-btn"
+              />
             </div>
 
             <div v-else>

@@ -5,6 +5,7 @@
       class="v-btn--active mr-2"
       text
       color="primary"
+      :small="smallButton"
       @click="dialog = !dialog"
     >
       Add Device
@@ -75,6 +76,14 @@
 
 export default {
   name: 'DeviceAdd',
+
+  props: {
+    smallButton: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+  },
 
   data() {
     return {
