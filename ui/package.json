@@ -58,7 +58,7 @@
     "sass-loader": "^10.1.1",
     "stylus": "^0.54.8",
     "stylus-loader": "^4.3.3",
-    "vue-cli-plugin-vuetify": "^2.1.0",
+    "vue-cli-plugin-vuetify": "^2.2.0",
     "vue-template-compiler": "^2.6.12",
     "vuetify-loader": "^1.7.2"
   }
