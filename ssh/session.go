@@ -29,6 +29,8 @@ type Session struct {
 	UID           string `json:"uid"`
 	IPAddress     string `json:"ip_address"`
 	Authenticated bool   `json:"authenticated"`
+	Lookup        map[string]string
+	Pty           bool
 }
 
 type ConfigOptions struct {
@@ -102,6 +104,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	}
 
 	s.Target = device.UID
+	s.Lookup = lookup
 
 	if os.Getenv("SHELLHUB_ENTERPRISE") == "true" {
 		res, _, errs := gorequest.New().Get("http://cloud-api:8080/internal/firewall/rules/evaluate").Query(lookup).End()
@@ -109,6 +112,8 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 			return nil, ErrInvalidSessionTarget
 		}
 	}
+	_, _, isPty := s.session.Pty()
+	s.Pty = isPty
 
 	return s, nil
 }

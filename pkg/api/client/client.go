@@ -55,7 +55,7 @@ func NewClient(opts ...Opt) Client {
 	}
 
 	if c.logger != nil {
-		retryClient.Logger = &leveledLogger{c.logger}
+		retryClient.Logger = &LeveledLogger{c.logger}
 	}
 
 	return c
