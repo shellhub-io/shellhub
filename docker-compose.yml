@@ -8,6 +8,9 @@ services:
       - PRIVATE_KEY=/run/secrets/ssh_private_key
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - RECORD_URL=${SHELLHUB_RECORD_URL}
+      - WEBHOOK_URL=${SHELLHUB_WEBHOOK_URL}
+      - WEBHOOK_PORT=${SHELLHUB_WEBHOOK_PORT}
+      - WEBHOOK_SCHEME=${SHELLHUB_WEBHOOK_SCHEME}
     ports:
       - "${SHELLHUB_SSH_PORT}:2222"
     secrets:
