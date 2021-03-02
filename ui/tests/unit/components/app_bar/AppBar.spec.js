@@ -1,48 +1,42 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import App from '@/App';
+import AppBar from '@/components/app_bar/AppBar';
 import router from '@/router/index';
 
-import Vuetify from 'vuetify';
-
-describe('App', () => {
+describe('AppBar', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
-  const vuetify = new Vuetify();
 
   let wrapper;
 
   const tenant = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
   const isLoggedIn = true;
+  const numberNamespaces = 1;
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      tenant,
       isLoggedIn,
+      numberNamespaces,
+      tenant,
     },
     getters: {
-      'auth/tenant': (state) => state.tenant,
       'auth/isLoggedIn': (state) => state.isLoggedIn,
+      'namespaces/getNumberNamespaces': (state) => state.numberNamespaces,
+      'auth/tenant': (state) => state.tenant,
     },
     actions: {
       'auth/logout': () => {
-      },
-      'privatekeys/fetch': () => {
       },
     },
   });
 
   beforeEach(() => {
-    wrapper = shallowMount(App, {
+    wrapper = shallowMount(AppBar, {
       store,
       localVue,
       stubs: ['fragment'],
-      mocks: {
-        $env: (isEnterprise) => isEnterprise,
-      },
       router,
-      vuetify,
     });
   });
 
@@ -53,8 +47,7 @@ describe('App', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
   it('Renders the template with data', async () => {
-    expect(wrapper.find('[data-test="dashboard"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="devices"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="history"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="Settings"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="Logout"]').exists()).toEqual(true);
   });
 });
