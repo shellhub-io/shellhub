@@ -1,6 +1,5 @@
 ifneq (,$(wildcard ./.env.override))
     include .env.override
-    export
 endif
 
 DOCKER_COMPOSE = ./bin/docker-compose
@@ -12,7 +11,7 @@ services:
     image: mongo:_VERSION_
 endef
 
-export $COMPOSE_TEMPLATE
+export COMPOSE_TEMPLATE
 
 # Generate required private key for api service
 api_private_key:
@@ -32,7 +31,7 @@ setup: api_private_key api_public_key ssh_private_key
 
 .PHONY: start
 ## Start services
-start: setup upgrade_mongodb
+start:
 ifeq ($(SHELLHUB_ENV),development)
 	@echo Starting ShellHub in development mode...
 	@echo
@@ -100,20 +99,19 @@ upgrade_mongodb:
 		EOF
 		)
 
-		$(DOCKER_COMPOSE) exec mongo mongo --quiet --eval "quit($${MONGO_SET_COMPAT_VERSION_CMD}.ok ? 1 : 0)"
+		$(DOCKER_COMPOSE) exec mongo mongo --quiet --eval "quit($${MONGO_SET_COMPAT_VERSION_CMD}.ok ? 0 : 1)"
 	}
 
 	MONGO_CONTAINER_ID=$$($(DOCKER_COMPOSE) images -q mongo)
 
-	[[ -z "$$MONGO_CONTAINER_ID" ]] && exit 0
+	[ -z "$$MONGO_CONTAINER_ID" ] && exit 0
 
 	CURRENT_MONGO_VERSION=$$(docker image inspect \
 		--format '{{range .RepoTags}}{{.}} {{end}}' \
 		$$MONGO_CONTAINER_ID | tr -d ' ' | rev | cut -d' ' -f1 | rev | cut -d':' -f2
 	)
 
-	[[ $$CURRENT_MONGO_VERSION == 4.2* ]] && exit 0
-
+	test "$${CURRENT_MONGO_VERSION#*4.2*}" != "$$CURRENT_MONGO_VERSION" && exit 0
 	echo "Upgrading MongoDB instance..."
 
 	start_mongodb $$CURRENT_MONGO_VERSION
