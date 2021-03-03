@@ -1397,7 +1397,7 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 			return namespaces, count, err
 		}
 
-		countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": namespace})
+		countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": namespace.TenantID})
 		if err != nil {
 			return namespaces, 0, err
 		}
