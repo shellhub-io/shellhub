@@ -1,7 +1,5 @@
 import Vue from 'vue';
-import {
-  postPublicKey, fetchPublicKeys, getPublicKey, putPublicKey, removePublicKey,
-} from '@/store/api/public_keys';
+import * as apiPublicKey from '@/store/api/public_keys';
 
 export default {
   namespaced: true,
@@ -58,12 +56,12 @@ export default {
 
   actions: {
     post: async (context, data) => {
-      await postPublicKey(data);
+      await apiPublicKey.postPublicKey(data);
     },
 
     fetch: async (context, data) => {
       try {
-        const res = await fetchPublicKeys(data.perPage, data.page);
+        const res = await apiPublicKey.fetchPublicKeys(data.perPage, data.page);
         context.commit('setPublicKeys', res);
         context.commit('setPagePerpage', data);
       } catch (error) {
@@ -74,7 +72,7 @@ export default {
 
     refresh: async (context) => {
       try {
-        const res = await fetchPublicKeys(
+        const res = await apiPublicKey.fetchPublicKeys(
           context.state.perPage,
           context.state.page,
         );
@@ -87,7 +85,7 @@ export default {
 
     get: async (context, id) => {
       try {
-        const res = await getPublicKey(id);
+        const res = await apiPublicKey.getPublicKey(id);
         context.commit('setPublicKey', res);
       } catch (error) {
         context.commit('clearObjectPublicKey');
@@ -96,7 +94,7 @@ export default {
     },
 
     put: async (context, data) => {
-      await putPublicKey(data);
+      await apiPublicKey.putPublicKey(data);
     },
 
     resetPagePerpage: async (context) => {
@@ -104,7 +102,7 @@ export default {
     },
 
     remove: async (context, fingerprint) => {
-      await removePublicKey(fingerprint);
+      await apiPublicKey.removePublicKey(fingerprint);
     },
   },
 };

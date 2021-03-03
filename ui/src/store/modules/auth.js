@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { login, info } from '@/store/api/auth';
+import * as apiAuth from '@/store/api/auth';
 
 export default {
   namespaced: true,
@@ -63,7 +63,7 @@ export default {
       context.commit('authRequest');
 
       try {
-        const resp = await login(user);
+        const resp = await apiAuth.login(user);
 
         localStorage.setItem('token', resp.data.token);
         localStorage.setItem('user', resp.data.user);
@@ -86,7 +86,7 @@ export default {
       localStorage.setItem('token', token);
 
       try {
-        const resp = await info();
+        const resp = await apiAuth.info();
 
         localStorage.setItem('user', resp.data.user);
         localStorage.setItem('name', resp.data.name);

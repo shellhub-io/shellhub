@@ -1,14 +1,5 @@
 import Vue from 'vue';
-import {
-  postNamespace,
-  fetchNamespaces,
-  getNamespace,
-  removeNamespace,
-  putNamespace,
-  addUserToNamespace,
-  removeUserFromNamespace,
-  tenantSwitch,
-} from '@/store/api/namespaces';
+import * as apiNamespace from '@/store/api/namespaces';
 
 export default {
   namespaced: true,
@@ -63,44 +54,44 @@ export default {
 
   actions: {
     post: async (context, data) => {
-      const res = await postNamespace(data);
+      const res = await apiNamespace.postNamespace(data);
       return res;
     },
 
     fetch: async (context) => {
-      const res = await fetchNamespaces();
+      const res = await apiNamespace.fetchNamespaces();
       context.commit('setNamespaces', res);
     },
 
     get: async (context, id) => {
-      const res = await getNamespace(id);
+      const res = await apiNamespace.getNamespace(id);
       context.commit('setNamespace', res);
     },
 
     put: async (context, data) => {
-      await putNamespace(data);
+      await apiNamespace.putNamespace(data);
     },
 
     remove: async (context, id) => {
-      await removeNamespace(id);
+      await apiNamespace.removeNamespace(id);
       context.commit('removeNamespace', id);
       context.commit('clearObjectNamespace');
       context.commit('clearNamespaceList');
     },
 
     addUser: async (context, data) => {
-      await addUserToNamespace(data);
+      await apiNamespace.addUserToNamespace(data);
     },
 
     removeUser: async (context, data) => {
-      const res = await removeUserFromNamespace(data);
+      const res = await apiNamespace.removeUserFromNamespace(data);
       if (res.status === 200) {
         context.commit('removeMember', data.username);
       }
     },
 
     switchNamespace: async (context, data) => {
-      const res = await tenantSwitch(data);
+      const res = await apiNamespace.tenantSwitch(data);
       if (res.status === 200) {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('tenant', data.tenant_id);

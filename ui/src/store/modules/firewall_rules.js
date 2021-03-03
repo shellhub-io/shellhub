@@ -1,7 +1,5 @@
 import Vue from 'vue';
-import {
-  postFirewall, fetchFirewalls, getFirewall, putFirewall, removeFirewall,
-} from '@/store/api/firewall_rules';
+import * as apiFirewallRule from '@/store/api/firewall_rules';
 
 export default {
   namespaced: true,
@@ -60,12 +58,12 @@ export default {
 
   actions: {
     post: async (context, data) => {
-      await postFirewall(data);
+      await apiFirewallRule.postFirewall(data);
     },
 
     fetch: async (context, data) => {
       try {
-        const res = await fetchFirewalls(data.perPage, data.page);
+        const res = await apiFirewallRule.fetchFirewalls(data.perPage, data.page);
         context.commit('setFirewalls', res);
         context.commit('setPagePerpageFilter', data);
       } catch (error) {
@@ -76,7 +74,7 @@ export default {
 
     refresh: async (context) => {
       try {
-        const res = await fetchFirewalls(
+        const res = await apiFirewallRule.fetchFirewalls(
           context.state.perPage,
           context.state.page,
         );
@@ -89,7 +87,7 @@ export default {
 
     get: async (context, id) => {
       try {
-        const res = await getFirewall(id);
+        const res = await apiFirewallRule.getFirewall(id);
         context.commit('setFirewall', res);
       } catch (error) {
         context.commit('clearObjectFirewalls');
@@ -98,7 +96,7 @@ export default {
     },
 
     put: async (context, data) => {
-      await putFirewall(data);
+      await apiFirewallRule.putFirewall(data);
     },
 
     resetPagePerpage: async (context) => {
@@ -106,7 +104,7 @@ export default {
     },
 
     remove: async (context, id) => {
-      await removeFirewall(id);
+      await apiFirewallRule.removeFirewall(id);
     },
   },
 };
