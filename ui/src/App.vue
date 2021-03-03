@@ -83,7 +83,7 @@ export default {
         {
           icon: 'vpn_key',
           title: 'Public Keys',
-          path: '/sshkeys/public_keys',
+          path: '/sshkeys/public-keys',
         },
       ],
       admins: [
