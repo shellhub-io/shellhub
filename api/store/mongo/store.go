@@ -1296,7 +1296,7 @@ func (s *Store) GetNamespace(ctx context.Context, namespace string) (*models.Nam
 		return ns, err
 	}
 
-	countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": namespace})
+	countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": namespace, "status": "accepted"})
 	if err != nil {
 		return nil, err
 	}
@@ -1397,7 +1397,7 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 			return namespaces, count, err
 		}
 
-		countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": namespace.TenantID})
+		countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": namespace.TenantID, "status": "accepted"})
 		if err != nil {
 			return namespaces, 0, err
 		}
