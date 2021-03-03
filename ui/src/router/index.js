@@ -85,7 +85,7 @@ const router = new Router({
       ],
     },
     {
-      path: '/sshkeys/public_keys',
+      path: '/sshkeys/public-keys',
       name: 'publicKeys',
       component: () => import(/* webpackChunkName: 'publickeys' */'./../views/PublicKeys.vue'),
       redirect: {
@@ -118,7 +118,7 @@ const router = new Router({
           component: () => import('./../components/setting/SettingNamespace.vue'),
         },
         {
-          path: 'private_keys',
+          path: 'private-keys',
           name: 'privateKeysSettings',
           component: () => import('./../components/setting/SettingPrivateKeys.vue'),
         },

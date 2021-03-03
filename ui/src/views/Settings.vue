@@ -66,7 +66,7 @@ export default {
         },
         {
           title: 'Private Keys',
-          path: '/settings/private_keys',
+          path: '/settings/private-keys',
         },
       ];
     },
