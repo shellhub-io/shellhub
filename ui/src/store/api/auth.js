@@ -1,6 +1,5 @@
 import http from '@/store/helpers/http';
 
-const login = async (user) => http().post('/login', user);
-const info = async () => http().get('/auth/user');
+export const login = async (user) => http().post('/login', user);
 
-export { login, info };
+export const info = async () => http().get('/auth/user');
