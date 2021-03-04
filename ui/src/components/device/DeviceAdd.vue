@@ -1,7 +1,6 @@
 <template>
   <fragment>
     <v-btn
-      v-if="currentInANamespace"
       class="v-btn--active mr-2"
       text
       color="primary"
@@ -106,10 +105,6 @@ export default {
       set(value) {
         this.$store.dispatch('modals/showAddDevice', value);
       },
-    },
-
-    currentInANamespace() {
-      return localStorage.getItem('tenant') !== '';
     },
   },
 
