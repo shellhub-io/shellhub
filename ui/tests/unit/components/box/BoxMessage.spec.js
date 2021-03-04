@@ -39,7 +39,7 @@ describe('BoxMessage', () => {
         'An SSH session is created when a connection is made to any registered device.',
       ],
       textWithLink: [
-        `If you don't know how to connect to your devices, please follow this guide
+        `Please follow our guide on how to connect to your devices
             See More.`,
       ],
     },
