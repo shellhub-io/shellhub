@@ -1,0 +1,35 @@
+FROM golang:1.13-alpine3.11
+
+ARG SHELLHUB_VERSION=latest
+
+RUN apk add --update git ca-certificates util-linux build-base bash setpriv
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
+
+COPY ./go.mod ./
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
+
+COPY ./agent/go.mod ./agent/go.sum ./
+
+RUN go mod download
+
+COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
+COPY ./agent .
+
+RUN go mod download
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
+
+RUN GOOS=linux GOARCH=386 go build -tags docker -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
+
+FROM scratch
+
+COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=0 /usr/bin/nsenter /usr/bin/
+COPY --from=0 /usr/bin/setpriv /usr/bin/
+COPY --from=0 /usr/lib/libcap-ng.so.* /usr/lib/
+COPY --from=0 /lib/ld-musl-*.so.1 /lib/
+COPY --from=0 /go/src/github.com/shellhub-io/shellhub/agent/agent /bin/agent
+
+ENTRYPOINT ["/bin/agent"]
