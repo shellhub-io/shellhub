@@ -1,6 +1,12 @@
 import Vuex from 'vuex';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { shallowMount, createLocalVue, config } from '@vue/test-utils';
 import MaxDevice from '@/components/app_bar/max_device/MaxDevice';
+
+config.mocks = {
+  $env: {
+    isEnterprise: true,
+  },
+};
 
 describe('MaxDevice', () => {
   const localVue = createLocalVue();
@@ -34,6 +40,7 @@ describe('MaxDevice', () => {
       store,
       localVue,
       stubs: ['fragment'],
+      mocks: ['$env'],
     });
   });
 
@@ -122,5 +129,19 @@ describe('MaxDevice', () => {
     expectedNumbers.forEach((n, i) => {
       expect(WrapperArray[i].find('[data-test="devices-field"]').text()).toEqual(n.toString());
     });
+  });
+  it('Check owner fields rendering in open version of the template.', () => {
+    const wrapper2 = shallowMount(MaxDevice, {
+      store,
+      localVue,
+      stubs: ['fragment'],
+      mocks: {
+        $env: {
+          isEnterprise: false,
+        },
+      },
+    });
+
+    expect(wrapper2.find('[data-test=devices-field]').exists()).toEqual(false);
   });
 });

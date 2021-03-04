@@ -120,6 +120,35 @@
           </div>
 
           <div
+            v-if="isEnterprise"
+            class="mt-6"
+            data-test="usageOverview"
+          >
+            <v-row>
+              <v-col>
+                <h3>
+                  Usage Overview
+                </h3>
+              </v-col>
+            </v-row>
+
+            <v-spacer />
+
+            <div class="mt-4 mb-7 mx-4">
+              {{ `Device limit:
+                ${countDevicesHasNamespace()}/${countDevicesHasNamespacePercent().maxDevices}` }}
+
+              <v-progress-linear
+                class="mt-2"
+                :value="countDevicesHasNamespacePercent().percent"
+              />
+            </div>
+
+            <v-divider />
+            <v-divider />
+          </div>
+
+          <div
             v-if="isOwner"
             data-test="userOperation"
             class="mt-6"
@@ -322,6 +351,10 @@ export default {
     isEnterpriseOwner() {
       return this.$env.isEnterprise && this.isOwner;
     },
+
+    isEnterprise() {
+      return this.$env.isEnterprise;
+    },
   },
 
   async created() {
@@ -371,6 +404,21 @@ export default {
         return this.namespace.members.find((x) => x.id === this.owner).name;
       }
       return null;
+    },
+
+    countDevicesHasNamespace() {
+      return this.$store.getters['namespaces/get'].devices_count;
+    },
+
+    countDevicesHasNamespacePercent() {
+      const maxDevices = this.$store.getters['namespaces/get'].max_devices;
+
+      let percent = 0;
+      if (maxDevices >= 0) {
+        percent = (this.countDevicesHasNamespace() / maxDevices) * 100;
+        return { maxDevices, percent };
+      }
+      return { maxDevices, percent };
     },
   },
 };

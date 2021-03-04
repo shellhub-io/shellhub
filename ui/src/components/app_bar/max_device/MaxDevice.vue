@@ -1,8 +1,10 @@
 <template>
   <fragment>
     <v-chip
+      v-if="isEnterprise"
       class="float-right"
       data-test="devices-field"
+      :to="{name: 'namespaceSettings'}"
     >
       {{ namespace.devices_count }}
 
@@ -22,6 +24,10 @@ export default {
   computed: {
     namespace() {
       return this.$store.getters['namespaces/get'];
+    },
+
+    isEnterprise() {
+      return this.$env.isEnterprise;
     },
   },
 };
