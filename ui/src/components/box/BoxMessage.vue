@@ -123,7 +123,7 @@ export default {
             'An SSH session is created when a connection is made to any registered device.',
           ],
           textWithLink: [
-            `<p>If you don't know how to connect to your devices, please follow this guide
+            `<p>Please follow our guide on how to connect to your devices
             <a
               target="_blank"
               href="https://docs.shellhub.io/getting-started/connecting-device/"
