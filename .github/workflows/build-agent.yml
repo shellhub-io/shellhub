@@ -21,7 +21,7 @@ jobs:
 
     strategy:
       matrix:
-        dockerfile: [amd64, arm32v6, arm32v7, arm64v8]
+        dockerfile: [amd64, arm32v6, arm32v7, arm64v8, i386]
         include:
         # includes a new variable of npm with a value of 2
         # for the matrix leg matching the os and version
@@ -33,6 +33,8 @@ jobs:
           arch: arm/7
         - dockerfile: arm64v8
           arch: arm64/8
+        - dockerfile: i386
+          arch: i386
 
     steps:
       - name: checkout code
