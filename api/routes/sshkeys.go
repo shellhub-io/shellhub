@@ -13,12 +13,12 @@ import (
 )
 
 const (
-	GetPublicKeysURL    = "/sshkeys/public_keys"
-	GetPublicKeyURL     = "/sshkeys/public_keys/:fingerprint/:tenant"
-	CreatePublicKeyURL  = "/sshkeys/public_keys"
-	UpdatePublicKeyURL  = "/sshkeys/public_keys/:fingerprint"
-	DeletePublicKeyURL  = "/sshkeys/public_keys/:fingerprint"
-	CreatePrivateKeyURL = "/sshkeys/private_keys"
+	GetPublicKeysURL    = "/sshkeys/public-keys"
+	GetPublicKeyURL     = "/sshkeys/public-keys/:fingerprint/:tenant"
+	CreatePublicKeyURL  = "/sshkeys/public-keys"
+	UpdatePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
+	DeletePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
+	CreatePrivateKeyURL = "/sshkeys/private-keys"
 )
 
 func GetPublicKeys(c apicontext.Context) error {
