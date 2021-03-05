@@ -30,7 +30,7 @@ func (c *client) LookupDevice() {
 
 func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, error) {
 	var pubKey *models.PublicKey
-	_, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/internal/sshkeys/public_keys/%s/%s", fingerprint, tenant))).EndStruct(&pubKey)
+	_, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/internal/sshkeys/public-keys/%s/%s", fingerprint, tenant))).EndStruct(&pubKey)
 	if len(errs) > 0 {
 		return nil, errs[0]
 	}
@@ -40,7 +40,7 @@ func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, er
 
 func (c *client) CreatePrivateKey() (*models.PrivateKey, error) {
 	var privKey *models.PrivateKey
-	_, _, errs := c.http.Post(buildURL(c, "/internal/sshkeys/private_keys")).EndStruct(&privKey)
+	_, _, errs := c.http.Post(buildURL(c, "/internal/sshkeys/private-keys")).EndStruct(&privKey)
 	if len(errs) > 0 {
 		return nil, errs[0]
 	}
