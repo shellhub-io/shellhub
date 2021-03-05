@@ -1,45 +1,55 @@
 <template>
   <v-form>
     <v-container>
-      <v-card class="mt-2 pa-4 pb-0 elevation-1">
-        <div class="d-flex pa-0 align-center">
-          <h3>Private Keys</h3>
-          <v-spacer />
-          <v-spacer />
-          <PrivateKeyFormDialog
-            :create-key="true"
-            action="private"
-          />
-        </div>
-
-        <v-data-table
-          :headers="headers"
-          :items="getListPrivateKeys"
-          data-test="dataTable-field"
-          :server-items-length="getNumberPrivateKeys"
-          hide-default-footer
+      <v-row
+        align="center"
+        justify="center"
+        class="mt-4 mb-4"
+      >
+        <v-col
+          sm="8"
         >
-          <template #[`item.name`]="{ item }">
-            {{ item.name }}
-          </template>
+          <v-card class="mt-2 pa-4 pb-0 elevation-1">
+            <div class="d-flex pa-0 align-center">
+              <h3>Private Keys</h3>
+              <v-spacer />
+              <v-spacer />
+              <PrivateKeyFormDialog
+                :create-key="true"
+                action="private"
+              />
+            </div>
 
-          <template #[`item.data`]="{ item }">
-            {{ convertToFingerprint(item.data) }}
-          </template>
+            <v-data-table
+              :headers="headers"
+              :items="getListPrivateKeys"
+              data-test="dataTable-field"
+              :server-items-length="getNumberPrivateKeys"
+              hide-default-footer
+            >
+              <template #[`item.name`]="{ item }">
+                {{ item.name }}
+              </template>
 
-          <template #[`item.actions`]="{ item }">
-            <PrivateKeyFormDialog
-              :key-object="item"
-              :create-key="false"
-              action="private"
-            />
-            <PrivateKeyDelete
-              :fingerprint="item.data"
-              action="private"
-            />
-          </template>
-        </v-data-table>
-      </v-card>
+              <template #[`item.data`]="{ item }">
+                {{ convertToFingerprint(item.data) }}
+              </template>
+
+              <template #[`item.actions`]="{ item }">
+                <PrivateKeyFormDialog
+                  :key-object="item"
+                  :create-key="false"
+                  action="private"
+                />
+                <PrivateKeyDelete
+                  :fingerprint="item.data"
+                  action="private"
+                />
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-col>
+      </v-row>
     </v-container>
 
     <v-dialog
