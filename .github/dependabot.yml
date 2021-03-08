@@ -7,6 +7,8 @@ updates:
     interval: weekly
   commit-message:
     prefix: "ui"
+  ignore:
+    - dependency-name: "vue-fragment"
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
