@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	ListNamespaceURL       = "/namespace"
-	CreateNamespaceURL     = "/namespace"
-	GetNamespaceURL        = "/namespace/:id"
-	DeleteNamespaceURL     = "/namespace/:id"
-	EditNamespaceURL       = "/namespace/:id"
-	AddNamespaceUserURL    = "/namespace/:id/add"
-	RemoveNamespaceUserURL = "/namespace/:id/del"
+	ListNamespaceURL       = "/namespaces"
+	CreateNamespaceURL     = "/namespaces"
+	GetNamespaceURL        = "/namespaces/:id"
+	DeleteNamespaceURL     = "/namespaces/:id"
+	EditNamespaceURL       = "/namespaces/:id"
+	AddNamespaceUserURL    = "/namespaces/:id/add"
+	RemoveNamespaceUserURL = "/namespaces/:id/del"
 	UserSecurityURL        = "/users/security"
 	UpdateUserSecurityURL  = "/users/security/:id"
 )
