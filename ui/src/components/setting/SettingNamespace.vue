@@ -49,7 +49,7 @@
                     <v-icon
                       v-clipboard="tenant"
                       v-clipboard:success="() => {
-                        this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
+                        $store.dispatch('snackbar/showSnackbarCopy', $copy.tenantId);
                       }"
                       right
                     >
