@@ -4,10 +4,4 @@ set -e
 
 command -v openssl >/dev/null 2>&1 || { echo >&2 "ERROR: Please install the openssl utility version 1.0.0 or newer to generate keys."; exit 1; }
 
-test -f api_private_key && { echo >&2 "ERROR: api_private_key already exists"; exit 1; }
-test -f api_public_key && { echo >&2 "ERROR: api_public_key already exists"; exit 1; }
-test -f ssh_private_key && { echo >&2 "ERROR: ssh_private_key already exists"; exit 1; }
-
-openssl genrsa -out api_private_key 2048
-openssl rsa -in api_private_key -out api_public_key -pubout
-openssl genrsa -out ssh_private_key 2048
+openssl "$@"

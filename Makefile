@@ -3,6 +3,7 @@ ifneq (,$(wildcard ./.env.override))
 endif
 
 DOCKER_COMPOSE = ./bin/docker-compose
+KEYGEN = ./bin/keygen
 
 define COMPOSE_TEMPLATE
 version: '3.7'
@@ -15,19 +16,19 @@ export COMPOSE_TEMPLATE
 
 # Generate required private key for api service
 api_private_key:
-	@openssl genrsa -out api_private_key 2048
+	@$(KEYGEN) genrsa -out api_private_key 2048
 
 # Generate required public key for api service
 api_public_key:
-	@openssl rsa -in api_private_key -out api_public_key -pubout
+	@$(KEYGEN) rsa -in api_private_key -out api_public_key -pubout
 
 # Generate required private key for ssh service
 ssh_private_key:
-	@openssl genrsa -out ssh_private_key 2048
+	@$(KEYGEN) genrsa -out ssh_private_key 2048
 
-.PHONY: setup
-# Setup required files
-setup: api_private_key api_public_key ssh_private_key
+.PHONY: keygen
+# Generate required keys
+keygen: api_private_key api_public_key ssh_private_key
 
 .PHONY: start
 ## Start services
