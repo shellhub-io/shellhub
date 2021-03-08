@@ -36,7 +36,7 @@ if [ -z "$OWNER_ID" ]; then
     exit 1
 fi
 
-INSERTED=`docker-compose exec -T mongo mongo main --quiet --eval "db.namespaces.insert({ name: '$NAMESPACE', owner: '$OWNER_ID', tenant_id: '$TENANT_ID', members: [ '$OWNER_ID' ], settings: {session_record: true}}).nInserted"`
+INSERTED=`docker-compose exec -T mongo mongo main --quiet --eval "db.namespaces.insert({ name: '$NAMESPACE', owner: '$OWNER_ID', tenant_id: '$TENANT_ID', members: [ '$OWNER_ID' ], settings: {session_record: true}, max_devices: -1}).nInserted"`
 
 if [ $INSERTED -eq 1 ]; then
     echo "Namespace added: $NAMESPACE"
