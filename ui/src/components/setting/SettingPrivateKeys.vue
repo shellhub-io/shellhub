@@ -9,9 +9,8 @@
         <v-col
           sm="8"
         >
-          <v-card class="mt-2 pa-4 pb-0 elevation-1">
+          <v-card class="pb-0 elevation-0">
             <div class="d-flex pa-0 align-center">
-              <h3>Private Keys</h3>
               <v-spacer />
               <v-spacer />
               <PrivateKeyFormDialog
