@@ -36,7 +36,7 @@
           <v-card-text>
             <v-text-field
               v-model="username"
-              :error="this.$store.getters['auth/authStatus'] == 'error'"
+              :error="$store.getters['auth/authStatus'] == 'error'"
               prepend-icon="person"
               label="Username"
               type="text"
@@ -45,7 +45,7 @@
             <v-text-field
               id="password"
               v-model="password"
-              :error="this.$store.getters['auth/authStatus'] == 'error'"
+              :error="$store.getters['auth/authStatus'] == 'error'"
               prepend-icon="lock"
               label="Password"
               type="password"
