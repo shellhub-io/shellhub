@@ -11,7 +11,7 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magefile/mage v1.11.0 // indirect
 	github.com/parnurzeal/gorequest v0.2.16
-	github.com/pires/go-proxyproto v0.4.2
+	github.com/pires/go-proxyproto v0.5.0
 	github.com/shellhub-io/shellhub v0.5.2
 	github.com/sirupsen/logrus v1.8.0
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
