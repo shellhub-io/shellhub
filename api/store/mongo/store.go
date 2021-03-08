@@ -1435,6 +1435,13 @@ func (s *Store) EditNamespace(ctx context.Context, namespace, name string) (*mod
 	return s.GetNamespace(ctx, namespace)
 }
 
+func (s *Store) UpdateNamespace(ctx context.Context, tenant string, namespace *models.Namespace) error {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"name": namespace.Name, "max_devices": namespace.MaxDevices, "settings.session_record": namespace.Settings.SessionRecord}}); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Store) AddNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
 	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$addToSet": bson.M{"members": ID}})
 	if err != nil {

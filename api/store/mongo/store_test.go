@@ -1294,10 +1294,10 @@ func TestCreateNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1316,10 +1316,10 @@ func TestDeleteNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1341,10 +1341,10 @@ func TestGetNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1366,10 +1366,10 @@ func TestListNamespaces(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1400,10 +1400,10 @@ func TestAddNamespaceUser(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1412,6 +1412,39 @@ func TestAddNamespaceUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = mongostore.AddNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	assert.NoError(t, err)
+}
+
+func TestUpdateNamespace(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+
+	err := mongostore.CreateUser(ctx, &models.User{
+		Name:     "name",
+		Username: "user",
+		Email:    "user@shellhub.io",
+		Password: "password",
+	})
+	assert.NoError(t, err)
+
+	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
+		Settings:   &models.NamespaceSettings{SessionRecord: true},
+		MaxDevices: -1,
+	})
+	assert.NoError(t, err)
+
+	err = mongostore.UpdateNamespace(ctx, "tenant", &models.Namespace{
+		Name:       "name",
+		Settings:   &models.NamespaceSettings{SessionRecord: false},
+		MaxDevices: 3,
+	})
 	assert.NoError(t, err)
 }
 
@@ -1435,10 +1468,10 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
