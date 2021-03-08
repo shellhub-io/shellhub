@@ -25,7 +25,7 @@
     "v-clipboard": "^2.2.3",
     "vee-validate": "^3.4.5",
     "vue": "^2.6.12",
-    "vue-fragment": "^1.5.2",
+    "vue-fragment": "^1.5.1",
     "vue-moment": "^4.1.0",
     "vue-router": "^3.5.1",
     "vuetify": "^2.4.5",
