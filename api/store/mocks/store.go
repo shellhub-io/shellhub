@@ -262,6 +262,20 @@ func (_m *Store) EditNamespace(ctx context.Context, namespace string, name strin
 	return r0, r1
 }
 
+// UpdateNamespace provides a mock function with given fields: ctx, namespace, name
+func (_m *Store) UpdateNamespace(ctx context.Context, tenant string, namespace *models.Namespace) error {
+	ret := _m.Called(ctx, tenant, namespace)
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, *models.Namespace) error); ok {
+		r1 = rf(ctx, tenant, namespace)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r1
+}
+
 // GetDataUserSecurity provides a mock function with given fields: ctx, tenant
 func (_m *Store) GetDataUserSecurity(ctx context.Context, tenant string) (bool, error) {
 	ret := _m.Called(ctx, tenant)
