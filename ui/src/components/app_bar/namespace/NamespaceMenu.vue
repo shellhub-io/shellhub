@@ -73,13 +73,14 @@
             <v-divider />
 
             <v-list
+              v-if="namespacesInList"
               class="pt-0"
             >
               <v-subheader>Namespaces</v-subheader>
 
               <v-list-item-group>
                 <v-virtual-scroll
-                  :height="150"
+                  :height="adaptHeight"
                   item-height="50"
                   :items="availableNamespaces"
                 >
@@ -170,6 +171,10 @@ export default {
   },
 
   computed: {
+    adaptHeight() {
+      return this.availableNamespaces.length >= 3 ? 150 : this.availableNamespaces.length * 50;
+    },
+
     isOwner() {
       return this.$store.getters['namespaces/owner'];
     },
@@ -180,6 +185,10 @@ export default {
 
     namespaces() {
       return this.$store.getters['namespaces/list'];
+    },
+
+    namespacesInList() {
+      return this.availableNamespaces.length > 0;
     },
 
     availableNamespaces() {
