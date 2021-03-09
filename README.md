@@ -59,7 +59,7 @@ See [LICENSE](LICENSE.md) for the full license text.
 First of all, you'll need to generate required keys for the services:
 
 ```
-$ ./bin/keygen
+$ make keygen
 ```
 
 Set the environment to development:
@@ -71,7 +71,7 @@ $ echo "SHELLHUB_ENV=development" >> .env.override
 Start the whole environment:
 
 ```
-$ ./bin/docker-compose up
+$ make start
 ```
 
 > Avoid to use `docker-compose` directly (unless you know what you're doing); instead use `bin/docker-compose` wrapper.
@@ -79,7 +79,13 @@ $ ./bin/docker-compose up
 Wait for all services to be ready then create initial user by running:
 
 ```
-$ TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx ./bin/add-user <username> <password> <email>
+$ ./bin/add-user <username> <password> <email>
+```
+
+Create a namespace for grouping devices and set user as owner:
+
+```
+$ TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx ./bin/add-namespace <namespace> <owner>
 ```
 
 > Don't change the value of `TENANT_ID`, this value is hardcoded during agent initialization in development mode.
