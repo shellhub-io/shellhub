@@ -13,7 +13,10 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
-var ErrUnauthorized = errors.New("unauthorized")
+var (
+	ErrUnauthorized          = errors.New("unauthorized")
+	ErrMaxDeviceCountReached = errors.New("maximum number of accepted devices reached")
+)
 
 type Service interface {
 	ListDevices(ctx context.Context, pagination paginator.Query, filter string, status string, sort string, order string) ([]models.Device, int, error)
@@ -133,6 +136,15 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 				}
 				if err := s.store.RenameDevice(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
 					return err
+				}
+			} else {
+				ns, err := s.store.GetNamespace(ctx, device.TenantID)
+				if err != nil {
+					return err
+				}
+
+				if ns.MaxDevices > 0 && ns.MaxDevices <= ns.DevicesCount {
+					return ErrMaxDeviceCountReached
 				}
 			}
 		}

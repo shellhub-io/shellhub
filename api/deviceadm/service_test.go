@@ -177,7 +177,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 	s := NewService(store.Store(mock))
 
 	user := &models.User{Name: "name", Email: "", Username: "username", ID: "id"}
-	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant"}
+	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", MaxDevices: -1}
 	identity := &models.DeviceIdentity{MAC: "mac"}
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: identity}
 	oldDevice := &models.Device{UID: "old_uid", Name: "name", TenantID: "tenant", Identity: identity}
@@ -213,6 +213,23 @@ func TestUpdatePendingStatus(t *testing.T) {
 
 	err = s.UpdatePendingStatus(ctx, models.UID("uid"), "accepted", "tenant", userDoesnotOwner.Username)
 	assert.EqualError(t, err, "unauthorized")
+
+	// Would exceed limit
+	mock.On("GetUserByUsername", ctx, user.Username).
+		Return(user, nil).Once()
+	mock.On("GetNamespace", ctx, device.TenantID).
+		Return(namespace, nil).Once()
+	mock.On("GetDeviceByUID", ctx, models.UID(device.UID), device.TenantID).
+		Return(device, nil).Once()
+	mock.On("GetDeviceByMac", ctx, "mac", device.TenantID, "accepted").
+		Return(nil, nil).Once()
+	mock.On("GetNamespace", ctx, device.TenantID).
+		Return(namespace, nil).Once()
+	mock.On("UpdatePendingStatus", ctx, models.UID(device.UID), "accepted").
+		Return(nil).Once()
+
+	err = s.UpdatePendingStatus(ctx, models.UID("uid"), "accepted", "tenant", user.Username)
+	assert.NoError(t, err)
 
 	mock.AssertExpectations(t)
 }
