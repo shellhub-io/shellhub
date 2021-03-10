@@ -1538,7 +1538,7 @@ func TestCreatePublicKey(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 	newKey := &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste1"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste1", Hostname: ".*"},
 	}
 	err := mongostore.CreatePublicKey(ctx, newKey)
 	assert.NoError(t, err)
@@ -1553,7 +1553,7 @@ func TestListPublicKeys(t *testing.T) {
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	key := models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste", Hostname: ".*"},
 	}
 	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
@@ -1578,7 +1578,7 @@ func TestListGetPublicKey(t *testing.T) {
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	key := models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste", Hostname: ".*"},
 	}
 	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
@@ -1604,17 +1604,17 @@ func TestUpdatePublicKey(t *testing.T) {
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	//createdAt := time.Now()
 	key := &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste", Hostname: ".*"},
 	}
 	updatedKey := &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste2", Hostname: ".*"},
 	}
 	unexistingKey := &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint2", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+		Data: []byte("teste"), Fingerprint: "fingerprint2", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste", Hostname: ".*"},
 	}
 
 	update := &models.PublicKeyUpdate{
-		PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
+		PublicKeyFields: models.PublicKeyFields{Name: "teste2", Hostname: ".*"},
 	}
 
 	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
@@ -1643,7 +1643,7 @@ func TestDeletePublicKey(t *testing.T) {
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	newKey := &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant", PublicKeyFields: models.PublicKeyFields{Name: "teste1"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant", PublicKeyFields: models.PublicKeyFields{Name: "teste1", Hostname: ".*"},
 	}
 
 	_, err := db.Client().Database("test").Collection("public_keys").InsertOne(ctx, newKey)

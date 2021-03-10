@@ -228,9 +228,7 @@ func (*Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKe
 		}
 	}
 
-	var device struct {
-		Tenant string `json:"tenant_id"`
-	}
+	device := new(models.Device)
 
 	res, _, errs := gorequest.New().Get("http://api:8080/internal/lookup").Query(lookup).EndStruct(&device)
 	if len(errs) > 0 || res.StatusCode != http.StatusOK {
@@ -244,8 +242,13 @@ func (*Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKe
 
 	if ssh.FingerprintLegacyMD5(magicPubKey) != fingerprint {
 		apiClient := client.NewClient()
-		_, err = apiClient.GetPublicKey(fingerprint, device.Tenant)
+		_, err = apiClient.GetPublicKey(fingerprint, device.TenantID)
 		if err != nil {
+			return false
+		}
+
+		ok, err := apiClient.EvaluateKey(fingerprint, device)
+		if !ok || err != nil {
 			return false
 		}
 	}

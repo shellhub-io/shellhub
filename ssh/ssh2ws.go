@@ -55,6 +55,15 @@ func HandlerWebsocket(ws *websocket.Conn) {
 			return
 		}
 
+		if ok, err := apiClient.EvaluateKey(fingerprint, device); !ok || err != nil {
+			if err != nil {
+				fmt.Println(err)
+			}
+			ws.Write([]byte("Permission denied\r\n")) // nolint:errcheck
+			ws.Close()
+			return
+		}
+
 		pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data)
 		if err != nil {
 			return

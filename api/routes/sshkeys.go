@@ -19,6 +19,7 @@ const (
 	UpdatePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
 	DeletePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
 	CreatePrivateKeyURL = "/sshkeys/private-keys"
+	EvaluateKeyURL      = "/sshkeys/public-keys/evaluate/:fingerprint"
 )
 
 func GetPublicKeys(c apicontext.Context) error {
@@ -127,4 +128,25 @@ func CreatePrivateKey(c apicontext.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, privKey)
+}
+
+func EvaluateKeyHostname(c apicontext.Context) error {
+	svc := sshkeys.NewService(c.Store())
+
+	pubKey, err := svc.GetPublicKey(c.Ctx(), c.Param("fingerprint"), c.Param("tenant"))
+	if err != nil {
+		return c.JSON(http.StatusForbidden, err)
+	}
+
+	var device models.Device
+	if err := c.Bind(&device); err != nil {
+		return c.JSON(http.StatusForbidden, err)
+	}
+
+	ok, err := svc.EvaluateKeyHostname(c.Ctx(), pubKey, device)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, ok)
 }

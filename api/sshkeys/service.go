@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"regexp"
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
@@ -20,6 +21,7 @@ var ErrInvalidFormat = errors.New("invalid format")
 var ErrDuplicateFingerprint = errors.New("This fingerprint already exits")
 
 type Service interface {
+	EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
 	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
 	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePublicKey(ctx context.Context, key *models.PublicKey) error
@@ -32,10 +34,26 @@ type service struct {
 	store store.Store
 }
 
+type Request struct {
+	Namespace string
+}
+
 func NewService(store store.Store) Service {
 	return &service{store}
 }
 
+func (s *service) EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
+	if key.Hostname == "" {
+		return true, nil
+	}
+
+	ok, err := regexp.MatchString(key.Hostname, dev.Name)
+	if err != nil {
+		return false, err
+	}
+
+	return ok, nil
+}
 func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
 	return s.store.GetPublicKey(ctx, fingerprint, tenant)
 }
