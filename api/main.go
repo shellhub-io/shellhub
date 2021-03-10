@@ -100,6 +100,7 @@ func main() {
 	publicAPI.DELETE(routes.DeletePublicKeyURL, apicontext.Handler(routes.DeletePublicKey))
 	internalAPI.GET(routes.GetPublicKeyURL, apicontext.Handler(routes.GetPublicKey))
 	internalAPI.POST(routes.CreatePrivateKeyURL, apicontext.Handler(routes.CreatePrivateKey))
+	internalAPI.POST(routes.EvaluateKeyURL, apicontext.Handler(routes.EvaluateKeyHostname))
 
 	publicAPI.GET(routes.ListNamespaceURL, apicontext.Handler(routes.GetNamespaceList))
 	publicAPI.GET(routes.GetNamespaceURL, apicontext.Handler(routes.GetNamespace))

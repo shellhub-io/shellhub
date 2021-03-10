@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"go.uber.org/multierr"
 )
 
 const (
@@ -24,6 +25,7 @@ type internalAPI interface {
 	LookupDevice()
 	GetPublicKey(fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePrivateKey() (*models.PrivateKey, error)
+	EvaluateKey(fingerprint string, dev *models.Device) (bool, error)
 }
 
 func (c *client) LookupDevice() {
@@ -40,6 +42,25 @@ func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, er
 	}
 
 	return pubKey, nil
+}
+
+func (c *client) EvaluateKey(fingerprint string, dev *models.Device) (bool, error) {
+	var evaluate *bool
+
+	resp, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/sshkeys/public-keys/evaluate/%s", fingerprint))).Send(dev).EndStruct(&evaluate)
+	if len(errs) > 0 {
+		var err error
+		for _, e := range errs {
+			err = multierr.Append(err, e)
+		}
+		return false, err
+
+	}
+	if resp.StatusCode == 200 {
+		return *evaluate, nil
+	}
+
+	return false, nil
 }
 
 func (c *client) CreatePrivateKey() (*models.PrivateKey, error) {
