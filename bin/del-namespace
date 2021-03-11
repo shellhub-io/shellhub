@@ -16,6 +16,12 @@ if [ -z "$EXISTS" ]; then
     exit 1
 fi
 
+TENANT_ID=`docker-compose exec -T mongo mongo main --quiet --eval "JSON.stringify(db.namespaces.findOne({ name:'$NAMESPACE' }))" | docker run --rm -i imega/jq -r '.tenant_id // empty'`
+
+for COL in devices sessions connected_devices firewall_rules public_keys recorded_sessions; do
+    docker-compose exec -T mongo mongo main --quiet --eval "db.$COL.remove({ tenant_id: '$TENANT_ID' }).nRemoved" > /dev/null
+done
+
 REMOVED=`docker-compose exec -T mongo mongo main --quiet --eval "db.namespaces.remove({name: '$NAMESPACE'}).nRemoved"`
 
 if [ $REMOVED -gt 0 ]; then
