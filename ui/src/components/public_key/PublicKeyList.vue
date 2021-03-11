@@ -22,6 +22,10 @@
           {{ item.fingerprint }}
         </template>
 
+        <template #[`item.hostname`]="{ item }">
+          {{ item.hostname }}
+        </template>
+
         <template #[`item.created_at`]="{ item }">
           {{ item.created_at | moment("ddd, MMM Do YY, h:mm:ss a") }}
         </template>
@@ -69,6 +73,11 @@ export default {
         {
           text: 'Fingerprint',
           value: 'fingerprint',
+          align: 'center',
+        },
+        {
+          text: 'Hostname',
+          value: 'hostname',
           align: 'center',
         },
         {

@@ -63,6 +63,18 @@
             </ValidationProvider>
 
             <ValidationProvider
+              v-if="action == 'public'"
+              v-slot="{ errors }"
+              name="Hostname"
+            >
+              <v-text-field
+                v-model="keyLocal.hostname"
+                label="Hostname"
+                :error-messages="errors"
+              />
+            </ValidationProvider>
+
+            <ValidationProvider
               v-slot="{ errors }"
               vid="key"
               name="Data"
@@ -168,6 +180,8 @@ export default {
           name: '',
           data: '',
         };
+
+        if (this.action === 'public') this.keyLocal.hostname = '';
       } else {
         this.keyLocal = { ...this.keyObject };
         if (this.action === 'public') this.keyLocal.data = atob(this.keyObject.data);
