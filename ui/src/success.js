@@ -36,6 +36,10 @@ export default {
       subscription: 'subscription',
       updateSubscription: 'updating subscription',
       cancelSubscription: 'cancelling subscription',
+      tokenList: 'list token',
+      tokenCreating: 'creating token',
+      tokenEditing: 'editing token',
+      tokenDeleting: 'deleting token',
     };
 
     Vue.success = success;

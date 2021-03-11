@@ -78,6 +78,10 @@ export default {
           path: '/settings/billing',
           hidden: !(this.$env.billingEnable && this.$env.isCloud && this.hasNamespace),
         },
+        {
+          title: 'Tokens',
+          path: '/settings/tokens',
+        },
       ];
     },
   },

@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenEdit Renders the component 1`] = `
+<fragment-stub>
+  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>Edit</span></v-tooltip-stub>
+  <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="400" origin="center center" retainfocus="true" transition="dialog-transition" width="auto">
+    <v-card-stub loaderheight="4" tag="div">
+      <v-card-title-stub class="headline grey lighten-2 text-center">
+        Edit Rule
+      </v-card-title-stub>
+      <v-card-text-stub>
+        <v-text-field-stub disabled="true" errorcount="1" errormessages="" messages="" rules="" successmessages="" value="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" backgroundcolor="" loaderheight="2" clearicon="$clear" type="text"></v-text-field-stub>
+        <v-layout-stub tag="div" justify-space-between="" align-center="">
+          <v-flex-stub tag="div">
+            <v-card-stub loaderheight="4" tag="div" elevation="0">
+              <v-card-text-stub class="v-label theme--light pl-0">
+                Permission read only
+              </v-card-text-stub>
+            </v-card-stub>
+          </v-flex-stub>
+          <v-flex-stub tag="div" xs2="">
+            <v-card-stub loaderheight="4" tag="div" elevation="0">
+              <v-switch-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" backgroundcolor="" ripple="true" valuecomparator="[Function]" inputvalue="true"></v-switch-stub>
+            </v-card-stub>
+          </v-flex-stub>
+        </v-layout-stub>
+      </v-card-text-stub>
+      <v-card-actions-stub>
+        <v-spacer-stub></v-spacer-stub>
+        <v-btn-stub tag="button" activeclass="" text="true" type="button">
+          Cancel
+        </v-btn-stub>
+        <v-btn-stub tag="button" activeclass="" text="true" type="button">
+          Edit
+        </v-btn-stub>
+      </v-card-actions-stub>
+    </v-card-stub>
+  </v-dialog-stub>
+</fragment-stub>
+`;

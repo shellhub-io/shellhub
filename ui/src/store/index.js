@@ -19,6 +19,7 @@ import tags from '@/store/modules/tags';
 import spinner from '@/store/modules/spinner';
 import billing from '@/store/modules/billing';
 import layout from '@/store/modules/layout';
+import tokens from '@/store/modules/tokens';
 
 Vue.use(Vuex);
 
@@ -43,5 +44,6 @@ export default new Vuex.Store({
     spinner,
     billing,
     layout,
+    tokens,
   },
 });

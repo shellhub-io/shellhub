@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenAdd Renders the component 1`] = `
+<fragment-stub show="true">
+  <v-btn-stub color="primary" tag="button" activeclass="" text="true" type="button" class="v-btn--active mr-2">
+    Add Token
+  </v-btn-stub>
+</fragment-stub>
+`;

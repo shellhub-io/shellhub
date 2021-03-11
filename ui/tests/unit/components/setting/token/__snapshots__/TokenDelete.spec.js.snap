@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenDelete Renders the component 1`] = `
+<fragment-stub>
+  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+      Remove
+    </span></v-tooltip-stub>
+  <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="400" origin="center center" retainfocus="true" transition="dialog-transition" width="auto">
+    <v-card-stub loaderheight="4" tag="div">
+      <v-card-title-stub class="headline grey lighten-2 text-center">
+        Are you sure?
+      </v-card-title-stub>
+      <v-card-text-stub class="mt-4 mb-3 pb-1">
+        You are about to remove this token.
+      </v-card-text-stub>
+      <v-card-actions-stub>
+        <v-spacer-stub></v-spacer-stub>
+        <v-btn-stub tag="button" activeclass="" text="true" type="button">
+          Close
+        </v-btn-stub>
+        <v-btn-stub color="red darken-1" tag="button" activeclass="" text="true" type="button">
+          Remove
+        </v-btn-stub>
+      </v-card-actions-stub>
+    </v-card-stub>
+  </v-dialog-stub>
+</fragment-stub>
+`;

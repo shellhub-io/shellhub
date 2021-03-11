@@ -160,6 +160,11 @@ const router = new Router({
           },
           component: () => import('@/components/setting/SettingBilling'),
         },
+        {
+          path: 'tokens',
+          name: 'tokensSettings',
+          component: () => import('@/components/setting/SettingToken'),
+        },
       ],
     },
     {

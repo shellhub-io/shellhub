@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenList Renders the component 1`] = `
+<fragment-stub show="true">
+  <v-data-table-stub mobilebreakpoint="600" items="[object Object],[object Object]" options="[object Object]" sortby="" sortdesc="" customsort="[Function]" page="1" itemsperpage="10" groupby="" groupdesc="" customgroup="[Function]" locale="en-US" customfilter="[Function]" serveritemslength="2" itemkey="id" value="" expanded="" noresultstext="$vuetify.dataIterator.noResultsText" nodatatext="$vuetify.noDataText" loadingtext="$vuetify.dataIterator.loadingText" hidedefaultfooter="true" selectablekey="isSelectable" loaderheight="4" headers="[object Object],[object Object],[object Object]" expandicon="$expand" itemclass="" data-test="dataTable-field"></v-data-table-stub>
+</fragment-stub>
+`;
