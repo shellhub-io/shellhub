@@ -3,6 +3,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -30,9 +31,12 @@ func (c *client) LookupDevice() {
 
 func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, error) {
 	var pubKey *models.PublicKey
-	_, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/internal/sshkeys/public-keys/%s/%s", fingerprint, tenant))).EndStruct(&pubKey)
+	resp, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/internal/sshkeys/public-keys/%s/%s", fingerprint, tenant))).EndStruct(&pubKey)
 	if len(errs) > 0 {
 		return nil, errs[0]
+	}
+	if resp.StatusCode == 404 {
+		return nil, errors.New(NotFoundErr)
 	}
 
 	return pubKey, nil
