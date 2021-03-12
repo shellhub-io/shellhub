@@ -59,7 +59,7 @@ describe('DeviceAdd', () => {
     expect(wrapper.vm.tenant).toBe('00000000');
   });
   it('Process data in methods', () => {
-    const command = 'sh <(curl "http://localhost/install.sh?tenant_id=00000000")';
+    const command = 'curl -sSf "http://localhost/install.sh?tenant_id=00000000" | sh';
     expect(wrapper.vm.command()).toBe(command);
 
     jest.spyOn(wrapper.vm, 'copyCommand');

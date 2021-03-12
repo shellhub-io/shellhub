@@ -81,7 +81,7 @@ describe('Welcome', () => {
     expect(wrapper.vm.show).toEqual(show);
   });
   it('Process data in the methods', () => {
-    const command = `sh <(curl "http://localhost/install.sh?tenant_id=${tenant}")`;
+    const command = `curl -sSf "http://localhost/install.sh?tenant_id=${tenant}" | sh`;
     expect(wrapper.vm.command()).toEqual(command);
   });
   it('Compare data with default value', () => {
