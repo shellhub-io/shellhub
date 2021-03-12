@@ -4,7 +4,7 @@
 # generate the final script file. PLEASE NEVER RUN THIS FILE DIRECTLY, instead
 # run me with:
 #
-# sh <(curl -Ss "http://<SERVER-ADDRESS>/kickstart.sh?tenant_id=<TENANT-ID>")
+# curl -sSf "http://<SERVER-ADDRESS>/kickstart.sh?tenant_id=<TENANT-ID>" | sh
 #
 # Where:
 # <SERVER-ADDRESS> is the ShellHub server address

@@ -113,7 +113,7 @@ export default {
       let port = '';
       if (window.location.port !== '') port = `:${this.port}`;
 
-      return `sh <(curl "${window.location.protocol}//${this.hostname}${port}/install.sh?tenant_id=${this.tenant}")`;
+      return `curl -sSf "${window.location.protocol}//${this.hostname}${port}/install.sh?tenant_id=${this.tenant}" | sh`;
     },
 
     copyCommand() {
