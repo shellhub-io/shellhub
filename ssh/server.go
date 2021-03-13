@@ -10,13 +10,16 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	sshserver "github.com/gliderlabs/ssh"
+	"github.com/parnurzeal/gorequest"
 	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/api/webhook"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
@@ -193,6 +196,42 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 func (*Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKey) bool {
 	fingerprint := ssh.FingerprintLegacyMD5(pubKey)
+	target := ctx.Value(sshserver.ContextKeyUser).(string)
+
+	parts := strings.SplitN(target, "@", 2)
+	if len(parts) != 2 {
+		return false
+	}
+
+	target = parts[1]
+	var lookup map[string]string
+	if !strings.Contains(parts[1], ".") {
+		device := new(models.Device)
+		res, _, errs := gorequest.New().Get("http://api:8080/api/devices/" + target).EndStruct(&device)
+		if len(errs) > 0 || res.StatusCode != http.StatusOK {
+			return false
+		}
+
+	} else {
+		parts = strings.SplitN(parts[1], ".", 2)
+		if len(parts) < 2 {
+			return false
+		}
+
+		lookup = map[string]string{
+			"domain": strings.ToLower(parts[0]),
+			"name":   strings.ToLower(parts[1]),
+		}
+	}
+
+	var device struct {
+		Tenant string `json:"tenant_id"`
+	}
+
+	res, _, errs := gorequest.New().Get("http://api:8080/internal/lookup").Query(lookup).EndStruct(&device)
+	if len(errs) > 0 || res.StatusCode != http.StatusOK {
+		return false
+	}
 
 	magicPubKey, err := ssh.NewPublicKey(&magicKey.PublicKey)
 	if err != nil {
@@ -201,7 +240,7 @@ func (*Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKe
 
 	if ssh.FingerprintLegacyMD5(magicPubKey) != fingerprint {
 		apiClient := client.NewClient()
-		_, err = apiClient.GetPublicKey(fingerprint, "")
+		_, err = apiClient.GetPublicKey(fingerprint, device.Tenant)
 		if err != nil {
 			return false
 		}
