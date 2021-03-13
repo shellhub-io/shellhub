@@ -1,8 +1,6 @@
 package sshd
 
-/*	The Utmpx struct is derived from the Linux definition (man 5 utmpx).
-
-	At session start, a utmp record is constructed containing the PID,
+/*	At session start, a utmp record is constructed containing the PID,
 	tty name, ID, username, remote host, source IP and time.
 	Type is set to UserProcess and the record is written to UtmpxFile.
 	If a record with the same ID exists, that record is overwritten;
@@ -32,21 +30,6 @@ type ExitStatus struct {
 	EExit        int16 // Process exit status - not used
 }
 
-type Utmpx struct {
-	Type     int16        // UserProcess or DeadProcess
-	Padding  [2]byte      // Padding to align rest of struct
-	Pid      int32        // PID of the ShellHub agent
-	Line     [32]byte     // tty associated with the process
-	ID       [4]byte      // Index, last 4 characters of Line
-	User     [32]byte     // Username
-	Host     [256]byte    // Source IP address
-	Exit     ExitStatus   // Exit status - not used
-	Session  int32        // Session ID - not used
-	Tv       unix.Timeval // Time entry was made
-	AddrV6   [4]uint32    // Source IP address. IPv4 in AddrV6[0]
-	Reserved [20]byte     // Not used
-}
-
 const (
 	UtmpxFile   = "/var/run/utmp"
 	WtmpxFile   = "/var/log/wtmp"
@@ -58,14 +41,14 @@ const (
 func utmpStartSession(line, user, remoteAddr string) Utmpx {
 	var u Utmpx
 
-	a := unix.Timeval{}
-	if err := unix.Gettimeofday(&a); err != nil {
-		logrus.Warn(err)
-	}
-
 	u.Type = UserProcess
-	u.Tv.Sec, u.Tv.Usec = a.Sec, a.Usec
 	u.Pid = int32(os.Getpid())
+
+	// There are two versions of the utmpSetTime function
+	// defined in utmp_timeval_time??.go, one for systems
+	// that write the time fields as 32-bit values and one
+	// for systems that write time fields as 64-bit values
+	u = utmpSetTime(u)
 
 	// remoteAddr has the form <IPv4 address>:<port>
 	// or [<IPv6 address>]:<port>
@@ -111,15 +94,10 @@ func utmpStartSession(line, user, remoteAddr string) Utmpx {
 
 // This function updates the utmp and wtmp files at the end of a user session
 func utmpEndSession(u Utmpx) {
-	a := unix.Timeval{}
-	if err := unix.Gettimeofday(&a); err != nil {
-		logrus.Warn(err)
-	}
-
 	u.Type = DeadProcess
 	u.User = [32]byte{}
 	u.Host = [256]byte{}
-	u.Tv.Sec, u.Tv.Usec = a.Sec, a.Usec
+	u = utmpSetTime(u)
 
 	updUtmp(u, string(u.ID[:]))
 
