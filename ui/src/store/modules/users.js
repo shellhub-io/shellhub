@@ -13,6 +13,10 @@ export default {
   },
 
   actions: {
+    async signUp(context, data) {
+      await apiUser.signUp(data);
+    },
+
     async put(context, data) {
       await apiUser.putUser(data);
     },
