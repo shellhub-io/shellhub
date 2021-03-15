@@ -22,6 +22,7 @@ export default {
       namespaceEdit: 'editing namespace',
       namespaceRemoveUser: 'removing member',
       namespaceReload: 'reloading namespace',
+      addUser: 'creating account',
     };
 
     Vue.success = success;

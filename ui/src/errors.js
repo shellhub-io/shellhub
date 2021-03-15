@@ -38,6 +38,7 @@ export default {
       privateKeyCreating: 'creating private key',
       privateKeyEditing: 'editing private key',
       privateKeyDeleting: 'deleting private key',
+      addUser: 'creating account',
     };
 
     Vue.errors = errors;

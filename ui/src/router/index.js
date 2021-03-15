@@ -15,6 +15,11 @@ const router = new Router({
       component: Dashboard,
     },
     {
+      path: '/sign-up',
+      name: 'signUp',
+      component: () => import('./../views/SignUp.vue'),
+    },
+    {
       path: '/devices',
       name: 'devices',
       component: () => import(/* webpackChunkName: 'devices' */ './../views/Devices.vue'),
@@ -137,7 +142,7 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-  if (to.path !== '/login') {
+  if (to.path !== '/login' && to.path !== '/sign-up') {
     if (store.getters['auth/isLoggedIn']) {
       return next();
     }

@@ -1,5 +1,12 @@
 import http from '@/store/helpers/http';
 
+export const signUp = async (data) => http().post('/register', {
+  name: data.name,
+  email: data.email,
+  username: data.username,
+  password: data.password,
+});
+
 export const putUser = async (data) => http().put(`/users/${data.id}`, {
   username: data.username,
   email: data.email,
