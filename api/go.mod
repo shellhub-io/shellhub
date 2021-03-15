@@ -23,7 +23,7 @@ require (
 	github.com/undefinedlabs/go-mpatch v1.0.6
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/xakep666/mongo-migrate v0.2.1
-	go.mongodb.org/mongo-driver v1.4.6
+	go.mongodb.org/mongo-driver v1.5.0
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/net v0.0.0-20210224082022-3d97a244fca7 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
