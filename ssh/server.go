@@ -211,6 +211,10 @@ func (*Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKe
 		if len(errs) > 0 || res.StatusCode != http.StatusOK {
 			return false
 		}
+		lookup = map[string]string{
+			"domain": device.Namespace,
+			"name":   device.Name,
+		}
 
 	} else {
 		parts = strings.SplitN(parts[1], ".", 2)
