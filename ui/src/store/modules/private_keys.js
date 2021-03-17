@@ -48,16 +48,22 @@ export default {
       try {
         const privateKeys = JSON.parse(localStorage.getItem('privateKeys')) || [];
 
-        if (privateKeys.find((element) => element.data === privateKey.data
-          || element.name === privateKey.name) !== undefined) {
-          throw new Error('name');
-        } else {
-          privateKeys.push(privateKey);
-          localStorage.setItem('privateKeys', JSON.stringify(privateKeys));
-          context.commit('setPrivateKey', privateKey);
+        privateKeys.forEach((pk) => {
+          if (pk.data === privateKey.data && pk.name === privateKey.name) {
+            throw new Error('both');
+          }
+          if (pk.data === privateKey.data) {
+            throw new Error('private_key');
+          }
+          if (pk.name === privateKey.name) {
+            throw new Error('name');
+          }
+        });
+        privateKeys.push(privateKey);
+        localStorage.setItem('privateKeys', JSON.stringify(privateKeys));
+        context.commit('setPrivateKey', privateKey);
 
-          return Promise.resolve();
-        }
+        return Promise.resolve();
       } catch (e) {
         return Promise.reject(e);
       }

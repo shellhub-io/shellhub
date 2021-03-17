@@ -7,7 +7,7 @@ import {
 import { extend } from 'vee-validate';
 import isValidHostname from 'is-valid-hostname';
 
-import { parseKey } from '@/sshpk';
+import { parsePrivateKey, parseKey } from '@/sshpk';
 
 extend('required', {
   ...required,
@@ -52,11 +52,20 @@ extend('confirmed', {
   message: 'The passwords do not match',
 });
 
-extend('parseKey', (value) => {
-  try {
-    parseKey(value);
-    return true;
-  } catch (err) {
-    return 'It\'s not a valid';
-  }
+extend('parseKey', {
+  validate(value, args) {
+    try {
+      if (args.typeKey === 'private') {
+        parsePrivateKey(value);
+      } else {
+        parseKey(value);
+      }
+
+      return true;
+    } catch (err) {
+      return false;
+    }
+  },
+  params: ['typeKey'],
+  message: 'Not valid key',
 });
