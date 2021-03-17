@@ -66,7 +66,7 @@
               v-slot="{ errors }"
               vid="key"
               name="Data"
-              rules="required|parseKey"
+              :rules="`required|parseKey:${action}`"
               :disabled="!createKey"
             >
               <v-textarea
@@ -200,12 +200,29 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarSuccessNotRequest', this.$success.privateKeyCreating);
           this.update();
         } catch (e) {
-          if (e.message === 'name') {
+          switch (true) {
+          case e.message === 'both': {
+            this.$refs.pass.setErrors({
+              name: ['The name already exists'],
+              key: ['The private key data already exists'],
+            });
+            break;
+          }
+          case e.message === 'name': {
             this.$refs.pass.setErrors({
               name: ['The name already exists'],
             });
-          } else {
+            break;
+          }
+          case e.message === 'private_key': {
+            this.$refs.pass.setErrors({
+              key: ['The private key data already exists'],
+            });
+            break;
+          }
+          default: {
             this.$store.dispatch('snackbar/showSnackbarErrorNotRequest', this.$errors.privateKeyCreating);
+          }
           }
         }
         break;
