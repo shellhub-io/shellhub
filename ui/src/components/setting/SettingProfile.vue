@@ -309,21 +309,40 @@ export default {
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.profileData);
         this.enableEdit('data');
       } catch (error) {
-        if (error.response.status === 409 || error.response.status === 400) {
+        switch (true) {
+        case (error.response.status === 400): {
           error.response.data.forEach((item) => {
             if (item.Name === 'username') {
               this.$refs.obs.setErrors({
-                username: item.Message,
+                username: this.$errors.form.invalid(item.Name, item.Param, item.Extra),
               });
             }
             if (item.Name === 'email') {
               this.$refs.obs.setErrors({
-                email: item.Message,
+                email: this.$errors.form.invalid(item.Name, item.Param, item.Extra),
               });
             }
           });
-        } else {
+          break;
+        }
+        case (error.response.status === 409): {
+          error.response.data.forEach((item) => {
+            if (item.Name === 'username') {
+              this.$refs.obs.setErrors({
+                username: this.$errors.form.conflict(item.Name),
+              });
+            }
+            if (item.Name === 'email') {
+              this.$refs.obs.setErrors({
+                email: this.$errors.form.conflict(item.Name),
+              });
+            }
+          });
+          break;
+        }
+        default: {
           this.$store.dispatch('snackbar/showSnackbarErrorDefault');
+        }
         }
       }
     },
