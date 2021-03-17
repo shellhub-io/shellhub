@@ -93,9 +93,6 @@ describe('Dashboard', () => {
       store,
       localVue,
       stubs: ['fragment'],
-      mocks: {
-        $errors.snackbar: (namespaceLoad) => namespaceLoad,
-      },
     });
   });
 
@@ -120,9 +117,6 @@ describe('Dashboard', () => {
       store: storeNoDevices,
       localVue,
       stubs: ['fragment'],
-      mocks: {
-        $errors.snackbar: (namespaceLoad) => namespaceLoad,
-      },
     });
 
     expect(wrapper2.vm.hasDevices()).toBe(false);
