@@ -1,5 +1,6 @@
 <template>
   <v-layout
+    class="grey lighten-4"
     align-center
     justify-center
   >
@@ -21,15 +22,10 @@
         </v-layout>
       </v-container>
 
-      <v-card class="elevation-12 mt-10">
-        <v-toolbar
-          dark
-          color="primary"
-        >
-          <v-toolbar-title>Login</v-toolbar-title>
-          <v-spacer />
-        </v-toolbar>
-
+      <v-card
+        color="transparent"
+        class="elevation-0"
+      >
         <v-form
           @submit.prevent="login()"
         >
@@ -54,16 +50,26 @@
             />
           </v-card-text>
 
-          <v-card-actions>
-            <v-spacer />
+          <v-card-actions class="justify-center">
             <v-btn
               type="submit"
               color="primary"
               data-test="login-btn"
             >
-              Submit
+              LOGIN
             </v-btn>
           </v-card-actions>
+
+          <v-card-subtitle class="d-flex align-center justify-center pa-4 mx-auto">
+            Don't have an account?
+
+            <router-link
+              class="ml-1"
+              :to="{ name: 'signUp' }"
+            >
+              Sign up here
+            </router-link>
+          </v-card-subtitle>
         </v-form>
       </v-card>
     </v-flex>
