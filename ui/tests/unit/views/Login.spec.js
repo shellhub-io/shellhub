@@ -1,6 +1,7 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import Login from '@/views/Login';
+import router from '@/router/index';
 
 describe('Login', () => {
   const localVue = createLocalVue();
@@ -29,6 +30,7 @@ describe('Login', () => {
     wrapper = shallowMount(Login, {
       store,
       localVue,
+      router,
       mocks: {
         $route: {
           query: {},
