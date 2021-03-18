@@ -93,21 +93,3 @@ func TestDeletePublicKeys(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
-
-func TestCreatePublicKey(t *testing.T) {
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
-
-	ctx := context.TODO()
-	sshRsa := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhZgLqiZYDKCWhyi2gUXIRwIPyMSyXZ6yrwsm3PYfIvFB60kVlNgqDpPVhWoH6eRfaQ1y/xbg4nClZmHEDTvLbTQ1ZoQzzjZ7zvM6aQ4nADmKcCYswEuU94axouVjsHNyMLfOkPXuGec0fChwQ2JDh/B9LCiSDxyhCOgHvETXGXsyBMKjn498iPjJ6snzk35dy5wPZRz41g3dLaygF+wYAT791u/JchHQL7OP7RoNgby+RM16SYZs1tgQVkfU//o+AyTarWYLVDpFU6HPPenE4xEXhbgqd7x3wSNPBsMvY8Zjcu3kdHtboJidyMtKeD8ghV/T24kME58TW15T8Eg8R"
-	key := &models.PublicKey{
-		Data: []byte(sshRsa), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
-	}
-
-	mock.On("CreatePublicKey", ctx, key).Return(nil).Once()
-
-	err := s.CreatePublicKey(ctx, key)
-	assert.NoError(t, err)
-
-	mock.AssertExpectations(t)
-}
