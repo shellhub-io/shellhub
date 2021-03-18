@@ -9,6 +9,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -49,10 +50,20 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) er
 
 	key.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
-	err = s.store.CreatePublicKey(ctx, key)
-	if err == store.ErrDuplicateFingerprint {
+	returnedKey, err := s.store.GetPublicKey(ctx, key.Fingerprint, apicontext.TenantFromContext(ctx).ID)
+	if err != nil && err != store.ErrRecordNotFound {
+		return err
+	}
+
+	if returnedKey != nil {
 		return ErrDuplicateFingerprint
 	}
+
+	err = s.store.CreatePublicKey(ctx, key)
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
