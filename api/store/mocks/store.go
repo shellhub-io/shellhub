@@ -1131,12 +1131,12 @@ func (_m *Store) UpdateUser(ctx context.Context, username string, email string, 
 }
 
 // UpdateUserFromAdmin provides a mock function with given fields: ctx, username, email, password, ID
-func (_m *Store) UpdateUserFromAdmin(ctx context.Context, username string, email string, password string, ID string) error {
-	ret := _m.Called(ctx, username, email, password, ID)
+func (_m *Store) UpdateUserFromAdmin(ctx context.Context, name string, username string, email string, password string, ID string) error {
+	ret := _m.Called(ctx, name, username, email, password, ID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
-		r0 = rf(ctx, username, email, password, ID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) error); ok {
+		r0 = rf(ctx, name, username, email, password, ID)
 	} else {
 		r0 = ret.Error(0)
 	}
