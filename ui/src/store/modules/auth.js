@@ -53,6 +53,7 @@ export default {
     },
 
     changeData(state, data) {
+      Vue.set(state, 'name', data.name);
       Vue.set(state, 'user', data.username);
       Vue.set(state, 'email', data.email);
     },
@@ -114,6 +115,7 @@ export default {
     },
 
     changeUserData(context, data) {
+      localStorage.setItem('name', data.name);
       localStorage.setItem('user', data.username);
       localStorage.setItem('email', data.email);
       context.commit('changeData', data);
