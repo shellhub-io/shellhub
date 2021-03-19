@@ -61,6 +61,23 @@
               <ValidationProvider
                 v-slot="{ errors }"
                 ref="providerName"
+                vid="name"
+                name="Priority"
+                rules="required"
+              >
+                <v-text-field
+                  v-model="name"
+                  label="Name"
+                  :error-messages="errors"
+                  required
+                  :disabled="!editDataStatus"
+                  data-test="name-text"
+                />
+              </ValidationProvider>
+
+              <ValidationProvider
+                v-slot="{ errors }"
+                ref="providerUsername"
                 vid="username"
                 name="Priority"
                 rules="required"
@@ -227,6 +244,7 @@ export default {
 
   data() {
     return {
+      name: '',
       username: '',
       email: '',
       currentPassword: '',
@@ -264,6 +282,7 @@ export default {
     },
 
     setData() {
+      this.name = this.$store.getters['auth/currentName'];
       this.username = this.$store.getters['auth/currentUser'];
       this.email = this.$store.getters['auth/email'];
     },
@@ -279,6 +298,7 @@ export default {
     async updateData() {
       const data = {
         id: this.$store.getters['auth/id'],
+        name: this.name,
         username: this.username,
         email: this.email,
       };

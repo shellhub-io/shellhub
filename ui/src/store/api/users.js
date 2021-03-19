@@ -8,6 +8,7 @@ export const signUp = async (data) => http().post('/register', {
 });
 
 export const putUser = async (data) => http().put(`/users/${data.id}`, {
+  name: data.name,
   username: data.username,
   email: data.email,
   currentPassword: data.currentPassword,
