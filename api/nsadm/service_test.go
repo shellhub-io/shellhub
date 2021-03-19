@@ -78,7 +78,7 @@ func TestEditNamespace(t *testing.T) {
 	namespace := &models.Namespace{Name: "oldname", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 	namespaceWithNewName := &models.Namespace{Name: "newname", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 
-	mock.On("GetUserByUsername", ctx, user.Username).Return(user, nil).Once()
+	mock.On("GetUserByID", ctx, user.ID).Return(user, nil).Once()
 	mock.On("GetNamespace", ctx, namespace.TenantID).Return(namespace, nil).Twice()
 	mock.On("EditNamespace", ctx, namespace.TenantID, newName).Return(namespaceWithNewName, nil).Once()
 	_, err := s.EditNamespace(ctx, namespace.TenantID, newName, namespace.Owner)

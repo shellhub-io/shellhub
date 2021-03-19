@@ -113,10 +113,10 @@ func (s *service) ListMembers(ctx context.Context, namespace string) ([]models.M
 	return []models.Member{}, ErrNamespaceNotFound
 }
 
-func (s *service) EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error) {
+func (s *service) EditNamespace(ctx context.Context, namespace, name, owner string) (*models.Namespace, error) {
 	ns, _ := s.store.GetNamespace(ctx, namespace)
 	if ns != nil {
-		user, _ := s.store.GetUserByUsername(ctx, ownerUsername)
+		user, _ := s.store.GetUserByID(ctx, owner)
 		if user != nil {
 			validate := validator.New()
 			name = strings.ToLower(name)
