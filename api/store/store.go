@@ -46,7 +46,7 @@ type Store interface {
 	GetStats(ctx context.Context) (*models.Stats, error)
 	GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
 	UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
-	UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, ID string) error
+	UpdateUser(ctx context.Context, name, username, email, currentPassword, newPassword, ID string) error
 	UpdateUserFromAdmin(ctx context.Context, name, username, email, password, ID string) error
 	DeleteUser(ctx context.Context, ID string) error
 	UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error

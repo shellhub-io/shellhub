@@ -30,9 +30,9 @@ func TestUpdateDataUser(t *testing.T) {
 	mock.On("GetUserByUsername", ctx, updateUser1.Username).Return(user, nil).Once()
 	mock.On("GetUserByEmail", ctx, updateUser1.Email).Return(user, nil).Once()
 	mock.On("GetUserByID", ctx, updateUser1.ID).Return(user, nil).Once()
-	mock.On("UpdateUser", ctx, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.ID).Return(nil).Once()
+	mock.On("UpdateUser", ctx, updateUser1.Name, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.ID).Return(nil).Once()
 
-	_, err := s.UpdateDataUser(ctx, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.ID)
+	_, err := s.UpdateDataUser(ctx, updateUser1.Name, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.ID)
 
 	assert.NoError(t, err)
 	mock.AssertExpectations(t)
@@ -41,9 +41,9 @@ func TestUpdateDataUser(t *testing.T) {
 	mock.On("GetUserByUsername", ctx, updateUser2.Username).Return(user2, nil).Once()
 	mock.On("GetUserByEmail", ctx, updateUser2.Email).Return(user2, nil).Once()
 	mock.On("GetUserByID", ctx, updateUser2.ID).Return(user2, nil).Once()
-	mock.On("UpdateUser", ctx, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.ID).Return(nil).Once()
+	mock.On("UpdateUser", ctx, updateUser2.Name, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.ID).Return(nil).Once()
 
-	_, err = s.UpdateDataUser(ctx, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.ID)
+	_, err = s.UpdateDataUser(ctx, updateUser2.Name, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.ID)
 
 	assert.NoError(t, err)
 	mock.AssertExpectations(t)
@@ -55,9 +55,9 @@ func TestUpdateDataUser(t *testing.T) {
 	mock.On("GetUserByUsername", ctx, updateUser3.Username).Return(user3, nil).Once()
 	mock.On("GetUserByEmail", ctx, updateUser3.Email).Return(user3, nil).Once()
 	mock.On("GetUserByID", ctx, updateUser3.ID).Return(user3, nil).Once()
-	mock.On("UpdateUser", ctx, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.ID).Return(nil).Once()
+	mock.On("UpdateUser", ctx, updateUser3.Name, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.ID).Return(nil).Once()
 
-	_, err = s.UpdateDataUser(ctx, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.ID)
+	_, err = s.UpdateDataUser(ctx, updateUser3.Name, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.ID)
 
 	assert.NoError(t, err)
 	mock.AssertExpectations(t)

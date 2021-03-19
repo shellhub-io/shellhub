@@ -1117,12 +1117,12 @@ func (_m *Store) UpdateUID(ctx context.Context, oldUID models.UID, newUID models
 }
 
 // UpdateUser provides a mock function with given fields: ctx, username, email, currentPassword, newPassword, ID
-func (_m *Store) UpdateUser(ctx context.Context, username string, email string, currentPassword string, newPassword string, ID string) error {
-	ret := _m.Called(ctx, username, email, currentPassword, newPassword, ID)
+func (_m *Store) UpdateUser(ctx context.Context, name string, username string, email string, currentPassword string, newPassword string, ID string) error {
+	ret := _m.Called(ctx, name, username, email, currentPassword, newPassword, ID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) error); ok {
-		r0 = rf(ctx, username, email, currentPassword, newPassword, ID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string, string) error); ok {
+		r0 = rf(ctx, name, username, email, currentPassword, newPassword, ID)
 	} else {
 		r0 = ret.Error(0)
 	}

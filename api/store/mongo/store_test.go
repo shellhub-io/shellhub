@@ -1066,7 +1066,7 @@ func TestUpdateUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
-	err = mongostore.UpdateUser(ctx, "newUsername", "newEmail", "password", "newPassword", objID)
+	err = mongostore.UpdateUser(ctx, "newUsername", "newUsername", "newEmail", "password", "newPassword", objID)
 	assert.NoError(t, err)
 }
 

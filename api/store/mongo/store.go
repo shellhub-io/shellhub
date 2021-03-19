@@ -872,13 +872,18 @@ func (s *Store) UpdateUID(ctx context.Context, oldUID models.UID, newUID models.
 	return err
 }
 
-func (s *Store) UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, ID string) error {
+func (s *Store) UpdateUser(ctx context.Context, name, username, email, currentPassword, newPassword, ID string) error {
 	user, err := s.GetUserByID(ctx, ID)
 	objID, _ := primitive.ObjectIDFromHex(ID)
 
 	if err != nil {
 		return err
 	}
+
+	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"name": name}}); err != nil {
+		return err
+	}
+
 	if username != "" && username != user.Username {
 		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"username": username}}); err != nil {
 			return err

@@ -15,6 +15,7 @@ const (
 
 func UpdateUser(c apicontext.Context) error {
 	var req struct {
+		Name            string `json:"name"`
 		Username        string `json:"username"`
 		Email           string `json:"email"`
 		CurrentPassword string `json:"currentPassword"`
@@ -39,7 +40,7 @@ func UpdateUser(c apicontext.Context) error {
 
 	svc := user.NewService(c.Store())
 
-	if invalidFields, err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.CurrentPassword, req.NewPassword, ID); err != nil {
+	if invalidFields, err := svc.UpdateDataUser(c.Ctx(), req.Name, req.Username, req.Email, req.CurrentPassword, req.NewPassword, ID); err != nil {
 		switch {
 		case err == user.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
