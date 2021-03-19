@@ -1367,9 +1367,9 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 	}
 
 	// Only match for the respective tenant if requested
-	if username := apicontext.UsernameFromContext(ctx); username != nil {
-		user := new(models.User)
-		if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": username.ID}).Decode(&user); err != nil {
+	if id := apicontext.IDFromContext(ctx); id != nil {
+		user, err := s.GetUserByID(ctx, id.ID)
+		if err != nil {
 			return nil, 0, err
 		}
 		query = append(query, bson.M{
