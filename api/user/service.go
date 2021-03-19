@@ -11,7 +11,7 @@ var ErrUnauthorized = errors.New("unauthorized")
 var ErrConflict = errors.New("conflict")
 
 type Service interface {
-	UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, ID string) ([]InvalidField, error)
+	UpdateDataUser(ctx context.Context, name, username, email, currentPassword, newPassword, ID string) ([]InvalidField, error)
 }
 
 type service struct {
@@ -33,7 +33,7 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) UpdateDataUser(ctx context.Context, username, email, currentPassword, newPassword, ID string) ([]InvalidField, error) {
+func (s *service) UpdateDataUser(ctx context.Context, name, username, email, currentPassword, newPassword, ID string) ([]InvalidField, error) {
 	var invalidFields []InvalidField
 
 	user, err := s.store.GetUserByID(ctx, ID)
@@ -60,5 +60,5 @@ func (s *service) UpdateDataUser(ctx context.Context, username, email, currentPa
 	if checkName || checkEmail {
 		return invalidFields, ErrConflict
 	}
-	return invalidFields, s.store.UpdateUser(ctx, username, email, currentPassword, newPassword, ID)
+	return invalidFields, s.store.UpdateUser(ctx, name, username, email, currentPassword, newPassword, ID)
 }
