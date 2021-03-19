@@ -38,6 +38,7 @@ services:
     restart: unless-stopped
     environment:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
     depends_on:
       - api
     networks:
