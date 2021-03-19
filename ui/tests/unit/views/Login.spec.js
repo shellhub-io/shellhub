@@ -1,7 +1,13 @@
 import Vuex from 'vuex';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { shallowMount, createLocalVue, config } from '@vue/test-utils';
 import Login from '@/views/Login';
 import router from '@/router/index';
+
+config.mocks = {
+  $env: {
+    isCloud: true,
+  },
+};
 
 describe('Login', () => {
   const localVue = createLocalVue();

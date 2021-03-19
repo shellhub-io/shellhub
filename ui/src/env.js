@@ -3,6 +3,7 @@ export default {
   install(Vue) {
     const env = {
       isEnterprise: (window.env || process.env).VUE_APP_SHELLHUB_ENTERPRISE === 'true',
+      isCloud: (window.env || process.env).VUE_APP_SHELLHUB_CLOUD === 'true',
     };
 
     Vue.env = env;
