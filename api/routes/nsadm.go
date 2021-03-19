@@ -111,16 +111,16 @@ func EditNamespace(c apicontext.Context) error {
 		Name string `json:"name"`
 	}
 
-	username := ""
-	if v := c.Username(); v != nil {
-		username = v.ID
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
 	}
 
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	namespace, err := svc.EditNamespace(c.Ctx(), c.Param("id"), req.Name, username)
+	namespace, err := svc.EditNamespace(c.Ctx(), c.Param("id"), req.Name, id)
 	if err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
