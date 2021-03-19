@@ -142,7 +142,7 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-  if (to.path !== '/login' && to.path !== '/sign-up') {
+  if ((to.path !== '/login' && to.path !== '/sign-up')) {
     if (store.getters['auth/isLoggedIn']) {
       return next();
     }
@@ -152,6 +152,9 @@ router.beforeEach((to, from, next) => {
     if (to.path === '/login' && to.query.token) {
       return next();
     }
+    return next('/');
+  }
+  if (to.path === '/sign-up' && process.env.VUE_APP_SHELLHUB_CLOUD === 'false') {
     return next('/');
   }
   return next();

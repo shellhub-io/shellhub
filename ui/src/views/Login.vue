@@ -60,7 +60,9 @@
             </v-btn>
           </v-card-actions>
 
-          <v-card-subtitle class="d-flex align-center justify-center pa-4 mx-auto">
+          <v-card-subtitle
+            v-if="$env.isCloud"
+            class="d-flex align-center justify-center pa-4 mx-auto">
             Don't have an account?
 
             <router-link

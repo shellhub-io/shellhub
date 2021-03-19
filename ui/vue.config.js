@@ -1,1 +1,2 @@
 process.env.VUE_APP_SHELLHUB_ENTERPRISE = process.env.SHELLHUB_ENTERPRISE;
+process.env.VUE_APP_SHELLHUB_CLOUD = process.env.SHELLHUB_CLOUD;
