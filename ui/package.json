@@ -35,7 +35,7 @@
     "xterm-addon-fit": "^0.5.0"
   },
   "devDependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.34",
+    "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-solid-svg-icons": "^5.15.2",
     "@fortawesome/vue-fontawesome": "^2.0.2",
     "@mdi/font": "^5.9.55",
