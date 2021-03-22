@@ -39,7 +39,7 @@
     "@fortawesome/free-solid-svg-icons": "^5.15.2",
     "@fortawesome/vue-fontawesome": "^2.0.2",
     "@mdi/font": "^5.9.55",
-    "@vue/cli-plugin-babel": "^4.5.11",
+    "@vue/cli-plugin-babel": "^4.5.12",
     "@vue/cli-plugin-eslint": "^4.5.7",
     "@vue/cli-plugin-unit-jest": "^4.5.11",
     "@vue/cli-service": "^4.5.11",
