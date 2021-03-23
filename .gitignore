@@ -11,3 +11,4 @@ api/api
 ssh/ssh
 agent/agent
 agent/shellhub.key
+cli/cli

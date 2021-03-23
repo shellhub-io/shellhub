@@ -69,6 +69,19 @@ services:
       - api
       - ssh
       - gateway
+  cli:
+    image: cli
+    build:
+      context: .
+      dockerfile: cli/Dockerfile
+      target: development
+    volumes:
+      - ./cli:/go/src/github.com/shellhub-io/shellhub/cli
+      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
+      - ./api:/go/src/github.com/shellhub-io/shellhub/api
+    depends_on:
+    - api
+    - mongo
   mongo:
   autossl:
     image: tianon/true
