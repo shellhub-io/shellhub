@@ -10,38 +10,4 @@ fi
 NAMESPACE=$1
 OWNER=$2
 
-[ -z "$TENANT_ID" ] && TENANT_ID=`uuidgen`
-
-if [ $(docker inspect --format='{{.State.Running}}' $(docker-compose ps -q mongo)) = false ]; then
-    echo "ERROR: mongo container is not running"
-    exit 1
-fi
-
-if ! echo $NAMESPACE | grep -q -E "^([a-zA-Z0-9]{1}[a-zA-Z0-9_-]{0,62}){1}(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*?$"; then
-    echo "ERROR: namespace is not a valid RFC1123 hostname format"
-    exit 1
-fi
-
-EXISTS=$(docker-compose exec -T mongo mongo main --quiet --eval "db.namespaces.find({ name: '$NAMESPACE' })")
-
-if [ -n "$EXISTS" ]; then
-    echo "ERROR: namespace already exists!"
-    exit 1
-fi
-
-OWNER_ID=`docker-compose exec -T mongo mongo main --quiet --eval "JSON.stringify(db.users.findOne({ username:'$OWNER' }))" | docker run --rm -i imega/jq -r '._id."$oid" // empty'`
-
-if [ -z "$OWNER_ID" ]; then
-    echo "ERROR: owner not found!"
-    exit 1
-fi
-
-INSERTED=`docker-compose exec -T mongo mongo main --quiet --eval "db.namespaces.insert({ name: '$NAMESPACE', owner: '$OWNER_ID', tenant_id: '$TENANT_ID', members: [ '$OWNER_ID' ], settings: {session_record: true}, max_devices: -1}).nInserted"`
-
-if [ $INSERTED -eq 1 ]; then
-    echo "Namespace added: $NAMESPACE"
-    echo "Owner: $OWNER"
-    echo "Tenant ID: $TENANT_ID"
-else
-    echo "ERROR: Failed to add namespace"
-fi
+docker-compose exec cli ./cli add-namespace $NAMESPACE $OWNER

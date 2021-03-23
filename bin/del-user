@@ -4,32 +4,4 @@
 
 USERNAME=$1
 
-if [ $(docker inspect --format='{{.State.Running}}' $(docker-compose ps -q mongo)) = false ]; then
-    echo "ERROR: mongo container is not running"
-    exit 1
-fi
-
-EXISTS=$(docker-compose exec -T mongo mongo main --quiet --eval "db.users.find({ username: '$USERNAME' })")
-
-if [ -z "$EXISTS" ]; then
-    echo "ERROR: user does not exists!"
-    exit 1
-fi
-
-OWNER_ID=`docker-compose exec -T mongo mongo main --quiet --eval "JSON.stringify(db.users.findOne({ username:'$USERNAME' }))" | docker run --rm -i imega/jq -r '._id."$oid" // empty'`
-
-docker-compose exec -T mongo \
-	       mongo main --quiet \
-	       --eval "JSON.stringify(db.namespaces.find({ owner: '$OWNER_ID' }).toArray())" \
-    | docker run --rm -i imega/jq -c -r '.[] .name // empty' \
-    | while read NAMESPACE; do
-    ./bin/del-namespace $NAMESPACE
-done
-
-REMOVED=`docker-compose exec -T mongo mongo main --quiet --eval "db.users.remove({username: '$USERNAME'}).nRemoved"`
-
-if [ $REMOVED -gt 0 ]; then
-    echo "User deleted"
-else
-    echo "ERROR: Failed to delete user"
-fi
+docker-compose exec cli ./cli del-user $USERNAME

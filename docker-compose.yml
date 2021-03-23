@@ -56,6 +56,14 @@ services:
       - ui
     networks:
       - shellhub
+  cli:
+    image: shellhubio/cli:${SHELLHUB_VERSION}
+    restart: unless-stopped
+    depends_on:
+      - api
+      - mongo
+    networks:
+      - shellhub
   mongo:
     image: mongo:4.4.4
     restart: unless-stopped
