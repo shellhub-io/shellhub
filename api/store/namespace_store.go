@@ -20,4 +20,6 @@ type NamespaceStore interface {
 	NamespaceGetFirst(ctx context.Context, ID string) (*models.Namespace, error)
 	NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenant string) error
 	NamespaceGetSessionRecord(ctx context.Context, tenant string) (bool, error)
+	NamespaceSetWebhook(ctx context.Context, tenant, url string) (*models.Namespace, error)
+	NamespaceSetWebhookStatus(ctx context.Context, tenant string, active bool) (*models.Namespace, error)
 }

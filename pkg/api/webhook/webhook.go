@@ -9,14 +9,12 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
-	"path"
 
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
 	uuid "github.com/satori/go.uuid"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,13 +28,7 @@ type Webhook interface {
 	Connect(m map[string]string) (*IncomingConnectionWebhookResponse, error)
 }
 
-type WebhookOptions struct {
-	WebhookURL    string `envconfig:"webhook_url"`
-	WebhookPort   int    `envconfig:"webhook_port"`
-	WebhookScheme string `envconfig:"webhook_scheme"`
-}
-
-func NewClient() Webhook {
+func NewClient(opts models.WebhookOptions) Webhook {
 	retryClient := retryablehttp.NewClient()
 	retryClient.HTTPClient = &http.Client{}
 	retryClient.RetryMax = 3
@@ -52,17 +44,10 @@ func NewClient() Webhook {
 
 	httpClient := gorequest.New()
 	httpClient.Client = retryClient.StandardClient()
-	opts := WebhookOptions{}
-	err := envconfig.Process("", &opts)
-	if err != nil {
-		return nil
-	}
 
 	w := &webhookClient{
-		host:   opts.WebhookURL,
-		port:   opts.WebhookPort,
-		scheme: opts.WebhookScheme,
-		http:   httpClient,
+		host: opts.URL,
+		http: httpClient,
 	}
 
 	if w.logger != nil {
@@ -73,9 +58,7 @@ func NewClient() Webhook {
 }
 
 type webhookClient struct {
-	scheme string
 	host   string
-	port   int
 	http   *gorequest.SuperAgent
 	logger *logrus.Logger
 }
@@ -96,7 +79,7 @@ func (w *webhookClient) Connect(m map[string]string) (*IncomingConnectionWebhook
 	signature := mac.Sum(nil)
 
 	var res *IncomingConnectionWebhookResponse
-	resp, _, errs := w.http.Post(buildURL(w, "/")).Set(WebhookIDHeader, uuid).Set(WebhookEventHeader, WebhookIncomingConnectionEvent).Set(WebhookSignatureHeader, hex.EncodeToString(signature)).Send(payload).EndStruct(&res)
+	resp, _, errs := w.http.Post(w.host).Set(WebhookIDHeader, uuid).Set(WebhookEventHeader, WebhookIncomingConnectionEvent).Set(WebhookSignatureHeader, hex.EncodeToString(signature)).Send(payload).EndStruct(&res)
 	if len(errs) > 0 {
 		return nil, errors.New(ConnectionFailedErr)
 	}
@@ -110,10 +93,4 @@ func (w *webhookClient) Connect(m map[string]string) (*IncomingConnectionWebhook
 	}
 
 	return nil, errors.New(UnknownErr)
-}
-
-func buildURL(w *webhookClient, uri string) string {
-	u, _ := url.Parse(fmt.Sprintf("%s://%s:%d", w.scheme, w.host, w.port))
-	u.Path = path.Join(u.Path, uri)
-	return u.String()
 }

@@ -177,6 +177,51 @@ func TestGetDataUserSecurity(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
+func TestUpdateWebhook(t *testing.T) {
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
+
+	ctx := context.TODO()
+
+	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: false}}
+	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: false, Webhook: models.WebhookOptions{URL: "http://example.com"}}}
+	webhook := "http://example.com"
+
+	mock.On("UserGetByID", ctx, user.ID).Return(user, nil).Once()
+	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace2, nil).Once()
+	mock.On("NamespaceSetWebhook", ctx, namespace.TenantID, webhook).
+		Return(namespace2, nil).Once()
+
+	returnedNamespace, err := s.UpdateWebhook(ctx, webhook, namespace.TenantID, namespace.Owner)
+	assert.NoError(t, err)
+	assert.Equal(t, namespace2, returnedNamespace)
+}
+
+func TestSetWebhookStatus(t *testing.T) {
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
+
+	ctx := context.TODO()
+
+	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
+
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: false, Webhook: models.WebhookOptions{URL: "http://example.com", Active: true}}}
+
+	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: false, Webhook: models.WebhookOptions{URL: "http://example.com", Active: false}}}
+
+	mock.On("UserGetByID", ctx, user.ID).Return(user, nil).Once()
+	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace2, nil).Once()
+	mock.On("NamespaceSetWebhookStatus", ctx, namespace.TenantID, false).
+		Return(namespace2, nil).Once()
+
+	returnedNamespace, err := s.SetWebhookStatus(ctx, false, namespace.TenantID, namespace.Owner)
+	assert.NoError(t, err)
+	assert.Equal(t, namespace2, returnedNamespace)
+}
+
 func TestUpdateDataUserSecurity(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock))

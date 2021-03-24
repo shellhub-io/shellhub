@@ -13,10 +13,16 @@ type Namespace struct {
 }
 
 type NamespaceSettings struct {
-	SessionRecord bool `json:"session_record" bson:"session_record,omitempty"`
+	SessionRecord bool           `json:"session_record" bson:"session_record,omitempty"`
+	Webhook       WebhookOptions `json:"webhook" bson:"webhook,omitempty"`
 }
 
 type Member struct {
 	ID   string `json:"id" bson:"id"`
 	Name string `json:"name,omitempty" bson:"-"`
+}
+
+type WebhookOptions struct {
+	URL    string `json:"url" bson:"url" validate:"required"`
+	Active bool   `json:"active" bson:"active,omitempty"`
 }

@@ -281,3 +281,33 @@ func (s *Store) NamespaceGetSessionRecord(ctx context.Context, tenant string) (b
 	}
 	return settings.Settings.SessionRecord, nil
 }
+
+func (s *Store) NamespaceSetWebhook(ctx context.Context, tenant, url string) (*models.Namespace, error) {
+	ns, err := s.NamespaceGet(ctx, tenant)
+	if err != nil || ns == nil {
+		return nil, err
+	}
+
+	wh := &models.WebhookOptions{
+		URL:    url,
+		Active: ns.Settings.Webhook.Active}
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": ns.TenantID}, bson.M{"$set": bson.M{"settings.webhook": wh}}); err != nil {
+		return nil, err
+	}
+
+	return s.NamespaceGet(ctx, ns.TenantID)
+}
+
+func (s *Store) NamespaceSetWebhookStatus(ctx context.Context, tenant string, active bool) (*models.Namespace, error) {
+	ns, err := s.NamespaceGet(ctx, tenant)
+
+	if err != nil || ns == nil {
+		return nil, err
+	}
+
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": ns.TenantID}, bson.M{"$set": bson.M{"settings.webhook.active": active}}); err != nil {
+		return nil, err
+	}
+
+	return s.NamespaceGet(ctx, ns.TenantID)
+}

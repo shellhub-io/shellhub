@@ -3,6 +3,7 @@ module github.com/shellhub-io/shellhub/api
 go 1.14
 
 require (
+	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/aws/aws-sdk-go v1.37.19 // indirect
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
