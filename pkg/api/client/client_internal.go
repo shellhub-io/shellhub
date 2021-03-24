@@ -26,6 +26,7 @@ type internalAPI interface {
 	GetPublicKey(fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePrivateKey() (*models.PrivateKey, error)
 	EvaluateKey(fingerprint string, dev *models.Device) (bool, error)
+	GetNamespaceByName(tenant string) (*models.Namespace, error)
 }
 
 func (c *client) LookupDevice() {
@@ -71,4 +72,21 @@ func (c *client) CreatePrivateKey() (*models.PrivateKey, error) {
 	}
 
 	return privKey, nil
+}
+
+func (c *client) GetNamespaceByName(tenant string) (*models.Namespace, error) {
+	var namespace *models.Namespace
+	resp, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/internal/namespaces/%s", tenant))).EndStruct(&namespace)
+	fmt.Println(buildURL(c, fmt.Sprintf("/internal/namespaces/%s", tenant)))
+	if len(errs) > 0 {
+		return nil, errors.New(ConnectionFailedErr)
+	}
+
+	if resp.StatusCode == 400 {
+		return nil, errors.New(NotFoundErr)
+	} else if resp.StatusCode == 200 {
+		return namespace, nil
+	}
+
+	return nil, errors.New(UnknownErr)
 }

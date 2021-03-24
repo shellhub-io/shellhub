@@ -76,8 +76,14 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		return
 	}
 
-	wh := webhook.NewClient()
-	if wh != nil {
+	apiClient := client.NewClient()
+	ns, err := apiClient.GetNamespaceByName(sess.Lookup["domain"])
+	if err != nil {
+		return
+	}
+
+	wh := webhook.NewClient(ns.Settings.Webhook)
+	if wh != nil && ns.Settings.Webhook.Active {
 		res, err := wh.Connect(sess.Lookup)
 		if err == nil {
 			if sess.Pty {

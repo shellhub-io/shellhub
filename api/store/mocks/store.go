@@ -635,6 +635,52 @@ func (_m *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bo
 	return r0
 }
 
+// NamespaceSetWebhook provides a mock function with given fields: ctx, tenant, url
+func (_m *Store) NamespaceSetWebhook(ctx context.Context, tenant string, url string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenant, url)
+
+	var r0 *models.Namespace
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Namespace); ok {
+		r0 = rf(ctx, tenant, url)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Namespace)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenant, url)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// NamespaceSetWebhookStatus provides a mock function with given fields: ctx, tenant, active
+func (_m *Store) NamespaceSetWebhookStatus(ctx context.Context, tenant string, active bool) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenant, active)
+
+	var r0 *models.Namespace
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) *models.Namespace); ok {
+		r0 = rf(ctx, tenant, active)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Namespace)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
+		r1 = rf(ctx, tenant, active)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NamespaceUpdate provides a mock function with given fields: ctx, tenant, namespace
 func (_m *Store) NamespaceUpdate(ctx context.Context, tenant string, namespace *models.Namespace) error {
 	ret := _m.Called(ctx, tenant, namespace)

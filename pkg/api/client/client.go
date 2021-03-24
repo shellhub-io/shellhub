@@ -64,6 +64,7 @@ func NewClient(opts ...Opt) Client {
 type commonAPI interface {
 	ListDevices() ([]models.Device, error)
 	GetDevice(uid string) (*models.Device, error)
+	GetNamespace(tenant string) (*models.Namespace, error)
 }
 
 type client struct {
@@ -96,6 +97,23 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 		return nil, errors.New(NotFoundErr)
 	} else if resp.StatusCode == 200 {
 		return device, nil
+	}
+
+	return nil, errors.New(UnknownErr)
+}
+
+func (c *client) GetNamespace(tenant string) (*models.Namespace, error) {
+	var namespace *models.Namespace
+	resp, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/api/namespaces/%s", tenant))).EndStruct(&namespace)
+	fmt.Println(buildURL(c, fmt.Sprintf("/api/namespaces/%s", tenant)))
+	if len(errs) > 0 {
+		return nil, errors.New(ConnectionFailedErr)
+	}
+
+	if resp.StatusCode == 400 {
+		return nil, errors.New(NotFoundErr)
+	} else if resp.StatusCode == 200 {
+		return namespace, nil
 	}
 
 	return nil, errors.New(UnknownErr)

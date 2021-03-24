@@ -135,9 +135,12 @@ func main() {
 
 	publicAPI.GET(routes.ListNamespaceURL, apicontext.Handler(routes.GetNamespaceList))
 	publicAPI.GET(routes.GetNamespaceURL, apicontext.Handler(routes.GetNamespace))
+	internalAPI.GET(routes.GetNamespaceURL, apicontext.Handler(routes.GetNamespaceByName))
 	publicAPI.POST(routes.CreateNamespaceURL, apicontext.Handler(routes.CreateNamespace))
 	publicAPI.DELETE(routes.DeleteNamespaceURL, apicontext.Handler(routes.DeleteNamespace))
 	publicAPI.PUT(routes.EditNamespaceURL, apicontext.Handler(routes.EditNamespace))
+	publicAPI.PATCH(routes.EditWebhookURL, apicontext.Handler(routes.UpdateWebhook))
+	publicAPI.PATCH(routes.EditWebhookStatusURL, apicontext.Handler(routes.SetWebhookStatus))
 	publicAPI.PATCH(routes.AddNamespaceUserURL, apicontext.Handler(routes.AddNamespaceUser))
 	publicAPI.PATCH(routes.RemoveNamespaceUserURL, apicontext.Handler(routes.RemoveNamespaceUser))
 

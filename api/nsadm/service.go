@@ -28,12 +28,15 @@ type Service interface {
 	ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error)
 	CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error)
+	GetNamespaceByName(ctx context.Context, namespace string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, namespace, ownerUsername string) error
 	EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error)
 	AddNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
 	ListMembers(ctx context.Context, namespace string) ([]models.Member, error)
 	UpdateDataUserSecurity(ctx context.Context, status bool, tenant string) error
+	UpdateWebhook(ctx context.Context, url, tenant, owner string) (*models.Namespace, error)
+	SetWebhookStatus(ctx context.Context, active bool, tenant, owner string) (*models.Namespace, error)
 	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
 }
 
@@ -88,6 +91,10 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 
 func (s *service) GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error) {
 	return s.store.NamespaceGet(ctx, namespace)
+}
+
+func (s *service) GetNamespaceByName(ctx context.Context, namespace string) (*models.Namespace, error) {
+	return s.store.NamespaceGetByName(ctx, namespace)
 }
 
 func (s *service) DeleteNamespace(ctx context.Context, namespace, ownerId string) error {
@@ -169,6 +176,42 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, 
 		return nil, ErrUnauthorized
 	}
 	return nil, ErrNamespaceNotFound
+}
+
+func (s *service) UpdateWebhook(ctx context.Context, url, tenant, owner string) (*models.Namespace, error) {
+	ns, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil || ns == nil {
+		return nil, ErrNamespaceNotFound
+	}
+
+	user, err := s.store.UserGetByID(ctx, owner)
+	if err != nil || user == nil {
+		return nil, ErrUserNotFound
+	}
+
+	if ns.Owner != user.ID {
+		return nil, ErrUnauthorized
+	}
+
+	return s.store.NamespaceSetWebhook(ctx, tenant, url)
+}
+
+func (s *service) SetWebhookStatus(ctx context.Context, active bool, tenant, owner string) (*models.Namespace, error) {
+	ns, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil || ns == nil {
+		return nil, ErrNamespaceNotFound
+	}
+
+	user, err := s.store.UserGetByID(ctx, owner)
+	if err != nil || user == nil {
+		return nil, ErrUserNotFound
+	}
+
+	if ns.Owner != user.ID {
+		return nil, ErrUnauthorized
+	}
+
+	return s.store.NamespaceSetWebhookStatus(ctx, tenant, active)
 }
 
 func (s *service) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
