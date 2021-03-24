@@ -42,6 +42,7 @@ export default {
         addUser: 'creating account',
         loginFailed: 'login',
         logoutFailed: 'logout',
+        updateWebhook: 'updating webhook',
       },
       form: {
         invalid: (field, param, extra) => {

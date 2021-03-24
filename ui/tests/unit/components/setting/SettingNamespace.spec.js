@@ -211,27 +211,20 @@ describe('SettingNamespace', () => {
     expect(wrapper3.vm.countDevicesHasNamespacePercent()).toEqual(countDevicesHasNamespacePercent);
   });
   // hosted version tests
-  it('Check owner fields rendering in hosted version of the template', () => {
+  it('Check owner fields rendering in enterprise version of the template', () => {
     expect(wrapper.find('[data-test=editOperation]').exists()).toEqual(true);
     expect(wrapper.find('[data-test=userOperation]').exists()).toEqual(true);
     expect(wrapper.find('[data-test=deleteOperation]').exists()).toEqual(true);
     expect(wrapper.find('[data-test=securityOperation]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test=notTheOwner]').exists()).toEqual(false);
     expect(wrapper.findAll('[data-test=remove-member]').length).toEqual(namespace.members.length - 1);
     expect(wrapper.find('[data-test=role]').exists()).toEqual(false);
     expect(wrapper.find('[data-test=new-member]').exists()).toEqual(true);
   });
-  it('Check not the owner fields rendering in hosted version of the template.', () => {
-    const notTheOwnerMessage = 'You\'re not the owner of this namespace.';
-    const namespaceOwnerMessage = `Contact ${namespace.members[0].name} user for more information.`;
-
+  it('Check not the owner fields rendering in enterpise version of the template.', () => {
     expect(wrapper2.find('[data-test=editOperation]').exists()).toEqual(false);
     expect(wrapper2.find('[data-test=userOperation]').exists()).toEqual(false);
     expect(wrapper2.find('[data-test=deleteOperation]').exists()).toEqual(false);
     expect(wrapper2.find('[data-test=securityOperation]').exists()).toEqual(false);
-    expect(wrapper2.find('[data-test=notTheOwner]').exists()).toEqual(true);
-    expect(wrapper2.find('[data-test=notTheOwner]').text()).toEqual(notTheOwnerMessage);
-    expect(wrapper2.find('[data-test=namespaceOwnerMessage]').text()).toEqual(namespaceOwnerMessage);
   });
   // open version tests
   it('Check owner fields rendering in open version of the template.', () => {
@@ -239,7 +232,6 @@ describe('SettingNamespace', () => {
     expect(wrapper3.find('[data-test=userOperation]').exists()).toEqual(true);
     expect(wrapper3.find('[data-test=deleteOperation]').exists()).toEqual(true);
     expect(wrapper3.find('[data-test=securityOperation]').exists()).toEqual(false);
-    expect(wrapper3.find('[data-test=notTheOwner]').exists()).toEqual(false);
     expect(wrapper3.findAll('[data-test=remove-member]').exists()).toEqual(false);
     expect(wrapper3.find('[data-test=role]').exists()).toEqual(true);
     expect(wrapper3.findAll('[data-test=role]').wrappers.reduce((ac, v) => {

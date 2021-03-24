@@ -23,6 +23,8 @@ export default {
       namespaceRemoveUser: 'removing member',
       namespaceReload: 'reloading namespace',
       addUser: 'creating account',
+      updateWebhook: 'updating webhook',
+      updateWebhookStatus: 'updating webhook status',
     };
 
     Vue.success = success;

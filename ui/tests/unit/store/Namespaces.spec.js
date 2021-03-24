@@ -34,6 +34,12 @@ describe('Namespace', () => {
     owner: 'user1',
     members: [{ name: 'user6' }, { name: 'user7' }, { name: 'user8' }],
     tenant_id: 'a736a52b-5777-4f92-b0b8-e359bf484715',
+    settings: {
+      webhook: {
+        url: 'http://192.178.90.2:8080',
+        active: true,
+      },
+    },
   };
 
   const owner = true;
@@ -50,9 +56,20 @@ describe('Namespace', () => {
     expect(store.getters['namespaces/list']).toEqual(namespaces);
     expect(store.getters['namespaces/getNumberNamespaces']).toEqual(numberNamespaces);
   });
+  it('Verify initial state change for setWebhook mutation', () => {
+    store.commit('namespaces/setWebhook', namespace.settings.webhook);
+    expect(store.getters['namespaces/webhookUrl']).toEqual(namespace.settings.webhook.url);
+  });
+  it('Verify initial state change for setWebhookStatus mutation', () => {
+    store.commit('namespaces/setWebhookStatus', namespace.settings.webhook.active);
+    expect(store.getters['namespaces/webhookActive']).toEqual(namespace.settings.webhook.active);
+  });
   it('Verify initial state change for setNamespace mutation', () => {
     store.commit('namespaces/setNamespace', { data: namespace });
     expect(store.getters['namespaces/get']).toEqual(namespace);
+    const { active, url } = namespace.settings.webhook;
+    expect(store.getters['namespaces/webhookUrl']).toEqual(url);
+    expect(store.getters['namespaces/webhookActive']).toEqual(active);
   });
   it('Verify changed member list for removeMember mutation', () => {
     const lengthListOfMembers = namespace.members.length;
@@ -70,12 +87,10 @@ describe('Namespace', () => {
       expect(item.tenant_id === namespace.tenant_id).toBeFalsy();
     });
   });
-
   it('Verify changed owner for setOwnerStatus mutation', () => {
     store.commit('namespaces/setOwnerStatus', owner);
     expect(store.getters['namespaces/owner']).toEqual(owner);
   });
-
   it('Clears the namespace variables from store', () => {
     store.commit('namespaces/clearNamespaceList');
     store.commit('namespaces/clearObjectNamespace');

@@ -272,12 +272,12 @@ export default {
     async getNamespaces() {
       try {
         await this.$store.dispatch('namespaces/fetch');
-      } catch (e) {
+      } catch (error) {
         switch (true) {
-        case (!this.inANamespace && e.response.status === 403): { // dialog pops
+        case (!this.inANamespace && error.response.status === 403): { // dialog pops
           break;
         }
-        case (e.response.status === 403): {
+        case (error.response.status === 403): {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
           break;
         }
@@ -298,7 +298,7 @@ export default {
         this.$store.dispatch('namespaces/setOwnerStatus', isOwner);
 
         window.location.reload();
-      } catch {
+      } catch (error) {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceSwitch);
       }
     },
