@@ -166,18 +166,9 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
 		}).Error("Failed to connect")
 
-		session.Close()
-		return
-	}
-
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"err":     err,
-			"session": session.Context().Value(sshserver.ContextKeySessionID),
-		}).Info("Connection closed")
-
 		session.Write([]byte("Permission denied\n")) // nolint:errcheck
 		session.Close()
+		return
 	}
 
 	conn, err = s.tunnel.Dial(context.Background(), sess.Target)
