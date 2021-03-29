@@ -3,7 +3,7 @@ package apicontext
 import (
 	"context"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
