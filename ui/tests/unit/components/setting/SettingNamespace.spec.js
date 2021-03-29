@@ -203,7 +203,6 @@ describe('SettingNamespace', () => {
   // hosted version tests
   it('Check owner fields rendering in hosted version of the template', () => {
     expect(wrapper.find('[data-test=editOperation]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test=usageOverview]').exists()).toEqual(true);
     expect(wrapper.find('[data-test=userOperation]').exists()).toEqual(true);
     expect(wrapper.find('[data-test=deleteOperation]').exists()).toEqual(true);
     expect(wrapper.find('[data-test=securityOperation]').exists()).toEqual(true);
@@ -217,7 +216,6 @@ describe('SettingNamespace', () => {
     const namespaceOwnerMessage = `Contact ${namespace.members[0].name} user for more information.`;
 
     expect(wrapper2.find('[data-test=editOperation]').exists()).toEqual(false);
-    expect(wrapper2.find('[data-test=usageOverview]').exists()).toEqual(true);
     expect(wrapper2.find('[data-test=userOperation]').exists()).toEqual(false);
     expect(wrapper2.find('[data-test=deleteOperation]').exists()).toEqual(false);
     expect(wrapper2.find('[data-test=securityOperation]').exists()).toEqual(false);
@@ -228,7 +226,6 @@ describe('SettingNamespace', () => {
   // open version tests
   it('Check owner fields rendering in open version of the template.', () => {
     expect(wrapper3.find('[data-test=editOperation]').exists()).toEqual(true);
-    expect(wrapper3.find('[data-test=usageOverview]').exists()).toEqual(false);
     expect(wrapper3.find('[data-test=userOperation]').exists()).toEqual(true);
     expect(wrapper3.find('[data-test=deleteOperation]').exists()).toEqual(true);
     expect(wrapper3.find('[data-test=securityOperation]').exists()).toEqual(false);

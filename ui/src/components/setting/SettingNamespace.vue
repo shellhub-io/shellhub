@@ -120,35 +120,6 @@
           </div>
 
           <div
-            v-if="isEnterprise"
-            class="mt-6"
-            data-test="usageOverview"
-          >
-            <v-row>
-              <v-col>
-                <h3>
-                  Usage Overview
-                </h3>
-              </v-col>
-            </v-row>
-
-            <v-spacer />
-
-            <div class="mt-4 mb-7 mx-4">
-              {{ `Device limit:
-                ${countDevicesHasNamespace()}/${countDevicesHasNamespacePercent().maxDevices}` }}
-
-              <v-progress-linear
-                class="mt-2"
-                :value="countDevicesHasNamespacePercent().percent"
-              />
-            </div>
-
-            <v-divider />
-            <v-divider />
-          </div>
-
-          <div
             v-if="isOwner"
             data-test="userOperation"
             class="mt-6"
