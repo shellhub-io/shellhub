@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo"
@@ -16,8 +15,7 @@ import (
 )
 
 type config struct {
-	MongoHost string `envconfig:"mongo_host" default:"mongo"`
-	MongoPort int    `envconfig:"mongo_port" default:"27017"`
+	MongoUri string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
 }
 
 func main() {
@@ -30,7 +28,7 @@ func main() {
 	}
 
 	// Set client options
-	clientOptions := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", cfg.MongoHost, cfg.MongoPort))
+	clientOptions := options.Client().ApplyURI(cfg.MongoUri)
 	// Connect to MongoDB
 	client, err := mgo.Connect(context.TODO(), clientOptions)
 	if err != nil {
