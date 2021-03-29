@@ -3,7 +3,6 @@ package mongo
 import (
 	"context"
 	"errors"
-	"strconv"
 	"strings"
 	"time"
 
@@ -999,90 +998,6 @@ func (s *Store) GetDataUserSecurity(ctx context.Context, tenant string) (bool, e
 	return settings.Settings.SessionRecord, nil
 }
 
-func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
-	var queryMatch []bson.M
-	var queryFilter []bson.M
-
-	for _, filter := range filters {
-		switch filter.Type {
-		case "property":
-			var property bson.M
-			params, ok := filter.Params.(*models.PropertyParams)
-			if !ok {
-				return nil, ErrWrongParamsType
-			}
-
-			switch params.Operator {
-			case "like":
-				property = bson.M{"$regex": params.Value, "$options": "i"}
-			case "eq":
-				property = bson.M{"$eq": params.Value}
-			case "bool":
-				var value bool
-
-				switch v := params.Value.(type) {
-				case int:
-					value = v != 0
-				case string:
-					var err error
-					value, err = strconv.ParseBool(v)
-					if err != nil {
-						return nil, err
-					}
-				}
-
-				property = bson.M{"$eq": value}
-			case "gt":
-				var value int
-
-				switch v := params.Value.(type) {
-				case int:
-					value = v
-				case string:
-					var err error
-					value, err = strconv.Atoi(v)
-					if err != nil {
-						return nil, err
-					}
-				}
-
-				property = bson.M{"$gt": value}
-			}
-
-			queryFilter = append(queryFilter, bson.M{
-				params.Name: property,
-			})
-		case "operator":
-			var operator string
-			params, ok := filter.Params.(*models.OperatorParams)
-			if !ok {
-				return nil, ErrWrongParamsType
-			}
-
-			switch params.Name {
-			case "and":
-				operator = "$and"
-			case "or":
-				operator = "$or"
-			}
-
-			queryMatch = append(queryMatch, bson.M{
-				"$match": bson.M{operator: queryFilter},
-			})
-
-			queryFilter = nil
-		}
-	}
-
-	if len(queryFilter) > 0 {
-		queryMatch = append(queryMatch, bson.M{
-			"$match": bson.M{"$or": queryFilter},
-		})
-	}
-
-	return queryMatch, nil
-}
-
 func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
 	query := []bson.M{}
 
@@ -1491,15 +1406,4 @@ func (s *Store) GetSomeNamespace(ctx context.Context, ID string) (*models.Namesp
 	}
 
 	return ns, nil
-}
-
-func buildPaginationQuery(pagination paginator.Query) []bson.M {
-	if pagination.PerPage == -1 {
-		return nil
-	}
-
-	return []bson.M{
-		{"$skip": pagination.PerPage * (pagination.Page - 1)},
-		{"$limit": pagination.PerPage},
-	}
 }
