@@ -27,8 +27,6 @@
         :in-a-namespace="hasNamespaces"
       />
 
-      <MaxDevice />
-
       <v-chip>
         <v-icon
           @click="toggleChat()"
@@ -86,7 +84,6 @@
 
 import GitterSidecar from 'gitter-sidecar';
 import NamespaceMenu from '@/components/app_bar/namespace/NamespaceMenu';
-import MaxDevice from '@/components/app_bar/max_device/MaxDevice';
 import Notification from '@/components/app_bar/notification/Notification';
 
 export default {
@@ -94,7 +91,6 @@ export default {
 
   components: {
     NamespaceMenu,
-    MaxDevice,
     Notification,
   },
 
