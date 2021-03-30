@@ -62,7 +62,8 @@
 
           <v-card-subtitle
             v-if="$env.isCloud"
-            class="d-flex align-center justify-center pa-4 mx-auto">
+            class="d-flex align-center justify-center pa-4 mx-auto"
+          >
             Don't have an account?
 
             <router-link
