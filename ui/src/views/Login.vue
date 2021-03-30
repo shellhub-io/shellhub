@@ -114,8 +114,10 @@ export default {
         } else {
           this.$router.push('/');
         }
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorDefault');
+      } catch (err) {
+        if (err.response.status !== 401) {
+          this.$store.dispatch('snackbar/showSnackbarErrorDefault');
+        }
       }
     },
   },
