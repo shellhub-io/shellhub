@@ -42,7 +42,7 @@
           v-slot="{ passes }"
         >
           <v-card-title class="justify-center">
-            Sign up and connect up to 3 devices for free
+            Sign up for free
           </v-card-title>
 
           <v-card-text>
