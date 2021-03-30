@@ -234,13 +234,13 @@ func (s *service) AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRe
 	}, nil
 }
 
-func (s *service) AuthSwapToken(ctx context.Context, username, tenant string) (*models.UserAuthResponse, error) {
+func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models.UserAuthResponse, error) {
 	namespace, err := s.store.GetNamespace(ctx, tenant)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := s.store.GetUserByUsername(ctx, username)
+	user, err := s.store.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -251,6 +251,7 @@ func (s *service) AuthSwapToken(ctx context.Context, username, tenant string) (*
 				Username: user.Username,
 				Admin:    true,
 				Tenant:   namespace.TenantID,
+				ID:       user.ID,
 				AuthClaims: models.AuthClaims{
 					Claims: "user",
 				},

@@ -132,12 +132,12 @@ func AuthGetToken(c apicontext.Context) error {
 func AuthSwapToken(c apicontext.Context) error {
 	svc := authsvc.NewService(c.Store(), nil, nil)
 
-	username := ""
-	if v := c.Username(); v != nil {
-		username = v.ID
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
 	}
 
-	res, err := svc.AuthSwapToken(c.Ctx(), username, c.Param("tenant"))
+	res, err := svc.AuthSwapToken(c.Ctx(), id, c.Param("tenant"))
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
