@@ -57,7 +57,7 @@ func TestCreateNamespace(t *testing.T) {
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1"}
 
-	mock.On("GetUserByUsername", ctx, user.Username).Return(user, nil).Once()
+	mock.On("GetUserByID", ctx, user.ID).Return(user, nil).Once()
 	mock.On("CreateNamespace", ctx, namespace).Return(namespace, nil).Once()
 
 	returnedNamespace, err := s.CreateNamespace(ctx, namespace, namespace.Owner)
@@ -99,7 +99,7 @@ func TestDeleteNamespace(t *testing.T) {
 	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 
-	mock.On("GetUserByUsername", ctx, user.Username).Return(user, nil).Once()
+	mock.On("GetUserByID", ctx, user.ID).Return(user, nil).Once()
 	mock.On("DeleteNamespace", ctx, namespace.TenantID).Return(nil).Once()
 	mock.On("GetNamespace", ctx, namespace.TenantID).Return(namespace, nil).Once()
 
@@ -119,11 +119,11 @@ func TestAddNamespaceUser(t *testing.T) {
 	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []string{"hash1", "hash2"}}
 
 	mock.On("GetNamespace", ctx, namespace.TenantID).Return(namespace, nil).Once()
-	mock.On("GetUserByUsername", ctx, user.Username).Return(user, nil).Once()
+	mock.On("GetUserByID", ctx, user.ID).Return(user, nil).Once()
 	mock.On("GetUserByUsername", ctx, member.Username).Return(member, nil).Once()
 	mock.On("AddNamespaceUser", ctx, namespace.TenantID, member.ID).Return(namespace2, nil).Once()
 
-	_, err := s.AddNamespaceUser(ctx, namespace.TenantID, member.Username, user.Username)
+	_, err := s.AddNamespaceUser(ctx, namespace.TenantID, member.Username, user.ID)
 	assert.NoError(t, err)
 
 	mock.On("GetNamespace", ctx, namespace.TenantID).Return(namespace2, nil).Once()
@@ -143,11 +143,11 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []string{"hash1"}}
 
 	mock.On("GetNamespace", ctx, namespace.TenantID).Return(namespace, nil).Once()
-	mock.On("GetUserByUsername", ctx, user.Username).Return(user, nil).Once()
+	mock.On("GetUserByID", ctx, user.ID).Return(user, nil).Once()
 	mock.On("GetUserByUsername", ctx, member.Username).Return(member, nil).Once()
 	mock.On("RemoveNamespaceUser", ctx, namespace.TenantID, member.ID).Return(namespace2, nil).Once()
 
-	_, err := s.RemoveNamespaceUser(ctx, namespace.TenantID, member.Username, user.Username)
+	_, err := s.RemoveNamespaceUser(ctx, namespace.TenantID, member.Username, user.ID)
 	assert.NoError(t, err)
 
 	mock.On("GetNamespace", ctx, namespace.TenantID).Return(namespace2, nil).Once()

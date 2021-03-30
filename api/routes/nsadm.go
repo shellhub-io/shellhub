@@ -50,11 +50,11 @@ func CreateNamespace(c apicontext.Context) error {
 		return err
 	}
 
-	username := ""
-	if v := c.Username(); v != nil {
-		username = v.ID
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
 	}
-	if _, err := svc.CreateNamespace(c.Ctx(), &namespace, username); err != nil {
+	if _, err := svc.CreateNamespace(c.Ctx(), &namespace, id); err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
@@ -84,12 +84,12 @@ func GetNamespace(c apicontext.Context) error {
 func DeleteNamespace(c apicontext.Context) error {
 	svc := nsadm.NewService(c.Store())
 
-	username := ""
-	if v := c.Username(); v != nil {
-		username = v.ID
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
 	}
 
-	if err := svc.DeleteNamespace(c.Ctx(), c.Param("id"), username); err != nil {
+	if err := svc.DeleteNamespace(c.Ctx(), c.Param("id"), id); err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
@@ -142,16 +142,16 @@ func AddNamespaceUser(c apicontext.Context) error {
 		Username string `json:"username"`
 	}
 
-	ownerUsername := ""
-	if v := c.Username(); v != nil {
-		ownerUsername = v.ID
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
 	}
 
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	namespace, err := svc.AddNamespaceUser(c.Ctx(), c.Param("id"), req.Username, ownerUsername)
+	namespace, err := svc.AddNamespaceUser(c.Ctx(), c.Param("id"), req.Username, id)
 	if err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
@@ -179,15 +179,15 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 		Username string `json:"username"`
 	}
 
-	ownerUsername := ""
-	if v := c.Username(); v != nil {
-		ownerUsername = v.ID
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
 	}
 
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
-	namespace, err := svc.RemoveNamespaceUser(c.Ctx(), c.Param("id"), req.Username, ownerUsername)
+	namespace, err := svc.RemoveNamespaceUser(c.Ctx(), c.Param("id"), req.Username, id)
 	if err != nil {
 		if err == nsadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
