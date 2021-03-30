@@ -1,5 +1,7 @@
 <template>
   <v-app>
+    <Snackbar />
+
     <v-navigation-drawer
       v-if="isLoggedIn && hasNamespaces"
       v-model="drawer"
@@ -53,12 +55,14 @@
 
 <script>
 
+import Snackbar from '@/components/snackbar/Snackbar';
 import AppBar from '@/components/app_bar/AppBar';
 
 export default {
   name: 'App',
 
   components: {
+    Snackbar,
     AppBar,
   },
 
