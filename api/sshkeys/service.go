@@ -55,7 +55,7 @@ func (s *service) EvaluateKeyHostname(ctx context.Context, key *models.PublicKey
 	return ok, nil
 }
 func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
-	return s.store.GetPublicKey(ctx, fingerprint, tenant)
+	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
@@ -68,7 +68,7 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) er
 
 	key.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
-	returnedKey, err := s.store.GetPublicKey(ctx, key.Fingerprint, apicontext.TenantFromContext(ctx).ID)
+	returnedKey, err := s.store.PublicKeyGet(ctx, key.Fingerprint, apicontext.TenantFromContext(ctx).ID)
 	if err != nil && err != store.ErrRecordNotFound {
 		return err
 	}
@@ -77,7 +77,7 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) er
 		return ErrDuplicateFingerprint
 	}
 
-	err = s.store.CreatePublicKey(ctx, key)
+	err = s.store.PublicKeyCreate(ctx, key)
 	if err != nil {
 		return err
 	}
@@ -86,15 +86,15 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) er
 }
 
 func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
-	return s.store.ListPublicKeys(ctx, pagination)
+	return s.store.PublicKeyList(ctx, pagination)
 }
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	return s.store.UpdatePublicKey(ctx, fingerprint, tenant, key)
+	return s.store.PublicKeyUpdate(ctx, fingerprint, tenant, key)
 }
 
 func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
-	return s.store.DeletePublicKey(ctx, fingerprint, tenant)
+	return s.store.PublicKeyDelete(ctx, fingerprint, tenant)
 }
 
 func (s *service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error) {
@@ -117,7 +117,7 @@ func (s *service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, err
 		CreatedAt:   time.Now(),
 	}
 
-	if err := s.store.CreatePrivateKey(ctx, privateKey); err != nil {
+	if err := s.store.PrivateKeyCreate(ctx, privateKey); err != nil {
 		return nil, err
 	}
 

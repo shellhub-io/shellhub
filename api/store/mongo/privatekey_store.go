@@ -9,12 +9,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *Store) CreatePrivateKey(ctx context.Context, key *models.PrivateKey) error {
+func (s *Store) PrivateKeyCreate(ctx context.Context, key *models.PrivateKey) error {
 	_, err := s.db.Collection("private_keys").InsertOne(ctx, key)
 	return err
 }
 
-func (s *Store) GetPrivateKey(ctx context.Context, fingerprint string) (*models.PrivateKey, error) {
+func (s *Store) PrivateKeyGet(ctx context.Context, fingerprint string) (*models.PrivateKey, error) {
 	privKey := new(models.PrivateKey)
 	if err := s.db.Collection("private_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint}).Decode(&privKey); err != nil {
 		if err == mongo.ErrNoDocuments {

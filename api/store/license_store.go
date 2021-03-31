@@ -7,6 +7,6 @@ import (
 )
 
 type LicenseStore interface {
-	LoadLicense(ctx context.Context) (*models.License, error)
-	SaveLicense(ctx context.Context, license *models.License) error
+	LicenseLoad(ctx context.Context) (*models.License, error)
+	LicenseSave(ctx context.Context, license *models.License) error
 }

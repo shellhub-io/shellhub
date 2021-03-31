@@ -23,7 +23,7 @@ func TestListSessions(t *testing.T) {
 
 	query := paginator.Query{Page: 1, PerPage: 10}
 
-	mock.On("ListSessions", ctx, query).
+	mock.On("SessionList", ctx, query).
 		Return(sessions, len(sessions), nil).Once()
 
 	returnedSessions, count, err := s.ListSessions(ctx, query)
@@ -41,7 +41,7 @@ func TestGetSession(t *testing.T) {
 	ctx := context.TODO()
 
 	session := &models.Session{UID: "uid"}
-	mock.On("GetSession", ctx, models.UID(session.UID)).
+	mock.On("SessionGet", ctx, models.UID(session.UID)).
 		Return(session, nil).Once()
 
 	returnedSession, err := s.GetSession(ctx, models.UID(session.UID))
@@ -58,7 +58,7 @@ func TestCreateSession(t *testing.T) {
 	ctx := context.TODO()
 
 	session := &models.Session{UID: "uid"}
-	mock.On("CreateSession", ctx, *session).
+	mock.On("SessionCreate", ctx, *session).
 		Return(session, nil).Once()
 
 	returnedSession, err := s.CreateSession(ctx, *session)
@@ -74,7 +74,7 @@ func TestDeactivateSession(t *testing.T) {
 
 	ctx := context.TODO()
 
-	mock.On("DeactivateSession", ctx, models.UID("uid")).
+	mock.On("SessionDeleteActives", ctx, models.UID("uid")).
 		Return(nil).Once()
 
 	err := s.DeactivateSession(ctx, models.UID("uid"))
@@ -89,7 +89,7 @@ func TestSetSessionAuthenticated(t *testing.T) {
 
 	ctx := context.TODO()
 
-	mock.On("SetSessionAuthenticated", ctx, models.UID("uid"), true).
+	mock.On("SessionSetAuthenticated", ctx, models.UID("uid"), true).
 		Return(nil).Once()
 
 	err := s.SetSessionAuthenticated(ctx, models.UID("uid"), true)

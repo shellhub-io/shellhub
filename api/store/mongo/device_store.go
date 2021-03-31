@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
+func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, err
@@ -116,7 +116,7 @@ func (s *Store) ListDevices(ctx context.Context, pagination paginator.Query, fil
 	return devices, count, err
 }
 
-func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
+func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{"uid": uid},
@@ -178,7 +178,7 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 	return device, nil
 }
 
-func (s *Store) DeleteDevice(ctx context.Context, uid models.UID) error {
+func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	if _, err := s.db.Collection("devices").DeleteOne(ctx, bson.M{"uid": uid}); err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func (s *Store) DeleteDevice(ctx context.Context, uid models.UID) error {
 	return err
 }
 
-func (s *Store) AddDevice(ctx context.Context, d models.Device, hostname string) error {
+func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
 	mac := strings.Replace(d.Identity.MAC, ":", "-", -1)
 	if hostname == "" {
 		hostname = mac
@@ -209,14 +209,14 @@ func (s *Store) AddDevice(ctx context.Context, d models.Device, hostname string)
 	return err
 }
 
-func (s *Store) RenameDevice(ctx context.Context, uid models.UID, name string) error {
+func (s *Store) DeviceRename(ctx context.Context, uid models.UID, name string) error {
 	if _, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": name}}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Store) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
+func (s *Store) DeviceLookup(ctx context.Context, namespace, name string) (*models.Device, error) {
 	ns := new(models.Namespace)
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
 		return nil, err
@@ -230,7 +230,7 @@ func (s *Store) LookupDevice(ctx context.Context, namespace, name string) (*mode
 	return device, nil
 }
 
-func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
+func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool) error {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
 		return err
@@ -260,7 +260,7 @@ func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online b
 	return nil
 }
 
-func (s *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, status string) error {
+func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status string) error {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
 		return err
@@ -284,7 +284,7 @@ func (s *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, status 
 	return nil
 }
 
-func (s *Store) GetDeviceByMac(ctx context.Context, mac, tenant, status string) (*models.Device, error) {
+func (s *Store) DeviceGetByMac(ctx context.Context, mac, tenant, status string) (*models.Device, error) {
 	device := new(models.Device)
 	if status != "" {
 		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}, "status": status}).Decode(&device); err != nil {
@@ -298,7 +298,7 @@ func (s *Store) GetDeviceByMac(ctx context.Context, mac, tenant, status string) 
 	return device, nil
 }
 
-func (s *Store) GetDeviceByName(ctx context.Context, name, tenant string) (*models.Device, error) {
+func (s *Store) DeviceGetByName(ctx context.Context, name, tenant string) (*models.Device, error) {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "name": name}).Decode(&device); err != nil {
 		return nil, err
@@ -307,7 +307,7 @@ func (s *Store) GetDeviceByName(ctx context.Context, name, tenant string) (*mode
 	return device, nil
 }
 
-func (s *Store) GetDeviceByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error) {
+func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error) {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}).Decode(&device); err != nil {
 		return nil, err

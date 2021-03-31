@@ -54,11 +54,11 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 		return nil, 0, err
 	}
 
-	return s.store.ListNamespaces(ctx, pagination, filter, export)
+	return s.store.NamespaceList(ctx, pagination, filter, export)
 }
 
 func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerID string) (*models.Namespace, error) {
-	user, _ := s.store.GetUserByID(ctx, ownerID)
+	user, _ := s.store.UserGetByID(ctx, ownerID)
 	if user == nil {
 		return nil, ErrUnauthorized
 	}
@@ -77,20 +77,20 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		namespace.MaxDevices = -1
 	}
 
-	return s.store.CreateNamespace(ctx, namespace)
+	return s.store.NamespaceCreate(ctx, namespace)
 }
 
 func (s *service) GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error) {
-	return s.store.GetNamespace(ctx, namespace)
+	return s.store.NamespaceGet(ctx, namespace)
 }
 
 func (s *service) DeleteNamespace(ctx context.Context, namespace, ownerId string) error {
-	ns, _ := s.store.GetNamespace(ctx, namespace)
+	ns, _ := s.store.NamespaceGet(ctx, namespace)
 	if ns != nil {
-		user, _ := s.store.GetUserByID(ctx, ownerId)
+		user, _ := s.store.UserGetByID(ctx, ownerId)
 		if user != nil {
 			if ns.Owner == user.ID {
-				return s.store.DeleteNamespace(ctx, namespace)
+				return s.store.NamespaceDelete(ctx, namespace)
 			}
 		}
 		return ErrUnauthorized
@@ -99,11 +99,11 @@ func (s *service) DeleteNamespace(ctx context.Context, namespace, ownerId string
 }
 
 func (s *service) ListMembers(ctx context.Context, namespace string) ([]models.Member, error) {
-	ns, _ := s.store.GetNamespace(ctx, namespace)
+	ns, _ := s.store.NamespaceGet(ctx, namespace)
 	if ns != nil {
 		members := []models.Member{}
 		for _, memberID := range ns.Members.(primitive.A) {
-			if user, err := s.store.GetUserByID(ctx, memberID.(string)); err == nil {
+			if user, err := s.store.UserGetByID(ctx, memberID.(string)); err == nil {
 				member := models.Member{ID: memberID.(string), Name: user.Username}
 				members = append(members, member)
 			}
@@ -114,16 +114,16 @@ func (s *service) ListMembers(ctx context.Context, namespace string) ([]models.M
 }
 
 func (s *service) EditNamespace(ctx context.Context, namespace, name, owner string) (*models.Namespace, error) {
-	ns, _ := s.store.GetNamespace(ctx, namespace)
+	ns, _ := s.store.NamespaceGet(ctx, namespace)
 	if ns != nil {
-		user, _ := s.store.GetUserByID(ctx, owner)
+		user, _ := s.store.UserGetByID(ctx, owner)
 		if user != nil {
 			validate := validator.New()
 			name = strings.ToLower(name)
 			if ns.Name != name && ns.Owner == user.ID {
 				ns.Name = name
 				if err := validate.Struct(ns); err == nil {
-					return s.store.EditNamespace(ctx, namespace, name)
+					return s.store.NamespaceRename(ctx, namespace, name)
 				}
 			}
 		}
@@ -133,12 +133,12 @@ func (s *service) EditNamespace(ctx context.Context, namespace, name, owner stri
 }
 
 func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, ownerID string) (*models.Namespace, error) {
-	ns, _ := s.store.GetNamespace(ctx, namespace)
+	ns, _ := s.store.NamespaceGet(ctx, namespace)
 	if ns != nil {
-		if OwnerUser, _ := s.store.GetUserByID(ctx, ownerID); OwnerUser != nil {
+		if OwnerUser, _ := s.store.UserGetByID(ctx, ownerID); OwnerUser != nil {
 			if ns.Owner == OwnerUser.ID {
-				if user, _ := s.store.GetUserByUsername(ctx, username); user != nil {
-					return s.store.AddNamespaceUser(ctx, namespace, user.ID)
+				if user, _ := s.store.UserGetByUsername(ctx, username); user != nil {
+					return s.store.NamespaceAddMember(ctx, namespace, user.ID)
 				}
 				return nil, ErrUserNotFound
 			}
@@ -148,12 +148,12 @@ func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, own
 	return nil, ErrNamespaceNotFound
 }
 func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, ownerID string) (*models.Namespace, error) {
-	ns, _ := s.store.GetNamespace(ctx, namespace)
+	ns, _ := s.store.NamespaceGet(ctx, namespace)
 	if ns != nil {
-		if OwnerUser, _ := s.store.GetUserByID(ctx, ownerID); OwnerUser != nil && OwnerUser.Username != username {
+		if OwnerUser, _ := s.store.UserGetByID(ctx, ownerID); OwnerUser != nil && OwnerUser.Username != username {
 			if ns.Owner == OwnerUser.ID {
-				if user, _ := s.store.GetUserByUsername(ctx, username); user != nil {
-					if ns, err := s.store.RemoveNamespaceUser(ctx, namespace, user.ID); err == nil {
+				if user, _ := s.store.UserGetByUsername(ctx, username); user != nil {
+					if ns, err := s.store.NamespaceRemoveMember(ctx, namespace, user.ID); err == nil {
 						return ns, err
 					}
 				}
@@ -168,7 +168,7 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, 
 func (s *service) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
 	ns, _ := s.GetNamespace(ctx, tenant)
 	if ns != nil {
-		return s.store.UpdateDataUserSecurity(ctx, sessionRecord, tenant)
+		return s.store.NamespaceSetSessionRecord(ctx, sessionRecord, tenant)
 	}
 	return ErrUnauthorized
 }
@@ -176,7 +176,7 @@ func (s *service) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool
 func (s *service) GetDataUserSecurity(ctx context.Context, tenant string) (bool, error) {
 	ns, _ := s.GetNamespace(ctx, tenant)
 	if ns != nil {
-		return s.store.GetDataUserSecurity(ctx, tenant)
+		return s.store.NamespaceGetSessionRecord(ctx, tenant)
 	}
 	return false, ErrUnauthorized
 }

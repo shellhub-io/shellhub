@@ -25,21 +25,21 @@ func NewService(store store.Store) Service {
 }
 
 func (s *service) ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error) {
-	return s.store.ListSessions(ctx, pagination)
+	return s.store.SessionList(ctx, pagination)
 }
 
 func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
-	return s.store.GetSession(ctx, uid)
+	return s.store.SessionGet(ctx, uid)
 }
 
 func (s *service) CreateSession(ctx context.Context, session models.Session) (*models.Session, error) {
-	return s.store.CreateSession(ctx, session)
+	return s.store.SessionCreate(ctx, session)
 }
 
 func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
-	return s.store.DeactivateSession(ctx, uid)
+	return s.store.SessionDeleteActives(ctx, uid)
 }
 
 func (s *service) SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
-	return s.store.SetSessionAuthenticated(ctx, uid, authenticated)
+	return s.store.SessionSetAuthenticated(ctx, uid, authenticated)
 }

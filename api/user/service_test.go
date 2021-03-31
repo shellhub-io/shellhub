@@ -27,10 +27,10 @@ func TestUpdateDataUser(t *testing.T) {
 	updateUser3 := &models.User{Name: "name", Email: "", Username: "", Password: "hasha1b2c3", ID: "id3"}
 
 	//Change username
-	mock.On("GetUserByUsername", ctx, updateUser1.Username).Return(user, nil).Once()
-	mock.On("GetUserByEmail", ctx, updateUser1.Email).Return(user, nil).Once()
-	mock.On("GetUserByID", ctx, updateUser1.ID).Return(user, nil).Once()
-	mock.On("UpdateUser", ctx, updateUser1.Name, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.ID).Return(nil).Once()
+	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(user, nil).Once()
+	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(user, nil).Once()
+	mock.On("UserGetByID", ctx, updateUser1.ID).Return(user, nil).Once()
+	mock.On("UserUpdate", ctx, updateUser1.Name, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.ID).Return(nil).Once()
 
 	_, err := s.UpdateDataUser(ctx, updateUser1.Name, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.ID)
 
@@ -38,10 +38,10 @@ func TestUpdateDataUser(t *testing.T) {
 	mock.AssertExpectations(t)
 
 	// Change email
-	mock.On("GetUserByUsername", ctx, updateUser2.Username).Return(user2, nil).Once()
-	mock.On("GetUserByEmail", ctx, updateUser2.Email).Return(user2, nil).Once()
-	mock.On("GetUserByID", ctx, updateUser2.ID).Return(user2, nil).Once()
-	mock.On("UpdateUser", ctx, updateUser2.Name, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.ID).Return(nil).Once()
+	mock.On("UserGetByUsername", ctx, updateUser2.Username).Return(user2, nil).Once()
+	mock.On("UserGetByEmail", ctx, updateUser2.Email).Return(user2, nil).Once()
+	mock.On("UserGetByID", ctx, updateUser2.ID).Return(user2, nil).Once()
+	mock.On("UserUpdate", ctx, updateUser2.Name, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.ID).Return(nil).Once()
 
 	_, err = s.UpdateDataUser(ctx, updateUser2.Name, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.ID)
 
@@ -52,10 +52,10 @@ func TestUpdateDataUser(t *testing.T) {
 	oldPassword := "hasha1b2c3"
 	newPassword := "hashd4e5f6"
 
-	mock.On("GetUserByUsername", ctx, updateUser3.Username).Return(user3, nil).Once()
-	mock.On("GetUserByEmail", ctx, updateUser3.Email).Return(user3, nil).Once()
-	mock.On("GetUserByID", ctx, updateUser3.ID).Return(user3, nil).Once()
-	mock.On("UpdateUser", ctx, updateUser3.Name, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.ID).Return(nil).Once()
+	mock.On("UserGetByUsername", ctx, updateUser3.Username).Return(user3, nil).Once()
+	mock.On("UserGetByEmail", ctx, updateUser3.Email).Return(user3, nil).Once()
+	mock.On("UserGetByID", ctx, updateUser3.ID).Return(user3, nil).Once()
+	mock.On("UserUpdate", ctx, updateUser3.Name, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.ID).Return(nil).Once()
 
 	_, err = s.UpdateDataUser(ctx, updateUser3.Name, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.ID)
 

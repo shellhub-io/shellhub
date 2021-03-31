@@ -15,7 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func TestAddDevice(t *testing.T) {
+func TestDeviceCreate(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -49,11 +49,11 @@ func TestAddDevice(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 }
 
-func TestGetDevice(t *testing.T) {
+func TestDeviceGet(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -87,14 +87,14 @@ func TestGetDevice(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
-	d, err := mongostore.GetDevice(ctx, models.UID(device.UID))
+	d, err := mongostore.DeviceGet(ctx, models.UID(device.UID))
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
 
-func TestRenameDevice(t *testing.T) {
+func TestDeviceRename(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -128,12 +128,12 @@ func TestRenameDevice(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
-	err = mongostore.RenameDevice(ctx, models.UID(device.UID), "newHostname")
+	err = mongostore.DeviceRename(ctx, models.UID(device.UID), "newHostname")
 	assert.NoError(t, err)
 }
-func TestLookupDevice(t *testing.T) {
+func TestDeviceLookup(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -167,18 +167,18 @@ func TestLookupDevice(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "device")
+	err = mongostore.DeviceCreate(ctx, device, "device")
 	assert.NoError(t, err)
 
-	err = mongostore.UpdatePendingStatus(ctx, models.UID(device.UID), "accepted")
+	err = mongostore.DeviceUpdateStatus(ctx, models.UID(device.UID), "accepted")
 	assert.NoError(t, err)
 
-	d, err := mongostore.LookupDevice(ctx, "name", "device")
+	d, err := mongostore.DeviceLookup(ctx, "name", "device")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
 
-func TestUpdatePendingStatus(t *testing.T) {
+func TestDeviceUpdateStatus(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -212,10 +212,10 @@ func TestUpdatePendingStatus(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "device")
+	err = mongostore.DeviceCreate(ctx, device, "device")
 	assert.NoError(t, err)
 
-	err = mongostore.UpdatePendingStatus(ctx, models.UID(device.UID), "accepted")
+	err = mongostore.DeviceUpdateStatus(ctx, models.UID(device.UID), "accepted")
 	assert.NoError(t, err)
 }
 func TestUpdateDeviceStatus(t *testing.T) {
@@ -252,9 +252,9 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
-	err = mongostore.UpdateDeviceStatus(ctx, models.UID(device.UID), true)
+	err = mongostore.DeviceSetOnline(ctx, models.UID(device.UID), true)
 	assert.NoError(t, err)
 }
 func TestCreateSession(t *testing.T) {
@@ -291,7 +291,7 @@ func TestCreateSession(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -302,7 +302,7 @@ func TestCreateSession(t *testing.T) {
 		Authenticated: true,
 	}
 
-	s, err := mongostore.CreateSession(ctx, session)
+	s, err := mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, s)
 }
@@ -341,7 +341,7 @@ func TestGetSession(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -352,9 +352,9 @@ func TestGetSession(t *testing.T) {
 		Authenticated: true,
 	}
 
-	_, err = mongostore.CreateSession(ctx, session)
+	_, err = mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
-	s, err := mongostore.GetSession(ctx, models.UID(session.UID))
+	s, err := mongostore.SessionGet(ctx, models.UID(session.UID))
 	assert.NoError(t, err)
 	assert.NotEmpty(t, s)
 }
@@ -392,7 +392,7 @@ func TestListSessions(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -403,9 +403,9 @@ func TestListSessions(t *testing.T) {
 		Authenticated: true,
 	}
 
-	_, err = mongostore.CreateSession(ctx, session)
+	_, err = mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
-	sessions, count, err := mongostore.ListSessions(ctx, paginator.Query{Page: -1, PerPage: -1})
+	sessions, count, err := mongostore.SessionList(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, sessions)
@@ -444,7 +444,7 @@ func TestSetSessionAuthenticated(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -455,9 +455,9 @@ func TestSetSessionAuthenticated(t *testing.T) {
 		Authenticated: true,
 	}
 
-	_, err = mongostore.CreateSession(ctx, session)
+	_, err = mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
-	err = mongostore.SetSessionAuthenticated(ctx, models.UID(device.UID), true)
+	err = mongostore.SessionSetAuthenticated(ctx, models.UID(device.UID), true)
 	assert.NoError(t, err)
 }
 
@@ -495,7 +495,7 @@ func TestKeepAliveSession(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -506,9 +506,9 @@ func TestKeepAliveSession(t *testing.T) {
 		Authenticated: true,
 	}
 
-	_, err = mongostore.CreateSession(ctx, session)
+	_, err = mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
-	err = mongostore.KeepAliveSession(ctx, models.UID(session.UID))
+	err = mongostore.SessionSetLastSeen(ctx, models.UID(session.UID))
 	assert.NoError(t, err)
 }
 func TestDeactivateSession(t *testing.T) {
@@ -545,7 +545,7 @@ func TestDeactivateSession(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -556,9 +556,9 @@ func TestDeactivateSession(t *testing.T) {
 		Authenticated: true,
 	}
 
-	_, err = mongostore.CreateSession(ctx, session)
+	_, err = mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
-	err = mongostore.DeactivateSession(ctx, models.UID(session.UID))
+	err = mongostore.SessionDeleteActives(ctx, models.UID(session.UID))
 	assert.NoError(t, err)
 }
 
@@ -596,7 +596,7 @@ func TestRecordSession(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -607,9 +607,9 @@ func TestRecordSession(t *testing.T) {
 		Authenticated: true,
 	}
 
-	_, err = mongostore.CreateSession(ctx, session)
+	_, err = mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
-	err = mongostore.RecordSession(ctx, models.UID(session.UID), "message", 0, 0)
+	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session.UID), "message", 0, 0)
 	assert.NoError(t, err)
 }
 
@@ -647,7 +647,7 @@ func TestGetRecord(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -658,11 +658,11 @@ func TestGetRecord(t *testing.T) {
 		Authenticated: true,
 	}
 
-	_, err = mongostore.CreateSession(ctx, session)
+	_, err = mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
-	err = mongostore.RecordSession(ctx, models.UID(session.UID), "message", 0, 0)
+	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session.UID), "message", 0, 0)
 	assert.NoError(t, err)
-	recorded, count, err := mongostore.GetRecord(ctx, models.UID(session.UID))
+	recorded, count, err := mongostore.SessionGetRecordFrame(ctx, models.UID(session.UID))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, recorded)
@@ -683,7 +683,7 @@ func TestGetUserByUsername(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	u, err := mongostore.GetUserByUsername(ctx, "username")
+	u, err := mongostore.UserGetByUsername(ctx, "username")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, u)
 	assert.Equal(t, u.ID, user.ID)
@@ -700,7 +700,7 @@ func TestGetUserByEmail(t *testing.T) {
 	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
 
-	u, err := mongostore.GetUserByEmail(ctx, "email")
+	u, err := mongostore.UserGetByEmail(ctx, "email")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, u)
 }
@@ -739,9 +739,9 @@ func TestGetDeviceByMac(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
-	d, err := mongostore.GetDeviceByMac(ctx, "mac", "tenant", "pending")
+	d, err := mongostore.DeviceGetByMac(ctx, "mac", "tenant", "pending")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
@@ -780,9 +780,9 @@ func TestGetDeviceByName(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "hostname")
+	err = mongostore.DeviceCreate(ctx, device, "hostname")
 	assert.NoError(t, err)
-	d, err := mongostore.GetDeviceByName(ctx, "hostname", "tenant")
+	d, err := mongostore.DeviceGetByName(ctx, "hostname", "tenant")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
@@ -821,9 +821,9 @@ func TestGetDeviceByUID(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
-	d, err := mongostore.GetDeviceByUID(ctx, models.UID(device.UID), "tenant")
+	d, err := mongostore.DeviceGetByUID(ctx, models.UID(device.UID), "tenant")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
@@ -835,7 +835,7 @@ func TestCreateFirewallRule(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateFirewallRule(ctx, &models.FirewallRule{
+	err := mongostore.FirewallRuleCreate(ctx, &models.FirewallRule{
 		FirewallRuleFields: models.FirewallRuleFields{
 			Priority: 1,
 			Action:   "allow",
@@ -855,7 +855,7 @@ func TestGetFirewallRule(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateFirewallRule(ctx, &models.FirewallRule{
+	err := mongostore.FirewallRuleCreate(ctx, &models.FirewallRule{
 		FirewallRuleFields: models.FirewallRuleFields{
 			Priority: 1,
 			Action:   "allow",
@@ -866,13 +866,13 @@ func TestGetFirewallRule(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
-	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{Page: -1, PerPage: -1})
+	rules, count, err := mongostore.FirewallRuleList(ctx, paginator.Query{Page: -1, PerPage: -1})
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, rules)
 
-	rule, err := mongostore.GetFirewallRule(ctx, rules[0].ID)
+	rule, err := mongostore.FirewallRuleGet(ctx, rules[0].ID)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, rule)
 }
@@ -884,7 +884,7 @@ func TestUpdateFirewallRule(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateFirewallRule(ctx, &models.FirewallRule{
+	err := mongostore.FirewallRuleCreate(ctx, &models.FirewallRule{
 		FirewallRuleFields: models.FirewallRuleFields{
 			Priority: 1,
 			Action:   "allow",
@@ -896,12 +896,12 @@ func TestUpdateFirewallRule(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{Page: -1, PerPage: -1})
+	rules, count, err := mongostore.FirewallRuleList(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, rules)
 
-	rule, err := mongostore.UpdateFirewallRule(ctx, rules[0].ID, models.FirewallRuleUpdate{
+	rule, err := mongostore.FirewallRuleUpdate(ctx, rules[0].ID, models.FirewallRuleUpdate{
 		FirewallRuleFields: models.FirewallRuleFields{
 			Priority: 2,
 			Action:   "deny",
@@ -922,7 +922,7 @@ func TestDeleteFirewallRule(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateFirewallRule(ctx, &models.FirewallRule{
+	err := mongostore.FirewallRuleCreate(ctx, &models.FirewallRule{
 		FirewallRuleFields: models.FirewallRuleFields{
 			Priority: 1,
 			Action:   "allow",
@@ -933,12 +933,12 @@ func TestDeleteFirewallRule(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
-	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{Page: -1, PerPage: -1})
+	rules, count, err := mongostore.FirewallRuleList(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, rules)
 
-	err = mongostore.DeleteFirewallRule(ctx, rules[0].ID)
+	err = mongostore.FirewallRuleDelete(ctx, rules[0].ID)
 	assert.NoError(t, err)
 }
 
@@ -976,10 +976,10 @@ func TestListDevices(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 
-	devices, count, err := mongostore.ListDevices(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
+	devices, count, err := mongostore.DeviceList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, devices)
@@ -992,7 +992,7 @@ func TestListFirewallRules(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateFirewallRule(ctx, &models.FirewallRule{
+	err := mongostore.FirewallRuleCreate(ctx, &models.FirewallRule{
 		FirewallRuleFields: models.FirewallRuleFields{
 			Priority: 1,
 			Action:   "allow",
@@ -1004,7 +1004,7 @@ func TestListFirewallRules(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	rules, count, err := mongostore.ListFirewallRules(ctx, paginator.Query{Page: -1, PerPage: -1})
+	rules, count, err := mongostore.FirewallRuleList(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, rules)
@@ -1044,9 +1044,9 @@ func TestUpdateUID(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
-	err = mongostore.UpdateUID(ctx, models.UID(device.UID), models.UID("newUID"))
+	err = mongostore.SessionUpdateDeviceUID(ctx, models.UID(device.UID), models.UID("newUID"))
 	assert.NoError(t, err)
 }
 
@@ -1066,7 +1066,7 @@ func TestUpdateUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
-	err = mongostore.UpdateUser(ctx, "newUsername", "newUsername", "newEmail", "password", "newPassword", objID)
+	err = mongostore.UserUpdate(ctx, "newUsername", "newUsername", "newEmail", "password", "newPassword", objID)
 	assert.NoError(t, err)
 }
 
@@ -1086,7 +1086,7 @@ func TestUpdateUserFromAdmin(t *testing.T) {
 	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
-	err = mongostore.UpdateUserFromAdmin(ctx, "newName", "newUsername", "newEmail", "password", objID)
+	err = mongostore.UserUpdateFromAdmin(ctx, "newName", "newUsername", "newEmail", "password", objID)
 	assert.NoError(t, err)
 }
 
@@ -1105,7 +1105,7 @@ func TestGetDataUserSecurity(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	returnedStatus, err := mongostore.GetDataUserSecurity(ctx, namespace.TenantID)
+	returnedStatus, err := mongostore.NamespaceGetSessionRecord(ctx, namespace.TenantID)
 	assert.Equal(t, returnedStatus, namespace.Settings.SessionRecord)
 	assert.NoError(t, err)
 }
@@ -1124,7 +1124,7 @@ func TestUpdateDataUserSecurity(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	err = mongostore.UpdateDataUserSecurity(ctx, false, namespace.TenantID)
+	err = mongostore.NamespaceSetSessionRecord(ctx, false, namespace.TenantID)
 	assert.NoError(t, err)
 }
 
@@ -1143,7 +1143,7 @@ func TestListUsers(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	users, count, err := mongostore.ListUsers(ctx, paginator.Query{Page: -1, PerPage: -1}, nil)
+	users, count, err := mongostore.UserList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, users)
@@ -1202,7 +1202,7 @@ func TestListUsersWithFilter(t *testing.T) {
 			Params: &models.PropertyParams{Name: "namespaces", Operator: "gt", Value: "1"}},
 	}
 
-	users, count, err := mongostore.ListUsers(ctx, paginator.Query{Page: -1, PerPage: -1}, filters)
+	users, count, err := mongostore.UserList(ctx, paginator.Query{Page: -1, PerPage: -1}, filters)
 	assert.NoError(t, err)
 	assert.Equal(t, len(users), count)
 	assert.Equal(t, 2, count)
@@ -1240,7 +1240,7 @@ func TestGetStats(t *testing.T) {
 		LastSeen: time.Now(),
 	}
 
-	err = mongostore.AddDevice(ctx, device, "")
+	err = mongostore.DeviceCreate(ctx, device, "")
 	assert.NoError(t, err)
 
 	session := models.Session{
@@ -1251,7 +1251,7 @@ func TestGetStats(t *testing.T) {
 		Authenticated: true,
 	}
 
-	s, err := mongostore.CreateSession(ctx, session)
+	s, err := mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, s)
 
@@ -1272,7 +1272,7 @@ func TestCreateUser(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateUser(ctx, &models.User{
+	err := mongostore.UserCreate(ctx, &models.User{
 		Name:     "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
@@ -1287,13 +1287,13 @@ func TestCreateNamespace(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateUser(ctx, &models.User{
+	err := mongostore.UserCreate(ctx, &models.User{
 		Name:     "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
 	})
 	assert.NoError(t, err)
-	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
+	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -1309,13 +1309,13 @@ func TestDeleteNamespace(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateUser(ctx, &models.User{
+	err := mongostore.UserCreate(ctx, &models.User{
 		Name:     "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
 	})
 	assert.NoError(t, err)
-	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
+	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -1324,7 +1324,7 @@ func TestDeleteNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	err = mongostore.DeleteNamespace(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	err = mongostore.NamespaceDelete(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 }
 func TestGetNamespace(t *testing.T) {
@@ -1334,13 +1334,13 @@ func TestGetNamespace(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateUser(ctx, &models.User{
+	err := mongostore.UserCreate(ctx, &models.User{
 		Name:     "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
 	})
 	assert.NoError(t, err)
-	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
+	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -1349,7 +1349,7 @@ func TestGetNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	_, err = mongostore.GetNamespace(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	_, err = mongostore.NamespaceGet(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 }
 func TestListNamespaces(t *testing.T) {
@@ -1359,13 +1359,13 @@ func TestListNamespaces(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateUser(ctx, &models.User{
+	err := mongostore.UserCreate(ctx, &models.User{
 		Username: "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
 	})
 	assert.NoError(t, err)
-	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
+	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -1374,7 +1374,7 @@ func TestListNamespaces(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	_, count, err := mongostore.ListNamespaces(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, false)
+	_, count, err := mongostore.NamespaceList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, false)
 	assert.Equal(t, 1, count)
 	assert.NoError(t, err)
 }
@@ -1385,21 +1385,21 @@ func TestAddNamespaceUser(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateUser(ctx, &models.User{
+	err := mongostore.UserCreate(ctx, &models.User{
 		Username: "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
 		ID:       "user_id",
 	})
 	assert.NoError(t, err)
-	err = mongostore.CreateUser(ctx, &models.User{
+	err = mongostore.UserCreate(ctx, &models.User{
 		Username: "user2",
 		Email:    "user@shellhub.io",
 		Password: "password",
 		ID:       "user2_id",
 	})
 	assert.NoError(t, err)
-	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
+	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -1408,10 +1408,10 @@ func TestAddNamespaceUser(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	u, err := mongostore.GetUserByUsername(ctx, "user")
+	u, err := mongostore.UserGetByUsername(ctx, "user")
 	assert.NoError(t, err)
 
-	_, err = mongostore.AddNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	_, err = mongostore.NamespaceAddMember(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
 }
 
@@ -1422,7 +1422,7 @@ func TestUpdateNamespace(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateUser(ctx, &models.User{
+	err := mongostore.UserCreate(ctx, &models.User{
 		Name:     "name",
 		Username: "user",
 		Email:    "user@shellhub.io",
@@ -1430,7 +1430,7 @@ func TestUpdateNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
+	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -1440,7 +1440,7 @@ func TestUpdateNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	err = mongostore.UpdateNamespace(ctx, "tenant", &models.Namespace{
+	err = mongostore.NamespaceUpdate(ctx, "tenant", &models.Namespace{
 		Name:       "name",
 		Settings:   &models.NamespaceSettings{SessionRecord: false},
 		MaxDevices: 3,
@@ -1455,19 +1455,19 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.CreateUser(ctx, &models.User{
+	err := mongostore.UserCreate(ctx, &models.User{
 		Username: "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
 	})
 	assert.NoError(t, err)
-	err = mongostore.CreateUser(ctx, &models.User{
+	err = mongostore.UserCreate(ctx, &models.User{
 		Username: "user2",
 		Email:    "user@shellhub.io",
 		Password: "password",
 	})
 	assert.NoError(t, err)
-	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
+	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -1476,13 +1476,13 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	u, err := mongostore.GetUserByUsername(ctx, "user")
+	u, err := mongostore.UserGetByUsername(ctx, "user")
 	assert.NoError(t, err)
 
-	_, err = mongostore.AddNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	_, err = mongostore.NamespaceAddMember(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
 
-	_, err = mongostore.RemoveNamespaceUser(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	_, err = mongostore.NamespaceRemoveMember(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
 }
 
@@ -1493,7 +1493,7 @@ func TestLoadLicense(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.SaveLicense(ctx, &models.License{
+	err := mongostore.LicenseSave(ctx, &models.License{
 		RawData:   []byte("bar"),
 		CreatedAt: time.Now().Local().Truncate(time.Millisecond),
 	})
@@ -1504,10 +1504,10 @@ func TestLoadLicense(t *testing.T) {
 		CreatedAt: time.Now().Local().Truncate(time.Millisecond),
 	}
 
-	err = mongostore.SaveLicense(ctx, license)
+	err = mongostore.LicenseSave(ctx, license)
 	assert.NoError(t, err)
 
-	loadedLicense, err := mongostore.LoadLicense(ctx)
+	loadedLicense, err := mongostore.LicenseLoad(ctx)
 	assert.NoError(t, err)
 
 	assert.True(t, license.CreatedAt.Equal(loadedLicense.CreatedAt))
@@ -1524,7 +1524,7 @@ func TestSaveLicense(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
 
-	err := mongostore.SaveLicense(ctx, &models.License{
+	err := mongostore.LicenseSave(ctx, &models.License{
 		RawData:   []byte("foo"),
 		CreatedAt: time.Now().Truncate(time.Millisecond),
 	})
@@ -1540,7 +1540,7 @@ func TestCreatePublicKey(t *testing.T) {
 	newKey := &models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste1", Hostname: ".*"},
 	}
-	err := mongostore.CreatePublicKey(ctx, newKey)
+	err := mongostore.PublicKeyCreate(ctx, newKey)
 	assert.NoError(t, err)
 }
 
@@ -1564,7 +1564,7 @@ func TestListPublicKeys(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
 	assert.NoError(t, err)
 
-	_, count, err := mongostore.ListPublicKeys(ctx, paginator.Query{Page: -1, PerPage: -1})
+	_, count, err := mongostore.PublicKeyList(ctx, paginator.Query{Page: -1, PerPage: -1})
 	assert.Equal(t, 1, count)
 	assert.NoError(t, err)
 }
@@ -1589,7 +1589,7 @@ func TestListGetPublicKey(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
 	assert.NoError(t, err)
 
-	k, err := mongostore.GetPublicKey(ctx, key.Fingerprint, key.TenantID)
+	k, err := mongostore.PublicKeyGet(ctx, key.Fingerprint, key.TenantID)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, k)
 }
@@ -1626,10 +1626,10 @@ func TestUpdatePublicKey(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, key)
 	assert.NoError(t, err)
 
-	k, err := mongostore.UpdatePublicKey(ctx, key.Fingerprint, key.TenantID, update)
+	k, err := mongostore.PublicKeyUpdate(ctx, key.Fingerprint, key.TenantID, update)
 	assert.NoError(t, err)
 	assert.Equal(t, k, updatedKey)
-	_, err = mongostore.UpdatePublicKey(ctx, unexistingKey.Fingerprint, unexistingKey.TenantID, update)
+	_, err = mongostore.PublicKeyUpdate(ctx, unexistingKey.Fingerprint, unexistingKey.TenantID, update)
 	assert.EqualError(t, err, "public key not found")
 }
 
@@ -1655,6 +1655,6 @@ func TestDeletePublicKey(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	err = mongostore.DeletePublicKey(ctx, newKey.Fingerprint, newKey.TenantID)
+	err = mongostore.PublicKeyDelete(ctx, newKey.Fingerprint, newKey.TenantID)
 	assert.NoError(t, err)
 }

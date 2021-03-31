@@ -95,11 +95,11 @@ func AuthUserInfo(c apicontext.Context) error {
 	username := c.Request().Header.Get("X-Username")
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 
-	user, err := c.Store().GetUserByUsername(c.Ctx(), username)
+	user, err := c.Store().UserGetByUsername(c.Ctx(), username)
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
-	namespace, err := c.Store().GetNamespace(c.Ctx(), tenant)
+	namespace, err := c.Store().NamespaceGet(c.Ctx(), tenant)
 
 	if err != nil {
 		switch {

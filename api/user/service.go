@@ -36,7 +36,7 @@ func NewService(store store.Store) Service {
 func (s *service) UpdateDataUser(ctx context.Context, name, username, email, currentPassword, newPassword, ID string) ([]InvalidField, error) {
 	var invalidFields []InvalidField
 
-	user, err := s.store.GetUserByID(ctx, ID)
+	user, err := s.store.UserGetByID(ctx, ID)
 
 	if err != nil {
 		return invalidFields, err
@@ -47,12 +47,12 @@ func (s *service) UpdateDataUser(ctx context.Context, name, username, email, cur
 
 	var checkName, checkEmail bool
 
-	user, err = s.store.GetUserByUsername(ctx, username)
+	user, err = s.store.UserGetByUsername(ctx, username)
 	if err == nil && user.ID != ID {
 		checkName = true
 		invalidFields = append(invalidFields, InvalidField{"username", conflictName, "conflict"})
 	}
-	user, err = s.store.GetUserByEmail(ctx, email)
+	user, err = s.store.UserGetByEmail(ctx, email)
 	if err == nil && user.ID != ID {
 		checkEmail = true
 		invalidFields = append(invalidFields, InvalidField{"email", conflictEmail, "conflict"})
@@ -60,5 +60,5 @@ func (s *service) UpdateDataUser(ctx context.Context, name, username, email, cur
 	if checkName || checkEmail {
 		return invalidFields, ErrConflict
 	}
-	return invalidFields, s.store.UpdateUser(ctx, name, username, email, currentPassword, newPassword, ID)
+	return invalidFields, s.store.UserUpdate(ctx, name, username, email, currentPassword, newPassword, ID)
 }

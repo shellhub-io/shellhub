@@ -8,13 +8,13 @@ import (
 )
 
 type SessionStore interface {
-	ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error)
-	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
-	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)
-	SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error
-	KeepAliveSession(ctx context.Context, uid models.UID) error
-	DeactivateSession(ctx context.Context, uid models.UID) error
-	RecordSession(ctx context.Context, uid models.UID, record string, width, height int) error
-	UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
-	GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
+	SessionList(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error)
+	SessionGet(ctx context.Context, uid models.UID) (*models.Session, error)
+	SessionCreate(ctx context.Context, session models.Session) (*models.Session, error)
+	SessionSetAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error
+	SessionSetLastSeen(ctx context.Context, uid models.UID) error
+	SessionDeleteActives(ctx context.Context, uid models.UID) error
+	SessionCreateRecordFrame(ctx context.Context, uid models.UID, record string, width, height int) error
+	SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
+	SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
 }

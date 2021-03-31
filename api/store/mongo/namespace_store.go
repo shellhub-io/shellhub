@@ -11,34 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *Store) GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error) {
-	ns := new(models.Namespace)
-
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": namespace}).Decode(&ns); err != nil {
-		return ns, err
-	}
-
-	countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": namespace, "status": "accepted"})
-	if err != nil {
-		return nil, err
-	}
-
-	ns.DevicesCount = int(countDevice)
-
-	return ns, nil
-}
-
-func (s *Store) GetNamespaceByName(ctx context.Context, namespace string) (*models.Namespace, error) {
-	ns := new(models.Namespace)
-
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
-		return nil, err
-	}
-
-	return ns, nil
-}
-
-func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error) {
+func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error) {
 	query := []bson.M{}
 	queryMatch, err := buildFilterQuery(filters)
 	if err != nil {
@@ -86,7 +59,7 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 
 	// Only match for the respective tenant if requested
 	if id := apicontext.IDFromContext(ctx); id != nil {
-		user, err := s.GetUserByID(ctx, id.ID)
+		user, err := s.UserGetByID(ctx, id.ID)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -132,12 +105,39 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 	return namespaces, count, err
 }
 
-func (s *Store) CreateNamespace(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
+func (s *Store) NamespaceGet(ctx context.Context, namespace string) (*models.Namespace, error) {
+	ns := new(models.Namespace)
+
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": namespace}).Decode(&ns); err != nil {
+		return ns, err
+	}
+
+	countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": namespace, "status": "accepted"})
+	if err != nil {
+		return nil, err
+	}
+
+	ns.DevicesCount = int(countDevice)
+
+	return ns, nil
+}
+
+func (s *Store) NamespaceGetByName(ctx context.Context, namespace string) (*models.Namespace, error) {
+	ns := new(models.Namespace)
+
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
+		return nil, err
+	}
+
+	return ns, nil
+}
+
+func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
 	_, err := s.db.Collection("namespaces").InsertOne(ctx, namespace)
 	return namespace, err
 }
 
-func (s *Store) DeleteNamespace(ctx context.Context, namespace string) error {
+func (s *Store) NamespaceDelete(ctx context.Context, namespace string) error {
 	if _, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": namespace}); err != nil {
 		return err
 	}
@@ -152,21 +152,21 @@ func (s *Store) DeleteNamespace(ctx context.Context, namespace string) error {
 	return nil
 }
 
-func (s *Store) EditNamespace(ctx context.Context, namespace, name string) (*models.Namespace, error) {
+func (s *Store) NamespaceRename(ctx context.Context, namespace, name string) (*models.Namespace, error) {
 	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$set": bson.M{"name": name}}); err != nil {
 		return nil, err
 	}
-	return s.GetNamespace(ctx, namespace)
+	return s.NamespaceGet(ctx, namespace)
 }
 
-func (s *Store) UpdateNamespace(ctx context.Context, tenant string, namespace *models.Namespace) error {
+func (s *Store) NamespaceUpdate(ctx context.Context, tenant string, namespace *models.Namespace) error {
 	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"name": namespace.Name, "max_devices": namespace.MaxDevices, "settings.session_record": namespace.Settings.SessionRecord}}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Store) AddNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
+func (s *Store) NamespaceAddMember(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
 	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$addToSet": bson.M{"members": ID}})
 	if err != nil {
 		return nil, err
@@ -174,10 +174,10 @@ func (s *Store) AddNamespaceUser(ctx context.Context, namespace, ID string) (*mo
 	if result.ModifiedCount == 0 {
 		return nil, ErrDuplicateID
 	}
-	return s.GetNamespace(ctx, namespace)
+	return s.NamespaceGet(ctx, namespace)
 }
 
-func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
+func (s *Store) NamespaceRemoveMember(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
 	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$pull": bson.M{"members": ID}})
 	if err != nil {
 		return nil, err
@@ -185,10 +185,10 @@ func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) (
 	if result.ModifiedCount == 0 {
 		return nil, ErrUserNotFound
 	}
-	return s.GetNamespace(ctx, namespace)
+	return s.NamespaceGet(ctx, namespace)
 }
 
-func (s *Store) GetSomeNamespace(ctx context.Context, ID string) (*models.Namespace, error) {
+func (s *Store) NamespaceGetFirst(ctx context.Context, ID string) (*models.Namespace, error) {
 	ns := new(models.Namespace)
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": ID}).Decode(&ns); err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -200,8 +200,8 @@ func (s *Store) GetSomeNamespace(ctx context.Context, ID string) (*models.Namesp
 	return ns, nil
 }
 
-func (s *Store) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
-	ns, err := s.GetNamespace(ctx, tenant)
+func (s *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenant string) error {
+	ns, err := s.NamespaceGet(ctx, tenant)
 
 	if err != nil || ns == nil {
 		return err
@@ -214,8 +214,8 @@ func (s *Store) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, 
 	return nil
 }
 
-func (s *Store) GetDataUserSecurity(ctx context.Context, tenant string) (bool, error) {
-	ns, err := s.GetNamespace(ctx, tenant)
+func (s *Store) NamespaceGetSessionRecord(ctx context.Context, tenant string) (bool, error) {
+	ns, err := s.NamespaceGet(ctx, tenant)
 
 	if err != nil && ns == nil {
 		return false, err

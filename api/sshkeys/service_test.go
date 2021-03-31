@@ -24,7 +24,7 @@ func TestListPublicKeys(t *testing.T) {
 
 	query := paginator.Query{Page: 1, PerPage: 10}
 
-	mock.On("ListPublicKeys", ctx, query).Return(keys, len(keys), nil).Once()
+	mock.On("PublicKeyList", ctx, query).Return(keys, len(keys), nil).Once()
 
 	returnedKeys, count, err := s.ListPublicKeys(ctx, query)
 	assert.NoError(t, err)
@@ -43,7 +43,7 @@ func TestGetPublicKeys(t *testing.T) {
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
 
-	mock.On("GetPublicKey", ctx, key.Fingerprint, key.TenantID).Return(key, nil).Once()
+	mock.On("PublicKeyGet", ctx, key.Fingerprint, key.TenantID).Return(key, nil).Once()
 
 	returnedKey, err := s.GetPublicKey(ctx, key.Fingerprint, key.TenantID)
 	assert.NoError(t, err)
@@ -68,7 +68,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
 	}
 
-	mock.On("UpdatePublicKey", ctx, key.Fingerprint, key.TenantID, keyUpdate).Return(newKey, nil).Once()
+	mock.On("PublicKeyUpdate", ctx, key.Fingerprint, key.TenantID, keyUpdate).Return(newKey, nil).Once()
 
 	returnedKey, err := s.UpdatePublicKey(ctx, key.Fingerprint, key.TenantID, keyUpdate)
 	assert.NoError(t, err)
@@ -86,7 +86,7 @@ func TestDeletePublicKeys(t *testing.T) {
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
 
-	mock.On("DeletePublicKey", ctx, key.Fingerprint, key.TenantID).Return(nil).Once()
+	mock.On("PublicKeyDelete", ctx, key.Fingerprint, key.TenantID).Return(nil).Once()
 
 	err := s.DeletePublicKey(ctx, key.Fingerprint, key.TenantID)
 	assert.NoError(t, err)
