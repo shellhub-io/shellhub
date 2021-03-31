@@ -109,7 +109,6 @@ export default {
   methods: {
     close() {
       this.$emit('update:show', false);
-      localStorage.setItem('noNamespace', true);
     },
   },
 };

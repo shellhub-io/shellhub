@@ -218,7 +218,9 @@ export default {
 
   async created() {
     await this.getNamespaces();
-    await this.getNamespace();
+    if (this.inANamespace) {
+      await this.getNamespace();
+    }
   },
 
   methods: {

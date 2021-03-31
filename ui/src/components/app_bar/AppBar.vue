@@ -138,6 +138,7 @@ export default {
   methods: {
     logout() {
       this.$store.dispatch('auth/logout').then(() => {
+        this.$store.dispatch('namespaces/clearNamespaceList');
         this.$router.push('/login');
       });
     },
