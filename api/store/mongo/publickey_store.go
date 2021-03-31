@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *Store) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
+func (s *Store) PublicKeyGet(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
 	pubKey := new(models.PublicKey)
 	if tenant != "" {
 		if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenant}).Decode(&pubKey); err != nil {
@@ -35,7 +35,7 @@ func (s *Store) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*
 	return pubKey, nil
 }
 
-func (s *Store) ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
+func (s *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
 	query := []bson.M{
 		{
 			"$sort": bson.M{
@@ -81,7 +81,7 @@ func (s *Store) ListPublicKeys(ctx context.Context, pagination paginator.Query) 
 	return list, count, err
 }
 
-func (s *Store) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
+func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) error {
 	if err := key.Validate(); err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (s *Store) CreatePublicKey(ctx context.Context, key *models.PublicKey) erro
 	return err
 }
 
-func (s *Store) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
+func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
 	if err := key.Validate(); err != nil {
 		return nil, err
 	}
@@ -111,10 +111,10 @@ func (s *Store) UpdatePublicKey(ctx context.Context, fingerprint, tenant string,
 		return nil, err
 	}
 
-	return s.GetPublicKey(ctx, fingerprint, tenant)
+	return s.PublicKeyGet(ctx, fingerprint, tenant)
 }
 
-func (s *Store) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
+func (s *Store) PublicKeyDelete(ctx context.Context, fingerprint, tenant string) error {
 	_, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenant})
 	return err
 }

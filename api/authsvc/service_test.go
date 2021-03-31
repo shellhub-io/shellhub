@@ -48,15 +48,15 @@ func TestAuthDevice(t *testing.T) {
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
-	mock.On("AddDevice", ctx, *device, "").
+	mock.On("DeviceCreate", ctx, *device, "").
 		Return(nil).Once()
-	mock.On("UpdateDeviceStatus", ctx, models.UID(device.UID), true).
+	mock.On("DeviceSetOnline", ctx, models.UID(device.UID), true).
 		Return(nil).Once()
-	mock.On("KeepAliveSession", ctx, models.UID(authReq.Sessions[0])).
+	mock.On("SessionSetLastSeen", ctx, models.UID(authReq.Sessions[0])).
 		Return(nil).Once()
-	mock.On("GetDevice", ctx, models.UID(device.UID)).
+	mock.On("DeviceGet", ctx, models.UID(device.UID)).
 		Return(device, nil).Once()
-	mock.On("GetNamespace", ctx, namespace.TenantID).
+	mock.On("NamespaceGet", ctx, namespace.TenantID).
 		Return(namespace, nil).Once()
 
 	// Mock time.Now using monkey patch
@@ -100,9 +100,9 @@ func TestAuthUser(t *testing.T) {
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
-	mock.On("GetUserByUsername", ctx, authReq.Username).
+	mock.On("UserGetByUsername", ctx, authReq.Username).
 		Return(user, nil).Once()
-	mock.On("GetSomeNamespace", ctx, user.ID).
+	mock.On("NamespaceGetFirst", ctx, user.ID).
 		Return(namespace, nil).Once()
 
 	authRes, err := s.AuthUser(ctx, *authReq)

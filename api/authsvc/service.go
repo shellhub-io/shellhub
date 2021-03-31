@@ -69,7 +69,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 	}
 	hostname := strings.ToLower(req.DeviceAuth.Hostname)
 
-	if err := s.store.AddDevice(ctx, device, hostname); err != nil {
+	if err := s.store.DeviceCreate(ctx, device, hostname); err != nil {
 		return nil, err
 	}
 
@@ -85,22 +85,22 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		return nil, err
 	}
 
-	if err := s.store.UpdateDeviceStatus(ctx, models.UID(device.UID), true); err != nil {
+	if err := s.store.DeviceSetOnline(ctx, models.UID(device.UID), true); err != nil {
 		return nil, err
 	}
 
 	for _, uid := range req.Sessions {
-		if err := s.store.KeepAliveSession(ctx, models.UID(uid)); err != nil {
+		if err := s.store.SessionSetLastSeen(ctx, models.UID(uid)); err != nil {
 			continue
 		}
 	}
 
-	dev, err := s.store.GetDevice(ctx, models.UID(device.UID))
+	dev, err := s.store.DeviceGet(ctx, models.UID(device.UID))
 	if err != nil {
 		return nil, err
 	}
 
-	namespace, err := s.store.GetNamespace(ctx, device.TenantID)
+	namespace, err := s.store.NamespaceGet(ctx, device.TenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -114,15 +114,15 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 }
 
 func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error) {
-	user, err := s.store.GetUserByUsername(ctx, strings.ToLower(req.Username))
+	user, err := s.store.UserGetByUsername(ctx, strings.ToLower(req.Username))
 	if err != nil {
-		user, err = s.store.GetUserByEmail(ctx, strings.ToLower(req.Username))
+		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(req.Username))
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	namespace, err := s.store.GetSomeNamespace(ctx, user.ID)
+	namespace, err := s.store.NamespaceGetFirst(ctx, user.ID)
 	if err != nil && err != store.ErrNamespaceNoDocuments {
 		return nil, err
 	}
@@ -165,12 +165,12 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 }
 
 func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuthResponse, error) {
-	user, err := s.store.GetUserByID(ctx, ID)
+	user, err := s.store.UserGetByID(ctx, ID)
 	if err != nil {
 		return nil, err
 	}
 
-	namespace, err := s.store.GetSomeNamespace(ctx, user.ID)
+	namespace, err := s.store.NamespaceGetFirst(ctx, user.ID)
 	if err != nil && err != store.ErrNamespaceNoDocuments {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuth
 }
 
 func (s *service) AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error) {
-	privKey, err := s.store.GetPrivateKey(ctx, req.Fingerprint)
+	privKey, err := s.store.PrivateKeyGet(ctx, req.Fingerprint)
 	if err != nil {
 		return nil, err
 	}
@@ -235,12 +235,12 @@ func (s *service) AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRe
 }
 
 func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models.UserAuthResponse, error) {
-	namespace, err := s.store.GetNamespace(ctx, tenant)
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := s.store.GetUserByID(ctx, id)
+	user, err := s.store.UserGetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}

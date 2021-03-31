@@ -8,13 +8,13 @@ import (
 )
 
 type UserStore interface {
-	ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error)
-	CreateUser(ctx context.Context, user *models.User) error
-	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
-	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
-	GetUserByTenant(ctx context.Context, tenant string) (*models.User, error)
-	GetUserByID(ctx context.Context, ID string) (*models.User, error)
-	UpdateUser(ctx context.Context, name, username, email, currentPassword, newPassword, ID string) error
-	UpdateUserFromAdmin(ctx context.Context, name, username, email, password, ID string) error
-	DeleteUser(ctx context.Context, ID string) error
+	UserList(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error)
+	UserCreate(ctx context.Context, user *models.User) error
+	UserGetByUsername(ctx context.Context, username string) (*models.User, error)
+	UserGetByEmail(ctx context.Context, email string) (*models.User, error)
+	UserGetByTenant(ctx context.Context, tenant string) (*models.User, error)
+	UserGetByID(ctx context.Context, ID string) (*models.User, error)
+	UserUpdate(ctx context.Context, name, username, email, currentPassword, newPassword, ID string) error
+	UserUpdateFromAdmin(ctx context.Context, name, username, email, password, ID string) error
+	UserDelete(ctx context.Context, ID string) error
 }

@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
+func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
 	query := []bson.M{}
 
 	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
@@ -84,7 +84,7 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 	return users, count, err
 }
 
-func (s *Store) CreateUser(ctx context.Context, user *models.User) error {
+func (s *Store) UserCreate(ctx context.Context, user *models.User) error {
 	_, err := s.db.Collection("users").InsertOne(ctx, user)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key error") {
@@ -95,7 +95,7 @@ func (s *Store) CreateUser(ctx context.Context, user *models.User) error {
 	return err
 }
 
-func (s *Store) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+func (s *Store) UserGetByUsername(ctx context.Context, username string) (*models.User, error) {
 	user := new(models.User)
 
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": username}).Decode(&user); err != nil {
@@ -105,7 +105,7 @@ func (s *Store) GetUserByUsername(ctx context.Context, username string) (*models
 	return user, nil
 }
 
-func (s *Store) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+func (s *Store) UserGetByEmail(ctx context.Context, email string) (*models.User, error) {
 	user := new(models.User)
 
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"email": email}).Decode(&user); err != nil {
@@ -115,7 +115,7 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*models.User,
 	return user, nil
 }
 
-func (s *Store) GetUserByID(ctx context.Context, ID string) (*models.User, error) {
+func (s *Store) UserGetByID(ctx context.Context, ID string) (*models.User, error) {
 	user := new(models.User)
 	objID, _ := primitive.ObjectIDFromHex(ID)
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
@@ -124,8 +124,8 @@ func (s *Store) GetUserByID(ctx context.Context, ID string) (*models.User, error
 	return user, nil
 }
 
-func (s *Store) UpdateUser(ctx context.Context, name, username, email, currentPassword, newPassword, ID string) error {
-	user, err := s.GetUserByID(ctx, ID)
+func (s *Store) UserUpdate(ctx context.Context, name, username, email, currentPassword, newPassword, ID string) error {
+	user, err := s.UserGetByID(ctx, ID)
 	objID, _ := primitive.ObjectIDFromHex(ID)
 
 	if err != nil {
@@ -157,8 +157,8 @@ func (s *Store) UpdateUser(ctx context.Context, name, username, email, currentPa
 	return nil
 }
 
-func (s *Store) UpdateUserFromAdmin(ctx context.Context, name, username, email, password, ID string) error {
-	user, err := s.GetUserByID(ctx, ID)
+func (s *Store) UserUpdateFromAdmin(ctx context.Context, name, username, email, password, ID string) error {
+	user, err := s.UserGetByID(ctx, ID)
 	objID, _ := primitive.ObjectIDFromHex(ID)
 
 	if err != nil {
@@ -190,7 +190,7 @@ func (s *Store) UpdateUserFromAdmin(ctx context.Context, name, username, email, 
 	return nil
 }
 
-func (s *Store) DeleteUser(ctx context.Context, ID string) error {
+func (s *Store) UserDelete(ctx context.Context, ID string) error {
 	objID, _ := primitive.ObjectIDFromHex(ID)
 	_, err := s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
 	if err != nil {
@@ -212,7 +212,7 @@ func (s *Store) DeleteUser(ctx context.Context, ID string) error {
 			return err
 		}
 
-		err = s.DeleteNamespace(ctx, namespace.TenantID)
+		err = s.NamespaceDelete(ctx, namespace.TenantID)
 		if err != nil {
 			return err
 		}

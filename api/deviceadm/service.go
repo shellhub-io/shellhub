@@ -37,12 +37,12 @@ func NewService(store store.Store) Service {
 }
 
 func (s *service) isNamespaceOnwer(ctx context.Context, tenant, username string) error {
-	namespace, err := s.store.GetNamespace(ctx, tenant)
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil {
 		return err
 	}
 
-	user, err := s.store.GetUserByUsername(ctx, username)
+	user, err := s.store.UserGetByUsername(ctx, username)
 	if err != nil {
 		return err
 	}
@@ -65,11 +65,11 @@ func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, f
 		return nil, 0, err
 	}
 
-	return s.store.ListDevices(ctx, pagination, filter, status, sort, order)
+	return s.store.DeviceList(ctx, pagination, filter, status, sort, order)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
-	return s.store.GetDevice(ctx, uid)
+	return s.store.DeviceGet(ctx, uid)
 }
 
 func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, username string) error {
@@ -78,9 +78,9 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, user
 		return err
 	}
 
-	device, _ := s.store.GetDeviceByUID(ctx, uid, tenant)
+	device, _ := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if device != nil {
-		return s.store.DeleteDevice(ctx, uid)
+		return s.store.DeviceDelete(ctx, uid)
 	}
 	return ErrUnauthorized
 }
@@ -91,16 +91,16 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		return err
 	}
 
-	device, _ := s.store.GetDeviceByUID(ctx, uid, tenant)
+	device, _ := s.store.DeviceGetByUID(ctx, uid, tenant)
 	validate := validator.New()
 	name = strings.ToLower(name)
 	if device != nil {
 		if device.Name != name {
 			device.Name = name
 			if err := validate.Struct(device); err == nil {
-				otherDevice, _ := s.store.GetDeviceByName(ctx, name, tenant)
+				otherDevice, _ := s.store.DeviceGetByName(ctx, name, tenant)
 				if otherDevice == nil {
-					return s.store.RenameDevice(ctx, uid, name)
+					return s.store.DeviceRename(ctx, uid, name)
 				}
 			}
 		}
@@ -109,11 +109,11 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 }
 
 func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
-	return s.store.LookupDevice(ctx, namespace, name)
+	return s.store.DeviceLookup(ctx, namespace, name)
 }
 
 func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
-	return s.store.UpdateDeviceStatus(ctx, uid, online)
+	return s.store.DeviceSetOnline(ctx, uid, online)
 }
 
 func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, username string) error {
@@ -122,23 +122,23 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 		return err
 	}
 
-	device, _ := s.store.GetDeviceByUID(ctx, uid, tenant)
+	device, _ := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if device != nil {
 		if status == "accepted" {
-			sameMacDev, _ := s.store.GetDeviceByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
+			sameMacDev, _ := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
 
 			if sameMacDev != nil && sameMacDev.UID != device.UID {
-				if err := s.store.UpdateUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil {
+				if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil {
 					return err
 				}
-				if err := s.store.DeleteDevice(ctx, models.UID(sameMacDev.UID)); err != nil {
+				if err := s.store.DeviceDelete(ctx, models.UID(sameMacDev.UID)); err != nil {
 					return err
 				}
-				if err := s.store.RenameDevice(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
+				if err := s.store.DeviceRename(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
 					return err
 				}
 			} else {
-				ns, err := s.store.GetNamespace(ctx, device.TenantID)
+				ns, err := s.store.NamespaceGet(ctx, device.TenantID)
 				if err != nil {
 					return err
 				}
@@ -148,7 +148,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 				}
 			}
 		}
-		return s.store.UpdatePendingStatus(ctx, uid, status)
+		return s.store.DeviceUpdateStatus(ctx, uid, status)
 	}
 	return ErrUnauthorized
 }

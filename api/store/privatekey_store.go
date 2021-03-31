@@ -7,6 +7,6 @@ import (
 )
 
 type PrivateKeyStore interface {
-	CreatePrivateKey(ctx context.Context, key *models.PrivateKey) error
-	GetPrivateKey(ctx context.Context, fingerprint string) (*models.PrivateKey, error)
+	PrivateKeyCreate(ctx context.Context, key *models.PrivateKey) error
+	PrivateKeyGet(ctx context.Context, fingerprint string) (*models.PrivateKey, error)
 }

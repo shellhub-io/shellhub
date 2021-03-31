@@ -10,21 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s *Store) CreateFirewallRule(ctx context.Context, rule *models.FirewallRule) error {
-	if err := rule.Validate(); err != nil {
-		return err
-	}
-
-	rule.ID = primitive.NewObjectID().Hex()
-
-	if _, err := s.db.Collection("firewall_rules").InsertOne(ctx, &rule); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *Store) ListFirewallRules(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error) {
+func (s *Store) FirewallRuleList(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error) {
 	query := []bson.M{
 		{
 			"$sort": bson.M{
@@ -70,7 +56,21 @@ func (s *Store) ListFirewallRules(ctx context.Context, pagination paginator.Quer
 	return rules, count, err
 }
 
-func (s *Store) GetFirewallRule(ctx context.Context, id string) (*models.FirewallRule, error) {
+func (s *Store) FirewallRuleCreate(ctx context.Context, rule *models.FirewallRule) error {
+	if err := rule.Validate(); err != nil {
+		return err
+	}
+
+	rule.ID = primitive.NewObjectID().Hex()
+
+	if _, err := s.db.Collection("firewall_rules").InsertOne(ctx, &rule); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) FirewallRuleGet(ctx context.Context, id string) (*models.FirewallRule, error) {
 	rule := new(models.FirewallRule)
 	if err := s.db.Collection("firewall_rules").FindOne(ctx, bson.M{"_id": id}).Decode(&rule); err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (s *Store) GetFirewallRule(ctx context.Context, id string) (*models.Firewal
 	return rule, nil
 }
 
-func (s *Store) UpdateFirewallRule(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error) {
+func (s *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error) {
 	if err := rule.Validate(); err != nil {
 		return nil, err
 	}
@@ -88,11 +88,11 @@ func (s *Store) UpdateFirewallRule(ctx context.Context, id string, rule models.F
 		return nil, err
 	}
 
-	r, err := s.GetFirewallRule(ctx, id)
+	r, err := s.FirewallRuleGet(ctx, id)
 	return r, err
 }
 
-func (s *Store) DeleteFirewallRule(ctx context.Context, id string) error {
+func (s *Store) FirewallRuleDelete(ctx context.Context, id string) error {
 	if _, err := s.db.Collection("firewall_rules").DeleteOne(ctx, bson.M{"_id": id}); err != nil {
 		return err
 	}

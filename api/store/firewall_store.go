@@ -8,9 +8,9 @@ import (
 )
 
 type FirewallStore interface {
-	CreateFirewallRule(ctx context.Context, rule *models.FirewallRule) error
-	ListFirewallRules(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error)
-	GetFirewallRule(ctx context.Context, id string) (*models.FirewallRule, error)
-	UpdateFirewallRule(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error)
-	DeleteFirewallRule(ctx context.Context, id string) error
+	FirewallRuleList(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error)
+	FirewallRuleCreate(ctx context.Context, rule *models.FirewallRule) error
+	FirewallRuleGet(ctx context.Context, id string) (*models.FirewallRule, error)
+	FirewallRuleUpdate(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error)
+	FirewallRuleDelete(ctx context.Context, id string) error
 }

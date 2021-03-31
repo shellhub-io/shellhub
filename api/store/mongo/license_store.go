@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *Store) LoadLicense(ctx context.Context) (*models.License, error) {
+func (s *Store) LicenseLoad(ctx context.Context) (*models.License, error) {
 	findOpts := options.FindOne()
 	findOpts.SetSort(bson.M{"created_at": -1})
 
@@ -20,7 +20,7 @@ func (s *Store) LoadLicense(ctx context.Context) (*models.License, error) {
 	return license, nil
 }
 
-func (s *Store) SaveLicense(ctx context.Context, license *models.License) error {
+func (s *Store) LicenseSave(ctx context.Context, license *models.License) error {
 	_, err := s.db.Collection("licenses").InsertOne(ctx, license)
 	return err
 }

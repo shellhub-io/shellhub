@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *Store) ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error) {
+func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error) {
 	query := []bson.M{
 		{
 			"$sort": bson.M{
@@ -65,7 +65,7 @@ func (s *Store) ListSessions(ctx context.Context, pagination paginator.Query) ([
 			return sessions, count, err
 		}
 
-		device, err := s.GetDevice(ctx, session.DeviceUID)
+		device, err := s.DeviceGet(ctx, session.DeviceUID)
 		if err != nil {
 			return sessions, count, err
 		}
@@ -77,7 +77,7 @@ func (s *Store) ListSessions(ctx context.Context, pagination paginator.Query) ([
 	return sessions, count, err
 }
 
-func (s *Store) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
+func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{"uid": uid},
@@ -120,7 +120,7 @@ func (s *Store) GetSession(ctx context.Context, uid models.UID) (*models.Session
 		return nil, err
 	}
 
-	device, err := s.GetDevice(ctx, session.DeviceUID)
+	device, err := s.DeviceGet(ctx, session.DeviceUID)
 	if err != nil {
 		return nil, err
 	}
@@ -130,17 +130,17 @@ func (s *Store) GetSession(ctx context.Context, uid models.UID) (*models.Session
 	return session, nil
 }
 
-func (s *Store) SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
+func (s *Store) SessionSetAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
 	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"authenticated": authenticated}})
 	return err
 }
 
-func (s *Store) CreateSession(ctx context.Context, session models.Session) (*models.Session, error) {
+func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
 	session.StartedAt = time.Now()
 	session.LastSeen = session.StartedAt
 	session.Recorded = false
 
-	device, err := s.GetDevice(ctx, session.DeviceUID)
+	device, err := s.DeviceGet(ctx, session.DeviceUID)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func (s *Store) CreateSession(ctx context.Context, session models.Session) (*mod
 	return &session, nil
 }
 
-func (s *Store) KeepAliveSession(ctx context.Context, uid models.UID) error {
+func (s *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 	session := models.Session{}
 
 	err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": uid}).Decode(&session)
@@ -191,7 +191,7 @@ func (s *Store) KeepAliveSession(ctx context.Context, uid models.UID) error {
 	return nil
 }
 
-func (s *Store) DeactivateSession(ctx context.Context, uid models.UID) error {
+func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error {
 	session := new(models.Session)
 	if err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": uid}).Decode(&session); err != nil {
 		return err
@@ -208,9 +208,9 @@ func (s *Store) DeactivateSession(ctx context.Context, uid models.UID) error {
 	return err
 }
 
-func (s *Store) RecordSession(ctx context.Context, uid models.UID, recordMessage string, width, height int) error {
+func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordMessage string, width, height int) error {
 	record := new(models.RecordedSession)
-	session, _ := s.GetSession(ctx, uid)
+	session, _ := s.SessionGet(ctx, uid)
 	record.UID = uid
 	record.Message = recordMessage
 	record.Width = width
@@ -229,12 +229,12 @@ func (s *Store) RecordSession(ctx context.Context, uid models.UID, recordMessage
 	return nil
 }
 
-func (s *Store) UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
+func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
 	_, err := s.db.Collection("sessions").UpdateMany(ctx, bson.M{"device_uid": oldUID}, bson.M{"$set": bson.M{"device_uid": newUID}})
 	return err
 }
 
-func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error) {
+func (s *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error) {
 	sessionRecord := make([]models.RecordedSession, 0)
 
 	query := []bson.M{
