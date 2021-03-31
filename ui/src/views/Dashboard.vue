@@ -75,6 +75,7 @@
     <Welcome
       :show.sync="show"
     />
+
     <NamespaceInstructions
       :show.sync="showInstructions"
     />
@@ -146,28 +147,33 @@ export default {
       return localStorage.getItem('tenant') !== '';
     },
 
-    onceShow() {
-      return localStorage.getItem('noNamespace') !== null;
+    isLoggedIn() {
+      return this.$store.getters['auth/isLoggedIn'];
     },
   },
 
   async created() {
     try {
-      await this.$store.dispatch('stats/get');
-      this.showScreenWelcome();
-    } catch (e) {
-      if (this.onceShow) {
-        switch (true) {
-        case (e.response.status === 403): {
-          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
-          break;
+      if (this.isLoggedIn) {
+        await this.getNamespaces();
+
+        if (this.hasNamespaces) {
+          await this.$store.dispatch('stats/get');
+          this.showScreenWelcome();
+        } else {
+          // This shows the namespace instructions when the user has no namespace
+          this.showInstructions = true;
         }
-        default: {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.dashboard);
-        }
-        }
-      } else {
-        this.showNamespaceInstructions();
+      }
+    } catch (err) {
+      switch (true) {
+      case (err.response.status === 403): {
+        this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+        break;
+      }
+      default: {
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.dashboard);
+      }
       }
     }
   },
@@ -182,17 +188,6 @@ export default {
       return JSON.parse(localStorage.getItem('namespacesWelcome'))[tenant] !== undefined;
     },
 
-    showNamespaceInstructions() {
-      let status = false;
-
-      if (localStorage.getItem('noNamespace') === null && !this.hasNamespaces) {
-        localStorage.setItem('noNamespace', true);
-
-        status = true;
-      }
-      this.showInstructions = status;
-    },
-
     hasDevices() {
       return this.stats.registered_devices !== 0
         || this.stats.pending_devices !== 0
@@ -204,6 +199,25 @@ export default {
         await this.$store.dispatch('namespaces/get', localStorage.getItem('tenant'));
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceLoad);
+      }
+    },
+
+    async getNamespaces() {
+      try {
+        await this.$store.dispatch('namespaces/fetch');
+      } catch (e) {
+        switch (true) {
+        case (!this.inANamespace && e.response.status === 403): { // dialog pops
+          break;
+        }
+        case (e.response.status === 403): {
+          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+          break;
+        }
+        default: {
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceList);
+        }
+        }
       }
     },
 

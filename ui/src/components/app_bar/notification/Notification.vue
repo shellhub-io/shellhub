@@ -131,7 +131,9 @@ export default {
   },
 
   async created() {
-    await this.getNotifications();
+    if (this.inANamespace) {
+      await this.getNotifications();
+    }
   },
 
   methods: {

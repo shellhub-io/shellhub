@@ -90,6 +90,10 @@ export default {
       }
     },
 
+    clearNamespaceList: (context) => {
+      context.commit('clearNamespaceList');
+    },
+
     switchNamespace: async (context, data) => {
       const res = await apiNamespace.tenantSwitch(data);
       if (res.status === 200) {
