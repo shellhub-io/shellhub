@@ -28,7 +28,7 @@
     "vue-fragment": "^1.5.1",
     "vue-moment": "^4.1.0",
     "vue-router": "^3.5.1",
-    "vuetify": "^2.4.8",
+    "vuetify": "^2.4.9",
     "vuex": "^3.6.2",
     "xterm": "^4.11.0",
     "xterm-addon-attach": "^0.6.0",
