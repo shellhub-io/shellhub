@@ -78,11 +78,10 @@ export default {
   methods: {
     async remove() {
       try {
-        await this.$store.dispatch('namespaces/remove', this.tenant);
         this.dialog = !this.dialog;
-        this.$store.dispatch('auth/logout').then(() => {
-          this.$router.push('/login');
-        });
+        await this.$store.dispatch('namespaces/remove', this.tenant);
+        await this.$store.dispatch('auth/logout');
+        await this.$router.push({ name: 'login' });
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceDelete);
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceDelete);
