@@ -233,7 +233,7 @@
             class="mt-6"
             data-test="securityOperation"
           >
-            <SettingSecurity />
+            <SettingSecurity :has-tenant="hasTenant()" />
 
             <v-divider />
             <v-divider />
@@ -316,7 +316,7 @@ export default {
     },
 
     tenant() {
-      return localStorage.getItem('tenant');
+      return this.$store.getters['auth/tenant'];
     },
 
     isEnterpriseOwner() {
@@ -329,8 +329,9 @@ export default {
   },
 
   async created() {
-    await this.getNamespace();
-    this.name = this.namespace.name;
+    if (this.hasTenant()) {
+      await this.getNamespace();
+    }
   },
 
   methods: {
@@ -347,6 +348,7 @@ export default {
     async getNamespace() {
       try {
         await this.$store.dispatch('namespaces/get', this.tenant);
+        this.name = this.namespace.name;
       } catch (e) {
         if (e.response.status === 403) {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
@@ -375,6 +377,10 @@ export default {
         return this.namespace.members.find((x) => x.id === this.owner).name;
       }
       return null;
+    },
+
+    hasTenant() {
+      return this.tenant !== '';
     },
 
     countDevicesHasNamespace() {

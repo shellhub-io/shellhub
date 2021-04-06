@@ -29,6 +29,13 @@
 export default {
   name: 'SettingSecurity',
 
+  props: {
+    hasTenant: {
+      type: Boolean,
+      default: false,
+    },
+  },
+
   computed: {
     sessionRecord: {
       get() {
@@ -51,7 +58,9 @@ export default {
 
   async created() {
     try {
-      await this.$store.dispatch('security/get');
+      if (this.hasTenant) {
+        await this.$store.dispatch('security/get');
+      }
     } catch {
       this.$store.dispatch('snackbar/showSnackbarErrorDefault');
     }

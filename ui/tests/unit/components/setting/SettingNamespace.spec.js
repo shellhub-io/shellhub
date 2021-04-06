@@ -50,11 +50,13 @@ describe('SettingNamespace', () => {
       namespace,
       id: idNotOwner,
       owner: !owner,
+      tenant: '',
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
       'auth/id': (state) => state.id,
       'namespaces/owner': (state) => state.owner,
+      'auth/tenant': (state) => state.tenant,
     },
     actions: {
       'namespaces/put': () => {
@@ -76,11 +78,13 @@ describe('SettingNamespace', () => {
       namespace,
       id: idOwner,
       owner,
+      tenant: openNamespace.tenant_id,
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
       'auth/id': (state) => state.id,
       'namespaces/owner': (state) => state.owner,
+      'auth/tenant': (state) => state.tenant,
     },
     actions: {
       'namespaces/put': () => {
@@ -164,6 +168,10 @@ describe('SettingNamespace', () => {
     expect(wrapper.vm.isEnterpriseOwner).toEqual(true);
     expect(wrapper.vm.isEnterprise).toEqual(true);
     expect(wrapper3.vm.isEnterprise).toEqual(false);
+  });
+  it('Process data in methods', () => {
+    expect(wrapper.vm.hasTenant()).toEqual(true);
+    expect(wrapper2.vm.hasTenant()).toEqual(false);
   });
   it('Loads name when component is created', () => {
     wrapper.vm.$nextTick(() => {
