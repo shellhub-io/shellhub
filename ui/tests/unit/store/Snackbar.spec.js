@@ -9,6 +9,7 @@ describe('Snackbar', () => {
   const SnackbarMessageAndContentTypeCopy = { typeMessage: '', typeContent: 'copy' };
   const SnackbarMessageAndContentTypeDefault = { typeMessage: '', typeContent: '' };
   const SnackbarMessageAndContentTypeAssociation = { typeMessage: 'association', typeContent: '' };
+  const SnackbarMessageAndContentTypeIncorrect = { typeMessage: 'incorrect', typeContent: '' };
   const snackbarCopy = false;
 
   it('Return snackbar default variables', () => {
@@ -44,6 +45,12 @@ describe('Snackbar', () => {
     store.commit('snackbar/setSnackbarErrorAssociation', SnackbarMessageAndContentTypeAssociation);
 
     expect(store.getters['snackbar/snackbarMessageAndContentType']).toEqual(SnackbarMessageAndContentTypeAssociation);
+    expect(store.getters['snackbar/snackbarError']).toEqual(true);
+  });
+  it('Verify initial states change for mutation setSnackbarErrorIncorrect', () => {
+    store.commit('snackbar/setSnackbarErrorIncorrect', SnackbarMessageAndContentTypeIncorrect);
+
+    expect(store.getters['snackbar/snackbarMessageAndContentType']).toEqual(SnackbarMessageAndContentTypeIncorrect);
     expect(store.getters['snackbar/snackbarError']).toEqual(true);
   });
   it('Verify initial states change for mutation setSnackbarErrorDefault', () => {

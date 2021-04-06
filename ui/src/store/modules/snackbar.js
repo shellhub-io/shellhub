@@ -69,6 +69,11 @@ export default {
       Vue.set(state, 'snackbarMessageAndContentType', data);
       Vue.set(state, 'snackbarError', true);
     },
+
+    setSnackbarErrorIncorrect: (state, data) => {
+      Vue.set(state, 'snackbarMessageAndContentType', data);
+      Vue.set(state, 'snackbarError', true);
+    },
   },
 
   actions: {
@@ -124,6 +129,11 @@ export default {
     showSnackbarErrorNotRequest: (context, value) => {
       const data = { typeMessage: 'notRequest', typeContent: value };
       context.commit('setSnackbarErrorNotRequest', data);
+    },
+
+    showSnackbarErrorIncorrect: (context, value) => {
+      const data = { typeMessage: 'incorrect', typeContent: value };
+      context.commit('setSnackbarErrorIncorrect', data);
     },
   },
 };

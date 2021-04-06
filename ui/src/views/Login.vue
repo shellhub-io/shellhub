@@ -96,7 +96,7 @@ export default {
     if (this.$route.query.token) {
       this.$store.dispatch('auth/logout');
       this.$store.dispatch('auth/loginToken', this.$route.query.token).then(() => {
-        this.$router.push('/');
+        this.$router.push({ name: 'dashboard' }).catch(() => {});
       });
     }
   },
@@ -116,8 +116,14 @@ export default {
           this.$router.push('/');
         }
       } catch (err) {
-        if (err.response.status !== 401) {
+        switch (true) {
+        case (err.response.status === 401): {
+          this.$store.dispatch('snackbar/showSnackbarErrorIncorrect', this.$errors.loginFailed);
+          break;
+        }
+        default: {
           this.$store.dispatch('snackbar/showSnackbarErrorDefault');
+        }
         }
       }
     },
