@@ -94,7 +94,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		}
 	}
 
-	dev, err := s.store.DeviceGet(ctx, models.UID(device.UID))
+	dev, err := s.store.DeviceGetByUID(ctx, models.UID(device.UID), device.TenantID)
 	if err != nil {
 		return nil, err
 	}

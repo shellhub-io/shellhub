@@ -6,6 +6,8 @@ require (
 	github.com/aws/aws-sdk-go v1.37.19 // indirect
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/go-redis/cache/v8 v8.4.0 // indirect
+	github.com/go-redis/redis/v8 v8.8.0 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0

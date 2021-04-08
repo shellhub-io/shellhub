@@ -54,7 +54,7 @@ func TestAuthDevice(t *testing.T) {
 		Return(nil).Once()
 	mock.On("SessionSetLastSeen", ctx, models.UID(authReq.Sessions[0])).
 		Return(nil).Once()
-	mock.On("DeviceGet", ctx, models.UID(device.UID)).
+	mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
 		Return(device, nil).Once()
 	mock.On("NamespaceGet", ctx, namespace.TenantID).
 		Return(namespace, nil).Once()

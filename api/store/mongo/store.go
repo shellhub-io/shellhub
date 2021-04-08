@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,13 +17,14 @@ var ErrDuplicateID = errors.New("user already member of this namespace")
 var ErrUserNotFound = errors.New("user not found")
 
 type Store struct {
-	db *mongo.Database
+	db    *mongo.Database
+	cache cache.Cache
 
 	store.Store
 }
 
-func NewStore(db *mongo.Database) *Store {
-	return &Store{db: db}
+func NewStore(db *mongo.Database, cache cache.Cache) *Store {
+	return &Store{db: db, cache: cache}
 }
 
 func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {

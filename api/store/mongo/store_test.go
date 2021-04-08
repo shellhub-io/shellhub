@@ -9,6 +9,7 @@ import (
 
 	"github.com/cnf/structhash"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/store/cache"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +21,7 @@ func TestDeviceCreate(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -58,7 +59,7 @@ func TestDeviceGet(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -99,7 +100,7 @@ func TestDeviceRename(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -138,7 +139,7 @@ func TestDeviceLookup(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -183,7 +184,7 @@ func TestDeviceUpdateStatus(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -223,7 +224,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -262,7 +263,7 @@ func TestCreateSession(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -312,7 +313,7 @@ func TestGetSession(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -363,7 +364,7 @@ func TestListSessions(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -415,7 +416,7 @@ func TestSetSessionAuthenticated(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -466,7 +467,7 @@ func TestKeepAliveSession(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -516,7 +517,7 @@ func TestDeactivateSession(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -567,7 +568,7 @@ func TestRecordSession(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -618,7 +619,7 @@ func TestGetRecord(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -673,7 +674,7 @@ func TestGetUserByUsername(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "owner"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -694,7 +695,7 @@ func TestGetUserByEmail(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 
 	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
@@ -710,7 +711,7 @@ func TestGetDeviceByMac(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -751,7 +752,7 @@ func TestGetDeviceByName(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -792,7 +793,7 @@ func TestGetDeviceByUID(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -833,7 +834,7 @@ func TestCreateFirewallRule(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.FirewallRuleCreate(ctx, &models.FirewallRule{
 		FirewallRuleFields: models.FirewallRuleFields{
@@ -853,7 +854,7 @@ func TestGetFirewallRule(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.FirewallRuleCreate(ctx, &models.FirewallRule{
 		FirewallRuleFields: models.FirewallRuleFields{
@@ -882,7 +883,7 @@ func TestUpdateFirewallRule(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.FirewallRuleCreate(ctx, &models.FirewallRule{
 		FirewallRuleFields: models.FirewallRuleFields{
@@ -920,7 +921,7 @@ func TestDeleteFirewallRule(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.FirewallRuleCreate(ctx, &models.FirewallRule{
 		FirewallRuleFields: models.FirewallRuleFields{
@@ -947,7 +948,7 @@ func TestListDevices(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -990,7 +991,7 @@ func TestListFirewallRules(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.FirewallRuleCreate(ctx, &models.FirewallRule{
 		FirewallRuleFields: models.FirewallRuleFields{
@@ -1015,7 +1016,7 @@ func TestUpdateUID(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -1055,7 +1056,7 @@ func TestUpdateUser(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -1075,7 +1076,7 @@ func TestUpdateUserFromAdmin(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
@@ -1095,7 +1096,7 @@ func TestGetDataUserSecurity(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "hash1"}
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: true}}
 
@@ -1114,7 +1115,7 @@ func TestUpdateDataUserSecurity(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "hash1"}
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: true}}
 
@@ -1133,7 +1134,7 @@ func TestListUsers(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
@@ -1154,7 +1155,7 @@ func TestListUsersWithFilter(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
@@ -1214,7 +1215,7 @@ func TestGetStats(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
@@ -1270,7 +1271,7 @@ func TestCreateUser(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.UserCreate(ctx, &models.User{
 		Name:     "user",
@@ -1285,7 +1286,7 @@ func TestCreateNamespace(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.UserCreate(ctx, &models.User{
 		Name:     "user",
@@ -1307,7 +1308,7 @@ func TestDeleteNamespace(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.UserCreate(ctx, &models.User{
 		Name:     "user",
@@ -1332,7 +1333,7 @@ func TestGetNamespace(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.UserCreate(ctx, &models.User{
 		Name:     "user",
@@ -1357,7 +1358,7 @@ func TestListNamespaces(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.UserCreate(ctx, &models.User{
 		Username: "user",
@@ -1383,7 +1384,7 @@ func TestAddNamespaceUser(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.UserCreate(ctx, &models.User{
 		Username: "user",
@@ -1420,7 +1421,7 @@ func TestUpdateNamespace(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.UserCreate(ctx, &models.User{
 		Name:     "name",
@@ -1453,7 +1454,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.UserCreate(ctx, &models.User{
 		Username: "user",
@@ -1491,7 +1492,7 @@ func TestLoadLicense(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.LicenseSave(ctx, &models.License{
 		RawData:   []byte("bar"),
@@ -1522,7 +1523,7 @@ func TestSaveLicense(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	err := mongostore.LicenseSave(ctx, &models.License{
 		RawData:   []byte("foo"),
@@ -1536,7 +1537,7 @@ func TestCreatePublicKey(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	newKey := &models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste1", Hostname: ".*"},
 	}
@@ -1549,7 +1550,7 @@ func TestListPublicKeys(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	key := models.PublicKey{
@@ -1574,7 +1575,7 @@ func TestListGetPublicKey(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	key := models.PublicKey{
@@ -1599,7 +1600,7 @@ func TestUpdatePublicKey(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	//createdAt := time.Now()
@@ -1638,7 +1639,7 @@ func TestDeletePublicKey(t *testing.T) {
 	defer db.Stop()
 
 	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
