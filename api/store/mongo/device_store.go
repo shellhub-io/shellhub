@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -185,6 +186,10 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 		return err
 	}
 
+	if err := s.cache.Delete(ctx, string(uid)); err != nil {
+		logrus.Warning(err)
+	}
+
 	if _, err := s.db.Collection("sessions").DeleteMany(ctx, bson.M{"device_uid": uid}); err != nil {
 		return err
 	}
@@ -197,6 +202,11 @@ func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname stri
 	mac := strings.Replace(d.Identity.MAC, ":", "-", -1)
 	if hostname == "" {
 		hostname = mac
+	}
+
+	var dev *models.Device
+	if err := s.cache.Get(ctx, strings.Join([]string{"device", d.UID}, "/"), &dev); err != nil {
+		logrus.Warning(err)
 	}
 
 	q := bson.M{
@@ -313,9 +323,22 @@ func (s *Store) DeviceGetByName(ctx context.Context, name, tenant string) (*mode
 }
 
 func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error) {
-	device := new(models.Device)
+	var device *models.Device
+
+	if err := s.cache.Get(ctx, strings.Join([]string{"device", string(uid)}, "/"), &device); err != nil {
+		logrus.Warning(err)
+	}
+
+	if device != nil {
+		return device, nil
+	}
+
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}).Decode(&device); err != nil {
 		return nil, err
+	}
+
+	if err := s.cache.Set(ctx, strings.Join([]string{"device", string(uid)}, "/"), device, time.Minute); err != nil {
+		logrus.Warning(err)
 	}
 
 	return device, nil

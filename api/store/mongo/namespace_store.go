@@ -2,11 +2,14 @@ package mongo
 
 import (
 	"context"
+	"strings"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -106,12 +109,25 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 }
 
 func (s *Store) NamespaceGet(ctx context.Context, namespace string) (*models.Namespace, error) {
-	ns := new(models.Namespace)
+	var ns *models.Namespace
+
+	if err := s.cache.Get(ctx, strings.Join([]string{"namespace", namespace}, "/"), &ns); err != nil {
+		logrus.Warning(err)
+	}
+
+	if ns != nil {
+		goto count
+	}
 
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": namespace}).Decode(&ns); err != nil {
 		return ns, err
 	}
 
+	if err := s.cache.Set(ctx, strings.Join([]string{"namespace", namespace}, "/"), ns, time.Minute); err != nil {
+		logrus.Warning(err)
+	}
+
+count:
 	countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": namespace, "status": "accepted"})
 	if err != nil {
 		return nil, err
@@ -123,7 +139,15 @@ func (s *Store) NamespaceGet(ctx context.Context, namespace string) (*models.Nam
 }
 
 func (s *Store) NamespaceGetByName(ctx context.Context, namespace string) (*models.Namespace, error) {
-	ns := new(models.Namespace)
+	var ns *models.Namespace
+
+	if err := s.cache.Get(ctx, strings.Join([]string{"namespace", namespace}, "/"), &ns); err != nil {
+		logrus.Warning(err)
+	}
+
+	if ns != nil {
+		return ns, nil
+	}
 
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
 		return nil, err
@@ -142,6 +166,10 @@ func (s *Store) NamespaceDelete(ctx context.Context, namespace string) error {
 		return err
 	}
 
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
+		logrus.Warning(err)
+	}
+
 	collections := []string{"devices", "sessions", "connected_devices", "firewall_rules", "public_keys", "recorded_sessions"}
 
 	for _, collection := range collections {
@@ -156,6 +184,11 @@ func (s *Store) NamespaceRename(ctx context.Context, namespace, name string) (*m
 	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$set": bson.M{"name": name}}); err != nil {
 		return nil, err
 	}
+
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
+		logrus.Warning(err)
+	}
+
 	return s.NamespaceGet(ctx, namespace)
 }
 
@@ -163,6 +196,11 @@ func (s *Store) NamespaceUpdate(ctx context.Context, tenant string, namespace *m
 	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"name": namespace.Name, "max_devices": namespace.MaxDevices, "settings.session_record": namespace.Settings.SessionRecord}}); err != nil {
 		return err
 	}
+
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenant}, "/")); err != nil {
+		logrus.Warning(err)
+	}
+
 	return nil
 }
 
@@ -174,6 +212,11 @@ func (s *Store) NamespaceAddMember(ctx context.Context, namespace, ID string) (*
 	if result.ModifiedCount == 0 {
 		return nil, ErrDuplicateID
 	}
+
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
+		logrus.Warning(err)
+	}
+
 	return s.NamespaceGet(ctx, namespace)
 }
 
@@ -185,6 +228,11 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, namespace, ID string)
 	if result.ModifiedCount == 0 {
 		return nil, ErrUserNotFound
 	}
+
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
+		logrus.Warning(err)
+	}
+
 	return s.NamespaceGet(ctx, namespace)
 }
 

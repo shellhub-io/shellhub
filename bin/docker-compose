@@ -53,6 +53,7 @@ EOF
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.httptohttps.yml"
 fi
 
+[ "$SHELLHUB_STORE_CACHE" = "true" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.cache.yml"
 [ "$SHELLHUB_ENV" = "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.dev.yml"
 [ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" != "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.enterprise.yml"
 [ -f docker-compose.override.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.override.yml"

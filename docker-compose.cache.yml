@@ -1,0 +1,8 @@
+version: '3.7'
+
+services:
+  redis:
+    image: redis
+    restart: unless-stopped
+    networks:
+      - shellhub

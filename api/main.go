@@ -9,13 +9,15 @@ import (
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/routes"
 	"github.com/shellhub-io/shellhub/api/routes/middlewares"
+	storecache "github.com/shellhub-io/shellhub/api/store/cache"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	mgo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type config struct {
-	MongoUri string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+	MongoUri   string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+	StoreCache bool   `envconfig:"store_cache" default:"false"`
 }
 
 func main() {
@@ -44,9 +46,17 @@ func main() {
 		panic(err)
 	}
 
+	var cache storecache.Cache
+
+	if cfg.StoreCache {
+		cache = storecache.NewRedisCache()
+	} else {
+		cache = storecache.NewNullCache()
+	}
+
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			store := mongo.NewStore(client.Database("main"))
+			store := mongo.NewStore(client.Database("main"), cache)
 			ctx := apicontext.NewContext(store, c)
 
 			return next(ctx)

@@ -24,6 +24,7 @@ services:
       - PRIVATE_KEY=/run/secrets/api_private_key
       - PUBLIC_KEY=/run/secrets/api_public_key
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+      - STORE_CACHE=${SHELLHUB_STORE_CACHE}
     depends_on:
       - mongo
     links:
@@ -59,6 +60,8 @@ services:
   cli:
     image: shellhubio/cli:${SHELLHUB_VERSION}
     restart: unless-stopped
+    environment:
+      - STORE_CACHE=${SHELLHUB_STORE_CACHE}
     depends_on:
       - api
       - mongo

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/kelseyhightower/envconfig"
+	storecache "github.com/shellhub-io/shellhub/api/store/cache"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -13,7 +14,8 @@ import (
 )
 
 type config struct {
-	MongoUri string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+	MongoUri   string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+	StoreCache bool   `envconfig:"store_cache" default:"false"`
 }
 
 func main() {
@@ -28,7 +30,15 @@ func main() {
 		log.Error(err)
 	}
 
-	svc := NewService(mongo.NewStore(client.Database("main")))
+	var cache storecache.Cache
+
+	if cfg.StoreCache {
+		cache = storecache.NewRedisCache()
+	} else {
+		cache = storecache.NewNullCache()
+	}
+
+	svc := NewService(mongo.NewStore(client.Database("main"), cache))
 
 	var rootCmd = &cobra.Command{Use: "cli"}
 	rootCmd.AddCommand(&cobra.Command{
