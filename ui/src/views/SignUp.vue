@@ -208,7 +208,7 @@ export default {
         // Invalid username and/or password
         if (err.response.status === 400) {
           this.$refs.pass.setErrors({
-            name: ['This name is already taken'],
+            username: ['The username must be alphanumeric'],
           });
         } else if (err.response.status === 409) {
           err.response.data.forEach((n) => {
