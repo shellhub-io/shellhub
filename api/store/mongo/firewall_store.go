@@ -61,8 +61,6 @@ func (s *Store) FirewallRuleCreate(ctx context.Context, rule *models.FirewallRul
 		return err
 	}
 
-	rule.ID = primitive.NewObjectID().Hex()
-
 	if _, err := s.db.Collection("firewall_rules").InsertOne(ctx, &rule); err != nil {
 		return err
 	}
@@ -72,7 +70,9 @@ func (s *Store) FirewallRuleCreate(ctx context.Context, rule *models.FirewallRul
 
 func (s *Store) FirewallRuleGet(ctx context.Context, id string) (*models.FirewallRule, error) {
 	rule := new(models.FirewallRule)
-	if err := s.db.Collection("firewall_rules").FindOne(ctx, bson.M{"_id": id}).Decode(&rule); err != nil {
+	objID, _ := primitive.ObjectIDFromHex(id)
+
+	if err := s.db.Collection("firewall_rules").FindOne(ctx, bson.M{"_id": objID}).Decode(&rule); err != nil {
 		return nil, err
 	}
 
@@ -84,7 +84,8 @@ func (s *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.F
 		return nil, err
 	}
 
-	if _, err := s.db.Collection("firewall_rules").UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": rule}); err != nil {
+	objID, _ := primitive.ObjectIDFromHex(id)
+	if _, err := s.db.Collection("firewall_rules").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": rule}); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +94,8 @@ func (s *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.F
 }
 
 func (s *Store) FirewallRuleDelete(ctx context.Context, id string) error {
-	if _, err := s.db.Collection("firewall_rules").DeleteOne(ctx, bson.M{"_id": id}); err != nil {
+	objID, _ := primitive.ObjectIDFromHex(id)
+	if _, err := s.db.Collection("firewall_rules").DeleteOne(ctx, bson.M{"_id": objID}); err != nil {
 		return err
 	}
 

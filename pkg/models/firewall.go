@@ -27,7 +27,7 @@ func (f *FirewallRuleFields) Validate() error {
 }
 
 type FirewallRule struct {
-	ID                 string `json:"id" bson:"_id"`
+	ID                 string `json:"id,omitempty" bson:"_id,omitempty"`
 	TenantID           string `json:"tenant_id" bson:"tenant_id"`
 	FirewallRuleFields `bson:",inline"`
 }
