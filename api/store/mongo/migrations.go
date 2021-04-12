@@ -648,8 +648,7 @@ var migrations = []migrate.Migration{
 				}
 
 				if err == nil {
-					fmt.Println("estou no if")
-					if errDelete := db.Collection("firewall_rules").FindOneAndDelete(context.TODO(), bson.M{"_id": firewall.ID}); errDelete != nil {
+					if errDelete := db.Collection("firewall_rules").FindOneAndDelete(context.TODO(), bson.M{"_id": firewall.ID}); errDelete.Err() != nil {
 						continue
 					}
 
