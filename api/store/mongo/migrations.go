@@ -619,6 +619,53 @@ var migrations = []migrate.Migration{
 			return err
 		},
 	},
+	{
+		Version: 20,
+		Up: func(db *mongo.Database) error {
+			cursor, err := db.Collection("firewall_rules").Find(context.TODO(), bson.D{})
+			if err != nil {
+				return err
+			}
+
+			type firewallRule struct {
+				ID                        primitive.ObjectID `json:"id" bson:"_id"`
+				TenantID                  string             `json:"tenant_id" bson:"tenant_id"`
+				models.FirewallRuleFields `bson:",inline"`
+			}
+
+			defer cursor.Close(context.TODO())
+			for cursor.Next(context.TODO()) {
+				firewall := new(models.FirewallRule)
+				err := cursor.Decode(&firewall)
+				if err != nil {
+					return err
+				}
+				objID, err := primitive.ObjectIDFromHex(firewall.ID)
+				replacedRule := firewallRule{
+					TenantID:           firewall.TenantID,
+					ID:                 objID,
+					FirewallRuleFields: firewall.FirewallRuleFields,
+				}
+
+				if err == nil {
+					fmt.Println("estou no if")
+					if errDelete := db.Collection("firewall_rules").FindOneAndDelete(context.TODO(), bson.M{"_id": firewall.ID}); errDelete != nil {
+						continue
+					}
+
+					if _, err := db.Collection("firewall_rules").InsertOne(context.TODO(), replacedRule); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
+
+		Down: func(db *mongo.Database) error {
+			return nil
+		},
+	},
 }
 
 func ApplyMigrations(db *mongo.Database) error {
