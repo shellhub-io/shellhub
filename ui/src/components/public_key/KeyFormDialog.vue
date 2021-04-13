@@ -87,6 +87,7 @@
                 :error-messages="errors"
                 required
                 :disabled="!createKey"
+                :messages="supportedKeys"
               />
             </ValidationProvider>
           </v-card-text>
@@ -162,6 +163,7 @@ export default {
     return {
       dialog: false,
       keyLocal: [],
+      supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
     };
   },
 
