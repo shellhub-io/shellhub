@@ -27,16 +27,17 @@ type Client interface {
 }
 
 type publicAPI interface {
-	GetInfo() (*models.Info, error)
+	GetInfo(agentVersion string) (*models.Info, error)
 	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	NewReverseListener(token string) (*revdial.Listener, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
 }
 
-func (c *client) GetInfo() (*models.Info, error) {
+func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 	var info *models.Info
-	_, _, errs := c.http.Get(buildURL(c, "/info")).EndStruct(&info)
+
+	_, _, errs := c.http.Get(buildURL(c, "/info?agent_version=" + agentVersion)).EndStruct(&info)
 	if len(errs) > 0 {
 		return nil, errs[0]
 	}
