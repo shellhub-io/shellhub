@@ -1,6 +1,7 @@
 import Vue from 'vue';
 
 import Snackbar from '@/components/snackbar/Snackbar';
+import Hotjar from 'vue-hotjar';
 
 import App from './App';
 import router from './router';
@@ -22,6 +23,14 @@ Vue.use(env);
 Vue.use(success);
 Vue.use(errors);
 Vue.use(copy);
+
+if (process.env.VUE_APP_SHELLHUB_CLOUD) {
+  Vue.use(Hotjar, {
+    id: '2345888',
+    isProduction: true,
+    snippetVersion: 6,
+  });
+}
 
 new Vue({
   vuetify,
