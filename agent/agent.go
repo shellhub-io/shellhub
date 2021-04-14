@@ -123,7 +123,7 @@ func (a *Agent) loadDeviceInfo() error {
 
 // checkUpdate check for agent updates
 func (a *Agent) checkUpdate() (*semver.Version, error) {
-	info, err := a.cli.GetInfo()
+	info, err := a.cli.GetInfo(AgentVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (a *Agent) checkUpdate() (*semver.Version, error) {
 
 // probeServerInfo probe server information
 func (a *Agent) probeServerInfo() error {
-	info, err := a.cli.GetInfo()
+	info, err := a.cli.GetInfo(AgentVersion)
 	a.serverInfo = info
 	return err
 }
