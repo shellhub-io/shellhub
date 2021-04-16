@@ -74,7 +74,7 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 		return nil, 0, err
 	}
 
-	if pagination.Page != 0 && pagination.PerPage != 0 && !export {
+	if pagination.Page != 0 && pagination.PerPage != 0 {
 		query = append(query, buildPaginationQuery(pagination)...)
 	}
 
