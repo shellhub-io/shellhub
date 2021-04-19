@@ -106,11 +106,13 @@ describe('SettingNamespace', () => {
       namespace: openNamespace,
       id: idOwner,
       owner,
+      tenant: openNamespace.tenant_id,
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
       'auth/id': (state) => state.id,
       'namespaces/owner': (state) => state.owner,
+      'auth/tenant': (state) => state.tenant,
     },
     actions: {
       'namespaces/put': () => {
