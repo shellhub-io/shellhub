@@ -10,7 +10,7 @@ require (
 	github.com/containerd/containerd v1.4.3 // indirect
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v20.10.5+incompatible
+	github.com/docker/docker v20.10.6+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/gliderlabs/ssh v0.3.2
