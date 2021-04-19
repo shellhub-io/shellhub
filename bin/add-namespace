@@ -2,11 +2,6 @@
 
 [ $# -ne 2 ] && echo "Usage: $0 <namespace> <owner>" && exit 1
 
-if [ ! -f "$(which uuidgen 2> /dev/null)" ]; then
-    echo "$0 requires uuidgen but it's not installed. Aborting!"
-    exit 1
-fi
-
 NAMESPACE=$1
 OWNER=$2
 
