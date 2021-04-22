@@ -5,4 +5,4 @@
 NAMESPACE=$1
 OWNER=$2
 
-docker-compose exec cli ./cli add-namespace $NAMESPACE $OWNER
+docker-compose exec cli ./cli add-namespace "$NAMESPACE" "$OWNER" "$TENANT_ID"

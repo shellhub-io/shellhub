@@ -57,6 +57,7 @@ func main() {
 				ns, err := svc.NamespaceCreate(Parameters{
 					Namespace: args[0],
 					Username:  args[1],
+					TenantID:  args[2],
 				})
 				if err != nil {
 					return err
