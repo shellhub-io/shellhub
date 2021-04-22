@@ -54,11 +54,16 @@ func CreateNamespace(c apicontext.Context) error {
 	if v := c.ID(); v != nil {
 		id = v.ID
 	}
+
 	if _, err := svc.CreateNamespace(c.Ctx(), &namespace, id); err != nil {
-		if err == nsadm.ErrUnauthorized {
+		switch {
+		case err == nsadm.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
+		case err == nsadm.ErrConflictName:
+			return c.NoContent(http.StatusConflict)
+		default:
+			return err
 		}
-		return err
 	}
 
 	return c.JSON(http.StatusOK, namespace)

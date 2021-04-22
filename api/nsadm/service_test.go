@@ -57,6 +57,7 @@ func TestCreateNamespace(t *testing.T) {
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1"}
 
+	mock.On("NamespaceGetByName", ctx, namespace.Name).Return(nil, nil).Once()
 	mock.On("UserGetByID", ctx, user.ID).Return(user, nil).Once()
 	mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
 
