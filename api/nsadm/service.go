@@ -21,6 +21,7 @@ var ErrUserNotFound = errors.New("user not found")
 var ErrNamespaceNotFound = errors.New("namespace not found")
 var ErrDuplicateID = errors.New("user already member of this namespace")
 var ErrUserOwner = errors.New("cannot remove this user")
+var ErrConflictName = errors.New("this name already exists")
 
 type Service interface {
 	ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error)
@@ -63,6 +64,11 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		return nil, ErrUnauthorized
 	}
 	namespace.Name = strings.ToLower(namespace.Name)
+	ns, _ := s.store.NamespaceGetByName(ctx, namespace.Name)
+	if ns != nil {
+		return nil, ErrConflictName
+	}
+
 	namespace.Owner = user.ID
 	members := []string{user.ID}
 	namespace.Members = &members
