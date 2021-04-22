@@ -123,7 +123,7 @@ func (s *service) NamespaceCreate(data Parameters) (*models.Namespace, error) {
 
 	ns, err = s.store.NamespaceCreate(context.TODO(), &models.Namespace{
 		Name:     data.Namespace,
-		Owner:    data.Username,
+		Owner:    usr.ID,
 		TenantID: data.TenantID,
 		Members: []struct {
 			ID   string
