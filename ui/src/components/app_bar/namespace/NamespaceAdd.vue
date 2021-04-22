@@ -131,8 +131,14 @@ export default {
         this.namespaceName = '';
         this.$refs.obs.reset();
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceCreating);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceCreating);
+      } catch (err) {
+        if (err.response.status === 409) {
+          this.$refs.obs.setErrors({
+            namespace: ['This name is already taken'],
+          });
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceCreating);
+        }
       }
     },
   },
