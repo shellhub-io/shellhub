@@ -35,6 +35,7 @@ type Parameters struct {
 	Namespace string
 	Password  string
 	Email     string
+	TenantID  string
 }
 
 type Service interface {
@@ -116,10 +117,14 @@ func (s *service) NamespaceCreate(data Parameters) (*models.Namespace, error) {
 		return nil, ErrDuplicateNamespace
 	}
 
+	if data.TenantID == "" {
+		data.TenantID = uuid.Must(uuid.NewV4(), nil).String()
+	}
+
 	ns, err = s.store.NamespaceCreate(context.TODO(), &models.Namespace{
 		Name:     data.Namespace,
 		Owner:    data.Username,
-		TenantID: uuid.Must(uuid.NewV4(), nil).String(),
+		TenantID: data.TenantID,
 		Members: []struct {
 			ID   string
 			Name string
