@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -301,6 +303,9 @@ func (s *Store) DeviceGetByMac(ctx context.Context, mac, tenant, status string) 
 func (s *Store) DeviceGetByName(ctx context.Context, name, tenant string) (*models.Device, error) {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "name": name}).Decode(&device); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, store.ErrDeviceNoDocuments
+		}
 		return nil, err
 	}
 

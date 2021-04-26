@@ -16,6 +16,7 @@ import (
 var (
 	ErrUnauthorized          = errors.New("unauthorized")
 	ErrMaxDeviceCountReached = errors.New("maximum number of accepted devices reached")
+	ErrDuplicatedDeviceName  = errors.New("the name already exists in the namespace")
 )
 
 type Service interface {
@@ -88,24 +89,35 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, user
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant, username string) error {
 	err := s.isNamespaceOnwer(ctx, tenant, username)
 	if err != nil {
+		return ErrUnauthorized
+	}
+
+	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
+	if err != nil {
 		return err
 	}
 
-	device, _ := s.store.DeviceGetByUID(ctx, uid, tenant)
-	validate := validator.New()
 	name = strings.ToLower(name)
-	if device != nil {
-		if device.Name != name {
-			device.Name = name
-			if err := validate.Struct(device); err == nil {
-				otherDevice, _ := s.store.DeviceGetByName(ctx, name, tenant)
-				if otherDevice == nil {
-					return s.store.DeviceRename(ctx, uid, name)
-				}
-			}
-		}
+	if device.Name == name {
+		return nil
 	}
-	return ErrUnauthorized
+
+	validate := validator.New()
+	err = validate.Struct(device)
+	if err != nil {
+		return err
+	}
+
+	otherDevice, err := s.store.DeviceGetByName(ctx, name, tenant)
+	if err != nil && err != store.ErrDeviceNoDocuments {
+		return err
+	}
+
+	if otherDevice != nil {
+		return ErrDuplicatedDeviceName
+	}
+
+	return s.store.DeviceRename(ctx, uid, name)
 }
 
 func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {

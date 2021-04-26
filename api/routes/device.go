@@ -106,15 +106,15 @@ func RenameDevice(c apicontext.Context) error {
 
 	svc := deviceadm.NewService(c.Store())
 
-	if err := svc.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant, username); err != nil {
-		if err == deviceadm.ErrUnauthorized {
-			return c.NoContent(http.StatusForbidden)
-		}
-
+	err := svc.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant, username)
+	switch err {
+	case deviceadm.ErrUnauthorized:
+		return c.NoContent(http.StatusForbidden)
+	case deviceadm.ErrDuplicatedDeviceName:
+		return c.NoContent(http.StatusConflict)
+	default:
 		return err
 	}
-
-	return nil
 }
 
 func OfflineDevice(c apicontext.Context) error {
