@@ -102,12 +102,8 @@ func initData(dataNeeded string) Data {
 		Name:     "testService",
 		Owner:    "testService",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members: []struct {
-			ID   string
-			Name string
-		}{
-			{"1", "testService"},
-		},
+		Members:  []string{"1"},
+
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
