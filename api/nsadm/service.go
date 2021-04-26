@@ -16,12 +16,14 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
-var ErrUnauthorized = errors.New("unauthorized")
-var ErrUserNotFound = errors.New("user not found")
-var ErrNamespaceNotFound = errors.New("namespace not found")
-var ErrDuplicateID = errors.New("user already member of this namespace")
-var ErrUserOwner = errors.New("cannot remove this user")
-var ErrConflictName = errors.New("this name already exists")
+var (
+	ErrUnauthorized      = errors.New("unauthorized")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrNamespaceNotFound = errors.New("namespace not found")
+	ErrDuplicateID       = errors.New("user already member of this namespace")
+	ErrUserOwner         = errors.New("cannot remove this user")
+	ErrConflictName      = errors.New("this name already exists")
+)
 
 type Service interface {
 	ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error)
