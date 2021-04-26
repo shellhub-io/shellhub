@@ -29,7 +29,7 @@
     "vue-hotjar": "^1.3.0",
     "vue-moment": "^4.1.0",
     "vue-router": "^3.5.1",
-    "vuetify": "^2.4.9",
+    "vuetify": "^2.4.11",
     "vuex": "^3.6.2",
     "xterm": "^4.11.0",
     "xterm-addon-attach": "^0.6.0",
