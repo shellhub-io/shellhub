@@ -125,12 +125,7 @@ func (s *service) NamespaceCreate(data Parameters) (*models.Namespace, error) {
 		Name:     data.Namespace,
 		Owner:    usr.ID,
 		TenantID: data.TenantID,
-		Members: []struct {
-			ID   string
-			Name string
-		}{
-			{usr.ID, data.Namespace},
-		},
+		Members:  []string{usr.ID},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
