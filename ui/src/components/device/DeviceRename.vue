@@ -29,6 +29,7 @@
               v-slot="{ errors }"
               name="Hostname"
               rules="required|rfc1123"
+              vid="hostname"
             >
               <v-text-field
                 v-model="editName"
@@ -131,8 +132,14 @@ export default {
         this.$emit('new-hostname', this.editName);
         this.editName = '';
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceRename);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.deviceRename);
+      } catch (err) {
+        if (err.response.status === 409) {
+          this.$refs.obs.setErrors({
+            hostname: ['The name already exists in the namespace'],
+          });
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.deviceRename);
+        }
       }
     },
   },
