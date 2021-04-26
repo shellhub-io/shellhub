@@ -19,6 +19,7 @@ describe('NamespaceMenu', () => {
   const numberNamespaces = 4;
   const owner = true;
   const inANamespace = true;
+  const isMobile = false;
 
   const namespaces = [
     {
@@ -87,7 +88,7 @@ describe('NamespaceMenu', () => {
       store,
       localVue,
       stubs: ['fragment', 'router-link'],
-      propsData: { inANamespace },
+      propsData: { inANamespace, isMobile },
       mocks: ['$env'],
       vuetify,
     });
@@ -161,7 +162,7 @@ describe('NamespaceMenu', () => {
         }),
         localVue,
         stubs: ['fragment', 'router-link'],
-        propsData: { inANamespace },
+        propsData: { inANamespace, isMobile },
         mocks: ['$env'],
         vuetify,
       }),
@@ -201,7 +202,7 @@ describe('NamespaceMenu', () => {
         }),
         localVue,
         stubs: ['fragment', 'router-link'],
-        propsData: { inANamespace },
+        propsData: { inANamespace, isMobile },
         mocks: ['$env'],
         vuetify,
       }),

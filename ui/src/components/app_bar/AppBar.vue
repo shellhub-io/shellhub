@@ -14,17 +14,30 @@
 
       <router-link to="/">
         <v-img
+          v-if="!isMobile"
           src="@/assets/logo-inverted.png"
           max-width="160"
         />
+
+        <v-img
+          v-else
+          src="@/assets/logo-inverted-only-cloud.png"
+          max-width="50"
+        />
       </router-link>
 
-      <span class="overline mt-3">BETA</span>
+      <span
+        v-if="!isMobile"
+        class="overline mt-3"
+      >
+        BETA
+      </span>
 
       <v-spacer />
 
       <NamespaceMenu
         :in-a-namespace="hasNamespaces"
+        :is-mobile="isMobile"
       />
 
       <v-chip>
@@ -47,7 +60,11 @@
             <v-icon left>
               mdi-account
             </v-icon>
-            {{ $store.getters["auth/currentUser"] }}
+            <div
+              v-if="!isMobile"
+            >
+              {{ $store.getters["auth/currentUser"] }}
+            </div>
             <v-icon right>
               mdi-chevron-down
             </v-icon>
@@ -100,6 +117,7 @@ export default {
       clipped: false,
       chat: null,
       chatOpen: false,
+      isMobile: false,
       menu: [
         {
           title: 'Settings',
@@ -128,7 +146,16 @@ export default {
     },
   },
 
+  beforeDestroy() {
+    if (typeof window === 'undefined') return;
+
+    window.removeEventListener('resize', this.onResize, { passive: true });
+  },
+
   async mounted() {
+    this.onResize();
+    window.addEventListener('resize', this.onResize, { passive: true });
+
     this.chat = await new GitterSidecar({ room: 'shellhub-io/community', activationElement: false, targetElement: this.$refs.chat });
     this.$refs.chat.addEventListener('gitter-chat-toggle', (e) => {
       this.chatOpen = e.detail.state;
@@ -158,6 +185,10 @@ export default {
 
     toggleChat() {
       this.chat.toggleChat(!this.chatOpen);
+    },
+
+    onResize() {
+      this.isMobile = window.innerWidth < 600;
     },
   },
 };

@@ -2,7 +2,7 @@
   <fragment>
     <v-row>
       <v-col
-        v-if="!loggedInNamespace && isEnterprise"
+        v-if="!loggedInNamespace && isEnterprise && !isMobile"
       >
         <v-btn
           class="v-btn--active float-right mr-3"
@@ -14,9 +14,7 @@
         </v-btn>
       </v-col>
 
-      <v-col
-        v-else
-      >
+      <v-col v-else>
         <v-menu
           v-show="displayMenu"
           :close-on-content-click="true"
@@ -24,7 +22,7 @@
         >
           <template #activator="{ on }">
             <v-chip
-              v-show="loggedInNamespace"
+              v-show="loggedInNamespace || isMobile"
               class="float-right"
               @click="openMenu"
               v-on="on"
@@ -34,7 +32,11 @@
               >
                 mdi-server
               </v-icon>
-              {{ namespace.name }}
+              <div
+                v-if="!isMobile"
+              >
+                {{ namespace.name }}
+              </div>
               <v-icon right>
                 mdi-chevron-down
               </v-icon>
@@ -42,33 +44,35 @@
           </template>
 
           <v-card>
-            <v-subheader>Tenant ID</v-subheader>
+            <div v-if="!isMobile">
+              <v-subheader>Tenant ID</v-subheader>
 
-            <v-list
-              class="pt-0 pb-0 mx-2"
-            >
-              <v-list-item>
-                <v-row
-                  justify="center"
-                  align="center"
-                >
-                  <v-chip>
-                    <v-list-item-title>
-                      <span data-test="tenantID-text">{{ tenant }}</span>
-                    </v-list-item-title>
-                    <v-icon
-                      v-clipboard="tenant"
-                      v-clipboard:success="() => {
-                        $store.dispatch('snackbar/showSnackbarCopy', $copy.tenantId);
-                      }"
-                      right
-                    >
-                      mdi-content-copy
-                    </v-icon>
-                  </v-chip>
-                </v-row>
-              </v-list-item>
-            </v-list>
+              <v-list
+                class="pt-0 pb-0 mx-2"
+              >
+                <v-list-item>
+                  <v-row
+                    justify="center"
+                    align="center"
+                  >
+                    <v-chip>
+                      <v-list-item-title>
+                        <span data-test="tenantID-text">{{ tenant }}</span>
+                      </v-list-item-title>
+                      <v-icon
+                        v-clipboard="tenant"
+                        v-clipboard:success="() => {
+                          $store.dispatch('snackbar/showSnackbarCopy', $copy.tenantId);
+                        }"
+                        right
+                      >
+                        mdi-content-copy
+                      </v-icon>
+                    </v-chip>
+                  </v-row>
+                </v-list-item>
+              </v-list>
+            </div>
 
             <v-divider />
 
@@ -123,6 +127,7 @@
               <v-divider />
 
               <v-list-item
+                v-if="!isMobile"
                 to="/settings/namespace-manager"
               >
                 <v-list-item-icon>
@@ -156,6 +161,11 @@ export default {
 
   props: {
     inANamespace: {
+      type: Boolean,
+      required: true,
+    },
+
+    isMobile: {
       type: Boolean,
       required: true,
     },
