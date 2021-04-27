@@ -34,6 +34,7 @@ func main() {
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "add-user",
 		Short: "Usage: <username> <password> <email>",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			username, err := svc.UserCreate(Parameters{
 				Username: args[0],
@@ -53,7 +54,13 @@ func main() {
 		&cobra.Command{
 			Use:   "add-namespace",
 			Short: "Usage: <namespace> <owner>",
+			Args:  cobra.RangeArgs(2, 3),
 			RunE: func(cmd *cobra.Command, args []string) error {
+				// Avoid panic when TenantID isn't provided.
+				if len(args) == 2 {
+					args = append(args, "")
+				}
+
 				ns, err := svc.NamespaceCreate(Parameters{
 					Namespace: args[0],
 					Username:  args[1],
@@ -74,6 +81,7 @@ func main() {
 		&cobra.Command{
 			Use:   "add-user-namespace",
 			Short: "Usage: <username> <namespace>",
+			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				ns, err := svc.NamespaceAddMember(Parameters{
 					Username:  args[0],
@@ -93,6 +101,7 @@ func main() {
 		&cobra.Command{
 			Use:   "del-namespace",
 			Short: "Usage: <namespace>",
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				if err := svc.NamespaceDelete(Parameters{
 					Namespace: args[0],
@@ -109,6 +118,7 @@ func main() {
 		&cobra.Command{
 			Use:   "del-user",
 			Short: "Usage: <username>",
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				if err := svc.UserDelete(Parameters{
 					Username: args[0],
@@ -125,6 +135,7 @@ func main() {
 		&cobra.Command{
 			Use:   "del-user-namespace",
 			Short: "Usage <username> <namespace>",
+			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				ns, err := svc.NamespaceRemoveMember(Parameters{
 					Username:  args[0],
@@ -144,6 +155,7 @@ func main() {
 		&cobra.Command{
 			Use:   "reset-user-password",
 			Short: "Usage: <username> <password>",
+			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				if err := svc.UserUpdate(Parameters{
 					Username: args[0],
