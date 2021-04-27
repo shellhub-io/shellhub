@@ -9,7 +9,7 @@
     >
       <v-app-bar-nav-icon
         class="hidden-lg-and-up"
-        @click.stop="drawer = !drawer"
+        @click.stop="updateDrawer()"
       />
 
       <router-link to="/">
@@ -111,9 +111,15 @@ export default {
     Notification,
   },
 
+  props: {
+    drawer: {
+      type: Boolean,
+      required: true,
+    },
+  },
+
   data() {
     return {
-      drawer: true,
       clipped: false,
       chat: null,
       chatOpen: false,
@@ -189,6 +195,10 @@ export default {
 
     onResize() {
       this.isMobile = window.innerWidth < 600;
+    },
+
+    updateDrawer() {
+      this.$emit('update:drawer', !this.drawer);
     },
   },
 };

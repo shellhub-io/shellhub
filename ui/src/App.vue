@@ -30,7 +30,9 @@
       </v-list>
     </v-navigation-drawer>
 
-    <AppBar />
+    <AppBar
+      :drawer.sync="drawer"
+    />
 
     <router-view
       v-if="!isLoggedIn"
