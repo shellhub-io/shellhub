@@ -290,6 +290,9 @@ func (s *Store) DeviceGetByMac(ctx context.Context, mac, tenant, status string) 
 	device := new(models.Device)
 	if status != "" {
 		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}, "status": status}).Decode(&device); err != nil {
+			if err == mongo.ErrNoDocuments {
+				return nil, store.ErrDeviceNoDocuments
+			}
 			return nil, err
 		}
 	} else {
