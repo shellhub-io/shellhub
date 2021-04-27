@@ -125,6 +125,12 @@ export default {
     },
   },
 
+  beforeDestroy() {
+    if (typeof window === 'undefined') return;
+
+    window.removeEventListener('resize', this.onResize, { passive: true });
+  },
+
   created() { // previous user tenant changed into a namespace
     if (!this.hasLoggedID && this.isLoggedIn) {
       try {
@@ -139,6 +145,9 @@ export default {
   },
 
   mounted() {
+    this.onResize();
+    window.addEventListener('resize', this.onResize, { passive: true });
+
     this.$store.dispatch('privatekeys/fetch');
   },
 
@@ -154,6 +163,11 @@ export default {
       default:
         break;
       }
+    },
+
+    onResize() {
+      const isMobile = this.$vuetify.breakpoint.mobile;
+      this.$store.dispatch('mobile/setIsMobileStatus', isMobile);
     },
   },
 };

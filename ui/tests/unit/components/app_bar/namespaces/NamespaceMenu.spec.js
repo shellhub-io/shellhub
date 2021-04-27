@@ -61,11 +61,13 @@ describe('NamespaceMenu', () => {
       namespace,
       namespaces,
       owner,
+      isMobile,
     },
     getters: {
       'namespaces/list': (state) => state.namespaces,
       'namespaces/get': (state) => state.namespace,
       'namespaces/owner': (state) => state.owner,
+      'mobile/isMobile': (state) => state.isMobile,
     },
     actions: {
       'namespaces/fetch': () => {
@@ -88,7 +90,7 @@ describe('NamespaceMenu', () => {
       store,
       localVue,
       stubs: ['fragment', 'router-link'],
-      propsData: { inANamespace, isMobile },
+      propsData: { inANamespace },
       mocks: ['$env'],
       vuetify,
     });
@@ -141,11 +143,13 @@ describe('NamespaceMenu', () => {
             ],
             numberNamespaces,
             owner,
+            isMobile,
           },
           getters: {
             'namespaces/list': (state) => state.namespaces,
             'namespaces/get': (state) => state.namespace,
             'namespaces/owner': (state) => state.owner,
+            'mobile/isMobile': (state) => state.isMobile,
           },
           actions: {
             'namespaces/fetch': () => {
@@ -162,7 +166,7 @@ describe('NamespaceMenu', () => {
         }),
         localVue,
         stubs: ['fragment', 'router-link'],
-        propsData: { inANamespace, isMobile },
+        propsData: { inANamespace },
         mocks: ['$env'],
         vuetify,
       }),
@@ -181,11 +185,13 @@ describe('NamespaceMenu', () => {
             ],
             numberNamespaces,
             owner,
+            isMobile,
           },
           getters: {
             'namespaces/list': (state) => state.namespaces,
             'namespaces/get': (state) => state.namespace,
             'namespaces/owner': (state) => state.owner,
+            'mobile/isMobile': (state) => state.isMobile,
           },
           actions: {
             'namespaces/fetch': () => {
@@ -202,7 +208,7 @@ describe('NamespaceMenu', () => {
         }),
         localVue,
         stubs: ['fragment', 'router-link'],
-        propsData: { inANamespace, isMobile },
+        propsData: { inANamespace },
         mocks: ['$env'],
         vuetify,
       }),

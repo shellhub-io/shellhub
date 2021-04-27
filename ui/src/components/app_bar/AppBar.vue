@@ -15,12 +15,14 @@
       <router-link to="/">
         <v-img
           v-if="!isMobile"
+          class=".d-none"
           src="@/assets/logo-inverted.png"
           max-width="160"
         />
 
         <v-img
           v-else
+          class=".d-flex .d-sm-none"
           src="@/assets/logo-inverted-only-cloud.png"
           max-width="50"
         />
@@ -37,7 +39,6 @@
 
       <NamespaceMenu
         :in-a-namespace="hasNamespaces"
-        :is-mobile="isMobile"
       />
 
       <v-chip>
@@ -123,7 +124,6 @@ export default {
       clipped: false,
       chat: null,
       chatOpen: false,
-      isMobile: false,
       menu: [
         {
           title: 'Settings',
@@ -150,18 +150,13 @@ export default {
     hasNamespaces() {
       return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
     },
-  },
 
-  beforeDestroy() {
-    if (typeof window === 'undefined') return;
-
-    window.removeEventListener('resize', this.onResize, { passive: true });
+    isMobile() {
+      return this.$store.getters['mobile/isMobile'];
+    },
   },
 
   async mounted() {
-    this.onResize();
-    window.addEventListener('resize', this.onResize, { passive: true });
-
     this.chat = await new GitterSidecar({ room: 'shellhub-io/community', activationElement: false, targetElement: this.$refs.chat });
     this.$refs.chat.addEventListener('gitter-chat-toggle', (e) => {
       this.chatOpen = e.detail.state;
@@ -191,10 +186,6 @@ export default {
 
     toggleChat() {
       this.chat.toggleChat(!this.chatOpen);
-    },
-
-    onResize() {
-      this.isMobile = window.innerWidth < 600;
     },
 
     updateDrawer() {

@@ -30,6 +30,8 @@ describe('App', () => {
       },
       'privatekeys/fetch': () => {
       },
+      'mobile/setIsMobileStatus': () => {
+      },
     },
   });
 
