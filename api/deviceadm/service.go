@@ -74,21 +74,19 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 }
 
 func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, username string) error {
-	err := s.isNamespaceOnwer(ctx, tenant, username)
-	if err != nil {
+	if err := s.isNamespaceOnwer(ctx, tenant, username); err != nil {
+		return ErrUnauthorized
+	}
+
+	if _, err := s.store.DeviceGetByUID(ctx, uid, tenant); err != nil {
 		return err
 	}
 
-	device, _ := s.store.DeviceGetByUID(ctx, uid, tenant)
-	if device != nil {
-		return s.store.DeviceDelete(ctx, uid)
-	}
-	return ErrUnauthorized
+	return s.store.DeviceDelete(ctx, uid)
 }
 
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant, username string) error {
-	err := s.isNamespaceOnwer(ctx, tenant, username)
-	if err != nil {
+	if err := s.isNamespaceOnwer(ctx, tenant, username); err != nil {
 		return ErrUnauthorized
 	}
 
@@ -129,38 +127,42 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online
 }
 
 func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, username string) error {
-	err := s.isNamespaceOnwer(ctx, tenant, username)
+	if err := s.isNamespaceOnwer(ctx, tenant, username); err != nil {
+		return ErrUnauthorized
+	}
+
+	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if err != nil {
 		return err
 	}
 
-	device, _ := s.store.DeviceGetByUID(ctx, uid, tenant)
-	if device != nil {
-		if status == "accepted" {
-			sameMacDev, _ := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
+	if status == "accepted" {
+		sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
+		if err != nil && err != store.ErrDeviceNoDocuments {
+			return err
+		}
 
-			if sameMacDev != nil && sameMacDev.UID != device.UID {
-				if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil {
-					return err
-				}
-				if err := s.store.DeviceDelete(ctx, models.UID(sameMacDev.UID)); err != nil {
-					return err
-				}
-				if err := s.store.DeviceRename(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
-					return err
-				}
-			} else {
-				ns, err := s.store.NamespaceGet(ctx, device.TenantID)
-				if err != nil {
-					return err
-				}
+		if sameMacDev != nil && sameMacDev.UID != device.UID {
+			if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil {
+				return err
+			}
+			if err := s.store.DeviceDelete(ctx, models.UID(sameMacDev.UID)); err != nil {
+				return err
+			}
+			if err := s.store.DeviceRename(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
+				return err
+			}
+		} else {
+			ns, err := s.store.NamespaceGet(ctx, device.TenantID)
+			if err != nil {
+				return err
+			}
 
-				if ns.MaxDevices > 0 && ns.MaxDevices <= ns.DevicesCount {
-					return ErrMaxDeviceCountReached
-				}
+			if ns.MaxDevices > 0 && ns.MaxDevices <= ns.DevicesCount {
+				return ErrMaxDeviceCountReached
 			}
 		}
-		return s.store.DeviceUpdateStatus(ctx, uid, status)
 	}
-	return ErrUnauthorized
+
+	return s.store.DeviceUpdateStatus(ctx, uid, status)
 }
