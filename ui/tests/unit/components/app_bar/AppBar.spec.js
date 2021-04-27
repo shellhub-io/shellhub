@@ -12,6 +12,7 @@ describe('AppBar', () => {
   const tenant = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
   const isLoggedIn = true;
   const numberNamespaces = 1;
+  const drawer = true;
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -36,6 +37,7 @@ describe('AppBar', () => {
       store,
       localVue,
       stubs: ['fragment'],
+      propsData: { drawer },
       router,
     });
   });
