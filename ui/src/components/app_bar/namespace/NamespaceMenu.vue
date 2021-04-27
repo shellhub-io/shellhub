@@ -127,7 +127,7 @@
               <v-divider />
 
               <v-list-item
-                v-if="!isMobile"
+                v-if="loggedInNamespace || !isMobile"
                 to="/settings/namespace-manager"
               >
                 <v-list-item-icon>
@@ -161,11 +161,6 @@ export default {
 
   props: {
     inANamespace: {
-      type: Boolean,
-      required: true,
-    },
-
-    isMobile: {
       type: Boolean,
       required: true,
     },
@@ -215,6 +210,10 @@ export default {
 
     isEnterprise() {
       return this.$env.isEnterprise;
+    },
+
+    isMobile() {
+      return this.$store.getters['mobile/isMobile'];
     },
   },
 

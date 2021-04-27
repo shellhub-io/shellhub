@@ -13,6 +13,7 @@ describe('AppBar', () => {
   const isLoggedIn = true;
   const numberNamespaces = 1;
   const drawer = true;
+  const isMobile = false;
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -20,11 +21,13 @@ describe('AppBar', () => {
       isLoggedIn,
       numberNamespaces,
       tenant,
+      isMobile,
     },
     getters: {
       'auth/isLoggedIn': (state) => state.isLoggedIn,
       'namespaces/getNumberNamespaces': (state) => state.numberNamespaces,
       'auth/tenant': (state) => state.tenant,
+      'mobile/isMobile': (state) => state.isMobile,
     },
     actions: {
       'auth/logout': () => {
