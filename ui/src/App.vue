@@ -4,7 +4,7 @@
 
     <v-navigation-drawer
       v-if="isLoggedIn && hasNamespaces"
-      v-model="drawer"
+      v-model="showNavigationDrawer"
       app
       clipped
       dark
@@ -70,7 +70,7 @@ export default {
 
   data() {
     return {
-      drawer: true,
+      drawer: false,
       clipped: false,
       items: [
         {
@@ -122,6 +122,16 @@ export default {
 
     hasNamespaces() {
       return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
+    },
+
+    showNavigationDrawer: {
+      get() {
+        return !this.$store.getters['mobile/isMobile'] || this.drawer;
+      },
+
+      set(status) {
+        this.drawer = status;
+      },
     },
   },
 

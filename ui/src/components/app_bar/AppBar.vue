@@ -14,23 +14,20 @@
 
       <router-link to="/">
         <v-img
-          v-if="!isMobile"
-          class=".d-none"
+          class="d-sm-flex hidden-sm-and-down"
           src="@/assets/logo-inverted.png"
           max-width="160"
         />
 
         <v-img
-          v-else
-          class=".d-flex .d-sm-none"
+          class="hidden-sm-and-up"
           src="@/assets/logo-inverted-only-cloud.png"
-          max-width="50"
+          max-width="46"
         />
       </router-link>
 
       <span
-        v-if="!isMobile"
-        class="overline mt-3"
+        class="overline mt-3 d-sm-flex hidden-sm-and-down"
       >
         BETA
       </span>
