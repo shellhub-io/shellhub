@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/agent/selfupdater"
 	"github.com/shellhub-io/shellhub/agent/sshd"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
 // Agent version to be embed inside the binary. This is injected using `-ldflags`
@@ -177,5 +178,20 @@ func main() {
 		if err := agent.authorize(); err != nil {
 			sshserver.SetDeviceName(agent.authData.Name)
 		}
+	}
+
+	var rootCmd = &cobra.Command{Use: "agent"}
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use: "info",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := agent.probeServerInfo(); err != nil {
+				logrus.Fatal(err)
+			}
+		},
+	})
+
+	if err := rootCmd.Execute(); err != nil {
+		logrus.Error(err)
 	}
 }
