@@ -4,37 +4,17 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
-	"fmt"
-	"strings"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"gopkg.in/go-playground/validator.v9"
-)
-
-var (
-	ErrCreateNewUser          = errors.New("failed to create a new user")
-	ErrCreateNewNamespace     = errors.New("failed to create a new namespace")
-	ErrDuplicateUser          = errors.New("user already exists")
-	ErrInvalidFormatNamespace = errors.New("invalid format for namespace")
-	ErrDuplicateNamespace     = errors.New("namespace already exists")
-	ErrInvalidFormatPassword  = errors.New("invalid format for password")
-	ErrUserNotFound           = errors.New("user not found")
-	ErrNamespaceNotFound      = errors.New("namespace not found")
-	ErrFailedAddNamespaceUser = errors.New("failed to add the namespace for the user")
-	ErrFailedDeleteUser       = errors.New("failed to delete the user")
-	ErrFailedDeleteNamespace  = errors.New("failed to delete the namespace")
-	ErrFailedUpdateUser       = errors.New("failed to reset the password for the user")
-	ErrFailedRemoveMember     = errors.New("failed to remove member from the namespace")
 )
 
 type Parameters struct {
-	Username  string
-	Namespace string
-	Password  string
-	Email     string
+	Username  string `validate:"required,min=3,max=30,alphanum,ascii"`
+	Namespace string `validate:"required,min=3,max=30,alphanum,ascii"`
+	Password  string `validate:"required,min=5,max=30"`
+	Email     string `validate:"required,email"`
 	TenantID  string
 }
 
@@ -57,23 +37,7 @@ func NewService(store store.Store) Service {
 }
 
 func (s *service) UserCreate(data Parameters) (string, error) {
-	var errstrings []string
-	validator := validator.New()
-
-	if err := validator.Var(data.Username, "required,min=3,max=30,alphanum,ascii"); err != nil {
-		errstrings = append(errstrings, fmt.Errorf("invalid format for username").Error())
-	}
-
-	if err := validator.Var(data.Email, "required,email"); err != nil {
-		errstrings = append(errstrings, fmt.Errorf("email is not in a valid format").Error())
-	}
-
-	if err := validator.Var(data.Password, "required,min=5,max=30"); err != nil {
-		errstrings = append(errstrings, fmt.Errorf("invalid format for password").Error())
-	}
-
-	if len(errstrings) > 0 {
-		fmt.Println(fmt.Errorf(strings.Join(errstrings, "\n")))
+	if err := validateParameters(data); err != nil {
 		return "", ErrCreateNewUser
 	}
 
@@ -99,8 +63,8 @@ func (s *service) UserCreate(data Parameters) (string, error) {
 }
 
 func (s *service) NamespaceCreate(data Parameters) (*models.Namespace, error) {
-	if err := validator.New().Var(data.Namespace, "required,min=3,max=30,alphanum,ascii"); err != nil {
-		return nil, ErrInvalidFormatNamespace
+	if err := validateParameters(data); err != nil {
+		return nil, ErrCreateNewNamespace
 	}
 
 	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
@@ -202,8 +166,8 @@ func (s *service) NamespaceRemoveMember(data Parameters) (*models.Namespace, err
 }
 
 func (s *service) UserUpdate(data Parameters) error {
-	if err := validator.New().Var(data.Password, "required,min=5,max=30"); err != nil {
-		return ErrInvalidFormatPassword
+	if err := validateParameters(data); err != nil {
+		return ErrChangePassword
 	}
 
 	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
