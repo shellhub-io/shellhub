@@ -1297,7 +1297,7 @@ func TestCreateNamespace(t *testing.T) {
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []string{"owner"},
+		Members:    []interface{}{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1319,7 +1319,7 @@ func TestDeleteNamespace(t *testing.T) {
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []string{"owner"},
+		Members:    []interface{}{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1344,7 +1344,7 @@ func TestGetNamespace(t *testing.T) {
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []string{"owner"},
+		Members:    []interface{}{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1369,7 +1369,7 @@ func TestListNamespaces(t *testing.T) {
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []string{"owner"},
+		Members:    []interface{}{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1403,7 +1403,7 @@ func TestAddNamespaceUser(t *testing.T) {
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []string{"owner"},
+		Members:    []interface{}{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1434,7 +1434,7 @@ func TestUpdateNamespace(t *testing.T) {
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []string{"owner"},
+		Members:    []interface{}{"owner"},
 		Settings:   &models.NamespaceSettings{SessionRecord: true},
 		MaxDevices: -1,
 	})
@@ -1471,7 +1471,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 		Name:       "namespace",
 		Owner:      "owner",
 		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []string{"owner"},
+		Members:    []interface{}{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
