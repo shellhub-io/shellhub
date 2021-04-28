@@ -181,6 +181,9 @@ func TestUpdatePendingStatus(t *testing.T) {
 	identity := &models.DeviceIdentity{MAC: "mac"}
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: identity}
 	oldDevice := &models.Device{UID: "old_uid", Name: "name", TenantID: "tenant", Identity: identity}
+	namespaceExceedLimit := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: 3, DevicesCount: 3}
+	deviceExceed := &models.Device{UID: "uid_limit", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
+
 	ctx := context.TODO()
 
 	mock.On("UserGetByUsername", ctx, user.Username).
@@ -217,19 +220,17 @@ func TestUpdatePendingStatus(t *testing.T) {
 	// Would exceed limit
 	mock.On("UserGetByUsername", ctx, user.Username).
 		Return(user, nil).Once()
-	mock.On("NamespaceGet", ctx, device.TenantID).
-		Return(namespace, nil).Once()
-	mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
-		Return(device, nil).Once()
-	mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
+	mock.On("NamespaceGet", ctx, deviceExceed.TenantID).
+		Return(namespaceExceedLimit, nil).Once()
+	mock.On("DeviceGetByUID", ctx, models.UID(deviceExceed.UID), deviceExceed.TenantID).
+		Return(deviceExceed, nil).Once()
+	mock.On("DeviceGetByMac", ctx, "mac", deviceExceed.TenantID, "accepted").
 		Return(nil, nil).Once()
-	mock.On("NamespaceGet", ctx, device.TenantID).
-		Return(namespace, nil).Once()
-	mock.On("DeviceUpdateStatus", ctx, models.UID(device.UID), "accepted").
-		Return(nil).Once()
+	mock.On("NamespaceGet", ctx, deviceExceed.TenantID).
+		Return(namespaceExceedLimit, nil).Once()
 
-	err = s.UpdatePendingStatus(ctx, models.UID("uid"), "accepted", "tenant", user.Username)
-	assert.NoError(t, err)
+	err = s.UpdatePendingStatus(ctx, models.UID("uid_limit"), "accepted", "tenant_max", user.Username)
+	assert.EqualError(t, err, "maximum number of accepted devices reached")
 
 	mock.AssertExpectations(t)
 }
