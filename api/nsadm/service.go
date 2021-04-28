@@ -12,7 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -70,8 +69,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	}
 
 	namespace.Owner = user.ID
-	members := []string{user.ID}
-	namespace.Members = &members
+	namespace.Members = []interface{}{user.ID}
 	settings := &models.NamespaceSettings{SessionRecord: true}
 	namespace.Settings = settings
 	if namespace.TenantID == "" {
@@ -108,7 +106,7 @@ func (s *service) ListMembers(ctx context.Context, namespace string) ([]models.M
 	ns, _ := s.store.NamespaceGet(ctx, namespace)
 	if ns != nil {
 		members := []models.Member{}
-		for _, memberID := range ns.Members.(primitive.A) {
+		for _, memberID := range ns.Members {
 			if user, err := s.store.UserGetByID(ctx, memberID.(string)); err == nil {
 				member := models.Member{ID: memberID.(string), Name: user.Username}
 				members = append(members, member)

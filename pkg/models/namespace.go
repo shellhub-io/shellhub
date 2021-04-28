@@ -4,7 +4,7 @@ type Namespace struct {
 	Name         string             `json:"name"  validate:"required,hostname_rfc1123"`
 	Owner        string             `json:"owner"`
 	TenantID     string             `json:"tenant_id" bson:"tenant_id,omitempty"`
-	Members      interface{}        `json:"members" bson:"members"`
+	Members      []interface{}      `json:"members" bson:"members"`
 	Settings     *NamespaceSettings `json:"settings"`
 	Devices      int                `json:"devices" bson:",omitempty"`
 	Sessions     int                `json:"sessions" bson:",omitempty"`
