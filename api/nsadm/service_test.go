@@ -116,8 +116,8 @@ func TestAddNamespaceUser(t *testing.T) {
 	ctx := context.TODO()
 	user := &models.User{Name: "user1", Username: "username1", ID: "hash1"}
 	member := &models.User{Name: "user2", Username: "username2", ID: "hash2"}
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []string{"hash1"}}
-	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []string{"hash1", "hash2"}}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []interface{}{"hash1"}}
+	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []interface{}{"hash1", "hash2"}}
 
 	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 	mock.On("UserGetByID", ctx, user.ID).Return(user, nil).Once()
@@ -140,8 +140,8 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	ctx := context.TODO()
 	user := &models.User{Name: "user1", Username: "username1", ID: "hash1"}
 	member := &models.User{Name: "user2", Username: "username2", ID: "hash2"}
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []string{"hash1", "hash2"}}
-	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []string{"hash1"}}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []interface{}{"hash1", "hash2"}}
+	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []interface{}{"hash1"}}
 
 	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 	mock.On("UserGetByID", ctx, user.ID).Return(user, nil).Once()

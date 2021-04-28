@@ -360,7 +360,7 @@ var migrations = []migrate.Migration{
 				settings := &models.NamespaceSettings{SessionRecord: true}
 				namespace := &models.Namespace{
 					Owner:    user.ID,
-					Members:  []string{user.ID},
+					Members:  []interface{}{user.ID},
 					TenantID: user.TenantID,
 					Name:     user.Username,
 					Settings: settings,

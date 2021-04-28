@@ -20,7 +20,6 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -245,7 +244,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 		return nil, err
 	}
 
-	for _, i := range namespace.Members.(primitive.A) {
+	for _, i := range namespace.Members {
 		if user.ID == i.(string) {
 			token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 				Username: user.Username,
