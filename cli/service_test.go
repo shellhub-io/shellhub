@@ -103,7 +103,6 @@ func initData(dataNeeded string) Data {
 		Owner:    "testService",
 		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 		Members:  []interface{}{"1"},
-
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
