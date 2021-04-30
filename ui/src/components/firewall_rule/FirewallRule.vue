@@ -16,7 +16,6 @@
       <v-spacer />
 
       <FirewallRuleCreate
-        v-if="isOwner"
         :create-rule="true"
         data-test="firewall-dialog-field"
         @update="refresh"
@@ -63,10 +62,6 @@ export default {
   },
 
   computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
-    },
-
     hasFirewallRule() {
       return this.$store.getters['firewallrules/getNumberFirewalls'] > 0;
     },

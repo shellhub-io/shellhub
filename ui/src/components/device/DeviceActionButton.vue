@@ -15,14 +15,28 @@
     <fragment
       v-else
     >
-      <v-btn
-        class="mr-2"
-        small
-        outlined
-        @click="dialog = !dialog"
+      <v-tooltip
+        bottom
+        :disabled="isOwner"
       >
-        {{ action }}
-      </v-btn>
+        <template #activator="{ on }">
+          <span v-on="on">
+            <v-btn
+              :disabled="!isOwner"
+              class="mr-2"
+              small
+              outlined
+              @click="dialog = !dialog"
+            >
+              {{ action }}
+            </v-btn>
+          </span>
+        </template>
+
+        <span>
+          You are not the owner of this namespace
+        </span>
+      </v-tooltip>
     </fragment>
 
     <v-dialog
@@ -90,6 +104,12 @@ export default {
     return {
       dialog: false,
     };
+  },
+
+  computed: {
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
+    },
   },
 
   methods: {

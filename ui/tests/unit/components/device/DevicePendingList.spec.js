@@ -10,7 +10,6 @@ describe('DevicePendingList', () => {
   localVue.filter('moment', () => {});
 
   let wrapper;
-  let wrapper2;
 
   const numberDevices = 4;
   const devices = [
@@ -87,45 +86,16 @@ describe('DevicePendingList', () => {
       status: 'pending',
     },
   ];
-  const owner = true;
-
-  const store2 = new Vuex.Store({
-    namespaced: true,
-    state: {
-      devices,
-      numberDevices,
-      owner: false,
-    },
-    getters: {
-      'devices/list': (state) => state.devices,
-      'devices/getNumberDevices': (state) => state.numberDevices,
-      'namespaces/owner': (state) => state.owner,
-    },
-    actions: {
-      'modals/showAddDevice': () => {
-      },
-      'devices/fetch': () => {
-      },
-      'devices/rename': () => {
-      },
-      'stats/get': () => {
-      },
-      'devices/resetListDevices': () => {
-      },
-    },
-  });
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       devices,
       numberDevices,
-      owner,
     },
     getters: {
       'devices/list': (state) => state.devices,
       'devices/getNumberDevices': (state) => state.numberDevices,
-      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'modals/showAddDevice': () => {
@@ -162,16 +132,6 @@ describe('DevicePendingList', () => {
     expect(dataTableProps.items).toHaveLength(numberDevices);
     expect(wrapper.find('[data-test="field-accept"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="field-reject"]').exists()).toBe(true);
-  });
-  it('Hides reject and accept button', () => {
-    wrapper2 = mount(DevicePendingList, {
-      store: store2,
-      localVue,
-      stubs: ['fragment', 'router-link'],
-      vuetify,
-    });
-    expect(wrapper2.find('[data-test="field-accept"]').exists()).toBe(false);
-    expect(wrapper2.find('[data-test="field-reject"]').exists()).toBe(false);
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.getListPendingDevices).toEqual(devices);

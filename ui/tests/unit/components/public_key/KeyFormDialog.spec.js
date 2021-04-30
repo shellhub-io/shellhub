@@ -8,6 +8,8 @@ describe('KeyFormDialog', () => {
 
   let wrapper;
 
+  const isOwner = true;
+
   const keyObject = {
     data: 'AbGVvbmFyZG8=',
     fingerprint: 'b7:25:f8',
@@ -21,8 +23,10 @@ describe('KeyFormDialog', () => {
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      isOwner,
     },
     getters: {
+      'namespaces/owner': (state) => state.isOwner,
     },
     actions: {
       'publickeys/post': () => {

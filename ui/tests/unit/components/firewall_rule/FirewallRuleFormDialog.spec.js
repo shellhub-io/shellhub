@@ -8,6 +8,8 @@ describe('FirewallRuleFormDialog', () => {
 
   let wrapper;
 
+  const isOwner = true;
+
   const firewallRule = {
     id: '5f1996c84d2190a22d5857bb',
     tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
@@ -19,7 +21,7 @@ describe('FirewallRuleFormDialog', () => {
     hostname: 'shellhub',
   };
   const createRule = true;
-  const state = [
+  const stateFirewallRule = [
     {
       id: 'allow',
       name: 'allow',
@@ -33,8 +35,10 @@ describe('FirewallRuleFormDialog', () => {
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      isOwner,
     },
     getters: {
+      'namespaces/owner': (state) => state.isOwner,
     },
     actions: {
       'firewallrules/post': () => {
@@ -65,6 +69,6 @@ describe('FirewallRuleFormDialog', () => {
   });
   it('Compare data with default value', () => {
     expect(wrapper.vm.dialog).toEqual(false);
-    expect(wrapper.vm.state).toEqual(state);
+    expect(wrapper.vm.state).toEqual(stateFirewallRule);
   });
 });

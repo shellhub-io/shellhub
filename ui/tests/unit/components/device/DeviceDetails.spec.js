@@ -7,8 +7,6 @@ describe('DeviceDetails', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  let wrapper2;
-  const owner = true;
 
   const device = {
     uid: 'a582b47a42d',
@@ -32,27 +30,9 @@ describe('DeviceDetails', () => {
     namespaced: true,
     state: {
       device,
-      owner,
     },
     getters: {
       'devices/get': (state) => state.device,
-      'namespaces/owner': (state) => state.owner,
-    },
-    actions: {
-      'devices/get': () => {
-      },
-    },
-  });
-
-  const store2 = new Vuex.Store({
-    namespaced: true,
-    state: {
-      device,
-      owner: false,
-    },
-    getters: {
-      'devices/get': (state) => state.device,
-      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'devices/get': () => {
@@ -85,21 +65,6 @@ describe('DeviceDetails', () => {
     it(`Receives the field ${field} of device state from store`, () => {
       expect(wrapper.vm.device[field]).toEqual(device[field]);
     });
-  });
-  it('Hides rename field for user not owner', () => {
-    wrapper2 = shallowMount(DeviceDetails, {
-      store: store2,
-      localVue,
-      stubs: ['fragment'],
-      mocks: {
-        $route: {
-          params: {
-            id: device.uid,
-          },
-        },
-      },
-    });
-    expect(wrapper2.find('[data-test="rename-field"]').exists()).toEqual(false);
   });
   it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(device.uid);

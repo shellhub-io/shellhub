@@ -8,6 +8,7 @@ describe('SessionPlay', () => {
 
   let wrapper;
 
+  const isOwner = true;
   const uid = '8c354a00f50';
   const recorded = true;
   const speedList = [0.5, 1, 1.5, 2, 4];
@@ -57,9 +58,11 @@ describe('SessionPlay', () => {
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      isOwner,
       session,
     },
     getters: {
+      'namespaces/owner': (state) => state.isOwner,
       'sessions/get': (state) => state.session,
     },
     actions: {
@@ -91,7 +94,6 @@ describe('SessionPlay', () => {
     expect(wrapper.vm.recorded).toEqual(recorded);
   });
   it('Process data in the computed', () => {
-    expect(wrapper.vm.auth).toEqual(true);
     expect(wrapper.vm.length).toEqual(0);
     expect(wrapper.vm.nowTimerDisplay).toEqual(0);
   });

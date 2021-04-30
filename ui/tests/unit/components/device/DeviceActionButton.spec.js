@@ -7,6 +7,8 @@ describe('DeviceActionButton', () => {
   localVue.use(Vuex);
 
   let wrapper;
+
+  const isOwner = true;
   const uid = '';
   const notificationStatus = false;
   const action = 'accept';
@@ -14,8 +16,10 @@ describe('DeviceActionButton', () => {
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      isOwner,
     },
     getters: {
+      'namespaces/owner': (state) => state.isOwner,
     },
     actions: {
       'devices/refresh': () => {

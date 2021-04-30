@@ -10,39 +10,14 @@ describe('FirewallRule', () => {
 
   let wrapper;
 
-  const isOwner = true;
   const numberFirewalls = 0;
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      isOwner,
       numberFirewalls,
     },
     getters: {
-      'namespaces/owner': (state) => state.isOwner,
-      'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
-    },
-    actions: {
-      'boxs/setStatus': () => {
-      },
-      'firewallrules/resetPagePerpage': () => {
-      },
-      'firewallrules/refresh': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
-    },
-  });
-
-  const store2 = new Vuex.Store({
-    namespaced: true,
-    state: {
-      isOwner: !isOwner,
-      numberFirewalls,
-    },
-    getters: {
-      'namespaces/owner': (state) => state.isOwner,
       'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
     },
     actions: {
@@ -72,19 +47,7 @@ describe('FirewallRule', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.isOwner).toEqual(isOwner);
-  });
   it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="firewall-dialog-field"]').exists()).toBe(true);
-  });
-  it('Hides dialogs when the user is not the owner', () => {
-    const wrapper2 = mount(FirewallRule, {
-      store: store2,
-      localVue,
-      stubs: ['fragment'],
-      vuetify,
-    });
-    expect(wrapper2.find('[data-test="firewall-dialog-field"]').exists()).toBe(false);
   });
 });

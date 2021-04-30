@@ -32,7 +32,6 @@
 
         <template #[`item.actions`]="{ item }">
           <DeviceActionButton
-            v-if="isOwner"
             data-test="field-accept"
             :uid="item.uid"
             action="accept"
@@ -40,7 +39,6 @@
           />
 
           <DeviceActionButton
-            v-if="isOwner"
             data-test="field-reject"
             :uid="item.uid"
             action="reject"
@@ -106,10 +104,6 @@ export default {
 
     getNumberPendingDevices() {
       return this.$store.getters['devices/getNumberDevices'];
-    },
-
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
     },
   },
 

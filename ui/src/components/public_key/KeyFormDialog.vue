@@ -1,27 +1,54 @@
 <template>
   <fragment>
-    <v-btn
+    <v-tooltip
       v-if="createKey"
-      class="v-btn--active"
-      text
-      color="primary"
-      @click="dialog = !dialog"
+      bottom
+      :disabled="isOwner || action == 'private'"
     >
-      Add {{ action }} Key
-    </v-btn>
+      <template #activator="{ on }">
+        <div v-on="on">
+          <v-btn
+            :disabled="!isOwner && action == 'public'"
+            class="v-btn--active"
+            text
+            color="primary"
+            @click="dialog = !dialog"
+          >
+            Add {{ action }} Key
+          </v-btn>
+        </div>
+      </template>
+
+      <span>
+        You are not the owner of this namespace
+      </span>
+    </v-tooltip>
+
     <v-tooltip
       v-else
       bottom
     >
       <template #activator="{ on }">
-        <v-icon
-          v-on="on"
-          @click="dialog = !dialog"
-        >
-          edit
-        </v-icon>
+        <span v-on="on">
+          <v-icon
+            :disabled="!isOwner && action == 'public'"
+            v-on="on"
+            @click="dialog = !dialog"
+          >
+            edit
+          </v-icon>
+        </span>
       </template>
-      <span>Edit</span>
+
+      <div>
+        <span v-if="action == 'private'">
+          Edit
+        </span>
+
+        <span v-else>
+          You are not the owner of this namespace
+        </span>
+      </div>
     </v-tooltip>
 
     <v-dialog
@@ -165,6 +192,12 @@ export default {
       keyLocal: [],
       supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
     };
+  },
+
+  computed: {
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
+    },
   },
 
   async created() {

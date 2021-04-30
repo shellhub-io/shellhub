@@ -61,14 +61,12 @@
 
           <template #[`item.actions`]="{ item }">
             <FirewallRuleEdit
-              v-if="isOwner"
               data-test="firewall-dialog-field-2"
               :firewall-rule="item"
               :create-rule="false"
               @update="refresh"
             />
             <FirewallRuleDelete
-              v-if="isOwner"
               :id="item.id"
               data-test="firewall-delete-field"
               @update="refresh"
@@ -146,10 +144,6 @@ export default {
 
     getNumberFirewallRules() {
       return this.$store.getters['firewallrules/getNumberFirewalls'];
-    },
-
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
     },
   },
 

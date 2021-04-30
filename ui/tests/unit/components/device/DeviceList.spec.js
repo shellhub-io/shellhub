@@ -9,7 +9,6 @@ describe('DeviceList', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  let wrapper2;
 
   const numberDevices = 2;
   const devices = [
@@ -50,45 +49,16 @@ describe('DeviceList', () => {
       status: 'accepted',
     },
   ];
-  const owner = true;
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       devices,
       numberDevices,
-      owner,
     },
     getters: {
       'devices/list': (state) => state.devices,
       'devices/getNumberDevices': (state) => state.numberDevices,
-      'namespaces/owner': (state) => state.owner,
-    },
-    actions: {
-      'modals/showAddDevice': () => {
-      },
-      'devices/fetch': () => {
-      },
-      'devices/rename': () => {
-      },
-      'devices/resetListDevices': () => {
-      },
-      'stats/get': () => {
-      },
-    },
-  });
-
-  const store2 = new Vuex.Store({
-    namespaced: true,
-    state: {
-      devices,
-      numberDevices,
-      owner: false,
-    },
-    getters: {
-      'devices/list': (state) => state.devices,
-      'devices/getNumberDevices': (state) => state.numberDevices,
-      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'modals/showAddDevice': () => {
@@ -124,15 +94,6 @@ describe('DeviceList', () => {
     const dataTableProps = dt.vm.$options.propsData;
     expect(dataTableProps.items).toHaveLength(numberDevices);
     expect(wrapper.find('[data-test="delete-field"]').exists()).toBe(true);
-  });
-  it('Hides delete field for user not owner', () => {
-    wrapper2 = mount(DeviceList, {
-      store: store2,
-      localVue,
-      stubs: ['fragment', 'router-link'],
-      vuetify,
-    });
-    expect(wrapper2.find('[data-test="delete-field"]').exists()).toBe(false);
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.getListDevices).toEqual(devices);
