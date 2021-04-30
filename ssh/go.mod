@@ -11,10 +11,8 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/pires/go-proxyproto v0.5.0
-	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shellhub-io/shellhub v0.5.2
 	github.com/sirupsen/logrus v1.8.1
-	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/net v0.0.0-20210224082022-3d97a244fca7
 	golang.org/x/sys v0.0.0-20210225134936-a50acf3fe073 // indirect
