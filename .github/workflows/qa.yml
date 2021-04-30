@@ -70,6 +70,16 @@ jobs:
       working-directory: ${{ matrix.project }}
       run: go mod download
 
+    - name: Ensure Go dependencies are complete [Go]
+      if: matrix.project != 'ui'
+      working-directory: ${{ matrix.project }}
+      run: |
+        go mod tidy
+        if [ -n "$(git status --porcelain)" ]; then
+            echo "Missing dependencies on 'go.mod'"
+            exit 1
+        fi
+
     - name: Unit test [Go]
       if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
       working-directory: ${{ matrix.project }}
