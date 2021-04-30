@@ -187,7 +187,7 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	}
 
 	if err := s.cache.Delete(ctx, string(uid)); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	if _, err := s.db.Collection("sessions").DeleteMany(ctx, bson.M{"device_uid": uid}); err != nil {
@@ -206,7 +206,7 @@ func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname stri
 
 	var dev *models.Device
 	if err := s.cache.Get(ctx, strings.Join([]string{"device", d.UID}, "/"), &dev); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	q := bson.M{
@@ -326,7 +326,7 @@ func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenant strin
 	var device *models.Device
 
 	if err := s.cache.Get(ctx, strings.Join([]string{"device", string(uid)}, "/"), &device); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	if device != nil {
@@ -338,7 +338,7 @@ func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenant strin
 	}
 
 	if err := s.cache.Set(ctx, strings.Join([]string{"device", string(uid)}, "/"), device, time.Minute); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	return device, nil

@@ -112,7 +112,7 @@ func (s *Store) NamespaceGet(ctx context.Context, namespace string) (*models.Nam
 	var ns *models.Namespace
 
 	if err := s.cache.Get(ctx, strings.Join([]string{"namespace", namespace}, "/"), &ns); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	if ns != nil {
@@ -124,7 +124,7 @@ func (s *Store) NamespaceGet(ctx context.Context, namespace string) (*models.Nam
 	}
 
 	if err := s.cache.Set(ctx, strings.Join([]string{"namespace", namespace}, "/"), ns, time.Minute); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 count:
@@ -142,7 +142,7 @@ func (s *Store) NamespaceGetByName(ctx context.Context, namespace string) (*mode
 	var ns *models.Namespace
 
 	if err := s.cache.Get(ctx, strings.Join([]string{"namespace", namespace}, "/"), &ns); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	if ns != nil {
@@ -167,7 +167,7 @@ func (s *Store) NamespaceDelete(ctx context.Context, namespace string) error {
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	collections := []string{"devices", "sessions", "connected_devices", "firewall_rules", "public_keys", "recorded_sessions"}
@@ -186,7 +186,7 @@ func (s *Store) NamespaceRename(ctx context.Context, namespace, name string) (*m
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	return s.NamespaceGet(ctx, namespace)
@@ -198,7 +198,7 @@ func (s *Store) NamespaceUpdate(ctx context.Context, tenant string, namespace *m
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenant}, "/")); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	return nil
@@ -214,7 +214,7 @@ func (s *Store) NamespaceAddMember(ctx context.Context, namespace, ID string) (*
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	return s.NamespaceGet(ctx, namespace)
@@ -230,7 +230,7 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, namespace, ID string)
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
-		logrus.Warning(err)
+		logrus.Error(err)
 	}
 
 	return s.NamespaceGet(ctx, namespace)
