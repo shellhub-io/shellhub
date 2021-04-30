@@ -8,13 +8,16 @@ describe('KeyDelete', () => {
 
   let wrapper;
 
+  const isOwner = true;
   const fingerprint = 'b7:25:f8';
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      isOwner,
     },
     getters: {
+      'namespaces/owner': (state) => state.isOwner,
     },
     actions: {
       'publickeys/remove': () => {

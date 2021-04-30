@@ -8,14 +8,17 @@ describe('DeviceRename', () => {
 
   let wrapper;
 
+  const isOwner = true;
   const uid = 'a582b47a42d';
   const name = '39-5e-2a';
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      isOwner,
     },
     getters: {
+      'namespaces/owner': (state) => state.isOwner,
       'devices/get': (state) => state.device,
     },
     actions: {

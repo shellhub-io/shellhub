@@ -7,14 +7,18 @@ describe('DeviceDelete', () => {
   localVue.use(Vuex);
 
   let wrapper;
+
+  const isOwner = true;
   const uid = 'a582b47a42d';
   const redirect = true;
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      isOwner,
     },
     getters: {
+      'namespaces/owner': (state) => state.isOwner,
     },
     actions: {
       'devices/remove': () => {

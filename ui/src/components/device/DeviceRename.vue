@@ -1,16 +1,32 @@
 <template>
   <fragment>
-    <v-tooltip bottom>
+    <v-tooltip
+      bottom
+      :disabled="isOwner"
+    >
       <template #activator="{ on }">
-        <v-icon
-          v-on="on"
-          @click="dialog = !dialog"
-        >
-          mdi-pencil
-        </v-icon>
+        <div v-on="on">
+          <v-icon
+            :disabled="!isOwner"
+            v-on="on"
+            @click="dialog = !dialog"
+          >
+            mdi-pencil
+          </v-icon>
+        </div>
       </template>
-      <span>Edit</span>
+
+      <div>
+        <span v-if="isOwner">
+          Edit
+        </span>
+
+        <span v-else>
+          You are not the owner of this namespace
+        </span>
+      </div>
     </v-tooltip>
+
     <v-dialog
       v-model="dialog"
       max-width="450"
@@ -104,6 +120,10 @@ export default {
           uid: this.uid,
         };
       },
+    },
+
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
     },
   },
 

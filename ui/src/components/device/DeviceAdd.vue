@@ -1,14 +1,28 @@
 <template>
   <fragment>
-    <v-btn
-      class="v-btn--active mr-2"
-      text
-      color="primary"
-      :small="smallButton"
-      @click="dialog = !dialog"
+    <v-tooltip
+      bottom
+      :disabled="isOwner"
     >
-      Add Device
-    </v-btn>
+      <template #activator="{ on }">
+        <div v-on="on">
+          <v-btn
+            :disabled="!isOwner"
+            class="v-btn--active mr-2"
+            text
+            color="primary"
+            :small="smallButton"
+            @click="dialog = !dialog"
+          >
+            Add Device
+          </v-btn>
+        </div>
+      </template>
+
+      <span>
+        You are not the owner of this namespace
+      </span>
+    </v-tooltip>
 
     <v-dialog
       v-model="dialog"
@@ -105,6 +119,10 @@ export default {
       set(value) {
         this.$store.dispatch('modals/showAddDevice', value);
       },
+    },
+
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
     },
   },
 

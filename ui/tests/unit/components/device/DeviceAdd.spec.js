@@ -18,13 +18,16 @@ describe('DeviceAdd', () => {
 
   let wrapper;
 
+  const isOwner = true;
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      isOwner,
       addDevice: false,
       tenant: '00000000',
     },
     getters: {
+      'namespaces/owner': (state) => state.isOwner,
       'modals/addDevice': (state) => state.addDevice,
       'auth/tenant': (state) => state.tenant,
     },

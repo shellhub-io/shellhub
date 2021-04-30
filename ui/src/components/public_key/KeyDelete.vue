@@ -1,15 +1,29 @@
 <template>
   <fragment>
-    <v-tooltip bottom>
+    <v-tooltip
+      bottom
+    >
       <template #activator="{ on }">
-        <v-icon
-          v-on="on"
-          @click="dialog = !dialog"
-        >
-          delete
-        </v-icon>
+        <span v-on="on">
+          <v-icon
+            :disabled="!isOwner && action == 'public'"
+            v-on="on"
+            @click="dialog = !dialog"
+          >
+            delete
+          </v-icon>
+        </span>
       </template>
-      <span>Remove</span>
+
+      <div>
+        <span v-if="action == 'private'">
+          Remove
+        </span>
+
+        <span v-else>
+          You are not the owner of this namespace
+        </span>
+      </div>
     </v-tooltip>
 
     <v-dialog
@@ -71,6 +85,12 @@ export default {
     return {
       dialog: false,
     };
+  },
+
+  computed: {
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
+    },
   },
 
   methods: {

@@ -2,18 +2,33 @@
   <fragment
     v-if="hidden()"
   >
-    <v-tooltip bottom>
+    <v-tooltip
+      v-if="recorded"
+      bottom
+    >
       <template #activator="{ on }">
-        <v-icon
-          v-if="auth"
-          v-on="on"
-          @click="displayDialog"
-        >
-          mdi-play-circle
-        </v-icon>
+        <span v-on="on">
+          <v-icon
+            :disabled="!isOwner"
+            v-on="on"
+            @click="displayDialog"
+          >
+            mdi-play-circle
+          </v-icon>
+        </span>
       </template>
-      <span>Play</span>
+
+      <div>
+        <span v-if="isOwner">
+          Play
+        </span>
+
+        <span v-else>
+          You are not the owner of this namespace
+        </span>
+      </div>
     </v-tooltip>
+
     <v-dialog
       v-model="dialog"
       :max-width="1024"
@@ -161,18 +176,16 @@ export default {
   },
 
   computed: {
-    auth: {
-      get() {
-        return this.recorded;
-      },
-    },
-
     length() {
       return this.logs.length;
     },
 
     nowTimerDisplay() {
       return this.getTimerNow;
+    },
+
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
     },
   },
 
@@ -185,12 +198,14 @@ export default {
   },
 
   updated() {
-    this.getTimerNow = this.getDisplaySliderInfo(this.currentTime).display;
+    if (this.dialog) {
+      this.getTimerNow = this.getDisplaySliderInfo(this.currentTime).display;
+    }
   },
 
   methods: {
     async openPlay() {
-      if (this.auth) {
+      if (this.recorded) {
         // receive data
         await this.$store.dispatch('sessions/getLogSession', this.uid);
         this.logs = this.$store.getters['sessions/get'];

@@ -8,13 +8,16 @@ describe('FirewallRuleDelete', () => {
 
   let wrapper;
 
+  const isOwner = true;
   const id = '5f1996c84d2190a22d5857bb';
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      isOwner,
     },
     getters: {
+      'namespaces/owner': (state) => state.isOwner,
     },
     actions: {
       'firewallrules/remove': () => {

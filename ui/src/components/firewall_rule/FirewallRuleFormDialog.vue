@@ -1,27 +1,54 @@
 <template>
   <fragment>
-    <v-btn
+    <v-tooltip
       v-if="createRule"
-      class="v-btn--active"
-      text
-      color="primary"
-      @click="dialog = !dialog"
+      bottom
+      :disabled="isOwner"
     >
-      Add Rule
-    </v-btn>
+      <template #activator="{ on }">
+        <div v-on="on">
+          <v-btn
+            :disabled="!isOwner"
+            class="v-btn--active"
+            text
+            color="primary"
+            @click="dialog = !dialog"
+          >
+            Add Rule
+          </v-btn>
+        </div>
+      </template>
+
+      <span>
+        You are not the owner of this namespace
+      </span>
+    </v-tooltip>
+
     <v-tooltip
       v-else
       bottom
     >
       <template #activator="{ on }">
-        <v-icon
-          v-on="on"
-          @click="dialog = !dialog"
-        >
-          edit
-        </v-icon>
+        <span v-on="on">
+          <v-icon
+            :disabled="!isOwner"
+            v-on="on"
+            @click="dialog = !dialog"
+          >
+            edit
+          </v-icon>
+        </span>
       </template>
-      <span>Edit</span>
+
+      <div>
+        <span v-if="isOwner">
+          Edit
+        </span>
+
+        <span v-else>
+          You are not the owner of this namespace
+        </span>
+      </div>
     </v-tooltip>
 
     <v-dialog
@@ -214,6 +241,12 @@ export default {
       }],
       ruleFirewallLocal: [],
     };
+  },
+
+  computed: {
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
+    },
   },
 
   async created() {

@@ -9,7 +9,6 @@ describe('FirewallRuleList', () => {
   const vuetify = new Vuetify();
 
   let wrapper;
-  let wrapper2;
 
   const status = true;
   const numberFirewalls = 2;
@@ -35,45 +34,17 @@ describe('FirewallRuleList', () => {
       hostname: 'shellhub',
     },
   ];
-  const owner = true;
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       firewalls,
       numberFirewalls,
-      owner,
       status,
     },
     getters: {
       'firewallrules/list': (state) => state.firewalls,
       'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
-      'namespaces/owner': (state) => state.owner,
-      'boxs/getStatus': (state) => state.status,
-    },
-    actions: {
-      'firewallrules/fetch': () => {
-      },
-      'boxs/setStatus': () => {
-      },
-      'snackbar/showSnackbarErrorAssociation': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
-    },
-  });
-
-  const store2 = new Vuex.Store({
-    namespaced: true,
-    state: {
-      firewalls,
-      numberFirewalls,
-      owner: false,
-    },
-    getters: {
-      'firewallrules/list': (state) => state.firewalls,
-      'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
-      'namespaces/owner': (state) => state.owner,
       'boxs/getStatus': (state) => state.status,
     },
     actions: {
@@ -113,15 +84,5 @@ describe('FirewallRuleList', () => {
     expect(dataTableProps.items).toHaveLength(numberFirewalls);
     expect(wrapper.find('[data-test="firewall-dialog-field-2"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-delete-field"]').exists()).toBe(true);
-  });
-  it('Hides dialogs and delete when the user is not the owner', () => {
-    wrapper2 = mount(FirewallRuleList, {
-      store: store2,
-      localVue,
-      stubs: ['fragment'],
-      vuetify,
-    });
-    expect(wrapper2.find('[data-test="firewall-dialog-field-2"]').exists()).toBe(false);
-    expect(wrapper2.find('[data-test="firewall-delete-field"]').exists()).toBe(false);
   });
 });

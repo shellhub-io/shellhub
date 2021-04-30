@@ -10,7 +10,6 @@ describe('DeviceRejectedList', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  let wrapper2;
 
   const numberDevices = 1;
   const devices = [
@@ -33,45 +32,16 @@ describe('DeviceRejectedList', () => {
       status: 'rejected',
     },
   ];
-  const owner = true;
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       devices,
       numberDevices,
-      owner,
     },
     getters: {
       'devices/list': (state) => state.devices,
       'devices/getNumberDevices': (state) => state.numberDevices,
-      'namespaces/owner': (state) => state.owner,
-    },
-    actions: {
-      'modals/showAddDevice': () => {
-      },
-      'devices/fetch': () => {
-      },
-      'devices/rename': () => {
-      },
-      'devices/resetListDevices': () => {
-      },
-      'stats/get': () => {
-      },
-    },
-  });
-
-  const store2 = new Vuex.Store({
-    namespaced: true,
-    state: {
-      devices,
-      numberDevices,
-      owner: false,
-    },
-    getters: {
-      'devices/list': (state) => state.devices,
-      'devices/getNumberDevices': (state) => state.numberDevices,
-      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'modals/showAddDevice': () => {
@@ -112,16 +82,6 @@ describe('DeviceRejectedList', () => {
   it('Process data in the computed', () => {
     expect(wrapper.vm.getListRejectedDevices).toEqual(devices);
     expect(wrapper.vm.getNumberRejectedDevices).toEqual(numberDevices);
-  });
-  it('Hides buttons for user not owner', () => {
-    wrapper2 = mount(DeviceRejectedList, {
-      store: store2,
-      localVue,
-      stubs: ['fragment', 'router-link'],
-      vuetify,
-    });
-    expect(wrapper2.find('[data-test="accept-field"]').exists()).toBe(false);
-    expect(wrapper2.find('[data-test="remove-field"]').exists()).toBe(false);
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.getListRejectedDevices).toEqual(devices);

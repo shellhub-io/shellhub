@@ -35,7 +35,6 @@
           {{ device.name }}
         </v-toolbar-title>
         <DeviceRename
-          v-if="isOwner"
           data-test="rename-field"
           :name="device.name"
           :uid="device.uid"
@@ -50,7 +49,6 @@
         />
 
         <DeviceDelete
-          v-if="isOwner"
           :uid="device.uid"
           :dialog="dialogDelete"
           :redirect="true"
@@ -170,12 +168,6 @@ export default {
       dialogDelete: false,
       dialogError: false,
     };
-  },
-
-  computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
-    },
   },
 
   async created() {
