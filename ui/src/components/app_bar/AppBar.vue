@@ -46,9 +46,7 @@
         </v-icon>
       </v-chip>
 
-      <Notification
-        :in-a-namespace="hasNamespaces"
-      />
+      <Notification />
 
       <v-menu
         offset-y
