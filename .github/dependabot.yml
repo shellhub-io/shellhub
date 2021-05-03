@@ -33,3 +33,11 @@ updates:
     prefix: "ssh"
   ignore:
       - dependency-name: "github.com/shellhub-io/shellhub"
+- package-ecosystem: gomod
+  directory: "/cli"
+  schedule:
+    interval: weekly
+  commit-message:
+    prefix: "cli"
+  ignore:
+      - dependency-name: "github.com/shellhub-io/shellhub"
