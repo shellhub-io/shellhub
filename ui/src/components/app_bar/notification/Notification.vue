@@ -96,18 +96,12 @@ export default {
     DeviceActionButton,
   },
 
-  props: {
-    inANamespace: {
-      type: Boolean,
-      required: true,
-    },
-  },
-
   data() {
     return {
       listNotifications: [],
       numberNotifications: 0,
       shown: false,
+      inANamespace: false,
     };
   },
 
@@ -128,12 +122,20 @@ export default {
     isOwner() {
       return this.$store.getters['namespaces/owner'];
     },
+
+    hasNamespace() {
+      return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
+    },
   },
 
-  async created() {
-    if (this.inANamespace) {
-      await this.getNotifications();
-    }
+  watch: {
+    hasNamespace(status) {
+      this.inANamespace = status;
+
+      if (status) {
+        this.getNotifications();
+      }
+    },
   },
 
   methods: {
