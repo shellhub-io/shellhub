@@ -87,7 +87,7 @@ export default {
         break;
       case 'private':
         try {
-          await this.$store.dispatch('privatekeys/remove', this.id);
+          await this.$store.dispatch('privatekeys/remove', this.fingerprint);
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.privateKeyDeleting);
           this.close();
         } catch {
