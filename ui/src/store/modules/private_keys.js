@@ -34,7 +34,7 @@ export default {
 
     removePrivateKey: (state, data) => {
       state.privateKeys.splice(state.privateKeys.findIndex((d) => d.data === data), 1);
-      localStorage.setItem('privateKeys', JSON.stringify(state.privateKeys));
+      Vue.set(state, 'numberPrivateKeys', state.privateKeys.length);
     },
   },
 

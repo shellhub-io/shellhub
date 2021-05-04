@@ -1,20 +1,28 @@
 import store from '@/store';
 
 describe('PrivateKeys', () => {
-  const numberPrivateKeys = 2;
+  const numberPrivateKeys = 3;
   const privateKeys = [
     {
-      name: 'shellhub',
+      name: 'key1',
       data: 'BBGVvbmFyZG8=',
     },
     {
-      name: 'shellhub',
+      name: 'key2',
       data: 'AbGVvbmFyZG8=',
+    },
+    {
+      name: 'key3',
+      data: 'CbGVvbmFyZG8=',
     },
   ];
   const privateKey = {
-    name: 'shellhub',
+    name: 'key4',
     data: 'AbGVvbmFyZG7=',
+  };
+  const privateKey2 = {
+    name: 'key2',
+    data: 'AbGVvbmFyZG8=',
   };
 
   it('Return private key default variables', () => {
@@ -39,10 +47,11 @@ describe('PrivateKeys', () => {
     expect(store.getters['privatekeys/getNumberPrivateKeys']).toEqual(numberPrivateKeys + 1);
   });
   it('Verify remove private key item from list for removePrivateKey mutation', () => {
-    store.commit('privatekeys/removePrivateKey', privateKey.data);
-    privateKeys.pop(privateKey);
+    const currentPrivateKeys = store.getters['privatekeys/list'];
+    const currentNumberPrivateKeys = store.getters['privatekeys/getNumberPrivateKeys'];
 
-    expect(store.getters['privatekeys/list']).toEqual(privateKeys);
-    expect(store.getters['privatekeys/list'].length).toEqual(numberPrivateKeys);
+    store.commit('privatekeys/removePrivateKey', privateKey2.data);
+    expect(store.getters['privatekeys/list']).toEqual(currentPrivateKeys.filter((pk) => pk.data !== privateKey2.data));
+    expect(store.getters['privatekeys/getNumberPrivateKeys']).toEqual(currentNumberPrivateKeys - 1);
   });
 });
