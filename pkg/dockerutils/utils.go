@@ -1,6 +1,7 @@
 package dockerutils
 
 import (
+	"io"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -8,22 +9,29 @@ import (
 
 // CurrentContainerID returns the current running container ID
 func CurrentContainerID() (string, error) {
-	f, err := os.Open("/proc/self/cgroup")
+	fCgroup, err := os.Open("/proc/self/cgroup")
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer fCgroup.Close()
 
-	content, err := ioutil.ReadAll(f)
+	fMountInfo, err := os.Open("/proc/self/mountinfo")
+	if err != nil {
+		return "", err
+	}
+	defer fMountInfo.Close()
+
+	reader := io.MultiReader(fCgroup, fMountInfo)
+	content, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return "", err
 	}
 
-	re := regexp.MustCompilePOSIX(`[0-9]+:[a-z_,=]+.*docker[/-]([0-9a-f]{64})`)
-	line := re.FindAllSubmatch(content, -1)
-	if len(line) <= 0 || len(line[0]) != 2 {
+	re := regexp.MustCompilePOSIX(`([0-9]+:[a-z_,=]+.*docker[/-]|/var/lib/docker/containers/)([0-9a-f]{64})`)
+	match := re.FindSubmatch(content)
+	if match == nil || len(match) != 3 {
 		return "", nil
 	}
 
-	return string(line[0][1]), nil
+	return string(match[2]), nil
 }
