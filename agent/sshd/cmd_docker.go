@@ -27,29 +27,56 @@ func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 	return cmd
 }
 
-func nsenterCommandWrapper(uid, gid uint32, home string, command ...string) ([]string, error) {
-	wrappedCommand := []string{}
+func getWrappedCommand(nsArgs []string, uid, gid uint32, home string) []string {
+	setPrivCmd := []string{
+		"/usr/bin/setpriv",
+		"--init-groups",
+		"--ruid",
+		strconv.Itoa(int(uid)),
+		"--regid",
+		strconv.Itoa(int(gid)),
+	}
 
-	if _, err := os.Stat("/usr/bin/nsenter"); err == nil {
-		wrappedCommand = append([]string{
-			"/usr/bin/setpriv",
-			"--init-groups",
-			"--ruid",
-			strconv.Itoa(int(uid)),
-			"--regid",
-			strconv.Itoa(int(gid)),
-			"/usr/bin/nsenter",
-			"-t", "1",
-			"-a",
+	nsenterCmd := append([]string{
+		"/usr/bin/nsenter",
+		"-t",
+		"1",
+	}, nsArgs...)
+
+	nsenterCmd = append(nsenterCmd,
+		[]string{
 			"-S",
 			strconv.Itoa(int(uid)),
 			fmt.Sprintf("--wd=%s", home),
-		}, wrappedCommand...)
-	} else if err != nil && !os.IsNotExist(err) {
+		}...,
+	)
+
+	return append(setPrivCmd, nsenterCmd...)
+}
+
+func nsenterCommandWrapper(uid, gid uint32, home string, command ...string) ([]string, error) {
+	if _, err := os.Stat("/usr/bin/nsenter"); err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
 
-	wrappedCommand = append(wrappedCommand, command...)
+	paths := map[string]string{
+		"mnt":    "-m",
+		"uts":    "-u",
+		"ipc":    "-i",
+		"net":    "-n",
+		"pid":    "-p",
+		"cgroup": "-C",
+		"time":   "-T",
+	}
 
-	return wrappedCommand, nil
+	args := []string{}
+	for path, params := range paths {
+		if _, err := os.Stat(fmt.Sprintf("/proc/1/ns/%s", path)); err != nil {
+			continue
+		}
+
+		args = append(args, params)
+	}
+
+	return append(getWrappedCommand(args, uid, gid, home), command...), nil
 }
