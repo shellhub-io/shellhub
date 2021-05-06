@@ -1,0 +1,31 @@
+name: dependabot_pr_gomodtidify
+
+on:
+  workflow_run:
+    workflows:
+      - dependabot_pr
+    types:
+      - completed
+
+jobs:
+  commit-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: dependabot_pr.yml
+          run_id: ${{ github.event.id }}
+          name: diff
+      - name: Apply diff
+        run: cat diff | patch -p1
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: ${{ github.event.workflow_run.head_branch }}
+          file_pattern: '**/go.mod **/go.sum'
+          commit_message: "gomod: tidify gomod files"
+          commit_author: "ShellHub Actions Bot <github-actions-bot@shellhub.io>"
