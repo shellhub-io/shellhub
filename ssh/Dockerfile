@@ -1,5 +1,5 @@
 # base stage
-FROM golang:1.16.3-alpine3.13 AS base
+FROM golang:1.16.4-alpine3.13 AS base
 
 RUN apk add --update git ca-certificates build-base openssh-client
 
