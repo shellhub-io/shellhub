@@ -199,7 +199,7 @@ func (s *Store) UserDelete(ctx context.Context, ID string) error {
 
 	findOptions := options.Find()
 
-	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"owner": ID}, findOptions)
+	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": ID}, findOptions)
 	if err != nil {
 		return err
 	}
@@ -207,14 +207,18 @@ func (s *Store) UserDelete(ctx context.Context, ID string) error {
 
 	for cursor.Next(ctx) {
 		namespace := new(models.Namespace)
-		err = cursor.Decode(&namespace)
-		if err != nil {
+		if err := cursor.Decode(&namespace); err != nil {
 			return err
 		}
 
-		err = s.NamespaceDelete(ctx, namespace.TenantID)
-		if err != nil {
-			return err
+		if namespace.Owner != ID {
+			if _, err := s.NamespaceRemoveMember(ctx, namespace.TenantID, ID); err != nil {
+				return err
+			}
+		} else {
+			if err := s.NamespaceDelete(ctx, namespace.TenantID); err != nil {
+				return err
+			}
 		}
 	}
 	return err
