@@ -10,9 +10,7 @@ describe('DeviceAdd', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  let wrapper2;
 
-  const owner = true;
   const status = true;
   const numberSessions = 2;
   const sessions = [
@@ -79,42 +77,16 @@ describe('DeviceAdd', () => {
     state: {
       sessions,
       numberSessions,
-      owner,
       status,
     },
     getters: {
       'sessions/list': (state) => state.sessions,
       'sessions/getNumberSessions': (state) => state.numberSessions,
-      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'sessions/fetch': () => {
       },
       'sessions/close': () => {
-      },
-    },
-  });
-
-  const store2 = new Vuex.Store({
-    namespaced: true,
-    state: {
-      sessions,
-      numberSessions,
-      owner: false,
-      status,
-    },
-    getters: {
-      'sessions/list': (state) => state.sessions,
-      'sessions/getNumberSessions': (state) => state.numberSessions,
-      'namespaces/owner': (state) => state.owner,
-      'boxs/getStatus': (state) => state.status,
-    },
-    actions: {
-      'sessions/fetch': () => {
-      },
-      'sessions/close': () => {
-      },
-      'boxs/setStatus': () => {
       },
     },
   });
@@ -146,17 +118,5 @@ describe('DeviceAdd', () => {
     const dataTableProps = dt.vm.$options.propsData;
     expect(dataTableProps.items).toHaveLength(numberSessions);
     expect(wrapper.find('[data-test="close-field"]').exists()).toBe(true);
-  });
-  it('Hides the close field when the user is not the owner', () => {
-    wrapper2 = mount(SessionList, {
-      store: store2,
-      localVue,
-      stubs: ['fragment', 'router-link'],
-      mocks: {
-        $env: (isEnterprise) => isEnterprise,
-      },
-      vuetify,
-    });
-    expect(wrapper2.find('[data-test="close-field"]').exists()).toBe(false);
   });
 });

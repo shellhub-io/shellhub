@@ -7,7 +7,6 @@ describe('SessionDetails', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  const owner = true;
 
   const session = {
     uid: '8c354a00f50',
@@ -42,11 +41,9 @@ describe('SessionDetails', () => {
     namespaced: true,
     state: {
       session,
-      owner,
     },
     getters: {
       'sessions/get': (state) => state.session,
-      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'sessions/get': () => {

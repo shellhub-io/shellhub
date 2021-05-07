@@ -41,7 +41,7 @@
 
         <SessionPlay
           :uid="session.uid"
-          :recorded="session.authenticated && session.recorded && isOwner"
+          :recorded="session.authenticated && session.recorded"
         />
 
         <SessionClose
@@ -200,12 +200,6 @@ export default {
       dialog: false,
       hide: true,
     };
-  },
-
-  computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
-    },
   },
 
   async created() {

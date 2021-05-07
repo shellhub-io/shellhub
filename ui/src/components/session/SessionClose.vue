@@ -4,14 +4,26 @@ Session Close:
   <fragment>
     <v-tooltip bottom>
       <template #activator="{ on }">
-        <v-icon
-          v-on="on"
-          @click="dialog = !dialog"
-        >
-          mdi-close-circle
-        </v-icon>
+        <span v-on="on">
+          <v-icon
+            :disabled="!isOwner"
+            v-on="on"
+            @click="dialog = !dialog"
+          >
+            mdi-close-circle
+          </v-icon>
+        </span>
       </template>
-      <span>Close</span>
+
+      <div>
+        <span v-if="isOwner">
+          Close
+        </span>
+
+        <span v-else>
+          You are not the owner of this namespace
+        </span>
+      </div>
     </v-tooltip>
 
     <v-dialog
@@ -71,6 +83,12 @@ export default {
       dialog: false,
       session: {},
     };
+  },
+
+  computed: {
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
+    },
   },
 
   created() {
