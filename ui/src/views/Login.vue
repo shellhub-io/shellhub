@@ -96,6 +96,7 @@ export default {
     if (this.$route.query.token) {
       this.$store.dispatch('auth/logout');
       this.$store.dispatch('auth/loginToken', this.$route.query.token).then(() => {
+        this.$store.dispatch('notifications/fetch');
         this.$router.push({ name: 'dashboard' }).catch(() => {});
       });
     }
