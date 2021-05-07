@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -99,6 +100,10 @@ func (s *Store) UserGetByUsername(ctx context.Context, username string) (*models
 	user := new(models.User)
 
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": username}).Decode(&user); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, store.ErrUserNoDocuments
+		}
+
 		return nil, err
 	}
 
@@ -109,6 +114,10 @@ func (s *Store) UserGetByEmail(ctx context.Context, email string) (*models.User,
 	user := new(models.User)
 
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"email": email}).Decode(&user); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, store.ErrUserNoDocuments
+		}
+
 		return nil, err
 	}
 
@@ -119,6 +128,10 @@ func (s *Store) UserGetByID(ctx context.Context, ID string) (*models.User, error
 	user := new(models.User)
 	objID, _ := primitive.ObjectIDFromHex(ID)
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, store.ErrUserNoDocuments
+		}
+
 		return nil, err
 	}
 	return user, nil
