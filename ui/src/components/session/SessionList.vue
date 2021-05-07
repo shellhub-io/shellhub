@@ -111,7 +111,7 @@
             <span>Details</span>
           </v-tooltip>
           <SessionClose
-            v-if="item.active && isOwner"
+            v-if="item.active"
             data-test="close-field"
             :uid="item.uid"
             :device="item.device_uid"
@@ -199,10 +199,6 @@ export default {
 
     getNumberSessions() {
       return this.$store.getters['sessions/getNumberSessions'];
-    },
-
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
     },
   },
 

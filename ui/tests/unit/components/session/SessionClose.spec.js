@@ -8,14 +8,17 @@ describe('SessionClose', () => {
 
   let wrapper;
 
+  const owner = true;
   const uid = '8c354a00f51';
   const device = 'a582b47a42d';
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      owner,
     },
     getters: {
+      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'sessions/close': () => {
