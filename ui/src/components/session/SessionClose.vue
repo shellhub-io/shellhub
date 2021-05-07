@@ -1,5 +1,3 @@
-Session Close:
-
 <template>
   <fragment>
     <v-tooltip bottom>
