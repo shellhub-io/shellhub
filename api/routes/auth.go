@@ -94,30 +94,21 @@ func AuthUser(c apicontext.Context) error {
 func AuthUserInfo(c apicontext.Context) error {
 	username := c.Request().Header.Get("X-Username")
 	tenant := c.Request().Header.Get("X-Tenant-ID")
+	token := c.Request().Header.Get(echo.HeaderAuthorization)
 
-	user, err := c.Store().UserGetByUsername(c.Ctx(), username)
-	if err != nil {
-		return echo.ErrUnauthorized
-	}
-	namespace, err := c.Store().NamespaceGet(c.Ctx(), tenant)
+	svc := authsvc.NewService(c.Store(), nil, nil)
 
+	res, err := svc.AuthUserInfo(c.Ctx(), username, tenant, token)
 	if err != nil {
-		switch {
-		case tenant == "":
-			namespace.TenantID = ""
-		default:
+		switch err {
+		case authsvc.ErrUnauthorized:
 			return echo.ErrUnauthorized
+		default:
+			return err
 		}
 	}
 
-	return c.JSON(http.StatusOK, &models.UserAuthResponse{
-		Token:  c.Request().Header.Get(echo.HeaderAuthorization),
-		Name:   user.Name,
-		User:   user.Username,
-		Tenant: namespace.TenantID,
-		ID:     user.ID,
-		Email:  user.Email,
-	})
+	return c.JSON(http.StatusOK, res)
 }
 
 func AuthGetToken(c apicontext.Context) error {

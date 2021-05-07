@@ -23,12 +23,15 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+var ErrUnauthorized = errors.New("unauthorized")
+
 type Service interface {
 	AuthDevice(ctx context.Context, req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
+	AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }
 
@@ -119,6 +122,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		if err != nil {
 			return nil, err
 		}
+
 	}
 
 	namespace, err := s.store.NamespaceGetFirst(ctx, user.ID)
@@ -276,6 +280,32 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 	return nil, nil
 }
 
+func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error) {
+	user, err := s.store.UserGetByUsername(ctx, username)
+	if err != nil {
+		if err == store.ErrUserNoDocuments {
+			return nil, ErrUnauthorized
+		}
+
+		return nil, err
+	}
+
+	if _, err = s.store.NamespaceGet(ctx, tenant); err != nil && tenant != "" {
+		if err == store.ErrNamespaceNoDocuments {
+			return nil, ErrUnauthorized
+		}
+		return nil, err
+	}
+
+	return &models.UserAuthResponse{
+		Token:  token,
+		Name:   user.Name,
+		User:   user.Username,
+		Tenant: tenant,
+		ID:     user.ID,
+		Email:  user.Email,
+	}, nil
+}
 func (s *service) PublicKey() *rsa.PublicKey {
 	return s.pubKey
 }

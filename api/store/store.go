@@ -13,6 +13,7 @@ var (
 	ErrDuplicateFingerprint = errors.New("this fingerprint already exists")
 	ErrNamespaceNoDocuments = errors.New("mongo: no documents in result")
 	ErrDeviceNoDocuments    = errors.New("mongo: no documents in result")
+	ErrUserNoDocuments      = errors.New("mongo: no documents in result")
 )
 
 type Store interface {

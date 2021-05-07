@@ -120,6 +120,9 @@ func (s *Store) NamespaceGet(ctx context.Context, namespace string) (*models.Nam
 	}
 
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": namespace}).Decode(&ns); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, store.ErrNamespaceNoDocuments
+		}
 		return ns, err
 	}
 
