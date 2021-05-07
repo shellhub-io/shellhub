@@ -716,7 +716,38 @@ var migrations = []migrate.Migration{
 			cursor.Close(context.TODO())
 
 			return nil
-
+		},
+		Down: func(db *mongo.Database) error {
+			return nil
+		},
+	},
+	{
+		Version: 22,
+		Up: func(db *mongo.Database) error {
+			cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
+			if err != nil {
+				return err
+			}
+			for cursor.Next(context.TODO()) {
+				namespace := new(models.Namespace)
+				err = cursor.Decode(&namespace)
+				if err != nil {
+					return err
+				}
+				for _, memberID := range namespace.Members {
+					user := new(models.User)
+					objID, err := primitive.ObjectIDFromHex(memberID.(string))
+					if err != nil {
+						return err
+					}
+					if err := db.Collection("users").FindOne(context.TODO(), bson.M{"_id": objID}).Decode(&user); err != nil {
+						if _, err := db.Collection("namespaces").UpdateOne(context.TODO(), bson.M{"tenant_id": namespace.TenantID}, bson.M{"$pull": bson.M{"members": memberID}}); err != nil {
+							return err
+						}
+					}
+				}
+			}
+			return nil
 		},
 		Down: func(db *mongo.Database) error {
 			return nil
