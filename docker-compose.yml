@@ -59,6 +59,7 @@ services:
       - shellhub
   cli:
     image: shellhubio/cli:${SHELLHUB_VERSION}
+    entrypoint: /bin/sleep infinity
     restart: unless-stopped
     environment:
       - STORE_CACHE=${SHELLHUB_STORE_CACHE}
