@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"testing"
 	"time"
 
@@ -111,6 +112,86 @@ func TestAuthUser(t *testing.T) {
 	assert.Equal(t, user.Username, authRes.User)
 	assert.Equal(t, namespace.TenantID, authRes.Tenant)
 	assert.NotEmpty(t, authRes.Token)
+
+	mock.AssertExpectations(t)
+}
+
+func TestAuthUserInfo(t *testing.T) {
+	mock := &mocks.Store{}
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	assert.NoError(t, err)
+
+	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey)
+
+	ctx := context.TODO()
+
+	authRes1 := &models.UserAuthResponse{
+		Name:   "user",
+		Token:  "---------------token----------------",
+		User:   "user",
+		Tenant: "",
+		ID:     "id",
+		Email:  "email@email.com",
+	}
+
+	authRes2 := &models.UserAuthResponse{
+		Name:   "user",
+		Token:  "---------------token----------------",
+		User:   "user",
+		Tenant: "xxxxxx",
+		ID:     "id",
+		Email:  "email@email.com",
+	}
+
+	user := &models.User{
+		Username: "user",
+		Name:     "user",
+		ID:       "id",
+		Email:    "email@email.com",
+	}
+
+	namespace := &models.Namespace{
+		Name:     "namespace",
+		Owner:    "id",
+		TenantID: "xxxxxx",
+	}
+
+	Err := errors.New("error")
+
+	// error getting username
+	mock.On("UserGetByUsername", ctx, "notuser").
+		Return(nil, Err).Once()
+	authRes, err := s.AuthUserInfo(ctx, "notuser", "xxxxx", "---------------token----------------")
+	assert.Error(t, err)
+	assert.Nil(t, authRes)
+
+	// error getting namespace
+	mock.On("UserGetByUsername", ctx, "user").
+		Return(user, nil).Once()
+	mock.On("NamespaceGet", ctx, "xxxxx").
+		Return(nil, Err).Once()
+	authRes, err = s.AuthUserInfo(ctx, "user", "xxxxx", "---------------token----------------")
+	assert.Error(t, err)
+	assert.Nil(t, authRes)
+
+	// verify empty tenant return login auth
+	mock.On("UserGetByUsername", ctx, "user").
+		Return(user, nil).Once()
+	mock.On("NamespaceGet", ctx, "").
+		Return(nil, store.ErrNamespaceNoDocuments).Once()
+	authRes, err = s.AuthUserInfo(ctx, "user", "", "---------------token----------------")
+	assert.Nil(t, err)
+	assert.Equal(t, authRes1, authRes)
+
+	// successful auth token login with namespace found
+	mock.On("UserGetByUsername", ctx, "user").
+		Return(user, nil).Once()
+	mock.On("NamespaceGet", ctx, namespace.TenantID).
+		Return(namespace, nil).Once()
+	authRes, err = s.AuthUserInfo(ctx, "user", namespace.TenantID, "---------------token----------------")
+	assert.Nil(t, err)
+	assert.Equal(t, authRes2, authRes)
 
 	mock.AssertExpectations(t)
 }
