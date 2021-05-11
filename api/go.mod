@@ -14,12 +14,11 @@ require (
 	github.com/klauspost/compress v1.11.8 // indirect
 	github.com/labstack/echo/v4 v4.2.2
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/magefile/mage v1.11.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/shellhub-io/shellhub v0.5.2
-	github.com/sirupsen/logrus v1.8.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/undefinedlabs/go-mpatch v1.0.6
 	github.com/xakep666/mongo-migrate v0.2.1
