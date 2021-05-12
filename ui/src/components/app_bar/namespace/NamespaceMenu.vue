@@ -250,16 +250,16 @@ export default {
         await this.$store.dispatch('namespaces/get', this.tenant);
         const isOwner = this.$store.getters['namespaces/get'].owner === this.$store.getters['auth/id'];
         this.$store.dispatch('namespaces/setOwnerStatus', isOwner);
-      } catch (e) {
+      } catch (error) {
         switch (true) {
-        case (e.response.status === 404): { // detects namespace inserted
+        case (error.response.status === 404): { // detects namespace inserted
           const namespaceFind = this.namespaces[0];
           if (this.tenant === '' && namespaceFind !== undefined) {
             this.switchIn(namespaceFind.tenant_id);
           }
           break;
         }
-        case (e.response.status === 500 && this.tenant === null): {
+        case (error.response.status === 500 && this.tenant === null): {
           break;
         }
         default: {

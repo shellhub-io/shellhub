@@ -248,22 +248,22 @@ export default {
           await this.$store.dispatch('privatekeys/set', keySend);
           this.$store.dispatch('snackbar/showSnackbarSuccessNotRequest', this.$success.privateKeyCreating);
           this.update();
-        } catch (e) {
+        } catch (error) {
           switch (true) {
-          case e.message === 'both': {
+          case error.message === 'both': {
             this.$refs.pass.setErrors({
               name: ['The name already exists'],
               key: ['The private key data already exists'],
             });
             break;
           }
-          case e.message === 'name': {
+          case error.message === 'name': {
             this.$refs.pass.setErrors({
               name: ['The name already exists'],
             });
             break;
           }
-          case e.message === 'private_key': {
+          case error.message === 'private_key': {
             this.$refs.pass.setErrors({
               key: ['The private key data already exists'],
             });
@@ -295,8 +295,8 @@ export default {
           await this.$store.dispatch('privatekeys/edit', this.keyLocal);
           this.$store.dispatch('snackbar/showSnackbarSuccessNotRequest', this.$success.privateKeyEditing);
           this.update();
-        } catch (e) {
-          if (e.message === 'name') {
+        } catch (error) {
+          if (error.message === 'name') {
             this.$refs.pass.setErrors({
               name: ['The name already exists'],
             });

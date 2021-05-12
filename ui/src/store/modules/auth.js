@@ -75,9 +75,9 @@ export default {
         localStorage.setItem('namespacesWelcome', JSON.stringify({}));
 
         context.commit('authSuccess', resp.data);
-      } catch (err) {
+      } catch (error) {
         context.commit('authError');
-        throw err;
+        throw error;
       }
     },
 
@@ -97,9 +97,9 @@ export default {
         localStorage.setItem('namespacesWelcome', JSON.stringify({}));
 
         context.commit('authSuccess', resp.data);
-      } catch (err) {
+      } catch (error) {
         context.commit('authError');
-        throw err;
+        throw error;
       }
     },
 

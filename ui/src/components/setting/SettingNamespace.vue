@@ -349,8 +349,8 @@ export default {
       try {
         await this.$store.dispatch('namespaces/get', this.tenant);
         this.name = this.namespace.name;
-      } catch (e) {
-        if (e.response.status === 403) {
+      } catch (error) {
+        if (error.response.status === 403) {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
         } else {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceLoad);

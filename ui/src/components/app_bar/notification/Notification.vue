@@ -142,12 +142,12 @@ export default {
     async getNotifications() {
       try {
         await this.$store.dispatch('notifications/fetch');
-      } catch (e) {
+      } catch (error) {
         switch (true) {
-        case (!this.inANamespace && e.response.status === 403): { // dialog pops
+        case (!this.inANamespace && error.response.status === 403): { // dialog pops
           break;
         }
-        case (e.response.status === 403): {
+        case (error.response.status === 403): {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
           break;
         }

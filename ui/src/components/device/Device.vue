@@ -119,8 +119,8 @@ export default {
     try {
       await this.$store.dispatch('stats/get');
       this.show = true;
-    } catch (e) {
-      if (e.response.status === 403) {
+    } catch (error) {
+      if (error.response.status === 403) {
         this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
       } else {
         this.$store.dispatch('snackbar/showSnackbarErrorDefault');
@@ -144,8 +144,8 @@ export default {
 
       try {
         this.$store.dispatch('devices/refresh');
-      } catch (e) {
-        if (e.response.status === 403) {
+      } catch (error) {
+        if (error.response.status === 403) {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
         } else {
           this.$store.dispatch('snackbar/showSnackbarErrorDefault');
