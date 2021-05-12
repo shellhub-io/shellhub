@@ -58,7 +58,7 @@
     >
       <v-card>
         <ValidationObserver
-          ref="pass"
+          ref="obs"
           v-slot="{ passes }"
         >
           <v-card-title
@@ -235,7 +235,7 @@ export default {
           this.update();
         } catch (error) {
           if (error.response.status === 409) {
-            this.$refs.pass.setErrors({
+            this.$refs.obs.setErrors({
               key: error.response.data.message,
             });
           } else {
@@ -251,20 +251,20 @@ export default {
         } catch (error) {
           switch (true) {
           case error.message === 'both': {
-            this.$refs.pass.setErrors({
+            this.$refs.obs.setErrors({
               name: ['The name already exists'],
               key: ['The private key data already exists'],
             });
             break;
           }
           case error.message === 'name': {
-            this.$refs.pass.setErrors({
+            this.$refs.obs.setErrors({
               name: ['The name already exists'],
             });
             break;
           }
           case error.message === 'private_key': {
-            this.$refs.pass.setErrors({
+            this.$refs.obs.setErrors({
               key: ['The private key data already exists'],
             });
             break;
@@ -297,7 +297,7 @@ export default {
           this.update();
         } catch (error) {
           if (error.message === 'name') {
-            this.$refs.pass.setErrors({
+            this.$refs.obs.setErrors({
               name: ['The name already exists'],
             });
           } else {
@@ -316,7 +316,7 @@ export default {
 
     close() {
       this.dialog = !this.dialog;
-      this.$refs.pass.reset();
+      this.$refs.obs.reset();
     },
   },
 };

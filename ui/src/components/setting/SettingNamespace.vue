@@ -70,7 +70,7 @@
             data-test="editOperation"
           >
             <ValidationObserver
-              ref="data"
+              ref="obs"
               v-slot="{ passes }"
             >
               <v-row>

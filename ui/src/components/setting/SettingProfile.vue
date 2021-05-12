@@ -10,7 +10,7 @@
           sm="8"
         >
           <ValidationObserver
-            ref="data"
+            ref="obs"
             v-slot="{ passes }"
           >
             <v-row>
@@ -270,7 +270,7 @@ export default {
     cancel(statusExit) {
       if (statusExit === 'data') {
         this.setData();
-        this.$refs.data.reset();
+        this.$refs.obs.reset();
         this.editDataStatus = !this.editDataStatus;
       } else if (statusExit === 'password') {
         this.currentPassword = '';
@@ -312,12 +312,12 @@ export default {
         if (error.response.status === 409) { // user data already exists
           error.response.data.forEach((item) => {
             if (item.Name === 'username') {
-              this.$refs.data.setErrors({
+              this.$refs.obs.setErrors({
                 username: item.Message,
               });
             }
             if (item.Name === 'email') {
-              this.$refs.data.setErrors({
+              this.$refs.obs.setErrors({
                 email: item.Message,
               });
             }

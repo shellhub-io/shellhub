@@ -38,7 +38,7 @@
         class="elevation-0"
       >
         <ValidationObserver
-          ref="pass"
+          ref="obs"
           v-slot="{ passes }"
         >
           <v-card-title class="justify-center">
@@ -207,21 +207,21 @@ export default {
       } catch (error) {
         // Invalid username and/or password
         if (error.response.status === 400) {
-          this.$refs.pass.setErrors({
+          this.$refs.obs.setErrors({
             username: ['The username must be alphanumeric'],
           });
         } else if (error.response.status === 409) {
           error.response.data.forEach((n) => {
             if (n.Field === 'username') {
-              this.$refs.pass.setErrors({
+              this.$refs.obs.setErrors({
                 username: ['This username is already taken'],
               });
             } else if (n.Field === 'email') {
-              this.$refs.pass.setErrors({
+              this.$refs.obs.setErrors({
                 email: ['This email is already taken'],
               });
             } else if (n.Field === 'password') {
-              this.$refs.pass.setErrors({
+              this.$refs.obs.setErrors({
                 password: ['This email is invalid'],
               });
             }

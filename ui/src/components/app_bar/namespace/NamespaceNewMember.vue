@@ -17,7 +17,7 @@
           Add member to Namespace
         </v-card-title>
         <ValidationObserver
-          ref="newuser"
+          ref="obs"
           v-slot="{ passes }"
         >
           <v-card-text class="caption mb-0">
@@ -95,7 +95,7 @@ export default {
   methods: {
     cancel() {
       this.dialog = false;
-      this.$refs.newuser.reset();
+      this.$refs.obs.reset();
       this.username = '';
     },
 
@@ -109,14 +109,14 @@ export default {
         this.dialog = false;
         this.username = '';
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceNewMember);
-        this.$refs.newuser.reset();
+        this.$refs.obs.reset();
       } catch (error) {
         if (error.response.status === 404) {
-          this.$refs.newuser.setErrors({
+          this.$refs.obs.setErrors({
             username: 'The username doesn\'t exist.',
           });
         } else if (error.response.status === 409) {
-          this.$refs.newuser.setErrors({
+          this.$refs.obs.setErrors({
             username: 'The username has already been added to namespace.',
           });
         } else {
