@@ -116,9 +116,9 @@ export default {
         } else {
           this.$router.push('/');
         }
-      } catch (err) {
+      } catch (error) {
         switch (true) {
-        case (err.response.status === 401): {
+        case (error.response.status === 401): {
           this.$store.dispatch('snackbar/showSnackbarErrorIncorrect', this.$errors.loginFailed);
           break;
         }

@@ -204,14 +204,14 @@ export default {
       try {
         await this.$store.dispatch('users/signUp', this.newUser);
         this.overlay = !this.overlay;
-      } catch (err) {
+      } catch (error) {
         // Invalid username and/or password
-        if (err.response.status === 400) {
+        if (error.response.status === 400) {
           this.$refs.pass.setErrors({
             username: ['The username must be alphanumeric'],
           });
-        } else if (err.response.status === 409) {
-          err.response.data.forEach((n) => {
+        } else if (error.response.status === 409) {
+          error.response.data.forEach((n) => {
             if (n.Field === 'username') {
               this.$refs.pass.setErrors({
                 username: ['This username is already taken'],

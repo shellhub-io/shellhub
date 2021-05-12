@@ -165,9 +165,9 @@ export default {
           this.showInstructions = true;
         }
       }
-    } catch (err) {
+    } catch (error) {
       switch (true) {
-      case (err.response.status === 403): {
+      case (error.response.status === 403): {
         this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
         break;
       }
@@ -205,12 +205,12 @@ export default {
     async getNamespaces() {
       try {
         await this.$store.dispatch('namespaces/fetch');
-      } catch (e) {
+      } catch (error) {
         switch (true) {
-        case (!this.inANamespace && e.response.status === 403): { // dialog pops
+        case (!this.inANamespace && error.response.status === 403): { // dialog pops
           break;
         }
-        case (e.response.status === 403): {
+        case (error.response.status === 403): {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
           break;
         }

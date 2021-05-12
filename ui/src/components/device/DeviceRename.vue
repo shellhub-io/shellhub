@@ -152,8 +152,8 @@ export default {
         this.$emit('new-hostname', this.editName);
         this.editName = '';
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceRename);
-      } catch (err) {
-        if (err.response.status === 409) {
+      } catch (error) {
+        if (error.response.status === 409) {
           this.$refs.obs.setErrors({
             hostname: ['The name already exists in the namespace'],
           });
