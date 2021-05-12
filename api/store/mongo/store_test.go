@@ -1051,7 +1051,7 @@ func TestUpdateUID(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestUpdateUser(t *testing.T) {
+func TestUserDataUpdate(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -1067,7 +1067,47 @@ func TestUpdateUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
-	err = mongostore.UserUpdate(ctx, "newUsername", "newUsername", "newEmail", "password", "newPassword", objID)
+
+	userNewData := models.User{
+		ID:       objID,
+		Name:     "New Name",
+		Username: "newusername",
+		Password: "password",
+		Email:    "new@email.com",
+	}
+
+	err = mongostore.UserDataUpdate(ctx, &userNewData, objID)
+	assert.NoError(t, err)
+
+	us, err := mongostore.UserGetByID(ctx, objID)
+	assert.Equal(t, us, &userNewData)
+	assert.NoError(t, err)
+}
+
+func TestUserPasswordUpdate(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+
+	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	objID := result.InsertedID.(primitive.ObjectID).Hex()
+
+	newPassword := "password2"
+
+	err = mongostore.UserPasswordUpdate(ctx, newPassword, objID)
+	assert.NoError(t, err)
+
+	us, err := mongostore.UserGetByID(ctx, objID)
+	assert.Equal(t, us.Password, newPassword)
 	assert.NoError(t, err)
 }
 
