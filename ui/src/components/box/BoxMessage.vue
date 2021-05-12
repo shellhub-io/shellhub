@@ -224,7 +224,7 @@ export default {
     async refreshFirewallRule() {
       try {
         await this.$store.dispatch('firewallrules/refresh');
-      } catch (e) {
+      } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
       }
     },
@@ -232,7 +232,7 @@ export default {
     async refreshPublicKey() {
       try {
         await this.$store.dispatch('publickeys/refresh');
-      } catch (e) {
+      } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.publicKeyList);
       }
     },

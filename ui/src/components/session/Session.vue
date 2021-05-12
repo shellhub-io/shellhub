@@ -54,7 +54,7 @@ export default {
 
       await this.$store.dispatch('sessions/refresh');
       this.show = true;
-    } catch (e) {
+    } catch {
       this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.sessionList);
     }
   },
