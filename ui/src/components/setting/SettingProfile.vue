@@ -287,10 +287,10 @@ export default {
       this.email = this.$store.getters['auth/email'];
     },
 
-    enableEdit() {
-      if (this.editDataStatus) {
+    enableEdit(form) {
+      if (form === 'data') {
         this.editDataStatus = !this.editDataStatus;
-      } else if (this.editPasswordStatus) {
+      } else if (form === 'password') {
         this.editPasswordStatus = !this.editPasswordStatus;
       }
     },
@@ -307,7 +307,7 @@ export default {
         await this.$store.dispatch('users/put', data);
         this.$store.dispatch('auth/changeUserData', data);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.profileData);
-        this.enableEdit();
+        this.enableEdit('data');
       } catch (error) {
         if (error.response.status === 409) { // user data already exists
           error.response.data.forEach((item) => {
@@ -338,7 +338,7 @@ export default {
       try {
         await this.$store.dispatch('users/put', data);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.profilePassword);
-        this.enableEdit();
+        this.enableEdit('password');
       } catch (error) {
         if (error.response.status === 403) { // failed password
           this.$refs.pass.setErrors({
