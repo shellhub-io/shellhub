@@ -83,7 +83,7 @@ export default {
     async refresh() {
       try {
         await this.$store.dispatch('firewallrules/refresh');
-      } catch (e) {
+      } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
       }
     },
