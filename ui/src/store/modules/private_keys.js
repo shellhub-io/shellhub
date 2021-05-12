@@ -45,46 +45,35 @@ export default {
     },
 
     set: async (context, privateKey) => {
-      try {
-        const privateKeys = JSON.parse(localStorage.getItem('privateKeys')) || [];
+      const privateKeys = JSON.parse(localStorage.getItem('privateKeys')) || [];
 
-        privateKeys.forEach((pk) => {
-          if (pk.data === privateKey.data && pk.name === privateKey.name) {
-            throw new Error('both');
-          }
-          if (pk.data === privateKey.data) {
-            throw new Error('private_key');
-          }
-          if (pk.name === privateKey.name) {
-            throw new Error('name');
-          }
-        });
-        privateKeys.push(privateKey);
-        localStorage.setItem('privateKeys', JSON.stringify(privateKeys));
-        context.commit('setPrivateKey', privateKey);
-
-        return Promise.resolve();
-      } catch (e) {
-        return Promise.reject(e);
-      }
+      privateKeys.forEach((pk) => {
+        if (pk.data === privateKey.data && pk.name === privateKey.name) {
+          throw new Error('both');
+        }
+        if (pk.data === privateKey.data) {
+          throw new Error('private_key');
+        }
+        if (pk.name === privateKey.name) {
+          throw new Error('name');
+        }
+      });
+      privateKeys.push(privateKey);
+      localStorage.setItem('privateKeys', JSON.stringify(privateKeys));
+      context.commit('setPrivateKey', privateKey);
     },
 
     edit: async (context, privateKey) => {
-      try {
-        let index;
-        context.state.privateKeys.forEach((pk, i) => {
-          if (pk.data === privateKey.data) {
-            index = i;
-          }
-          if (pk.name === privateKey.name) {
-            throw new Error('name');
-          }
-        });
-        context.commit('editPrivateKey', { ...privateKey, ...{ index } });
-        return Promise.resolve();
-      } catch (e) {
-        return Promise.reject(e);
-      }
+      let index;
+      context.state.privateKeys.forEach((pk, i) => {
+        if (pk.data === privateKey.data) {
+          index = i;
+        }
+        if (pk.name === privateKey.name) {
+          throw new Error('name');
+        }
+      });
+      context.commit('editPrivateKey', { ...privateKey, ...{ index } });
     },
 
     remove: async (context, data) => {
