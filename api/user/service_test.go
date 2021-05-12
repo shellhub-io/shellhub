@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -16,49 +17,130 @@ func TestUpdateDataUser(t *testing.T) {
 
 	ctx := context.TODO()
 
-	user := &models.User{Name: "name", Email: "oldemail@example.com", Username: "oldusername", Password: "h8h389hhu32r9", ID: "id"}
+	user1 := &models.User{Name: "name", Email: "user1@email.com", Username: "username1", Password: "hash1", ID: "id1"}
 
-	user2 := &models.User{Name: "name", Email: "oldemail@example.com", Username: "oldusername2", Password: "bwi3248hj23k", ID: "id2"}
+	user2 := &models.User{Name: "name", Email: "user2@email.com", Username: "username2", Password: "hash2", ID: "id2"}
 
-	user3 := &models.User{Name: "name", Email: "new@email.com", Username: "oldusername3", Password: "hasha1b2c3", ID: "id3"}
+	updateUser1 := &models.User{Name: "name", Email: "user1@email2.com", Username: user2.Username, ID: "id1"}
 
-	updateUser1 := &models.User{Name: "name", Email: "", Username: "newusername", Password: "", ID: "id"}
-	updateUser2 := &models.User{Name: "name", Email: "new@email.com", Username: "", Password: "", ID: "id2"}
-	updateUser3 := &models.User{Name: "name", Email: "", Username: "", Password: "hasha1b2c3", ID: "id3"}
+	Err := errors.New("conflict")
 
-	//Change username
-	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(user, nil).Once()
-	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(user, nil).Once()
-	mock.On("UserGetByID", ctx, updateUser1.ID).Return(user, nil).Once()
-	mock.On("UserUpdate", ctx, updateUser1.Name, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.ID).Return(nil).Once()
+	// verifies existant username only
+	mock.On("UserGetByID", ctx, updateUser1.ID).Return(user1, nil).Once()
+	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(user2, nil).Once()
+	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(nil, Err).Once()
+	fields, err := s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 
-	_, err := s.UpdateDataUser(ctx, updateUser1.Name, updateUser1.Username, updateUser1.Email, updateUser1.Password, updateUser1.Password, updateUser1.ID)
+	assert.Equal(t, err, ErrConflict)
+	assert.Equal(t, fields, []InvalidField{{"username", "conflict", "", ""}})
 
-	assert.NoError(t, err)
+	updateUser1 = &models.User{Name: "name", Email: "user2@email.com", Username: user2.Username, ID: "id1"}
+
+	// verifies existant email and username only
+	mock.On("UserGetByID", ctx, updateUser1.ID).Return(user1, nil).Once()
+	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(user2, nil).Once()
+	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(user2, nil).Once()
+	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
+
+	assert.Equal(t, err, ErrConflict)
+	assert.Equal(t, fields, []InvalidField{{"username", "conflict", "", ""}, {"email", "conflict", "", ""}})
+
+	// shows invalid errors
+
+	// for username
+	updateUser1 = &models.User{Name: "newname", Email: "user1@email2.com", Username: "invalid_name", ID: "id1"}
+
+	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
+	assert.Equal(t, err, ErrBadRequest)
+	assert.Equal(t, fields, []InvalidField{{"username", "invalid", "alphanum", ""}})
+
+	//for email
+	updateUser1 = &models.User{Name: "newname", Email: "invalid.email", Username: "newusername", ID: "id1"}
+	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
+	assert.Equal(t, err, ErrBadRequest)
+	assert.Equal(t, fields, []InvalidField{{"email", "invalid", "email", ""}})
+
+	//both email and username
+	updateUser1 = &models.User{Name: "newname", Email: "invalid.email", Username: "us", ID: "id1"}
+	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
+	assert.Equal(t, err, ErrBadRequest)
+	assert.Equal(t, fields, []InvalidField{{"email", "invalid", "email", ""}, {"username", "invalid", "min", "3"}})
+
+	//for empty name
+	updateUser1 = &models.User{Name: "", Email: "new@email.com", Username: "newusername", ID: "id1"}
+	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+	_, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
+
+	assert.Equal(t, err, ErrBadRequest)
+
+	// successful update
+	updateUser1 = &models.User{Name: "newname", Email: "user1@email2.com", Username: "newusername", ID: "id1"}
+
+	Err = errors.New("no documents")
+
+	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(nil, Err).Once()
+	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(nil, Err).Once()
+	mock.On("UserDataUpdate", ctx, updateUser1, updateUser1.ID).Return(nil).Once()
+	_, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
+	assert.Nil(t, err)
+
 	mock.AssertExpectations(t)
+}
 
-	// Change email
-	mock.On("UserGetByUsername", ctx, updateUser2.Username).Return(user2, nil).Once()
-	mock.On("UserGetByEmail", ctx, updateUser2.Email).Return(user2, nil).Once()
-	mock.On("UserGetByID", ctx, updateUser2.ID).Return(user2, nil).Once()
-	mock.On("UserUpdate", ctx, updateUser2.Name, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.ID).Return(nil).Once()
+func TestUpdatePasswordUser(t *testing.T) {
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
 
-	_, err = s.UpdateDataUser(ctx, updateUser2.Name, updateUser2.Username, updateUser2.Email, updateUser2.Password, updateUser2.Password, updateUser2.ID)
+	ctx := context.TODO()
 
-	assert.NoError(t, err)
-	mock.AssertExpectations(t)
+	user1 := &models.User{Name: "name", Email: "user1@email.com", Username: "username1", Password: "hash1", ID: "id1"}
 
-	// Change password
-	oldPassword := "hasha1b2c3"
-	newPassword := "hashd4e5f6"
+	type updatePassword struct {
+		currentPassword string
+		newPassword     string
+		expected        error
+	}
 
-	mock.On("UserGetByUsername", ctx, updateUser3.Username).Return(user3, nil).Once()
-	mock.On("UserGetByEmail", ctx, updateUser3.Email).Return(user3, nil).Once()
-	mock.On("UserGetByID", ctx, updateUser3.ID).Return(user3, nil).Once()
-	mock.On("UserUpdate", ctx, updateUser3.Name, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.ID).Return(nil).Once()
+	var tests = []updatePassword{
+		{
+			"hiadoshioasc",
+			"hashnew",
+			ErrUnauthorized,
+		},
+		{
+			"pass123",
+			"hashnew",
+			ErrUnauthorized,
+		},
+		{
+			"askdhkasd",
+			"hashnew",
+			ErrUnauthorized,
+		},
+		{
+			"pass890",
+			"hashnew",
+			ErrUnauthorized,
+		},
+		{
+			"hash1",
+			"hashnew",
+			nil,
+		},
+	}
 
-	_, err = s.UpdateDataUser(ctx, updateUser3.Name, updateUser3.Username, updateUser3.Email, oldPassword, newPassword, updateUser3.ID)
+	for _, test := range tests {
+		mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+		if test.expected == nil {
+			mock.On("UserPasswordUpdate", ctx, test.newPassword, user1.ID).Return(nil).Once()
+		}
+		err := s.UpdatePasswordUser(ctx, test.currentPassword, test.newPassword, user1.ID)
+		assert.Equal(t, err, test.expected)
+	}
 
-	assert.NoError(t, err)
 	mock.AssertExpectations(t)
 }

@@ -76,7 +76,8 @@ func main() {
 	publicAPI.POST(routes.AuthPublicKeyURL, apicontext.Handler(routes.AuthPublicKey))
 	publicAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(routes.AuthSwapToken))
 
-	publicAPI.PUT(routes.UpdateUserURL, apicontext.Handler(routes.UpdateUser))
+	publicAPI.PATCH(routes.UpdateUserDataURL, apicontext.Handler(routes.UpdateUserData))
+	publicAPI.PATCH(routes.UpdateUserPasswordURL, apicontext.Handler(routes.UpdateUserPassword))
 	publicAPI.PUT(routes.UpdateUserSecurityURL, apicontext.Handler(routes.UpdateUserSecurity))
 	publicAPI.GET(routes.UserSecurityURL, apicontext.Handler(routes.GetUserSecurity))
 

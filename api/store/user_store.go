@@ -14,7 +14,8 @@ type UserStore interface {
 	UserGetByEmail(ctx context.Context, email string) (*models.User, error)
 	UserGetByTenant(ctx context.Context, tenant string) (*models.User, error)
 	UserGetByID(ctx context.Context, ID string) (*models.User, error)
-	UserUpdate(ctx context.Context, name, username, email, currentPassword, newPassword, ID string) error
+	UserDataUpdate(ctx context.Context, data *models.User, ID string) error
+	UserPasswordUpdate(ctx context.Context, newPassword, ID string) error
 	UserUpdateFromAdmin(ctx context.Context, name, username, email, password, ID string) error
 	UserDelete(ctx context.Context, ID string) error
 }
