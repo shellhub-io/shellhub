@@ -95,18 +95,28 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		return err
 	}
 
-	name = strings.ToLower(name)
-	if device.Name == name {
-		return nil
-	}
-
 	validate := validator.New()
-	err = validate.Struct(device)
+	updatedDevice := &models.Device{
+		UID:       device.UID,
+		Name:      strings.ToLower(name),
+		Identity:  device.Identity,
+		Info:      device.Info,
+		PublicKey: device.PublicKey,
+		TenantID:  device.TenantID,
+		LastSeen:  device.LastSeen,
+		Online:    device.Online,
+		Namespace: device.Namespace,
+		Status:    device.Status,
+	}
+	err = validate.Struct(updatedDevice)
 	if err != nil {
 		return err
 	}
+	if device.Name == updatedDevice.Name {
+		return nil
+	}
 
-	otherDevice, err := s.store.DeviceGetByName(ctx, name, tenant)
+	otherDevice, err := s.store.DeviceGetByName(ctx, updatedDevice.Name, tenant)
 	if err != nil && err != store.ErrNoDocuments {
 		return err
 	}
