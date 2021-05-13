@@ -69,7 +69,7 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) er
 	key.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
 	returnedKey, err := s.store.PublicKeyGet(ctx, key.Fingerprint, apicontext.TenantFromContext(ctx).ID)
-	if err != nil && err != store.ErrRecordNotFound {
+	if err != nil && err != store.ErrNoDocuments {
 		return err
 	}
 

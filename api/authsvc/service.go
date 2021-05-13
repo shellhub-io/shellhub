@@ -126,7 +126,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 	}
 
 	namespace, err := s.store.NamespaceGetFirst(ctx, user.ID)
-	if err != nil && err != store.ErrNamespaceNoDocuments {
+	if err != nil && err != store.ErrNoDocuments {
 		return nil, err
 	}
 
@@ -174,7 +174,7 @@ func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuth
 	}
 
 	namespace, err := s.store.NamespaceGetFirst(ctx, user.ID)
-	if err != nil && err != store.ErrNamespaceNoDocuments {
+	if err != nil && err != store.ErrNoDocuments {
 		return nil, err
 	}
 
@@ -283,7 +283,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error) {
 	user, err := s.store.UserGetByUsername(ctx, username)
 	if err != nil {
-		if err == store.ErrUserNoDocuments {
+		if err == store.ErrNoDocuments {
 			return nil, ErrUnauthorized
 		}
 
@@ -291,7 +291,7 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 	}
 
 	if _, err = s.store.NamespaceGet(ctx, tenant); err != nil && tenant != "" {
-		if err == store.ErrNamespaceNoDocuments {
+		if err == store.ErrNoDocuments {
 			return nil, ErrUnauthorized
 		}
 		return nil, err

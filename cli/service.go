@@ -75,7 +75,7 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 	}
 
 	ns, err := s.store.NamespaceGetByName(context.TODO(), data.Namespace)
-	if err == store.ErrNamespaceNoDocuments {
+	if err == store.ErrNoDocuments {
 		return nil, ErrNamespaceNotFound
 	}
 

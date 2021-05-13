@@ -179,7 +179,7 @@ func TestAuthUserInfo(t *testing.T) {
 	mock.On("UserGetByUsername", ctx, "user").
 		Return(user, nil).Once()
 	mock.On("NamespaceGet", ctx, "").
-		Return(nil, store.ErrNamespaceNoDocuments).Once()
+		Return(nil, store.ErrNoDocuments).Once()
 	authRes, err = s.AuthUserInfo(ctx, "user", "", "---------------token----------------")
 	assert.Nil(t, err)
 	assert.Equal(t, authRes1, authRes)

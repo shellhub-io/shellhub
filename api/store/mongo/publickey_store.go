@@ -2,33 +2,23 @@ package mongo
 
 import (
 	"context"
-	"strings"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func (s *Store) PublicKeyGet(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
 	pubKey := new(models.PublicKey)
 	if tenant != "" {
 		if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenant}).Decode(&pubKey); err != nil {
-			if err == mongo.ErrNoDocuments {
-				return nil, store.ErrRecordNotFound
-			}
-
-			return nil, err
+			return nil, fromMongoError(err)
 		}
 	} else {
 		if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint}).Decode(&pubKey); err != nil {
-			if err == mongo.ErrNoDocuments {
-				return nil, store.ErrRecordNotFound
-			}
 
-			return nil, err
+			return nil, fromMongoError(err)
 		}
 	}
 
@@ -87,13 +77,8 @@ func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) erro
 	}
 
 	_, err := s.db.Collection("public_keys").InsertOne(ctx, key)
-	if err != nil {
-		if strings.Contains(err.Error(), "duplicate key error") {
-			return store.ErrDuplicateFingerprint
-		}
-	}
+	return fromMongoError(err)
 
-	return err
 }
 
 func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
@@ -103,9 +88,8 @@ func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint, tenant string,
 
 	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint}, bson.M{"$set": key}); err != nil {
 		if err != nil {
-			if strings.Contains(err.Error(), "public key not found") {
-				return nil, store.ErrRecordNotFound
-			}
+			return nil, fromMongoError(err)
+
 		}
 
 		return nil, err

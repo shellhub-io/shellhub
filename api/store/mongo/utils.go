@@ -4,9 +4,11 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -128,5 +130,18 @@ func buildPaginationQuery(pagination paginator.Query) []bson.M {
 	return []bson.M{
 		{"$skip": pagination.PerPage * (pagination.Page - 1)},
 		{"$limit": pagination.PerPage},
+	}
+}
+
+func fromMongoError(err error) error {
+	switch {
+	case err == mongo.ErrNoDocuments:
+		return store.ErrNoDocuments
+	case err == primitive.ErrInvalidHex:
+		return store.ErrInvalidHex
+	case mongo.IsDuplicateKeyError(err):
+		return store.ErrDuplicate
+	default:
+		return err
 	}
 }
