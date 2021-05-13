@@ -49,7 +49,7 @@ func GetPublicKey(c apicontext.Context) error {
 
 	pubKey, err := svc.GetPublicKey(c.Ctx(), c.Param("fingerprint"), c.Param("tenant"))
 	if err != nil {
-		if err == store.ErrRecordNotFound {
+		if err == store.ErrNoDocuments {
 			return c.NoContent(http.StatusNotFound)
 		}
 

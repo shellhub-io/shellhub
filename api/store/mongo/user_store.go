@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"strings"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -48,7 +47,7 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 
 	queryMatch, err := buildFilterQuery(filters)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fromMongoError(err)
 	}
 
 	if len(queryMatch) > 0 {
@@ -58,7 +57,7 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 	queryCount := append(query, bson.M{"$count": "count"})
 	count, err := aggregateCount(ctx, s.db.Collection("users"), queryCount)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fromMongoError(err)
 	}
 
 	if pagination.Page > 0 && pagination.PerPage > 0 {
@@ -68,7 +67,7 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 	users := make([]models.User, 0)
 	cursor, err := s.db.Collection("users").Aggregate(ctx, query)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fromMongoError(err)
 	}
 	defer cursor.Close(ctx)
 
@@ -76,35 +75,31 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 		user := new(models.User)
 		err = cursor.Decode(&user)
 		if err != nil {
-			return nil, 0, err
+			return nil, 0, fromMongoError(err)
 		}
 
 		users = append(users, *user)
 	}
 
-	return users, count, err
+	return users, count, fromMongoError(err)
 }
 
 func (s *Store) UserCreate(ctx context.Context, user *models.User) error {
 	_, err := s.db.Collection("users").InsertOne(ctx, user)
 	if err != nil {
-		if strings.Contains(err.Error(), "duplicate key error") {
+		if mongo.IsDuplicateKeyError(err) {
 			return store.ErrDuplicateEmail
 		}
 	}
 
-	return err
+	return fromMongoError(err)
 }
 
 func (s *Store) UserGetByUsername(ctx context.Context, username string) (*models.User, error) {
 	user := new(models.User)
 
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": username}).Decode(&user); err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, store.ErrUserNoDocuments
-		}
-
-		return nil, err
+		return nil, fromMongoError(err)
 	}
 
 	return user, nil
@@ -114,11 +109,7 @@ func (s *Store) UserGetByEmail(ctx context.Context, email string) (*models.User,
 	user := new(models.User)
 
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"email": email}).Decode(&user); err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, store.ErrUserNoDocuments
-		}
-
-		return nil, err
+		return nil, fromMongoError(err)
 	}
 
 	return user, nil
@@ -128,11 +119,8 @@ func (s *Store) UserGetByID(ctx context.Context, ID string) (*models.User, error
 	user := new(models.User)
 	objID, _ := primitive.ObjectIDFromHex(ID)
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, store.ErrUserNoDocuments
-		}
 
-		return nil, err
+		return nil, fromMongoError(err)
 	}
 	return user, nil
 }
@@ -141,28 +129,28 @@ func (s *Store) UserUpdateData(ctx context.Context, data *models.User, ID string
 	objID, err := primitive.ObjectIDFromHex(ID)
 
 	if err != nil {
-		return err
+		return fromMongoError(err)
 	}
 
 	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"name": data.Name, "username": data.Username, "email": data.Email}}); err != nil {
-		return err
+		return fromMongoError(err)
 	}
 	return nil
 }
 
 func (s *Store) UserUpdatePassword(ctx context.Context, newPassword, ID string) error {
 	if _, err := s.UserGetByID(ctx, ID); err != nil {
-		return err
+		return fromMongoError(err)
 	}
 
 	objID, err := primitive.ObjectIDFromHex(ID)
 
 	if err != nil {
-		return err
+		return fromMongoError(err)
 	}
 
 	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"password": newPassword}}); err != nil {
-		return err
+		return fromMongoError(err)
 	}
 
 	return nil
@@ -173,28 +161,28 @@ func (s *Store) UserUpdateFromAdmin(ctx context.Context, name, username, email, 
 	objID, _ := primitive.ObjectIDFromHex(ID)
 
 	if err != nil {
-		return err
+		return fromMongoError(err)
 	}
 
 	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"name": name}}); err != nil {
-		return err
+		return fromMongoError(err)
 	}
 
 	if username != "" && username != user.Username {
 		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"username": username}}); err != nil {
-			return err
+			return fromMongoError(err)
 		}
 	}
 
 	if email != "" && email != user.Email {
 		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"email": email}}); err != nil {
-			return err
+			return fromMongoError(err)
 		}
 	}
 
 	if password != "" {
 		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"password": password}}); err != nil {
-			return err
+			return fromMongoError(err)
 		}
 	}
 
@@ -202,35 +190,39 @@ func (s *Store) UserUpdateFromAdmin(ctx context.Context, name, username, email, 
 }
 
 func (s *Store) UserDelete(ctx context.Context, ID string) error {
-	objID, _ := primitive.ObjectIDFromHex(ID)
-	_, err := s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
+	objID, err := primitive.ObjectIDFromHex(ID)
 	if err != nil {
-		return err
+		return nil
+	}
+
+	_, err = s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
+	if err != nil {
+		return fromMongoError(err)
 	}
 
 	findOptions := options.Find()
 
 	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": ID}, findOptions)
 	if err != nil {
-		return err
+		return fromMongoError(err)
 	}
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
 		namespace := new(models.Namespace)
 		if err := cursor.Decode(&namespace); err != nil {
-			return err
+			return fromMongoError(err)
 		}
 
 		if namespace.Owner != ID {
 			if _, err := s.NamespaceRemoveMember(ctx, namespace.TenantID, ID); err != nil {
-				return err
+				return fromMongoError(err)
 			}
 		} else {
 			if err := s.NamespaceDelete(ctx, namespace.TenantID); err != nil {
-				return err
+				return fromMongoError(err)
 			}
 		}
 	}
-	return err
+	return fromMongoError(err)
 }

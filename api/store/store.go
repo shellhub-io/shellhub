@@ -8,12 +8,10 @@ import (
 )
 
 var (
-	ErrDuplicateEmail       = errors.New("email address is already in use")
-	ErrRecordNotFound       = errors.New("public key not found")
-	ErrDuplicateFingerprint = errors.New("this fingerprint already exists")
-	ErrNamespaceNoDocuments = errors.New("mongo: no documents in result")
-	ErrDeviceNoDocuments    = errors.New("mongo: no documents in result")
-	ErrUserNoDocuments      = errors.New("mongo: no documents in result")
+	ErrDuplicateEmail = errors.New("email address is already in use")
+	ErrDuplicate      = errors.New("this fingerprint already exists")
+	ErrNoDocuments    = errors.New("mongo: no documents in result")
+	ErrInvalidHex     = errors.New("the provided hex string is not a valid ObjectID")
 )
 
 type Store interface {

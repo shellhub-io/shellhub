@@ -107,7 +107,7 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 	}
 
 	otherDevice, err := s.store.DeviceGetByName(ctx, name, tenant)
-	if err != nil && err != store.ErrDeviceNoDocuments {
+	if err != nil && err != store.ErrNoDocuments {
 		return err
 	}
 
@@ -138,7 +138,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 
 	if status == "accepted" {
 		sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
-		if err != nil && err != store.ErrDeviceNoDocuments {
+		if err != nil && err != store.ErrNoDocuments {
 			return err
 		}
 

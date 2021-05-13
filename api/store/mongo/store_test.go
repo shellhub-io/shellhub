@@ -9,6 +9,7 @@ import (
 
 	"github.com/cnf/structhash"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/cache"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -1671,7 +1672,7 @@ func TestUpdatePublicKey(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, k, updatedKey)
 	_, err = mongostore.PublicKeyUpdate(ctx, unexistingKey.Fingerprint, unexistingKey.TenantID, update)
-	assert.EqualError(t, err, "public key not found")
+	assert.EqualError(t, err, store.ErrNoDocuments.Error())
 }
 
 func TestDeletePublicKey(t *testing.T) {
