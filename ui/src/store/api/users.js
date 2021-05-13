@@ -7,10 +7,13 @@ export const signUp = async (data) => http().post('/register', {
   password: data.password,
 });
 
-export const putUser = async (data) => http().put(`/users/${data.id}`, {
+export const patchUserData = async (data) => http().patch(`/users/${data.id}/data`, {
   name: data.name,
   username: data.username,
   email: data.email,
+});
+
+export const patchUserPassword = async (data) => http().patch(`/users/${data.id}/password`, {
   currentPassword: data.currentPassword,
   newPassword: data.newPassword,
 });

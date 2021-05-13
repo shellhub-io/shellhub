@@ -304,12 +304,12 @@ export default {
       };
 
       try {
-        await this.$store.dispatch('users/put', data);
+        await this.$store.dispatch('users/patchData', data);
         this.$store.dispatch('auth/changeUserData', data);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.profileData);
         this.enableEdit('data');
       } catch (error) {
-        if (error.response.status === 409) { // user data already exists
+        if (error.response.status === 409 || error.response.status === 400) {
           error.response.data.forEach((item) => {
             if (item.Name === 'username') {
               this.$refs.obs.setErrors({
@@ -336,7 +336,7 @@ export default {
       };
 
       try {
-        await this.$store.dispatch('users/put', data);
+        await this.$store.dispatch('users/patchPassword', data);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.profilePassword);
         this.enableEdit('password');
       } catch (error) {

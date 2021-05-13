@@ -17,8 +17,12 @@ export default {
       await apiUser.signUp(data);
     },
 
-    async put(context, data) {
-      await apiUser.putUser(data);
+    async patchData(context, data) {
+      await apiUser.patchUserData(data);
+    },
+
+    async patchPassword(context, data) {
+      await apiUser.patchUserPassword(data);
     },
   },
 };
