@@ -40,6 +40,7 @@ export default {
       privateKeyDeleting: 'deleting private key',
       addUser: 'creating account',
       loginFailed: 'login',
+      logoutFailed: 'logout',
     };
 
     Vue.errors = errors;
