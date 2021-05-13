@@ -50,6 +50,7 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 	if err != nil {
 		return nil, 0, err
 	}
+
 	var filter []models.Filter
 
 	if err := json.Unmarshal([]byte(raw), &filter); len(raw) > 0 && err != nil {
@@ -69,32 +70,33 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		return nil, err
 	}
 
-	namespace.Name = strings.ToLower(namespace.Name)
-	otherNamespace, err := s.store.NamespaceGetByName(ctx, namespace.Name)
-
-	if err != nil && err != store.ErrNoDocuments {
-		return nil, err
+	ns := &models.Namespace{
+		Name:     strings.ToLower(namespace.Name),
+		Owner:    user.ID,
+		Members:  []interface{}{user.ID},
+		Settings: &models.NamespaceSettings{SessionRecord: true},
+		TenantID: namespace.TenantID,
 	}
 
-	if otherNamespace != nil {
-		return nil, ErrConflictName
-	}
-
-	namespace.Owner = user.ID
-	namespace.Members = []interface{}{user.ID}
-	settings := &models.NamespaceSettings{SessionRecord: true}
-	namespace.Settings = settings
 	if namespace.TenantID == "" {
-		namespace.TenantID = uuid.Must(uuid.NewV4(), nil).String()
+		ns.TenantID = uuid.Must(uuid.NewV4(), nil).String()
 	}
 
 	if os.Getenv("SHELLHUB_ENTERPRISE") == "true" {
-		namespace.MaxDevices = 3
+		ns.MaxDevices = 3
 	} else {
-		namespace.MaxDevices = -1
+		ns.MaxDevices = -1
 	}
 
-	return s.store.NamespaceCreate(ctx, namespace)
+	if _, err = s.store.NamespaceGetByName(ctx, ns.Name); err != nil {
+		if err == store.ErrNoDocuments {
+			return nil, ErrConflictName
+		}
+
+		return nil, err
+	}
+
+	return s.store.NamespaceCreate(ctx, ns)
 }
 
 func (s *service) GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error) {
@@ -182,6 +184,7 @@ func (s *service) EditNamespace(ctx context.Context, namespace, name, owner stri
 	if ns.Name == lowerName || ns.Owner != user.ID {
 		return nil, ErrUnauthorized
 	}
+
 	return s.store.NamespaceRename(ctx, ns.TenantID, lowerName)
 }
 
@@ -212,6 +215,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, own
 	if err == store.ErrNoDocuments {
 		return nil, ErrUserNotFound
 	}
+
 	if err != nil {
 		return nil, err
 	}
