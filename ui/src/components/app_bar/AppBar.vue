@@ -159,11 +159,14 @@ export default {
   },
 
   methods: {
-    logout() {
-      this.$store.dispatch('auth/logout').then(() => {
+    async logout() {
+      try {
+        this.$store.dispatch('auth/logout');
+        await this.$router.push('/login');
         this.$store.dispatch('namespaces/clearNamespaceList');
-        this.$router.push('/login');
-      });
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorNotRequest', this.$errors.logoutFailed);
+      }
     },
 
     triggerClick(item) {
