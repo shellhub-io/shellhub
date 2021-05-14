@@ -130,8 +130,3 @@ func buildPaginationQuery(pagination paginator.Query) []bson.M {
 		{"$limit": pagination.PerPage},
 	}
 }
-
-func renameField(db *mongo.Database, coll, from, to string) error {
-	_, err := db.Collection(coll).UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{from: to}})
-	return err
-}
