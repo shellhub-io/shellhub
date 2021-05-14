@@ -1,5 +1,7 @@
 FROM node:12.16.0-alpine as base
 
+ARG NPM_CONFIG_REGISTRY
+
 RUN apk add --update build-base python
 
 WORKDIR /app
@@ -10,6 +12,9 @@ RUN npm install
 
 FROM base as development
 
+ARG NPM_CONFIG_REGISTRY
+ARG ENV ${NPM_CONFIG_REGISTRY}
+
 WORKDIR /src
 
 COPY --from=base /app/node_modules /node_modules
@@ -19,6 +24,8 @@ COPY ui/scripts /scripts
 CMD ["/scripts/entrypoint-dev.sh"]
 
 FROM base as builder
+
+ARG NPM_CONFIG_REGISTRY
 
 WORKDIR /app
 
