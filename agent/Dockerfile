@@ -1,6 +1,8 @@
 # base stage
 FROM golang:1.16.4-alpine3.13 AS base
 
+ARG GOPROXY
+
 RUN apk add --update git ca-certificates build-base bash util-linux setpriv
 
 RUN ln -sf /bin/bash /bin/sh
@@ -19,6 +21,7 @@ RUN go mod download
 FROM base AS builder
 
 ARG SHELLHUB_VERSION=latest
+ARG GOPROXY
 
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
 COPY ./agent .
@@ -33,6 +36,9 @@ RUN go build -tags docker -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
 
 # development stage
 FROM base AS development
+
+ARG GOPROXY
+ENV GOPROXY ${GOPROXY}
 
 RUN apk add --update openssl openssh-client
 RUN go get github.com/markbates/refresh && go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.37.1
