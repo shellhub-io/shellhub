@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Dashboard from '../views/Dashboard';
-import store from '../store';
+import Dashboard from '@/views/Dashboard';
+import store from '@/store';
 
 Vue.use(Router);
 
@@ -17,12 +17,12 @@ const router = new Router({
     {
       path: '/sign-up',
       name: 'signUp',
-      component: () => import('./../views/SignUp.vue'),
+      component: () => import('@/views/SignUp'),
     },
     {
       path: '/devices',
       name: 'devices',
-      component: () => import(/* webpackChunkName: 'devices' */ './../views/Devices.vue'),
+      component: () => import(/* webpackChunkName: 'devices' */ '@/views/Devices'),
       redirect: {
         name: 'listDevices',
       },
@@ -30,29 +30,29 @@ const router = new Router({
         {
           path: '',
           name: 'listDevices',
-          component: () => import('./../components/device/DeviceList.vue'),
+          component: () => import('@/components/device/DeviceList'),
         },
         {
           path: 'pending',
           name: 'pendingDevices',
-          component: () => import('./../components/device/DevicePendingList.vue'),
+          component: () => import('@/components/device/DevicePendingList'),
         },
         {
           path: 'rejected',
           name: 'rejectedDevices',
-          component: () => import('./../components/device/DeviceRejectedList.vue'),
+          component: () => import('@/components/device/DeviceRejectedList'),
         },
       ],
     },
     {
       path: '/device/:id',
       name: 'detailsDevice',
-      component: () => import(/* webpackChunkName: 'details-device' */ './../views/DetailsDevice.vue'),
+      component: () => import(/* webpackChunkName: 'details-device' */ '@/views/DetailsDevice'),
     },
     {
       path: '/sessions',
       name: 'sessions',
-      component: () => import(/* webpackChunkName: 'sessions' */ './../views/Sessions.vue'),
+      component: () => import(/* webpackChunkName: 'sessions' */ '@/views/Sessions'),
       redirect: {
         name: 'listSessions',
       },
@@ -60,24 +60,24 @@ const router = new Router({
         {
           path: '',
           name: 'listSessions',
-          component: () => import('./../components/session/SessionList.vue'),
+          component: () => import('@/components/session/SessionList'),
         },
       ],
     },
     {
       path: '/session/:id',
       name: 'detailsSession',
-      component: () => import(/* webpackChunkName: 'details-session' */ './../views/DetailsSession.vue'),
+      component: () => import(/* webpackChunkName: 'details-session' */ '@/views/DetailsSession'),
     },
     {
       path: '/login',
       name: 'login',
-      component: () => import('./../views/Login.vue'),
+      component: () => import('@/views/Login'),
     },
     {
       path: '/firewall/rules',
       name: 'firewalls',
-      component: () => import(/* webpackChunkName: 'firewalls' */ './../views/FirewallRules.vue'),
+      component: () => import(/* webpackChunkName: 'firewalls' */ '@/views/FirewallRules'),
       redirect: {
         name: 'listFirewalls',
       },
@@ -85,14 +85,14 @@ const router = new Router({
         {
           path: '',
           name: 'listFirewalls',
-          component: () => import('./../components/firewall_rule/FirewallRuleList.vue'),
+          component: () => import('@/components/firewall_rule/FirewallRuleList'),
         },
       ],
     },
     {
       path: '/sshkeys/public-keys',
       name: 'publicKeys',
-      component: () => import(/* webpackChunkName: 'publickeys' */'./../views/PublicKeys.vue'),
+      component: () => import(/* webpackChunkName: 'publickeys' */'@/views/PublicKeys'),
       redirect: {
         name: 'listPublickeys',
       },
@@ -100,14 +100,14 @@ const router = new Router({
         {
           path: '',
           name: 'listPublickeys',
-          component: () => import('./../components/public_key/PublicKeyList.vue'),
+          component: () => import('@/components/public_key/PublicKeyList'),
         },
       ],
     },
     {
       path: '/settings',
       name: 'settings',
-      component: () => import(/* webpackChunkName: 'settings' */ './../views/Settings.vue'),
+      component: () => import(/* webpackChunkName: 'settings' */ '@/views/Settings'),
       redirect: {
         name: 'profileSettings',
       },
@@ -115,17 +115,17 @@ const router = new Router({
         {
           path: 'profile',
           name: 'profileSettings',
-          component: () => import('./../components/setting/SettingProfile.vue'),
+          component: () => import('@/components/setting/SettingProfile'),
         },
         {
           path: 'namespace-manager',
           name: 'namespaceSettings',
-          component: () => import('./../components/setting/SettingNamespace.vue'),
+          component: () => import('@/components/setting/SettingNamespace'),
         },
         {
           path: 'private-keys',
           name: 'privateKeysSettings',
-          component: () => import('./../components/setting/SettingPrivateKeys.vue'),
+          component: () => import('@/components/setting/SettingPrivateKeys'),
         },
       ],
     },
