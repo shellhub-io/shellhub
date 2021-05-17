@@ -210,7 +210,7 @@ export default {
     } catch (error) {
       this.hide = false;
       this.dialog = true;
-      this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.sessionDetails);
+      this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.sessionDetails);
     }
   },
 
@@ -225,7 +225,7 @@ export default {
         await this.$store.dispatch('sessions/get', this.uid);
         this.session = this.$store.getters['sessions/get'];
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.sessionDetails);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.sessionDetails);
       }
     },
   },

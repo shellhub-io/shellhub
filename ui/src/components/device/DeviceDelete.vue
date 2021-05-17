@@ -103,7 +103,7 @@ export default {
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceDelete);
         this.$emit('update');
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.deviceDelete);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceDelete);
       }
     },
   },

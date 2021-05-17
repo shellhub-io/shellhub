@@ -91,7 +91,7 @@ export default {
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.firewallRuleDeleting);
         this.update();
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.firewallRuleDeleting);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.firewallRuleDeleting);
       }
     },
 

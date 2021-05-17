@@ -84,7 +84,7 @@ export default {
       try {
         await this.$store.dispatch('firewallrules/refresh');
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.firewallRuleList);
       }
     },
   },

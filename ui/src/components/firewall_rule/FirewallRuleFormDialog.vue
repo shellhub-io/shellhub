@@ -279,7 +279,7 @@ export default {
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.firewallRuleCreating);
         this.update();
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.firewallRuleCreating);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.firewallRuleCreating);
       }
     },
 
@@ -289,7 +289,7 @@ export default {
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.firewallRuleEditing);
         this.update();
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.firewallRuleEditing);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.firewallRuleEditing);
       }
     },
 

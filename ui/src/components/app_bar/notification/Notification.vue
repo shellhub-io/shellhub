@@ -152,7 +152,7 @@ export default {
           break;
         }
         default: {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.notificationList);
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.notificationList);
         }
         }
       }

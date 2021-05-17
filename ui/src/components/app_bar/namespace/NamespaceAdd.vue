@@ -112,7 +112,7 @@ export default {
         });
         window.location.reload();
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceSwitch);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceSwitch);
       }
     },
 
@@ -137,7 +137,7 @@ export default {
             namespace: ['This name is already taken'],
           });
         } else {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceCreating);
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceCreating);
         }
       }
     },

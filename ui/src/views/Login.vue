@@ -119,7 +119,7 @@ export default {
       } catch (error) {
         switch (true) {
         case (error.response.status === 401): {
-          this.$store.dispatch('snackbar/showSnackbarErrorIncorrect', this.$errors.loginFailed);
+          this.$store.dispatch('snackbar/showSnackbarErrorIncorrect', this.$errors.snackbar.loginFailed);
           break;
         }
         default: {

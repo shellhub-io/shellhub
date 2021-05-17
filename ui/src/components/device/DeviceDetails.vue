@@ -178,7 +178,7 @@ export default {
     } catch (error) {
       this.hide = false;
       this.dialogError = true;
-      this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.deviceDetails);
+      this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.deviceDetails);
     }
   },
 

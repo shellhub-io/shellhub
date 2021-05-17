@@ -172,7 +172,7 @@ export default {
         break;
       }
       default: {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.dashboard);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.dashboard);
       }
       }
     }
@@ -198,7 +198,7 @@ export default {
       try {
         await this.$store.dispatch('namespaces/get', localStorage.getItem('tenant'));
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceLoad);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceLoad);
       }
     },
 
@@ -215,7 +215,7 @@ export default {
           break;
         }
         default: {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceList);
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceList);
         }
         }
       }

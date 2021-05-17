@@ -165,7 +165,7 @@ export default {
         await this.$router.push('/login');
         this.$store.dispatch('namespaces/clearNamespaceList');
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorNotRequest', this.$errors.logoutFailed);
+        this.$store.dispatch('snackbar/showSnackbarErrorNotRequest', this.$errors.snackbar.logoutFailed);
       }
     },
 

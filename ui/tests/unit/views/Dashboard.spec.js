@@ -94,7 +94,7 @@ describe('Dashboard', () => {
       localVue,
       stubs: ['fragment'],
       mocks: {
-        $errors: (namespaceLoad) => namespaceLoad,
+        $errors.snackbar: (namespaceLoad) => namespaceLoad,
       },
     });
   });
@@ -121,7 +121,7 @@ describe('Dashboard', () => {
       localVue,
       stubs: ['fragment'],
       mocks: {
-        $errors: (namespaceLoad) => namespaceLoad,
+        $errors.snackbar: (namespaceLoad) => namespaceLoad,
       },
     });
 

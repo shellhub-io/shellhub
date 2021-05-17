@@ -102,7 +102,7 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyDeleting);
           this.update();
         } catch {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyDeleting);
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.publicKeyDeleting);
         }
         break;
       case 'private':
@@ -111,7 +111,7 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.privateKeyDeleting);
           this.close();
         } catch {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.privateKeyDeleting);
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.privateKeyDeleting);
         }
         break;
       default:

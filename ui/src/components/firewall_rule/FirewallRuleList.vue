@@ -174,7 +174,7 @@ export default {
           if (error.response.status === 403) {
             this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
           } else {
-            this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
+            this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.firewallRuleList);
           }
         }
       } else {
