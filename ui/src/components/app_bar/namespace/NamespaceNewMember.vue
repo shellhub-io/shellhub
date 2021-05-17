@@ -120,7 +120,7 @@ export default {
             username: 'The username has already been added to namespace.',
           });
         } else {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceNewMember);
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceNewMember);
         }
       }
     },

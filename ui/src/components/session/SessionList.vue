@@ -230,7 +230,7 @@ export default {
           if (error.response.status === 403) {
             this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
           } else {
-            this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.sessionList);
+            this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.sessionList);
           }
         }
       } else {

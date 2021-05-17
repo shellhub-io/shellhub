@@ -239,7 +239,7 @@ export default {
               key: error.response.data.message,
             });
           } else {
-            this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyCreating);
+            this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.publicKeyCreating);
           }
         }
         break;
@@ -270,7 +270,7 @@ export default {
             break;
           }
           default: {
-            this.$store.dispatch('snackbar/showSnackbarErrorNotRequest', this.$errors.privateKeyCreating);
+            this.$store.dispatch('snackbar/showSnackbarErrorNotRequest', this.$errors.snackbar.privateKeyCreating);
           }
           }
         }
@@ -287,7 +287,7 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyEditing);
           this.update();
         } catch {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyEditing);
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.publicKeyEditing);
         }
         break;
       case 'private':
@@ -301,7 +301,7 @@ export default {
               name: ['The name already exists'],
             });
           } else {
-            this.$store.dispatch('snackbar/showSnackbarErrorNotRequest', this.$errors.privateKeyEditing);
+            this.$store.dispatch('snackbar/showSnackbarErrorNotRequest', this.$errors.snackbar.privateKeyEditing);
           }
         }
         break;

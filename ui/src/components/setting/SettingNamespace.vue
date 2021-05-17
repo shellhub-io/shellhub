@@ -341,7 +341,7 @@ export default {
         await this.$store.dispatch('namespaces/get', this.tenant);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceEdit);
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceEdit);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceEdit);
       }
     },
 
@@ -353,7 +353,7 @@ export default {
         if (error.response.status === 403) {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
         } else {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceLoad);
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceLoad);
         }
       }
     },
@@ -368,7 +368,7 @@ export default {
         this.username = '';
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceRemoveUser);
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceRemoveUser);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceRemoveUser);
       }
     },
 

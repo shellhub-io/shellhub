@@ -67,7 +67,7 @@ export default {
       try {
         await this.$store.dispatch('publickeys/refresh');
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.publicKeyList);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.publicKeyList);
       }
     },
   },

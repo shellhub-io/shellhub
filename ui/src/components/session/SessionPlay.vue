@@ -235,7 +235,7 @@ export default {
           this.connect();
         });
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.sessionPlay);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.sessionPlay);
       }
     },
 

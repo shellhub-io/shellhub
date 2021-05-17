@@ -158,7 +158,7 @@ export default {
             hostname: ['The name already exists in the namespace'],
           });
         } else {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.deviceRename);
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceRename);
         }
       }
     },

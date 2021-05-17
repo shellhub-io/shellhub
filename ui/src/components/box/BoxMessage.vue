@@ -225,7 +225,7 @@ export default {
       try {
         await this.$store.dispatch('firewallrules/refresh');
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.firewallRuleList);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.firewallRuleList);
       }
     },
 
@@ -233,7 +233,7 @@ export default {
       try {
         await this.$store.dispatch('publickeys/refresh');
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.publicKeyList);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.publicKeyList);
       }
     },
   },

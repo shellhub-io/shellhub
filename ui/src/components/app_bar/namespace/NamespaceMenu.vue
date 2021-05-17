@@ -263,7 +263,7 @@ export default {
           break;
         }
         default: {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceLoad);
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceLoad);
         }
         }
       }
@@ -282,7 +282,7 @@ export default {
           break;
         }
         default: {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceList);
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceList);
         }
         }
       }
@@ -299,7 +299,7 @@ export default {
 
         window.location.reload();
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceSwitch);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceSwitch);
       }
     },
   },

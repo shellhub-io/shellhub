@@ -249,7 +249,7 @@ export default {
 
         this.e1 = 4;
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.deviceAccepting);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceAccepting);
       }
     },
 

@@ -128,7 +128,7 @@ export default {
         try {
           await this.$store.dispatch('publickeys/fetch', data);
         } catch {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.publicKeyList);
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.publicKeyList);
         }
       } else {
         this.$store.dispatch('boxs/setStatus', false);

@@ -105,7 +105,7 @@ export default {
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.sessionClose);
         this.$emit('update');
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.sessionClose);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.sessionClose);
       }
     },
   },

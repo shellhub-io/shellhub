@@ -84,7 +84,7 @@ export default {
         await this.$router.push({ name: 'login' });
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceDelete);
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceDelete);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceDelete);
       }
     },
 

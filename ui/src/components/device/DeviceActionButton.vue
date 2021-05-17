@@ -134,7 +134,7 @@ export default {
         this.refreshStats();
         this.refreshDevices();
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.deviceAccepting);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceAccepting);
       }
     },
 
@@ -144,7 +144,7 @@ export default {
         this.refreshStats();
         this.refreshDevices();
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.deviceRejecting);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceRejecting);
       }
     },
 
@@ -153,7 +153,7 @@ export default {
         await this.$store.dispatch('devices/remove', this.uid);
         this.refreshDevices();
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.deviceDelete);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceDelete);
       }
     },
 
@@ -167,7 +167,7 @@ export default {
 
         this.dialog = !this.dialog;
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.deviceList);
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.deviceList);
       }
     },
 

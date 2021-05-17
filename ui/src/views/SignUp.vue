@@ -227,7 +227,7 @@ export default {
             }
           });
         } else {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.addUser);
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.addUser);
         }
       }
     },
