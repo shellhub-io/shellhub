@@ -31,3 +31,20 @@ type RecordedSession struct {
 	Width    int       `json:"width" bson:"width,omitempty"`
 	Height   int       `json:"height" bson:"height,omitempty"`
 }
+
+type SessionRecord struct {
+	Record string `json:"record"`
+	Height int    `json:"height"`
+	Width  int    `json:"width"`
+}
+
+type Status struct {
+	Authenticated bool `json:"authenticated"`
+}
+
+type SessionRecorded struct {
+	UID     string `json:"uid"`
+	Message string `json:"message" bson:"message"`
+	Width   int    `json:"width" bson:"width,omitempty"`
+	Height  int    `json:"height" bson:"height,omitempty"`
+}

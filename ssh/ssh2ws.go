@@ -126,8 +126,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 		return
 	}
 
-	err = session.Setenv("IP_ADDRESS", ws.Request().Header.Get("X-Real-Ip"))
-	if err != nil {
+	if err = session.Setenv("IP_ADDRESS", ws.Request().Header.Get("X-Real-Ip")); err != nil {
 		session.Close()
 		ws.Close()
 
@@ -156,6 +155,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 
 		return
 	}
+
 	if err := session.Shell(); err != nil {
 		session.Close()
 		ws.Close()
@@ -216,8 +216,7 @@ func redirToWs(rd io.Reader, ws *websocket.Conn) error {
 			}
 		}
 
-		_, err = ws.Write([]byte(string(bytes.Runes(buf[0:end]))))
-		if err != nil {
+		if _, err = ws.Write([]byte(string(bytes.Runes(buf[0:end])))); err != nil {
 			return err
 		}
 
