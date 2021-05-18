@@ -4,16 +4,15 @@ import (
 	"bytes"
 	"crypto/rsa"
 	"errors"
-	"fmt"
 	"io"
 	"net"
-	"net/http"
 	"strings"
 	"time"
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
+	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -39,18 +38,17 @@ type ConfigOptions struct {
 }
 
 func NewSession(target string, session sshserver.Session) (*Session, error) {
-	s := &Session{
-		session: session,
-		UID:     session.Context().Value(sshserver.ContextKeySessionID).(string),
-	}
-
 	parts := strings.SplitN(target, "@", 2)
 	if len(parts) != 2 {
 		return nil, ErrInvalidSessionTarget
 	}
 
-	s.User = parts[0]
-	s.Target = parts[1]
+	s := &Session{
+		session: session,
+		UID:     session.Context().Value(sshserver.ContextKeySessionID).(string),
+		User:    parts[0],
+		Target:  parts[1],
+	}
 
 	host, _, err := net.SplitHostPort(session.RemoteAddr().String())
 	if err != nil {
@@ -68,10 +66,11 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 
 	var lookup map[string]string
 
+	c := client.NewClient()
+
 	if !strings.Contains(s.Target, ".") {
-		device := new(models.Device)
-		res, _, errs := gorequest.New().Get("http://api:8080/api/devices/" + s.Target).EndStruct(&device)
-		if len(errs) > 0 || res.StatusCode != http.StatusOK {
+		device, err := c.GetDevice(s.Target)
+		if err != nil {
 			return nil, ErrInvalidSessionTarget
 		}
 
@@ -95,21 +94,16 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 		}
 	}
 
-	var device struct {
-		UID string `json:"uid"`
-	}
-
-	res, _, errs := gorequest.New().Get("http://api:8080/internal/lookup").Query(lookup).EndStruct(&device)
-	if len(errs) > 0 || res.StatusCode != http.StatusOK {
+	uid, errs := c.Lookup(lookup)
+	if len(errs) > 0 || uid == "" {
 		return nil, ErrInvalidSessionTarget
 	}
 
-	s.Target = device.UID
+	s.Target = uid
 	s.Lookup = lookup
 
 	if envs.IsEnterprise() {
-		res, _, errs := gorequest.New().Get("http://cloud-api:8080/internal/firewall/rules/evaluate").Query(lookup).End()
-		if len(errs) > 0 || res.StatusCode != http.StatusOK {
+		if errs := c.FirewallEvaluate(lookup); len(errs) > 0 {
 			return nil, ErrInvalidSessionTarget
 		}
 	}
@@ -120,6 +114,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 }
 
 func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn) error {
+	c := client.NewClient()
 	opts := ConfigOptions{}
 	err := envconfig.Process("", &opts)
 
@@ -207,15 +202,12 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			waitingString := ""
 			if err == nil {
 				waitingString = string(buf[:n])
-				var sessionRecord struct {
-					Record string `json:"record"`
-					Height int    `json:"height"`
-					Width  int    `json:"width"`
-				}
-				sessionRecord.Record = waitingString
-				sessionRecord.Height = pty.Window.Height
-				sessionRecord.Width = pty.Window.Width
-				_, _, _ = gorequest.New().Post(fmt.Sprintf("http://"+opts.RecordURL+"/internal/sessions/%s/record", s.UID)).Send(sessionRecord).End()
+				c.RecordSession(&models.SessionRecorded{
+					UID:     s.UID,
+					Message: waitingString,
+					Width:   pty.Window.Height,
+					Height:  pty.Window.Width,
+				}, opts)
 				waitingString = ""
 			}
 			for {
@@ -231,15 +223,12 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 					break
 				}
 				waitingString += string(buf[:n])
-				var sessionRecord struct {
-					Record string `json:"record"`
-					Height int    `json:"height"`
-					Width  int    `json:"width"`
-				}
-				sessionRecord.Record = waitingString
-				sessionRecord.Height = pty.Window.Height
-				sessionRecord.Width = pty.Window.Width
-				_, _, _ = gorequest.New().Post(fmt.Sprintf("http://"+opts.RecordURL+"/internal/sessions/%s/record", s.UID)).Send(sessionRecord).End()
+				c.RecordSession(&models.SessionRecorded{
+					UID:     s.UID,
+					Message: waitingString,
+					Width:   pty.Window.Height,
+					Height:  pty.Window.Width,
+				}, opts)
 				waitingString = ""
 			}
 		}()
@@ -252,13 +241,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 
 		serverConn := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
 
-		var status struct {
-			Authenticated bool `json:"authenticated"`
-		}
-		status.Authenticated = true
-
-		_, _, errs := gorequest.New().Patch("http://api:8080/internal/sessions/" + s.UID).Send(status).End()
-		if len(errs) > 0 {
+		if errs := c.PatchSessions(s.UID); len(errs) > 0 {
 			return errs[0]
 		}
 
@@ -278,13 +261,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		conn.Close()
 		session.Close()
 	} else {
-		var status struct {
-			Authenticated bool `json:"authenticated"`
-		}
-		status.Authenticated = true
-
-		_, _, errs := gorequest.New().Patch("http://api:8080/internal/sessions/" + s.UID).Send(status).End()
-		if len(errs) > 0 {
+		if errs := c.PatchSessions(s.UID); len(errs) > 0 {
 			return errs[0]
 		}
 
@@ -332,8 +309,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 }
 
 func (s *Session) register(_ sshserver.Session) error {
-	_, _, errs := gorequest.New().Post("http://api:8080/internal/sessions").Send(*s).End()
-	if len(errs) > 0 {
+	if _, _, errs := gorequest.New().Post("http://api:8080/internal/sessions").Send(*s).End(); len(errs) > 0 {
 		return errs[0]
 	}
 
@@ -341,8 +317,7 @@ func (s *Session) register(_ sshserver.Session) error {
 }
 
 func (s *Session) finish() error {
-	_, _, errs := gorequest.New().Post(fmt.Sprintf("http://api:8080/internal/sessions/%s/finish", s.UID)).End()
-	if len(errs) > 0 {
+	if errs := client.NewClient().FinishSession(s.UID); len(errs) > 0 {
 		return errs[0]
 	}
 

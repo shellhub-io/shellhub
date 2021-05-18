@@ -12,26 +12,23 @@ import (
 	"github.com/gorilla/mux"
 	"golang.org/x/net/websocket"
 
-	"github.com/parnurzeal/gorequest"
-	api "github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/sirupsen/logrus"
 )
 
 var magicKey *rsa.PrivateKey
 
-func main() {
-	opts := &Options{
-		Addr:           ":2222",
-		Broker:         "tcp://emq:1883",
-		ConnectTimeout: 30 * time.Second,
-	}
+type Options struct {
+	Addr           string
+	Broker         string
+	ConnectTimeout time.Duration
+}
 
+func main() {
 	tunnel := httptunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
 	tunnel.ConnectionHandler = func(r *http.Request) (string, error) {
-		uid := r.Header.Get(api.DeviceUIDHeader)
-
-		return uid, nil
+		return r.Header.Get(client.DeviceUIDHeader), nil
 	}
 
 	router := tunnel.Router().(*mux.Router)
@@ -41,8 +38,8 @@ func main() {
 		var closeRequest struct {
 			Device string `json:"device"`
 		}
-		err := decoder.Decode(&closeRequest)
-		if err != nil {
+
+		if err := decoder.Decode(&closeRequest); err != nil {
 			http.Error(res, err.Error(), http.StatusBadRequest)
 
 			return
@@ -66,13 +63,12 @@ func main() {
 
 	go http.ListenAndServe(":8080", router) // nolint:errcheck
 
-	server := NewServer(opts, tunnel)
-
 	go func() {
 		for {
-			id, online := tunnel.Online()
-			if !online {
-				_, _, _ = gorequest.New().Post(fmt.Sprintf("http://api:8080/internal/devices/%s/offline", id)).End()
+			if id, online := tunnel.Online(); !online {
+				if err := client.NewClient().DevicesOffline(id); err != nil {
+					logrus.Info(err)
+				}
 			}
 		}
 	}()
@@ -83,5 +79,9 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	logrus.Fatal(server.ListenAndServe())
+	logrus.Fatal(NewServer(&Options{
+		Addr:           ":2222",
+		Broker:         "tcp://emq:1883",
+		ConnectTimeout: 30 * time.Second,
+	}, tunnel).ListenAndServe())
 }

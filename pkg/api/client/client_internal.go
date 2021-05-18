@@ -4,6 +4,7 @@ package client
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.uber.org/multierr"
@@ -25,6 +26,13 @@ type internalAPI interface {
 	GetPublicKey(fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePrivateKey() (*models.PrivateKey, error)
 	EvaluateKey(fingerprint string, dev *models.Device) (bool, error)
+	DevicesOffline(id string) error
+	FirewallEvaluate(lookup map[string]string) []error
+	PatchSessions(uid string) []error
+	FinishSession(uid string) []error
+	RecordSession(session *models.SessionRecorded, opts interface{})
+	Lookup(lookup map[string]string) (string, []error)
+	DeviceLookup(lookup map[string]string) (*models.Device, []error)
 }
 
 func (c *client) LookupDevice() {
@@ -72,4 +80,65 @@ func (c *client) CreatePrivateKey() (*models.PrivateKey, error) {
 	}
 
 	return privKey, nil
+}
+
+func (c *client) DevicesOffline(id string) error {
+	_, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/devices/%s/offline", id))).End()
+	if len(errs) > 0 {
+		return errs[0]
+	}
+
+	return nil
+}
+
+func (c *client) FirewallEvaluate(lookup map[string]string) []error {
+	if res, _, errs := c.http.Get(buildURL(c, "/internal/firewall/rules/evaluate")).Query(lookup).End(); res.StatusCode != http.StatusOK {
+		return errs
+	}
+
+	return nil
+}
+
+func (c *client) PatchSessions(uid string) []error {
+	_, _, errs := c.http.Patch(buildURL(c, fmt.Sprintf("/internal/sessions/"+uid))).Send(&models.Status{
+		Authenticated: true,
+	}).End()
+
+	return errs
+}
+
+func (c *client) FinishSession(uid string) []error {
+	_, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/sessions/%s/finish", uid))).End()
+
+	return errs
+}
+
+func (c *client) RecordSession(session *models.SessionRecorded, opts interface{}) {
+	type ConfigOptions struct {
+		RecordURL string `envconfig:"record_url"`
+	}
+
+	c.http.Post(buildURL(c, fmt.Sprintf("http://"+opts.(ConfigOptions).RecordURL+"/internal/sessions/%s/record", session.UID))).Send(&session).End()
+}
+
+func (c *client) Lookup(lookup map[string]string) (string, []error) {
+	var device struct {
+		UID string `json:"uid"`
+	}
+
+	if res, _, errors := c.http.Get(buildURL(c, "/internal/lookup")).Query(lookup).EndStruct(&device); res.StatusCode != http.StatusOK {
+		return "", errors
+	}
+
+	return device.UID, nil
+}
+
+func (c *client) DeviceLookup(lookup map[string]string) (*models.Device, []error) {
+	var device *models.Device
+
+	if res, _, errors := c.http.Get(buildURL(c, "/internal/lookup")).Query(lookup).EndStruct(&device); res.StatusCode != http.StatusOK {
+		return nil, errors
+	}
+
+	return device, nil
 }
