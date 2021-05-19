@@ -10,7 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-type Parameters struct {
+type Arguments struct {
 	Username  string `validate:"required,min=3,max=30,alphanum,ascii"`
 	Namespace string `validate:"required,min=3,max=30,alphanum,ascii"`
 	Password  string `validate:"required,min=5,max=30"`
@@ -19,13 +19,13 @@ type Parameters struct {
 }
 
 type Service interface {
-	UserCreate(Parameters) (string, error)
-	NamespaceCreate(Parameters) (*models.Namespace, error)
-	NamespaceAddMember(Parameters) (*models.Namespace, error)
-	NamespaceDelete(Parameters) error
-	UserDelete(Parameters) error
-	NamespaceRemoveMember(Parameters) (*models.Namespace, error)
-	UserUpdate(Parameters) error
+	UserCreate(Arguments) (string, error)
+	NamespaceCreate(Arguments) (*models.Namespace, error)
+	NamespaceAddMember(Arguments) (*models.Namespace, error)
+	NamespaceDelete(Arguments) error
+	UserDelete(Arguments) error
+	NamespaceRemoveMember(Arguments) (*models.Namespace, error)
+	UserUpdate(Arguments) error
 }
 
 type service struct {
@@ -36,7 +36,7 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) UserCreate(data Parameters) (string, error) {
+func (s *service) UserCreate(data Arguments) (string, error) {
 	if err := validateParameters(data); err != nil {
 		return "", ErrCreateNewUser
 	}
@@ -62,7 +62,7 @@ func (s *service) UserCreate(data Parameters) (string, error) {
 	return data.Username, nil
 }
 
-func (s *service) NamespaceCreate(data Parameters) (*models.Namespace, error) {
+func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 	if err := validateParameters(data); err != nil {
 		return nil, ErrCreateNewNamespace
 	}
@@ -101,7 +101,7 @@ func (s *service) NamespaceCreate(data Parameters) (*models.Namespace, error) {
 	return ns, nil
 }
 
-func (s *service) NamespaceAddMember(data Parameters) (*models.Namespace, error) {
+func (s *service) NamespaceAddMember(data Arguments) (*models.Namespace, error) {
 	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
 	if err != nil {
 		return nil, ErrUserNotFound
@@ -120,7 +120,7 @@ func (s *service) NamespaceAddMember(data Parameters) (*models.Namespace, error)
 	return ns, nil
 }
 
-func (s *service) NamespaceDelete(data Parameters) error {
+func (s *service) NamespaceDelete(data Arguments) error {
 	ns, err := s.store.NamespaceGetByName(context.TODO(), data.Namespace)
 	if err != nil {
 		return ErrNamespaceNotFound
@@ -133,7 +133,7 @@ func (s *service) NamespaceDelete(data Parameters) error {
 	return nil
 }
 
-func (s *service) UserDelete(data Parameters) error {
+func (s *service) UserDelete(data Arguments) error {
 	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
 	if err != nil {
 		return ErrUserNotFound
@@ -146,7 +146,7 @@ func (s *service) UserDelete(data Parameters) error {
 	return nil
 }
 
-func (s *service) NamespaceRemoveMember(data Parameters) (*models.Namespace, error) {
+func (s *service) NamespaceRemoveMember(data Arguments) (*models.Namespace, error) {
 	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
 	if err != nil {
 		return nil, ErrUserNotFound
@@ -165,7 +165,7 @@ func (s *service) NamespaceRemoveMember(data Parameters) (*models.Namespace, err
 	return ns, nil
 }
 
-func (s *service) UserUpdate(data Parameters) error {
+func (s *service) UserUpdate(data Arguments) error {
 	if err := validateParameters(data); err != nil {
 		return ErrChangePassword
 	}

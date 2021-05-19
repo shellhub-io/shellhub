@@ -13,11 +13,11 @@ import (
 )
 
 type Data struct {
-	Mock       *mocks.Store
-	Service    Service
-	User       *models.User
-	Namespace  *models.Namespace
-	Parameters Parameters
+	Mock      *mocks.Store
+	Service   Service
+	User      *models.User
+	Namespace *models.Namespace
+	Arguments Arguments
 }
 
 func TestAddUserNamespace(t *testing.T) {
@@ -25,7 +25,7 @@ func TestAddUserNamespace(t *testing.T) {
 
 	data.Mock.On("NamespaceAddMember", context.TODO(), data.Namespace.TenantID, data.User.ID).Return(data.Namespace, nil).Once()
 
-	ns, err := data.Service.NamespaceAddMember(data.Parameters)
+	ns, err := data.Service.NamespaceAddMember(data.Arguments)
 	assert.NoError(t, err)
 	assert.Equal(t, data.Namespace.Owner, ns.Owner)
 	assert.Equal(t, data.Namespace.Name, ns.Name)
@@ -38,7 +38,7 @@ func TestDelNamespace(t *testing.T) {
 
 	data.Mock.On("NamespaceDelete", context.TODO(), data.Namespace.TenantID).Return(nil).Once()
 
-	err := data.Service.NamespaceDelete(data.Parameters)
+	err := data.Service.NamespaceDelete(data.Arguments)
 	assert.NoError(t, err)
 
 	data.Mock.AssertExpectations(t)
@@ -49,7 +49,7 @@ func TestDelUser(t *testing.T) {
 
 	data.Mock.On("UserDelete", context.TODO(), data.User.ID).Return(nil).Once()
 
-	err := data.Service.UserDelete(data.Parameters)
+	err := data.Service.UserDelete(data.Arguments)
 	assert.NoError(t, err)
 
 	data.Mock.AssertExpectations(t)
@@ -60,7 +60,7 @@ func TestDelUserNamespace(t *testing.T) {
 
 	data.Mock.On("NamespaceRemoveMember", context.TODO(), data.Namespace.TenantID, data.User.ID).Return(data.Namespace, nil).Once()
 
-	ns, err := data.Service.NamespaceRemoveMember(data.Parameters)
+	ns, err := data.Service.NamespaceRemoveMember(data.Arguments)
 	assert.NoError(t, err)
 	assert.Equal(t, data.Namespace.Owner, ns.Owner)
 	assert.Equal(t, data.Namespace.Name, ns.Name)
@@ -71,13 +71,13 @@ func TestDelUserNamespace(t *testing.T) {
 func TestResetUserPassword(t *testing.T) {
 	data := initData("usr")
 
-	data.Parameters.Password = "testService2"
+	data.Arguments.Password = "testService2"
 
 	hash := sha256.Sum256([]byte("testService2"))
 
 	data.Mock.On("UserPasswordUpdate", context.TODO(), hex.EncodeToString(hash[:]), data.User.ID).Return(nil).Once()
 
-	err := data.Service.UserUpdate(data.Parameters)
+	err := data.Service.UserUpdate(data.Arguments)
 	assert.NoError(t, err)
 
 	data.Mock.AssertExpectations(t)
@@ -108,7 +108,7 @@ func initData(dataNeeded string) Data {
 		},
 	}
 
-	data.Parameters = Parameters{
+	data.Arguments = Arguments{
 		Username:  "testService",
 		Namespace: "testService",
 	}
