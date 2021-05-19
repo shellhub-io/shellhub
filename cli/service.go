@@ -50,10 +50,12 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 		return "", ErrDuplicateUser
 	}
 
+	password := data.Password
+
 	if err := s.store.UserCreate(context.TODO(), &models.User{
 		Name:     data.Username,
 		Username: data.Username,
-		Password: hashPassword(data.Password),
+		Password: hashPassword(password),
 		Email:    data.Email,
 	}); err != nil {
 		return "", ErrCreateNewUser
@@ -81,14 +83,18 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		return nil, ErrDuplicateNamespace
 	}
 
+	var tenantID string
+
 	if data.TenantID == "" {
-		data.TenantID = uuid.Must(uuid.NewV4(), nil).String()
+		tenantID = uuid.Must(uuid.NewV4(), nil).String()
+	} else {
+		tenantID = data.TenantID
 	}
 
 	ns, err = s.store.NamespaceCreate(context.TODO(), &models.Namespace{
 		Name:     data.Namespace,
 		Owner:    usr.ID,
-		TenantID: data.TenantID,
+		TenantID: tenantID,
 		Members:  []interface{}{usr.ID},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
