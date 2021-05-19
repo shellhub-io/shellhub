@@ -19,7 +19,6 @@ var (
 	ErrFailedAddNamespaceUser = errors.New("failed to add the namespace for the user")
 	ErrFailedDeleteUser       = errors.New("failed to delete the user")
 	ErrFailedDeleteNamespace  = errors.New("failed to delete the namespace")
-	ErrFailedUpdateUser       = errors.New("failed to reset the password for the user")
 	ErrFailedRemoveMember     = errors.New("failed to remove member from the namespace")
 	ErrFound                  = errors.New("errors has been founded")
 )

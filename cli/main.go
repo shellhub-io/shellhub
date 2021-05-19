@@ -116,7 +116,7 @@ func main() {
 				if err := svc.NamespaceDelete(Arguments{
 					Namespace: args[0],
 				}); err != nil {
-					return err
+					return ErrFailedDeleteNamespace
 				}
 
 				fmt.Println("Namespace deleted")
@@ -133,7 +133,7 @@ func main() {
 				if err := svc.UserDelete(Arguments{
 					Username: args[0],
 				}); err != nil {
-					return err
+					return ErrFailedDeleteUser
 				}
 
 				fmt.Println("User deleted")
@@ -171,7 +171,7 @@ func main() {
 					Username: args[0],
 					Password: args[1],
 				}); err != nil {
-					return err
+					return ErrChangePassword
 				}
 
 				fmt.Println("Password changed")

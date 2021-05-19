@@ -132,11 +132,7 @@ func (s *service) NamespaceDelete(data Arguments) error {
 		return ErrNamespaceNotFound
 	}
 
-	if err := s.store.NamespaceDelete(context.TODO(), ns.TenantID); err != nil {
-		return ErrFailedDeleteNamespace
-	}
-
-	return nil
+	return s.store.NamespaceDelete(context.TODO(), ns.TenantID)
 }
 
 func (s *service) UserDelete(data Arguments) error {
@@ -145,11 +141,7 @@ func (s *service) UserDelete(data Arguments) error {
 		return ErrUserNotFound
 	}
 
-	if err := s.store.UserDelete(context.TODO(), usr.ID); err != nil {
-		return ErrFailedDeleteUser
-	}
-
-	return nil
+	return s.store.UserDelete(context.TODO(), usr.ID)
 }
 
 func (s *service) NamespaceRemoveMember(data Arguments) (*models.Namespace, error) {
@@ -181,11 +173,7 @@ func (s *service) UserUpdate(data Arguments) error {
 		return ErrUserNotFound
 	}
 
-	if err := s.store.UserPasswordUpdate(context.TODO(), hashPassword(data.Password), usr.ID); err != nil {
-		return ErrFailedUpdateUser
-	}
-
-	return nil
+	return s.store.UserPasswordUpdate(context.TODO(), hashPassword(data.Password), usr.ID)
 }
 
 func hashPassword(password string) string {
