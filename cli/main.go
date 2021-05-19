@@ -46,7 +46,7 @@ func main() {
 		Short: "Usage: <username> <password> <email>",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			username, err := svc.UserCreate(Parameters{
+			username, err := svc.UserCreate(Arguments{
 				Username: args[0],
 				Password: args[1],
 				Email:    args[2],
@@ -71,7 +71,7 @@ func main() {
 					args = append(args, "")
 				}
 
-				ns, err := svc.NamespaceCreate(Parameters{
+				ns, err := svc.NamespaceCreate(Arguments{
 					Namespace: args[0],
 					Username:  args[1],
 					TenantID:  args[2],
@@ -93,7 +93,7 @@ func main() {
 			Short: "Usage: <username> <namespace>",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				ns, err := svc.NamespaceAddMember(Parameters{
+				ns, err := svc.NamespaceAddMember(Arguments{
 					Username:  args[0],
 					Namespace: args[1],
 				})
@@ -113,7 +113,7 @@ func main() {
 			Short: "Usage: <namespace>",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := svc.NamespaceDelete(Parameters{
+				if err := svc.NamespaceDelete(Arguments{
 					Namespace: args[0],
 				}); err != nil {
 					return err
@@ -130,7 +130,7 @@ func main() {
 			Short: "Usage: <username>",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := svc.UserDelete(Parameters{
+				if err := svc.UserDelete(Arguments{
 					Username: args[0],
 				}); err != nil {
 					return err
@@ -147,7 +147,7 @@ func main() {
 			Short: "Usage <username> <namespace>",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				ns, err := svc.NamespaceRemoveMember(Parameters{
+				ns, err := svc.NamespaceRemoveMember(Arguments{
 					Username:  args[0],
 					Namespace: args[1],
 				})
@@ -167,7 +167,7 @@ func main() {
 			Short: "Usage: <username> <password>",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := svc.UserUpdate(Parameters{
+				if err := svc.UserUpdate(Arguments{
 					Username: args[0],
 					Password: args[1],
 				}); err != nil {

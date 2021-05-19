@@ -24,7 +24,7 @@ var (
 	ErrFound                  = errors.New("errors has been founded")
 )
 
-func validateParameters(data Parameters) error {
+func validateParameters(data Arguments) error {
 	var errStrings []string
 
 	if err := validator.New().Struct(data); err != nil {
