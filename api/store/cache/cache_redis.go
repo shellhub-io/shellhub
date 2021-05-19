@@ -15,16 +15,17 @@ type redisCache struct {
 var _ Cache = &redisCache{}
 
 // NewRedisCache creates and returns a new redis cache
-func NewRedisCache() Cache {
+func NewRedisCache(uri string) (Cache, error) {
+	opt, err := redis.ParseURL(uri)
+	if err != nil {
+		return nil, err
+	}
+
 	return &redisCache{
 		cache: rediscache.New(&rediscache.Options{
-			Redis: redis.NewClient(&redis.Options{
-				Addr:     "redis:6379",
-				Password: "",
-				DB:       0,
-			}),
+			Redis: redis.NewClient(opt),
 		}),
-	}
+	}, nil
 }
 
 // Get gets the cache value for the given key
