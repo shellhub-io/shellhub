@@ -17,6 +17,7 @@ import (
 
 type config struct {
 	MongoUri   string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+	RedisUri   string `envconfig:"redis_uri" default:"redis://redis:6379"`
 	StoreCache bool   `envconfig:"store_cache" default:"false"`
 }
 
@@ -49,7 +50,10 @@ func main() {
 	var cache storecache.Cache
 
 	if cfg.StoreCache {
-		cache = storecache.NewRedisCache()
+		cache, err = storecache.NewRedisCache(cfg.RedisUri)
+		if err != nil {
+			panic(err)
+		}
 	} else {
 		cache = storecache.NewNullCache()
 	}
