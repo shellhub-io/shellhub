@@ -8,7 +8,7 @@ build_path: /go/src/github.com/shellhub-io/shellhub/api
 build_flags: []
 build_delay: 200ns
 binary_name: api
-command_flags: []
+command_flags: ["server"]
 command_env: []
 enable_colors: true
 log_name: ""

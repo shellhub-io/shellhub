@@ -25,6 +25,10 @@ services:
       - PUBLIC_KEY=/run/secrets/api_public_key
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - STORE_CACHE=${SHELLHUB_STORE_CACHE}
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.api_worker.schedule: "${SHELLHUB_WORKER_SCHEDULE}"
+      ofelia.job-exec.api_worker.command: "/api worker"
     depends_on:
       - mongo
     links:
@@ -73,6 +77,13 @@ services:
     restart: unless-stopped
     networks:
       - shellhub
+  scheduler:
+    image: mcuadros/ofelia:v0.3.4
+    depends_on:
+      - api
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 secrets:
   ssh_private_key:
