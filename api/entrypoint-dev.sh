@@ -10,4 +10,6 @@ if [ ! -f /var/run/secrets/api_private_key ]; then
     openssl rsa -in /var/run/secrets/api_private_key -pubout -out /var/run/secrets/api_public_key
 fi
 
+ln -sf $PWD/api /api
+
 refresh run

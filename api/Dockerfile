@@ -58,4 +58,4 @@ FROM alpine:3.11 AS production
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/api/api /api
 
-ENTRYPOINT /api
+ENTRYPOINT /api server
