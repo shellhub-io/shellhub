@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,6 +14,7 @@ import (
 var migration_9 = migrate.Migration{
 	Version: 9,
 	Up: func(db *mongo.Database) error {
+		logrus.Info("Applying migration 9 - Up")
 		cursor, err := db.Collection("devices").Find(context.TODO(), bson.D{})
 		if err != nil {
 			return err
@@ -35,6 +37,7 @@ var migration_9 = migrate.Migration{
 	},
 
 	Down: func(db *mongo.Database) error {
+		logrus.Info("Applying migration 9 - Down")
 		return nil
 	},
 }

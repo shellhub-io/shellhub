@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -12,6 +13,7 @@ import (
 var migration_14 = migrate.Migration{
 	Version: 14,
 	Up: func(db *mongo.Database) error {
+		logrus.Info("Applying migration 14 - Up")
 		type user struct {
 			Username      string `json:"username" bson:",omitempty"`
 			TenantID      string `json:"tenant_id" bson:"tenant_id"`
@@ -60,6 +62,7 @@ var migration_14 = migrate.Migration{
 		return cursor.Err()
 	},
 	Down: func(db *mongo.Database) error {
+		logrus.Info("Applying migration 14 - Down")
 		cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
 		if err != nil {
 			return err
