@@ -3,6 +3,7 @@ package migrations
 import (
 	"context"
 
+	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -12,6 +13,7 @@ import (
 var migration_16 = migrate.Migration{
 	Version: 16,
 	Up: func(db *mongo.Database) error {
+		logrus.Info("Applying migration 16 - Up")
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"fingerprint", 1}},
 			Options: options.Index().SetName("fingerprint").SetUnique(true),
@@ -21,6 +23,7 @@ var migration_16 = migrate.Migration{
 	},
 
 	Down: func(db *mongo.Database) error {
+		logrus.Info("Applying migration 16 - Down")
 		_, err := db.Collection("public_keys").Indexes().DropOne(context.TODO(), "fingerprint")
 		return err
 	},

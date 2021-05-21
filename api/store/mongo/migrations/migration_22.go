@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -13,6 +14,7 @@ import (
 var migration_22 = migrate.Migration{
 	Version: 22,
 	Up: func(db *mongo.Database) error {
+		logrus.Info("Applying migration 22 - Up")
 		cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
 		if err != nil {
 			return err
@@ -39,6 +41,7 @@ var migration_22 = migrate.Migration{
 		return nil
 	},
 	Down: func(db *mongo.Database) error {
+		logrus.Info("Applying migration 22 - Down")
 		return nil
 	},
 }

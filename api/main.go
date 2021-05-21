@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/routes/middlewares"
 	storecache "github.com/shellhub-io/shellhub/api/store/cache"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
+	"github.com/sirupsen/logrus"
 	mgo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -22,41 +23,58 @@ type config struct {
 }
 
 func main() {
+	logrus.Info("Initializing echo")
+
 	e := echo.New()
 	e.Use(middleware.Logger())
 
+	logrus.Info("Loading environment variables")
+
 	var cfg config
 	if err := envconfig.Process("api", &cfg); err != nil {
-		panic(err.Error())
+		logrus.WithError(err).Fatal("Failed to load environment variables")
 	}
+
+	logrus.Info("Connecting to mongo")
 
 	// Set client options
 	clientOptions := options.Client().ApplyURI(cfg.MongoUri)
 	// Connect to MongoDB
+
+	logrus.Info("Instantiating mongo client")
+
 	client, err := mgo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		panic(err)
+		logrus.WithError(err).Fatal("Failed to connect mongo client")
 	}
+
+	logrus.Info("Performing ping")
 
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
-		panic(err)
+		logrus.WithError(err).Fatal("Failed to perform ping")
 	}
 
+	logrus.Info("Applying mongo migrations")
+
 	if err := mongo.ApplyMigrations(client.Database("main")); err != nil {
-		panic(err)
+		logrus.WithError(err).Fatal("Failed to apply mongo migrations")
 	}
 
 	var cache storecache.Cache
 
+	logrus.Info("Configuring store cache")
+
 	if cfg.StoreCache {
 		cache, err = storecache.NewRedisCache(cfg.RedisUri)
 		if err != nil {
-			panic(err)
+			logrus.WithError(err).Fatal("Failed to configure store cache")
 		}
 	} else {
 		cache = storecache.NewNullCache()
 	}
+
+	logrus.Info("Configuring echo")
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
