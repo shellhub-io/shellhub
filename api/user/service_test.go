@@ -84,7 +84,7 @@ func TestUpdateDataUser(t *testing.T) {
 	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
 	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(nil, Err).Once()
 	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(nil, Err).Once()
-	mock.On("UserDataUpdate", ctx, updateUser1, updateUser1.ID).Return(nil).Once()
+	mock.On("UserUpdateData", ctx, updateUser1, updateUser1.ID).Return(nil).Once()
 	_, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 	assert.Nil(t, err)
 
@@ -136,7 +136,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 	for _, test := range tests {
 		mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
 		if test.expected == nil {
-			mock.On("UserPasswordUpdate", ctx, test.newPassword, user1.ID).Return(nil).Once()
+			mock.On("UserUpdatePassword", ctx, test.newPassword, user1.ID).Return(nil).Once()
 		}
 		err := s.UpdatePasswordUser(ctx, test.currentPassword, test.newPassword, user1.ID)
 		assert.Equal(t, err, test.expected)

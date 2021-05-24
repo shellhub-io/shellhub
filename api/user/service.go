@@ -65,7 +65,7 @@ func (s *service) UpdateDataUser(ctx context.Context, data *models.User, ID stri
 		return invalidFields, ErrConflict
 	}
 
-	return invalidFields, s.store.UserDataUpdate(ctx, data, ID)
+	return invalidFields, s.store.UserUpdateData(ctx, data, ID)
 }
 
 func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, ID string) error {
@@ -76,7 +76,7 @@ func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPa
 	}
 
 	if user.Password == currentPassword {
-		return s.store.UserPasswordUpdate(ctx, newPassword, ID)
+		return s.store.UserUpdatePassword(ctx, newPassword, ID)
 	}
 
 	return ErrUnauthorized

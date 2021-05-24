@@ -980,8 +980,8 @@ func (_m *Store) UserCreate(ctx context.Context, user *models.User) error {
 	return r0
 }
 
-// UserDataUpdate provides a mock function with given fields: ctx, data, ID
-func (_m *Store) UserDataUpdate(ctx context.Context, data *models.User, ID string) error {
+// UserUpdateData provides a mock function with given fields: ctx, data, ID
+func (_m *Store) UserUpdateData(ctx context.Context, data *models.User, ID string) error {
 	ret := _m.Called(ctx, data, ID)
 
 	var r0 error
@@ -1130,8 +1130,8 @@ func (_m *Store) UserList(ctx context.Context, pagination paginator.Query, filte
 	return r0, r1, r2
 }
 
-// UserPasswordUpdate provides a mock function with given fields: ctx, newPassword, ID
-func (_m *Store) UserPasswordUpdate(ctx context.Context, newPassword string, ID string) error {
+// UserUpdatePassword provides a mock function with given fields: ctx, newPassword, ID
+func (_m *Store) UserUpdatePassword(ctx context.Context, newPassword string, ID string) error {
 	ret := _m.Called(ctx, newPassword, ID)
 
 	var r0 error

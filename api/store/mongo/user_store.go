@@ -137,7 +137,7 @@ func (s *Store) UserGetByID(ctx context.Context, ID string) (*models.User, error
 	return user, nil
 }
 
-func (s *Store) UserDataUpdate(ctx context.Context, data *models.User, ID string) error {
+func (s *Store) UserUpdateData(ctx context.Context, data *models.User, ID string) error {
 	objID, err := primitive.ObjectIDFromHex(ID)
 
 	if err != nil {
@@ -150,7 +150,7 @@ func (s *Store) UserDataUpdate(ctx context.Context, data *models.User, ID string
 	return nil
 }
 
-func (s *Store) UserPasswordUpdate(ctx context.Context, newPassword, ID string) error {
+func (s *Store) UserUpdatePassword(ctx context.Context, newPassword, ID string) error {
 	if _, err := s.UserGetByID(ctx, ID); err != nil {
 		return err
 	}

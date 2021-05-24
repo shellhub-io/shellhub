@@ -1051,7 +1051,7 @@ func TestUpdateUID(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestUserDataUpdate(t *testing.T) {
+func TestUserUpdateData(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -1076,7 +1076,7 @@ func TestUserDataUpdate(t *testing.T) {
 		Email:    "new@email.com",
 	}
 
-	err = mongostore.UserDataUpdate(ctx, &userNewData, objID)
+	err = mongostore.UserUpdateData(ctx, &userNewData, objID)
 	assert.NoError(t, err)
 
 	us, err := mongostore.UserGetByID(ctx, objID)
@@ -1084,7 +1084,7 @@ func TestUserDataUpdate(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestUserPasswordUpdate(t *testing.T) {
+func TestUserUpdatePassword(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -1103,7 +1103,7 @@ func TestUserPasswordUpdate(t *testing.T) {
 
 	newPassword := "password2"
 
-	err = mongostore.UserPasswordUpdate(ctx, newPassword, objID)
+	err = mongostore.UserUpdatePassword(ctx, newPassword, objID)
 	assert.NoError(t, err)
 
 	us, err := mongostore.UserGetByID(ctx, objID)
