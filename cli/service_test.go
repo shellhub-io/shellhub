@@ -75,7 +75,7 @@ func TestResetUserPassword(t *testing.T) {
 
 	hash := sha256.Sum256([]byte("testService2"))
 
-	data.Mock.On("UserPasswordUpdate", context.TODO(), hex.EncodeToString(hash[:]), data.User.ID).Return(nil).Once()
+	data.Mock.On("UserUpdatePassword", context.TODO(), hex.EncodeToString(hash[:]), data.User.ID).Return(nil).Once()
 
 	err := data.Service.UserUpdate(data.Arguments)
 	assert.NoError(t, err)

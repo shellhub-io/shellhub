@@ -181,7 +181,7 @@ func (s *service) UserUpdate(data Arguments) error {
 		return ErrUserNotFound
 	}
 
-	if err := s.store.UserPasswordUpdate(context.TODO(), hashPassword(data.Password), usr.ID); err != nil {
+	if err := s.store.UserUpdatePassword(context.TODO(), hashPassword(data.Password), usr.ID); err != nil {
 		return ErrFailedUpdateUser
 	}
 
