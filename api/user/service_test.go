@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/api/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,7 +33,7 @@ func TestUpdateDataUser(t *testing.T) {
 	fields, err := s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 
 	assert.Equal(t, err, ErrConflict)
-	assert.Equal(t, fields, []InvalidField{{"username", "conflict", "", ""}})
+	assert.Equal(t, fields, []validator.InvalidField{{"username", "conflict", "", ""}})
 
 	updateUser1 = &models.User{Name: "name", Email: "user2@email.com", Username: user2.Username, ID: "id1"}
 
@@ -43,7 +44,7 @@ func TestUpdateDataUser(t *testing.T) {
 	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 
 	assert.Equal(t, err, ErrConflict)
-	assert.Equal(t, fields, []InvalidField{{"username", "conflict", "", ""}, {"email", "conflict", "", ""}})
+  assert.Equal(t, fields, []validator.InvalidField{{"username", "conflict", "", ""}, {"email", "conflict", "", ""}})
 
 	// shows invalid errors
 
@@ -53,21 +54,21 @@ func TestUpdateDataUser(t *testing.T) {
 	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
 	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 	assert.Equal(t, err, ErrBadRequest)
-	assert.Equal(t, fields, []InvalidField{{"username", "invalid", "alphanum", ""}})
+	assert.Equal(t, fields, []validator.InvalidField{{"username", "invalid", "alphanum", ""}})
 
 	//for email
 	updateUser1 = &models.User{Name: "newname", Email: "invalid.email", Username: "newusername", ID: "id1"}
 	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
 	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 	assert.Equal(t, err, ErrBadRequest)
-	assert.Equal(t, fields, []InvalidField{{"email", "invalid", "email", ""}})
+	assert.Equal(t, fields, []validator.InvalidField{{"email", "invalid", "email", ""}})
 
 	//both email and username
 	updateUser1 = &models.User{Name: "newname", Email: "invalid.email", Username: "us", ID: "id1"}
 	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
 	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 	assert.Equal(t, err, ErrBadRequest)
-	assert.Equal(t, fields, []InvalidField{{"email", "invalid", "email", ""}, {"username", "invalid", "min", "3"}})
+	assert.Equal(t, fields, []validator.InvalidField{{"email", "invalid", "email", ""}, {"username", "invalid", "min", "3"}})
 
 	//for empty name
 	updateUser1 = &models.User{Name: "", Email: "new@email.com", Username: "newusername", ID: "id1"}

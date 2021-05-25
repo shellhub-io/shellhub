@@ -7,8 +7,8 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/nsadm"
+	"github.com/shellhub-io/shellhub/api/validator"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 const (
@@ -278,27 +278,12 @@ func UpdateWebhook(c apicontext.Context) error {
 
 	validURL := govalidator.IsURL(req.URL)
 
-	validate := validator.New()
-	if err := validate.Struct(req); err != nil {
-		var I []Invalid
-		for _, verr := range err.(validator.ValidationErrors) {
-			var invalid Invalid
-			invalid.Tag = verr.Tag()
-			invalid.Field = verr.Field()
-			I = append(I, invalid)
-		}
-
-		return c.JSON(http.StatusBadRequest, I)
+	if invalidFields, err := validator.CheckValidation(req); err != nil {
+		return c.JSON(http.StatusBadRequest, invalidFields)
 	}
 
 	if !validURL {
-		var I []Invalid
-		var invalid Invalid
-		invalid.Tag = "invalid url"
-		invalid.Field = "URL"
-		I = append(I, invalid)
-
-		return c.JSON(http.StatusBadRequest, I)
+		return c.JSON(http.StatusBadRequest, []validator.InvalidField{{"url", "invalid", "url", ""}})
 	}
 
 	wh, err := svc.UpdateWebhook(c.Ctx(), req.URL, tenant, id)
