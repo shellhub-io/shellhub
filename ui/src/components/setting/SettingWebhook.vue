@@ -54,6 +54,7 @@
                 ref="provider-url"
                 vid="url"
                 name="Priority"
+                rules="required"
               >
                 <v-text-field
                   v-model="webhookUrlField"
@@ -157,9 +158,9 @@ export default {
       } catch (error) {
         if (error.response.status === 400) {
           error.response.data.forEach((item) => {
-            if (item.Field === 'URL') {
+            if (item.Name === 'url') {
               this.$refs.data.setErrors({
-                url: item.Tag,
+                url: this.$errors.form.invalid(item.Name, item.Param, item.Extra),
               });
             }
           });
