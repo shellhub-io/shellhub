@@ -26,7 +26,7 @@ func TestUpdateDataUser(t *testing.T) {
 	Err := errors.New("conflict")
 
 	// verifies existant username only
-	mock.On("UserGetByID", ctx, updateUser1.ID).Return(user1, nil).Once()
+	mock.On("UserGetByID", ctx, updateUser1.ID, false).Return(user1, 0, nil).Once()
 	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(user2, nil).Once()
 	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(nil, Err).Once()
 	fields, err := s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
@@ -37,7 +37,7 @@ func TestUpdateDataUser(t *testing.T) {
 	updateUser1 = &models.User{Name: "name", Email: "user2@email.com", Username: user2.Username, ID: "id1"}
 
 	// verifies existant email and username only
-	mock.On("UserGetByID", ctx, updateUser1.ID).Return(user1, nil).Once()
+	mock.On("UserGetByID", ctx, updateUser1.ID, false).Return(user1, 0, nil).Once()
 	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(user2, nil).Once()
 	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(user2, nil).Once()
 	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
@@ -50,28 +50,28 @@ func TestUpdateDataUser(t *testing.T) {
 	// for username
 	updateUser1 = &models.User{Name: "newname", Email: "user1@email2.com", Username: "invalid_name", ID: "id1"}
 
-	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+	mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 	assert.Equal(t, err, ErrBadRequest)
 	assert.Equal(t, fields, []InvalidField{{"username", "invalid", "alphanum", ""}})
 
 	//for email
 	updateUser1 = &models.User{Name: "newname", Email: "invalid.email", Username: "newusername", ID: "id1"}
-	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+	mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 	assert.Equal(t, err, ErrBadRequest)
 	assert.Equal(t, fields, []InvalidField{{"email", "invalid", "email", ""}})
 
 	//both email and username
 	updateUser1 = &models.User{Name: "newname", Email: "invalid.email", Username: "us", ID: "id1"}
-	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+	mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 	assert.Equal(t, err, ErrBadRequest)
 	assert.Equal(t, fields, []InvalidField{{"email", "invalid", "email", ""}, {"username", "invalid", "min", "3"}})
 
 	//for empty name
 	updateUser1 = &models.User{Name: "", Email: "new@email.com", Username: "newusername", ID: "id1"}
-	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+	mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 	_, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 
 	assert.Equal(t, err, ErrBadRequest)
@@ -81,7 +81,7 @@ func TestUpdateDataUser(t *testing.T) {
 
 	Err = errors.New("no documents")
 
-	mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+	mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(nil, Err).Once()
 	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(nil, Err).Once()
 	mock.On("UserUpdateData", ctx, updateUser1, updateUser1.ID).Return(nil).Once()
@@ -134,7 +134,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		mock.On("UserGetByID", ctx, user1.ID).Return(user1, nil).Once()
+		mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 		if test.expected == nil {
 			mock.On("UserUpdatePassword", ctx, test.newPassword, user1.ID).Return(nil).Once()
 		}

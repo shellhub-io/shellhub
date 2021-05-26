@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -1080,9 +1081,124 @@ func TestUserUpdateData(t *testing.T) {
 	err = mongostore.UserUpdateData(ctx, &userNewData, objID)
 	assert.NoError(t, err)
 
-	us, err := mongostore.UserGetByID(ctx, objID)
+	us, _, err := mongostore.UserGetByID(ctx, objID, false)
 	assert.Equal(t, us, &userNewData)
 	assert.NoError(t, err)
+}
+
+func TestUserGetByID(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	namespacesOwner := []models.Namespace{
+		{
+			Name:     "namespace1",
+			Owner:    "60af83d418d2dc3007cd445c",
+			TenantID: "tenant1",
+		},
+		{
+			Name:     "namespace2",
+			Owner:    "60af83d418d2dc3007cd445c",
+			TenantID: "tenant2",
+		},
+		{
+			Name:     "namespace3",
+			Owner:    "60af83d418d2dc3007cd445c",
+			TenantID: "tenant3",
+		},
+		{
+			Name:     "namespace4",
+			Owner:    "60af83d418d2dc3007cd445c",
+			TenantID: "tenant4",
+		},
+	}
+
+	namespacesNotOwner := []models.Namespace{
+		{
+			Name:     "namespace18",
+			Owner:    "60af83d418d2dc3007cd445d",
+			TenantID: "tenant18",
+		},
+		{
+			Name:     "namespace19",
+			Owner:    "60af83d418d2dc3007cd445e",
+			TenantID: "tenant19",
+		},
+		{
+			Name:     "namespace20",
+			Owner:    "60af83d418d2dc3007cd445f",
+			TenantID: "tenant20",
+		},
+		{
+			Name:     "namespace21",
+			Owner:    "60af83d418d2dc3007cd4451",
+			TenantID: "tenant21",
+		},
+		{
+			Name:     "namespace22",
+			Owner:    "60af83d418d2dc3007cd4452",
+			TenantID: "tenant22",
+		},
+		{
+			Name:     "namespace23",
+			Owner:    "60af83d418d2dc3007cd4453",
+			TenantID: "tenant23",
+		},
+		{
+			Name:     "namespace24",
+			Owner:    "60af83d418d2dc3007cd4454",
+			TenantID: "tenant24",
+		},
+		{
+			Name:     "namespace25",
+			Owner:    "60af83d418d2dc3007cd4455",
+			TenantID: "tenant25",
+		},
+		{
+			Name:     "namespace26",
+			Owner:    "060af83d418d2dc3007cd4456",
+			TenantID: "tenant26",
+		},
+	}
+
+	namespaces := append(namespacesOwner, namespacesNotOwner...)
+	nss := make([]interface{}, len(namespaces))
+
+	for i, v := range namespaces {
+		nss[i] = v
+	}
+
+	user := models.User{ID: "60af83d418d2dc3007cd445c", Name: "name", Username: "username", Password: "password", Email: "user@email.com"}
+
+	objID, err := primitive.ObjectIDFromHex(user.ID)
+
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{
+		"_id":      objID,
+		"name":     user.Name,
+		"username": user.Username,
+		"password": user.Password,
+		"email":    user.Email,
+	})
+
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertMany(ctx, nss)
+	assert.NoError(t, err)
+
+	us, count_ns, err := mongostore.UserGetByID(ctx, user.ID, true)
+	assert.NoError(t, err)
+	assert.Equal(t, count_ns, len(namespacesOwner))
+	assert.Equal(t, us, &user)
+
+	us, count_ns, err = mongostore.UserGetByID(ctx, user.ID, false)
+	assert.NoError(t, err)
+	assert.Equal(t, count_ns, 0)
+	assert.Equal(t, us, &user)
 }
 
 func TestUserUpdatePassword(t *testing.T) {
@@ -1107,7 +1223,7 @@ func TestUserUpdatePassword(t *testing.T) {
 	err = mongostore.UserUpdatePassword(ctx, newPassword, objID)
 	assert.NoError(t, err)
 
-	us, err := mongostore.UserGetByID(ctx, objID)
+	us, _, err := mongostore.UserGetByID(ctx, objID, false)
 	assert.Equal(t, us.Password, newPassword)
 	assert.NoError(t, err)
 }

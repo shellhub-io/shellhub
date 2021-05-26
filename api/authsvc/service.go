@@ -168,7 +168,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 }
 
 func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuthResponse, error) {
-	user, err := s.store.UserGetByID(ctx, ID)
+	user, _, err := s.store.UserGetByID(ctx, ID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 		return nil, err
 	}
 
-	user, err := s.store.UserGetByID(ctx, id)
+	user, _, err := s.store.UserGetByID(ctx, id, false)
 	if err != nil {
 		return nil, err
 	}
