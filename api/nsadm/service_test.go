@@ -66,7 +66,7 @@ func TestCreateNamespace(t *testing.T) {
 	}
 
 	mock.On("NamespaceGetByName", ctx, createNamespace.Name).Return(nil, nil).Once()
-	mock.On("UserGetByID", ctx, user.ID).Return(user, nil).Once()
+	mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 	mock.On("NamespaceCreate", ctx, createNamespace).Return(createNamespace, nil).Once()
 
 	returnedNamespace, err := s.CreateNamespace(ctx, createNamespace, namespace.Owner)
@@ -87,16 +87,18 @@ func TestEditNamespace(t *testing.T) {
 	namespace := &models.Namespace{Name: "oldname", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 	namespaceWithNewName := &models.Namespace{Name: "newname", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 
-	mock.On("UserGetByID", ctx, user.ID).Return(user, nil).Once()
 	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespaceWithNewName, nil).Once()
+	mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 	mock.On("NamespaceRename", ctx, namespace.TenantID, newName).Return(namespaceWithNewName, nil).Once()
 	_, err := s.EditNamespace(ctx, namespace.TenantID, newName, namespace.Owner)
 
 	assert.NoError(t, err)
+
+	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespaceWithNewName, nil).Once()
 	returnedNamespace, err := s.GetNamespace(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 	assert.Equal(t, newName, returnedNamespace.Name)
+
 	mock.AssertExpectations(t)
 }
 
@@ -109,7 +111,7 @@ func TestDeleteNamespace(t *testing.T) {
 	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 
-	mock.On("UserGetByID", ctx, user.ID).Return(user, nil).Once()
+	mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 	mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
 	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 
@@ -129,7 +131,7 @@ func TestAddNamespaceUser(t *testing.T) {
 	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []interface{}{"hash1", "hash2"}}
 
 	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-	mock.On("UserGetByID", ctx, user.ID).Return(user, nil).Once()
+	mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 	mock.On("UserGetByUsername", ctx, member.Username).Return(member, nil).Once()
 	mock.On("NamespaceAddMember", ctx, namespace.TenantID, member.ID).Return(namespace2, nil).Once()
 
@@ -153,7 +155,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []interface{}{"hash1"}}
 
 	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-	mock.On("UserGetByID", ctx, user.ID).Return(user, nil).Once()
+	mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 	mock.On("UserGetByUsername", ctx, member.Username).Return(member, nil).Once()
 	mock.On("NamespaceRemoveMember", ctx, namespace.TenantID, member.ID).Return(namespace2, nil).Once()
 

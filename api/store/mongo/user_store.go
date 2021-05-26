@@ -107,14 +107,79 @@ func (s *Store) UserGetByEmail(ctx context.Context, email string) (*models.User,
 	return user, nil
 }
 
-func (s *Store) UserGetByID(ctx context.Context, ID string) (*models.User, error) {
+func (s *Store) UserGetByID(ctx context.Context, ID string, ns bool) (*models.User, int, error) {
 	user := new(models.User)
-	objID, _ := primitive.ObjectIDFromHex(ID)
+	objID, err := primitive.ObjectIDFromHex(ID)
+
+	if err != nil {
+		return nil, 0, err
+
+	}
 	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
 
-		return nil, fromMongoError(err)
+		return nil, 0, fromMongoError(err)
 	}
-	return user, nil
+
+	if !ns {
+		return user, 0, nil
+	}
+
+	nss := struct {
+		NamespacesOwned int `bson:"namespacesOwned"`
+	}{}
+
+	query := []bson.M{
+		{
+			"$match": bson.M{
+				"_id": objID,
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"_id": bson.M{
+					"$toString": "$_id",
+				},
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "namespaces",
+				"localField":   "_id",
+				"foreignField": "owner",
+				"as":           "ns",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"namespacesOwned": bson.M{
+					"$size": "$ns",
+				},
+			},
+		},
+		{
+			"$project": bson.M{
+				"namespacesOwned": 1,
+				"_id":             0,
+			},
+		},
+	}
+
+	cursor, err := s.db.Collection("users").Aggregate(ctx, query)
+	if err != nil {
+		return nil, 0, fromMongoError(err)
+	}
+
+	defer cursor.Close(ctx)
+
+	if !cursor.Next(ctx) {
+		return nil, 0, fromMongoError(err)
+	}
+
+	if err = cursor.Decode(&nss); err != nil {
+		return nil, 0, fromMongoError(err)
+	}
+
+	return user, nss.NamespacesOwned, nil
 }
 
 func (s *Store) UserUpdateData(ctx context.Context, data *models.User, ID string) error {
@@ -131,7 +196,7 @@ func (s *Store) UserUpdateData(ctx context.Context, data *models.User, ID string
 }
 
 func (s *Store) UserUpdatePassword(ctx context.Context, newPassword, ID string) error {
-	if _, err := s.UserGetByID(ctx, ID); err != nil {
+	if _, _, err := s.UserGetByID(ctx, ID, false); err != nil {
 		return fromMongoError(err)
 	}
 
@@ -149,7 +214,7 @@ func (s *Store) UserUpdatePassword(ctx context.Context, newPassword, ID string) 
 }
 
 func (s *Store) UserUpdateFromAdmin(ctx context.Context, name, username, email, password, ID string) error {
-	user, err := s.UserGetByID(ctx, ID)
+	user, _, err := s.UserGetByID(ctx, ID, false)
 	objID, _ := primitive.ObjectIDFromHex(ID)
 
 	if err != nil {

@@ -980,20 +980,6 @@ func (_m *Store) UserCreate(ctx context.Context, user *models.User) error {
 	return r0
 }
 
-// UserUpdateData provides a mock function with given fields: ctx, data, ID
-func (_m *Store) UserUpdateData(ctx context.Context, data *models.User, ID string) error {
-	ret := _m.Called(ctx, data, ID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.User, string) error); ok {
-		r0 = rf(ctx, data, ID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // UserDelete provides a mock function with given fields: ctx, ID
 func (_m *Store) UserDelete(ctx context.Context, ID string) error {
 	ret := _m.Called(ctx, ID)
@@ -1031,27 +1017,34 @@ func (_m *Store) UserGetByEmail(ctx context.Context, email string) (*models.User
 	return r0, r1
 }
 
-// UserGetByID provides a mock function with given fields: ctx, ID
-func (_m *Store) UserGetByID(ctx context.Context, ID string) (*models.User, error) {
-	ret := _m.Called(ctx, ID)
+// UserGetByID provides a mock function with given fields: ctx, ID, ns
+func (_m *Store) UserGetByID(ctx context.Context, ID string, ns bool) (*models.User, int, error) {
+	ret := _m.Called(ctx, ID, ns)
 
 	var r0 *models.User
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.User); ok {
-		r0 = rf(ctx, ID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) *models.User); ok {
+		r0 = rf(ctx, ID, ns)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, ID)
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool) int); ok {
+		r1 = rf(ctx, ID, ns)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int)
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, string, bool) error); ok {
+		r2 = rf(ctx, ID, ns)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // UserGetByTenant provides a mock function with given fields: ctx, tenant
@@ -1130,13 +1123,13 @@ func (_m *Store) UserList(ctx context.Context, pagination paginator.Query, filte
 	return r0, r1, r2
 }
 
-// UserUpdatePassword provides a mock function with given fields: ctx, newPassword, ID
-func (_m *Store) UserUpdatePassword(ctx context.Context, newPassword string, ID string) error {
-	ret := _m.Called(ctx, newPassword, ID)
+// UserUpdateData provides a mock function with given fields: ctx, data, ID
+func (_m *Store) UserUpdateData(ctx context.Context, data *models.User, ID string) error {
+	ret := _m.Called(ctx, data, ID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, newPassword, ID)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.User, string) error); ok {
+		r0 = rf(ctx, data, ID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1151,6 +1144,20 @@ func (_m *Store) UserUpdateFromAdmin(ctx context.Context, name string, username 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) error); ok {
 		r0 = rf(ctx, name, username, email, password, ID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UserUpdatePassword provides a mock function with given fields: ctx, newPassword, ID
+func (_m *Store) UserUpdatePassword(ctx context.Context, newPassword string, ID string) error {
+	ret := _m.Called(ctx, newPassword, ID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, newPassword, ID)
 	} else {
 		r0 = ret.Error(0)
 	}

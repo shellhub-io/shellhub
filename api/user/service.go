@@ -37,7 +37,7 @@ func NewService(store store.Store) Service {
 func (s *service) UpdateDataUser(ctx context.Context, data *models.User, ID string) ([]InvalidField, error) {
 	var invalidFields []InvalidField
 
-	if _, err := s.store.UserGetByID(ctx, ID); err != nil {
+	if _, _, err := s.store.UserGetByID(ctx, ID, false); err != nil {
 		return invalidFields, err
 	}
 
@@ -69,7 +69,7 @@ func (s *service) UpdateDataUser(ctx context.Context, data *models.User, ID stri
 }
 
 func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, ID string) error {
-	user, err := s.store.UserGetByID(ctx, ID)
+	user, _, err := s.store.UserGetByID(ctx, ID, false)
 
 	if err != nil {
 		return err

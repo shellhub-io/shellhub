@@ -61,8 +61,8 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 }
 
 func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerID string) (*models.Namespace, error) {
-	user, err := s.store.UserGetByID(ctx, ownerID)
-	if err == store.ErrNoDocuments {
+	user, _, err := s.store.UserGetByID(ctx, ownerID, false)
+	if user == nil {
 		return nil, ErrUnauthorized
 	}
 
@@ -113,7 +113,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerId string)
 		return err
 	}
 
-	user, err := s.store.UserGetByID(ctx, ownerId)
+	user, _, err := s.store.UserGetByID(ctx, ownerId, false)
 	if err == store.ErrNoDocuments {
 		return ErrUnauthorized
 	}
@@ -141,7 +141,7 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 
 	members := []models.Member{}
 	for _, memberID := range ns.Members {
-		user, err := s.store.UserGetByID(ctx, memberID.(string))
+		user, _, err := s.store.UserGetByID(ctx, memberID.(string), false)
 		if err == store.ErrNoDocuments {
 			return nil, ErrUserNotFound
 		}
@@ -166,7 +166,7 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name, owner strin
 		return nil, err
 	}
 
-	user, err := s.store.UserGetByID(ctx, owner)
+	user, _, err := s.store.UserGetByID(ctx, owner, false)
 	if err == store.ErrNoDocuments {
 		return nil, ErrUnauthorized
 	}
@@ -198,7 +198,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, owne
 		return nil, err
 	}
 
-	ownerUser, err := s.store.UserGetByID(ctx, ownerID)
+	ownerUser, _, err := s.store.UserGetByID(ctx, ownerID, false)
 	if err == store.ErrNoDocuments {
 		return nil, ErrUnauthorized
 	}
@@ -231,7 +231,7 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, o
 		return nil, err
 	}
 
-	if _, err := s.store.UserGetByID(ctx, ownerID); err != nil {
+	if _, _, err := s.store.UserGetByID(ctx, ownerID, false); err != nil {
 		if err == store.ErrNoDocuments {
 			return nil, ErrUnauthorized
 		}
