@@ -4,12 +4,10 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -86,12 +84,6 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 
 func (s *Store) UserCreate(ctx context.Context, user *models.User) error {
 	_, err := s.db.Collection("users").InsertOne(ctx, user)
-	if err != nil {
-		if mongo.IsDuplicateKeyError(err) {
-			return store.ErrDuplicateEmail
-		}
-	}
-
 	return fromMongoError(err)
 }
 
