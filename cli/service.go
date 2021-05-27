@@ -47,7 +47,7 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 	}
 
 	if usr != nil {
-		return "", ErrDuplicateUser
+		return "", store.ErrDuplicateUser
 	}
 
 	password := data.Password

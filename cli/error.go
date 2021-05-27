@@ -11,7 +11,6 @@ import (
 var (
 	ErrCreateNewUser          = errors.New("failed to create a new user")
 	ErrCreateNewNamespace     = errors.New("failed to create a new namespace")
-	ErrDuplicateUser          = errors.New("user already exists")
 	ErrDuplicateNamespace     = errors.New("namespace already exists")
 	ErrChangePassword         = errors.New("failed to reset the user password")
 	ErrUserNotFound           = errors.New("user not found")
