@@ -35,3 +35,8 @@ func CurrentContainerID() (string, error) {
 
 	return string(match[2]), nil
 }
+
+func IsRunningInDocker() bool {
+	_, err := os.Stat("/.dockerenv")
+	return err == nil
+}

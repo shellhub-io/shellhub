@@ -90,14 +90,16 @@ func (dbs *DBServer) start() {
 	dbs.network = "host" // Use same network as docker host
 	dbs.host = addr.String()
 
-	containerID, err := dockerutils.CurrentContainerID()
-	if err != nil {
-		panic("failed to get current container id: " + err.Error())
-	}
+	if dockerutils.IsRunningInDocker() {
+		containerID, err := dockerutils.CurrentContainerID()
+		if err != nil {
+			panic("failed to get current container id: " + err.Error())
+		}
 
-	if containerID != "" {
-		// If tests are running in a docker container use the same container network
-		dbs.network = fmt.Sprintf("container:%s", containerID)
+		if containerID != "" {
+			// If tests are running in a docker container use the same container network
+			dbs.network = fmt.Sprintf("container:%s", containerID)
+		}
 	}
 
 	args := []string{
