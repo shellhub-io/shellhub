@@ -27,12 +27,12 @@ var (
 type Service interface {
 	ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error)
 	CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error)
-	GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error)
-	DeleteNamespace(ctx context.Context, namespace, ownerUsername string) error
-	EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error)
-	AddNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
-	RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
-	ListMembers(ctx context.Context, namespace string) ([]models.Member, error)
+	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
+	DeleteNamespace(ctx context.Context, tenantID, ownerUsername string) error
+	EditNamespace(ctx context.Context, tenantID, name, ownerUsername string) (*models.Namespace, error)
+	AddNamespaceUser(ctx context.Context, tenantID, username, ownerUsername string) (*models.Namespace, error)
+	RemoveNamespaceUser(ctx context.Context, tenantID, username, ownerUsername string) (*models.Namespace, error)
+	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
 	UpdateDataUserSecurity(ctx context.Context, status bool, tenant string) error
 	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
 }
@@ -99,12 +99,12 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	return s.store.NamespaceCreate(ctx, ns)
 }
 
-func (s *service) GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error) {
-	return s.store.NamespaceGet(ctx, namespace)
+func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
+	return s.store.NamespaceGet(ctx, tenantID)
 }
 
-func (s *service) DeleteNamespace(ctx context.Context, namespace, ownerId string) error {
-	ns, err := s.store.NamespaceGet(ctx, namespace)
+func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerId string) error {
+	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err == store.ErrNoDocuments {
 		return ErrNamespaceNotFound
 	}
@@ -126,11 +126,11 @@ func (s *service) DeleteNamespace(ctx context.Context, namespace, ownerId string
 		return ErrUnauthorized
 	}
 
-	return s.store.NamespaceDelete(ctx, namespace)
+	return s.store.NamespaceDelete(ctx, tenantID)
 }
 
-func (s *service) ListMembers(ctx context.Context, namespace string) ([]models.Member, error) {
-	ns, err := s.store.NamespaceGet(ctx, namespace)
+func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Member, error) {
+	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err == store.ErrNoDocuments {
 		return nil, ErrNamespaceNotFound
 	}
@@ -156,8 +156,8 @@ func (s *service) ListMembers(ctx context.Context, namespace string) ([]models.M
 	return members, nil
 }
 
-func (s *service) EditNamespace(ctx context.Context, namespace, name, owner string) (*models.Namespace, error) {
-	ns, err := s.store.NamespaceGet(ctx, namespace)
+func (s *service) EditNamespace(ctx context.Context, tenantID, name, owner string) (*models.Namespace, error) {
+	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err == store.ErrNoDocuments {
 		return nil, ErrNamespaceNotFound
 	}
@@ -188,8 +188,8 @@ func (s *service) EditNamespace(ctx context.Context, namespace, name, owner stri
 	return s.store.NamespaceRename(ctx, ns.TenantID, lowerName)
 }
 
-func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, ownerID string) (*models.Namespace, error) {
-	ns, err := s.store.NamespaceGet(ctx, namespace)
+func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, ownerID string) (*models.Namespace, error) {
+	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err == store.ErrNoDocuments {
 		return nil, ErrNamespaceNotFound
 	}
@@ -220,10 +220,10 @@ func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, own
 		return nil, err
 	}
 
-	return s.store.NamespaceAddMember(ctx, namespace, user.ID)
+	return s.store.NamespaceAddMember(ctx, tenantID, user.ID)
 }
-func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, ownerID string) (*models.Namespace, error) {
-	if _, err := s.store.NamespaceGet(ctx, namespace); err != nil {
+func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, ownerID string) (*models.Namespace, error) {
+	if _, err := s.store.NamespaceGet(ctx, tenantID); err != nil {
 		if err == store.ErrNoDocuments {
 			return nil, ErrNamespaceNotFound
 		}
@@ -248,7 +248,7 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, 
 		return nil, err
 	}
 
-	return s.store.NamespaceRemoveMember(ctx, namespace, user.ID)
+	return s.store.NamespaceRemoveMember(ctx, tenantID, user.ID)
 }
 
 func (s *service) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {

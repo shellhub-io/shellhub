@@ -106,10 +106,10 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 	return namespaces, count, err
 }
 
-func (s *Store) NamespaceGet(ctx context.Context, namespace string) (*models.Namespace, error) {
+func (s *Store) NamespaceGet(ctx context.Context, tenantID string) (*models.Namespace, error) {
 	var ns *models.Namespace
 
-	if err := s.cache.Get(ctx, strings.Join([]string{"namespace", namespace}, "/"), &ns); err != nil {
+	if err := s.cache.Get(ctx, strings.Join([]string{"namespace", tenantID}, "/"), &ns); err != nil {
 		logrus.Error(err)
 	}
 
@@ -117,16 +117,16 @@ func (s *Store) NamespaceGet(ctx context.Context, namespace string) (*models.Nam
 		goto count
 	}
 
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": namespace}).Decode(&ns); err != nil {
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenantID}).Decode(&ns); err != nil {
 		return ns, fromMongoError(err)
 	}
 
-	if err := s.cache.Set(ctx, strings.Join([]string{"namespace", namespace}, "/"), ns, time.Minute); err != nil {
+	if err := s.cache.Set(ctx, strings.Join([]string{"namespace", tenantID}, "/"), ns, time.Minute); err != nil {
 		logrus.Error(err)
 	}
 
 count:
-	countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": namespace, "status": "accepted"})
+	countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": tenantID, "status": "accepted"})
 	if err != nil {
 		return nil, fromMongoError(err)
 	}
@@ -136,10 +136,10 @@ count:
 	return ns, nil
 }
 
-func (s *Store) NamespaceGetByName(ctx context.Context, namespace string) (*models.Namespace, error) {
+func (s *Store) NamespaceGetByName(ctx context.Context, name string) (*models.Namespace, error) {
 	var ns *models.Namespace
 
-	if err := s.cache.Get(ctx, strings.Join([]string{"namespace", namespace}, "/"), &ns); err != nil {
+	if err := s.cache.Get(ctx, strings.Join([]string{"namespace", name}, "/"), &ns); err != nil {
 		logrus.Error(err)
 	}
 
@@ -147,7 +147,7 @@ func (s *Store) NamespaceGetByName(ctx context.Context, namespace string) (*mode
 		return ns, nil
 	}
 
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": name}).Decode(&ns); err != nil {
 		return nil, fromMongoError(err)
 	}
 
@@ -159,51 +159,51 @@ func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace
 	return namespace, err
 }
 
-func (s *Store) NamespaceDelete(ctx context.Context, namespace string) error {
-	if _, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": namespace}); err != nil {
+func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
+	if _, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": tenantID}); err != nil {
 		return fromMongoError(err)
 	}
 
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
 		logrus.Error(err)
 	}
 
 	collections := []string{"devices", "sessions", "connected_devices", "firewall_rules", "public_keys", "recorded_sessions"}
 
 	for _, collection := range collections {
-		if _, err := s.db.Collection(collection).DeleteMany(ctx, bson.M{"tenant_id": namespace}); err != nil {
+		if _, err := s.db.Collection(collection).DeleteMany(ctx, bson.M{"tenant_id": tenantID}); err != nil {
 			return fromMongoError(err)
 		}
 	}
 	return nil
 }
 
-func (s *Store) NamespaceRename(ctx context.Context, namespace, name string) (*models.Namespace, error) {
-	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$set": bson.M{"name": name}}); err != nil {
+func (s *Store) NamespaceRename(ctx context.Context, tenantID, name string) (*models.Namespace, error) {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"name": name}}); err != nil {
 		return nil, fromMongoError(err)
 	}
 
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
 		logrus.Error(err)
 	}
 
-	return s.NamespaceGet(ctx, namespace)
+	return s.NamespaceGet(ctx, tenantID)
 }
 
-func (s *Store) NamespaceUpdate(ctx context.Context, tenant string, namespace *models.Namespace) error {
-	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"name": namespace.Name, "max_devices": namespace.MaxDevices, "settings.session_record": namespace.Settings.SessionRecord}}); err != nil {
+func (s *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"name": namespace.Name, "max_devices": namespace.MaxDevices, "settings.session_record": namespace.Settings.SessionRecord}}); err != nil {
 		return fromMongoError(err)
 	}
 
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenant}, "/")); err != nil {
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
 		logrus.Error(err)
 	}
 
 	return nil
 }
 
-func (s *Store) NamespaceAddMember(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
-	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$addToSet": bson.M{"members": ID}})
+func (s *Store) NamespaceAddMember(ctx context.Context, tenantID, ID string) (*models.Namespace, error) {
+	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": ID}})
 	if err != nil {
 		return nil, fromMongoError(err)
 	}
@@ -211,15 +211,15 @@ func (s *Store) NamespaceAddMember(ctx context.Context, namespace, ID string) (*
 		return nil, ErrDuplicateID
 	}
 
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
 		logrus.Error(err)
 	}
 
-	return s.NamespaceGet(ctx, namespace)
+	return s.NamespaceGet(ctx, tenantID)
 }
 
-func (s *Store) NamespaceRemoveMember(ctx context.Context, namespace, ID string) (*models.Namespace, error) {
-	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace}, bson.M{"$pull": bson.M{"members": ID}})
+func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID, ID string) (*models.Namespace, error) {
+	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"members": ID}})
 	if err != nil {
 		return nil, fromMongoError(err)
 	}
@@ -227,11 +227,11 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, namespace, ID string)
 		return nil, ErrUserNotFound
 	}
 
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace}, "/")); err != nil {
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
 		logrus.Error(err)
 	}
 
-	return s.NamespaceGet(ctx, namespace)
+	return s.NamespaceGet(ctx, tenantID)
 }
 
 func (s *Store) NamespaceGetFirst(ctx context.Context, ID string) (*models.Namespace, error) {
@@ -244,8 +244,8 @@ func (s *Store) NamespaceGetFirst(ctx context.Context, ID string) (*models.Names
 	return ns, nil
 }
 
-func (s *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenant string) error {
-	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"settings.session_record": sessionRecord}}); err != nil {
+func (s *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"settings.session_record": sessionRecord}}); err != nil {
 
 		return fromMongoError(err)
 	}
@@ -253,12 +253,12 @@ func (s *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord boo
 	return nil
 }
 
-func (s *Store) NamespaceGetSessionRecord(ctx context.Context, tenant string) (bool, error) {
+func (s *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
 	var settings struct {
 		Settings *models.NamespaceSettings `json:"settings" bson:"settings"`
 	}
 
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenant}).Decode(&settings); err != nil {
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenantID}).Decode(&settings); err != nil {
 		return false, fromMongoError(err)
 	}
 	return settings.Settings.SessionRecord, nil
