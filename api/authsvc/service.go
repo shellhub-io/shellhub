@@ -66,6 +66,12 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		LastSeen:  clock.Now(),
 	}
 
+	// The order here is critical as we don't want to register devices if the tenant id is invalid
+	namespace, err := s.store.NamespaceGet(ctx, device.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
 		return nil, err
@@ -99,11 +105,6 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 	}
 
 	dev, err := s.store.DeviceGetByUID(ctx, models.UID(device.UID), device.TenantID)
-	if err != nil {
-		return nil, err
-	}
-
-	namespace, err := s.store.NamespaceGet(ctx, device.TenantID)
 	if err != nil {
 		return nil, err
 	}
