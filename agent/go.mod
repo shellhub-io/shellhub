@@ -8,7 +8,7 @@ require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
 	github.com/containerd/containerd v1.4.3 // indirect
-	github.com/creack/pty v1.1.12
+	github.com/creack/pty v1.1.13
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v20.10.6+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
