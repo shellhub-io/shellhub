@@ -4,3 +4,6 @@
 
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
 	       exec api mockery --name Store --dir ./store/ --output ./store/mocks --filename store.go
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
+	       exec api mockery --name Backend --dir ../pkg/envs/ --output ../pkg/envs/mocks --filename envs.go
