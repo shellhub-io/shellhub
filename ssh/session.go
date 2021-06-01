@@ -8,13 +8,13 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -106,7 +106,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	s.Target = device.UID
 	s.Lookup = lookup
 
-	if os.Getenv("SHELLHUB_ENTERPRISE") == "true" {
+	if envs.IsEnterprise() {
 		res, _, errs := gorequest.New().Get("http://cloud-api:8080/internal/firewall/rules/evaluate").Query(lookup).End()
 		if len(errs) > 0 || res.StatusCode != http.StatusOK {
 			return nil, ErrInvalidSessionTarget
