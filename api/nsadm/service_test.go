@@ -8,6 +8,8 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -54,6 +56,10 @@ func TestCreateNamespace(t *testing.T) {
 
 	ctx := context.TODO()
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
+
+	env_mock := &env_mocks.Backend{}
+	envs.DefaultBackend = env_mock
+	env_mock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 
 	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
 	createNamespace := &models.Namespace{

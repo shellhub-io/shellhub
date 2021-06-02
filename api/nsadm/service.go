@@ -5,12 +5,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"os"
 	"strings"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -82,7 +82,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		ns.TenantID = uuid.Must(uuid.NewV4(), nil).String()
 	}
 
-	if os.Getenv("SHELLHUB_ENTERPRISE") == "true" {
+	if envs.IsEnterprise() {
 		ns.MaxDevices = 3
 	} else {
 		ns.MaxDevices = -1

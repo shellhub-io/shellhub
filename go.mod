@@ -16,6 +16,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/smartystreets/goconvey v1.6.4 // indirect
+	github.com/stretchr/testify v1.4.0
 	go.uber.org/multierr v1.6.0
 	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
