@@ -88,12 +88,13 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		ns.MaxDevices = -1
 	}
 
-	if _, err = s.store.NamespaceGetByName(ctx, ns.Name); err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrConflictName
-		}
-
+	otherNamespace, err := s.store.NamespaceGetByName(ctx, ns.Name)
+	if err != nil && err != store.ErrNoDocuments {
 		return nil, err
+	}
+
+	if otherNamespace != nil {
+		return nil, ErrConflictName
 	}
 
 	return s.store.NamespaceCreate(ctx, ns)
