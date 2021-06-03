@@ -4,9 +4,11 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -41,15 +43,6 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 		return "", ErrCreateNewUser
 	}
 
-	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
-	if err == store.ErrDuplicateEmail {
-		return "", store.ErrDuplicateEmail
-	}
-
-	if usr != nil {
-		return "", store.ErrDuplicateUser
-	}
-
 	password := data.Password
 
 	if err := s.store.UserCreate(context.TODO(), &models.User{
@@ -57,7 +50,25 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 		Username: data.Username,
 		Password: hashPassword(password),
 		Email:    data.Email,
-	}); err != nil {
+	}); err != nil && err.Error() == "duplicate" {
+		var errStrings []string
+
+		usrList, _, _ := s.store.UserList(context.TODO(), paginator.Query{Page: -1, PerPage: -1}, nil)
+
+		for _, usr := range usrList {
+			if usr.Username == data.Username {
+				errStrings = append(errStrings, "user already exists")
+			}
+
+			if usr.Email == data.Email {
+				errStrings = append(errStrings, "email address is already in use")
+			}
+		}
+
+		for _, err := range errStrings {
+			fmt.Println(err)
+		}
+
 		return "", ErrCreateNewUser
 	}
 
