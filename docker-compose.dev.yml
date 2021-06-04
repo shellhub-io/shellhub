@@ -87,6 +87,7 @@ services:
       context: .
       dockerfile: cli/Dockerfile
       target: development
+    entrypoint: /entrypoint.sh
     volumes:
       - ./cli:/go/src/github.com/shellhub-io/shellhub/cli
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
