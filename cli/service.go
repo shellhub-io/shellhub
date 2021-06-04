@@ -85,15 +85,6 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		return nil, ErrUserNotFound
 	}
 
-	ns, err := s.store.NamespaceGetByName(context.TODO(), data.Namespace)
-	if err == store.ErrNoDocuments {
-		return nil, ErrNamespaceNotFound
-	}
-
-	if ns != nil {
-		return nil, ErrDuplicateNamespace
-	}
-
 	var tenantID string
 
 	if data.TenantID == "" {
@@ -102,7 +93,7 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		tenantID = data.TenantID
 	}
 
-	ns, err = s.store.NamespaceCreate(context.TODO(), &models.Namespace{
+	ns, err := s.store.NamespaceCreate(context.TODO(), &models.Namespace{
 		Name:     data.Namespace,
 		Owner:    usr.ID,
 		TenantID: tenantID,
@@ -112,7 +103,7 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		},
 	})
 	if err != nil {
-		return nil, ErrCreateNewNamespace
+		return nil, ErrDuplicateNamespace
 	}
 
 	return ns, nil
