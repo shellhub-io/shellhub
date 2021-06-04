@@ -54,8 +54,8 @@ func GetNamespaceList(c apicontext.Context) error {
 
 func CreateNamespace(c apicontext.Context) error {
 	svc := nsadm.NewService(c.Store())
-	var namespace models.Namespace
-	if err := c.Bind(&namespace); err != nil {
+	var req models.Namespace
+	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
@@ -64,11 +64,12 @@ func CreateNamespace(c apicontext.Context) error {
 		id = v.ID
 	}
 
-	if _, err := svc.CreateNamespace(c.Ctx(), &namespace, id); err != nil {
-		switch {
-		case err == nsadm.ErrUnauthorized:
+	namespace, err := svc.CreateNamespace(c.Ctx(), &req, id)
+	if err != nil {
+		switch err {
+		case nsadm.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
-		case err == nsadm.ErrConflictName:
+		case nsadm.ErrConflictName:
 			return c.NoContent(http.StatusConflict)
 		default:
 			return err
