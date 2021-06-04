@@ -24,6 +24,11 @@ extend('email', {
   message: 'This field must be a valid email',
 });
 
+extend('noDot', {
+  validate: (value) => !/\./.test(value),
+  message: 'The name must not contain dots',
+});
+
 extend('rfc1123', {
   validate: (value) => isValidHostname(value),
   message: 'You entered an invalid RFC1123 name',

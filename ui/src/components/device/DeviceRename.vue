@@ -44,7 +44,7 @@
             <ValidationProvider
               v-slot="{ errors }"
               name="Hostname"
-              rules="required|rfc1123"
+              rules="required|rfc1123|noDot"
               vid="hostname"
             >
               <v-text-field
@@ -52,7 +52,7 @@
                 label="Hostname"
                 :error-messages="errors"
                 require
-                messages="Examples: (foobar, foo-bar.ba-z.qux, foo.example.com, 127.0.0.1)"
+                :messages="messages"
               />
             </ValidationProvider>
           </v-card-text>
@@ -109,6 +109,7 @@ export default {
       dialog: false,
       invalid: false,
       editName: '',
+      messages: 'Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)',
     };
   },
 
