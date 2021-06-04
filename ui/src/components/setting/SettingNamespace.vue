@@ -101,7 +101,7 @@
                   ref="providerName"
                   vid="name"
                   name="Priority"
-                  rules="required|rfc1123"
+                  rules="required|rfc1123|noDot"
                 >
                   <v-text-field
                     v-model="name"

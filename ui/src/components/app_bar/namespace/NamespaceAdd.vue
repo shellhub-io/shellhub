@@ -18,7 +18,7 @@
               <ValidationProvider
                 v-slot="{ errors }"
                 name="namespace"
-                rules="required|rfc1123"
+                rules="required|rfc1123|noDot"
               >
                 <v-text-field
                   v-model="namespaceName"
