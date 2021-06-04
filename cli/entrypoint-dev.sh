@@ -1,3 +1,5 @@
 #!/bin/sh
 
-refresh run
+refresh run &
+
+sleep infinity
