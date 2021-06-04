@@ -8,7 +8,7 @@ import (
 
 type Device struct {
 	UID       string          `json:"uid"`
-	Name      string          `json:"name" bson:"name,omitempty" validate:"required,hostname_rfc1123"`
+	Name      string          `json:"name" bson:"name,omitempty" validate:"required,hostname_rfc1123,excludes=."`
 	Identity  *DeviceIdentity `json:"identity"`
 	Info      *DeviceInfo     `json:"info"`
 	PublicKey string          `json:"public_key" bson:"public_key"`
