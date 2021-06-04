@@ -97,7 +97,11 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		return nil, ErrConflictName
 	}
 
-	return s.store.NamespaceCreate(ctx, ns)
+	if _, err := s.store.NamespaceCreate(ctx, ns); err != nil {
+		return nil, err
+	}
+
+	return ns, nil
 }
 
 func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
