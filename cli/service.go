@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -46,10 +47,10 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 	password := data.Password
 
 	if err := s.store.UserCreate(context.TODO(), &models.User{
-		Name:     data.Username,
+		Name:     strings.ToLower(data.Username),
 		Username: data.Username,
 		Password: hashPassword(password),
-		Email:    data.Email,
+		Email:    strings.ToLower(data.Email),
 	}); err != nil && err.Error() == "duplicate" {
 		var errStrings []string
 
@@ -72,7 +73,7 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 		return "", ErrCreateNewUser
 	}
 
-	return data.Username, nil
+	return strings.ToLower(data.Username), nil
 }
 
 func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
@@ -85,6 +86,15 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		return nil, ErrUserNotFound
 	}
 
+	ns, err := s.store.NamespaceGetByName(context.TODO(), data.Namespace)
+	if err == store.ErrNoDocuments {
+		return nil, ErrNamespaceNotFound
+	}
+
+	if ns != nil {
+		return nil, ErrDuplicateNamespace
+	}
+
 	var tenantID string
 
 	if data.TenantID == "" {
@@ -93,7 +103,7 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		tenantID = data.TenantID
 	}
 
-	ns, err := s.store.NamespaceCreate(context.TODO(), &models.Namespace{
+	ns, err = s.store.NamespaceCreate(context.TODO(), &models.Namespace{
 		Name:     data.Namespace,
 		Owner:    usr.ID,
 		TenantID: tenantID,
@@ -103,7 +113,7 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		},
 	})
 	if err != nil {
-		return nil, ErrDuplicateNamespace
+		return nil, ErrCreateNewNamespace
 	}
 
 	return ns, nil
