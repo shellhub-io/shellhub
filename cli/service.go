@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -46,10 +47,10 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 	password := data.Password
 
 	if err := s.store.UserCreate(context.TODO(), &models.User{
-		Name:     data.Username,
+		Name:     strings.ToLower(data.Username),
 		Username: data.Username,
 		Password: hashPassword(password),
-		Email:    data.Email,
+		Email:    strings.ToLower(data.Email),
 	}); err != nil && err.Error() == "duplicate" {
 		var errStrings []string
 
@@ -72,7 +73,7 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 		return "", ErrCreateNewUser
 	}
 
-	return data.Username, nil
+	return strings.ToLower(data.Username), nil
 }
 
 func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
