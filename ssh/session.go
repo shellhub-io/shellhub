@@ -14,6 +14,7 @@ import (
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -362,7 +363,7 @@ func loadEnv(env []string) map[string]string {
 
 func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
 	if config.Timeout > 0 {
-		if err := conn.SetReadDeadline(time.Now().Add(config.Timeout)); err != nil {
+		if err := conn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
 			return nil, err
 		}
 	}
