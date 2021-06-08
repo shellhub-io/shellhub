@@ -11,6 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/websocket"
 )
@@ -225,7 +226,7 @@ type wsconn struct {
 
 func (w *wsconn) keepAlive(ws *websocket.Conn) {
 	for {
-		if err := ws.SetDeadline(time.Now().Add(pingInterval * 2)); err != nil {
+		if err := ws.SetDeadline(clock.Now().Add(pingInterval * 2)); err != nil {
 			return
 		}
 
