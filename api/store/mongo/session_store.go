@@ -2,10 +2,10 @@ package mongo
 
 import (
 	"context"
-	"time"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -136,7 +136,7 @@ func (s *Store) SessionSetAuthenticated(ctx context.Context, uid models.UID, aut
 }
 
 func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
-	session.StartedAt = time.Now()
+	session.StartedAt = clock.Now()
 	session.LastSeen = session.StartedAt
 	session.Recorded = false
 
@@ -171,7 +171,7 @@ func (s *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 		return fromMongoError(err)
 	}
 
-	session.LastSeen = time.Now()
+	session.LastSeen = clock.Now()
 
 	opts := options.Update().SetUpsert(true)
 	_, err = s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session}, opts)
@@ -181,7 +181,7 @@ func (s *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 
 	activeSession := &models.ActiveSession{
 		UID:      uid,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	if _, err := s.db.Collection("active_sessions").InsertOne(ctx, &activeSession); err != nil {
@@ -197,7 +197,7 @@ func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error 
 		return fromMongoError(err)
 	}
 
-	session.LastSeen = time.Now()
+	session.LastSeen = clock.Now()
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session}, opts)
 	if err != nil {
@@ -216,7 +216,7 @@ func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, re
 	record.Width = width
 	record.Height = height
 	record.TenantID = session.TenantID
-	record.Time = time.Now()
+	record.Time = clock.Now()
 
 	if _, err := s.db.Collection("recorded_sessions").InsertOne(ctx, &record); err != nil {
 		return fromMongoError(err)

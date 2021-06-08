@@ -3,11 +3,11 @@ package sshkeys
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,8 +18,8 @@ func TestListPublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 	keys := []models.PublicKey{
-		{Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"}},
-		{Data: []byte("teste2"), Fingerprint: "fingerprint2", CreatedAt: time.Now(), TenantID: "tenant2", PublicKeyFields: models.PublicKeyFields{Name: "teste2"}},
+		{Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"}},
+		{Data: []byte("teste2"), Fingerprint: "fingerprint2", CreatedAt: clock.Now(), TenantID: "tenant2", PublicKeyFields: models.PublicKeyFields{Name: "teste2"}},
 	}
 
 	query := paginator.Query{Page: 1, PerPage: 10}
@@ -40,7 +40,7 @@ func TestGetPublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 	key := &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
 
 	mock.On("PublicKeyGet", ctx, key.Fingerprint, key.TenantID).Return(key, nil).Once()
@@ -58,14 +58,14 @@ func TestUpdatePublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 	key := &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
 	keyUpdate := &models.PublicKeyUpdate{
 		PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
 
 	newKey := &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
 	}
 
 	mock.On("PublicKeyUpdate", ctx, key.Fingerprint, key.TenantID, keyUpdate).Return(newKey, nil).Once()
@@ -83,7 +83,7 @@ func TestDeletePublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 	key := &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
 
 	mock.On("PublicKeyDelete", ctx, key.Fingerprint, key.TenantID).Return(nil).Once()

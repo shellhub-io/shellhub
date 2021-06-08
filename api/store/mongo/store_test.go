@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/cache"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
@@ -49,7 +50,7 @@ func TestDeviceCreate(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -87,7 +88,7 @@ func TestDeviceGet(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -128,7 +129,7 @@ func TestDeviceRename(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -167,7 +168,7 @@ func TestDeviceLookup(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "device")
@@ -212,7 +213,7 @@ func TestDeviceUpdateStatus(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "device")
@@ -252,7 +253,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -291,7 +292,7 @@ func TestCreateSession(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -341,7 +342,7 @@ func TestGetSession(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -392,7 +393,7 @@ func TestListSessions(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -444,7 +445,7 @@ func TestSetSessionAuthenticated(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -495,7 +496,7 @@ func TestKeepAliveSession(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -545,7 +546,7 @@ func TestDeactivateSession(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -596,7 +597,7 @@ func TestRecordSession(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -647,7 +648,7 @@ func TestGetRecord(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -739,7 +740,7 @@ func TestGetDeviceByMac(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -780,7 +781,7 @@ func TestGetDeviceByName(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "hostname")
@@ -821,7 +822,7 @@ func TestGetDeviceByUID(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -976,7 +977,7 @@ func TestListDevices(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -1044,7 +1045,7 @@ func TestUpdateUID(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -1395,7 +1396,7 @@ func TestGetStats(t *testing.T) {
 		UID:      hex.EncodeToString(uid[:]),
 		Identity: authReq.Identity,
 		TenantID: authReq.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 
 	err = mongostore.DeviceCreate(ctx, device, "")
@@ -1653,13 +1654,13 @@ func TestLoadLicense(t *testing.T) {
 
 	err := mongostore.LicenseSave(ctx, &models.License{
 		RawData:   []byte("bar"),
-		CreatedAt: time.Now().Local().Truncate(time.Millisecond),
+		CreatedAt: clock.Now().Local().Truncate(time.Millisecond),
 	})
 	assert.NoError(t, err)
 
 	license := &models.License{
 		RawData:   []byte("foo"),
-		CreatedAt: time.Now().Local().Truncate(time.Millisecond),
+		CreatedAt: clock.Now().Local().Truncate(time.Millisecond),
 	}
 
 	err = mongostore.LicenseSave(ctx, license)
@@ -1684,7 +1685,7 @@ func TestSaveLicense(t *testing.T) {
 
 	err := mongostore.LicenseSave(ctx, &models.License{
 		RawData:   []byte("foo"),
-		CreatedAt: time.Now().Truncate(time.Millisecond),
+		CreatedAt: clock.Now().Truncate(time.Millisecond),
 	})
 	assert.NoError(t, err)
 }
@@ -1711,7 +1712,7 @@ func TestListPublicKeys(t *testing.T) {
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	key := models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste", Hostname: ".*"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste", Hostname: ".*"},
 	}
 	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
@@ -1736,7 +1737,7 @@ func TestListGetPublicKey(t *testing.T) {
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	key := models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: time.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste", Hostname: ".*"},
+		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste", Hostname: ".*"},
 	}
 	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
