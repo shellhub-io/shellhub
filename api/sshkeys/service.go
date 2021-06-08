@@ -8,11 +8,11 @@ import (
 	"encoding/pem"
 	"errors"
 	"regexp"
-	"time"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"golang.org/x/crypto/ssh"
 )
@@ -59,7 +59,7 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
-	key.CreatedAt = time.Now()
+	key.CreatedAt = clock.Now()
 
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data)
 	if err != nil {
@@ -114,7 +114,7 @@ func (s *service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, err
 			Bytes: x509.MarshalPKCS1PrivateKey(key),
 		}),
 		Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-		CreatedAt:   time.Now(),
+		CreatedAt:   clock.Now(),
 	}
 
 	if err := s.store.PrivateKeyCreate(ctx, privateKey); err != nil {

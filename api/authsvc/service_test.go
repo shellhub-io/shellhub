@@ -13,6 +13,7 @@ import (
 	"github.com/cnf/structhash"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/undefinedlabs/go-mpatch"
@@ -38,7 +39,7 @@ func TestAuthDevice(t *testing.T) {
 		Sessions: []string{"session"},
 	}
 
-	now := time.Now()
+	now := clock.Now()
 	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
 	device := &models.Device{
 		UID:      hex.EncodeToString(uid[:]),

@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -250,7 +251,7 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 		_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
 		return fromMongoError(err)
 	}
-	device.LastSeen = time.Now()
+	device.LastSeen = clock.Now()
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"last_seen": device.LastSeen}}, opts)
 	if err != nil {
@@ -260,7 +261,7 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 	cd := &models.ConnectedDevice{
 		UID:      device.UID,
 		TenantID: device.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 		Status:   device.Status,
 	}
 	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
@@ -284,7 +285,7 @@ func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status s
 	cd := &models.ConnectedDevice{
 		UID:      device.UID,
 		TenantID: device.TenantID,
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 		Status:   status,
 	}
 	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {

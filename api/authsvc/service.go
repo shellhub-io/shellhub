@@ -19,6 +19,7 @@ import (
 	"github.com/cnf/structhash"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -62,7 +63,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		Info:      req.Info,
 		PublicKey: req.PublicKey,
 		TenantID:  req.TenantID,
-		LastSeen:  time.Now(),
+		LastSeen:  clock.Now(),
 	}
 
 	validate := validator.New()
@@ -146,7 +147,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 				Claims: "user",
 			},
 			StandardClaims: jwt.StandardClaims{
-				ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+				ExpiresAt: clock.Now().Add(time.Hour * 72).Unix(),
 			},
 		})
 
@@ -192,7 +193,7 @@ func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuth
 			Claims: "user",
 		},
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+			ExpiresAt: clock.Now().Add(time.Hour * 72).Unix(),
 		},
 	})
 
@@ -259,7 +260,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 					Claims: "user",
 				},
 				StandardClaims: jwt.StandardClaims{
-					ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+					ExpiresAt: clock.Now().Add(time.Hour * 72).Unix(),
 				},
 			})
 
