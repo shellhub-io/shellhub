@@ -9,6 +9,7 @@ updates:
     prefix: "ui"
   ignore:
     - dependency-name: "vue-fragment"
+    - dependency-name: "sass-loader"
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
