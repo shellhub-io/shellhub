@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 )
 
@@ -207,7 +208,7 @@ func (d *Dialer) serve() error {
 }
 
 func (d *Dialer) sendMessage(m controlMsg) error {
-	if err := d.conn.SetWriteDeadline(time.Now().Add(10 * time.Second)); err != nil {
+	if err := d.conn.SetWriteDeadline(clock.Now().Add(10 * time.Second)); err != nil {
 		return err
 	}
 
