@@ -126,7 +126,7 @@ func TestMigration23(t *testing.T) {
 	}
 
 	if migratedDevice.Name != "device-test" {
-		t.Errorf("Unexpected data on namespace collection %v", migratedNamespace.Name)
+		t.Errorf("Unexpected data on namespace collection %v", migratedDevice.Name)
 		return
 	}
 
