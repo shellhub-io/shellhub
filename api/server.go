@@ -126,6 +126,7 @@ func startServer() error {
 	internalAPI.POST(routes.FinishSessionURL, apicontext.Handler(routes.FinishSession))
 	internalAPI.POST(routes.RecordSessionURL, apicontext.Handler(routes.RecordSession))
 	publicAPI.GET(routes.PlaySessionURL, apicontext.Handler(routes.PlaySession))
+	publicAPI.DELETE(routes.RecordSessionURL, apicontext.Handler(routes.DeleteRecordedSession))
 
 	publicAPI.GET(routes.GetStatsURL,
 		middlewares.Authorize(apicontext.Handler(routes.GetStats)))

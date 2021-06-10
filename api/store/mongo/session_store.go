@@ -135,6 +135,11 @@ func (s *Store) SessionSetAuthenticated(ctx context.Context, uid models.UID, aut
 	return fromMongoError(err)
 }
 
+func (s *Store) SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error {
+	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": recorded}})
+	return fromMongoError(err)
+}
+
 func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
 	session.StartedAt = clock.Now()
 	session.LastSeen = session.StartedAt
@@ -231,6 +236,11 @@ func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, re
 
 func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
 	_, err := s.db.Collection("sessions").UpdateMany(ctx, bson.M{"device_uid": oldUID}, bson.M{"$set": bson.M{"device_uid": newUID}})
+	return fromMongoError(err)
+}
+
+func (s *Store) SessionDeleteRecordFrame(ctx context.Context, uid models.UID) error {
+	_, err := s.db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{"uid": uid})
 	return fromMongoError(err)
 }
 

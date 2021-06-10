@@ -96,3 +96,7 @@ func RecordSession(c apicontext.Context) error {
 func PlaySession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
+
+func DeleteRecordedSession(c apicontext.Context) error {
+	return c.JSON(http.StatusOK, nil)
+}

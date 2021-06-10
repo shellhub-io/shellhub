@@ -841,6 +841,20 @@ func (_m *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error
 	return r0
 }
 
+// SessionDeleteRecordFrame provides a mock function with given fields: ctx, uid
+func (_m *Store) SessionDeleteRecordFrame(ctx context.Context, uid models.UID) error {
+	ret := _m.Called(ctx, uid)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
+		r0 = rf(ctx, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SessionGet provides a mock function with given fields: ctx, uid
 func (_m *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session, error) {
 	ret := _m.Called(ctx, uid)
@@ -945,6 +959,20 @@ func (_m *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
 		r0 = rf(ctx, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SessionSetRecorded provides a mock function with given fields: ctx, uid, recorded
+func (_m *Store) SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error {
+	ret := _m.Called(ctx, uid, recorded)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, bool) error); ok {
+		r0 = rf(ctx, uid, recorded)
 	} else {
 		r0 = ret.Error(0)
 	}
