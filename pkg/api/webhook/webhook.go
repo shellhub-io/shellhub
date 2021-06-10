@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
-	uuid "github.com/satori/go.uuid"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -88,7 +88,7 @@ func (w *webhookClient) Connect(m map[string]string) (*IncomingConnectionWebhook
 		SourceIP:  m["ip_address"],
 	}
 	secret := "secret"
-	uuid := uuid.Must(uuid.NewV4(), nil).String()
+	uuid := uuid.Generate()
 	mac := hmac.New(sha256.New, []byte(secret))
 	if _, err := mac.Write([]byte(fmt.Sprintf("%v", payload))); err != nil {
 		return nil, err
