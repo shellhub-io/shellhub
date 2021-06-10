@@ -6,10 +6,10 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	uuid "github.com/satori/go.uuid"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
 type Arguments struct {
@@ -88,7 +88,7 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 	var tenantID string
 
 	if data.TenantID == "" {
-		tenantID = uuid.Must(uuid.NewV4(), nil).String()
+		tenantID = uuid.Generate()
 	} else {
 		tenantID = data.TenantID
 	}
