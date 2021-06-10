@@ -1,6 +1,22 @@
 output:
-  # sorts results by: filepath, line and column
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
   sort-results: true
+
+linters-settings:
+  depguard:
+    list-type: blacklist
+    include-go-root: true
+    packages:
+      - github.com/satori/go.uuid
+    packages-with-error-message:
+      - github.com/satori/go.uuid: "Uuid generation is only allowed using 'github.com/shellhub-io/shellhub/pkg/uuid'"
+
+linters:
+  enable:
+    - depguard
 
 issues:
   exclude:

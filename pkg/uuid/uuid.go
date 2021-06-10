@@ -1,7 +1,7 @@
 package uuid
 
 import (
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid" //nolint
 )
 
 // Uuid is an interface that can provide uuid related functionality which allows us to test uuid dependent code
