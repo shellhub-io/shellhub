@@ -3,9 +3,9 @@ package migrations
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -48,7 +48,7 @@ func TestMigration23(t *testing.T) {
 		UID:      "uid",
 		Identity: &models.DeviceIdentity{MAC: "mac"},
 		TenantID: "tenant",
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
@@ -58,7 +58,7 @@ func TestMigration23(t *testing.T) {
 		UID:      "uid2",
 		Identity: &models.DeviceIdentity{MAC: "mac"},
 		TenantID: "tenant2",
-		LastSeen: time.Now(),
+		LastSeen: clock.Now(),
 	}
 	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
