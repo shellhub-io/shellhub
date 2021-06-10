@@ -414,6 +414,7 @@ func TestListSessions(t *testing.T) {
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, sessions)
 }
+
 func TestSetSessionAuthenticated(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -463,6 +464,73 @@ func TestSetSessionAuthenticated(t *testing.T) {
 	assert.NoError(t, err)
 	err = mongostore.SessionSetAuthenticated(ctx, models.UID(device.UID), true)
 	assert.NoError(t, err)
+}
+
+func TestSetSessionRecorded(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	authReq := &models.DeviceAuthRequest{
+		DeviceAuth: &models.DeviceAuth{
+			TenantID: "tenant",
+			Identity: &models.DeviceIdentity{
+				MAC: "mac",
+			},
+		},
+		Sessions: []string{"session"},
+	}
+
+	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
+
+	device := models.Device{
+		UID:      hex.EncodeToString(uid[:]),
+		Identity: authReq.Identity,
+		TenantID: authReq.TenantID,
+		LastSeen: time.Now(),
+	}
+
+	err = mongostore.DeviceCreate(ctx, device, "")
+	assert.NoError(t, err)
+
+	session := models.Session{
+		Username:      "user",
+		UID:           "uid",
+		DeviceUID:     models.UID(hex.EncodeToString(uid[:])),
+		IPAddress:     "0.0.0.0",
+		Authenticated: true,
+		Recorded:      true,
+	}
+
+	var status bool
+
+	_, err = mongostore.SessionCreate(ctx, session)
+	assert.NoError(t, err)
+
+	err = mongostore.SessionSetRecorded(ctx, models.UID(session.UID), status)
+	assert.NoError(t, err)
+
+	returned_session, err := mongostore.SessionGet(ctx, models.UID(session.UID))
+	assert.NoError(t, err)
+	assert.Equal(t, returned_session.Recorded, status)
+
+	status = true
+	err = mongostore.SessionSetRecorded(ctx, models.UID(session.UID), status)
+	assert.NoError(t, err)
+
+	returned_session, err = mongostore.SessionGet(ctx, models.UID(session.UID))
+	assert.NoError(t, err)
+	assert.Equal(t, returned_session.Recorded, session.Recorded)
 }
 
 func TestKeepAliveSession(t *testing.T) {
@@ -748,6 +816,83 @@ func TestGetDeviceByMac(t *testing.T) {
 	d, err := mongostore.DeviceGetByMac(ctx, "mac", "tenant", "pending")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
+}
+
+func TestSessionDeleteRecordFrame(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	authReq := &models.DeviceAuthRequest{
+		DeviceAuth: &models.DeviceAuth{
+			TenantID: "tenant",
+			Identity: &models.DeviceIdentity{
+				MAC: "mac",
+			},
+		},
+		Sessions: []string{"session"},
+	}
+
+	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
+
+	device := models.Device{
+		UID:      hex.EncodeToString(uid[:]),
+		Identity: authReq.Identity,
+		TenantID: authReq.TenantID,
+		LastSeen: time.Now(),
+	}
+
+	err = mongostore.DeviceCreate(ctx, device, "")
+	assert.NoError(t, err)
+
+	session := models.Session{
+		Username:      "user",
+		UID:           "uid",
+		DeviceUID:     models.UID(hex.EncodeToString(uid[:])),
+		IPAddress:     "0.0.0.0",
+		Authenticated: true,
+	}
+
+	session2 := models.Session{
+		Username:      "user",
+		UID:           "uid2",
+		DeviceUID:     models.UID(hex.EncodeToString(uid[:])),
+		IPAddress:     "0.0.0.0",
+		Authenticated: true,
+	}
+
+	_, err = mongostore.SessionCreate(ctx, session)
+	assert.NoError(t, err)
+	_, err = mongostore.SessionCreate(ctx, session2)
+	assert.NoError(t, err)
+	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session.UID), "message", 0, 0)
+	assert.NoError(t, err)
+	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session2.UID), "message", 0, 0)
+	assert.NoError(t, err)
+	recorded, count, err := mongostore.SessionGetRecordFrame(ctx, models.UID(session.UID))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, count)
+	assert.NotEmpty(t, recorded)
+	err = mongostore.SessionDeleteRecordFrame(ctx, models.UID(session.UID))
+	assert.NoError(t, err)
+	recorded, count, err = mongostore.SessionGetRecordFrame(ctx, models.UID(session.UID))
+	assert.NoError(t, err)
+	assert.Equal(t, 0, count)
+	assert.Empty(t, recorded)
+	recorded, count, err = mongostore.SessionGetRecordFrame(ctx, models.UID(session2.UID))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, count)
+	assert.NotEmpty(t, recorded)
 }
 
 func TestGetDeviceByName(t *testing.T) {
