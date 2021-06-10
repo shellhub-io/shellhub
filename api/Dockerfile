@@ -48,6 +48,7 @@ RUN go mod download
 
 COPY ./api/entrypoint-dev.sh /entrypoint.sh
 COPY ./.revive.toml /
+COPY ./.golangci.yaml /
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
