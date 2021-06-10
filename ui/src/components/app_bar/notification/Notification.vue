@@ -16,7 +16,10 @@
           v-on="on"
           @click="shown=true"
         >
-          <v-icon>
+          <v-icon
+            class="ml-2 mr-2"
+            :size="defaultSize"
+          >
             notifications
           </v-icon>
         </v-chip>
@@ -102,6 +105,7 @@ export default {
       numberNotifications: 0,
       shown: false,
       inANamespace: false,
+      defaultSize: 24,
     };
   },
 

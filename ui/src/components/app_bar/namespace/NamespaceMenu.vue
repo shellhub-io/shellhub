@@ -28,16 +28,22 @@
               v-on="on"
             >
               <v-icon
+                :size="defaultSize"
                 left
               >
                 mdi-server
               </v-icon>
               <div
                 v-if="!isMobile"
+                class="ml-1 mr-1"
+                :size="defaultSize"
               >
                 {{ namespace.name }}
               </div>
-              <v-icon right>
+              <v-icon
+                :size="defaultSize"
+                right
+              >
                 mdi-chevron-down
               </v-icon>
             </v-chip>
@@ -171,6 +177,7 @@ export default {
       model: true,
       dialog: false,
       displayMenu: false,
+      defaultSize: 24,
       first: false,
     };
   },
