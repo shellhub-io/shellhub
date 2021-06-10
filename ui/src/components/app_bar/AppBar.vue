@@ -40,6 +40,8 @@
 
       <v-chip>
         <v-icon
+          :size="defaultSize"
+          class="ml-1 mr-1"
           @click="toggleChat()"
         >
           help
@@ -53,15 +55,24 @@
       >
         <template #activator="{ on }">
           <v-chip v-on="on">
-            <v-icon left>
+            <v-icon
+              :size="defaultSize"
+              class="ml-1"
+              left
+            >
               mdi-account
             </v-icon>
             <div
               v-if="!isMobile"
+              class="ml-1 mr-1"
             >
               {{ $store.getters["auth/currentUser"] }}
             </div>
-            <v-icon right>
+            <v-icon
+              :size="defaultSize"
+              class="ml-1 mr-1"
+              right
+            >
               mdi-chevron-down
             </v-icon>
           </v-chip>
@@ -119,6 +130,7 @@ export default {
       clipped: false,
       chat: null,
       chatOpen: false,
+      defaultSize: 24,
       menu: [
         {
           title: 'Settings',
