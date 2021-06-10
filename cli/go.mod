@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/satori/go.uuid v1.2.0
 	github.com/shellhub-io/shellhub v0.5.2
 	github.com/shellhub-io/shellhub/api v0.7.0
 	github.com/sirupsen/logrus v1.8.1
