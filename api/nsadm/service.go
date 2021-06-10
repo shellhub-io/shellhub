@@ -7,11 +7,11 @@ import (
 	"errors"
 	"strings"
 
-	uuid "github.com/satori/go.uuid"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -79,7 +79,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	}
 
 	if namespace.TenantID == "" {
-		ns.TenantID = uuid.Must(uuid.NewV4(), nil).String()
+		ns.TenantID = uuid.Generate()
 	}
 
 	if envs.IsEnterprise() {
