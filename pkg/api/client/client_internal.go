@@ -3,7 +3,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -37,8 +36,9 @@ func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, er
 	if len(errs) > 0 {
 		return nil, errs[0]
 	}
+
 	if resp.StatusCode == 404 {
-		return nil, errors.New(NotFoundErr)
+		return nil, ErrNotFound
 	}
 
 	return pubKey, nil
@@ -53,9 +53,10 @@ func (c *client) EvaluateKey(fingerprint string, dev *models.Device) (bool, erro
 		for _, e := range errs {
 			err = multierr.Append(err, e)
 		}
-		return false, err
 
+		return false, err
 	}
+
 	if resp.StatusCode == 200 {
 		return *evaluate, nil
 	}

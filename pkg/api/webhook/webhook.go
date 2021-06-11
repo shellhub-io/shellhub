@@ -20,17 +20,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	ConnectionFailedErr = "Connection failed"
-	ForbiddenErr        = "Not allowed"
-	UnknownErr          = "Unknown error"
+var (
+	ErrConnectionFailed = errors.New("connection failed")
+	ErrForbidden        = errors.New("not allowed")
+	ErrUnknown          = errors.New("unknown error")
 )
 
 type Webhook interface {
 	Connect(m map[string]string) (*IncomingConnectionWebhookResponse, error)
 }
 
-type WebhookOptions struct {
+type Options struct {
 	WebhookURL    string `envconfig:"webhook_url"`
 	WebhookPort   int    `envconfig:"webhook_port"`
 	WebhookScheme string `envconfig:"webhook_scheme"`
@@ -52,7 +52,7 @@ func NewClient() Webhook {
 
 	httpClient := gorequest.New()
 	httpClient.Client = retryClient.StandardClient()
-	opts := WebhookOptions{}
+	opts := Options{}
 	err := envconfig.Process("", &opts)
 	if err != nil {
 		return nil
@@ -98,22 +98,23 @@ func (w *webhookClient) Connect(m map[string]string) (*IncomingConnectionWebhook
 	var res *IncomingConnectionWebhookResponse
 	resp, _, errs := w.http.Post(buildURL(w, "/")).Set(WebhookIDHeader, uuid).Set(WebhookEventHeader, WebhookIncomingConnectionEvent).Set(WebhookSignatureHeader, hex.EncodeToString(signature)).Send(payload).EndStruct(&res)
 	if len(errs) > 0 {
-		return nil, errors.New(ConnectionFailedErr)
+		return nil, ErrConnectionFailed
 	}
 
 	if resp.StatusCode == http.StatusForbidden {
-		return nil, errors.New(ForbiddenErr)
+		return nil, ErrForbidden
 	}
 
 	if resp.StatusCode == http.StatusOK {
 		return res, nil
 	}
 
-	return nil, errors.New(UnknownErr)
+	return nil, ErrUnknown
 }
 
 func buildURL(w *webhookClient, uri string) string {
 	u, _ := url.Parse(fmt.Sprintf("%s://%s:%d", w.scheme, w.host, w.port))
 	u.Path = path.Join(u.Path, uri)
+
 	return u.String()
 }

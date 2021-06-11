@@ -31,13 +31,14 @@ func HandlerWebsocket(ws *websocket.Conn) {
 
 	config := &ssh.ClientConfig{
 		User:            user,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 	}
 
-	if fingerprint != "" && signature != "" {
+	if fingerprint != "" && signature != "" { //nolint:nestif
 		parts := strings.SplitN(user, "@", 2)
 		if len(parts) != 2 {
 			ws.Close()
+
 			return
 		}
 
@@ -50,18 +51,20 @@ func HandlerWebsocket(ws *websocket.Conn) {
 
 		key, err := apiClient.GetPublicKey(fingerprint, device.TenantID)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(err)                          //nolint:forbidigo
 			ws.Write([]byte("Permission denied\r\n")) // nolint:errcheck
 			ws.Close()
+
 			return
 		}
 
 		if ok, err := apiClient.EvaluateKey(fingerprint, device); !ok || err != nil {
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println(err) //nolint:forbidigo
 			}
 			ws.Write([]byte("Permission denied\r\n")) // nolint:errcheck
 			ws.Close()
+
 			return
 		}
 
@@ -72,8 +75,9 @@ func HandlerWebsocket(ws *websocket.Conn) {
 
 		digest, err := base64.StdEncoding.DecodeString(signature)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(err) //nolint:forbidigo
 			ws.Close()
+
 			return
 		}
 
@@ -82,14 +86,16 @@ func HandlerWebsocket(ws *websocket.Conn) {
 			Blob:   digest,
 		})
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(err) //nolint:forbidigo
 			ws.Close()
+
 			return
 		}
 
 		signer, err := ssh.NewSignerFromKey(magicKey)
 		if err != nil {
 			ws.Close()
+
 			return
 		}
 
@@ -100,8 +106,9 @@ func HandlerWebsocket(ws *websocket.Conn) {
 
 	client, err := ssh.Dial("tcp", "localhost:2222", config)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err) //nolint:forbidigo
 		ws.Close()
+
 		return
 	}
 
@@ -115,6 +122,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 	if err != nil {
 		session.Close()
 		ws.Close()
+
 		return
 	}
 
@@ -122,6 +130,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 	if err != nil {
 		session.Close()
 		ws.Close()
+
 		return
 	}
 
@@ -129,6 +138,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 	if err != nil {
 		session.Close()
 		ws.Close()
+
 		return
 	}
 
@@ -136,17 +146,20 @@ func HandlerWebsocket(ws *websocket.Conn) {
 	if err != nil {
 		session.Close()
 		ws.Close()
+
 		return
 	}
 
 	if err := session.RequestPty("xterm", rows, cols, modes); err != nil {
 		session.Close()
 		ws.Close()
+
 		return
 	}
 	if err := session.Shell(); err != nil {
 		session.Close()
 		ws.Close()
+
 		return
 	}
 
@@ -192,11 +205,13 @@ func redirToWs(rd io.Reader, ws *websocket.Conn) error {
 				if ch != utf8.RuneError {
 					end += width
 				}
+
 				break
 			}
 
 			if buflen-end >= 6 {
 				end = nr
+
 				break
 			}
 		}
@@ -235,6 +250,7 @@ func (w *wsconn) keepAlive(ws *websocket.Conn) {
 		} else if _, err = fw.Write([]byte{}); err != nil {
 			return
 		}
+
 		if _, running := <-w.pinger.C; !running {
 			return
 		}

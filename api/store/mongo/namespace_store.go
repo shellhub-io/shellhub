@@ -54,6 +54,7 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 			},
 		}
 	}
+
 	if len(queryMatch) > 0 {
 		query = append(query, queryMatch...)
 	}
@@ -64,6 +65,7 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 		if err != nil {
 			return nil, 0, err
 		}
+
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"members": user.ID}})
@@ -156,6 +158,7 @@ func (s *Store) NamespaceGetByName(ctx context.Context, name string) (*models.Na
 
 func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
 	_, err := s.db.Collection("namespaces").InsertOne(ctx, namespace)
+
 	return namespace, err
 }
 
@@ -169,12 +172,12 @@ func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	}
 
 	collections := []string{"devices", "sessions", "connected_devices", "firewall_rules", "public_keys", "recorded_sessions"}
-
 	for _, collection := range collections {
 		if _, err := s.db.Collection(collection).DeleteMany(ctx, bson.M{"tenant_id": tenantID}); err != nil {
 			return fromMongoError(err)
 		}
 	}
+
 	return nil
 }
 
@@ -207,6 +210,7 @@ func (s *Store) NamespaceAddMember(ctx context.Context, tenantID, ID string) (*m
 	if err != nil {
 		return nil, fromMongoError(err)
 	}
+
 	if result.ModifiedCount == 0 {
 		return nil, ErrDuplicateID
 	}
@@ -237,7 +241,6 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID, ID string) 
 func (s *Store) NamespaceGetFirst(ctx context.Context, ID string) (*models.Namespace, error) {
 	ns := new(models.Namespace)
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": ID}).Decode(&ns); err != nil {
-
 		return nil, fromMongoError(err)
 	}
 
@@ -246,7 +249,6 @@ func (s *Store) NamespaceGetFirst(ctx context.Context, ID string) (*models.Names
 
 func (s *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error {
 	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"settings.session_record": sessionRecord}}); err != nil {
-
 		return fromMongoError(err)
 	}
 
@@ -261,5 +263,6 @@ func (s *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string) 
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenantID}).Decode(&settings); err != nil {
 		return false, fromMongoError(err)
 	}
+
 	return settings.Settings.SessionRecord, nil
 }

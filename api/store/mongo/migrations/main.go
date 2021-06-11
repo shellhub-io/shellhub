@@ -10,36 +10,37 @@ import (
 
 func GenerateMigrations() []migrate.Migration {
 	return []migrate.Migration{
-		migration_1,
-		migration_2,
-		migration_3,
-		migration_4,
-		migration_5,
-		migration_6,
-		migration_7,
-		migration_8,
-		migration_9,
-		migration_10,
-		migration_11,
-		migration_12,
-		migration_13,
-		migration_14,
-		migration_15,
-		migration_16,
-		migration_17,
-		migration_18,
-		migration_19,
-		migration_20,
-		migration_21,
-		migration_22,
-		migration_23,
-		migration_24,
-		migration_25,
-		migration_26,
+		migration1,
+		migration2,
+		migration3,
+		migration4,
+		migration5,
+		migration6,
+		migration7,
+		migration8,
+		migration9,
+		migration10,
+		migration11,
+		migration12,
+		migration13,
+		migration14,
+		migration15,
+		migration16,
+		migration17,
+		migration18,
+		migration19,
+		migration20,
+		migration21,
+		migration22,
+		migration23,
+		migration24,
+		migration25,
+		migration26,
 	}
 }
 
 func renameField(db *mongo.Database, coll, from, to string) error {
 	_, err := db.Collection(coll).UpdateMany(context.Background(), bson.M{}, bson.M{"$rename": bson.M{from: to}})
+
 	return err
 }

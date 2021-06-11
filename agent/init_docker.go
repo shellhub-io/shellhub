@@ -12,5 +12,4 @@ var AgentPlatform = "docker"
 func init() {
 	osauth.DefaultShadowFilename = "/host/etc/shadow"
 	sysinfo.DefaultOSReleaseFilename = "/host/etc/os-release"
-
 }

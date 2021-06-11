@@ -9,7 +9,8 @@ import (
 var workerCmd = &cobra.Command{
 	Use: "worker",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("worker!")
+		fmt.Println("worker!") //nolint:forbidigo
+
 		return nil
 	},
 }

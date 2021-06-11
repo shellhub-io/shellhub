@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var migration_5 = migrate.Migration{
+var migration5 = migrate.Migration{
 	Version: 5,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 5 - Up")

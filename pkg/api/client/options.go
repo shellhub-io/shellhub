@@ -37,6 +37,7 @@ func WithURL(u *url.URL) Opt {
 func WithScheme(scheme string) Opt {
 	return func(c *client) error {
 		c.scheme = scheme
+
 		return nil
 	}
 }
@@ -44,6 +45,7 @@ func WithScheme(scheme string) Opt {
 func WithHost(host string) Opt {
 	return func(c *client) error {
 		c.host = host
+
 		return nil
 	}
 }
@@ -51,6 +53,7 @@ func WithHost(host string) Opt {
 func WithPort(port int) Opt {
 	return func(c *client) error {
 		c.port = port
+
 		return nil
 	}
 }
@@ -58,6 +61,7 @@ func WithPort(port int) Opt {
 func WithLogger(logger *logrus.Logger) Opt {
 	return func(c *client) error {
 		c.logger = logger
+
 		return nil
 	}
 }

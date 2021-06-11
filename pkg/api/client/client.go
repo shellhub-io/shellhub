@@ -18,10 +18,12 @@ import (
 
 const (
 	DeviceUIDHeader = "X-Device-UID"
+)
 
-	ConnectionFailedErr = "Connection failed"
-	NotFoundErr         = "Not found"
-	UnknownErr          = "Unknown error"
+var (
+	ErrConnectionFailed = errors.New("connection failed")
+	ErrNotFound         = errors.New("not found")
+	ErrUnknown          = errors.New("unknown error")
 )
 
 func NewClient(opts ...Opt) Client {
@@ -87,22 +89,23 @@ func (c *client) ListDevices() ([]models.Device, error) {
 func (c *client) GetDevice(uid string) (*models.Device, error) {
 	var device *models.Device
 	resp, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/api/devices/%s", uid))).EndStruct(&device)
-	fmt.Println(buildURL(c, fmt.Sprintf("/api/devices/%s", uid)))
 	if len(errs) > 0 {
-		return nil, errors.New(ConnectionFailedErr)
+		return nil, ErrConnectionFailed
 	}
 
-	if resp.StatusCode == 400 {
-		return nil, errors.New(NotFoundErr)
-	} else if resp.StatusCode == 200 {
+	switch resp.StatusCode {
+	case 400:
+		return nil, ErrNotFound
+	case 200:
 		return device, nil
+	default:
+		return nil, ErrUnknown
 	}
-
-	return nil, errors.New(UnknownErr)
 }
 
 func buildURL(c *client, uri string) string {
 	u, _ := url.Parse(fmt.Sprintf("%s://%s:%d", c.scheme, c.host, c.port))
 	u.Path = path.Join(u.Path, uri)
+
 	return u.String()
 }

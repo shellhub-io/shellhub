@@ -9,19 +9,17 @@ import (
 	"sync"
 	"time"
 
-	sshserver "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
-	"github.com/sirupsen/logrus"
-)
-import (
 	"crypto"
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 
+	sshserver "github.com/gliderlabs/ssh"
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -33,6 +31,7 @@ type sshConn struct {
 
 func (c *sshConn) Close() error {
 	c.closeCallback(c.ctx.SessionID())
+
 	return c.Conn.Close()
 }
 
@@ -110,7 +109,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 	go StartKeepAliveLoop(time.Second*time.Duration(s.keepAliveInterval), session)
 
-	if isPty {
+	if isPty { //nolint:nestif
 		scmd := newShellCmd(s, session.User(), sspty.Term)
 
 		pts, err := startPty(scmd, session, winCh)
@@ -177,13 +176,13 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		go func() {
 			if _, err := io.Copy(stdin, session); err != nil {
-				fmt.Println(err)
+				fmt.Println(err) //nolint:forbidigo
 			}
 		}()
 
 		go func() {
 			if _, err := io.Copy(session, stdout); err != nil {
-				fmt.Println(err)
+				fmt.Println(err) //nolint:forbidigo
 			}
 		}()
 

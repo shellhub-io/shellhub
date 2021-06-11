@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var migration_14 = migrate.Migration{
+var migration14 = migrate.Migration{
 	Version: 14,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 14 - Up")

@@ -16,13 +16,14 @@ package sshd
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/sys/unix"
 	"io"
 	"net"
 	"os"
 	"strings"
 	"unsafe"
+
+	"github.com/sirupsen/logrus"
+	"golang.org/x/sys/unix"
 )
 
 type ExitStatus struct {
@@ -37,7 +38,7 @@ const (
 	DeadProcess = 0x8 // Terminated process
 )
 
-// This function updates the utmp and wtmp files at the start of a user session
+// This function updates the utmp and wtmp files at the start of a user session.
 func utmpStartSession(line, user, remoteAddr string) Utmpx {
 	var u Utmpx
 
@@ -89,10 +90,11 @@ func utmpStartSession(line, user, remoteAddr string) Utmpx {
 
 	updUtmp(u, id)
 	updWtmp(u)
+
 	return u
 }
 
-// This function updates the utmp and wtmp files at the end of a user session
+// This function updates the utmp and wtmp files at the end of a user session.
 func utmpEndSession(u Utmpx) {
 	u.Type = DeadProcess
 	u.User = [32]byte{}
@@ -108,7 +110,7 @@ func utmpEndSession(u Utmpx) {
 }
 
 // This function updates the utmp file by overwriting the record with index
-// id if present; otherwise by appending the new record to the file
+// id if present; otherwise by appending the new record to the file.
 func updUtmp(u Utmpx, id string) {
 	file, err := os.OpenFile(
 		UtmpxFile,
@@ -119,6 +121,7 @@ func updUtmp(u Utmpx, id string) {
 			"file": UtmpxFile,
 			"err":  err,
 		}).Warn("Open failed")
+
 		return
 	}
 
@@ -136,6 +139,7 @@ func updUtmp(u Utmpx, id string) {
 			"file": UtmpxFile,
 			"err":  err,
 		}).Warn("Lock failed")
+
 		return
 	}
 
@@ -149,6 +153,7 @@ func updUtmp(u Utmpx, id string) {
 				"file": UtmpxFile,
 				"err":  err,
 			}).Warn("Null seek failed")
+
 			return
 		}
 
@@ -161,14 +166,15 @@ func updUtmp(u Utmpx, id string) {
 
 		if utID == id {
 			// Required record found, rewind to overwrite it
-			_, err = file.Seek(offset, io.SeekStart)
-			if err != nil {
+			if _, err = file.Seek(offset, io.SeekStart); err != nil {
 				logrus.WithFields(logrus.Fields{
 					"file": UtmpxFile,
 					"err":  err,
 				}).Warn("Back seek failed")
+
 				return
 			}
+
 			break
 		}
 	}
@@ -182,7 +188,7 @@ func updUtmp(u Utmpx, id string) {
 	}
 }
 
-// This function updates the wtmp file by appending the record to the file
+// This function updates the wtmp file by appending the record to the file.
 func updWtmp(u Utmpx) {
 	file, err := os.OpenFile(
 		WtmpxFile,

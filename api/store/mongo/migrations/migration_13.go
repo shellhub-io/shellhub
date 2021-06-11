@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var migration_13 = migrate.Migration{
+var migration13 = migrate.Migration{
 	Version: 13,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 13 - Up")
@@ -85,6 +85,7 @@ var migration_13 = migrate.Migration{
 		if err != nil {
 			return err
 		}
+
 		return nil
 	},
 	Down: func(db *mongo.Database) error {
@@ -108,6 +109,7 @@ var migration_13 = migrate.Migration{
 			return err
 		}
 		_, err := db.Collection("users").Indexes().DropOne(context.TODO(), "tenant_id")
+
 		return err
 	},
 }

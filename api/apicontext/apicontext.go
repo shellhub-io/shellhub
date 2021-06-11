@@ -35,6 +35,7 @@ func (c *Context) Username() *models.Username {
 	if username != "" {
 		return &models.Username{username}
 	}
+
 	return nil
 }
 
@@ -43,6 +44,7 @@ func (c *Context) ID() *models.ID {
 	if ID != "" {
 		return &models.ID{ID}
 	}
+
 	return nil
 }
 
@@ -73,8 +75,10 @@ func UsernameFromContext(ctx context.Context) *models.Username {
 				username = &models.Username{value}
 			}
 		}
+
 		return username
 	}
+
 	return nil
 }
 func IDFromContext(ctx context.Context) *models.ID {
@@ -85,13 +89,15 @@ func IDFromContext(ctx context.Context) *models.ID {
 				ID = &models.ID{value}
 			}
 		}
+
 		return ID
 	}
+
 	return nil
 }
 func Handler(next func(Context) error) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		ctx := context.WithValue(c.Request().Context(), "ctx", c.(*Context))
+		ctx := context.WithValue(c.Request().Context(), "ctx", c.(*Context)) //nolint:revive
 
 		c.SetRequest(c.Request().WithContext(ctx))
 		c.Set("ctx", c.(*Context))

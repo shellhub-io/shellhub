@@ -45,7 +45,7 @@ func validateParameters(data Arguments) error {
 
 	if len(errStrings) > 0 {
 		for _, err := range errStrings {
-			fmt.Println(err)
+			fmt.Println(err) //nolint:forbidigo
 		}
 
 		return ErrFound

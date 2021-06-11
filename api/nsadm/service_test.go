@@ -57,9 +57,9 @@ func TestCreateNamespace(t *testing.T) {
 	ctx := context.TODO()
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
-	env_mock := &env_mocks.Backend{}
-	envs.DefaultBackend = env_mock
-	env_mock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+	envMock := &env_mocks.Backend{}
+	envs.DefaultBackend = envMock
+	envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 
 	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
 	createNamespace := &models.Namespace{

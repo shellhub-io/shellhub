@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var migration_8 = migrate.Migration{
+var migration8 = migrate.Migration{
 	Version: 8,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 8 - Up")
@@ -22,6 +22,7 @@ var migration_8 = migrate.Migration{
 			return err
 		}
 		_, err := db.Collection("sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"recorded": false}})
+
 		return err
 	},
 	Down: func(db *mongo.Database) error {
@@ -30,6 +31,7 @@ var migration_8 = migrate.Migration{
 			return err
 		}
 		_, err := db.Collection("sessions").Indexes().DropOne(context.TODO(), "recorded")
+
 		return err
 	},
 }

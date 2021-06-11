@@ -22,5 +22,6 @@ func (s *Store) LicenseLoad(ctx context.Context) (*models.License, error) {
 
 func (s *Store) LicenseSave(ctx context.Context, license *models.License) error {
 	_, err := s.db.Collection("licenses").InsertOne(ctx, license)
+
 	return fromMongoError(err)
 }

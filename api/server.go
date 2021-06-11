@@ -28,9 +28,9 @@ var serverCmd = &cobra.Command{
 // The values are load from the system environment variables.
 type config struct {
 	// MongoDB connection string (URI format)
-	MongoUri string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+	MongoURI string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
 	// Redis connection stirng (URI format)
-	RedisUri string `envconfig:"redis_uri" default:"redis://redis:6379"`
+	RedisURI string `envconfig:"redis_uri" default:"redis://redis:6379"`
 	// Enable store cache
 	StoreCache bool `envconfig:"store_cache" default:"false"`
 }
@@ -49,7 +49,7 @@ func startServer() error {
 
 	logrus.Info("Connecting to MongoDB")
 
-	clientOptions := options.Client().ApplyURI(cfg.MongoUri)
+	clientOptions := options.Client().ApplyURI(cfg.MongoURI)
 	client, err := mongodriver.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to connect to MongoDB")
@@ -69,7 +69,7 @@ func startServer() error {
 	if cfg.StoreCache {
 		logrus.Info("Using redis as store cache backend")
 
-		cache, err = storecache.NewRedisCache(cfg.RedisUri)
+		cache, err = storecache.NewRedisCache(cfg.RedisURI)
 		if err != nil {
 			logrus.WithError(err).Error("Failed to configure redis store cache")
 		}

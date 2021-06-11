@@ -93,5 +93,4 @@ func TestMigration23(t *testing.T) {
 
 	err = db.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"name": "name.test"}).Decode(&models.Namespace{})
 	assert.EqualError(t, mongo.ErrNoDocuments, err.Error())
-
 }

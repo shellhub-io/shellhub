@@ -14,16 +14,14 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 )
 
-var (
-	upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		Subprotocols:    []string{"binary"},
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
-)
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	Subprotocols:    []string{"binary"},
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 const (
 	DefaultConnectionURL = "/connection"
@@ -59,6 +57,7 @@ func (t *Tunnel) Router() http.Handler {
 		conn, err := upgrader.Upgrade(res, req, nil)
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
+
 			return
 		}
 
@@ -66,6 +65,7 @@ func (t *Tunnel) Router() http.Handler {
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusBadRequest)
 			defer conn.Close()
+
 			return
 		}
 
@@ -113,5 +113,6 @@ func (t *Tunnel) ForwardResponse(resp *http.Response, w http.ResponseWriter) {
 
 func (t *Tunnel) Online() (id string, online bool) {
 	id, online = t.connman.Online()
+
 	return
 }

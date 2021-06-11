@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var migration_25 = migrate.Migration{
+var migration25 = migrate.Migration{
 	Version:     25,
 	Description: "remove devices with no namespaces related",
 	Up: func(db *mongo.Database) error {
@@ -45,10 +45,12 @@ var migration_25 = migrate.Migration{
 		}
 
 		_, err := db.Collection("devices").Aggregate(context.TODO(), query)
+
 		return err
 	},
 	Down: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 25 - Down")
+
 		return nil
 	},
 }

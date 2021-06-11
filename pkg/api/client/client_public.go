@@ -37,7 +37,7 @@ type publicAPI interface {
 func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 	var info *models.Info
 
-	_, _, errs := c.http.Get(buildURL(c, "/info?agent_version=" + agentVersion)).EndStruct(&info)
+	_, _, errs := c.http.Get(buildURL(c, "/info?agent_version="+agentVersion)).EndStruct(&info)
 	if len(errs) > 0 {
 		return nil, errs[0]
 	}
@@ -74,6 +74,7 @@ func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer conn.Close()
 
 	listener := revdial.NewListener(wsconnadapter.New(conn),
 		func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {

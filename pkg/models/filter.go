@@ -17,7 +17,7 @@ func (f *Filter) UnmarshalJSON(data []byte) error {
 		Params: &params,
 	}
 
-	if err := json.Unmarshal([]byte(data), &aux); err != nil {
+	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
 

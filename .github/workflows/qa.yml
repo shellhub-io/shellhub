@@ -19,16 +19,22 @@ jobs:
         include:
           - project: api
             extra_args: ""
+            lint_args: ""
           - project: agent
             extra_args: "-tags docker"
+            lint_args: "--build-tags docker"
           - project: pkg
             extra_args: ""
+            lint_args: ""
           - project: ssh
             extra_args: "-tags internal_api"
+            lint_args: "--build-tags internal_api"
           - project: ui
             extra_args: ""
+            lint_args: ""
           - project: cli
             extra_args: ""
+            lint_args: ""
 
     runs-on: ubuntu-latest
 
@@ -100,6 +106,7 @@ jobs:
       with:
         working-directory: ${{ matrix.project }}
         version: v1.37
+        args: ${{ matrix.lint_args }}
         skip-pkg-cache: true
 
     - name: Set up Node.JS 12.16 [UI]

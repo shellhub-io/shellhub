@@ -176,5 +176,6 @@ func UpdatePendingStatus(c apicontext.Context) error {
 
 		return err
 	}
+
 	return c.JSON(http.StatusOK, nil)
 }

@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var migration_12 = migrate.Migration{
+var migration12 = migrate.Migration{
 	Version: 12,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 12 - Up")
@@ -26,11 +26,13 @@ var migration_12 = migrate.Migration{
 			Options: options.Index().SetName("name").SetUnique(true),
 		}
 		_, err := db.Collection("namespaces").Indexes().CreateOne(context.TODO(), mod)
+
 		return err
 	},
 	Down: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 12 - Down")
 		_, err := db.Collection("namespaces").Indexes().DropOne(context.TODO(), "tenant_id")
+
 		return err
 	},
 }

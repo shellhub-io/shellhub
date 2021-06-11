@@ -30,6 +30,7 @@ func main() {
 	tunnel := httptunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
 	tunnel.ConnectionHandler = func(r *http.Request) (string, error) {
 		uid := r.Header.Get(api.DeviceUIDHeader)
+
 		return uid, nil
 	}
 
@@ -43,18 +44,21 @@ func main() {
 		err := decoder.Decode(&closeRequest)
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusBadRequest)
+
 			return
 		}
 
 		conn, err := tunnel.Dial(context.Background(), closeRequest.Device)
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
+
 			return
 		}
 
 		req, _ = http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", vars["uid"]), nil)
 		if err := req.Write(conn); err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
+
 			return
 		}
 	})

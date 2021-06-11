@@ -6,14 +6,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var migration_2 = migrate.Migration{
+var migration2 = migrate.Migration{
 	Version: 2,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 2 - Up")
+
 		return renameField(db, "sessions", "device", "device_uid")
 	},
 	Down: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 2 - Down")
+
 		return renameField(db, "sessions", "device_uid", "device")
 	},
 }

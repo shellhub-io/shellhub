@@ -36,6 +36,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 )
 
+var ErrDialerClosed = errors.New("revdial.Dialer closed")
+
 // dialerUniqParam is the parameter name of the GET URL form value
 // containing the Dialer's random unique ID.
 const dialerUniqParam = "revdial.dialer"
@@ -85,12 +87,14 @@ func NewDialer(c net.Conn, connPath string) *Dialer {
 	d.pickupPath = connPath + join + dialerUniqParam + "=" + d.uniqID
 	d.register()
 	go d.serve() // nolint:errcheck
+
 	return d
 }
 
 func newUniqID() string {
 	buf := make([]byte, 16)
 	rand.Read(buf) // nolint:errcheck
+
 	return fmt.Sprintf("%x", buf)
 }
 
@@ -115,6 +119,7 @@ func (d *Dialer) Done() <-chan struct{} { return d.donec }
 func (d *Dialer) Close() error {
 	d.online <- false
 	d.closeOnce.Do(d.close)
+
 	return nil
 }
 
@@ -130,7 +135,7 @@ func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
 	select {
 	case d.connReady <- true:
 	case <-d.donec:
-		return nil, errors.New("revdial.Dialer closed")
+		return nil, ErrDialerClosed
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
@@ -142,7 +147,7 @@ func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
 	case err := <-d.pickupFailed:
 		return nil, err
 	case <-d.donec:
-		return nil, errors.New("revdial.Dialer closed")
+		return nil, ErrDialerClosed
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
@@ -170,10 +175,11 @@ func (d *Dialer) serve() error {
 			var msg controlMsg
 			if err := json.Unmarshal(line, &msg); err != nil {
 				log.Printf("revdial.Dialer read invalid JSON: %q: %v", line, err)
+
 				return
 			}
-			switch msg.Command {
-			case "pickup-failed":
+
+			if msg.Command == "pickup-failed" {
 				err := fmt.Errorf("revdial listener failed to pick up connection: %v", msg.Err)
 				select {
 				case d.pickupFailed <- err:
@@ -202,7 +208,8 @@ func (d *Dialer) serve() error {
 			}
 		case <-d.donec:
 			t.Stop()
-			return errors.New("revdial.Dialer closed")
+
+			return ErrDialerClosed
 		}
 	}
 }
@@ -219,11 +226,7 @@ func (d *Dialer) sendMessage(m controlMsg) error {
 		return err
 	}
 
-	if err := d.conn.SetWriteDeadline(time.Time{}); err != nil {
-		return err
-	}
-
-	return nil
+	return d.conn.SetWriteDeadline(time.Time{})
 }
 
 // NewListener returns a new Listener, accepting connections which
@@ -240,6 +243,7 @@ func NewListener(serverConn net.Conn, dialServer func(context.Context, string) (
 		donec: make(chan struct{}),
 	}
 	go ln.run()
+
 	return ln
 }
 
@@ -282,6 +286,7 @@ func (ln *Listener) run() {
 				if _, err := ln.sc.Write(msg); err != nil {
 					log.Printf("revdial.Listener: error writing message to server: %v", err)
 					ln.Close()
+
 					return
 				}
 			}
@@ -298,6 +303,7 @@ func (ln *Listener) run() {
 		var msg controlMsg
 		if err := json.Unmarshal(line, &msg); err != nil {
 			log.Printf("revdial.Listener read invalid JSON: %q: %v", line, err)
+
 			return
 		}
 		switch msg.Command {
@@ -325,8 +331,10 @@ func (ln *Listener) grabConn(path string) {
 	wsConn, resp, err := ln.dial(ctx, path)
 	if err != nil {
 		ln.sendMessage(controlMsg{Command: "pickup-failed", ConnPath: path, Err: err.Error()})
+
 		return
 	}
+	defer wsConn.Close()
 
 	failPickup := func(err error) {
 		wsConn.Close()
@@ -336,6 +344,7 @@ func (ln *Listener) grabConn(path string) {
 
 	if resp.StatusCode != 101 {
 		failPickup(fmt.Errorf("non-101 response %v", resp.Status))
+
 		return
 	}
 
@@ -349,6 +358,7 @@ func (ln *Listener) grabConn(path string) {
 func (ln *Listener) Closed() bool {
 	ln.mu.Lock()
 	defer ln.mu.Unlock()
+
 	return ln.closed
 }
 
@@ -362,8 +372,10 @@ func (ln *Listener) Accept() (net.Conn, error) {
 		if err != nil && !closed {
 			return nil, fmt.Errorf("revdial: Listener closed; %v", err)
 		}
+
 		return nil, ErrListenerClosed
 	}
+
 	return c, nil
 }
 
@@ -382,6 +394,7 @@ func (ln *Listener) Close() error {
 	ln.closed = true
 	close(ln.connc)
 	close(ln.donec)
+
 	return nil
 }
 
@@ -407,12 +420,14 @@ func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 		dmapMu.Unlock()
 		if !ok {
 			http.Error(w, "unknown dialer", http.StatusBadRequest)
+
 			return
 		}
 
 		wsConn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+
 			return
 		}
 

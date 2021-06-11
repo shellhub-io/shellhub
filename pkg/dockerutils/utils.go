@@ -7,7 +7,7 @@ import (
 	"regexp"
 )
 
-// CurrentContainerID returns the current running container ID
+// CurrentContainerID returns the current running container ID.
 func CurrentContainerID() (string, error) {
 	fCgroup, err := os.Open("/proc/self/cgroup")
 	if err != nil {
@@ -38,5 +38,6 @@ func CurrentContainerID() (string, error) {
 
 func IsRunningInDocker() bool {
 	_, err := os.Stat("/.dockerenv")
+
 	return err == nil
 }

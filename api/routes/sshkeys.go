@@ -78,6 +78,7 @@ func CreatePublicKey(c apicontext.Context) error {
 		if err == sshkeys.ErrDuplicateFingerprint {
 			return echo.NewHTTPError(http.StatusConflict, err.Error())
 		}
+
 		return err
 	}
 

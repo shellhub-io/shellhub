@@ -11,7 +11,7 @@ import (
 	"syscall"
 )
 
-var ErrNoInterfaceFound = errors.New("No interface found")
+var ErrNoInterfaceFound = errors.New("no interface found")
 
 func PrimaryInterface() (*net.Interface, error) {
 	interfaces, err := net.Interfaces()
@@ -66,5 +66,6 @@ func PrimaryInterface() (*net.Interface, error) {
 
 func readSysFs(iface, file string) (string, error) {
 	data, err := ioutil.ReadFile(filepath.Join("/sys/class/net", iface, file))
+
 	return strings.TrimSpace(string(data)), err
 }

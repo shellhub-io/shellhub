@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/shellhub-io/shellhub/pkg/revdial"
 )
 
 type Tunnel struct {
@@ -24,7 +23,7 @@ func NewTunnel() *Tunnel {
 		srv: &http.Server{
 			Handler: router,
 			ConnContext: func(ctx context.Context, c net.Conn) context.Context {
-				return context.WithValue(ctx, "http-conn", c)
+				return context.WithValue(ctx, "http-conn", c) //nolint:revive
 			},
 		},
 		connHandler: func(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +43,7 @@ func NewTunnel() *Tunnel {
 	return t
 }
 
-// Listen to reverse listener
-func (t *Tunnel) Listen(l *revdial.Listener) error {
+// Listen to reverse listener.
+func (t *Tunnel) Listen(l net.Listener) error {
 	return t.srv.Serve(l)
 }

@@ -132,11 +132,13 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 
 func (s *Store) SessionSetAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
 	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"authenticated": authenticated}})
+
 	return fromMongoError(err)
 }
 
 func (s *Store) SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error {
 	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": recorded}})
+
 	return fromMongoError(err)
 }
 
@@ -210,6 +212,7 @@ func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error 
 	}
 
 	_, err = s.db.Collection("active_sessions").DeleteMany(ctx, bson.M{"uid": session.UID})
+
 	return fromMongoError(err)
 }
 
@@ -236,11 +239,13 @@ func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, re
 
 func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
 	_, err := s.db.Collection("sessions").UpdateMany(ctx, bson.M{"device_uid": oldUID}, bson.M{"$set": bson.M{"device_uid": newUID}})
+
 	return fromMongoError(err)
 }
 
 func (s *Store) SessionDeleteRecordFrame(ctx context.Context, uid models.UID) error {
 	_, err := s.db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{"uid": uid})
+
 	return fromMongoError(err)
 }
 
@@ -253,7 +258,7 @@ func (s *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]mo
 		},
 	}
 
-	//Only match for the respective tenant if requested
+	// Only match for the respective tenant if requested
 	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
@@ -294,5 +299,6 @@ func (s *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]mo
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return sessionRecord, count, nil
 }

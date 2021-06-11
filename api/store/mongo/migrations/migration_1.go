@@ -6,14 +6,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var migration_1 = migrate.Migration{
+var migration1 = migrate.Migration{
 	Version: 1,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 1 - Up")
+
 		return nil
 	},
 	Down: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 1 - Down")
+
 		return nil
 	},
 }

@@ -14,7 +14,7 @@ import (
 func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
 	nscommand, _ := nsenterCommandWrapper(u.UID, u.GID, fmt.Sprintf("/host/%s", u.HomeDir), command...)
 
-	cmd := exec.Command(nscommand[0], nscommand[1:]...)
+	cmd := exec.Command(nscommand[0], nscommand[1:]...) //nolint:gosec
 	cmd.Env = []string{
 		"TERM=" + term,
 		"HOME=" + u.HomeDir,
