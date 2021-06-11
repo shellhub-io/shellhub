@@ -10,7 +10,7 @@ import (
 
 func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		ctx := context.WithValue(c.Request().Context(), "ctx", c.(*apicontext.Context))
+		ctx := context.WithValue(c.Request().Context(), "ctx", c.(*apicontext.Context)) //nolint:revive
 
 		id := apicontext.IDFromContext(ctx)
 		tenant := apicontext.TenantFromContext(ctx)

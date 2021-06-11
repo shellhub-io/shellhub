@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// aggregateCount takes a pipeline and count the results
+// aggregateCount takes a pipeline and count the results.
 func aggregateCount(ctx context.Context, coll *mongo.Collection, pipeline []bson.M) (int, error) {
 	resp := struct {
 		Count int `bson:"count"`
@@ -36,7 +36,7 @@ func aggregateCount(ctx context.Context, coll *mongo.Collection, pipeline []bson
 	return resp.Count, nil
 }
 
-// buildFilterQuery builds a query based on filters
+// buildFilterQuery builds a query based on filters.
 func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	var queryMatch []bson.M
 	var queryFilter []bson.M
@@ -121,7 +121,7 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	return queryMatch, nil
 }
 
-// buildPaginationQuery builds a query with pagination to limit the number of returned results
+// buildPaginationQuery builds a query with pagination to limit the number of returned results.
 func buildPaginationQuery(pagination paginator.Query) []bson.M {
 	if pagination.PerPage == -1 {
 		return nil

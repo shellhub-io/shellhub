@@ -14,8 +14,8 @@ import (
 )
 
 type config struct {
-	MongoUri   string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
-	RedisUri   string `envconfig:"redis_uri" default:"redis://redis:6379"`
+	MongoURI   string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+	RedisURI   string `envconfig:"redis_uri" default:"redis://redis:6379"`
 	StoreCache bool   `envconfig:"store_cache" default:"false"`
 }
 
@@ -26,7 +26,7 @@ func main() {
 		log.Error((err.Error()))
 	}
 
-	client, err := mgo.Connect(context.TODO(), options.Client().ApplyURI(cfg.MongoUri))
+	client, err := mgo.Connect(context.TODO(), options.Client().ApplyURI(cfg.MongoURI))
 	if err != nil {
 		log.Error(err)
 	}
@@ -34,7 +34,7 @@ func main() {
 	var cache storecache.Cache
 
 	if cfg.StoreCache {
-		cache, err = storecache.NewRedisCache(cfg.RedisUri)
+		cache, err = storecache.NewRedisCache(cfg.RedisURI)
 		log.Error(err)
 	} else {
 		cache = storecache.NewNullCache()
@@ -57,7 +57,7 @@ func main() {
 				return err
 			}
 
-			fmt.Println("User added: ", username)
+			fmt.Println("User added: ", username) //nolint:forbidigo
 
 			return nil
 		},
@@ -82,9 +82,9 @@ func main() {
 					return err
 				}
 
-				fmt.Println("Namespace added: ", ns.Name)
-				fmt.Println("Owner: ", ns.Owner)
-				fmt.Println("Tenant ID: ", ns.TenantID)
+				fmt.Println("Namespace added: ", ns.Name) //nolint:forbidigo
+				fmt.Println("Owner: ", ns.Owner)          //nolint:forbidigo
+				fmt.Println("Tenant ID: ", ns.TenantID)   //nolint:forbidigo
 
 				return nil
 			},
@@ -103,8 +103,8 @@ func main() {
 					return err
 				}
 
-				fmt.Println("User: ", ns.Owner)
-				fmt.Println("added to namespace: ", ns.Name)
+				fmt.Println("User: ", ns.Owner)              //nolint:forbidigo
+				fmt.Println("added to namespace: ", ns.Name) //nolint:forbidigo
 
 				return nil
 			},
@@ -121,7 +121,7 @@ func main() {
 					return err
 				}
 
-				fmt.Println("Namespace deleted")
+				fmt.Println("Namespace deleted") //nolint:forbidigo
 
 				return nil
 			},
@@ -138,7 +138,7 @@ func main() {
 					return err
 				}
 
-				fmt.Println("User deleted")
+				fmt.Println("User deleted") //nolint:forbidigo
 
 				return nil
 			},
@@ -157,8 +157,8 @@ func main() {
 					return err
 				}
 
-				fmt.Println("User: ", ns.Owner)
-				fmt.Println("removed from namespace: ", ns.Name)
+				fmt.Println("User: ", ns.Owner)                  //nolint:forbidigo
+				fmt.Println("removed from namespace: ", ns.Name) //nolint:forbidigo
 
 				return nil
 			},
@@ -176,7 +176,7 @@ func main() {
 					return err
 				}
 
-				fmt.Println("Password changed")
+				fmt.Println("Password changed") //nolint:forbidigo
 
 				return nil
 			},

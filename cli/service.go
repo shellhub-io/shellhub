@@ -67,7 +67,7 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 		}
 
 		for _, err := range errStrings {
-			fmt.Println(err)
+			fmt.Println(err) //nolint:forbidigo
 		}
 
 		return "", ErrCreateNewUser

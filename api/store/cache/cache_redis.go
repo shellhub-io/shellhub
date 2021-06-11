@@ -14,7 +14,7 @@ type redisCache struct {
 
 var _ Cache = &redisCache{}
 
-// NewRedisCache creates and returns a new redis cache
+// NewRedisCache creates and returns a new redis cache.
 func NewRedisCache(uri string) (Cache, error) {
 	opt, err := redis.ParseURL(uri)
 	if err != nil {
@@ -28,8 +28,8 @@ func NewRedisCache(uri string) (Cache, error) {
 	}, nil
 }
 
-// Get gets the cache value for the given key
-// NOTE: missing key is not an error
+// Get gets the cache value for the given key.
+// NOTE: missing key is not an error.
 func (c *redisCache) Get(ctx context.Context, key string, value interface{}) error {
 	err := c.cache.Get(ctx, key, value)
 	if err == rediscache.ErrCacheMiss {
@@ -39,12 +39,12 @@ func (c *redisCache) Get(ctx context.Context, key string, value interface{}) err
 	return err
 }
 
-// Set puts value into cache with key and expire time
+// Set puts value into cache with key and expire time.
 func (c *redisCache) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
 	return c.cache.Set(&rediscache.Item{Ctx: ctx, Key: key, Value: value, TTL: ttl})
 }
 
-// Delete deletes cached value by given key
+// Delete deletes cached value by given key.
 func (c *redisCache) Delete(ctx context.Context, key string) error {
 	if err := c.cache.Get(ctx, key, nil); err == rediscache.ErrCacheMiss {
 		return nil

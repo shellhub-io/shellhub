@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rsa"
+	"net"
 	"net/url"
 	"os"
 	"runtime"
@@ -12,7 +13,6 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/revdial"
 )
 
 type Agent struct {
@@ -43,7 +43,7 @@ func NewAgent(opts *ConfigOptions) (*Agent, error) {
 	}, nil
 }
 
-// initialize initializes agent
+// initialize initializes agent.
 func (a *Agent) initialize() error {
 	if err := a.generateDeviceIdentity(); err != nil {
 		return errors.Wrap(err, "failed to generate device identity")
@@ -86,10 +86,11 @@ func (a *Agent) generatePrivateKey() error {
 func (a *Agent) readPublicKey() error {
 	key, err := keygen.ReadPublicKey(a.opts.PrivateKey)
 	a.pubKey = key
+
 	return err
 }
 
-// generateDeviceIdentity generates device identity
+// generateDeviceIdentity generates device identity.
 func (a *Agent) generateDeviceIdentity() error {
 	iface, err := sysinfo.PrimaryInterface()
 	if err != nil {
@@ -103,11 +104,11 @@ func (a *Agent) generateDeviceIdentity() error {
 	return nil
 }
 
-// loadDeviceInfo load some device information
+// loadDeviceInfo load some device information.
 func (a *Agent) loadDeviceInfo() error {
 	osrelease, err := sysinfo.GetOSRelease()
 	if err != nil {
-		return nil
+		return err
 	}
 
 	a.Info = &models.DeviceInfo{
@@ -121,7 +122,7 @@ func (a *Agent) loadDeviceInfo() error {
 	return nil
 }
 
-// checkUpdate check for agent updates
+// checkUpdate check for agent updates.
 func (a *Agent) checkUpdate() (*semver.Version, error) {
 	info, err := a.cli.GetInfo(AgentVersion)
 	if err != nil {
@@ -131,14 +132,15 @@ func (a *Agent) checkUpdate() (*semver.Version, error) {
 	return semver.NewVersion(info.Version)
 }
 
-// probeServerInfo probe server information
+// probeServerInfo probe server information.
 func (a *Agent) probeServerInfo() error {
 	info, err := a.cli.GetInfo(AgentVersion)
 	a.serverInfo = info
+
 	return err
 }
 
-// authorize send auth request to the server
+// authorize send auth request to the server.
 func (a *Agent) authorize() error {
 	authData, err := a.cli.AuthDevice(&models.DeviceAuthRequest{
 		Info:     a.Info,
@@ -156,6 +158,6 @@ func (a *Agent) authorize() error {
 	return err
 }
 
-func (a *Agent) newReverseListener() (*revdial.Listener, error) {
+func (a *Agent) newReverseListener() (net.Listener, error) {
 	return a.cli.NewReverseListener(a.authData.Token)
 }

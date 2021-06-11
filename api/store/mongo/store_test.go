@@ -520,17 +520,17 @@ func TestSetSessionRecorded(t *testing.T) {
 	err = mongostore.SessionSetRecorded(ctx, models.UID(session.UID), status)
 	assert.NoError(t, err)
 
-	returned_session, err := mongostore.SessionGet(ctx, models.UID(session.UID))
+	returnedSession, err := mongostore.SessionGet(ctx, models.UID(session.UID))
 	assert.NoError(t, err)
-	assert.Equal(t, returned_session.Recorded, status)
+	assert.Equal(t, returnedSession.Recorded, status)
 
 	status = true
 	err = mongostore.SessionSetRecorded(ctx, models.UID(session.UID), status)
 	assert.NoError(t, err)
 
-	returned_session, err = mongostore.SessionGet(ctx, models.UID(session.UID))
+	returnedSession, err = mongostore.SessionGet(ctx, models.UID(session.UID))
 	assert.NoError(t, err)
-	assert.Equal(t, returned_session.Recorded, session.Recorded)
+	assert.Equal(t, returnedSession.Recorded, session.Recorded)
 }
 
 func TestKeepAliveSession(t *testing.T) {
@@ -1336,14 +1336,14 @@ func TestUserGetByID(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertMany(ctx, nss)
 	assert.NoError(t, err)
 
-	us, count_ns, err := mongostore.UserGetByID(ctx, user.ID, true)
+	us, countNs, err := mongostore.UserGetByID(ctx, user.ID, true)
 	assert.NoError(t, err)
-	assert.Equal(t, count_ns, len(namespacesOwner))
+	assert.Equal(t, countNs, len(namespacesOwner))
 	assert.Equal(t, us, &user)
 
-	us, count_ns, err = mongostore.UserGetByID(ctx, user.ID, false)
+	us, countNs, err = mongostore.UserGetByID(ctx, user.ID, false)
 	assert.NoError(t, err)
-	assert.Equal(t, count_ns, 0)
+	assert.Equal(t, countNs, 0)
 	assert.Equal(t, us, &user)
 }
 

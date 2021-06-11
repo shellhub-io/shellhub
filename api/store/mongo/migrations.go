@@ -5,7 +5,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store/mongo/migrations"
 	"github.com/sirupsen/logrus"
-	"github.com/square/mongo-lock"
+	lock "github.com/square/mongo-lock"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -22,9 +22,9 @@ func ApplyMigrations(db *mongo.Database) error {
 
 	logrus.Info("Locking the resource migrations")
 
-	lockId := "0"
+	lockID := "0"
 
-	if err := lockClient.XLock(context.TODO(), "migrations", lockId, lock.LockDetails{}); err != nil {
+	if err := lockClient.XLock(context.TODO(), "migrations", lockID, lock.LockDetails{}); err != nil {
 		logrus.WithError(err).Fatal("Failed to lock the migrations")
 	}
 
@@ -32,7 +32,7 @@ func ApplyMigrations(db *mongo.Database) error {
 
 	logrus.Info("Unlocking the resource migrations")
 
-	if _, err := lockClient.Unlock(context.TODO(), lockId); err != nil {
+	if _, err := lockClient.Unlock(context.TODO(), lockID); err != nil {
 		logrus.WithError(err).Fatal("Failed to unlock the migrations")
 	}
 

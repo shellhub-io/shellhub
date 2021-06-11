@@ -97,6 +97,7 @@ func (s *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.F
 	}
 
 	r, err := s.FirewallRuleGet(ctx, id)
+
 	return r, fromMongoError(err)
 }
 

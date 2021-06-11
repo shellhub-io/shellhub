@@ -25,7 +25,7 @@ func TestUpdateDataUser(t *testing.T) {
 
 	Err := errors.New("conflict")
 
-	// verifies existant username only
+	// verifies existent username only
 	mock.On("UserGetByID", ctx, updateUser1.ID, false).Return(user1, 0, nil).Once()
 	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(user2, nil).Once()
 	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(nil, Err).Once()
@@ -36,7 +36,7 @@ func TestUpdateDataUser(t *testing.T) {
 
 	updateUser1 = &models.User{Name: "name", Email: "user2@email.com", Username: user2.Username, ID: "id1"}
 
-	// verifies existant email and username only
+	// verifies existent email and username only
 	mock.On("UserGetByID", ctx, updateUser1.ID, false).Return(user1, 0, nil).Once()
 	mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(user2, nil).Once()
 	mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(user2, nil).Once()

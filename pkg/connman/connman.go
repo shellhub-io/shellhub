@@ -45,6 +45,7 @@ func (m *ConnectionManager) Dial(ctx context.Context, key string) (net.Conn, err
 	dialer, ok := m.dialers[key]
 	if !ok {
 		m.lock.RUnlock()
+
 		return nil, ErrNoConnection
 	}
 	m.lock.RUnlock()
@@ -56,5 +57,6 @@ func (m *ConnectionManager) Online() (id string, online bool) {
 	status := <-m.status
 	id = status.id
 	online = status.online
+
 	return
 }

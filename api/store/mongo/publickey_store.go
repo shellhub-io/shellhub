@@ -17,7 +17,6 @@ func (s *Store) PublicKeyGet(ctx context.Context, fingerprint, tenant string) (*
 		}
 	} else {
 		if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint}).Decode(&pubKey); err != nil {
-
 			return nil, fromMongoError(err)
 		}
 	}
@@ -77,8 +76,8 @@ func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) erro
 	}
 
 	_, err := s.db.Collection("public_keys").InsertOne(ctx, key)
-	return fromMongoError(err)
 
+	return fromMongoError(err)
 }
 
 func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
@@ -89,7 +88,6 @@ func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint, tenant string,
 	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint}, bson.M{"$set": key}); err != nil {
 		if err != nil {
 			return nil, fromMongoError(err)
-
 		}
 
 		return nil, err
@@ -100,5 +98,6 @@ func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint, tenant string,
 
 func (s *Store) PublicKeyDelete(ctx context.Context, fingerprint, tenant string) error {
 	_, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenant})
+
 	return err
 }

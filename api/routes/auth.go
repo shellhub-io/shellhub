@@ -19,7 +19,7 @@ const (
 	AuthDeviceURLV2  = "/auth/device"
 	AuthUserURL      = "/login"
 	AuthUserURLV2    = "/auth/user"
-	AuthUserTokenURL = "/auth/token/:tenant"
+	AuthUserTokenURL = "/auth/token/:tenant" //nolint:gosec
 	AuthPublicKeyURL = "/auth/ssh"
 )
 
@@ -117,6 +117,7 @@ func AuthGetToken(c apicontext.Context) error {
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
+
 	return c.JSON(http.StatusOK, res)
 }
 
@@ -132,6 +133,7 @@ func AuthSwapToken(c apicontext.Context) error {
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
+
 	return c.JSON(http.StatusOK, res)
 }
 

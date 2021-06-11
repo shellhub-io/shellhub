@@ -21,7 +21,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var ErrInvalidSessionTarget = errors.New("Invalid session target")
+var ErrInvalidSessionTarget = errors.New("invalid session target")
 
 type Session struct {
 	session       sshserver.Session
@@ -152,6 +152,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			"session": s.UID,
 			"err":     err,
 		}).Warning("Failed to connect to forwarding")
+
 		return err
 	}
 
@@ -165,7 +166,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 
 	pty, winCh, isPty := s.session.Pty()
 
-	if isPty {
+	if isPty { //nolint:nestif
 		err = client.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, ssh.TerminalModes{})
 		if err != nil {
 			return err
@@ -320,11 +321,13 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 				"session": s.UID,
 				"err":     err,
 			}).Error("Failed to start session raw command")
+
 			return nil
 		}
 
 		<-done
 	}
+
 	return nil
 }
 

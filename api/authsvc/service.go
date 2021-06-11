@@ -124,7 +124,6 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	namespace, err := s.store.NamespaceGetFirst(ctx, user.ID)
@@ -156,6 +155,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		if err != nil {
 			return nil, err
 		}
+
 		return &models.UserAuthResponse{
 			Token:  tokenStr,
 			Name:   user.Name,
@@ -202,6 +202,7 @@ func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuth
 	if err != nil {
 		return nil, err
 	}
+
 	return &models.UserAuthResponse{
 		Token:  tokenStr,
 		Name:   user.Name,
@@ -269,6 +270,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 			if err != nil {
 				return nil, err
 			}
+
 			return &models.UserAuthResponse{
 				Token:  tokenStr,
 				Name:   user.Name,
@@ -296,6 +298,7 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 		if err == store.ErrNoDocuments {
 			return nil, ErrUnauthorized
 		}
+
 		return nil, err
 	}
 
@@ -308,6 +311,7 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 		Email:  user.Email,
 	}, nil
 }
+
 func (s *service) PublicKey() *rsa.PublicKey {
 	return s.pubKey
 }

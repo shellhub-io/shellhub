@@ -10,11 +10,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var migration_19 = migrate.Migration{
+var migration19 = migrate.Migration{
 	Version: 19,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 19 - Up")
 		_, err := db.Collection("public_keys").Indexes().DropOne(context.TODO(), "fingerprint")
+
 		return err
 	},
 	Down: func(db *mongo.Database) error {
@@ -24,6 +25,7 @@ var migration_19 = migrate.Migration{
 			Options: options.Index().SetName("fingerprint").SetUnique(true),
 		}
 		_, err := db.Collection("public_keys").Indexes().CreateOne(context.TODO(), mod)
+
 		return err
 	},
 }

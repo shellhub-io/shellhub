@@ -145,6 +145,7 @@ func (dbs *DBServer) monitor() error {
 
 		panic("mongod container died unexpectedly")
 	}
+
 	return nil
 }
 
@@ -159,13 +160,13 @@ func (dbs *DBServer) monitor() error {
 func (dbs *DBServer) Stop() {
 	if dbs.client != nil {
 		if err := dbs.client.Disconnect(dbs.Ctx); err != nil {
-			panic("fail to disconnect the datbase")
+			panic("fail to disconnect the database")
 		}
 
 		dbs.client = nil
 	}
 
-	if dbs.server != nil {
+	if dbs.server != nil { //nolint:nestif
 		dbs.tomb.Kill(nil)
 
 		// Windows doesn't support Interrupt
@@ -196,6 +197,7 @@ func (dbs *DBServer) Client() *mongo.Client {
 	if dbs.server == nil {
 		dbs.start()
 	}
+
 	if dbs.client == nil {
 		var err error
 
@@ -212,6 +214,7 @@ func (dbs *DBServer) Client() *mongo.Client {
 			panic("cant connect")
 		}
 	}
+
 	return dbs.client
 }
 

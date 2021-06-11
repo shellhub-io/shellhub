@@ -13,6 +13,8 @@ import (
 // an adapter for representing WebSocket connection as a net.Conn
 // some caveats apply: https://github.com/gorilla/websocket/issues/441
 
+var ErrUnexpectedMessageType = errors.New("unexpected websocket message type")
+
 type Adapter struct {
 	conn       *websocket.Conn
 	readMutex  sync.Mutex
@@ -38,7 +40,7 @@ func (a *Adapter) Read(b []byte) (int, error) {
 		}
 
 		if messageType != websocket.BinaryMessage {
-			return 0, errors.New("unexpected websocket message type")
+			return 0, ErrUnexpectedMessageType
 		}
 
 		a.reader = reader
@@ -49,7 +51,7 @@ func (a *Adapter) Read(b []byte) (int, error) {
 		a.reader = nil
 
 		// EOF for the current Websocket frame, more will probably come so..
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			// .. we must hide this from the caller since our semantics are a
 			// stream of bytes across many frames
 			err = nil

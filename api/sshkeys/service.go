@@ -18,7 +18,7 @@ import (
 )
 
 var ErrInvalidFormat = errors.New("invalid format")
-var ErrDuplicateFingerprint = errors.New("This fingerprint already exits")
+var ErrDuplicateFingerprint = errors.New("this fingerprint already exits")
 
 type Service interface {
 	EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
@@ -61,7 +61,7 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
 	key.CreatedAt = clock.Now()
 
-	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data)
+	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint:dogsled
 	if err != nil {
 		return ErrInvalidFormat
 	}

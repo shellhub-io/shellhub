@@ -20,6 +20,7 @@ func (f *FirewallRuleFields) Validate() error {
 
 	_ = v.RegisterValidation("regexp", func(fl validator.FieldLevel) bool {
 		_, err := regexp.Compile(fl.Field().String())
+
 		return err == nil
 	})
 

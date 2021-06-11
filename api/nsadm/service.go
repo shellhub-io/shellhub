@@ -21,7 +21,7 @@ var (
 	ErrNamespaceNotFound = errors.New("namespace not found")
 	ErrDuplicateID       = errors.New("user already member of this namespace")
 	ErrConflictName      = errors.New("this name already exists")
-	ErrInvalidFormat     = errors.New("Invalid name format")
+	ErrInvalidFormat     = errors.New("invalid name format")
 )
 
 type Service interface {
@@ -53,7 +53,7 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 
 	var filter []models.Filter
 
-	if err := json.Unmarshal([]byte(raw), &filter); len(raw) > 0 && err != nil {
+	if err := json.Unmarshal(raw, &filter); len(raw) > 0 && err != nil {
 		return nil, 0, err
 	}
 
@@ -108,7 +108,7 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 	return s.store.NamespaceGet(ctx, tenantID)
 }
 
-func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerId string) error {
+func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerID string) error {
 	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err == store.ErrNoDocuments {
 		return ErrNamespaceNotFound
@@ -118,7 +118,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerId string)
 		return err
 	}
 
-	user, _, err := s.store.UserGetByID(ctx, ownerId, false)
+	user, _, err := s.store.UserGetByID(ctx, ownerID, false)
 	if err == store.ErrNoDocuments {
 		return ErrUnauthorized
 	}
@@ -158,6 +158,7 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 		member := models.Member{ID: memberID.(string), Name: user.Username}
 		members = append(members, member)
 	}
+
 	return members, nil
 }
 

@@ -57,6 +57,7 @@ func (d *dockerUpdater) ApplyUpdate(v *semver.Version) error {
 
 	image, _ := container.splitImageVersion()
 	_, err = d.updateContainer(container, fmt.Sprintf("%s:%s", image, v.Original()), "", true)
+
 	return err
 }
 
@@ -159,10 +160,11 @@ func (d *dockerUpdater) stopContainer(container *dockerContainer) error {
 
 	opts := types.ContainerRemoveOptions{Force: true, RemoveVolumes: true}
 	err := d.api.ContainerRemove(ctx, container.info.ID, opts)
+
 	return err
 }
 
-func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name string, parent bool) (*dockerContainer, error) {
+func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name string, parent bool) (*dockerContainer, error) { //nolint:unparam
 	ctx := context.Background()
 
 	// Clone container container config and update the image name
@@ -227,6 +229,7 @@ func replaceOrAppendEnvValues(defaults, overrides []string) []string {
 			if i, exists := cache[value]; exists {
 				defaults[i] = "" // Used to indicate it should be removed
 			}
+
 			continue
 		}
 

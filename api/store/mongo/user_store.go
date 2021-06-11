@@ -84,6 +84,7 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 
 func (s *Store) UserCreate(ctx context.Context, user *models.User) error {
 	_, err := s.db.Collection("users").InsertOne(ctx, user)
+
 	return fromMongoError(err)
 }
 
@@ -113,10 +114,9 @@ func (s *Store) UserGetByID(ctx context.Context, ID string, ns bool) (*models.Us
 
 	if err != nil {
 		return nil, 0, err
-
 	}
-	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
 
+	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
 		return nil, 0, fromMongoError(err)
 	}
 
@@ -192,6 +192,7 @@ func (s *Store) UserUpdateData(ctx context.Context, data *models.User, ID string
 	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"name": data.Name, "username": data.Username, "email": data.Email}}); err != nil {
 		return fromMongoError(err)
 	}
+
 	return nil
 }
 
@@ -323,5 +324,6 @@ func (s *Store) UserDelete(ctx context.Context, ID string) error {
 			}
 		}
 	}
+
 	return fromMongoError(err)
 }

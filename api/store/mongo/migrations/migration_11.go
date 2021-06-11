@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var migration_11 = migrate.Migration{
+var migration11 = migrate.Migration{
 	Version: 11,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 11 - Up")
@@ -28,6 +28,7 @@ var migration_11 = migrate.Migration{
 	Down: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 11 - Down")
 		_, err := db.Collection("private_keys").Indexes().DropOne(context.TODO(), "ttl")
+
 		return err
 	},
 }

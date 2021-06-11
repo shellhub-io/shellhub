@@ -37,6 +37,7 @@ func openPty(c *exec.Cmd) (*os.File, *os.File, error) {
 
 	if err := c.Start(); err != nil {
 		_ = ptmx.Close()
+
 		return nil, nil, err
 	}
 

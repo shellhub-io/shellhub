@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var migration_6 = migrate.Migration{
+var migration6 = migrate.Migration{
 	Version: 6,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 6 - Up")
@@ -22,6 +22,7 @@ var migration_6 = migrate.Migration{
 			return err
 		}
 		_, err := db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"status": "accepted"}})
+
 		return err
 	},
 	Down: func(db *mongo.Database) error {
@@ -30,6 +31,7 @@ var migration_6 = migrate.Migration{
 			return err
 		}
 		_, err := db.Collection("status").Indexes().DropOne(context.TODO(), "status")
+
 		return err
 	},
 }

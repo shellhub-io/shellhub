@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var migration_24 = migrate.Migration{
+var migration24 = migrate.Migration{
 	Version:     24,
 	Description: "convert names and emails to lowercase",
 	Up: func(db *mongo.Database) error {
@@ -33,6 +33,7 @@ var migration_24 = migrate.Migration{
 	},
 	Down: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 24 - Down")
+
 		return nil
 	},
 }

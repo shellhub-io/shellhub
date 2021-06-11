@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var migration_7 = migrate.Migration{
+var migration7 = migrate.Migration{
 	Version: 7,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 7 - Up")
@@ -27,6 +27,7 @@ var migration_7 = migrate.Migration{
 			Options: options.Index().SetName("message").SetUnique(false),
 		}
 		_, err := db.Collection("recorded_sessions").Indexes().CreateOne(context.TODO(), mod)
+
 		return err
 	},
 	Down: func(db *mongo.Database) error {
@@ -41,6 +42,7 @@ var migration_7 = migrate.Migration{
 			return err
 		}
 		_, err := db.Collection("recorded_sessions").Indexes().DropOne(context.TODO(), "message")
+
 		return err
 	},
 }

@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var migration_9 = migrate.Migration{
+var migration9 = migrate.Migration{
 	Version: 9,
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 9 - Up")
@@ -38,6 +38,7 @@ var migration_9 = migrate.Migration{
 
 	Down: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 9 - Down")
+
 		return nil
 	},
 }

@@ -5,6 +5,7 @@ import (
 
 	"crypto/sha256"
 	"encoding/hex"
+
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/user"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -12,7 +13,7 @@ import (
 
 const (
 	UpdateUserDataURL     = "/users/:id/data"
-	UpdateUserPasswordURL = "/users/:id/password"
+	UpdateUserPasswordURL = "/users/:id/password" //nolint:gosec
 )
 
 func UpdateUserData(c apicontext.Context) error {

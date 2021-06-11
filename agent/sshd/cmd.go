@@ -26,7 +26,7 @@ func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 		groups = append(groups, u.GID)
 	}
 
-	cmd := exec.Command(command[0], command[1:]...)
+	cmd := exec.Command(command[0], command[1:]...) //nolint:gosec
 	cmd.Env = []string{
 		"TERM=" + term,
 		"HOME=" + u.HomeDir,
@@ -39,5 +39,6 @@ func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 		cmd.SysProcAttr = &syscall.SysProcAttr{}
 		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: u.UID, Gid: u.GID, Groups: groups}
 	}
+
 	return cmd
 }

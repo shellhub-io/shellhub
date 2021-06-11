@@ -16,8 +16,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Agent version to be embed inside the binary. This is injected using `-ldflags`
-// build option (e.g: `go build -ldflags "-X main.AgentVersion=1.2.3"`).
+// AgentVersion store the version to be embed inside the binary. This is
+// injected using `-ldflags` build option (e.g: `go build -ldflags "-X
+// main.AgentVersion=1.2.3"`).
 //
 // If set to `latest`, the auto-updating mechanism is disabled. This is intended
 // to be used during development only.
@@ -127,6 +128,7 @@ func main() {
 			listener, err := agent.newReverseListener()
 			if err != nil {
 				time.Sleep(time.Second * 10)
+
 				continue
 			}
 
@@ -161,6 +163,7 @@ func main() {
 				nextVersion, err := agent.checkUpdate()
 				if err != nil {
 					logrus.Error(err)
+
 					goto sleep
 				}
 

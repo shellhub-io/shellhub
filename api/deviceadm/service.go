@@ -51,6 +51,7 @@ func (s *service) isNamespaceOnwer(ctx context.Context, tenant, username string)
 	if user.ID != namespace.Owner {
 		return ErrUnauthorized
 	}
+
 	return nil
 }
 
@@ -61,8 +62,7 @@ func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, f
 	}
 
 	var filter []models.Filter
-
-	if err := json.Unmarshal([]byte(raw), &filter); len(raw) > 0 && err != nil {
+	if err := json.Unmarshal(raw, &filter); len(raw) > 0 && err != nil {
 		return nil, 0, err
 	}
 
@@ -146,7 +146,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 		return err
 	}
 
-	if status == "accepted" {
+	if status == "accepted" { //nolint:nestif
 		sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
 		if err != nil && err != store.ErrNoDocuments {
 			return err

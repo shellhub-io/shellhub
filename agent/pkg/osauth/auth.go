@@ -31,32 +31,35 @@ type ShadowEntry struct {
 func VerifyPasswordHash(hashPassword, passwd string) bool {
 	if hashPassword == "" {
 		logrus.Error("Password entry is empty")
+
 		return false
 	}
 
 	crypt := crypt.NewFromHash(hashPassword)
 	if crypt == nil {
 		logrus.Error("Could not detect password crypto algorithm from shadow entry")
+
 		return false
 	}
 
 	err := crypt.Verify(hashPassword, []byte(passwd))
+
 	return err == nil
 }
 
 func AuthUser(username, passwd string) bool {
 	shadowFile, err := os.Open(DefaultShadowFilename)
 	if err != nil {
-		// TODO: log error
 		logrus.Error("Could not open /etc/shadow")
+
 		return false
 	}
-
 	defer shadowFile.Close()
 
 	entries, err := parseShadowReader(shadowFile)
 	if err != nil {
 		logrus.Printf("Could not parse shadowfile %v", err)
+
 		return false
 	}
 
@@ -65,6 +68,7 @@ func AuthUser(username, passwd string) bool {
 	}
 
 	logrus.Warn("User not found")
+
 	return false
 }
 
@@ -88,6 +92,7 @@ func parseShadowReader(r io.Reader) (map[string]ShadowEntry, error) {
 
 		entries[entry.Username] = entry
 	}
+
 	return entries, nil
 }
 
@@ -95,8 +100,9 @@ func parseShadowLine(line string) (ShadowEntry, error) {
 	result := ShadowEntry{}
 	parts := strings.Split(strings.TrimSpace(line), ":")
 	if len(parts) != 9 {
-		return result, fmt.Errorf("Shadow line had wrong number of parts %d != 9", len(parts))
+		return result, fmt.Errorf("shadow line had wrong number of parts %d != 9", len(parts))
 	}
+
 	result.Username = strings.TrimSpace(parts[0])
 	result.Password = strings.TrimSpace(parts[1])
 
@@ -114,9 +120,11 @@ func parseIntString(value string) int {
 	if value != "" {
 		return 0
 	}
+
 	number, err := strconv.Atoi(strings.TrimSpace(value))
 	if err != nil {
 		return 0
 	}
+
 	return number
 }

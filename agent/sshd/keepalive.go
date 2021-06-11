@@ -26,11 +26,13 @@ loop:
 			_, err := session.SendRequest("keepalive@shellhub.io", false, nil)
 			if err != nil {
 				log.Warning("Failed to send keep alive message")
+
 				return
 			}
 		case <-session.Context().Done():
 			log.Debug("Stopping keep alive loop after session closed")
 			ticker.Stop()
+
 			break loop
 		}
 	}

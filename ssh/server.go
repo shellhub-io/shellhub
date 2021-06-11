@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -73,24 +74,24 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		}
 
 		session.Close()
+
 		return
 	}
 
-	wh := webhook.NewClient()
-	if wh != nil {
+	if wh := webhook.NewClient(); wh != nil {
 		res, err := wh.Connect(sess.Lookup)
-		if err == nil {
-			if sess.Pty {
-				session.Write([]byte(fmt.Sprintf("Wait %d seconds while the agent starts\n", res.Timeout))) // nolint:errcheck
-			}
-			time.Sleep(time.Duration(res.Timeout) * time.Second)
-		} else {
-			if err.Error() == webhook.ForbiddenErr {
-				session.Write([]byte("Connection rejected by Webhook endpoint\n")) // nolint:errcheck
-				session.Close()
-				return
-			}
+		if errors.Is(err, webhook.ErrForbidden) {
+			session.Write([]byte("Connection rejected by Webhook endpoint\n")) // nolint:errcheck
+			session.Close()
+
+			return
 		}
+
+		if sess.Pty {
+			session.Write([]byte(fmt.Sprintf("Wait %d seconds while the agent starts\n", res.Timeout))) // nolint:errcheck
+		}
+
+		time.Sleep(time.Duration(res.Timeout) * time.Second)
 	}
 
 	conn, err := s.tunnel.Dial(context.Background(), sess.Target)
@@ -101,6 +102,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		}).Error("Failed to dial to tunnel")
 
 		session.Close()
+
 		return
 	}
 
@@ -126,14 +128,16 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		key, err := apiClient.CreatePrivateKey()
 		if err != nil {
 			session.Close()
+
 			return
 		}
 
-		block, _ := pem.Decode([]byte(key.Data))
+		block, _ := pem.Decode(key.Data)
 
 		privKey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
 		if err != nil {
 			session.Close()
+
 			return
 		}
 	}
@@ -145,6 +149,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		}).Error("Failed to get password from context")
 
 		session.Close()
+
 		return
 	}
 
@@ -157,6 +162,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		}).Error("Failed to write")
 
 		session.Close()
+
 		return
 	}
 
@@ -168,6 +174,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		session.Write([]byte("Permission denied\n")) // nolint:errcheck
 		session.Close()
+
 		return
 	}
 
@@ -177,9 +184,11 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	}
 
 	req, _ = http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", sess.UID), nil)
-	err = req.Write(conn)
-	if err != nil {
-		fmt.Println(err)
+	if err = req.Write(conn); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"err":     err,
+			"session": session.Context().Value(sshserver.ContextKeySessionID),
+		}).Error("Failed to write")
 	}
 
 	sess.finish() // nolint:errcheck
@@ -206,7 +215,6 @@ func (*Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKe
 			"domain": device.Namespace,
 			"name":   device.Name,
 		}
-
 	} else {
 		parts = strings.SplitN(parts[1], ".", 2)
 		if len(parts) < 2 {

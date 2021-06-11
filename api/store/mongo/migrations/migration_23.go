@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var migration_23 = migrate.Migration{
+var migration23 = migrate.Migration{
 	Version:     23,
 	Description: "change dot in namespace name and hostname to -",
 	Up: func(db *mongo.Database) error {
@@ -40,6 +40,7 @@ var migration_23 = migrate.Migration{
 	},
 	Down: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 23 - Down")
+
 		return nil
 	},
 }
