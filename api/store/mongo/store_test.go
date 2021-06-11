@@ -1394,6 +1394,50 @@ func TestUpdateUserFromAdmin(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestUserCreateToken(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", Authenticated: false}
+
+	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	objID := result.InsertedID.(primitive.ObjectID).Hex()
+
+	UserTokenRecover := models.UserTokenRecover{Token: "token", User: objID}
+
+	err = mongostore.UserCreateToken(ctx, &UserTokenRecover)
+	assert.NoError(t, err)
+
+	userToken, err := mongostore.UserGetToken(ctx, objID)
+	assert.Equal(t, userToken.Token, UserTokenRecover.Token)
+	assert.NoError(t, err)
+}
+
+func TestUpdateAccountStatus(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", Authenticated: false}
+
+	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	objID := result.InsertedID.(primitive.ObjectID).Hex()
+
+	err = mongostore.UserUpdateAccountStatus(ctx, objID)
+	assert.NoError(t, err)
+
+	us, _, err := mongostore.UserGetByID(ctx, objID, false)
+	assert.Equal(t, us.Authenticated, true)
+	assert.NoError(t, err)
+}
+
 func TestGetDataUserSecurity(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()

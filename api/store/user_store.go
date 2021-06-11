@@ -17,5 +17,9 @@ type UserStore interface {
 	UserUpdateData(ctx context.Context, data *models.User, ID string) error
 	UserUpdatePassword(ctx context.Context, newPassword, ID string) error
 	UserUpdateFromAdmin(ctx context.Context, name, username, email, password, ID string) error
+	UserCreateToken(ctx context.Context, token *models.UserTokenRecover) error
+	UserGetToken(ctx context.Context, ID string) (*models.UserTokenRecover, error)
+	UserDeleteTokens(ctx context.Context, ID string) error
+	UserUpdateAccountStatus(ctx context.Context, ID string) error
 	UserDelete(ctx context.Context, ID string) error
 }
