@@ -246,6 +246,48 @@ func (s *Store) UserUpdateFromAdmin(ctx context.Context, name, username, email, 
 	return nil
 }
 
+func (s *Store) UserCreateToken(ctx context.Context, token *models.UserTokenRecover) error {
+	if _, err := primitive.ObjectIDFromHex(token.User); err != nil {
+		return err
+	}
+
+	if _, err := s.db.Collection("recovery_tokens").InsertOne(ctx, token); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) UserGetToken(ctx context.Context, ID string) (*models.UserTokenRecover, error) {
+	token := new(models.UserTokenRecover)
+	if err := s.db.Collection("recovery_tokens").FindOne(ctx, bson.M{"user": ID}).Decode(&token); err != nil {
+		return nil, fromMongoError(err)
+	}
+
+	return token, nil
+}
+
+func (s *Store) UserDeleteTokens(ctx context.Context, ID string) error {
+	if _, err := s.db.Collection("recovery_tokens").DeleteMany(ctx, bson.M{"user": ID}); err != nil {
+		return fromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) UserUpdateAccountStatus(ctx context.Context, ID string) error {
+	objID, err := primitive.ObjectIDFromHex(ID)
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"authenticated": true}}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *Store) UserDelete(ctx context.Context, ID string) error {
 	objID, err := primitive.ObjectIDFromHex(ID)
 	if err != nil {
