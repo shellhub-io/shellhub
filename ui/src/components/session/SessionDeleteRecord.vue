@@ -8,16 +8,15 @@
             v-on="on"
             @click="dialog = !dialog"
           >
-            mdi-close-circle
+            mdi-playlist-remove
           </v-icon>
         </span>
       </template>
 
       <div>
         <span v-if="isOwner">
-          Close
+          Delete session record
         </span>
-
         <span v-else>
           You are not the owner of this namespace
         </span>
@@ -34,12 +33,11 @@
         </v-card-title>
 
         <v-card-text class="mt-4 mb-3 pb-1">
-          You are going to close connection for this device.
+          You are going to delete the logs recorded for this session.
         </v-card-text>
 
         <v-card-actions>
           <v-spacer />
-
           <v-btn
             text
             @click="dialog=!dialog"
@@ -50,9 +48,9 @@
           <v-btn
             color="red darken-1"
             text
-            @click="close();"
+            @click="deleteRecord()"
           >
-            Close
+            Delete
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -63,14 +61,10 @@
 <script>
 
 export default {
-  name: 'SessionClose',
+  name: 'SessionDeleteRecord',
 
   props: {
     uid: {
-      type: String,
-      required: true,
-    },
-    device: {
       type: String,
       required: true,
     },
@@ -79,7 +73,6 @@ export default {
   data() {
     return {
       dialog: false,
-      session: {},
     };
   },
 
@@ -89,23 +82,15 @@ export default {
     },
   },
 
-  created() {
-    this.session = {
-      uid: this.uid,
-      device_uid: this.device,
-    };
-  },
-
   methods: {
-    async close() {
+    async deleteRecord() {
       try {
-        await this.$store.dispatch('sessions/close', this.session);
+        await this.$store.dispatch('sessions/deleteSessionLogs', this.uid);
         this.dialog = false;
-
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.sessionClose);
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.sessionRemoveRecord);
         this.$emit('update');
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.sessionClose);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.sessionRemoveRecord);
       }
     },
   },

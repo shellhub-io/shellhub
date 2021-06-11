@@ -5,6 +5,7 @@ export default {
       deviceRename: 'renaming device',
       deviceDelete: 'deleting device',
       sessionClose: 'closing session',
+      sessionRemoveRecord: 'deleting recorded session',
       firewallRuleCreating: 'creating rule',
       firewallRuleEditing: 'editing rule',
       firewallRuleDeleting: 'deleting rule',

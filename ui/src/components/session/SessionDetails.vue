@@ -50,6 +50,13 @@
           :device="session.device_uid"
           @update="refresh"
         />
+
+        <SessionDeleteRecord
+          v-if="session.recorded"
+          data-test="record-delete"
+          :uid="session.uid"
+          @update="refresh"
+        />
       </v-toolbar>
 
       <v-divider />
@@ -181,6 +188,7 @@
 
 import SessionPlay from '@/components/session/SessionPlay';
 import SessionClose from '@/components/session/SessionClose';
+import SessionDeleteRecord from '@/components/session/SessionDeleteRecord';
 import { formatDate, lastSeen } from '@/components/filter/date';
 
 export default {
@@ -189,6 +197,7 @@ export default {
   components: {
     SessionPlay,
     SessionClose,
+    SessionDeleteRecord,
   },
 
   filters: { formatDate, lastSeen },

@@ -28,6 +28,7 @@ describe('Sessions', () => {
     last_seen: '2020-05-18T12:30:30.205Z',
     active: false,
     authenticated: false,
+    recorded: true,
   };
   const numberSessions = 2;
   const sessions = [{
@@ -112,6 +113,10 @@ describe('Sessions', () => {
   it('Verify inital state change for setSession mutation', () => {
     store.commit('sessions/setSession', { data: session });
     expect(store.getters['sessions/get']).toEqual(session);
+  });
+  it('Verify changed session object state for removeRecordedSession mutation', () => {
+    store.commit('sessions/removeRecordedSession');
+    expect(store.getters['sessions/get']).toEqual({ ...session, recorded: false });
   });
   it('Verify inital state change for setPagePerpage mutation', () => {
     store.commit('sessions/setPagePerpage', pagePerpageValue);
