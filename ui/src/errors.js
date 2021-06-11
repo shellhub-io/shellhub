@@ -19,6 +19,7 @@ export default {
         sessionClose: 'close session',
         sessionPlay: 'play session',
         sessionDetails: 'details session',
+        sessionRemoveRecord: 'deleting recorded session',
         firewallRuleList: 'list of firewall rule',
         firewallRuleCreating: 'creating rule',
         firewallRuleEditing: 'editing rule',

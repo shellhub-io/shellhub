@@ -7,6 +7,7 @@ describe('SessionDetails', () => {
   localVue.use(Vuex);
 
   let wrapper;
+  let wrapper2;
 
   const session = {
     uid: '8c354a00f50',
@@ -35,6 +36,7 @@ describe('SessionDetails', () => {
     last_seen: '2020-05-18T12:30:30.205Z',
     active: false,
     authenticated: false,
+    recorded: true,
   };
 
   const store = new Vuex.Store({
@@ -53,9 +55,38 @@ describe('SessionDetails', () => {
     },
   });
 
+  const store2 = new Vuex.Store({
+    namespaced: true,
+    state: {
+      session: { ...session, recorded: false },
+    },
+    getters: {
+      'sessions/get': (state) => state.session,
+    },
+    actions: {
+      'sessions/get': () => {
+      },
+      'sessions/close': () => {
+      },
+    },
+  });
+
   beforeEach(() => {
     wrapper = shallowMount(SessionDetails, {
       store,
+      localVue,
+      stubs: ['fragment'],
+      mocks: {
+        $route: {
+          params: {
+            id: '8c354a00f50',
+          },
+        },
+      },
+    });
+
+    wrapper2 = shallowMount(SessionDetails, {
+      store: store2,
       localVue,
       stubs: ['fragment'],
       mocks: {
@@ -91,5 +122,9 @@ describe('SessionDetails', () => {
     expect(wrapper.find('[data-test="sessionIpAddress-field"]').text()).toEqual(session.ip_address);
     expect(wrapper.find('[data-test="sessionStartedAt-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:28 pm');
     expect(wrapper.find('[data-test="sessionLastSeen-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:30 pm');
+    expect(wrapper.find('[data-test="record-delete"]').exists()).toEqual(true);
+  });
+  it('Hides SessionDeleteRecord component when the session is not recorded', () => {
+    expect(wrapper2.find('[data-test="record-delete"]').exists()).toEqual(false);
   });
 });

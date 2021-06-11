@@ -48,6 +48,13 @@ export default {
     clearObjectSession: (state) => {
       Vue.set(state, 'session', {});
     },
+
+    removeRecordedSession: (state) => {
+      Vue.set(state, 'session', {
+        ...state.session,
+        recorded: false,
+      });
+    },
   },
 
   actions: {
@@ -101,6 +108,11 @@ export default {
 
     close: async (context, session) => {
       await apiSession.closeSession(session);
+    },
+
+    deleteSessionLogs: async (context, uid) => {
+      await apiSession.deleteSessionLogs(uid);
+      context.commit('removeRecordedSession');
     },
   },
 };
