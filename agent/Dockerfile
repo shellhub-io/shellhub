@@ -50,7 +50,6 @@ RUN go mod download
 #RUN cp -a $GOPATH/src/github.com/shellhub-io/shellhub/vendor /vendor
 
 COPY ./agent/entrypoint-dev.sh /entrypoint.sh
-COPY ./.revive.toml /
 COPY ./.golangci.yaml /
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent

@@ -16,11 +16,11 @@ EOF
 }
 
 go() {
-    [ ! -e .revive.toml ] && echo "ERROR: Run the script from the project root." && exit 1
+    [ ! -e .golangci.yaml ] && echo "ERROR: Run the script from the project root." && exit 1
 
     for container in agent api ssh cli; do
         echo "Running Golang linter on $container"
-        # Run revive on a running container
+        # Run golangci-lint on a running container
         docker-compose \
             -f docker-compose.yml -f docker-compose.dev.yml \
             exec $container golangci-lint run ./... && echo "No lint errors found!"
