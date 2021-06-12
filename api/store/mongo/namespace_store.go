@@ -207,8 +207,8 @@ func (s *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace 
 	return nil
 }
 
-func (s *Store) NamespaceAddMember(ctx context.Context, tenantID, ID string) (*models.Namespace, error) {
-	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": ID}})
+func (s *Store) NamespaceAddMember(ctx context.Context, tenantID, id string) (*models.Namespace, error) {
+	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": id}})
 	if err != nil {
 		return nil, fromMongoError(err)
 	}
@@ -224,8 +224,8 @@ func (s *Store) NamespaceAddMember(ctx context.Context, tenantID, ID string) (*m
 	return s.NamespaceGet(ctx, tenantID)
 }
 
-func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID, ID string) (*models.Namespace, error) {
-	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"members": ID}})
+func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID, id string) (*models.Namespace, error) {
+	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"members": id}})
 	if err != nil {
 		return nil, fromMongoError(err)
 	}
@@ -240,9 +240,9 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID, ID string) 
 	return s.NamespaceGet(ctx, tenantID)
 }
 
-func (s *Store) NamespaceGetFirst(ctx context.Context, ID string) (*models.Namespace, error) {
+func (s *Store) NamespaceGetFirst(ctx context.Context, id string) (*models.Namespace, error) {
 	ns := new(models.Namespace)
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": ID}).Decode(&ns); err != nil {
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": id}).Decode(&ns); err != nil {
 		return nil, fromMongoError(err)
 	}
 

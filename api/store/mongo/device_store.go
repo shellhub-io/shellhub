@@ -199,7 +199,7 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 }
 
 func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
-	mac := strings.Replace(d.Identity.MAC, ":", "-", -1)
+	mac := strings.ReplaceAll(d.Identity.MAC, ":", "-")
 	if hostname == "" {
 		hostname = mac
 	}

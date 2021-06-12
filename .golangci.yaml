@@ -46,7 +46,6 @@ linters:
     - funlen
     - gci
     - gocognit
-    - gocritic
     - godox
     - goerr113
     - golint

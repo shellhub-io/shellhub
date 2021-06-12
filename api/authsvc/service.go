@@ -169,8 +169,8 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 	return nil, errors.New("unauthorized")
 }
 
-func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuthResponse, error) {
-	user, _, err := s.store.UserGetByID(ctx, ID, false)
+func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {
+	user, _, err := s.store.UserGetByID(ctx, id, false)
 	if err != nil {
 		return nil, err
 	}

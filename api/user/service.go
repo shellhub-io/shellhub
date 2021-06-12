@@ -17,8 +17,8 @@ var (
 )
 
 type Service interface {
-	UpdateDataUser(ctx context.Context, data *models.User, ID string) ([]InvalidField, error)
-	UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, ID string) error
+	UpdateDataUser(ctx context.Context, data *models.User, id string) ([]InvalidField, error)
+	UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, id string) error
 }
 
 type service struct {
@@ -36,10 +36,10 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) UpdateDataUser(ctx context.Context, data *models.User, ID string) ([]InvalidField, error) {
+func (s *service) UpdateDataUser(ctx context.Context, data *models.User, id string) ([]InvalidField, error) {
 	var invalidFields []InvalidField
 
-	if _, _, err := s.store.UserGetByID(ctx, ID, false); err != nil {
+	if _, _, err := s.store.UserGetByID(ctx, id, false); err != nil {
 		return invalidFields, err
 	}
 
@@ -53,12 +53,12 @@ func (s *service) UpdateDataUser(ctx context.Context, data *models.User, ID stri
 
 	var checkUsername, checkEmail bool
 
-	if user, err := s.store.UserGetByUsername(ctx, data.Username); err == nil && user.ID != ID {
+	if user, err := s.store.UserGetByUsername(ctx, data.Username); err == nil && user.ID != id {
 		checkUsername = true
 		invalidFields = append(invalidFields, InvalidField{"username", "conflict", "", ""})
 	}
 
-	if user, err := s.store.UserGetByEmail(ctx, data.Email); err == nil && user.ID != ID {
+	if user, err := s.store.UserGetByEmail(ctx, data.Email); err == nil && user.ID != id {
 		checkEmail = true
 		invalidFields = append(invalidFields, InvalidField{"email", "conflict", "", ""})
 	}
@@ -67,17 +67,17 @@ func (s *service) UpdateDataUser(ctx context.Context, data *models.User, ID stri
 		return invalidFields, ErrConflict
 	}
 
-	return invalidFields, s.store.UserUpdateData(ctx, data, ID)
+	return invalidFields, s.store.UserUpdateData(ctx, data, id)
 }
 
-func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, ID string) error {
-	user, _, err := s.store.UserGetByID(ctx, ID, false)
+func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, id string) error {
+	user, _, err := s.store.UserGetByID(ctx, id, false)
 	if err != nil {
 		return err
 	}
 
 	if user.Password == currentPassword {
-		return s.store.UserUpdatePassword(ctx, newPassword, ID)
+		return s.store.UserUpdatePassword(ctx, newPassword, id)
 	}
 
 	return ErrUnauthorized
