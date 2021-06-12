@@ -5,7 +5,7 @@ usage() {
 Run code lints under development machine.
 
 Usage:
-    $0 <mode>
+    $0 <mode> [--fix]
 
 Mode:
     go    Run golang lint utilities
@@ -16,38 +16,72 @@ EOF
 }
 
 go() {
+    local fix=$1
+
     [ ! -e .golangci.yaml ] && echo "ERROR: Run the script from the project root." && exit 1
 
-    for container in agent api ssh cli; do
+    for container in agent:docker agent:native api ssh cli; do
         echo "Running Golang linter on $container"
+
+        [ "$fix" = "true" ] && EXTRA_ARGS="--fix" || EXTRA_ARGS=""
+
+        case $container in
+            ssh)
+                EXTRA_ARGS="$EXTRA_ARGS --build-tags internal_api"
+                ;;
+            agent:docker)
+                EXTRA_ARGS="$EXTRA_ARGS --build-tags docker"
+
+                container=$(echo $container | cut -d':' -f 1)
+                ;;
+            agent:native)
+                EXTRA_ARGS="$EXTRA_ARGS --build-tags native"
+
+                container=$(echo $container | cut -d':' -f 1)
+                ;;
+        esac
+
         # Run golangci-lint on a running container
         docker-compose \
             -f docker-compose.yml -f docker-compose.dev.yml \
-            exec $container golangci-lint run ./... && echo "No lint errors found!"
+            exec $container golangci-lint run ./... $EXTRA_ARGS
     done
 }
 
 vue() {
+    local fix=$1
+
     [ ! -d ui ] && echo "ERROR: Run the script from the project root." && exit 1
+
+    [ "$fix" = "true" ] && EXTRA_ARGS=" -- --fix" || EXTRA_ARGS=":no-fix"
 
     echo "Running UI lints"
 
     # Run linter on a running container
     docker-compose \
         -f docker-compose.yml -f docker-compose.dev.yml \
-        exec ui npm run lint:no-fix
+        exec ui npm run lint$EXTRA_ARGS
 }
 
-case "$1" in
+mode=$1
+arg=$2
+
+case "$arg" in
+    "--fix")
+        fix="true"
+        ;;
+esac
+
+case "$mode" in
     "go")
-        go
+        go $fix
         ;;
     "vue")
-        vue
+        vue $fix
         ;;
     "all")
-        go
-        vue
+        go $fix
+        vue $fix
         ;;
     *)
         usage
