@@ -55,21 +55,21 @@ func TestUpdateDataUser(t *testing.T) {
 	assert.Equal(t, err, ErrBadRequest)
 	assert.Equal(t, fields, []InvalidField{{"username", "invalid", "alphanum", ""}})
 
-	//for email
+	// for email
 	updateUser1 = &models.User{Name: "newname", Email: "invalid.email", Username: "newusername", ID: "id1"}
 	mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 	assert.Equal(t, err, ErrBadRequest)
 	assert.Equal(t, fields, []InvalidField{{"email", "invalid", "email", ""}})
 
-	//both email and username
+	// both email and username
 	updateUser1 = &models.User{Name: "newname", Email: "invalid.email", Username: "us", ID: "id1"}
 	mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 	fields, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
 	assert.Equal(t, err, ErrBadRequest)
 	assert.Equal(t, fields, []InvalidField{{"email", "invalid", "email", ""}, {"username", "invalid", "min", "3"}})
 
-	//for empty name
+	// for empty name
 	updateUser1 = &models.User{Name: "", Email: "new@email.com", Username: "newusername", ID: "id1"}
 	mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 	_, err = s.UpdateDataUser(ctx, updateUser1, updateUser1.ID)
@@ -105,7 +105,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 		expected        error
 	}
 
-	var tests = []updatePassword{
+	tests := []updatePassword{
 		{
 			"hiadoshioasc",
 			"hashnew",

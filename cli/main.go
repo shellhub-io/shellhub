@@ -42,7 +42,7 @@ func main() {
 
 	svc := NewService(mongo.NewStore(client.Database("main"), cache))
 
-	var rootCmd = &cobra.Command{Use: "cli"}
+	rootCmd := &cobra.Command{Use: "cli"}
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "add-user",
 		Short: "Usage: <username> <password> <email>",

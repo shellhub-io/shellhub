@@ -17,8 +17,10 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var ErrInvalidFormat = errors.New("invalid format")
-var ErrDuplicateFingerprint = errors.New("this fingerprint already exits")
+var (
+	ErrInvalidFormat        = errors.New("invalid format")
+	ErrDuplicateFingerprint = errors.New("this fingerprint already exits")
+)
 
 type Service interface {
 	EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
@@ -54,6 +56,7 @@ func (s *service) EvaluateKeyHostname(ctx context.Context, key *models.PublicKey
 
 	return ok, nil
 }
+
 func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
 	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
 }

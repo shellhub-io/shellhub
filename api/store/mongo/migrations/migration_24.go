@@ -16,8 +16,10 @@ var migration24 = migrate.Migration{
 		logrus.Info("Applying migration 24 - Up")
 		if _, err := db.Collection("users").UpdateMany(context.TODO(), bson.D{}, []bson.M{
 			{
-				"$set": bson.M{"username": bson.M{"$toLower": "$username"},
-					"email": bson.M{"$toLower": "$email"}},
+				"$set": bson.M{
+					"username": bson.M{"$toLower": "$username"},
+					"email":    bson.M{"$toLower": "$email"},
+				},
 			},
 		}); err != nil {
 			return err

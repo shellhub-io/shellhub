@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	var rootCmd = &cobra.Command{Use: "api"}
+	rootCmd := &cobra.Command{Use: "api"}
 
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(workerCmd)

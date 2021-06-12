@@ -26,7 +26,8 @@ func TestListDevices(t *testing.T) {
 	filters := []models.Filter{
 		{
 			Type:   "property",
-			Params: &models.PropertyParams{Name: "hostname", Operator: "eq"}},
+			Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
+		},
 	}
 
 	filterJSON, err := json.Marshal(filters)

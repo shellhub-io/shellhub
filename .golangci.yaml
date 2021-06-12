@@ -49,7 +49,6 @@ linters:
     - gocritic
     - godox
     - goerr113
-    - gofumpt
     - golint
     - gomnd
     - lll

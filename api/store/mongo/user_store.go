@@ -111,7 +111,6 @@ func (s *Store) UserGetByEmail(ctx context.Context, email string) (*models.User,
 func (s *Store) UserGetByID(ctx context.Context, ID string, ns bool) (*models.User, int, error) {
 	user := new(models.User)
 	objID, err := primitive.ObjectIDFromHex(ID)
-
 	if err != nil {
 		return nil, 0, err
 	}
@@ -184,7 +183,6 @@ func (s *Store) UserGetByID(ctx context.Context, ID string, ns bool) (*models.Us
 
 func (s *Store) UserUpdateData(ctx context.Context, data *models.User, ID string) error {
 	objID, err := primitive.ObjectIDFromHex(ID)
-
 	if err != nil {
 		return fromMongoError(err)
 	}
@@ -202,7 +200,6 @@ func (s *Store) UserUpdatePassword(ctx context.Context, newPassword, ID string) 
 	}
 
 	objID, err := primitive.ObjectIDFromHex(ID)
-
 	if err != nil {
 		return fromMongoError(err)
 	}

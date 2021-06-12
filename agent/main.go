@@ -194,7 +194,7 @@ func main() {
 		}
 	}
 
-	var rootCmd = &cobra.Command{Use: "agent"}
+	rootCmd := &cobra.Command{Use: "agent"}
 
 	rootCmd.AddCommand(&cobra.Command{
 		Use: "info",

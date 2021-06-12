@@ -1,6 +1,11 @@
 package sshd
 
 import (
+	"crypto"
+	"crypto/rsa"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -8,12 +13,6 @@ import (
 	"os/exec"
 	"sync"
 	"time"
-
-	"crypto"
-	"crypto/rsa"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/json"
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"

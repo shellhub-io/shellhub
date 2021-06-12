@@ -192,6 +192,7 @@ func AddNamespaceUser(c apicontext.Context) error {
 
 	return c.JSON(http.StatusOK, namespace)
 }
+
 func RemoveNamespaceUser(c apicontext.Context) error {
 	svc := nsadm.NewService(c.Store())
 

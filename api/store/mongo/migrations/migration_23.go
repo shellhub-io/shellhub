@@ -16,9 +16,10 @@ var migration23 = migrate.Migration{
 		logrus.Info("Applying migration 23 - Up")
 		if _, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.D{}, []bson.M{
 			{
-				"$set": bson.M{"name": bson.M{
-					"$replaceAll": bson.M{"input": "$name", "find": ".", "replacement": "-"},
-				},
+				"$set": bson.M{
+					"name": bson.M{
+						"$replaceAll": bson.M{"input": "$name", "find": ".", "replacement": "-"},
+					},
 				},
 			},
 		}); err != nil {
@@ -27,9 +28,10 @@ var migration23 = migrate.Migration{
 
 		if _, err := db.Collection("devices").UpdateMany(context.TODO(), bson.D{}, []bson.M{
 			{
-				"$set": bson.M{"name": bson.M{
-					"$replaceAll": bson.M{"input": "$name", "find": ".", "replacement": "-"},
-				},
+				"$set": bson.M{
+					"name": bson.M{
+						"$replaceAll": bson.M{"input": "$name", "find": ".", "replacement": "-"},
+					},
 				},
 			},
 		}); err != nil {

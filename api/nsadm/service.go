@@ -228,6 +228,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, owne
 
 	return s.store.NamespaceAddMember(ctx, tenantID, user.ID)
 }
+
 func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, ownerID string) (*models.Namespace, error) {
 	if _, err := s.store.NamespaceGet(ctx, tenantID); err != nil {
 		if err == store.ErrNoDocuments {

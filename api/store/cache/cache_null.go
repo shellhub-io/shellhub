@@ -5,8 +5,7 @@ import (
 	"time"
 )
 
-type nullCache struct {
-}
+type nullCache struct{}
 
 var _ Cache = &nullCache{}
 
