@@ -12,9 +12,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var ErrWrongParamsType = errors.New("wrong parameters type")
-var ErrDuplicateID = errors.New("user already member of this namespace")
-var ErrUserNotFound = errors.New("user not found")
+var (
+	ErrWrongParamsType = errors.New("wrong parameters type")
+	ErrDuplicateID     = errors.New("user already member of this namespace")
+	ErrUserNotFound    = errors.New("user not found")
+)
 
 type Store struct {
 	db    *mongo.Database

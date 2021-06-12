@@ -1,10 +1,9 @@
 package routes
 
 import (
-	"net/http"
-
 	"crypto/sha256"
 	"encoding/hex"
+	"net/http"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/user"

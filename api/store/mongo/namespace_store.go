@@ -68,7 +68,9 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 
 		query = append(query, bson.M{
 			"$match": bson.M{
-				"members": user.ID}})
+				"members": user.ID,
+			},
+		})
 	}
 
 	queryCount := append(query, bson.M{"$count": "count"})

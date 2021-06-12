@@ -137,6 +137,7 @@ func TestDeviceRename(t *testing.T) {
 	err = mongostore.DeviceRename(ctx, models.UID(device.UID), "newHostname")
 	assert.NoError(t, err)
 }
+
 func TestDeviceLookup(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -222,6 +223,7 @@ func TestDeviceUpdateStatus(t *testing.T) {
 	err = mongostore.DeviceUpdateStatus(ctx, models.UID(device.UID), "accepted")
 	assert.NoError(t, err)
 }
+
 func TestUpdateDeviceStatus(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -261,6 +263,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	err = mongostore.DeviceSetOnline(ctx, models.UID(device.UID), true)
 	assert.NoError(t, err)
 }
+
 func TestCreateSession(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -362,6 +365,7 @@ func TestGetSession(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, s)
 }
+
 func TestListSessions(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -583,6 +587,7 @@ func TestKeepAliveSession(t *testing.T) {
 	err = mongostore.SessionSetLastSeen(ctx, models.UID(session.UID))
 	assert.NoError(t, err)
 }
+
 func TestDeactivateSession(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -1457,6 +1462,7 @@ func TestGetDataUserSecurity(t *testing.T) {
 	assert.Equal(t, returnedStatus, namespace.Settings.SessionRecord)
 	assert.NoError(t, err)
 }
+
 func TestUpdateDataUserSecurity(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -1547,7 +1553,8 @@ func TestListUsersWithFilter(t *testing.T) {
 	filters := []models.Filter{
 		{
 			Type:   "property",
-			Params: &models.PropertyParams{Name: "namespaces", Operator: "gt", Value: "1"}},
+			Params: &models.PropertyParams{Name: "namespaces", Operator: "gt", Value: "1"},
+		},
 	}
 
 	users, count, err := mongostore.UserList(ctx, paginator.Query{Page: -1, PerPage: -1}, filters)
@@ -1650,6 +1657,7 @@ func TestCreateNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 }
+
 func TestDeleteNamespace(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -1675,6 +1683,7 @@ func TestDeleteNamespace(t *testing.T) {
 	err = mongostore.NamespaceDelete(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 }
+
 func TestGetNamespace(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -1700,6 +1709,7 @@ func TestGetNamespace(t *testing.T) {
 	_, err = mongostore.NamespaceGet(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 }
+
 func TestListNamespaces(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -1726,6 +1736,7 @@ func TestListNamespaces(t *testing.T) {
 	assert.Equal(t, 1, count)
 	assert.NoError(t, err)
 }
+
 func TestAddNamespaceUser(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -1950,7 +1961,7 @@ func TestUpdatePublicKey(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	//createdAt := time.Now()
+	// createdAt := time.Now()
 	key := &models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste", Hostname: ".*"},
 	}

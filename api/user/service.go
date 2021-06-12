@@ -10,9 +10,11 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
-var ErrUnauthorized = errors.New("unauthorized")
-var ErrConflict = errors.New("conflict")
-var ErrBadRequest = errors.New("bad request")
+var (
+	ErrUnauthorized = errors.New("unauthorized")
+	ErrConflict     = errors.New("conflict")
+	ErrBadRequest   = errors.New("bad request")
+)
 
 type Service interface {
 	UpdateDataUser(ctx context.Context, data *models.User, ID string) ([]InvalidField, error)
@@ -70,7 +72,6 @@ func (s *service) UpdateDataUser(ctx context.Context, data *models.User, ID stri
 
 func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, ID string) error {
 	user, _, err := s.store.UserGetByID(ctx, ID, false)
-
 	if err != nil {
 		return err
 	}

@@ -81,6 +81,7 @@ func UsernameFromContext(ctx context.Context) *models.Username {
 
 	return nil
 }
+
 func IDFromContext(ctx context.Context) *models.ID {
 	if c, ok := ctx.Value("ctx").(*Context); ok {
 		ID := c.ID()
@@ -95,6 +96,7 @@ func IDFromContext(ctx context.Context) *models.ID {
 
 	return nil
 }
+
 func Handler(next func(Context) error) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := context.WithValue(c.Request().Context(), "ctx", c.(*Context)) //nolint:revive

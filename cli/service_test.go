@@ -42,7 +42,7 @@ func TestNamespaceCreate(t *testing.T) {
 
 	data := initData("none")
 
-	var tests = []Test{
+	tests := []Test{
 		{
 			description: "Fails when the field is invalid",
 			args:        Arguments{Username: "user", Namespace: "ns3ww", Email: "invalid@email", TenantID: "xxx", Password: "password"},

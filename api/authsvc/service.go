@@ -277,7 +277,8 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				ID:     user.ID,
 				User:   user.Username,
 				Tenant: namespace.TenantID,
-				Email:  user.Email}, nil
+				Email:  user.Email,
+			}, nil
 		}
 	}
 
