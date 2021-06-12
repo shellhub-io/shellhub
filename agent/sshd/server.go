@@ -199,11 +199,11 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	}
 }
 
-func (s *Server) ForceSingleMode(SimplePassword string) {
-	if SimplePassword == "" {
+func (s *Server) ForceSingleMode(simplePassword string) {
+	if simplePassword == "" {
 		return
 	}
-	s.simplePassword = SimplePassword
+	s.simplePassword = simplePassword
 }
 
 func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {

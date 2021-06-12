@@ -108,9 +108,9 @@ func (s *Store) UserGetByEmail(ctx context.Context, email string) (*models.User,
 	return user, nil
 }
 
-func (s *Store) UserGetByID(ctx context.Context, ID string, ns bool) (*models.User, int, error) {
+func (s *Store) UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error) {
 	user := new(models.User)
-	objID, err := primitive.ObjectIDFromHex(ID)
+	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -181,8 +181,8 @@ func (s *Store) UserGetByID(ctx context.Context, ID string, ns bool) (*models.Us
 	return user, nss.NamespacesOwned, nil
 }
 
-func (s *Store) UserUpdateData(ctx context.Context, data *models.User, ID string) error {
-	objID, err := primitive.ObjectIDFromHex(ID)
+func (s *Store) UserUpdateData(ctx context.Context, data *models.User, id string) error {
+	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return fromMongoError(err)
 	}
@@ -194,12 +194,12 @@ func (s *Store) UserUpdateData(ctx context.Context, data *models.User, ID string
 	return nil
 }
 
-func (s *Store) UserUpdatePassword(ctx context.Context, newPassword, ID string) error {
-	if _, _, err := s.UserGetByID(ctx, ID, false); err != nil {
+func (s *Store) UserUpdatePassword(ctx context.Context, newPassword, id string) error {
+	if _, _, err := s.UserGetByID(ctx, id, false); err != nil {
 		return fromMongoError(err)
 	}
 
-	objID, err := primitive.ObjectIDFromHex(ID)
+	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return fromMongoError(err)
 	}
@@ -211,9 +211,9 @@ func (s *Store) UserUpdatePassword(ctx context.Context, newPassword, ID string) 
 	return nil
 }
 
-func (s *Store) UserUpdateFromAdmin(ctx context.Context, name, username, email, password, ID string) error {
-	user, _, err := s.UserGetByID(ctx, ID, false)
-	objID, _ := primitive.ObjectIDFromHex(ID)
+func (s *Store) UserUpdateFromAdmin(ctx context.Context, name, username, email, password, id string) error {
+	user, _, err := s.UserGetByID(ctx, id, false)
+	objID, _ := primitive.ObjectIDFromHex(id)
 
 	if err != nil {
 		return fromMongoError(err)
@@ -256,25 +256,25 @@ func (s *Store) UserCreateToken(ctx context.Context, token *models.UserTokenReco
 	return nil
 }
 
-func (s *Store) UserGetToken(ctx context.Context, ID string) (*models.UserTokenRecover, error) {
+func (s *Store) UserGetToken(ctx context.Context, id string) (*models.UserTokenRecover, error) {
 	token := new(models.UserTokenRecover)
-	if err := s.db.Collection("recovery_tokens").FindOne(ctx, bson.M{"user": ID}).Decode(&token); err != nil {
+	if err := s.db.Collection("recovery_tokens").FindOne(ctx, bson.M{"user": id}).Decode(&token); err != nil {
 		return nil, fromMongoError(err)
 	}
 
 	return token, nil
 }
 
-func (s *Store) UserDeleteTokens(ctx context.Context, ID string) error {
-	if _, err := s.db.Collection("recovery_tokens").DeleteMany(ctx, bson.M{"user": ID}); err != nil {
+func (s *Store) UserDeleteTokens(ctx context.Context, id string) error {
+	if _, err := s.db.Collection("recovery_tokens").DeleteMany(ctx, bson.M{"user": id}); err != nil {
 		return fromMongoError(err)
 	}
 
 	return nil
 }
 
-func (s *Store) UserUpdateAccountStatus(ctx context.Context, ID string) error {
-	objID, err := primitive.ObjectIDFromHex(ID)
+func (s *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
+	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
@@ -286,8 +286,8 @@ func (s *Store) UserUpdateAccountStatus(ctx context.Context, ID string) error {
 	return nil
 }
 
-func (s *Store) UserDelete(ctx context.Context, ID string) error {
-	objID, err := primitive.ObjectIDFromHex(ID)
+func (s *Store) UserDelete(ctx context.Context, id string) error {
+	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil
 	}
@@ -299,7 +299,7 @@ func (s *Store) UserDelete(ctx context.Context, ID string) error {
 
 	findOptions := options.Find()
 
-	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": ID}, findOptions)
+	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": id}, findOptions)
 	if err != nil {
 		return fromMongoError(err)
 	}
@@ -311,8 +311,8 @@ func (s *Store) UserDelete(ctx context.Context, ID string) error {
 			return fromMongoError(err)
 		}
 
-		if namespace.Owner != ID {
-			if _, err := s.NamespaceRemoveMember(ctx, namespace.TenantID, ID); err != nil {
+		if namespace.Owner != id {
+			if _, err := s.NamespaceRemoveMember(ctx, namespace.TenantID, id); err != nil {
 				return fromMongoError(err)
 			}
 		} else {
