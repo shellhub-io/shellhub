@@ -13,6 +13,7 @@ services:
     volumes:
       - ./ssh:/go/src/github.com/shellhub-io/shellhub/ssh
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
+      - ./.golangci.yaml:/.golangci.yaml
     environment:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
   api:
@@ -28,6 +29,7 @@ services:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./.golangci.yaml:/.golangci.yaml
   ui:
     image: ui
     build:
@@ -77,6 +79,7 @@ services:
       - /etc/passwd:/etc/passwd
       - /etc/group:/etc/group
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./.golangci.yaml:/.golangci.yaml
     depends_on:
       - api
       - ssh
@@ -92,6 +95,7 @@ services:
       - ./cli:/go/src/github.com/shellhub-io/shellhub/cli
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
+      - ./.golangci.yaml:/.golangci.yaml
     depends_on:
     - api
     - mongo

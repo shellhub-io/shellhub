@@ -47,7 +47,6 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 RUN go mod download
 
 COPY ./api/entrypoint-dev.sh /entrypoint.sh
-COPY ./.golangci.yaml /
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
