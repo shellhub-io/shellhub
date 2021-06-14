@@ -50,6 +50,7 @@ linters:
     - goerr113
     - golint
     - gomnd
+    - interfacer
     - lll
     - maligned
     - noctx
