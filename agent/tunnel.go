@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/shellhub-io/shellhub/pkg/revdial"
 )
 
 type Tunnel struct {
@@ -44,6 +45,6 @@ func NewTunnel() *Tunnel {
 }
 
 // Listen to reverse listener.
-func (t *Tunnel) Listen(l net.Listener) error {
+func (t *Tunnel) Listen(l *revdial.Listener) error {
 	return t.srv.Serve(l)
 }

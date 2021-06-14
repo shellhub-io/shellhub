@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/rsa"
-	"net"
 	"net/url"
 	"os"
 	"runtime"
@@ -13,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/revdial"
 )
 
 type Agent struct {
@@ -158,6 +158,6 @@ func (a *Agent) authorize() error {
 	return err
 }
 
-func (a *Agent) newReverseListener() (net.Listener, error) {
+func (a *Agent) newReverseListener() (*revdial.Listener, error) {
 	return a.cli.NewReverseListener(a.authData.Token)
 }
