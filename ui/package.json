@@ -31,7 +31,7 @@
     "vue-router": "^3.5.1",
     "vuetify": "^2.5.3",
     "vuex": "^3.6.2",
-    "xterm": "^4.11.0",
+    "xterm": "^4.13.0",
     "xterm-addon-attach": "^0.6.0",
     "xterm-addon-fit": "^0.5.0"
   },
