@@ -74,7 +74,6 @@ func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	listener := revdial.NewListener(wsconnadapter.New(conn),
 		func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
