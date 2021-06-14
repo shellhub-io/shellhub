@@ -10,3 +10,6 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
 
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
 	       exec api mockery --name Clock --dir ../pkg/clock/ --output ../pkg/clock/mocks --filename clock.go
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
+	       exec api mockery --name Uuid --dir ../pkg/uuid/ --output ../pkg/uuid/mocks --filename uuid.go
