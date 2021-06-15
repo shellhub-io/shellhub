@@ -34,7 +34,7 @@
         </v-card-title>
 
         <v-card-text class="mt-4 mb-3 pb-1">
-          You are about to remove this firewall rule
+          You are about to remove this firewall rule.
         </v-card-text>
 
         <v-card-actions>

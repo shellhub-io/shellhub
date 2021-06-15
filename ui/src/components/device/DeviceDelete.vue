@@ -36,7 +36,7 @@
         </v-card-title>
 
         <v-card-text class="mt-4 mb-3 pb-1">
-          You are about to remove this device
+          You are about to remove this device.
         </v-card-text>
 
         <v-card-actions>
