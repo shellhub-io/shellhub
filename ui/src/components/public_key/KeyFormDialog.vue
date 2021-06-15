@@ -41,7 +41,7 @@
       </template>
 
       <div>
-        <span v-if="action == 'private'">
+        <span v-if="isOwner || action == 'private'">
           Edit
         </span>
 
