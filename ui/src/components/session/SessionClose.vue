@@ -34,7 +34,7 @@
         </v-card-title>
 
         <v-card-text class="mt-4 mb-3 pb-1">
-          You are going to close connection for this device
+          You are going to close connection for this device.
         </v-card-text>
 
         <v-card-actions>

@@ -50,7 +50,7 @@
 
         <v-card-text class="mt-4 mb-3 pb-1">
           <div>
-            You are about to {{ action }} this device
+            You are about to {{ action }} this device.
           </div>
         </v-card-text>
 
