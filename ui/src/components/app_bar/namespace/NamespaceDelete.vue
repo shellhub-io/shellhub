@@ -19,8 +19,7 @@
 
         <v-card-text class="mt-4 mb-3 pb-1">
           This action cannot be undone. This will permanently delete the
-          <b> {{ displayOnlyTenCharacters(name) }} </b> namespace and remove all sensors
-          related to this namespace.
+          <b> {{ displayOnlyTenCharacters(name) }} </b> and its related data.
         </v-card-text>
 
         <v-card-actions>
