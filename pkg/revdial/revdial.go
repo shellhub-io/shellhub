@@ -334,7 +334,6 @@ func (ln *Listener) grabConn(path string) {
 
 		return
 	}
-	defer wsConn.Close()
 
 	failPickup := func(err error) {
 		wsConn.Close()
