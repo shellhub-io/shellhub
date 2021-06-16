@@ -15,6 +15,7 @@ type Namespace struct {
 	MaxDevices   int                `json:"max_devices" bson:"max_devices"`
 	DevicesCount int                `json:"devices_count" bson:"devices_count,omitempty"`
 	CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
+	Billing      *Billing           `json:"billing" bson:"billing,omitempty"`
 }
 
 type NamespaceSettings struct {
