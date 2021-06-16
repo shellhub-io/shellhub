@@ -212,7 +212,7 @@ func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
 	})
 	var ok bool
 
-	if s.simplePassword != "" {
+	if s.simplePassword == "" {
 		ok = osauth.AuthUser(ctx.User(), pass)
 	} else {
 		ok = osauth.VerifyPasswordHash(s.simplePassword, pass)
