@@ -1368,8 +1368,7 @@ func TestUserGetByID(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{
-		"_id":      objID,
+	_, err = db.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{"_id": objID,
 		"name":     user.Name,
 		"username": user.Username,
 		"password": user.Password,
@@ -1520,6 +1519,86 @@ func TestUpdateDataUserSecurity(t *testing.T) {
 
 	err = mongostore.NamespaceSetSessionRecord(ctx, false, namespace.TenantID)
 	assert.NoError(t, err)
+}
+
+func TestNamespaceUpdateCustomer(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	namespace := models.Namespace{
+		TenantID: "tenant",
+	}
+
+	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+
+	assert.NoError(t, err)
+
+	var custID = "cust19x"
+	err = mongostore.NamespaceUpdateCustomer(ctx, &namespace, custID)
+	assert.NoError(t, err)
+
+	ns, err := mongostore.NamespaceGet(ctx, namespace.TenantID)
+	assert.NoError(t, err)
+	assert.Equal(t, custID, ns.Billing.CustomerID)
+}
+
+func TestNamespaceUpdatePaymentID(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	ns := models.Namespace{
+		TenantID: "tenant",
+	}
+
+	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, ns)
+
+	assert.NoError(t, err)
+
+	var payID = "pm_89x"
+	err = mongostore.NamespaceUpdatePaymentID(ctx, &ns, payID)
+	assert.NoError(t, err)
+
+	namespace, err := mongostore.NamespaceGet(ctx, ns.TenantID)
+	assert.NoError(t, err)
+	assert.Equal(t, payID, namespace.Billing.PaymentMethodID)
+}
+
+func TestNamespaceDeleteCustomer(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	billing := models.Billing{
+		CustomerID:      "cust_111x",
+		PaymentMethodID: "pid_111x",
+	}
+
+	namespace := models.Namespace{
+		TenantID: "tenant",
+	}
+
+	namespaceBill := models.Namespace{
+		TenantID: namespace.TenantID,
+		Billing:  &billing,
+	}
+
+	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, &namespaceBill)
+
+	assert.NoError(t, err)
+
+	ns, err := mongostore.NamespaceGet(ctx, namespace.TenantID)
+	err = mongostore.NamespaceDeleteCustomer(ctx, ns)
+	assert.NoError(t, err)
+
+	ns, err = mongostore.NamespaceGet(ctx, namespace.TenantID)
+	assert.Empty(t, ns.Billing)
+	assert.Equal(t, &namespace, ns)
+	assert.Nil(t, ns.Billing)
 }
 
 func TestListUsers(t *testing.T) {
@@ -1845,6 +1924,121 @@ func TestUpdateNamespace(t *testing.T) {
 		MaxDevices: 3,
 	})
 	assert.NoError(t, err)
+}
+
+func TestNamespaceUpdateSubscription(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	ns := &models.Namespace{
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []interface{}{"owner"},
+		MaxDevices: -1,
+	}
+	_, err := mongostore.NamespaceCreate(ctx, ns)
+	assert.NoError(t, err)
+
+	subscription := &models.Billing{
+		SubscriptionID:   "subc_1111x",
+		CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
+		PriceID:          "pid_11x",
+	}
+
+	err = mongostore.NamespaceUpdateSubscription(ctx, ns, subscription)
+	assert.NoError(t, err)
+
+	ns, err = mongostore.NamespaceGet(ctx, ns.TenantID)
+	assert.Equal(t, subscription, ns.Billing)
+}
+
+func TestNamespaceSetPaymentFailed(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	ns := &models.Namespace{
+		TenantID: "tenant",
+		Billing: &models.Billing{
+			PaymentFailed: false,
+		},
+	}
+
+	_, err := mongostore.NamespaceCreate(ctx, ns)
+	assert.NoError(t, err)
+
+	err = mongostore.NamespaceSetPaymentFailed(ctx, ns.TenantID)
+	assert.NoError(t, err)
+
+	ns, err = mongostore.NamespaceGet(ctx, ns.TenantID)
+	assert.Equal(t, true, ns.Billing.PaymentFailed)
+}
+
+func TestNamespaceDeleteSubscription(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	ns := &models.Namespace{
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []interface{}{"owner"},
+		MaxDevices: -1,
+		Billing: &models.Billing{
+			SubscriptionID:   "subc_1111x",
+			CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
+			PriceID:          "pid_11x",
+		},
+	}
+	_, err := mongostore.NamespaceCreate(ctx, ns)
+	assert.NoError(t, err)
+
+	err = mongostore.NamespaceDeleteSubscription(ctx, ns.TenantID)
+	assert.NoError(t, err)
+
+	ns, err = mongostore.NamespaceGet(ctx, ns.TenantID)
+	assert.Empty(t, ns.Billing)
+}
+
+func TestNamespaceUpdateDeviceLimit(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	ns := &models.Namespace{
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []interface{}{"owner"},
+		MaxDevices: 3,
+		Billing: &models.Billing{
+			SubscriptionID:   "subc_1111x",
+			CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
+			PriceID:          "pid_11x",
+		},
+	}
+	_, err := mongostore.NamespaceCreate(ctx, ns)
+	assert.NoError(t, err)
+
+	var newDeviceLimit = 16
+
+	err = mongostore.NamespaceUpdateDeviceLimit(ctx, "subc_w1x", newDeviceLimit)
+	assert.Error(t, err)
+
+	err = mongostore.NamespaceUpdateDeviceLimit(ctx, ns.Billing.SubscriptionID, newDeviceLimit)
+	assert.NoError(t, err)
+
+	ns, err = mongostore.NamespaceGet(ctx, ns.TenantID)
+	assert.Equal(t, ns.MaxDevices, newDeviceLimit)
 }
 
 func TestRemoveNamespaceUser(t *testing.T) {

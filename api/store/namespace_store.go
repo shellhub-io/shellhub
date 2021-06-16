@@ -20,4 +20,11 @@ type NamespaceStore interface {
 	NamespaceGetFirst(ctx context.Context, ID string) (*models.Namespace, error)
 	NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error
 	NamespaceGetSessionRecord(ctx context.Context, tenantID string) (bool, error)
+	NamespaceUpdateSubscription(ctx context.Context, ns *models.Namespace, subs *models.Billing) error
+	NamespaceSetPaymentFailed(ctx context.Context, tenantID string) error
+	NamespaceDeleteSubscription(ctx context.Context, tenantID string) error
+	NamespaceUpdateDeviceLimit(ctx context.Context, subscriptionID string, newLimit int) error
+	NamespaceUpdateCustomer(ctx context.Context, namespace *models.Namespace, custID string) error
+	NamespaceUpdatePaymentID(ctx context.Context, namespace *models.Namespace, paymentID string) error
+	NamespaceDeleteCustomer(ctx context.Context, namespace *models.Namespace) error
 }

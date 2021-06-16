@@ -268,3 +268,66 @@ func (s *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string) 
 
 	return settings.Settings.SessionRecord, nil
 }
+
+func (s *Store) NamespaceUpdateSubscription(ctx context.Context, ns *models.Namespace, billing *models.Billing) error {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": ns.TenantID}, bson.M{"$set": bson.M{"billing.subscription_id": billing.SubscriptionID, "billing.current_period_end": billing.CurrentPeriodEnd, "billing.price_id": billing.PriceID}}); err != nil {
+		return fromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) NamespaceDeleteSubscription(ctx context.Context, tenantID string) error {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$unset": bson.M{"billing.subscription_id": 1, "billing.current_period_end": 1, "billing.price_id": 1}}); err != nil {
+		return fromMongoError(err)
+	}
+	return nil
+}
+
+func (s *Store) NamespaceSetPaymentFailed(ctx context.Context, tenantID string) error {
+	ns := new(models.Namespace)
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenantID}).Decode(&ns); err != nil {
+		return fromMongoError(err)
+	}
+
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"billing.payment_failed": true}}); err != nil {
+		return fromMongoError(err)
+	}
+	return nil
+}
+
+func (s *Store) NamespaceUpdateDeviceLimit(ctx context.Context, subscriptionID string, newLimit int) error {
+	ns := new(models.Namespace)
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"billing.subscription_id": subscriptionID}).Decode(&ns); err != nil {
+		return fromMongoError(err)
+	}
+
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"billing.subscription_id": subscriptionID}, bson.M{"$set": bson.M{"max_devices": newLimit, "billing.payment_failed": false}}); err != nil {
+		return fromMongoError(err)
+	}
+	return nil
+}
+
+func (s *Store) NamespaceUpdateCustomer(ctx context.Context, namespace *models.Namespace, custID string) error {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace.TenantID}, bson.M{"$set": bson.M{"billing.customer_id": custID}}); err != nil {
+		return fromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) NamespaceUpdatePaymentID(ctx context.Context, namespace *models.Namespace, paymentID string) error {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace.TenantID}, bson.M{"$set": bson.M{"billing.payment_method_id": paymentID}}); err != nil {
+		return fromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) NamespaceDeleteCustomer(ctx context.Context, namespace *models.Namespace) error {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace.TenantID}, bson.M{"$unset": bson.M{"billing": 1}}); err != nil {
+		return fromMongoError(err)
+	}
+
+	return nil
+}
