@@ -455,6 +455,34 @@ func (_m *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	return r0
 }
 
+// NamespaceDeleteCustomer provides a mock function with given fields: ctx, namespace
+func (_m *Store) NamespaceDeleteCustomer(ctx context.Context, namespace *models.Namespace) error {
+	ret := _m.Called(ctx, namespace)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace) error); ok {
+		r0 = rf(ctx, namespace)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// NamespaceDeleteSubscription provides a mock function with given fields: ctx, tenantID
+func (_m *Store) NamespaceDeleteSubscription(ctx context.Context, tenantID string) error {
+	ret := _m.Called(ctx, tenantID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, tenantID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NamespaceGet provides a mock function with given fields: ctx, tenantID
 func (_m *Store) NamespaceGet(ctx context.Context, tenantID string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, tenantID)
@@ -621,6 +649,20 @@ func (_m *Store) NamespaceRename(ctx context.Context, tenantID string, name stri
 	return r0, r1
 }
 
+// NamespaceSetPaymentFailed provides a mock function with given fields: ctx, tenantID
+func (_m *Store) NamespaceSetPaymentFailed(ctx context.Context, tenantID string) error {
+	ret := _m.Called(ctx, tenantID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, tenantID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NamespaceSetSessionRecord provides a mock function with given fields: ctx, sessionRecord, tenantID
 func (_m *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error {
 	ret := _m.Called(ctx, sessionRecord, tenantID)
@@ -642,6 +684,62 @@ func (_m *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, *models.Namespace) error); ok {
 		r0 = rf(ctx, tenantID, namespace)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// NamespaceUpdateCustomer provides a mock function with given fields: ctx, namespace, custID
+func (_m *Store) NamespaceUpdateCustomer(ctx context.Context, namespace *models.Namespace, custID string) error {
+	ret := _m.Called(ctx, namespace, custID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace, string) error); ok {
+		r0 = rf(ctx, namespace, custID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// NamespaceUpdateDeviceLimit provides a mock function with given fields: ctx, subscriptionID, newLimit
+func (_m *Store) NamespaceUpdateDeviceLimit(ctx context.Context, subscriptionID string, newLimit int) error {
+	ret := _m.Called(ctx, subscriptionID, newLimit)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) error); ok {
+		r0 = rf(ctx, subscriptionID, newLimit)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// NamespaceUpdatePaymentID provides a mock function with given fields: ctx, namespace, paymentID
+func (_m *Store) NamespaceUpdatePaymentID(ctx context.Context, namespace *models.Namespace, paymentID string) error {
+	ret := _m.Called(ctx, namespace, paymentID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace, string) error); ok {
+		r0 = rf(ctx, namespace, paymentID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// NamespaceUpdateSubscription provides a mock function with given fields: ctx, ns, subs
+func (_m *Store) NamespaceUpdateSubscription(ctx context.Context, ns *models.Namespace, subs *models.Billing) error {
+	ret := _m.Called(ctx, ns, subs)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace, *models.Billing) error); ok {
+		r0 = rf(ctx, ns, subs)
 	} else {
 		r0 = ret.Error(0)
 	}
