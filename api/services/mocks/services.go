@@ -43,13 +43,13 @@ func (_m *Service) AddNamespaceUser(ctx context.Context, tenantID string, userna
 	return r0, r1
 }
 
-// AuthDevice provides a mock function with given fields: ctx, req
-func (_m *Service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
-	ret := _m.Called(ctx, req)
+// AuthDevice provides a mock function with given fields: ctx, req, remoteAdrr
+func (_m *Service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAdrr string) (*models.DeviceAuthResponse, error) {
+	ret := _m.Called(ctx, req, remoteAdrr)
 
 	var r0 *models.DeviceAuthResponse
-	if rf, ok := ret.Get(0).(func(context.Context, *models.DeviceAuthRequest) *models.DeviceAuthResponse); ok {
-		r0 = rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.DeviceAuthRequest, string) *models.DeviceAuthResponse); ok {
+		r0 = rf(ctx, req, remoteAdrr)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.DeviceAuthResponse)
@@ -57,8 +57,8 @@ func (_m *Service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *models.DeviceAuthRequest) error); ok {
-		r1 = rf(ctx, req)
+	if rf, ok := ret.Get(1).(func(context.Context, *models.DeviceAuthRequest, string) error); ok {
+		r1 = rf(ctx, req, remoteAdrr)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -512,6 +512,20 @@ func (_m *Service) GetStats(ctx context.Context) (*models.Stats, error) {
 	}
 
 	return r0, r1
+}
+
+// HandleReports provides a mock function with given fields: ctx, ns, uid, inc
+func (_m *Service) HandleReports(ctx context.Context, ns *models.Namespace, uid models.UID, inc bool) error {
+	ret := _m.Called(ctx, ns, uid, inc)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace, models.UID, bool) error); ok {
+		r0 = rf(ctx, ns, uid, inc)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ListDevices provides a mock function with given fields: ctx, pagination, filter, status, sort, order
