@@ -33,6 +33,7 @@ type internalAPI interface {
 	RecordSession(session *models.SessionRecorded, recordURL string)
 	Lookup(lookup map[string]string) (string, []error)
 	DeviceLookup(lookup map[string]string) (*models.Device, []error)
+	GetNamespaceByName(tenant string) (*models.Namespace, error)
 }
 
 func (c *client) LookupDevice() {
@@ -80,6 +81,22 @@ func (c *client) CreatePrivateKey() (*models.PrivateKey, error) {
 	}
 
 	return privKey, nil
+}
+
+func (c *client) GetNamespaceByName(tenant string) (*models.Namespace, error) {
+	var namespace *models.Namespace
+	resp, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/internal/namespaces/%s", tenant))).EndStruct(&namespace)
+	if len(errs) > 0 {
+		return nil, ErrConnectionFailed
+	}
+
+	if resp.StatusCode == 400 {
+		return nil, ErrNotFound
+	} else if resp.StatusCode == 200 {
+		return namespace, nil
+	}
+
+	return nil, ErrUnknown
 }
 
 func (c *client) DevicesOffline(id string) error {

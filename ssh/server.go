@@ -75,21 +75,26 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		return
 	}
+	apiClient := client.NewClient()
+	ns, err := apiClient.GetNamespaceByName(sess.Lookup["domain"])
+	if err != nil {
+		return
+	}
 
-	if wh := webhook.NewClient(); wh != nil {
+	if wh := webhook.NewClient(ns.Settings.Webhook); wh != nil && ns.Settings.Webhook.Active {
 		res, err := wh.Connect(sess.Lookup)
+
 		if errors.Is(err, webhook.ErrForbidden) {
 			session.Write([]byte("Connection rejected by Webhook endpoint\n")) // nolint:errcheck
 			session.Close()
 
 			return
 		}
-
-		if sess.Pty {
+		if sess.Pty && err == nil {
 			session.Write([]byte(fmt.Sprintf("Wait %d seconds while the agent starts\n", res.Timeout))) // nolint:errcheck
-		}
 
-		time.Sleep(time.Duration(res.Timeout) * time.Second)
+			time.Sleep(time.Duration(res.Timeout) * time.Second)
+		}
 	}
 
 	conn, err := s.tunnel.Dial(context.Background(), sess.Target)
