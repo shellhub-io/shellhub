@@ -35,18 +35,18 @@ func (c *sshConn) Close() error {
 }
 
 type Server struct {
-	sshd              *sshserver.Server
-	api               client.Client
-	authData          *models.DeviceAuthResponse
-	cmds              map[string]*exec.Cmd
-	Sessions          map[string]net.Conn
-	deviceName        string
-	mu                sync.Mutex
-	keepAliveInterval int
-	simplePassword    string
+	sshd               *sshserver.Server
+	api                client.Client
+	authData           *models.DeviceAuthResponse
+	cmds               map[string]*exec.Cmd
+	Sessions           map[string]net.Conn
+	deviceName         string
+	mu                 sync.Mutex
+	keepAliveInterval  int
+	singleUserPassword string
 }
 
-func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int) *Server {
+func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, singleUserPassword string) *Server {
 	s := &Server{
 		api:               api,
 		authData:          authData,
@@ -199,23 +199,16 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	}
 }
 
-func (s *Server) ForceSingleMode(simplePassword string) {
-	if simplePassword == "" {
-		return
-	}
-	s.simplePassword = simplePassword
-}
-
 func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
 	log := logrus.WithFields(logrus.Fields{
 		"user": ctx.User(),
 	})
 	var ok bool
 
-	if s.simplePassword == "" {
+	if s.singleUserPassword == "" {
 		ok = osauth.AuthUser(ctx.User(), pass)
 	} else {
-		ok = osauth.VerifyPasswordHash(s.simplePassword, pass)
+		ok = osauth.VerifyPasswordHash(s.singleUserPassword, pass)
 	}
 
 	if ok {
