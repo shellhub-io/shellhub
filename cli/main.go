@@ -35,7 +35,9 @@ func main() {
 
 	if cfg.StoreCache {
 		cache, err = storecache.NewRedisCache(cfg.RedisURI)
-		log.Error(err)
+		if err != nil {
+			log.Error(err)
+		}
 	} else {
 		cache = storecache.NewNullCache()
 	}
@@ -57,7 +59,7 @@ func main() {
 				return err
 			}
 
-			fmt.Println("User added: ", username) //nolint:forbidigo
+			fmt.Println("User added:", username) //nolint:forbidigo
 
 			return nil
 		},
@@ -82,9 +84,9 @@ func main() {
 					return err
 				}
 
-				fmt.Println("Namespace added: ", ns.Name) //nolint:forbidigo
-				fmt.Println("Owner: ", ns.Owner)          //nolint:forbidigo
-				fmt.Println("Tenant ID: ", ns.TenantID)   //nolint:forbidigo
+				fmt.Println("Namespace added:", ns.Name) //nolint:forbidigo
+				fmt.Println("Owner:", ns.Owner)          //nolint:forbidigo
+				fmt.Println("Tenant ID:", ns.TenantID)   //nolint:forbidigo
 
 				return nil
 			},
@@ -103,8 +105,8 @@ func main() {
 					return err
 				}
 
-				fmt.Println("User: ", ns.Owner)              //nolint:forbidigo
-				fmt.Println("added to namespace: ", ns.Name) //nolint:forbidigo
+				fmt.Println("User:", ns.Owner)              //nolint:forbidigo
+				fmt.Println("added to namespace:", ns.Name) //nolint:forbidigo
 
 				return nil
 			},
@@ -157,8 +159,8 @@ func main() {
 					return err
 				}
 
-				fmt.Println("User: ", ns.Owner)                  //nolint:forbidigo
-				fmt.Println("removed from namespace: ", ns.Name) //nolint:forbidigo
+				fmt.Println("User:", ns.Owner)                  //nolint:forbidigo
+				fmt.Println("removed from namespace:", ns.Name) //nolint:forbidigo
 
 				return nil
 			},
