@@ -8,6 +8,7 @@ services:
       - PRIVATE_KEY=/run/secrets/ssh_private_key
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - RECORD_URL=${SHELLHUB_RECORD_URL}
+      - BILLING_URL=${SHELLHUB_BILLING_URL}
       - WEBHOOK_URL=${SHELLHUB_WEBHOOK_URL}
       - WEBHOOK_PORT=${SHELLHUB_WEBHOOK_PORT}
       - WEBHOOK_SCHEME=${SHELLHUB_WEBHOOK_SCHEME}
@@ -42,6 +43,7 @@ services:
     image: shellhubio/ui:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
+      - VUE_APP_STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
     depends_on:

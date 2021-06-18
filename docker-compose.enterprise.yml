@@ -4,6 +4,7 @@ services:
   ssh:
     environment:
       - RECORD_URL=cloud-api:8080
+      - BILLING_URL=billing-api:8080
   cloud-api:
     image: docker-registry.ossystems.com.br/shellhubio/cloud-api:${SHELLHUB_VERSION}
     restart: unless-stopped
