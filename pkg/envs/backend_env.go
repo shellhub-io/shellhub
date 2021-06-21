@@ -8,8 +8,3 @@ type envBackend struct{}
 func (b *envBackend) Get(name string) string {
 	return os.Getenv(name)
 }
-
-// IsEnterprise returns true if the current ShellHub server instance is enterprise.
-func IsEnterprise() bool {
-	return DefaultBackend.Get("SHELLHUB_ENTERPRISE") == "true"
-}
