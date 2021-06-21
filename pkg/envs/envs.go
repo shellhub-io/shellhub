@@ -11,3 +11,13 @@ var DefaultBackend Backend
 func init() {
 	DefaultBackend = &envBackend{}
 }
+
+// IsEnterprise returns true if the current ShellHub server instance is enterprise.
+func IsEnterprise() bool {
+	return DefaultBackend.Get("SHELLHUB_ENTERPRISE") == "true"
+}
+
+// IsCloud returns true if the current ShellHub server instance is cloud.
+func IsCloud() bool {
+	return DefaultBackend.Get("SHELLHUB_CLOUD") == "true"
+}
