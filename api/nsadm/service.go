@@ -33,8 +33,8 @@ type Service interface {
 	AddNamespaceUser(ctx context.Context, tenantID, username, ownerUsername string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, tenantID, username, ownerUsername string) (*models.Namespace, error)
 	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
-	UpdateDataUserSecurity(ctx context.Context, status bool, tenant string) error
-	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
+	EditSessionRecordStatus(ctx context.Context, status bool, tenant string) error
+	GetSessionRecord(ctx context.Context, tenant string) (bool, error)
 }
 
 type service struct {
@@ -261,7 +261,7 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, o
 	return s.store.NamespaceRemoveMember(ctx, tenantID, user.ID)
 }
 
-func (s *service) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
+func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenant string) error {
 	if _, err := s.GetNamespace(ctx, tenant); err != nil {
 		if err == store.ErrNoDocuments {
 			return ErrUnauthorized
@@ -273,7 +273,7 @@ func (s *service) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool
 	return s.store.NamespaceSetSessionRecord(ctx, sessionRecord, tenant)
 }
 
-func (s *service) GetDataUserSecurity(ctx context.Context, tenant string) (bool, error) {
+func (s *service) GetSessionRecord(ctx context.Context, tenant string) (bool, error) {
 	if _, err := s.store.NamespaceGet(ctx, tenant); err != nil {
 		if err == store.ErrNoDocuments {
 			return false, ErrUnauthorized
