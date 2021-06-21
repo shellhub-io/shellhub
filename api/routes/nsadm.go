@@ -10,15 +10,15 @@ import (
 )
 
 const (
-	ListNamespaceURL       = "/namespaces"
-	CreateNamespaceURL     = "/namespaces"
-	GetNamespaceURL        = "/namespaces/:id"
-	DeleteNamespaceURL     = "/namespaces/:id"
-	EditNamespaceURL       = "/namespaces/:id"
-	AddNamespaceUserURL    = "/namespaces/:id/add"
-	RemoveNamespaceUserURL = "/namespaces/:id/del"
-	UserSecurityURL        = "/users/security"
-	UpdateUserSecurityURL  = "/users/security/:id"
+	ListNamespaceURL           = "/namespaces"
+	CreateNamespaceURL         = "/namespaces"
+	GetNamespaceURL            = "/namespaces/:id"
+	DeleteNamespaceURL         = "/namespaces/:id"
+	EditNamespaceURL           = "/namespaces/:id"
+	AddNamespaceUserURL        = "/namespaces/:id/add"
+	RemoveNamespaceUserURL     = "/namespaces/:id/del"
+	GetSessionRecordURL        = "/users/security"
+	EditSessionRecordStatusURL = "/users/security/:id"
 )
 
 func GetNamespaceList(c apicontext.Context) error {
@@ -230,7 +230,7 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func UpdateUserSecurity(c apicontext.Context) error {
+func EditSessionRecordStatus(c apicontext.Context) error {
 	var req struct {
 		SessionRecord bool `json:"session_record"`
 	}
@@ -242,7 +242,7 @@ func UpdateUserSecurity(c apicontext.Context) error {
 
 	svc := nsadm.NewService(c.Store())
 
-	err := svc.UpdateDataUserSecurity(c.Ctx(), req.SessionRecord, tenant)
+	err := svc.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, tenant)
 	if err != nil {
 		return err
 	}
@@ -250,7 +250,7 @@ func UpdateUserSecurity(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
-func GetUserSecurity(c apicontext.Context) error {
+func GetSessionRecord(c apicontext.Context) error {
 	tenant := ""
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID
@@ -258,7 +258,7 @@ func GetUserSecurity(c apicontext.Context) error {
 
 	svc := nsadm.NewService(c.Store())
 
-	status, err := svc.GetDataUserSecurity(c.Ctx(), tenant)
+	status, err := svc.GetSessionRecord(c.Ctx(), tenant)
 	if err != nil {
 		return err
 	}

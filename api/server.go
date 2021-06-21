@@ -105,8 +105,8 @@ func startServer() error {
 
 	publicAPI.PATCH(routes.UpdateUserDataURL, apicontext.Handler(routes.UpdateUserData))
 	publicAPI.PATCH(routes.UpdateUserPasswordURL, apicontext.Handler(routes.UpdateUserPassword))
-	publicAPI.PUT(routes.UpdateUserSecurityURL, apicontext.Handler(routes.UpdateUserSecurity))
-	publicAPI.GET(routes.UserSecurityURL, apicontext.Handler(routes.GetUserSecurity))
+	publicAPI.PUT(routes.EditSessionRecordStatusURL, apicontext.Handler(routes.EditSessionRecordStatus))
+	publicAPI.GET(routes.GetSessionRecordURL, apicontext.Handler(routes.GetSessionRecord))
 
 	publicAPI.GET(routes.GetDeviceListURL,
 		middlewares.Authorize(apicontext.Handler(routes.GetDeviceList)))

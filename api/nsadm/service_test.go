@@ -198,7 +198,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	assert.Equal(t, namespace2, returnedNamespace)
 }
 
-func TestGetDataUserSecurity(t *testing.T) {
+func TestGetSessionRecord(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock))
 
@@ -210,14 +210,14 @@ func TestGetDataUserSecurity(t *testing.T) {
 	mock.On("NamespaceGetSessionRecord", ctx, namespace.TenantID).
 		Return(namespace.Settings.SessionRecord, nil).Once()
 
-	returnedUserSecurity, err := s.GetDataUserSecurity(ctx, namespace.TenantID)
+	returnedUserSecurity, err := s.GetSessionRecord(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 	assert.Equal(t, returnedUserSecurity, namespace.Settings.SessionRecord)
 
 	mock.AssertExpectations(t)
 }
 
-func TestUpdateDataUserSecurity(t *testing.T) {
+func TestEditSessionRecord(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock))
 
@@ -233,10 +233,10 @@ func TestUpdateDataUserSecurity(t *testing.T) {
 	mock.On("NamespaceGetSessionRecord", ctx, namespace.TenantID).
 		Return(!namespace.Settings.SessionRecord, nil).Once()
 
-	err := s.UpdateDataUserSecurity(ctx, !namespace.Settings.SessionRecord, namespace.TenantID)
+	err := s.EditSessionRecordStatus(ctx, !namespace.Settings.SessionRecord, namespace.TenantID)
 	assert.NoError(t, err)
 
-	returnedUserSecurity, err := s.GetDataUserSecurity(ctx, namespace.TenantID)
+	returnedUserSecurity, err := s.GetSessionRecord(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 	assert.Equal(t, !namespace.Settings.SessionRecord, returnedUserSecurity)
 
