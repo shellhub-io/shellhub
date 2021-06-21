@@ -82,9 +82,12 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		ns.TenantID = uuid.Generate()
 	}
 
-	if envs.IsEnterprise() {
+	// Set limits according to ShellHub instance type
+	if envs.IsCloud() {
+		// cloud free plan is limited only by the max of devices
 		ns.MaxDevices = 3
 	} else {
+		// we don't set limits on enterprise and community instances
 		ns.MaxDevices = -1
 	}
 
