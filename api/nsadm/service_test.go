@@ -2,6 +2,7 @@ package nsadm
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -51,34 +52,56 @@ func TestGetNamespace(t *testing.T) {
 }
 
 func TestCreateNamespace(t *testing.T) {
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
-
-	ctx := context.TODO()
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
-
-	envMock := &env_mocks.Backend{}
-	envs.DefaultBackend = envMock
-	envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
-	createNamespace := &models.Namespace{
-		Name:       strings.ToLower(namespace.Name),
-		Owner:      user.ID,
-		Members:    []interface{}{user.ID},
-		Settings:   &models.NamespaceSettings{SessionRecord: true},
-		TenantID:   namespace.TenantID,
-		MaxDevices: -1,
+	tests := []struct {
+		name       string
+		isCloud    bool
+		maxDevices int
+	}{
+		{
+			name:       "CloudInstance",
+			isCloud:    true,
+			maxDevices: 3,
+		},
+		{
+			name:       "EnterpriseOrCommunityInstance",
+			isCloud:    false,
+			maxDevices: -1,
+		},
 	}
 
-	mock.On("NamespaceGetByName", ctx, createNamespace.Name).Return(nil, nil).Once()
-	mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-	mock.On("NamespaceCreate", ctx, createNamespace).Return(createNamespace, nil).Once()
+	// nolint:scopelint
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := &mocks.Store{}
+			s := NewService(store.Store(mock))
 
-	returnedNamespace, err := s.CreateNamespace(ctx, createNamespace, namespace.Owner)
-	assert.NoError(t, err)
-	assert.Equal(t, createNamespace, returnedNamespace)
-	mock.AssertExpectations(t)
+			ctx := context.TODO()
+			namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
+
+			envMock := &env_mocks.Backend{}
+			envs.DefaultBackend = envMock
+			envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(tc.isCloud)).Once()
+
+			user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
+			createNamespace := &models.Namespace{
+				Name:       strings.ToLower(namespace.Name),
+				Owner:      user.ID,
+				Members:    []interface{}{user.ID},
+				Settings:   &models.NamespaceSettings{SessionRecord: true},
+				TenantID:   namespace.TenantID,
+				MaxDevices: tc.maxDevices,
+			}
+
+			mock.On("NamespaceGetByName", ctx, createNamespace.Name).Return(nil, nil).Once()
+			mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+			mock.On("NamespaceCreate", ctx, createNamespace).Return(createNamespace, nil).Once()
+
+			returnedNamespace, err := s.CreateNamespace(ctx, createNamespace, namespace.Owner)
+			assert.NoError(t, err)
+			assert.Equal(t, createNamespace, returnedNamespace)
+			mock.AssertExpectations(t)
+		})
+	}
 }
 
 func TestEditNamespace(t *testing.T) {
