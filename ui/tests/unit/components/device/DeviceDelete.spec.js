@@ -1,9 +1,11 @@
 import Vuex from 'vuex';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { mount, createLocalVue } from '@vue/test-utils';
 import DeviceDelete from '@/components/device/DeviceDelete';
+import Vuetify from 'vuetify';
 
 describe('DeviceDelete', () => {
   const localVue = createLocalVue();
+  const vuetify = new Vuetify();
   localVue.use(Vuex);
 
   let wrapper;
@@ -31,15 +33,17 @@ describe('DeviceDelete', () => {
   });
 
   beforeEach(() => {
-    wrapper = shallowMount(DeviceDelete, {
+    wrapper = mount(DeviceDelete, {
       store,
       localVue,
       stubs: ['fragment'],
       propsData: { uid, redirect },
+      vuetify,
     });
   });
 
   it('Is a Vue instance', () => {
+    document.body.setAttribute('data-app', true);
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
@@ -51,5 +55,19 @@ describe('DeviceDelete', () => {
   });
   it('Compare data with default value', () => {
     expect(wrapper.vm.dialog).toEqual(false);
+  });
+  it('Show message tooltip to user owner', async (done) => {
+    const icons = wrapper.findAll('.v-icon');
+    expect(icons.length).toBe(1);
+
+    const helpIcon = icons.at(0);
+    expect(helpIcon.text()).toEqual('delete');
+
+    helpIcon.trigger('mouseenter');
+    await wrapper.vm.$nextTick();
+    requestAnimationFrame(() => {
+      expect(wrapper.find('[data-test="tooltipOwner-text"]').text()).toEqual('Remove');
+      done();
+    });
   });
 });
