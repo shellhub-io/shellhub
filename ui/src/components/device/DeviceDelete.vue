@@ -16,11 +16,16 @@
       </template>
 
       <div>
-        <span v-if="isOwner">
+        <span
+          v-if="isOwner"
+          data-test="tooltipOwner-text"
+        >
           Remove
         </span>
 
-        <span v-else>
+        <span
+          v-else
+        >
           You are not the owner of this namespace
         </span>
       </div>
