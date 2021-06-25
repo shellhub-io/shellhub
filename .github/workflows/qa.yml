@@ -11,6 +11,7 @@ jobs:
 
   validate:
     name: validate
+    if: ${{ github.event.pull_request.draft == false }}
 
     strategy:
       fail-fast: false
@@ -58,7 +59,7 @@ jobs:
             - 'cli/**'
 
     - name: Set up Go 1.x [Go]
-      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
       uses: actions/setup-go@v2
       with:
         go-version: 1.16
@@ -66,18 +67,18 @@ jobs:
 
     - name: Cache Go files [Go]
       uses: actions/cache@v1
-      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
     - name: Get Go dependencies [Go]
-      if: matrix.project != 'ui'
+      if: matrix.project != 'ui' && github.event.pull_request.draft == false
       working-directory: ${{ matrix.project }}
       run: go mod download
 
     - name: Ensure Go dependencies are complete [Go]
-      if: matrix.project != 'ui'
+      if: matrix.project != 'ui' &&  github.event.pull_request.draft == false
       working-directory: ${{ matrix.project }}
       run: |
         go mod tidy
@@ -87,21 +88,21 @@ jobs:
         fi
 
     - name: Unit test [Go]
-      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
       working-directory: ${{ matrix.project }}
       run: go test -v ${{ matrix.extra_args }} ./...
 
     - name: Go build [Go]
-      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
       working-directory: ${{ matrix.project }}
       run: go build -v ${{ matrix.extra_args }} ./...
 
     - name: Code format [Go]
       run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest' && github.event.pull_request.draft == false
 
     - name: Code linting [Go]
-      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true'
+      if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
       uses: golangci/golangci-lint-action@v2
       with:
         working-directory: ${{ matrix.project }}
@@ -110,29 +111,29 @@ jobs:
         skip-pkg-cache: true
 
     - name: Set up Node.JS 12.16 [UI]
-      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
       uses: actions/setup-node@v1
       with:
           node-version: "12.16"
 
     - name: Cache node modules [UI]
-      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
       uses: actions/cache@v1
       with:
         path: ui/node_modules
         key: ${{ runner.OS }}-ui-${{ hashFiles('**/package-lock.json') }}
 
     - name: Install Node Dependencies [UI]
-      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
       working-directory: ${{ matrix.project }}
       run: npm install
 
     - name: Unit test [UI]
-      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
       working-directory: ${{ matrix.project }}
       run: npm run test:unit -- -u
 
     - name: Save Code Linting Report JSON [UI]
-      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true'
+      if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
       working-directory: ${{ matrix.project }}
       run: npm run lint:no-fix

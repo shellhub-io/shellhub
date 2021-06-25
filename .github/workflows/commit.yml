@@ -1,19 +1,17 @@
 name: 'Commit Message Check'
 on:
   push:
-    branches-ignore:
-      - 'master'
-    tags-ignore:
-      - 'draft'
+    branches: [ master ]
+
   pull_request:
+    branches: [ master ]
 
 jobs:
   check-commit-message:
-    if: github.actor != 'dependabot[bot]'
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
     name: Check Commit Message
     runs-on: ubuntu-20.04
     steps:
-
       - name: Check Commit Type
         uses: gsactions/commit-message-checker@v1
         with:
