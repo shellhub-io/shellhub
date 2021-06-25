@@ -207,7 +207,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 					Message: waitingString,
 					Width:   pty.Window.Height,
 					Height:  pty.Window.Width,
-				}, opts)
+				}, opts.RecordURL)
 				waitingString = ""
 			}
 			for {
@@ -228,7 +228,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 					Message: waitingString,
 					Width:   pty.Window.Height,
 					Height:  pty.Window.Width,
-				}, opts)
+				}, opts.RecordURL)
 				waitingString = ""
 			}
 		}()
