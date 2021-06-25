@@ -178,6 +178,13 @@ export default {
   },
 
   computed: {
+    webTermDimensions() {
+      return {
+        cols: this.xterm.cols,
+        rows: this.xterm.rows,
+      };
+    },
+
     show: {
       get() {
         return this.$store.getters['modals/terminal'] === this.$props.uid;
@@ -238,36 +245,22 @@ export default {
     },
 
     connectWithPassword() {
-      const params = Object.entries({
-        user: `${this.username}@${this.$props.uid}`,
-        passwd: encodeURIComponent(this.passwd),
-        cols: this.xterm.cols,
-        rows: this.xterm.rows,
-      })
-        .map(([k, v]) => `${k}=${v}`)
-        .join('&');
+      const passwd = encodeURIComponent(this.passwd);
+      this.connect({ passwd });
+    },
 
-      this.connect(params);
+    encodeURLParams(params) {
+      return Object.entries(params).map(([k, v]) => `${k}=${v}`).join('&');
     },
 
     connectWithPrivateKey() {
       const key = new RSAKey(this.privateKey);
       key.setOptions({ signingScheme: 'pkcs1-sha1' });
 
-      const signature = key.sign(this.username, 'base64');
+      const signature = encodeURIComponent(key.sign(this.username, 'base64'));
       const fingerprint = parsePrivateKey(this.privateKey).fingerprint('md5');
 
-      const params = Object.entries({
-        user: `${this.username}@${this.$props.uid}`,
-        signature: encodeURIComponent(signature),
-        fingerprint,
-        cols: this.xterm.cols,
-        rows: this.xterm.rows,
-      })
-        .map(([k, v]) => `${k}=${v}`)
-        .join('&');
-
-      this.connect(params);
+      this.connect({ signature, fingerprint });
     },
 
     connect(params) {
@@ -293,7 +286,8 @@ export default {
         protocolConnectionURL = 'wss';
       }
 
-      this.ws = new WebSocket(`${protocolConnectionURL}://${window.location.host}/ws/ssh?${params}`);
+      const wsInfo = { user: `${this.username}@${this.$props.uid}`, ...params, ...this.webTermDimensions };
+      this.ws = new WebSocket(`${protocolConnectionURL}://${window.location.host}/ws/ssh?${this.encodeURLParams(wsInfo)}`);
 
       this.ws.onopen = () => {
         this.attachAddon = new AttachAddon(this.ws);
