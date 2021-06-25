@@ -30,7 +30,7 @@ type internalAPI interface {
 	FirewallEvaluate(lookup map[string]string) []error
 	PatchSessions(uid string) []error
 	FinishSession(uid string) []error
-	RecordSession(session *models.SessionRecorded, opts interface{})
+	RecordSession(session *models.SessionRecorded, recordUrl string)
 	Lookup(lookup map[string]string) (string, []error)
 	DeviceLookup(lookup map[string]string) (*models.Device, []error)
 }
@@ -113,12 +113,8 @@ func (c *client) FinishSession(uid string) []error {
 	return errs
 }
 
-func (c *client) RecordSession(session *models.SessionRecorded, opts interface{}) {
-	type ConfigOptions struct {
-		RecordURL string `envconfig:"record_url"`
-	}
-
-	c.http.Post(buildURL(c, fmt.Sprintf("http://"+opts.(ConfigOptions).RecordURL+"/internal/sessions/%s/record", session.UID))).Send(&session).End()
+func (c *client) RecordSession(session *models.SessionRecorded, recordUrl string) {
+	c.http.Post(buildURL(c, fmt.Sprintf("http://"+recordUrl+"/internal/sessions/%s/record", session.UID))).Send(&session).End()
 }
 
 func (c *client) Lookup(lookup map[string]string) (string, []error) {
