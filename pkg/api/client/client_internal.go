@@ -114,7 +114,7 @@ func (c *client) FinishSession(uid string) []error {
 }
 
 func (c *client) RecordSession(session *models.SessionRecorded, recordUrl string) {
-	c.http.Post(buildURL(c, fmt.Sprintf("http://"+recordUrl+"/internal/sessions/%s/record", session.UID))).Send(&session).End()
+	c.http.Post(fmt.Sprintf("http://"+recordUrl+"/internal/sessions/%s/record", session.UID)).Send(&session).End()
 }
 
 func (c *client) Lookup(lookup map[string]string) (string, []error) {
