@@ -54,7 +54,7 @@
     "fibers": "^5.0.0",
     "font-logos": "^0.17.0",
     "mock-local-storage": "^1.1.17",
-    "node-sass": "^6.0.0",
+    "node-sass": "^6.0.1",
     "sass": "^1.32.12",
     "sass-loader": "~10.2.0",
     "stylus": "^0.54.8",
