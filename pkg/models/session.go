@@ -32,12 +32,6 @@ type RecordedSession struct {
 	Height   int       `json:"height" bson:"height,omitempty"`
 }
 
-type SessionRecord struct {
-	Record string `json:"record"`
-	Height int    `json:"height"`
-	Width  int    `json:"width"`
-}
-
 type Status struct {
 	Authenticated bool `json:"authenticated"`
 }
