@@ -680,13 +680,23 @@ func TestRecordSession(t *testing.T) {
 		Username:      "user",
 		UID:           "uid",
 		DeviceUID:     models.UID(hex.EncodeToString(uid[:])),
+		TenantID:      "tenant",
 		IPAddress:     "0.0.0.0",
 		Authenticated: true,
 	}
 
+	recordSession := models.RecordedSession{
+		UID:      models.UID(session.UID),
+		Message:  "message",
+		TenantID: session.TenantID,
+		Time:     clock.Now(),
+		Width:    0,
+		Height:   0,
+	}
+
 	_, err = mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
-	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session.UID), "message", 0, 0)
+	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session.UID), &recordSession)
 	assert.NoError(t, err)
 }
 
@@ -731,13 +741,23 @@ func TestGetRecord(t *testing.T) {
 		Username:      "user",
 		UID:           "uid",
 		DeviceUID:     models.UID(hex.EncodeToString(uid[:])),
+		TenantID:      "tenant",
 		IPAddress:     "0.0.0.0",
 		Authenticated: true,
 	}
 
+	recordSession := models.RecordedSession{
+		UID:      models.UID(session.UID),
+		Message:  "message",
+		TenantID: session.TenantID,
+		Time:     clock.Now(),
+		Width:    0,
+		Height:   0,
+	}
+
 	_, err = mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
-	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session.UID), "message", 0, 0)
+	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session.UID), &recordSession)
 	assert.NoError(t, err)
 	recorded, count, err := mongostore.SessionGetRecordFrame(ctx, models.UID(session.UID))
 	assert.NoError(t, err)
@@ -864,25 +884,45 @@ func TestSessionDeleteRecordFrame(t *testing.T) {
 		Username:      "user",
 		UID:           "uid",
 		DeviceUID:     models.UID(hex.EncodeToString(uid[:])),
+		TenantID:      "tenant",
 		IPAddress:     "0.0.0.0",
 		Authenticated: true,
+	}
+
+	recordSession := models.RecordedSession{
+		UID:      models.UID(session.UID),
+		Message:  "message",
+		TenantID: session.TenantID,
+		Time:     clock.Now(),
+		Width:    0,
+		Height:   0,
 	}
 
 	session2 := models.Session{
 		Username:      "user",
 		UID:           "uid2",
 		DeviceUID:     models.UID(hex.EncodeToString(uid[:])),
+		TenantID:      "tenant2",
 		IPAddress:     "0.0.0.0",
 		Authenticated: true,
+	}
+
+	recordSession2 := models.RecordedSession{
+		UID:      models.UID(session2.UID),
+		Message:  "message",
+		TenantID: session2.TenantID,
+		Time:     clock.Now(),
+		Width:    0,
+		Height:   0,
 	}
 
 	_, err = mongostore.SessionCreate(ctx, session)
 	assert.NoError(t, err)
 	_, err = mongostore.SessionCreate(ctx, session2)
 	assert.NoError(t, err)
-	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session.UID), "message", 0, 0)
+	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session.UID), &recordSession)
 	assert.NoError(t, err)
-	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session2.UID), "message", 0, 0)
+	err = mongostore.SessionCreateRecordFrame(ctx, models.UID(session2.UID), &recordSession2)
 	assert.NoError(t, err)
 	recorded, count, err := mongostore.SessionGetRecordFrame(ctx, models.UID(session.UID))
 	assert.NoError(t, err)
