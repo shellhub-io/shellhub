@@ -814,12 +814,12 @@ func (_m *Store) SessionCreate(ctx context.Context, session models.Session) (*mo
 }
 
 // SessionCreateRecordFrame provides a mock function with given fields: ctx, uid, record, width, height
-func (_m *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, record string, width int, height int) error {
-	ret := _m.Called(ctx, uid, record, width, height)
+func (_m *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordSession *models.RecordedSession) error {
+	ret := _m.Called(ctx, uid, recordSession)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, int, int) error); ok {
-		r0 = rf(ctx, uid, record, width, height)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.RecordedSession) error); ok {
+		r0 = rf(ctx, uid, recordSession)
 	} else {
 		r0 = ret.Error(0)
 	}

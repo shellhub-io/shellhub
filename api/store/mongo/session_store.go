@@ -216,17 +216,8 @@ func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error 
 	return fromMongoError(err)
 }
 
-func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordMessage string, width, height int) error {
-	record := new(models.RecordedSession)
-	session, _ := s.SessionGet(ctx, uid)
-	record.UID = uid
-	record.Message = recordMessage
-	record.Width = width
-	record.Height = height
-	record.TenantID = session.TenantID
-	record.Time = clock.Now()
-
-	if _, err := s.db.Collection("recorded_sessions").InsertOne(ctx, &record); err != nil {
+func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordSession *models.RecordedSession) error {
+	if _, err := s.db.Collection("recorded_sessions").InsertOne(ctx, &recordSession); err != nil {
 		return fromMongoError(err)
 	}
 

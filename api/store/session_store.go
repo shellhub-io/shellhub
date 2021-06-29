@@ -14,7 +14,7 @@ type SessionStore interface {
 	SessionSetAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error
 	SessionSetLastSeen(ctx context.Context, uid models.UID) error
 	SessionDeleteActives(ctx context.Context, uid models.UID) error
-	SessionCreateRecordFrame(ctx context.Context, uid models.UID, record string, width, height int) error
+	SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordSession *models.RecordedSession) error
 	SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
 	SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
 	SessionDeleteRecordFrame(ctx context.Context, uid models.UID) error
