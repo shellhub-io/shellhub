@@ -233,7 +233,8 @@ func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, owne
 }
 
 func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, ownerID string) (*models.Namespace, error) {
-	if _, err := s.store.NamespaceGet(ctx, tenantID); err != nil {
+	ns, err := s.store.NamespaceGet(ctx, tenantID)
+	if err != nil {
 		if err == store.ErrNoDocuments {
 			return nil, ErrNamespaceNotFound
 		}
@@ -241,12 +242,17 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, o
 		return nil, err
 	}
 
-	if _, _, err := s.store.UserGetByID(ctx, ownerID, false); err != nil {
+	ownerUser, _, err := s.store.UserGetByID(ctx, ownerID, false)
+	if err != nil {
 		if err == store.ErrNoDocuments {
 			return nil, ErrUnauthorized
 		}
 
 		return nil, err
+	}
+
+	if ns.Owner != ownerUser.ID {
+		return nil, ErrUnauthorized
 	}
 
 	user, err := s.store.UserGetByUsername(ctx, username)
@@ -256,6 +262,10 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, o
 
 	if err != nil {
 		return nil, err
+	}
+
+	if ns.Owner != ownerUser.ID {
+		return nil, ErrUnauthorized
 	}
 
 	return s.store.NamespaceRemoveMember(ctx, tenantID, user.ID)
