@@ -11,7 +11,8 @@ import (
 )
 
 var migration5 = migrate.Migration{
-	Version: 5,
+	Version:     5,
+	Description: "Set the email as unique on users collection",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 5 - Up")
 		mod := mongo.IndexModel{
