@@ -44,10 +44,11 @@ describe('SnackbarError', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Process data in the computed', async () => {
+  it('Process data in the computed - loading message type', async () => {
     expect(wrapper.vm.snackbar).toEqual(snackbarError);
     expect(wrapper.vm.message).toEqual(loadingMessage);
-
+  });
+  it('Process data in the computed - action message type', async () => {
     typeMessage = 'action';
     mainContent = 'deviceDelete';
     actionMessage = `The ${mainContent} request has failed, please try again.`;
@@ -57,8 +58,10 @@ describe('SnackbarError', () => {
       stubs: ['fragment'],
       propsData: { typeMessage, mainContent },
     });
-    expect(wrapper.vm.message).toEqual(actionMessage);
 
+    expect(wrapper.vm.message).toEqual(actionMessage);
+  });
+  it('Process data in the computed - default message type', async () => {
     typeMessage = 'default';
     wrapper = shallowMount(SnackbarError, {
       store,

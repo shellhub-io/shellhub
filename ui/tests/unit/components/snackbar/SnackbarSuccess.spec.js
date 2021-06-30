@@ -43,10 +43,11 @@ describe('SnackbarSuccess', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Process data in the computed', async () => {
+  it('Process data in the computed - action message type', async () => {
     expect(wrapper.vm.snackbar).toEqual(snackbarSuccess);
     expect(wrapper.vm.message).toEqual(actionMessage);
-
+  });
+  it('Process data in the computed - default message type', async () => {
     typeMessage = 'default';
     wrapper = shallowMount(SnackbarSuccess, {
       store,
