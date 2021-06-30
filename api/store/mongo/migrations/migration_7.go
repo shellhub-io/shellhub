@@ -11,7 +11,8 @@ import (
 )
 
 var migration7 = migrate.Migration{
-	Version: 7,
+	Version:     7,
+	Description: "Unset unique on uid and message in the recoded_sessions collection",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 7 - Up")
 		mod := mongo.IndexModel{
