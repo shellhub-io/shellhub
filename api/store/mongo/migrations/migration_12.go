@@ -11,7 +11,8 @@ import (
 )
 
 var migration12 = migrate.Migration{
-	Version: 12,
+	Version:     12,
+	Description: "Set the tenant_id as unique in the namespaces collection",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 12 - Up")
 		mod := mongo.IndexModel{
