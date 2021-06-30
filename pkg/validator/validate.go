@@ -1,15 +1,9 @@
 package validator
 
 import (
-	"errors"
 	"strings"
 
 	"gopkg.in/go-playground/validator.v9"
-)
-
-var (
-	ErrorStruct     = errors.New("the struct provided couldn't be checked")
-	ErrorBadRequest = errors.New("bad request")
 )
 
 type InvalidField struct {
@@ -27,7 +21,7 @@ func CheckValidation(data interface{}) ([]InvalidField, error) {
 			invalidFields = append(invalidFields, InvalidField{strings.ToLower(err.StructField()), "invalid", err.Tag(), err.Param()})
 		}
 
-		return invalidFields, ErrorBadRequest
+		return invalidFields, ErrBadRequest
 	}
 
 	return invalidFields, nil
