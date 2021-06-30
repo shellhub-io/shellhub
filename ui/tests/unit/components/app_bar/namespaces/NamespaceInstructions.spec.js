@@ -13,6 +13,7 @@ describe('NamespaceInstructions', () => {
   localVue.use(Vuex);
 
   let wrapper;
+
   const show = true;
 
   beforeEach(() => {

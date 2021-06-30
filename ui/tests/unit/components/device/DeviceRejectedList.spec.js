@@ -6,12 +6,13 @@ import Vuetify from 'vuetify';
 describe('DeviceRejectedList', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
-  localVue.filter('moment', () => {});
   localVue.use(Vuex);
+  localVue.filter('moment', () => {});
 
   let wrapper;
 
   const numberDevices = 1;
+
   const devices = [
     {
       uid: '2378hj238',
@@ -75,6 +76,7 @@ describe('DeviceRejectedList', () => {
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
+
     expect(dataTableProps.items).toHaveLength(numberDevices);
     expect(wrapper.find('[data-test="accept-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="remove-field"]').exists()).toBe(true);

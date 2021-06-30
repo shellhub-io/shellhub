@@ -49,12 +49,14 @@ describe('SnackbarSuccess', () => {
   });
   it('Process data in the computed - default message type', async () => {
     typeMessage = 'default';
+
     wrapper = shallowMount(SnackbarSuccess, {
       store,
       localVue,
       stubs: ['fragment'],
       propsData: { typeMessage, mainContent },
     });
+
     expect(wrapper.vm.message).toEqual(defaultMessage);
   });
 });

@@ -2,6 +2,7 @@ import store from '@/store';
 
 describe('Firewalls', () => {
   const numberFirewalls = 2;
+
   const firewalls = [
     {
       id: '5f1996c84d2190a22d5857bb',
@@ -24,6 +25,7 @@ describe('Firewalls', () => {
       hostname: 'shellhub',
     },
   ];
+
   const firewallRule = {
     id: '5f1996c84d2190a22d5857bb',
     tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
@@ -34,10 +36,12 @@ describe('Firewalls', () => {
     username: 'shellhub',
     hostname: 'shellhub',
   };
+
   const pagePerpageInitialValue = {
     page: 0,
     perPage: 10,
   };
+
   const pagePerpageValue = {
     page: 1,
     perPage: 50,

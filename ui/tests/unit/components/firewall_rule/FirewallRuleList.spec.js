@@ -5,13 +5,14 @@ import Vuetify from 'vuetify';
 
 describe('FirewallRuleList', () => {
   const localVue = createLocalVue();
-  localVue.use(Vuex);
   const vuetify = new Vuetify();
+  localVue.use(Vuex);
 
   let wrapper;
 
   const status = true;
   const numberFirewalls = 2;
+
   const firewalls = [
     {
       id: '5f1996c84d2190a22d5857bb',
@@ -81,6 +82,7 @@ describe('FirewallRuleList', () => {
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
+
     expect(dataTableProps.items).toHaveLength(numberFirewalls);
     expect(wrapper.find('[data-test="firewall-dialog-field-2"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-delete-field"]').exists()).toBe(true);

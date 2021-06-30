@@ -2,6 +2,7 @@ import store from '@/store';
 
 describe('PrivateKeys', () => {
   const numberPrivateKeys = 3;
+
   const privateKeys = [
     {
       name: 'key1',

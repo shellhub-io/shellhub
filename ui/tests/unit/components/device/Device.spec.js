@@ -54,6 +54,7 @@ describe('Device', () => {
     expect(wrapper.vm.search).toEqual('');
 
     wrapper.setData({ search: 'ShellHub' });
+
     expect(wrapper.vm.search).toEqual('ShellHub');
   });
   it('Renders the template with data', () => {
@@ -61,6 +62,7 @@ describe('Device', () => {
 
     const textInputSearch = wrapper.find('[data-test="search-text"]');
     textInputSearch.element.value = 'ShellHub';
+
     expect(wrapper.find('[data-test="search-text"]').element.value).toEqual('ShellHub');
   });
   it('Process data in the computed', () => {

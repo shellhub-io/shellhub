@@ -7,6 +7,7 @@ describe('DeviceIcon', () => {
   localVue.use(Vuex);
 
   let wrapper;
+
   const iconName = 'alpine';
 
   const iconsMap = {

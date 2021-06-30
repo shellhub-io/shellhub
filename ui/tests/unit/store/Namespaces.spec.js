@@ -1,7 +1,9 @@
 import store from '@/store';
 
 describe('Namespace', () => {
+  const owner = true;
   const numberNamespaces = 4;
+
   const namespaces = [
     {
       name: 'namespace1',
@@ -36,8 +38,6 @@ describe('Namespace', () => {
     tenant_id: 'a736a52b-5777-4f92-b0b8-e359bf484715',
   };
 
-  const owner = true;
-
   it('Returns namespaces default variables', () => {
     expect(store.getters['namespaces/list']).toEqual([]);
     expect(store.getters['namespaces/get']).toEqual({});
@@ -57,6 +57,7 @@ describe('Namespace', () => {
   it('Verify changed member list for removeMember mutation', () => {
     const lengthListOfMembers = namespace.members.length;
     const lastUsername = namespace.members[lengthListOfMembers - 1];
+
     store.commit('namespaces/removeMember', lastUsername);
     expect(store.getters['namespaces/get'].members).toHaveLength(lengthListOfMembers - 1);
     store.getters['namespaces/get'].members.forEach((member) => {
@@ -70,12 +71,10 @@ describe('Namespace', () => {
       expect(item.tenant_id === namespace.tenant_id).toBeFalsy();
     });
   });
-
   it('Verify changed owner for setOwnerStatus mutation', () => {
     store.commit('namespaces/setOwnerStatus', owner);
     expect(store.getters['namespaces/owner']).toEqual(owner);
   });
-
   it('Clears the namespace variables from store', () => {
     store.commit('namespaces/clearNamespaceList');
     store.commit('namespaces/clearObjectNamespace');

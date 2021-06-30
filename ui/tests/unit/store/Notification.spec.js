@@ -3,10 +3,12 @@ import store from '@/store';
 describe('Notification', () => {
   it('returns notifications default', () => {
     const actual = store.getters['notifications/list'];
+
     expect(actual).toEqual([]);
   });
   it('returns number notifications default', () => {
     const actual = store.getters['notifications/getNumberNotifications'];
+
     expect(actual).toEqual(0);
   });
   it('complete test', () => {
@@ -51,8 +53,8 @@ describe('Notification', () => {
     ];
 
     const numberNotifications = 2;
-    store.commit('notifications/setNotifications', { data: notifications, headers: { 'x-total-count': numberNotifications } });
 
+    store.commit('notifications/setNotifications', { data: notifications, headers: { 'x-total-count': numberNotifications } });
     expect(store.getters['notifications/list']).toEqual(notifications);
     expect(store.getters['notifications/getNumberNotifications']).toEqual(numberNotifications);
   });

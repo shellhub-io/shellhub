@@ -43,6 +43,7 @@ describe('WelcomeSecondScreen', () => {
   it('Renders the template with data', () => {
     const commandText = wrapper.find('[data-test="command-text"]');
     commandText.element.value = command;
+
     expect(commandText.element.value).toEqual(command);
   });
 });

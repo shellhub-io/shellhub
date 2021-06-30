@@ -131,7 +131,7 @@ describe('MaxDevice', () => {
     });
   });
   it('Check owner fields rendering in open version of the template.', () => {
-    const wrapper2 = shallowMount(MaxDevice, {
+    wrapper = shallowMount(MaxDevice, {
       store,
       localVue,
       stubs: ['fragment'],
@@ -142,6 +142,6 @@ describe('MaxDevice', () => {
       },
     });
 
-    expect(wrapper2.find('[data-test=devices-field]').exists()).toEqual(false);
+    expect(wrapper.find('[data-test=devices-field]').exists()).toEqual(false);
   });
 });

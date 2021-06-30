@@ -12,6 +12,7 @@ describe('SessionPlay', () => {
   const uid = '8c354a00f50';
   const recorded = true;
   const speedList = [0.5, 1, 1.5, 2, 4];
+
   const session = [
     {
       uid: '1a0536ab37d',

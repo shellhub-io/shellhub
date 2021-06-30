@@ -52,6 +52,7 @@ describe('SnackbarError', () => {
     typeMessage = 'action';
     mainContent = 'deviceDelete';
     actionMessage = `The ${mainContent} request has failed, please try again.`;
+
     wrapper = shallowMount(SnackbarError, {
       store,
       localVue,
@@ -63,12 +64,14 @@ describe('SnackbarError', () => {
   });
   it('Process data in the computed - default message type', async () => {
     typeMessage = 'default';
+
     wrapper = shallowMount(SnackbarError, {
       store,
       localVue,
       stubs: ['fragment'],
       propsData: { typeMessage, mainContent },
     });
+
     expect(wrapper.vm.message).toEqual(defaultMessage);
   });
 });

@@ -9,6 +9,7 @@ describe('FirewallRuleFormDialog', () => {
   let wrapper;
 
   const isOwner = true;
+  const createRule = true;
 
   const firewallRule = {
     id: '5f1996c84d2190a22d5857bb',
@@ -20,7 +21,7 @@ describe('FirewallRuleFormDialog', () => {
     username: 'shellhub',
     hostname: 'shellhub',
   };
-  const createRule = true;
+
   const stateFirewallRule = [
     {
       id: 'allow',

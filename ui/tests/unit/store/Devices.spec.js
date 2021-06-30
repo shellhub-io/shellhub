@@ -1,6 +1,8 @@
 import store from '@/store';
 
 describe('Devices', () => {
+  const numberDevices = 2;
+
   const devices = [
     {
       uid: 'a582b47a42d',
@@ -37,6 +39,7 @@ describe('Devices', () => {
       namespace: 'user',
     },
   ];
+
   const device = {
     uid: 'a582b47a42d',
     name: '39-5e-2a',
@@ -54,7 +57,6 @@ describe('Devices', () => {
     online: false,
     namespace: 'user',
   };
-  const numberDevices = 2;
 
   // filter
   const searchString = '4';
@@ -82,13 +84,11 @@ describe('Devices', () => {
   });
   it('Verify initial states change for mutation setDevices', () => {
     store.commit('devices/setDevices', { data: devices, headers: { 'x-total-count': numberDevices } });
-
     expect(store.getters['devices/list']).toEqual(devices);
     expect(store.getters['devices/getNumberDevices']).toEqual(numberDevices);
   });
   it('Verify initial states change for mutation serPagePerpageFilter', () => {
     store.commit('devices/setPagePerpageFilter', data);
-
     expect(store.getters['devices/getPage']).toEqual(1);
     expect(store.getters['devices/getPerPage']).toEqual(10);
     expect(store.getters['devices/getFilter']).toEqual(null);
@@ -96,7 +96,6 @@ describe('Devices', () => {
   });
   it('Verify initial state change for mutation setDevice', () => {
     store.commit('devices/setDevice', device);
-
     expect(store.getters['devices/get']).toEqual(device);
   });
   it('Verify changed filter state in setFilter mutation', () => {

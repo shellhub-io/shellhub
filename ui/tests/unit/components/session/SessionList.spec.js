@@ -13,6 +13,7 @@ describe('DeviceAdd', () => {
 
   const status = true;
   const numberSessions = 2;
+
   const sessions = [
     {
       uid: '8c354a00f50',
@@ -116,6 +117,7 @@ describe('DeviceAdd', () => {
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
+
     expect(dataTableProps.items).toHaveLength(numberSessions);
     expect(wrapper.find('[data-test="close-field"]').exists()).toBe(true);
   });

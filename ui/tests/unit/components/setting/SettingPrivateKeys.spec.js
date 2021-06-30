@@ -9,6 +9,7 @@ describe('SettingPrivateKeys', () => {
   let wrapper;
 
   const numberPrivateKeys = 2;
+
   const privateKeys = [
     {
       name: 'shellhub',
@@ -49,6 +50,7 @@ describe('SettingPrivateKeys', () => {
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
+
     expect(dataTableProps.items).toHaveLength(numberPrivateKeys);
   });
   it('Process data in the computed', () => {

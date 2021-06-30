@@ -19,8 +19,8 @@ extend('email', {
 
 describe('SettingProfile', () => {
   const localVue = createLocalVue();
-  localVue.use(Vuex);
   const vuetify = new Vuetify();
+  localVue.use(Vuex);
   localVue.component('ValidationProvider', ValidationProvider);
   localVue.component('ValidationObserver', ValidationObserver);
 
@@ -97,6 +97,7 @@ describe('SettingProfile', () => {
   it('Show empty fields required in validation', async () => {
     wrapper.setData({ username: '', email: '', currentPassword: '' });
     await flushPromises();
+
     const validatorUser = wrapper.vm.$refs.providerName;
     const validatorEmail = wrapper.vm.$refs.providerEmail;
     const validatorCurrentPass = wrapper.vm.$refs.providerCurrentPassword;
@@ -119,7 +120,9 @@ describe('SettingProfile', () => {
     it(`Shows invalid email error for ${iemail}`, async () => {
       wrapper.setData({ email: iemail });
       await flushPromises();
+
       const validator = wrapper.vm.$refs.providerEmail;
+
       await validator.validate();
       expect(validator.errors[0]).toBe('This field must be a valid email');
     });
@@ -129,7 +132,9 @@ describe('SettingProfile', () => {
     it(`Valid email for ${vemail}`, async () => {
       wrapper.setData({ email: vemail });
       await flushPromises();
+
       const validator = wrapper.vm.$refs.providerEmail;
+
       await validator.validate();
       expect(validator.errors).toHaveLength(0);
     });
@@ -139,7 +144,9 @@ describe('SettingProfile', () => {
     it(`Shows invalid password length for ${ipass}`, async () => {
       wrapper.setData({ newPassword: ipass });
       await flushPromises();
+
       const validator = wrapper.vm.$refs.providerNewPassword;
+
       await validator.validate();
       expect(validator.errors[0]).toBe('Your password should be 5-30 characters long');
     });
@@ -149,7 +156,9 @@ describe('SettingProfile', () => {
     it(`Valid password for ${vpass}`, async () => {
       wrapper.setData({ newPassword: vpass });
       await flushPromises();
+
       const validator = wrapper.vm.$refs.providerNewPassword;
+
       await validator.validate();
       expect(validator.errors).toHaveLength(0);
     });
@@ -159,7 +168,9 @@ describe('SettingProfile', () => {
     it(`Shows invalid password match for ${item.new} and ${item.confirmNew}`, async () => {
       wrapper.setData({ newPassword: item.new, newPasswordConfirm: item.confirmNew });
       await flushPromises();
+
       const validator = wrapper.vm.$refs.providerConfirmPassword;
+
       await validator.validate();
       expect(validator.errors[0]).toBe('The passwords do not match');
     });
@@ -169,7 +180,9 @@ describe('SettingProfile', () => {
     it(`Valid password match for ${item.new} and ${item.confirmNew}`, async () => {
       wrapper.setData({ newPassword: item.new, newPasswordConfirm: item.confirmNew });
       await flushPromises();
+
       const validator = wrapper.vm.$refs.providerConfirmPassword;
+
       await validator.validate();
       expect(validator.errors).toHaveLength(0);
     });
@@ -179,7 +192,9 @@ describe('SettingProfile', () => {
     it(`Shows error for switching to the same password ${item.old}`, async () => {
       wrapper.setData({ currentPassword: item.old, newPassword: item.new });
       await flushPromises();
+
       const validator = wrapper.vm.$refs.providerNewPassword;
+
       await validator.validate();
       expect(validator.errors[0]).toBe('The passwords are the same');
     });
@@ -189,7 +204,9 @@ describe('SettingProfile', () => {
     it(`Valid password change from ${item.old} to ${item.new}`, async () => {
       wrapper.setData({ currentPassword: item.old, newPassword: item.new });
       await flushPromises();
+
       const validator = wrapper.vm.$refs.providerNewPassword;
+
       await validator.validate();
       expect(validator.errors).toHaveLength(0);
     });

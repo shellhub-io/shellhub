@@ -10,6 +10,7 @@ describe('PublicKeyList', () => {
 
   const status = true;
   const numberPublicKeys = 2;
+
   const publicKeys = [
     {
       data: 'BBGVvbmFyZG8=',
@@ -70,6 +71,7 @@ describe('PublicKeyList', () => {
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
+
     expect(dataTableProps.items).toHaveLength(numberPublicKeys);
   });
 });

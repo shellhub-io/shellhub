@@ -58,13 +58,12 @@ describe('DeviceDelete', () => {
   });
   it('Show message tooltip to user owner', async (done) => {
     const icons = wrapper.findAll('.v-icon');
-    expect(icons.length).toBe(1);
-
     const helpIcon = icons.at(0);
-    expect(helpIcon.text()).toEqual('delete');
-
     helpIcon.trigger('mouseenter');
     await wrapper.vm.$nextTick();
+
+    expect(icons.length).toBe(1);
+    expect(helpIcon.text()).toEqual('delete');
     requestAnimationFrame(() => {
       expect(wrapper.find('[data-test="tooltipOwner-text"]').text()).toEqual('Remove');
       done();

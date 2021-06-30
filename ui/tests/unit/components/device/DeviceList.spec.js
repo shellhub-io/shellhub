@@ -11,6 +11,7 @@ describe('DeviceList', () => {
   let wrapper;
 
   const numberDevices = 2;
+
   const devices = [
     {
       uid: 'a582b47a42d',
@@ -92,6 +93,7 @@ describe('DeviceList', () => {
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
+
     expect(dataTableProps.items).toHaveLength(numberDevices);
     expect(wrapper.find('[data-test="delete-field"]').exists()).toBe(true);
   });

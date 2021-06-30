@@ -5,8 +5,8 @@ import Vuetify from 'vuetify';
 
 describe('Session', () => {
   const localVue = createLocalVue();
-  localVue.use(Vuex);
   const vuetify = new Vuetify();
+  localVue.use(Vuex);
 
   let wrapper;
 

@@ -8,7 +8,6 @@ describe('Dashboard', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  let wrapper2;
 
   const numberNamespaces1 = 3;
   const numberNamespaces2 = 1;
@@ -128,20 +127,20 @@ describe('Dashboard', () => {
     expect(Object.keys(JSON.parse(localStorage.getItem('namespacesWelcome')))).toHaveLength(1);
   });
   it('The welcome screen loads with the expected behavior - without devices', async () => {
-    wrapper2 = shallowMount(Dashboard, { // wrapper without devices
+    wrapper = shallowMount(Dashboard, { // wrapper without devices
       store: storeNoDevices,
       localVue,
       stubs: ['fragment'],
     });
 
-    expect(wrapper2.vm.hasDevices()).toBe(false);
-    await wrapper2.vm.showScreenWelcome().then(() => {
-      expect(wrapper2.vm.show).toBe(true);
+    expect(wrapper.vm.hasDevices()).toBe(false);
+    await wrapper.vm.showScreenWelcome().then(() => {
+      expect(wrapper.vm.show).toBe(true);
     });
     localStorage.setItem('namespacesWelcome', JSON.stringify({ ...{ [namespace2.tenant_id]: true } }));
 
-    await wrapper2.vm.showScreenWelcome().then(() => {
-      expect(wrapper2.vm.show).toBe(false);
+    await wrapper.vm.showScreenWelcome().then(() => {
+      expect(wrapper.vm.show).toBe(false);
     });
   });
 });
