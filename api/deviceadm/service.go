@@ -10,7 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 var (
@@ -27,6 +27,7 @@ type Service interface {
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
 	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, username string) error
+	isNamespaceOwner(ctx context.Context, tenant, username string) error
 }
 
 type service struct {
@@ -37,7 +38,7 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) isNamespaceOnwer(ctx context.Context, tenant, username string) error {
+func (s *service) isNamespaceOwner(ctx context.Context, tenant, username string) error {
 	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil {
 		return err
@@ -74,7 +75,7 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 }
 
 func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, username string) error {
-	if err := s.isNamespaceOnwer(ctx, tenant, username); err != nil {
+	if err := s.isNamespaceOwner(ctx, tenant, username); err != nil {
 		return ErrUnauthorized
 	}
 
@@ -86,7 +87,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, user
 }
 
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant, username string) error {
-	if err := s.isNamespaceOnwer(ctx, tenant, username); err != nil {
+	if err := s.isNamespaceOwner(ctx, tenant, username); err != nil {
 		return ErrUnauthorized
 	}
 
@@ -95,7 +96,6 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		return err
 	}
 
-	validate := validator.New()
 	updatedDevice := &models.Device{
 		UID:       device.UID,
 		Name:      strings.ToLower(name),
@@ -108,10 +108,11 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		Namespace: device.Namespace,
 		Status:    device.Status,
 	}
-	err = validate.Struct(updatedDevice)
-	if err != nil {
+
+	if _, err = validator.CheckValidation(updatedDevice); err != nil {
 		return err
 	}
+
 	if device.Name == updatedDevice.Name {
 		return nil
 	}
@@ -137,7 +138,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online
 }
 
 func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, username string) error {
-	if err := s.isNamespaceOnwer(ctx, tenant, username); err != nil {
+	if err := s.isNamespaceOwner(ctx, tenant, username); err != nil {
 		return ErrUnauthorized
 	}
 
