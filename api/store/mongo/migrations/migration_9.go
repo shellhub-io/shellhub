@@ -12,7 +12,8 @@ import (
 )
 
 var migration9 = migrate.Migration{
-	Version: 9,
+	Version:     9,
+	Description: "Set all devices names to lowercase in the devices colletion",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 9 - Up")
 		cursor, err := db.Collection("devices").Find(context.TODO(), bson.D{})
