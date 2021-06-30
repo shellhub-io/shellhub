@@ -7,7 +7,8 @@ import (
 )
 
 var migration1 = migrate.Migration{
-	Version: 1,
+	Version:     1,
+	Description: "Create the database for the system",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 1 - Up")
 
