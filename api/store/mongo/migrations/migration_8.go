@@ -11,7 +11,8 @@ import (
 )
 
 var migration8 = migrate.Migration{
-	Version: 8,
+	Version:     8,
+	Description: "Unset unique on recorded in the sessions collection",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 8 - Up")
 		mod := mongo.IndexModel{
