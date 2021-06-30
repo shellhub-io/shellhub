@@ -5,6 +5,7 @@ on:
 
   pull_request:
     branches: [ master ]
+    types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
 
 jobs:
   check-commit-message:
