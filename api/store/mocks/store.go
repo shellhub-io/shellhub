@@ -813,7 +813,7 @@ func (_m *Store) SessionCreate(ctx context.Context, session models.Session) (*mo
 	return r0, r1
 }
 
-// SessionCreateRecordFrame provides a mock function with given fields: ctx, uid, record, width, height
+// SessionCreateRecordFrame provides a mock function with given fields: ctx, uid, recordSession
 func (_m *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordSession *models.RecordedSession) error {
 	ret := _m.Called(ctx, uid, recordSession)
 
@@ -1008,8 +1008,36 @@ func (_m *Store) UserCreate(ctx context.Context, user *models.User) error {
 	return r0
 }
 
+// UserCreateToken provides a mock function with given fields: ctx, token
+func (_m *Store) UserCreateToken(ctx context.Context, token *models.UserTokenRecover) error {
+	ret := _m.Called(ctx, token)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.UserTokenRecover) error); ok {
+		r0 = rf(ctx, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UserDelete provides a mock function with given fields: ctx, ID
 func (_m *Store) UserDelete(ctx context.Context, ID string) error {
+	ret := _m.Called(ctx, ID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, ID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UserDeleteTokens provides a mock function with given fields: ctx, ID
+func (_m *Store) UserDeleteTokens(ctx context.Context, ID string) error {
 	ret := _m.Called(ctx, ID)
 
 	var r0 error
@@ -1121,6 +1149,29 @@ func (_m *Store) UserGetByUsername(ctx context.Context, username string) (*model
 	return r0, r1
 }
 
+// UserGetToken provides a mock function with given fields: ctx, ID
+func (_m *Store) UserGetToken(ctx context.Context, ID string) (*models.UserTokenRecover, error) {
+	ret := _m.Called(ctx, ID)
+
+	var r0 *models.UserTokenRecover
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.UserTokenRecover); ok {
+		r0 = rf(ctx, ID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserTokenRecover)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, ID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UserList provides a mock function with given fields: ctx, pagination, filters
 func (_m *Store) UserList(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
 	ret := _m.Called(ctx, pagination, filters)
@@ -1149,6 +1200,20 @@ func (_m *Store) UserList(ctx context.Context, pagination paginator.Query, filte
 	}
 
 	return r0, r1, r2
+}
+
+// UserUpdateAccountStatus provides a mock function with given fields: ctx, ID
+func (_m *Store) UserUpdateAccountStatus(ctx context.Context, ID string) error {
+	ret := _m.Called(ctx, ID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, ID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // UserUpdateData provides a mock function with given fields: ctx, data, ID
@@ -1186,71 +1251,6 @@ func (_m *Store) UserUpdatePassword(ctx context.Context, newPassword string, ID 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
 		r0 = rf(ctx, newPassword, ID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UserCreateToken provides a mock function with given fields: ctx, token
-func (_m *Store) UserCreateToken(ctx context.Context, token *models.UserTokenRecover) error {
-	ret := _m.Called(ctx, token)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.UserTokenRecover) error); ok {
-		r0 = rf(ctx, token)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UserGetToken provides a mock function with given fields: ctx, ID
-func (_m *Store) UserGetToken(ctx context.Context, ID string) (*models.UserTokenRecover, error) {
-	ret := _m.Called(ctx, ID)
-
-	var r0 *models.UserTokenRecover
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.UserTokenRecover); ok {
-		r0 = rf(ctx, ID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.UserTokenRecover)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, ID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UserDeleteTokens provides a mock function with given fields: ctx, ID
-func (_m *Store) UserDeleteTokens(ctx context.Context, ID string) error {
-	ret := _m.Called(ctx, ID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, ID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UserUpdateAccountStatus provides a mock function with given fields: ctx, ID
-func (_m *Store) UserUpdateAccountStatus(ctx context.Context, ID string) error {
-	ret := _m.Called(ctx, ID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, ID)
 	} else {
 		r0 = ret.Error(0)
 	}
