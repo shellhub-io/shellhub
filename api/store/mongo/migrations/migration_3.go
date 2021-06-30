@@ -7,7 +7,8 @@ import (
 )
 
 var migration3 = migrate.Migration{
-	Version: 3,
+	Version:     3,
+	Description: "Rename the column attributes to info",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 3 - Up")
 
