@@ -7,7 +7,8 @@ import (
 )
 
 var migration2 = migrate.Migration{
-	Version: 2,
+	Version:     2,
+	Description: "Rename the column device to device_uid",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 2 - Up")
 
