@@ -11,7 +11,8 @@ import (
 )
 
 var migration11 = migrate.Migration{
-	Version: 11,
+	Version:     11,
+	Description: "Create a ttl for the private_keys collection",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 11 - Up")
 		mod := mongo.IndexModel{
