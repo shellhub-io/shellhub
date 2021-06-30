@@ -112,7 +112,22 @@ describe('Dashboard', () => {
     expect(wrapper.find('[data-cy="viewDevices-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-cy="viewSessions-btn"]').exists()).toBe(true);
   });
-  it('The welcome screen loads with the expected behavior', async () => {
+  it('The welcome screen loads with the expected behavior - with devices', async () => {
+    expect(wrapper.vm.namespaceHasBeenShown(namespace1.tenant_id)).toBe(false);
+
+    localStorage.setItem('namespacesWelcome', JSON.stringify({
+      ...JSON.parse(localStorage.getItem('namespacesWelcome')),
+      ...{ [namespace1.tenant_id]: true },
+    }));
+
+    expect(wrapper.vm.namespaceHasBeenShown(namespace1.tenant_id)).toBe(true);
+
+    await wrapper.vm.showScreenWelcome(); // wrapper having devices
+    expect(wrapper.vm.hasDevices()).toBe(true);
+    expect(wrapper.vm.show).toBe(false);
+    expect(Object.keys(JSON.parse(localStorage.getItem('namespacesWelcome')))).toHaveLength(1);
+  });
+  it('The welcome screen loads with the expected behavior - without devices', async () => {
     wrapper2 = shallowMount(Dashboard, { // wrapper without devices
       store: storeNoDevices,
       localVue,
@@ -128,19 +143,5 @@ describe('Dashboard', () => {
     await wrapper2.vm.showScreenWelcome().then(() => {
       expect(wrapper2.vm.show).toBe(false);
     });
-
-    expect(wrapper.vm.namespaceHasBeenShown(namespace1.tenant_id)).toBe(false);
-
-    localStorage.setItem('namespacesWelcome', JSON.stringify({
-      ...JSON.parse(localStorage.getItem('namespacesWelcome')),
-      ...{ [namespace1.tenant_id]: true },
-    }));
-
-    expect(wrapper.vm.namespaceHasBeenShown(namespace1.tenant_id)).toBe(true);
-
-    await wrapper.vm.showScreenWelcome(); // wrapper having devices
-    expect(wrapper.vm.hasDevices()).toBe(true);
-    expect(wrapper.vm.show).toBe(false);
-    expect(Object.keys(JSON.parse(localStorage.getItem('namespacesWelcome')))).toHaveLength(2);
   });
 });
