@@ -7,12 +7,12 @@ describe('Notification', () => {
   localVue.use(Vuex);
 
   let wrapper;
-  let wrapper2;
+
   const inANamespace = false;
   const owner = true;
-
   const numberNotifications = 2;
   const noNotifications = Array(0);
+
   const notifications = [
     {
       uid: 'a582b47a42d',
@@ -70,7 +70,7 @@ describe('Notification', () => {
     },
   });
 
-  const store = new Vuex.Store({
+  const storeOwner = new Vuex.Store({
     namespaced: true,
     state: {
       notifications,
@@ -106,7 +106,7 @@ describe('Notification', () => {
 
   beforeEach(() => {
     wrapper = shallowMount(Notification, {
-      store,
+      store: storeOwner,
       localVue,
       stubs: ['fragment', 'router-link'],
       propsData: { inANamespace },
@@ -120,15 +120,16 @@ describe('Notification', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
   it('Renders the template with data', () => {
-    wrapper2 = shallowMount(Notification, {
+    wrapper = shallowMount(Notification, {
       store: storeNotOwner,
       localVue,
       stubs: ['fragment', 'router-link'],
       propsData: { inANamespace },
     });
+
     Object.keys(notifications).forEach((field) => {
-      expect(wrapper2.find(`[data-test="${notifications[field].uid}-field"]`).text()).toEqual(notifications[field].name);
-      expect(wrapper2.find(`[data-test="${notifications[field].uid}-btn"]`).exists()).toEqual(false);
+      expect(wrapper.find(`[data-test="${notifications[field].uid}-field"]`).text()).toEqual(notifications[field].name);
+      expect(wrapper.find(`[data-test="${notifications[field].uid}-btn"]`).exists()).toEqual(false);
     });
   });
   it('Hides button for user not owner', () => {
@@ -144,6 +145,7 @@ describe('Notification', () => {
       stubs: ['fragment', 'router-link'],
       propsData: { inANamespace },
     });
+
     expect(wrapper.find('[data-test="noNotifications"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="noNotifications"]').text()).toEqual('You don\'t have notifications');
   });

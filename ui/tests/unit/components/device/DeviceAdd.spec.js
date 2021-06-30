@@ -19,6 +19,7 @@ describe('DeviceAdd', () => {
   let wrapper;
 
   const isOwner = true;
+
   const store = new Vuex.Store({
     namespaced: true,
     state: {
@@ -63,10 +64,11 @@ describe('DeviceAdd', () => {
   });
   it('Process data in methods', () => {
     const command = 'curl -sSf "http://localhost/install.sh?tenant_id=00000000" | sh';
-    expect(wrapper.vm.command()).toBe(command);
 
     jest.spyOn(wrapper.vm, 'copyCommand');
     wrapper.vm.copyCommand();
+
+    expect(wrapper.vm.command()).toBe(command);
     expect(wrapper.vm.copyCommand).toHaveBeenCalled();
   });
 });

@@ -2,6 +2,7 @@ import store from '@/store';
 
 describe('PublicKeys', () => {
   const numberPublicKeys = 2;
+
   const publicKeys = [
     {
       data: 'BBGVvbmFyZG8=',
@@ -18,6 +19,7 @@ describe('PublicKeys', () => {
       name: 'shellhub',
     },
   ];
+
   const publicKey = {
     data: 'AbGVvbmFyZG8=',
     fingerprint: 'b7:25:f8',
@@ -25,10 +27,12 @@ describe('PublicKeys', () => {
     tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
     name: 'shellhub',
   };
+
   const pagePerpageInitialValue = {
     page: 0,
     perPage: 10,
   };
+
   const pagePerpageValue = {
     page: 1,
     perPage: 50,
@@ -41,7 +45,6 @@ describe('PublicKeys', () => {
     expect(store.getters['publickeys/getPage']).toEqual(pagePerpageInitialValue.page);
     expect(store.getters['publickeys/getPerPage']).toEqual(pagePerpageInitialValue.perPage);
   });
-
   it('Verify initial state change for setPublicKeys mutation', () => {
     store.commit('publickeys/setPublicKeys', { data: publicKeys, headers: { 'x-total-count': numberPublicKeys } });
     expect(store.getters['publickeys/list']).toEqual(publicKeys);

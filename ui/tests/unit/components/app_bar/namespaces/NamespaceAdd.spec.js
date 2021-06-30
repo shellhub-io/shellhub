@@ -5,6 +5,7 @@ import NamespaceAdd from '@/components/app_bar/namespace/NamespaceAdd';
 describe('NamespaceAdd', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
+
   let wrapper;
 
   const show = true;

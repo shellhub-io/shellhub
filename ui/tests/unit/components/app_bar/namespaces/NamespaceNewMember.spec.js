@@ -6,9 +6,9 @@ describe('NamespaceNewMember', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
-  const tenant = 'xxxxx';
-
   let wrapper;
+
+  const tenant = 'xxxxx';
 
   const store = new Vuex.Store({
     namespaced: true,

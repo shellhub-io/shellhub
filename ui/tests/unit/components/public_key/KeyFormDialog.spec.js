@@ -9,6 +9,8 @@ describe('KeyFormDialog', () => {
   let wrapper;
 
   const isOwner = true;
+  const createKey = true;
+  const action = 'public';
 
   const keyObject = {
     data: 'AbGVvbmFyZG8=',
@@ -17,8 +19,6 @@ describe('KeyFormDialog', () => {
     tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
     name: 'shellhub',
   };
-  const createKey = true;
-  const action = 'public';
 
   const store = new Vuex.Store({
     namespaced: true,

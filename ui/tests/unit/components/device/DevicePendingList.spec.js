@@ -12,6 +12,7 @@ describe('DevicePendingList', () => {
   let wrapper;
 
   const numberDevices = 4;
+
   const devices = [
     {
       uid: '1234',
@@ -129,6 +130,7 @@ describe('DevicePendingList', () => {
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
+
     expect(dataTableProps.items).toHaveLength(numberDevices);
     expect(wrapper.find('[data-test="field-accept"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="field-reject"]').exists()).toBe(true);

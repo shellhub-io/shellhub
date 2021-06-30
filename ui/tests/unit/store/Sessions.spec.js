@@ -1,6 +1,8 @@
 import store from '@/store';
 
 describe('Sessions', () => {
+  const numberSessions = 2;
+
   const session = {
     uid: '8c354a00f50',
     device_uid: 'a582b47a42d',
@@ -30,68 +32,71 @@ describe('Sessions', () => {
     authenticated: false,
     recorded: true,
   };
-  const numberSessions = 2;
-  const sessions = [{
-    uid: '8c354a00f50',
-    device_uid: 'a582b47a42d',
-    device: {
-      uid: 'a582b47a42d',
-      name: '39-5e-2a',
-      identity: {
-        mac: '00:00:00:00:00:00',
+
+  const sessions = [
+    {
+      uid: '8c354a00f50',
+      device_uid: 'a582b47a42d',
+      device: {
+        uid: 'a582b47a42d',
+        name: '39-5e-2a',
+        identity: {
+          mac: '00:00:00:00:00:00',
+        },
+        info: {
+          id: 'debian',
+          pretty_name: 'Debian GNU/Linux 10 (buster)',
+          version: 'v0.2.5',
+        },
+        public_key: '----- PUBLIC KEY -----',
+        tenant_id: '00000000',
+        last_seen: '2020-05-18T13:27:02.498Z',
+        online: false,
+        namespace: 'user',
       },
-      info: {
-        id: 'debian',
-        pretty_name: 'Debian GNU/Linux 10 (buster)',
-        version: 'v0.2.5',
-      },
-      public_key: '----- PUBLIC KEY -----',
       tenant_id: '00000000',
-      last_seen: '2020-05-18T13:27:02.498Z',
-      online: false,
-      namespace: 'user',
+      username: 'user',
+      ip_address: '000.000.000.000',
+      started_at: '2020-05-18T12:30:28.824Z',
+      last_seen: '2020-05-18T12:30:30.205Z',
+      active: false,
+      authenticated: false,
     },
-    tenant_id: '00000000',
-    username: 'user',
-    ip_address: '000.000.000.000',
-    started_at: '2020-05-18T12:30:28.824Z',
-    last_seen: '2020-05-18T12:30:30.205Z',
-    active: false,
-    authenticated: false,
-  },
-  {
-    uid: '8c354a00f50',
-    device_uid: 'a582b47a42d',
-    device: {
-      uid: 'a582b47a42d',
-      name: 'b4-2e-99',
-      identity: {
-        mac: '00:00:00:00:00:00',
+    {
+      uid: '8c354a00f50',
+      device_uid: 'a582b47a42d',
+      device: {
+        uid: 'a582b47a42d',
+        name: 'b4-2e-99',
+        identity: {
+          mac: '00:00:00:00:00:00',
+        },
+        info: {
+          id: 'debian',
+          pretty_name: 'Debian GNU/Linux 10 (buster)',
+          version: 'v0.2.5',
+        },
+        public_key: '----- PUBLIC KEY -----',
+        tenant_id: '00000000',
+        last_seen: '2020-05-18T13:27:02.498Z',
+        online: false,
+        namespace: 'user',
       },
-      info: {
-        id: 'debian',
-        pretty_name: 'Debian GNU/Linux 10 (buster)',
-        version: 'v0.2.5',
-      },
-      public_key: '----- PUBLIC KEY -----',
       tenant_id: '00000000',
-      last_seen: '2020-05-18T13:27:02.498Z',
-      online: false,
-      namespace: 'user',
+      username: 'user',
+      ip_address: '000.000.000.000',
+      started_at: '2020-05-18T12:30:28.824Z',
+      last_seen: '2020-05-18T12:30:30.205Z',
+      active: false,
+      authenticated: false,
     },
-    tenant_id: '00000000',
-    username: 'user',
-    ip_address: '000.000.000.000',
-    started_at: '2020-05-18T12:30:28.824Z',
-    last_seen: '2020-05-18T12:30:30.205Z',
-    active: false,
-    authenticated: false,
-  },
   ];
+
   const pagePerpageInitialValue = {
     page: 0,
     perPage: 10,
   };
+
   const pagePerpageValue = {
     page: 1,
     perPage: 50,
@@ -104,7 +109,6 @@ describe('Sessions', () => {
     expect(store.getters['sessions/getPage']).toEqual(pagePerpageInitialValue.page);
     expect(store.getters['sessions/getPerPage']).toEqual(pagePerpageInitialValue.perPage);
   });
-
   it('Verify initial state change for setSessions mutation', () => {
     store.commit('sessions/setSessions', { data: sessions, headers: { 'x-total-count': numberSessions } });
     expect(store.getters['sessions/list']).toEqual(sessions);

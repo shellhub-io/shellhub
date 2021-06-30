@@ -10,6 +10,7 @@ describe('Welcome', () => {
 
   const show = true;
   const tenant = 'a582b47a42e';
+
   const stats = {
     registered_devices: 0,
     online_devices: 0,
@@ -17,6 +18,7 @@ describe('Welcome', () => {
     pending_devices: 1,
     rejected_devices: 0,
   };
+
   const devicePending = {
     uid: 'a582b47a42e',
     name: '39-5e-2b',
@@ -82,6 +84,7 @@ describe('Welcome', () => {
   });
   it('Process data in the methods', () => {
     const command = `curl -sSf "http://localhost/install.sh?tenant_id=${tenant}" | sh`;
+
     expect(wrapper.vm.command()).toEqual(command);
   });
   it('Compare data with default value', () => {
@@ -95,12 +98,14 @@ describe('Welcome', () => {
     expect(wrapper.vm.e1).toEqual(2);
 
     wrapper.setData({ enable: true });
+
     await localVue.nextTick();
     wrapper.find('[data-test="secondClick-btn"]').vm.$emit('click');
     expect(wrapper.vm.e1).toEqual(3);
 
     await localVue.nextTick();
     expect(wrapper.find('[data-test="thirdClick-btn"]').exists()).toBe(true);
+
     await wrapper.vm.acceptDevice();
     expect(wrapper.vm.e1).toEqual(4);
   });
