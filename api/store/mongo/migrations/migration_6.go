@@ -11,7 +11,8 @@ import (
 )
 
 var migration6 = migrate.Migration{
-	Version: 6,
+	Version:     6,
+	Description: "Unset unique on status in the devices collection",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 6 - Up")
 		mod := mongo.IndexModel{
