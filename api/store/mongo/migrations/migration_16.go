@@ -11,7 +11,8 @@ import (
 )
 
 var migration16 = migrate.Migration{
-	Version: 16,
+	Version:     16,
+	Description: "Set the fingerprint as unique on public_keys collection",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 16 - Up")
 		mod := mongo.IndexModel{
