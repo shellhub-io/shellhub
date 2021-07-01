@@ -18,12 +18,12 @@ EOF
 go() {
     local fix=$1
 
+    [ "$fix" = "true" ] && EXTRA_ARGS="--fix" || EXTRA_ARGS=""
+
     [ ! -e .golangci.yaml ] && echo "ERROR: Run the script from the project root." && exit 1
 
     for container in agent:docker agent:native api ssh cli; do
         echo "Running Golang linter on $container"
-
-        [ "$fix" = "true" ] && EXTRA_ARGS="--fix" || EXTRA_ARGS=""
 
         case $container in
             ssh)
@@ -48,7 +48,9 @@ go() {
     done
 
     echo "Running Golang linter on pkg"
-    docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec api sh -c "(cd ../pkg; golangci-lint run )"
+    docker-compose \
+	    -f docker-compose.yml -f docker-compose.dev.yml \
+	    exec api sh -c "(cd ../pkg; golangci-lint run $EXTRA_ARGS )"
 }
 
 vue() {
