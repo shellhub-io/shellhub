@@ -52,7 +52,7 @@ func TestGetNamespace(t *testing.T) {
 }
 
 func TestCreateNamespace(t *testing.T) {
-	tests := []struct {
+	cases := []struct {
 		name       string
 		isCloud    bool
 		maxDevices int
@@ -69,8 +69,7 @@ func TestCreateNamespace(t *testing.T) {
 		},
 	}
 
-	// nolint:scopelint
-	for _, tc := range tests {
+	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			mock := &mocks.Store{}
 			s := NewService(store.Store(mock))
