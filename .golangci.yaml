@@ -67,6 +67,7 @@ issues:
   exclude:
     # govet: unkeyed fields use
     - composite
+    - Using the variable on range scope `tc` in function literal
 
   exclude-rules:
     - linters:
