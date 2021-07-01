@@ -11,7 +11,8 @@ import (
 )
 
 var migration13 = migrate.Migration{
-	Version: 13,
+	Version:     13,
+	Description: "Change on several collections",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 13 - Up")
 		mod := mongo.IndexModel{
