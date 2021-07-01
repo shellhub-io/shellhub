@@ -11,7 +11,8 @@ import (
 )
 
 var migration19 = migrate.Migration{
-	Version: 19,
+	Version:     19,
+	Description: "Remove all fingerprint associated with a public keys collection",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 19 - Up")
 		_, err := db.Collection("public_keys").Indexes().DropOne(context.TODO(), "fingerprint")
