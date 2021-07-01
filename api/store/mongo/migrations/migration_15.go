@@ -10,7 +10,8 @@ import (
 )
 
 var migration15 = migrate.Migration{
-	Version: 15,
+	Version:     15,
+	Description: "Set all names to lowercase in the namespaces",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 15 - Up")
 		_, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.M{}, []bson.M{
