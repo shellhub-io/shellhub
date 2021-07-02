@@ -69,12 +69,12 @@ func DeleteDevice(c apicontext.Context) error {
 		tenant = v.ID
 	}
 
-	username := ""
-	if v := c.Username(); v != nil {
-		username = v.ID
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
 	}
 
-	if err := svc.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenant, username); err != nil {
+	if err := svc.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenant, id); err != nil {
 		if err == deviceadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
@@ -99,14 +99,14 @@ func RenameDevice(c apicontext.Context) error {
 		tenant = v.ID
 	}
 
-	username := ""
-	if v := c.Username(); v != nil {
-		username = v.ID
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
 	}
 
 	svc := deviceadm.NewService(c.Store())
 
-	err := svc.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant, username)
+	err := svc.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant, id)
 	switch err {
 	case deviceadm.ErrUnauthorized:
 		return c.NoContent(http.StatusForbidden)
@@ -157,9 +157,9 @@ func UpdatePendingStatus(c apicontext.Context) error {
 		tenant = v.ID
 	}
 
-	username := ""
-	if v := c.Username(); v != nil {
-		username = v.ID
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
 	}
 
 	status := map[string]string{
@@ -169,7 +169,7 @@ func UpdatePendingStatus(c apicontext.Context) error {
 		"unused":  "unused",
 	}
 
-	if err := svc.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenant, username); err != nil {
+	if err := svc.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenant, id); err != nil {
 		if err == deviceadm.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
