@@ -11,7 +11,8 @@ import (
 )
 
 var migration14 = migrate.Migration{
-	Version: 14,
+	Version:     14,
+	Description: "Set the right tenant_id in the users collection",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 14 - Up")
 		type user struct {
