@@ -68,6 +68,11 @@ export default {
           title: 'Private Keys',
           path: '/settings/private-keys',
         },
+        {
+          title: 'API',
+          path: '/settings/api',
+          hidden: this.currentInANamespace,
+        },
       ];
     },
   },
