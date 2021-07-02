@@ -12,7 +12,8 @@ import (
 )
 
 var migration17 = migrate.Migration{
-	Version: 17,
+	Version:     17,
+	Description: "Remove the namespaces, devices, session, connected_devices, firewall_rules and public_keys in the users",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 17 - Up")
 		cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
