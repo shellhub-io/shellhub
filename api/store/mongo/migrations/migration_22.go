@@ -12,7 +12,8 @@ import (
 )
 
 var migration22 = migrate.Migration{
-	Version: 22,
+	Version:     22,
+	Description: "Insert the user on the members group for the namespace",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 22 - Up")
 		cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
