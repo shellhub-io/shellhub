@@ -7,21 +7,9 @@
         class="mt-4"
       >
         <v-col sm="8">
-          <div
-            v-if="!isOwner"
-            style="text-align:center"
-          >
-            <h3 class="pl-6">
-              <span data-test="notTheOwner">
-                You're not the owner of this namespace.
-              </span>
-              <p data-test="namespaceOwnerMessage">
-                Contact {{ namespaceOwnerName() }} user for more information.
-              </p>
-            </h3>
-            <br>
-          </div>
-
+          <SettingOwnerInfo
+            :is-owner="isOwner"
+          />
           <div class="mt-6">
             <v-row class="mb-2">
               <v-col md="auto">
@@ -284,6 +272,7 @@ import {
 import SettingSecurity from '@/components/setting/SettingSecurity';
 import NamespaceNewMember from '@/components/app_bar/namespace/NamespaceNewMember';
 import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
+import SettingOwnerInfo from '@/components/setting/SettingOwnerInfo';
 
 export default {
   name: 'SettingNamespace',
@@ -294,6 +283,7 @@ export default {
     NamespaceNewMember,
     NamespaceDelete,
     SettingSecurity,
+    SettingOwnerInfo,
   },
 
   data() {
@@ -370,13 +360,6 @@ export default {
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceRemoveUser);
       }
-    },
-
-    namespaceOwnerName() {
-      if (this.namespace.members !== undefined) {
-        return this.namespace.members.find((x) => x.id === this.owner).name;
-      }
-      return null;
     },
 
     hasTenant() {
