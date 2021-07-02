@@ -11,7 +11,8 @@ import (
 )
 
 var migration18 = migrate.Migration{
-	Version: 18,
+	Version:     18,
+	Description: "Set the max_devices value in the namespaces collection to 3 on enterprise",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 18 - Up")
 		if envs.IsEnterprise() {
