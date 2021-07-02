@@ -11,7 +11,8 @@ import (
 )
 
 var migration21 = migrate.Migration{
-	Version: 21,
+	Version:     21,
+	Description: "Remove all sessions, recorded_sessions for the devices",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 21 - Up")
 		cursor, err := db.Collection("sessions").Find(context.TODO(), bson.D{})
