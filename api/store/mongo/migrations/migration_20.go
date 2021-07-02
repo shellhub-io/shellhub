@@ -12,7 +12,8 @@ import (
 )
 
 var migration20 = migrate.Migration{
-	Version: 20,
+	Version:     20,
+	Description: "Change the model on db for firewall_rules collection",
 	Up: func(db *mongo.Database) error {
 		logrus.Info("Applying migration 20 - Up")
 		cursor, err := db.Collection("firewall_rules").Find(context.TODO(), bson.D{})
