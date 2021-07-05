@@ -12,14 +12,17 @@
       v-model="dialog"
       max-width="400"
     >
-      <v-card>
+      <v-card data-test="namespaceDelete-dialog">
         <v-card-title class="headline grey lighten-2 text-center">
           Are you sure?
         </v-card-title>
 
-        <v-card-text class="mt-4 mb-3 pb-1">
+        <v-card-text
+          class="mt-4 mb-3 pb-1"
+          data-test="content-text"
+        >
           This action cannot be undone. This will permanently delete the
-          <b> {{ displayOnlyTenCharacters(name) }} </b> and its related data.
+          <b> {{ displayOnlyTenCharacters(name) }} </b>and its related data.
         </v-card-text>
 
         <v-card-actions>

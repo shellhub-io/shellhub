@@ -102,6 +102,13 @@ describe('NamespaceMenu', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.model).toEqual(true);
+    expect(wrapper.vm.dialog).toEqual(false);
+    expect(wrapper.vm.displayMenu).toEqual(false);
+    expect(wrapper.vm.defaultSize).toEqual(24);
+    expect(wrapper.vm.first).toEqual(false);
+  });
   it('Loads menu items with the expected behavior', () => {
     const expectedResuls = [
       {

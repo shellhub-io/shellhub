@@ -17,6 +17,8 @@
             <v-card-text class="caption mb-0">
               <ValidationProvider
                 v-slot="{ errors }"
+                ref="providerNamespace"
+                vid="namespace"
                 name="namespace"
                 rules="required|rfc1123|noDot"
               >
@@ -25,6 +27,7 @@
                   label="Namespace"
                   :error-messages="errors"
                   require
+                  data-test="namespace-text"
                 />
               </ValidationProvider>
             </v-card-text>
