@@ -13,6 +13,8 @@ jobs:
     name: Check Commit Message
     runs-on: ubuntu-20.04
     steps:
+      - name: print env
+      - run: echo "env ${{ toJSON(github) }} "
       - name: Check Commit Type
         uses: gsactions/commit-message-checker@v1
         with:
