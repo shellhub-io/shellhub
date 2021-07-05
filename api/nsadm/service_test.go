@@ -2,10 +2,12 @@ package nsadm
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 	"testing"
 
+	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -14,6 +16,101 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestIsNamespaceOwner(t *testing.T) {
+	mock := &mocks.Store{}
+
+	ctx := context.TODO()
+
+	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
+	user2 := &models.User{Name: "user2", Username: "hash2", ID: "hash2"}
+
+	Err := errors.New("error")
+
+	namespace := &models.Namespace{
+		Name:     strings.ToLower("namespace"),
+		Owner:    user.ID,
+		Members:  []interface{}{user.ID, user2.ID},
+		Settings: &models.NamespaceSettings{SessionRecord: true},
+		TenantID: "xxxxx",
+	}
+
+	cases := []struct {
+		name              string
+		tenantID, ownerID string
+		requiredMocks     func()
+		expected          error
+	}{
+		{
+			name:     "IsNamespaceOwner fails when the user document is not found",
+			tenantID: namespace.TenantID,
+			ownerID:  namespace.Owner,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(nil, 0, store.ErrNoDocuments).Once()
+			},
+			expected: ErrUnauthorized,
+		},
+		{
+			name:     "IsNamespaceOwner fails store user get by id fails",
+			tenantID: namespace.TenantID,
+			ownerID:  namespace.Owner,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(nil, 0, Err).Once()
+			},
+			expected: Err,
+		},
+		{
+			name:     "IsNamespaceOwner fails when no namespace document is found",
+			tenantID: namespace.TenantID,
+			ownerID:  namespace.Owner,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, store.ErrNoDocuments).Once()
+			},
+			expected: ErrNamespaceNotFound,
+		},
+		{
+			name:     "IsNamespaceOwner fails when store namespace get fails",
+			tenantID: namespace.TenantID,
+			ownerID:  namespace.Owner,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, Err).Once()
+			},
+			expected: Err,
+		},
+		{
+			name:     "IsNamespaceOwner fails when the user is not the owner",
+			tenantID: namespace.TenantID,
+			ownerID:  user2.ID,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+			},
+			expected: ErrUnauthorized,
+		},
+		{
+			name:     "IsNamespaceOwner succeeds",
+			tenantID: namespace.TenantID,
+			ownerID:  namespace.Owner,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.requiredMocks()
+			err := utils.IsNamespaceOwner(ctx, store.Store(mock), tc.tenantID, tc.ownerID)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
 
 func TestListNamespaces(t *testing.T) {
 	mock := &mocks.Store{}
@@ -115,7 +212,7 @@ func TestEditNamespace(t *testing.T) {
 	namespace := &models.Namespace{Name: "oldname", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 	namespaceWithNewName := &models.Namespace{Name: "newname", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 
-	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Twice()
 	mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 	mock.On("NamespaceRename", ctx, namespace.TenantID, newName).Return(namespaceWithNewName, nil).Once()
 	_, err := s.EditNamespace(ctx, namespace.TenantID, newName, namespace.Owner)
