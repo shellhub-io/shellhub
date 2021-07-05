@@ -71,6 +71,8 @@ func CreateNamespace(c apicontext.Context) error {
 			return c.NoContent(http.StatusForbidden)
 		case nsadm.ErrConflictName:
 			return c.NoContent(http.StatusConflict)
+		case nsadm.ErrInvalidFormat:
+			return c.NoContent(http.StatusBadRequest)
 		default:
 			return err
 		}
@@ -109,16 +111,16 @@ func DeleteNamespace(c apicontext.Context) error {
 		id = v.ID
 	}
 
-	if err := svc.DeleteNamespace(c.Ctx(), c.Param("id"), id); err != nil {
-		if err == nsadm.ErrUnauthorized {
+	err := svc.DeleteNamespace(c.Ctx(), c.Param("id"), id)
+	if err != nil {
+		switch err {
+		case nsadm.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
-		}
-
-		if err == nsadm.ErrNamespaceNotFound {
+		case nsadm.ErrNamespaceNotFound:
 			return c.String(http.StatusNotFound, err.Error())
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return nil
@@ -142,14 +144,16 @@ func EditNamespace(c apicontext.Context) error {
 
 	namespace, err := svc.EditNamespace(c.Ctx(), c.Param("id"), req.Name, id)
 	if err != nil {
-		if err == nsadm.ErrUnauthorized {
+		switch err {
+		case nsadm.ErrInvalidFormat:
+			return c.NoContent(http.StatusBadRequest)
+		case nsadm.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
-		}
-		if err == nsadm.ErrNamespaceNotFound {
+		case nsadm.ErrNamespaceNotFound:
 			return c.String(http.StatusNotFound, err.Error())
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.JSON(http.StatusOK, namespace)
@@ -173,21 +177,18 @@ func AddNamespaceUser(c apicontext.Context) error {
 
 	namespace, err := svc.AddNamespaceUser(c.Ctx(), c.Param("id"), req.Username, id)
 	if err != nil {
-		if err == nsadm.ErrUnauthorized {
+		switch err {
+		case nsadm.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
-		}
-		if err == nsadm.ErrUserNotFound {
+		case nsadm.ErrUserNotFound:
 			return c.String(http.StatusNotFound, err.Error())
-		}
-		if err == nsadm.ErrNamespaceNotFound {
+		case nsadm.ErrNamespaceNotFound:
 			return c.String(http.StatusNotFound, err.Error())
-		}
-
-		if err == nsadm.ErrDuplicateID {
+		case nsadm.ErrDuplicateID:
 			return c.String(http.StatusConflict, err.Error())
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.JSON(http.StatusOK, namespace)
@@ -210,21 +211,18 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 	}
 	namespace, err := svc.RemoveNamespaceUser(c.Ctx(), c.Param("id"), req.Username, id)
 	if err != nil {
-		if err == nsadm.ErrUnauthorized {
+		switch err {
+		case nsadm.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
-		}
-		if err == nsadm.ErrUserNotFound {
+		case nsadm.ErrNamespaceNotFound:
 			return c.String(http.StatusNotFound, err.Error())
-		}
-		if err == nsadm.ErrNamespaceNotFound {
+		case nsadm.ErrUserNotFound:
 			return c.String(http.StatusNotFound, err.Error())
-		}
-
-		if err == nsadm.ErrDuplicateID {
+		case nsadm.ErrDuplicateID:
 			return c.String(http.StatusConflict, err.Error())
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.JSON(http.StatusOK, namespace)
