@@ -236,11 +236,16 @@ func EditSessionRecordStatus(c apicontext.Context) error {
 		return err
 	}
 
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
+	}
+
 	tenant := c.Param("id")
 
 	svc := nsadm.NewService(c.Store())
 
-	err := svc.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, tenant)
+	err := svc.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, tenant, id)
 	if err != nil {
 		return err
 	}

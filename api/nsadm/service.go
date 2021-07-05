@@ -24,7 +24,7 @@ type Service interface {
 	AddNamespaceUser(ctx context.Context, tenantID, username, ownerUsername string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, tenantID, username, ownerUsername string) (*models.Namespace, error)
 	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
-	EditSessionRecordStatus(ctx context.Context, status bool, tenant string) error
+	EditSessionRecordStatus(ctx context.Context, status bool, tenant, ownerID string) error
 	GetSessionRecord(ctx context.Context, tenant string) (bool, error)
 }
 
@@ -200,12 +200,8 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, o
 	return s.store.NamespaceRemoveMember(ctx, tenantID, user.ID)
 }
 
-func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenant string) error {
-	if _, err := s.store.NamespaceGet(ctx, tenant); err != nil {
-		if err == store.ErrNoDocuments {
-			return ErrNamespaceNotFound
-		}
-
+func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenant, ownerID string) error {
+	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
 		return err
 	}
 
