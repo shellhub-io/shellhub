@@ -165,95 +165,6 @@ func TestGetDevice(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestIsNamespaceOwner(t *testing.T) {
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
-	ctx := context.TODO()
-
-	Err := errors.New("error")
-
-	namespace := &models.Namespace{
-		Name:     "namespace1",
-		Owner:    "id1",
-		TenantID: "tenant1",
-	}
-
-	user1 := &models.User{
-		Name:     "user1",
-		Username: "username1",
-		ID:       "id1",
-	}
-
-	user2 := &models.User{
-		Name:     "user2",
-		Username: "username2",
-		ID:       "id2",
-	}
-
-	cases := []struct {
-		name             string
-		requiredMocks    func()
-		tenant, username string
-		err              error
-	}{
-		{
-			name: "isNamespaceOwner fails when store namespace get fails",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenant2").
-					Return(nil, Err).Once()
-			},
-			tenant: "tenant2",
-			err:    Err,
-		},
-		{
-			name: "isNamespaceOwner fails when store user get fails",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, "username3").
-					Return(nil, Err).Once()
-			},
-			tenant:   namespace.TenantID,
-			username: "username3",
-			err:      Err,
-		},
-		{
-			name: "isNamespaceOwner when the user is not the owner",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user2.Username).
-					Return(user2, nil).Once()
-			},
-			username: user2.Username,
-			tenant:   namespace.TenantID,
-			err:      ErrUnauthorized,
-		},
-		{
-			name: "isNamespaceOwner succeeds",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user1.Username).
-					Return(user1, nil).Once()
-			},
-			username: user1.Username,
-			tenant:   namespace.TenantID,
-			err:      nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.requiredMocks()
-			err := s.isNamespaceOwner(ctx, tc.tenant, tc.username)
-			assert.Equal(t, tc.err, err)
-		})
-	}
-
-	mock.AssertExpectations(t)
-}
-
 func TestDeleteDevice(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock))
@@ -268,11 +179,11 @@ func TestDeleteDevice(t *testing.T) {
 	Err := errors.New("error")
 
 	cases := []struct {
-		name             string
-		requiredMocks    func()
-		uid              models.UID
-		tenant, username string
-		expected         error
+		name          string
+		requiredMocks func()
+		uid           models.UID
+		tenant, id    string
+		expected      error
 	}{
 		{
 			name: "DeleteDevice fails when the user is not the owner",
@@ -280,10 +191,10 @@ func TestDeleteDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user2.Username).
-					Return(user2, nil).Once()
+				mock.On("UserGetByID", ctx, user2.ID, false).
+					Return(user2, 0, nil).Once()
 			},
-			username: user2.Username,
+			id:       user2.ID,
 			tenant:   namespace.TenantID,
 			expected: ErrUnauthorized,
 		},
@@ -294,12 +205,12 @@ func TestDeleteDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID("_uid"), namespace.TenantID).
 					Return(nil, Err).Once()
 			},
-			username: user.Username,
+			id:       user.ID,
 			expected: Err,
 		},
 		{
@@ -309,14 +220,14 @@ func TestDeleteDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(nil, nil).Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(Err).Once()
 			},
-			username: user.Username,
+			id:       user.ID,
 			expected: Err,
 		},
 		{
@@ -326,14 +237,14 @@ func TestDeleteDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(nil, nil).Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(nil).Once()
 			},
-			username: user.Username,
+			id:       user.ID,
 			expected: nil,
 		},
 	}
@@ -341,7 +252,7 @@ func TestDeleteDevice(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.DeleteDevice(ctx, tc.uid, tc.tenant, tc.username)
+			err := s.DeleteDevice(ctx, tc.uid, tc.tenant, tc.id)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -363,35 +274,35 @@ func TestRenameDevice(t *testing.T) {
 	Err := errors.New("error")
 
 	cases := []struct {
-		name             string
-		requiredMocks    func()
-		uid              models.UID
-		expected         error
-		deviceNewName    string
-		tenant, username string
+		name          string
+		requiredMocks func()
+		uid           models.UID
+		expected      error
+		deviceNewName string
+		tenant, id    string
 	}{
 		{
-			name:     "RenameDevice fails when the user is not the owner",
-			tenant:   namespace.TenantID,
-			username: user2.Username,
+			name:   "RenameDevice fails when the user is not the owner",
+			tenant: namespace.TenantID,
+			id:     user2.ID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user2.Username).
-					Return(user2, nil).Once()
+				mock.On("UserGetByID", ctx, user2.ID, false).
+					Return(user2, 0, nil).Once()
 			},
 			expected: ErrUnauthorized,
 		},
 		{
-			name:     "RenameDevice fails when store device get fails",
-			tenant:   namespace.TenantID,
-			uid:      models.UID(device.UID),
-			username: user.Username,
+			name:   "RenameDevice fails when store device get fails",
+			tenant: namespace.TenantID,
+			uid:    models.UID(device.UID),
+			id:     user.ID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(device, Err).Once()
 			},
@@ -402,12 +313,12 @@ func TestRenameDevice(t *testing.T) {
 			tenant:        namespace.TenantID,
 			deviceNewName: "---invalid...",
 			uid:           models.UID(device.UID),
-			username:      user.Username,
+			id:            user.ID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(device, nil).Once()
 			},
@@ -418,12 +329,12 @@ func TestRenameDevice(t *testing.T) {
 			tenant:        namespace.TenantID,
 			deviceNewName: "name",
 			uid:           models.UID(device.UID),
-			username:      user.Username,
+			id:            user.ID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(device, nil).Once()
 			},
@@ -434,12 +345,12 @@ func TestRenameDevice(t *testing.T) {
 			tenant:        namespace.TenantID,
 			deviceNewName: "newname",
 			uid:           models.UID(device.UID),
-			username:      user.Username,
+			id:            user.ID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).Return(device, nil).Once()
 				mock.On("DeviceGetByName", ctx, "newname", namespace.TenantID).
 					Return(device2, Err).Once()
@@ -451,12 +362,12 @@ func TestRenameDevice(t *testing.T) {
 			tenant:        namespace.TenantID,
 			deviceNewName: "newname",
 			uid:           models.UID(device.UID),
-			username:      user.Username,
+			id:            user.ID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).Return(device, nil).Once()
 				mock.On("DeviceGetByName", ctx, "newname", namespace.TenantID).
 					Return(device2, nil).Once()
@@ -468,12 +379,12 @@ func TestRenameDevice(t *testing.T) {
 			tenant:        namespace.TenantID,
 			deviceNewName: "anewname",
 			uid:           models.UID(device.UID),
-			username:      user.Username,
+			id:            user.ID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).Return(device, nil).Once()
 				mock.On("DeviceGetByName", ctx, "anewname", namespace.TenantID).
 					Return(nil, store.ErrNoDocuments).Once()
@@ -487,12 +398,12 @@ func TestRenameDevice(t *testing.T) {
 			tenant:        namespace.TenantID,
 			deviceNewName: "anewname",
 			uid:           models.UID(device.UID),
-			username:      user.Username,
+			id:            user.ID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).Return(device, nil).Once()
 				mock.On("DeviceGetByName", ctx, "anewname", namespace.TenantID).
 					Return(nil, store.ErrNoDocuments).Once()
@@ -506,7 +417,7 @@ func TestRenameDevice(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.RenameDevice(ctx, tc.uid, tc.deviceNewName, tc.tenant, tc.username)
+			err := s.RenameDevice(ctx, tc.uid, tc.deviceNewName, tc.tenant, tc.id)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -637,33 +548,33 @@ func TestUpdatePendingStatus(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
-		name                     string
-		uid                      models.UID
-		status, tenant, username string
-		requiredMocks            func()
-		expected                 error
+		name               string
+		uid                models.UID
+		status, tenant, id string
+		requiredMocks      func()
+		expected           error
 	}{
 		{
-			name:     "UpdatePendingStatus fails when the user is not the owner",
-			uid:      models.UID("uid"),
-			tenant:   namespace.TenantID,
-			username: user2.Username,
+			name:   "UpdatePendingStatus fails when the user is not the owner",
+			uid:    models.UID("uid"),
+			tenant: namespace.TenantID,
+			id:     user2.ID,
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, user2.Username).
-					Return(user2, nil).Once()
+				mock.On("UserGetByID", ctx, user2.ID, false).
+					Return(user2, 0, nil).Once()
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
 			},
 			expected: ErrUnauthorized,
 		},
 		{
-			name:     "UpdatePendingStatus fails when the store get by uid fails",
-			uid:      models.UID("uid"),
-			tenant:   namespace.TenantID,
-			username: user.Username,
+			name:   "UpdatePendingStatus fails when the store get by uid fails",
+			uid:    models.UID("uid"),
+			tenant: namespace.TenantID,
+			id:     user.ID,
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
@@ -672,15 +583,15 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: Err,
 		},
 		{
-			name:     "UpdatePendingStatus fails when the limit is exceeded",
-			uid:      models.UID("uid_limit"),
-			tenant:   "tenant_max",
-			username: user.Username,
+			name:   "UpdatePendingStatus fails when the limit is exceeded",
+			uid:    models.UID("uid_limit"),
+			tenant: "tenant_max",
+			id:     user.ID,
 			requiredMocks: func() {
 				namespaceExceedLimit := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: 3, DevicesCount: 3}
 				deviceExceed := &models.Device{UID: "uid_limit", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("NamespaceGet", ctx, deviceExceed.TenantID).
 					Return(namespaceExceedLimit, nil).Twice()
 				mock.On("DeviceGetByUID", ctx, models.UID(deviceExceed.UID), deviceExceed.TenantID).
@@ -691,14 +602,14 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: ErrMaxDeviceCountReached,
 		},
 		{
-			name:     "UpdatePendingStatus succeeds",
-			uid:      models.UID("uid"),
-			tenant:   namespace.TenantID,
-			username: user.Username,
+			name:   "UpdatePendingStatus succeeds",
+			uid:    models.UID("uid"),
+			tenant: namespace.TenantID,
+			id:     user.ID,
 			requiredMocks: func() {
 				oldDevice := &models.Device{UID: "old_uid", Name: "name", TenantID: "tenant", Identity: identity}
-				mock.On("UserGetByUsername", ctx, user.Username).
-					Return(user, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
@@ -721,7 +632,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.UpdatePendingStatus(ctx, tc.uid, "accepted", tc.tenant, tc.username)
+			err := s.UpdatePendingStatus(ctx, tc.uid, "accepted", tc.tenant, tc.id)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
