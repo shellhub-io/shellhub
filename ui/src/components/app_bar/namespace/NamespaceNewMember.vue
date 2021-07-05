@@ -12,7 +12,7 @@
       max-width="450"
       @click:outside="cancel"
     >
-      <v-card>
+      <v-card data-test="namespaceNewMember-dialog">
         <v-card-title class="headline grey lighten-2 text-center">
           Add member to Namespace
         </v-card-title>
@@ -23,8 +23,9 @@
           <v-card-text class="caption mb-0">
             <ValidationProvider
               v-slot="{ errors }"
+              ref="providerUsername"
               vid="username"
-              name="user"
+              name="username"
               rules="required"
             >
               <v-text-field
@@ -32,6 +33,7 @@
                 label="Username"
                 :error-messages="errors"
                 require
+                data-test="username-text"
               />
             </ValidationProvider>
           </v-card-text>

@@ -22,11 +22,14 @@
             v-if="openVersion"
             id="cli-instructions"
           >
-            <p>
+            <p data-test="openContentFirst-text">
               The easiest way to configure a namespace is by using the cli
               script.
             </p>
-            <p class="caption mb-0">
+            <p
+              class="caption mb-0"
+              data-test="openContentSecond-text"
+            >
               Check the <a
                 :href="'https://docs.shellhub.io/admin-manual/managing/'"
                 target="_blank"
@@ -57,6 +60,7 @@
         v-if="!openVersion"
         :show.sync="dialogAdd"
         :first-namespace="autoSwitch"
+        data-test="namespace-btn"
       />
     </v-dialog>
   </v-card>

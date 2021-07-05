@@ -33,4 +33,29 @@ describe('NamespaceInstructions', () => {
   it('Receives data in props', () => {
     expect(wrapper.vm.show).toEqual(show);
   });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.dialogAdd).toEqual(false);
+  });
+  it('Renders the template with data - enterprise version', () => {
+    expect(wrapper.find('[data-test="openContentFirst-text"]').exists()).toEqual(false);
+    expect(wrapper.find('[data-test="openContentSecond-text"]').exists()).toEqual(false);
+    expect(wrapper.find('[data-test="namespace-btn"]').exists()).toEqual(true);
+  });
+  it('Renders the template with data - open version', () => {
+    config.mocks = {
+      $env: {
+        isEnterprise: false,
+      },
+    };
+
+    wrapper = shallowMount(NamespaceInstructions, {
+      localVue,
+      stubs: ['fragment'],
+      propsData: { show },
+    });
+
+    expect(wrapper.find('[data-test="openContentFirst-text"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="openContentSecond-text"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="namespace-btn"]').exists()).toEqual(false);
+  });
 });
