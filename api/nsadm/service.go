@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"strings"
 
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
@@ -14,15 +13,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"gopkg.in/go-playground/validator.v9"
-)
-
-var (
-	ErrUnauthorized      = errors.New("unauthorized")
-	ErrUserNotFound      = errors.New("user not found")
-	ErrNamespaceNotFound = errors.New("namespace not found")
-	ErrDuplicateID       = errors.New("user already member of this namespace")
-	ErrConflictName      = errors.New("this name already exists")
-	ErrInvalidFormat     = errors.New("invalid name format")
 )
 
 type Service interface {
@@ -114,7 +104,7 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 
 func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerID string) error {
 	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
-		return ErrUnauthorized
+		return err
 	}
 
 	return s.store.NamespaceDelete(ctx, tenantID)
@@ -150,7 +140,7 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 
 func (s *service) EditNamespace(ctx context.Context, tenantID, name, owner string) (*models.Namespace, error) {
 	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, owner); err != nil {
-		return nil, ErrUnauthorized
+		return nil, err
 	}
 
 	ns, err := s.store.NamespaceGet(ctx, tenantID)
@@ -173,7 +163,7 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name, owner strin
 
 func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, ownerID string) (*models.Namespace, error) {
 	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
-		return nil, ErrUnauthorized
+		return nil, err
 	}
 
 	user, err := s.store.UserGetByUsername(ctx, username)
@@ -190,8 +180,9 @@ func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, owne
 
 func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, ownerID string) (*models.Namespace, error) {
 	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
-		return nil, ErrUnauthorized
+		return nil, err
 	}
+
 	user, err := s.store.UserGetByUsername(ctx, username)
 	if err == store.ErrNoDocuments {
 		return nil, ErrUserNotFound
