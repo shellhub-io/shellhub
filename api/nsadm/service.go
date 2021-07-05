@@ -12,7 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type Service interface {
@@ -67,6 +67,10 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		Members:  []interface{}{user.ID},
 		Settings: &models.NamespaceSettings{SessionRecord: true},
 		TenantID: namespace.TenantID,
+	}
+
+	if _, err := validator.CheckValidation(ns); err != nil {
+		return nil, ErrInvalidFormat
 	}
 
 	if namespace.TenantID == "" {
@@ -148,9 +152,10 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name, owner strin
 		return nil, err
 	}
 
-	validate := validator.New()
 	lowerName := strings.ToLower(name)
-	if err := validate.Struct(ns); err != nil {
+	if _, err := validator.CheckValidation(&models.Namespace{
+		Name: lowerName,
+	}); err != nil {
 		return nil, ErrInvalidFormat
 	}
 
