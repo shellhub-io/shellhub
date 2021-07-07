@@ -1,6 +1,7 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import DeviceDetails from '@/components/device/DeviceDetails';
+import flushPromises from 'flush-promises';
 
 describe('DeviceDetails', () => {
   const localVue = createLocalVue();
@@ -8,7 +9,7 @@ describe('DeviceDetails', () => {
 
   let wrapper;
 
-  const device = {
+  const deviceOnline = {
     uid: 'a582b47a42d',
     name: '39-5e-2a',
     identity: {
@@ -22,14 +23,30 @@ describe('DeviceDetails', () => {
     public_key: '----- PUBLIC KEY -----',
     tenant_id: '00000000',
     last_seen: '2020-05-20T18:58:53.276Z',
-    online: false,
+    online: true,
     namespace: 'user',
   };
 
-  const store = new Vuex.Store({
+  const deviceOffline = { ...deviceOnline, online: false };
+
+  const storeDeviceOnline = new Vuex.Store({
     namespaced: true,
     state: {
-      device,
+      device: deviceOnline,
+    },
+    getters: {
+      'devices/get': (state) => state.device,
+    },
+    actions: {
+      'devices/get': () => {
+      },
+    },
+  });
+
+  const storeDeviceOffline = new Vuex.Store({
+    namespaced: true,
+    state: {
+      device: deviceOffline,
     },
     getters: {
       'devices/get': (state) => state.device,
@@ -42,13 +59,13 @@ describe('DeviceDetails', () => {
 
   beforeEach(() => {
     wrapper = shallowMount(DeviceDetails, {
-      store,
+      store: storeDeviceOnline,
       localVue,
       stubs: ['fragment'],
       mocks: {
         $route: {
           params: {
-            id: device.uid,
+            id: deviceOnline.uid,
           },
         },
       },
@@ -61,16 +78,48 @@ describe('DeviceDetails', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  Object.keys(device).forEach((field) => {
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.uid).toEqual(deviceOnline.uid);
+    expect(wrapper.vm.hostname).toEqual('localhost');
+    expect(wrapper.vm.hide).toEqual(true);
+    expect(wrapper.vm.device).toEqual(deviceOnline);
+    expect(wrapper.vm.dialogDelete).toEqual(false);
+    expect(wrapper.vm.dialogError).toEqual(false);
+  });
+  Object.keys(deviceOnline).forEach((field) => {
     it(`Receives the field ${field} of device state from store`, () => {
-      expect(wrapper.vm.device[field]).toEqual(device[field]);
+      expect(wrapper.vm.device[field]).toEqual(deviceOnline[field]);
     });
   });
+  it('Renders the template with components', () => {
+    expect(wrapper.find('[data-test="deviceRename-component"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
+  });
   it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(device.uid);
-    expect(wrapper.find('[data-test="deviceMac-field"]').text()).toEqual(device.identity.mac);
-    expect(wrapper.find('[data-test="rename-field"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(device.info.pretty_name);
+    expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(deviceOnline.uid);
+    expect(wrapper.find('[data-test="deviceMac-field"]').text()).toEqual(deviceOnline.identity.mac);
+    expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(deviceOnline.info.pretty_name);
     expect(wrapper.find('[data-test="deviceConvertDate-field"]').text()).toEqual('Wednesday, May 20th 2020, 6:58:53 pm');
+  });
+  it('Renders the template with components - device offline', async () => {
+    wrapper = shallowMount(DeviceDetails, {
+      store: storeDeviceOffline,
+      localVue,
+      stubs: ['fragment'],
+      mocks: {
+        $route: {
+          params: {
+            id: deviceOffline.uid,
+          },
+        },
+      },
+    });
+
+    await flushPromises();
+
+    expect(wrapper.find('[data-test="deviceRename-component"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(false);
+    expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
   });
 });

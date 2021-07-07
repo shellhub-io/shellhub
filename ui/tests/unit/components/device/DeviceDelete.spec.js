@@ -1,6 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import DeviceDelete from '@/components/device/DeviceDelete';
+import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
 
 describe('DeviceDelete', () => {
@@ -68,5 +69,14 @@ describe('DeviceDelete', () => {
       expect(wrapper.find('[data-test="tooltipOwner-text"]').text()).toEqual('Remove');
       done();
     });
+  });
+  it('Renders the template with data', () => {
+    expect(wrapper.find('[data-test="deviceDelete-dialog"]').exists()).toEqual(false);
+  });
+  it('Renders the template with data - dialog is true', async () => {
+    wrapper.setData({ dialog: true });
+    await flushPromises();
+
+    expect(wrapper.find('[data-test="deviceDelete-dialog"]').exists()).toEqual(true);
   });
 });

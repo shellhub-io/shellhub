@@ -1,6 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import DeviceList from '@/components/device/DeviceList';
+import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
 
 describe('DeviceList', () => {
@@ -11,6 +12,48 @@ describe('DeviceList', () => {
   let wrapper;
 
   const numberDevices = 2;
+
+  const pagination = {
+    groupBy: [],
+    groupDesc: [],
+    itemsPerPage: 10,
+    multiSort: false,
+    mustSort: false,
+    page: 1,
+    sortBy: [],
+    sortDesc: [],
+  };
+
+  const headers = [
+    {
+      text: 'Online',
+      value: 'online',
+      align: 'center',
+    },
+    {
+      text: 'Hostname',
+      value: 'hostname',
+      align: 'center',
+    },
+    {
+      text: 'Operating System',
+      value: 'info.pretty_name',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      text: 'SSHID',
+      value: 'namespace',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      text: 'Actions',
+      value: 'actions',
+      align: 'center',
+      sortable: false,
+    },
+  ];
 
   const devices = [
     {
@@ -51,10 +94,37 @@ describe('DeviceList', () => {
     },
   ];
 
+  const devicesOffline = JSON.parse(JSON.stringify(devices));
+  devicesOffline[1].online = false;
+
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       devices,
+      numberDevices,
+    },
+    getters: {
+      'devices/list': (state) => state.devices,
+      'devices/getNumberDevices': (state) => state.numberDevices,
+    },
+    actions: {
+      'modals/showAddDevice': () => {
+      },
+      'devices/fetch': () => {
+      },
+      'devices/rename': () => {
+      },
+      'devices/resetListDevices': () => {
+      },
+      'stats/get': () => {
+      },
+    },
+  });
+
+  const storeDevicesOffline = new Vuex.Store({
+    namespaced: true,
+    state: {
+      devices: devicesOffline,
       numberDevices,
     },
     getters: {
@@ -90,15 +160,44 @@ describe('DeviceList', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.hostname).toEqual('localhost');
+    expect(wrapper.vm.pagination).toEqual(pagination);
+    expect(wrapper.vm.headers).toEqual(headers);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getListDevices).toEqual(devices);
+    expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
+  });
+  it('Process data in methods', () => {
+    Object.keys(devices).forEach((device) => {
+      const address = `${device.namespace}.${device.name}@localhost`;
+      expect(wrapper.vm.address(device)).toEqual(address);
+    });
+  });
+  it('Renders the template with components', async () => {
+    expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
+  });
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
 
     expect(dataTableProps.items).toHaveLength(numberDevices);
-    expect(wrapper.find('[data-test="delete-field"]').exists()).toBe(true);
   });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.getListDevices).toEqual(devices);
-    expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
+  it('Renders the template with components - device offline', async () => {
+    wrapper = mount(DeviceList, {
+      store: storeDevicesOffline,
+      localVue,
+      stubs: ['fragment', 'router-link'],
+      vuetify,
+    });
+
+    await flushPromises();
+
+    expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(false);
+    expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
   });
 });

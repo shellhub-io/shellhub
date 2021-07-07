@@ -6,6 +6,7 @@
       <v-btn
         x-small
         color="primary"
+        data-test="notification-btn"
         @click="dialog = !dialog"
       >
         Accept
@@ -26,6 +27,7 @@
               class="mr-2"
               small
               outlined
+              data-test="tooltipNotOwner-text"
               @click="dialog = !dialog"
             >
               {{ action }}
@@ -42,6 +44,7 @@
     <v-dialog
       v-model="dialog"
       max-width="400"
+      data-test="dialog-field"
     >
       <v-card>
         <v-card-title class="headline grey lighten-2 text-center">
@@ -49,7 +52,7 @@
         </v-card-title>
 
         <v-card-text class="mt-4 mb-3 pb-1">
-          <div>
+          <div data-test="dialog-text">
             You are about to {{ action }} this device.
           </div>
         </v-card-text>
@@ -66,6 +69,7 @@
 
           <v-btn
             text
+            data-test="dialog-btn"
             @click="doAction();"
           >
             {{ action }}

@@ -35,7 +35,7 @@
       v-model="dialog"
       max-width="400"
     >
-      <v-card>
+      <v-card data-test="deviceDelete-dialog">
         <v-card-title class="headline grey lighten-2 text-center">
           Are you sure?
         </v-card-title>

@@ -19,13 +19,14 @@ describe('DeviceAdd', () => {
   let wrapper;
 
   const isOwner = true;
+  const tenant = '00000000';
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       isOwner,
       addDevice: false,
-      tenant: '00000000',
+      tenant,
     },
     getters: {
       'namespaces/owner': (state) => state.isOwner,
@@ -55,12 +56,20 @@ describe('DeviceAdd', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="command-field"]').exists()).toBe(true);
-  });
-  it('Proccess computed data in computed', () => {
+  it('Receive data in props', () => {
     expect(wrapper.vm.show).toBe(false);
     expect(wrapper.vm.tenant).toBe('00000000');
+    expect(wrapper.vm.isOwner).toBe(isOwner);
+  });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.hostname).toEqual('localhost');
+    expect(wrapper.vm.port).toEqual('');
+    expect(wrapper.vm.dialog).toEqual(false);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.tenant).toEqual(tenant);
+    expect(wrapper.vm.show).toEqual(false);
+    expect(wrapper.vm.isOwner).toEqual(isOwner);
   });
   it('Process data in methods', () => {
     const command = 'curl -sSf "http://localhost/install.sh?tenant_id=00000000" | sh';
@@ -70,5 +79,8 @@ describe('DeviceAdd', () => {
 
     expect(wrapper.vm.command()).toBe(command);
     expect(wrapper.vm.copyCommand).toHaveBeenCalled();
+  });
+  it('Renders the template with data', () => {
+    expect(wrapper.find('[data-test="command-field"]').exists()).toBe(true);
   });
 });

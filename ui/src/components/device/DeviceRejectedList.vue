@@ -22,7 +22,10 @@
         </template>
 
         <template #[`item.info.pretty_name`]="{ item }">
-          <DeviceIcon :icon-name="item.info.id" />
+          <DeviceIcon
+            :icon-name="item.info.id"
+            data-test="deviceIcon-component"
+          />
           {{ item.info.pretty_name }}
         </template>
 
@@ -32,16 +35,16 @@
 
         <template #[`item.actions`]="{ item }">
           <DeviceActionButton
-            data-test="accept-field"
             :uid="item.uid"
             action="accept"
+            data-test="DeviceActionButtonAccept-component"
             @update="refresh"
           />
 
           <DeviceActionButton
-            data-test="remove-field"
             :uid="item.uid"
             action="remove"
+            data-test="deviceActionButtonReject-component"
             @update="refresh"
           />
         </template>
