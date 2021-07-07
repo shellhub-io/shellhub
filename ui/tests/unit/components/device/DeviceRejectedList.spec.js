@@ -13,6 +13,43 @@ describe('DeviceRejectedList', () => {
 
   const numberDevices = 1;
 
+  const pagination = {
+    groupBy: [],
+    groupDesc: [],
+    itemsPerPage: 10,
+    multiSort: false,
+    mustSort: false,
+    page: 1,
+    sortBy: [],
+    sortDesc: [],
+  };
+
+  const headers = [
+    {
+      text: 'Hostname',
+      value: 'hostname',
+      align: 'center',
+    },
+    {
+      text: 'Operating System',
+      value: 'info.pretty_name',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      text: 'Request Time',
+      value: 'request_time',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      text: 'Actions',
+      value: 'actions',
+      align: 'center',
+      sortable: false,
+    },
+  ];
+
   const devices = [
     {
       uid: '2378hj238',
@@ -73,20 +110,23 @@ describe('DeviceRejectedList', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.pagination).toEqual(pagination);
+    expect(wrapper.vm.headers).toEqual(headers);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getListRejectedDevices).toEqual(devices);
+    expect(wrapper.vm.getNumberRejectedDevices).toEqual(numberDevices);
+  });
+  it('Renders the template with components', async () => {
+    expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="DeviceActionButtonAccept-component"]').exists()).toEqual(true);
+    expect(wrapper.find('[data-test="deviceActionButtonReject-component"]').exists()).toEqual(true);
+  });
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
 
     expect(dataTableProps.items).toHaveLength(numberDevices);
-    expect(wrapper.find('[data-test="accept-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="remove-field"]').exists()).toBe(true);
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.getListRejectedDevices).toEqual(devices);
-    expect(wrapper.vm.getNumberRejectedDevices).toEqual(numberDevices);
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.getListRejectedDevices).toEqual(devices);
-    expect(wrapper.vm.getNumberRejectedDevices).toEqual(numberDevices);
   });
 });

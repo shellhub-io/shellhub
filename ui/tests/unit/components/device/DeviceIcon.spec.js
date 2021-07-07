@@ -9,6 +9,7 @@ describe('DeviceIcon', () => {
   let wrapper;
 
   const iconName = 'alpine';
+  const defaultIcon = 'fl-tux';
 
   const iconsMap = {
     alpine: 'fl-alpine',
@@ -34,7 +35,6 @@ describe('DeviceIcon', () => {
     raspbian: 'fl-raspberry-pi',
     'ubuntu-core': 'fl-ubuntu',
     void: 'fl-void',
-    default: 'fl-tux',
   };
 
   beforeEach(() => {
@@ -51,6 +51,21 @@ describe('DeviceIcon', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Receive data in props', () => {
+    expect(wrapper.vm.iconName).toBe(iconName);
+  });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.deviceIcon).toEqual(iconsMap);
+  });
+  it('Renders the template with data - default icon', () => {
+    wrapper = shallowMount(DeviceIcon, {
+      localVue,
+      stubs: ['fragment'],
+      propsData: { iconName: defaultIcon },
+    });
+
+    expect(wrapper.find('[data-test="type-icon"]').text()).toBe(defaultIcon);
+  });
   Object.keys(iconsMap).forEach((iconKey) => {
     it(`Has the ${iconKey} icon`, () => {
       wrapper = shallowMount(DeviceIcon, {
@@ -58,6 +73,7 @@ describe('DeviceIcon', () => {
         stubs: ['fragment'],
         propsData: { iconName: iconKey },
       });
+
       expect(wrapper.find('[data-test="type-icon"]').text()).toBe(iconsMap[iconKey]);
     });
   });

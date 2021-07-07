@@ -35,9 +35,9 @@
           {{ device.name }}
         </v-toolbar-title>
         <DeviceRename
-          data-test="rename-field"
           :name="device.name"
           :uid="device.uid"
+          data-test="deviceRename-component"
           @newHostname="receiveName"
         />
 
@@ -46,12 +46,14 @@
         <TerminalDialog
           v-if="device.online"
           :uid="device.uid"
+          data-test="terminalDialog-component"
         />
 
         <DeviceDelete
           :uid="device.uid"
           :dialog="dialogDelete"
           :redirect="true"
+          data-test="deviceDelete-component"
         />
       </v-toolbar>
 

@@ -32,7 +32,7 @@
       max-width="450"
       @click:outside="cancel"
     >
-      <v-card>
+      <v-card data-test="deviceRename-dialog">
         <v-card-title class="headline grey lighten-2 text-center">
           Rename Device
         </v-card-title>
@@ -43,6 +43,7 @@
           <v-card-text class="caption mb-0">
             <ValidationProvider
               v-slot="{ errors }"
+              ref="providerHostname"
               name="Hostname"
               rules="required|rfc1123|noDot"
               vid="hostname"
@@ -60,6 +61,7 @@
             <v-spacer />
             <v-btn
               text
+              data-test="cancel-btn"
               @click="cancel"
             >
               Close
@@ -67,6 +69,7 @@
             <v-btn
               color="primary"
               text
+              data-test="rename-btn"
               @click="passes(edit)"
             >
               Rename

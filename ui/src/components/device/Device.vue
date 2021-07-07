@@ -68,6 +68,7 @@
         v-if="showBoxMessage"
         class="mt-2"
         type-message="device"
+        data-test="boxMessageDevice-component"
       />
     </v-card>
   </fragment>
