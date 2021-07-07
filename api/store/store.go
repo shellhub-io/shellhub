@@ -1,10 +1,7 @@
 package store
 
 import (
-	"context"
 	"errors"
-
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 var (
@@ -24,5 +21,5 @@ type Store interface {
 	PublicKeyStore
 	PrivateKeyStore
 	LicenseStore
-	GetStats(ctx context.Context) (*models.Stats, error)
+	StatsStore
 }
