@@ -15,6 +15,22 @@ describe('AppBar', () => {
   const drawer = true;
   const isMobile = false;
 
+  const menu = [
+    {
+      title: 'Settings',
+      type: 'path',
+      path: '/settings',
+      icon: 'mdi-cog',
+      items: [{ title: 'Profile', path: '/settings/profile' }],
+    },
+    {
+      title: 'Logout',
+      type: 'method',
+      icon: 'mdi-logout',
+      method: 'logout',
+    },
+  ];
+
   const store = new Vuex.Store({
     namespaced: true,
     state: {
@@ -50,6 +66,20 @@ describe('AppBar', () => {
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+  it('Receive data in props', () => {
+    expect(wrapper.vm.drawer).toEqual(drawer);
+  });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.clipped).toEqual(false);
+    expect(wrapper.vm.chatOpen).toEqual(false);
+    expect(wrapper.vm.defaultSize).toEqual(24);
+    expect(wrapper.vm.menu).toEqual(menu);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.isLoggedIn).toEqual(isLoggedIn);
+    expect(wrapper.vm.hasNamespaces).toEqual(numberNamespaces !== 0);
+    expect(wrapper.vm.isMobile).toEqual(isMobile);
   });
   it('Renders the template with data', async () => {
     expect(wrapper.find('[data-test="Settings"]').exists()).toEqual(true);
