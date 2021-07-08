@@ -1,11 +1,8 @@
 <template>
   <fragment>
-    <v-tooltip
-      bottom
-      :disabled="isOwner"
-    >
+    <v-tooltip bottom>
       <template #activator="{ on }">
-        <div v-on="on">
+        <span v-on="on">
           <v-icon
             :disabled="!isOwner"
             v-on="on"
@@ -13,11 +10,14 @@
           >
             mdi-pencil
           </v-icon>
-        </div>
+        </span>
       </template>
 
       <div>
-        <span v-if="isOwner">
+        <span
+          v-if="isOwner"
+          data-test="tooltipOwner-text"
+        >
           Edit
         </span>
 
