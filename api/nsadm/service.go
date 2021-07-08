@@ -69,7 +69,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		TenantID: namespace.TenantID,
 	}
 
-	if _, err := validator.CheckValidation(ns); err != nil {
+	if _, err := validator.ValidateStruct(ns); err != nil {
 		return nil, ErrInvalidFormat
 	}
 
@@ -153,7 +153,7 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name, owner strin
 	}
 
 	lowerName := strings.ToLower(name)
-	if _, err := validator.CheckValidation(&models.Namespace{
+	if _, err := validator.ValidateStruct(&models.Namespace{
 		Name: lowerName,
 	}); err != nil {
 		return nil, ErrInvalidFormat
