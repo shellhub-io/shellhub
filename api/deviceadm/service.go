@@ -91,7 +91,7 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		Status:    device.Status,
 	}
 
-	if _, err = validator.CheckValidation(updatedDevice); err != nil {
+	if _, err = validator.ValidateStruct(updatedDevice); err != nil {
 		return err
 	}
 

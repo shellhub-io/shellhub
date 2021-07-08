@@ -35,7 +35,7 @@ func (s *service) UpdateDataUser(ctx context.Context, data *models.User, id stri
 		return invalid, err
 	}
 
-	if invalidFields, err := validator.CheckValidation(data); err != nil {
+	if invalidFields, err := validator.ValidateStruct(data); err != nil {
 		return invalidFields, ErrBadRequest
 	}
 
