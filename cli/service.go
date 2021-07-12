@@ -123,7 +123,7 @@ func (s *service) NamespaceAddMember(data Arguments) (*models.Namespace, error) 
 
 	ns, err = s.store.NamespaceAddMember(context.TODO(), ns.TenantID, usr.ID)
 	if err != nil {
-		return nil, ErrFailedAddNamespaceUser
+		return nil, err
 	}
 
 	return ns, nil
