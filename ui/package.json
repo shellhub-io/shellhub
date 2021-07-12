@@ -52,7 +52,7 @@
     "eslint-import-resolver-webpack": "^0.13.0",
     "eslint-plugin-vue": "^7.12.1",
     "fibers": "^5.0.0",
-    "font-logos": "^0.17.0",
+    "font-logos": "^0.18.0",
     "mock-local-storage": "^1.1.17",
     "node-sass": "^6.0.1",
     "sass": "^1.32.12",
