@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SettingProfile Renders the component 1`] = `
+<fragment-stub>
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col"><span><div class="row"><div class="col"><h3>
+                Account
+              </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                Change Data
+              </span></button>
+        <!---->
+      </div>
+    </div>
+    <div class="mt-4 pl-4 pr-4"><span><div class="v-input v-input--is-disabled theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-43" class="v-label v-label--is-disabled theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" disabled="disabled" id="input-43" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input v-input--is-label-active v-input--is-dirty v-input--is-disabled theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-47" class="v-label v-label--active v-label--is-disabled theme--light" style="left: 0px; position: absolute;">Username</label><input required="required" data-test="username-text" disabled="disabled" id="input-47" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input mt-1 mb-4 v-input--is-label-active v-input--is-dirty v-input--is-disabled theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-51" class="v-label v-label--active v-label--is-disabled theme--light" style="left: 0px; position: absolute;">E-mail</label><input required="required" data-test="email-text" disabled="disabled" id="input-51" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+    <hr role="separator" aria-orientation="horizontal" class="mt-6 v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="mb-6 v-divider theme--light"> <span><div class="row"><div class="col"><h3>
+                Password
+              </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                Change Password
+              </span></button>
+    <!---->
+  </div>
+  </div>
+  <div class="mt-4 pl-4 pr-4"><span><div class="v-input mb-4 v-input--is-disabled theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-59" class="v-label v-label--is-disabled theme--light" style="left: 0px; position: absolute;">Current password</label><input required="required" data-test="password-text" disabled="disabled" id="input-59" type="password"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input mb-4 v-input--is-disabled theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-63" class="v-label v-label--is-disabled theme--light" style="left: 0px; position: absolute;">New password</label><input required="required" data-test="newPassword-text" disabled="disabled" id="input-63" type="password"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input mb-4 v-input--is-disabled theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-67" class="v-label v-label--is-disabled theme--light" style="left: 0px; position: absolute;">Confirm new password</label><input required="required" data-test="confirmNewPassword-text" disabled="disabled" id="input-67" type="password"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span></div>
+  </div>
+  </div>
+</fragment-stub>
+`;

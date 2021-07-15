@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WelcomeSecondScreen Renders the component 1`] = `
+<fragment-stub>
+  <p class="ml-4 pt-4">
+    In order to register a device on ShellHub, you need to install ShellHub agent onto it.
+  </p>
+  <p class="mt-4 ml-4 mr-4">
+    The easiest way to install ShellHub agent is with our automatic one-line installation script,
+    which works with all Linux distributions that have Docker installed and properly set up.
+  </p>
+  <div class="mt-4 ml-4 mr-4"><strong>Run the following command on your device:</strong>
+    <v-text-field-stub errorcount="1" errormessages="" messages="" readonly="true" rules="" successmessages="" value="curl -sSf &quot;http://localhost/install.sh?tenant_id=a582b47a42e&quot; | sh" appendicon="mdi-content-copy" backgroundcolor="" dense="true" loaderheight="2" clearicon="$clear" outlined="true" type="text" fill-width="" data-test="command-text" class="code"></v-text-field-stub>
+    <v-divider-stub></v-divider-stub>
+    <p class="caption mb-0">
+      Check the <a href="https://shellhub-io.github.io/guides/registering-device/" target="_blank">documentation</a>
+      for more information and alternative install methods.
+    </p>
+  </div>
+</fragment-stub>
+`;

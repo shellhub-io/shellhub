@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SnackbarCopy Renders the component 1`] = `
+<fragment-stub>
+  <v-snackbar-stub tag="div" value="true" contentclass="" timeout="4000" transition="v-snack-transition">
+    Command copied to clipboard.
+  </v-snackbar-stub>
+</fragment-stub>
+`;

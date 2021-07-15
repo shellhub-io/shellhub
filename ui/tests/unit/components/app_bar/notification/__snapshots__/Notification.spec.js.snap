@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Notification Renders the component 1`] = `
+<v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+  <v-card-stub loaderheight="4" tag="div">
+    <v-subheader-stub>Pending Devices</v-subheader-stub>
+    <v-divider-stub></v-divider-stub>
+    <v-list-stub tag="div" class="pa-0">
+      <v-list-item-group-stub activeclass="v-item--active" tag="div" v-model="1">
+        <v-list-item-stub activeclass="" tag="div">
+          <v-list-item-content-stub>
+            <v-list-item-title-stub>
+              <router-link-stub to="[object Object]" data-test="a582b47a42d-field">
+                39-5e-2a
+              </router-link-stub>
+            </v-list-item-title-stub>
+          </v-list-item-content-stub>
+          <v-list-item-action-stub>
+            <deviceactionbutton-stub uid="a582b47a42d" notificationstatus="true" action="accept" data-test="a582b47a42d-btn"></deviceactionbutton-stub>
+          </v-list-item-action-stub>
+        </v-list-item-stub>
+        <v-list-item-stub activeclass="" tag="div">
+          <v-list-item-content-stub>
+            <v-list-item-title-stub>
+              <router-link-stub to="[object Object]" data-test="a582b47a42e-field">
+                39-5e-2b
+              </router-link-stub>
+            </v-list-item-title-stub>
+          </v-list-item-content-stub>
+          <v-list-item-action-stub>
+            <deviceactionbutton-stub uid="a582b47a42e" notificationstatus="true" action="accept" data-test="a582b47a42e-btn"></deviceactionbutton-stub>
+          </v-list-item-action-stub>
+        </v-list-item-stub>
+      </v-list-item-group-stub>
+    </v-list-stub>
+    <v-divider-stub></v-divider-stub>
+    <v-btn-stub tag="button" activeclass="" link="true" to="/devices/pending" small="true" block="true" type="button">
+      Show all Pending Devices
+    </v-btn-stub>
+  </v-card-stub>
+</v-menu-stub>
+`;

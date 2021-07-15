@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeviceActionButton Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--x-small primary" data-test="notification-btn"><span class="v-btn__content">
+      Accept
+    </span></button></fragment-stub>
+  <div role="dialog" class="v-dialog__container" data-test="dialog-field">
+    <!---->
+  </div>
+</fragment-stub>
+`;

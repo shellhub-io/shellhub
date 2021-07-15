@@ -1,0 +1,88 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Welcome Renders the component 1`] = `
+<v-card-stub loaderheight="4" tag="div">
+  <v-dialog-stub opendelay="0" closedelay="0" value="true" contentclass="" maxwidth="800px" origin="center center" persistent="true" transition="dialog-transition" width="auto">
+    <v-stepper-stub tag="div" value="1">
+      <v-stepper-header-stub>
+        <v-stepper-step-stub color="primary" completeicon="$complete" editicon="$edit" erroricon="$error" rules="" step="1">
+          Welcome
+        </v-stepper-step-stub>
+        <v-divider-stub></v-divider-stub>
+        <v-stepper-step-stub color="primary" completeicon="$complete" editicon="$edit" erroricon="$error" rules="" step="2">
+          Connecting device
+        </v-stepper-step-stub>
+        <v-divider-stub></v-divider-stub>
+        <v-stepper-step-stub color="primary" completeicon="$complete" editicon="$edit" erroricon="$error" rules="" step="3">
+          Authorizing device
+        </v-stepper-step-stub>
+        <v-divider-stub></v-divider-stub>
+        <v-stepper-step-stub color="primary" completeicon="$complete" editicon="$edit" erroricon="$error" rules="" step="4">
+          Finish
+        </v-stepper-step-stub>
+      </v-stepper-header-stub>
+      <v-stepper-items-stub>
+        <v-stepper-content-stub step="1">
+          <v-card-stub loaderheight="4" tag="div" color="grey lighten-4" height="250px" class="mb-12">
+            <welcomefirstscreen-stub></welcomefirstscreen-stub>
+          </v-card-stub>
+          <v-card-actions-stub>
+            <v-btn-stub tag="button" activeclass="" text="true" type="button">
+              Close
+            </v-btn-stub>
+            <v-spacer-stub></v-spacer-stub>
+            <v-btn-stub color="primary" tag="button" activeclass="" type="button" data-test="firstClick-btn">
+              Next
+            </v-btn-stub>
+          </v-card-actions-stub>
+        </v-stepper-content-stub>
+        <v-stepper-content-stub step="2">
+          <v-card-stub loaderheight="4" tag="div" color="grey lighten-4" height="250px" class="mb-12">
+            <welcomesecondscreen-stub command="curl -sSf &quot;http://localhost/install.sh?tenant_id=a582b47a42e&quot; | sh"></welcomesecondscreen-stub>
+          </v-card-stub>
+          <v-card-actions-stub>
+            <v-btn-stub tag="button" activeclass="" text="true" type="button" data-test="close-btn">
+              Close
+            </v-btn-stub>
+            <v-spacer-stub></v-spacer-stub>
+            <v-btn-stub tag="button" activeclass="" type="button">
+              Back
+            </v-btn-stub>
+            <v-btn-stub tag="button" activeclass="" disabled="true" type="button">
+              Waiting for Device
+            </v-btn-stub>
+          </v-card-actions-stub>
+        </v-stepper-content-stub>
+        <v-stepper-content-stub step="3">
+          <v-card-stub loaderheight="4" tag="div" color="grey lighten-4" height="250px" class="mb-12">
+            <!---->
+          </v-card-stub>
+          <v-card-actions-stub>
+            <v-btn-stub tag="button" activeclass="" text="true" type="button">
+              Close
+            </v-btn-stub>
+            <v-spacer-stub></v-spacer-stub>
+            <v-btn-stub tag="button" activeclass="" type="button">
+              Back
+            </v-btn-stub>
+            <v-btn-stub color="primary" tag="button" activeclass="" type="button" data-test="thirdClick-btn">
+              Accept
+            </v-btn-stub>
+          </v-card-actions-stub>
+        </v-stepper-content-stub>
+        <v-stepper-content-stub step="4">
+          <v-card-stub loaderheight="4" tag="div" color="grey lighten-4" height="250px" class="mb-12">
+            <welcomefourthscreen-stub></welcomefourthscreen-stub>
+          </v-card-stub>
+          <v-card-actions-stub>
+            <v-spacer-stub></v-spacer-stub>
+            <v-btn-stub color="primary" tag="button" activeclass="" type="button">
+              Finish
+            </v-btn-stub>
+          </v-card-actions-stub>
+        </v-stepper-content-stub>
+      </v-stepper-items-stub>
+    </v-stepper-stub>
+  </v-dialog-stub>
+</v-card-stub>
+`;

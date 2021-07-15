@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SnackbarError Renders the component 1`] = `
+<fragment-stub>
+  <v-snackbar-stub color="#bd4147" outlined="true" tag="div" value="true" top="true" contentclass="" text="true" timeout="4000" transition="v-snack-transition">
+    Loading the dashboard has failed, please try again.
+  </v-snackbar-stub>
+</fragment-stub>
+`;

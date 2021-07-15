@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NamespaceAdd Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-list-item__title">
+    <div role="dialog" class="v-dialog__container"></div>
+  </div>
+</fragment-stub>
+`;

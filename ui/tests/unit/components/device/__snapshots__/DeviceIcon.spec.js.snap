@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeviceIcon Renders the component 1`] = `
+<fragment-stub>
+  <v-icon-stub datatest="type-icon" data-test="type-icon" class="icons">
+    fl-alpine
+  </v-icon-stub>
+</fragment-stub>
+`;

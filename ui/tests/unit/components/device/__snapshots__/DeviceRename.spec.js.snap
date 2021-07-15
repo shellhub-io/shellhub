@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeviceRename Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-pencil theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
