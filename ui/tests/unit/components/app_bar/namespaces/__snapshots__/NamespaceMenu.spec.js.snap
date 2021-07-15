@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NamespaceMenu Renders the component 1`] = `
+<fragment-stub>
+  <div class="row">
+    <div class="col"><span class="float-right v-chip v-chip--clickable v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><i aria-hidden="true" class="v-icon notranslate v-icon--left mdi mdi-server theme--light" style="font-size: 24px;"></i> <div size="24" class="ml-1 mr-1">
+              namespace3
+            </div> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-chevron-down theme--light" style="font-size: 24px;"></i></span></span>
+      <div class="v-menu" style="display: none;">
+        <!---->
+      </div>
+    </div>
+    <fragment-stub>
+      <div class="v-list-item__title">
+        <div role="dialog" class="v-dialog__container">
+          <!---->
+        </div>
+      </div>
+    </fragment-stub>
+  </div>
+</fragment-stub>
+`;

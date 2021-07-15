@@ -1,0 +1,105 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeviceList Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-card__text pa-0">
+    <div class="v-data-table elevation-1 v-data-table--has-bottom theme--light" data-test="dataTable-field">
+      <div class="v-data-table__wrapper">
+        <table>
+          <colgroup>
+            <col class="">
+            <col class="">
+            <col class="">
+            <col class="">
+            <col class="">
+          </colgroup>
+          <thead class="v-data-table-header">
+            <tr>
+              <th role="columnheader" scope="col" aria-label="Online: Not sorted. Activate to sort ascending." aria-sort="none" class="text-center sortable"><span>Online</span><i aria-hidden="true" class="v-icon notranslate v-data-table-header__icon mdi mdi-arrow-up theme--light" style="font-size: 18px;"></i></th>
+              <th role="columnheader" scope="col" aria-label="Hostname: Not sorted. Activate to sort ascending." aria-sort="none" class="text-center sortable"><span>Hostname</span><i aria-hidden="true" class="v-icon notranslate v-data-table-header__icon mdi mdi-arrow-up theme--light" style="font-size: 18px;"></i></th>
+              <th role="columnheader" scope="col" aria-label="Operating System" class="text-center"><span>Operating System</span></th>
+              <th role="columnheader" scope="col" aria-label="SSHID" class="text-center"><span>SSHID</span></th>
+              <th role="columnheader" scope="col" aria-label="Actions" class="text-center"><span>Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="">
+              <td class="text-center"><i aria-hidden="true" class="v-icon notranslate material-icons theme--light">check_circle</i><span class="v-tooltip v-tooltip--bottom"><!----></span></td>
+              <td class="text-center">
+                <router-link-stub to="[object Object]">
+                  39-5e-2a
+                </router-link-stub>
+              </td>
+              <td class="text-center">
+                <fragment-stub data-test="deviceIcon-component"><i aria-hidden="true" data-test="type-icon" class="v-icon notranslate icons fl fl-linuxmint theme--light"></i></fragment-stub>
+                Linux Mint 19.3
+              </td>
+              <td class="text-center"><span class="list-itens v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content">
+          user.39-5e-2a@localhost
+          <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
+              <td class="text-center"><button type="button" class="v-icon notranslate icons v-icon--link material-icons theme--light">info</button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <!---->
+                <fragment-stub data-test="deviceDelete-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </td>
+            </tr>
+            <tr class="">
+              <td class="text-center"><i aria-hidden="true" class="v-icon notranslate material-icons theme--light success--text">check_circle</i></td>
+              <td class="text-center">
+                <router-link-stub to="[object Object]">
+                  39-5e-2b
+                </router-link-stub>
+              </td>
+              <td class="text-center">
+                <fragment-stub data-test="deviceIcon-component"><i aria-hidden="true" data-test="type-icon" class="v-icon notranslate icons fl fl-linuxmint theme--light"></i></fragment-stub>
+                Linux Mint 19.3
+              </td>
+              <td class="text-center"><span class="list-itens v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content">
+          user.39-5e-2b@localhost
+          <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
+              <td class="text-center"><button type="button" class="v-icon notranslate icons v-icon--link material-icons theme--light">info</button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <fragment-stub data-test="terminalDialog-component"><button type="button" class="v-icon notranslate v-icon--link mdi mdi-console theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="deviceDelete-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="v-data-footer">
+        <div class="v-data-footer__select">Rows per page:<div class="v-input v-input--hide-details v-input--is-label-active v-input--is-dirty theme--light v-text-field v-select">
+            <div class="v-input__control">
+              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-101" class="v-input__slot">
+                <div class="v-select__slot">
+                  <div class="v-select__selections">
+                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-101" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
+                  </div>
+                  <div class="v-input__append-inner">
+                    <div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div>
+                  </div><input type="hidden" value="10">
+                </div>
+                <div class="v-menu">
+                  <!---->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="v-data-footer__pagination">1-2 of 2</div>
+        <div class="v-data-footer__icons-before"><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--icon v-btn--round v-btn--text theme--light v-size--default" aria-label="Previous page"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-chevron-left theme--light"></i></span></button></div>
+        <div class="v-data-footer__icons-after"><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--icon v-btn--round v-btn--text theme--light v-size--default" aria-label="Next page"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-chevron-right theme--light"></i></span></button></div>
+      </div>
+    </div>
+  </div>
+</fragment-stub>
+`;

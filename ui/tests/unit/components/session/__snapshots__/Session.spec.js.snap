@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Session Renders the component 1`] = `
+<fragment-stub>
+  <div class="d-flex pa-0 align-center">
+    <h1>Sessions</h1>
+    <div class="spacer"></div>
+    <div class="spacer"></div>
+  </div>
+  <div class="mt-2 v-card v-sheet theme--light">
+    <!---->
+    <fragment-stub>
+      <div class="mx-auto py-6 v-card v-sheet v-sheet--outlined theme--light">
+        <div class="v-card__title justify-center">
+          <div><i aria-hidden="true" data-test="boxMessage-icon" class="v-icon notranslate material-icons theme--light" style="font-size: 40px;">history</i></div>
+        </div>
+        <div class="v-card__title justify-center">
+          <div data-test="boxMessage-title" class="headline">
+            Looks like you don't have any Session
+          </div>
+        </div>
+        <div tabindex="-1" class="text-center listText v-list-item theme--light">
+          <div data-test="0-boxMessage-text" class="v-list-item__content justify-center py-0">An SSH session is created when a connection is made to any registered device.</div>
+        </div>
+        <div tabindex="-1" class="text-center listText v-list-item theme--light">
+          <div data-test="1-boxMessage-text" class="v-list-item__content justify-center py-2">
+            <p>Please follow our guide on how to connect to your devices
+              <a target="_blank" href="https://docs.shellhub.io/getting-started/connecting-device/">See More</a>.
+            </p>
+          </div>
+        </div>
+        <div class="v-card__actions justify-center pt-8 pb-0">
+          <!---->
+          <!---->
+        </div>
+      </div>
+    </fragment-stub>
+  </div>
+</fragment-stub>
+`;

@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AppBar Renders the component 1`] = `
+<fragment-stub>
+  <v-app-bar-stub color="primary" dark="true" tag="header" extensionheight="48" src="" value="true" app="true" clippedleft="true">
+    <v-app-bar-nav-icon-stub class="hidden-lg-and-up"></v-app-bar-nav-icon-stub>
+    <router-link-stub to="/" tag="a" ariacurrentvalue="page" event="click">
+      <v-img-stub maxwidth="160" options="[object Object]" position="center center" src="@/assets/logo-inverted.png" transition="fade-transition" class="d-sm-flex hidden-sm-and-down"></v-img-stub>
+      <v-img-stub maxwidth="46" options="[object Object]" position="center center" src="@/assets/logo-inverted-only-cloud.png" transition="fade-transition" class="hidden-sm-and-up"></v-img-stub>
+    </router-link-stub> <span class="overline mt-3 d-sm-flex hidden-sm-and-down">
+      BETA
+    </span>
+    <v-spacer-stub></v-spacer-stub>
+    <namespacemenu-stub inanamespace="true"></namespacemenu-stub>
+    <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete">
+      <v-icon-stub size="24" class="ml-1 mr-1">
+        help
+      </v-icon-stub>
+    </v-chip-stub>
+    <notification-stub></notification-stub>
+    <v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+      <v-card-stub loaderheight="4" tag="div">
+        <v-list-item-stub activeclass="" tag="div" router="" data-test="Settings">
+          <v-icon-stub left="">
+            mdi-cog
+          </v-icon-stub>
+          <v-list-item-title-stub>
+            Settings
+          </v-list-item-title-stub>
+        </v-list-item-stub>
+        <v-list-item-stub activeclass="" tag="div" router="" data-test="Logout">
+          <v-icon-stub left="">
+            mdi-logout
+          </v-icon-stub>
+          <v-list-item-title-stub>
+            Logout
+          </v-list-item-title-stub>
+        </v-list-item-stub>
+      </v-card-stub>
+    </v-menu-stub>
+  </v-app-bar-stub>
+  <aside class="gitter-chat-embed is-collapsed">
+    <div class="gitter-chat-embed-action-bar"><a class="gitter-chat-embed-action-bar-item gitter-chat-embed-action-bar-item-pop-out" aria-label="Open Chat in Gitter.im" href="https://gitter.im/shellhub-io/community" target="_blank" rel="noopener"></a><button class="gitter-chat-embed-action-bar-item gitter-chat-embed-action-bar-item-collapse-chat" aria-label="Collapse Gitter Chat"></button></div>
+    <div class="gitter-chat-embed-loading-wrapper">
+      <div class="gitter-chat-embed-loading-indicator gitter-icon"></div>
+    </div>
+  </aside>
+</fragment-stub>
+`;

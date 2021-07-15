@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Terminal Renders the component 1`] = `
+<div>
+  <devicelist-stub></devicelist-stub>
+</div>
+`;

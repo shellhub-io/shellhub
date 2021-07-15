@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Snackbar Renders the component 1`] = `
+<fragment-stub>
+  <snackbarsuccess-stub typemessage="" maincontent=""></snackbarsuccess-stub>
+  <snackbarerror-stub typemessage="" maincontent=""></snackbarerror-stub>
+  <snackbarcopy-stub maincontent=""></snackbarcopy-stub>
+</fragment-stub>
+`;

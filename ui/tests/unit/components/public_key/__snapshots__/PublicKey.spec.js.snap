@@ -1,0 +1,51 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Session Renders the component 1`] = `
+<fragment-stub>
+  <div class="d-flex pa-0 align-center">
+    <h1>Public Keys</h1>
+    <div class="spacer"></div>
+    <div class="spacer"></div>
+    <fragment-stub>
+      <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default"><span class="v-btn__content">
+          Add public Key
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      <div role="dialog" class="v-dialog__container">
+        <!---->
+      </div>
+    </fragment-stub>
+  </div>
+  <div class="mt-2 v-card v-sheet theme--light">
+    <!---->
+    <fragment-stub>
+      <div class="mx-auto py-6 v-card v-sheet v-sheet--outlined theme--light">
+        <div class="v-card__title justify-center">
+          <div><i aria-hidden="true" data-test="boxMessage-icon" class="v-icon notranslate material-icons theme--light" style="font-size: 40px;">vpn_key</i></div>
+        </div>
+        <div class="v-card__title justify-center">
+          <div data-test="boxMessage-title" class="headline">
+            Looks like you don't have any Public Keys
+          </div>
+        </div>
+        <div tabindex="-1" class="text-center listText v-list-item theme--light">
+          <div data-test="0-boxMessage-text" class="v-list-item__content justify-center py-0">You can connect to your devices using password-based logins, but we strongly recommend using SSH key pairs instead.</div>
+        </div>
+        <div tabindex="-1" class="text-center listText v-list-item theme--light">
+          <div data-test="1-boxMessage-text" class="v-list-item__content justify-center py-0 pt-2">SSH keys are more secure than passwords and can help you log in without having to remember long passwords.</div>
+        </div>
+        <div class="v-card__actions justify-center pt-8 pb-0">
+          <!---->
+          <fragment-stub><span class="v-tooltip v-tooltip--bottom"><!----><div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default"><span class="v-btn__content">
+          Add public Key
+        </span></button>
+        </div></span>
+        <div role="dialog" class="v-dialog__container">
+          <!---->
+        </div>
+    </fragment-stub>
+  </div>
+  </div>
+</fragment-stub>
+</div>
+</fragment-stub>
+`;

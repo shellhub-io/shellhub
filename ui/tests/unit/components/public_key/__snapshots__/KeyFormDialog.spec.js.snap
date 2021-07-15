@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`KeyFormDialog Renders the component 1`] = `
+<fragment-stub>
+  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" disabled="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+      You are not the owner of this namespace
+    </span></v-tooltip-stub>
+  <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="400" origin="center center" retainfocus="true" transition="dialog-transition" width="auto">
+    <v-card-stub loaderheight="4" tag="div">
+      <validationobserver-stub tag="span" vid="obs_1"></validationobserver-stub>
+    </v-card-stub>
+  </v-dialog-stub>
+</fragment-stub>
+`;
