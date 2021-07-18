@@ -127,6 +127,11 @@ const router = new Router({
           name: 'privateKeysSettings',
           component: () => import('@/components/setting/SettingPrivateKeys'),
         },
+        {
+          path: 'tokens',
+          name: 'tokensSettings',
+          component: () => import('@/components/setting/SettingToken'),
+        },
       ],
     },
     {

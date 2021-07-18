@@ -24,6 +24,10 @@ export default {
       namespaceRemoveUser: 'removing member',
       namespaceReload: 'reloading namespace',
       addUser: 'creating account',
+      tokenList: 'list token',
+      tokenCreating: 'creating token',
+      tokenEditing: 'editing token',
+      tokenDeleting: 'deleting token',
     };
 
     Vue.success = success;

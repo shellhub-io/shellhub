@@ -68,6 +68,10 @@ export default {
           title: 'Private Keys',
           path: '/settings/private-keys',
         },
+        {
+          title: 'Tokens',
+          path: '/settings/tokens',
+        },
       ];
     },
   },
