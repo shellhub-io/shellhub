@@ -9,6 +9,8 @@ export default {
     namespaces: [],
     numberNamespaces: 0,
     owner: false,
+    webhookUrl: '',
+    active: false,
   },
 
   getters: {
@@ -16,6 +18,8 @@ export default {
     get: (state) => state.namespace,
     getNumberNamespaces: (state) => state.numberNamespaces,
     owner: (state) => state.owner,
+    webhookUrl: (state) => state.webhookUrl,
+    webhookActive: (state) => state.active,
   },
 
   mutations: {
@@ -26,6 +30,11 @@ export default {
 
     setNamespace: (state, res) => {
       Vue.set(state, 'namespace', res.data);
+      if (res.data.settings.webhook !== undefined) {
+        const { url, active } = res.data.settings.webhook;
+        Vue.set(state, 'webhookUrl', url);
+        Vue.set(state, 'active', active);
+      }
     },
 
     removeNamespace: (state, id) => {
@@ -49,6 +58,14 @@ export default {
 
     setOwnerStatus: (state, status) => {
       Vue.set(state, 'owner', status);
+    },
+
+    setWebhook: (state, data) => {
+      Vue.set(state, 'webhookUrl', data.url);
+    },
+
+    setWebhookStatus: (state, status) => {
+      Vue.set(state, 'active', status);
     },
   },
 
@@ -104,6 +121,20 @@ export default {
 
     setOwnerStatus: async (context, status) => {
       context.commit('setOwnerStatus', status);
+    },
+
+    updateWebhookStatus: async (context, data) => {
+      const res = await apiNamespace.webhookStatusUpdate(data);
+      if (res.status === 200) {
+        context.commit('setWebhookStatus', data.status);
+      }
+    },
+
+    updateWebhook: async (context, data) => {
+      const res = await apiNamespace.webhookUpdate(data);
+      if (res.status === 200) {
+        context.commit('setWebhook', data);
+      }
     },
   },
 };

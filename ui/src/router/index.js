@@ -127,6 +127,11 @@ const router = new Router({
           name: 'privateKeysSettings',
           component: () => import('@/components/setting/SettingPrivateKeys'),
         },
+        {
+          path: 'api',
+          name: 'APISettings',
+          component: () => import('@/components/setting/SettingAPI'),
+        },
       ],
     },
     {

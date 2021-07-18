@@ -23,3 +23,11 @@ export const removeUserFromNamespace = async (data) => http().patch(`/namespaces
 });
 
 export const tenantSwitch = async (data) => http().get(`/auth/token/${data.tenant_id}`);
+
+export const webhookUpdate = async (data) => http().patch(`/namespaces/${data.tenant_id}/webhook`, {
+  url: data.url,
+});
+
+export const webhookStatusUpdate = async (data) => http().patch(`/namespaces/${data.tenant_id}/webhook/activate`, {
+  status: data.status,
+});

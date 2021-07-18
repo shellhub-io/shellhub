@@ -17,9 +17,16 @@ const (
 	EditNamespaceURL           = "/namespaces/:id"
 	AddNamespaceUserURL        = "/namespaces/:id/add"
 	RemoveNamespaceUserURL     = "/namespaces/:id/del"
+	EditWebhookURL             = "/namespaces/:id/webhook"
+	EditWebhookStatusURL       = "/namespaces/:id/webhook/activate"
 	GetSessionRecordURL        = "/users/security"
 	EditSessionRecordStatusURL = "/users/security/:id"
 )
+
+type Invalid struct {
+	Field string
+	Tag   string
+}
 
 func GetNamespaceList(c apicontext.Context) error {
 	svc := nsadm.NewService(c.Store())
@@ -90,6 +97,28 @@ func GetNamespace(c apicontext.Context) error {
 	}
 
 	members, err := svc.ListMembers(c.Ctx(), c.Param("id"))
+	if err != nil {
+		return err
+	}
+
+	namespace.Members = make([]interface{}, 0)
+
+	for _, member := range members {
+		namespace.Members = append(namespace.Members, member)
+	}
+
+	return c.JSON(http.StatusOK, namespace)
+}
+
+func GetNamespaceByName(c apicontext.Context) error {
+	svc := nsadm.NewService(c.Store())
+
+	namespace, err := svc.GetNamespaceByName(c.Ctx(), c.Param("id"))
+	if err != nil {
+		return err
+	}
+
+	members, err := svc.ListMembers(c.Ctx(), namespace.TenantID)
 	if err != nil {
 		return err
 	}
@@ -226,6 +255,72 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, namespace)
+}
+
+func UpdateWebhook(c apicontext.Context) error {
+	svc := nsadm.NewService(c.Store())
+
+	var req struct {
+		URL string `json:"url" bson:"url"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	tenant := c.Param("id")
+
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
+	}
+
+	invalidFields, wh, err := svc.UpdateWebhook(c.Ctx(), req.URL, tenant, id)
+	if err != nil {
+		switch err {
+		case nsadm.ErrUnauthorized:
+			return c.NoContent(http.StatusForbidden)
+		case nsadm.ErrUserNotFound:
+			return c.String(http.StatusNotFound, err.Error())
+		case nsadm.ErrNamespaceNotFound:
+			return c.String(http.StatusNotFound, err.Error())
+		case nsadm.ErrDuplicateID:
+			return c.String(http.StatusConflict, err.Error())
+		case nsadm.ErrBadRequest:
+			return c.JSON(http.StatusBadRequest, invalidFields)
+
+		default:
+			return err
+		}
+	}
+
+	return c.JSON(http.StatusOK, wh)
+}
+
+func SetWebhookStatus(c apicontext.Context) error {
+	var req struct {
+		Status bool `json:"status"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	id := ""
+	if v := c.ID(); v != nil {
+		id = v.ID
+	}
+
+	tenant := c.Param("id")
+
+	svc := nsadm.NewService(c.Store())
+
+	wh, err := svc.SetWebhookStatus(c.Ctx(), req.Status, tenant, id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, wh)
 }
 
 func EditSessionRecordStatus(c apicontext.Context) error {

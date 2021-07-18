@@ -212,17 +212,11 @@ describe('SettingNamespace', () => {
   it('Process data in methods - not the owner of this namespace', () => {
     expect(wrapperNotOwner.vm.hasTenant()).toEqual(false);
   });
-  it('Check not the owner fields rendering in hosted version of the template - not the owner of this namespace', () => {
-    const notTheOwnerMessage = 'You\'re not the owner of this namespace.';
-    const namespaceOwnerMessage = `Contact ${namespace.members[0].name} user for more information.`;
-
+  it('Check fields rendering in hosted version of the template - not the owner of this namespace', () => {
     expect(wrapperNotOwner.find('[data-test=editOperation]').exists()).toEqual(false);
     expect(wrapperNotOwner.find('[data-test=userOperation]').exists()).toEqual(false);
     expect(wrapperNotOwner.find('[data-test=deleteOperation]').exists()).toEqual(false);
     expect(wrapperNotOwner.find('[data-test=securityOperation]').exists()).toEqual(false);
-    expect(wrapperNotOwner.find('[data-test=notTheOwner]').exists()).toEqual(true);
-    expect(wrapperNotOwner.find('[data-test=notTheOwner]').text()).toEqual(notTheOwnerMessage);
-    expect(wrapperNotOwner.find('[data-test=namespaceOwnerMessage]').text()).toEqual(namespaceOwnerMessage);
   });
   it('Process data in the computed - open version tests', () => {
     expect(wrapperOwnerOpen.vm.isEnterprise).toEqual(false);

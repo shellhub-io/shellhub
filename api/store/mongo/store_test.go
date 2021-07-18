@@ -2057,3 +2057,52 @@ func TestDeletePublicKey(t *testing.T) {
 	err = mongostore.PublicKeyDelete(ctx, newKey.Fingerprint, newKey.TenantID)
 	assert.NoError(t, err)
 }
+
+func TestUpdateWebhook(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "hash1"}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: false}}
+	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: false, Webhook: models.WebhookOptions{URL: "http://example.com", Active: true}}}
+	webhook := "http://example.com"
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	wb, err := mongostore.NamespaceSetWebhook(ctx, namespace.TenantID, webhook)
+	assert.NoError(t, err)
+	assert.Equal(t, wb, namespace2)
+}
+
+func TestSetWebhook(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "hash1"}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: false}}
+	namespace2 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: false, Webhook: models.WebhookOptions{URL: "http://example.com", Active: true}}}
+	webhook := "http://example.com"
+
+	namespace3 := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: false, Webhook: models.WebhookOptions{Active: true, URL: "http://example.com"}}}
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	wb, err := mongostore.NamespaceSetWebhook(ctx, namespace.TenantID, webhook)
+	assert.NoError(t, err)
+	assert.Equal(t, wb, namespace2)
+
+	wb, err = mongostore.NamespaceSetWebhookStatus(ctx, namespace.TenantID, true)
+	assert.NoError(t, err)
+	assert.Equal(t, wb, namespace3)
+}

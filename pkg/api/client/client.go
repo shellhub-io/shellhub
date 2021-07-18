@@ -66,6 +66,7 @@ func NewClient(opts ...Opt) Client {
 type commonAPI interface {
 	ListDevices() ([]models.Device, error)
 	GetDevice(uid string) (*models.Device, error)
+	GetNamespace(tenant string) (*models.Namespace, error)
 }
 
 type client struct {
@@ -101,6 +102,22 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 	default:
 		return nil, ErrUnknown
 	}
+}
+
+func (c *client) GetNamespace(tenant string) (*models.Namespace, error) {
+	var namespace *models.Namespace
+	resp, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/api/namespaces/%s", tenant))).EndStruct(&namespace)
+	if len(errs) > 0 {
+		return nil, ErrConnectionFailed
+	}
+
+	if resp.StatusCode == 400 {
+		return nil, ErrNotFound
+	} else if resp.StatusCode == 200 {
+		return namespace, nil
+	}
+
+	return nil, ErrUnknown
 }
 
 func buildURL(c *client, uri string) string {

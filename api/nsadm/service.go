@@ -26,6 +26,9 @@ type Service interface {
 	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
 	EditSessionRecordStatus(ctx context.Context, status bool, tenant, ownerID string) error
 	GetSessionRecord(ctx context.Context, tenant string) (bool, error)
+	GetNamespaceByName(ctx context.Context, tenant string) (*models.Namespace, error)
+	UpdateWebhook(ctx context.Context, url, tenant, owner string) ([]validator.InvalidField, *models.Namespace, error)
+	SetWebhookStatus(ctx context.Context, active bool, tenant, owner string) (*models.Namespace, error)
 }
 
 type service struct {
@@ -218,4 +221,29 @@ func (s *service) GetSessionRecord(ctx context.Context, tenant string) (bool, er
 	}
 
 	return s.store.NamespaceGetSessionRecord(ctx, tenant)
+}
+
+func (s *service) GetNamespaceByName(ctx context.Context, namespace string) (*models.Namespace, error) {
+	return s.store.NamespaceGetByName(ctx, namespace)
+}
+
+func (s *service) UpdateWebhook(ctx context.Context, url, tenant, owner string) ([]validator.InvalidField, *models.Namespace, error) {
+	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, owner); err != nil {
+		return nil, nil, err
+	}
+
+	if invalidFields, err := validator.ValidateVar(url, "required,url"); err != nil {
+		return invalidFields, nil, ErrBadRequest
+	}
+	ns, err := s.store.NamespaceSetWebhook(ctx, tenant, url)
+
+	return nil, ns, err
+}
+
+func (s *service) SetWebhookStatus(ctx context.Context, active bool, tenant, owner string) (*models.Namespace, error) {
+	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, owner); err != nil {
+		return nil, err
+	}
+
+	return s.store.NamespaceSetWebhookStatus(ctx, tenant, active)
 }

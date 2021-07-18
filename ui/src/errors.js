@@ -43,6 +43,8 @@ export default {
         addUser: 'creating account',
         loginFailed: 'login',
         logoutFailed: 'logout',
+        updateWebhook: 'updating webhook',
+        updateWebhookStatus: 'updating webhook status',
       },
       form: {
         invalid: (field, param, extra) => {
@@ -52,6 +54,7 @@ export default {
             alphanum: `The ${field} is not in an alphanumeric standard`,
             ascii: `The ${field} is not in an ascii standard`,
             email: 'The format for email is invalid',
+            url: `The ${field} is in an invalid format`,
             other: 'The format is invalid',
           };
           return types[param] || types.other;

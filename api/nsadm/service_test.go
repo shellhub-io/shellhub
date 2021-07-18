@@ -16,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuid_mocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -992,6 +993,195 @@ func TestRemoveNamespaceUser(t *testing.T) {
 		})
 	}
 
+	mock.AssertExpectations(t)
+}
+
+func TestUpdateWebhook(t *testing.T) {
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
+
+	ctx := context.TODO()
+
+	type Expected struct {
+		invalids []validator.InvalidField
+		ns       *models.Namespace
+		err      error
+	}
+
+	user := &models.User{Name: "name1", Username: "user1", ID: "ID1"}
+	user2 := &models.User{Name: "name2", Username: "hash2", ID: "ID2"}
+
+	namespace := &models.Namespace{
+		Name:     strings.ToLower("namespace"),
+		Owner:    user.ID,
+		Members:  []interface{}{user.ID},
+		Settings: &models.NamespaceSettings{SessionRecord: true},
+		TenantID: "xxxxx",
+	}
+
+	webhook := "http://example.com"
+
+	cases := []struct {
+		name          string
+		ctx           context.Context
+		requiredMocks func()
+		webhook       string
+		tenantID      string
+		ownerID       string
+		expected      Expected
+	}{
+
+		{
+			name: "UpdateWebhook fails when the user is not the owner",
+			ctx:  ctx,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+			},
+			webhook:  webhook,
+			tenantID: namespace.TenantID,
+			ownerID:  user2.ID,
+			expected: Expected{
+				nil,
+				nil,
+				ErrUnauthorized,
+			},
+		},
+		{
+			name: "UpdateWebhook fails when url is invalid",
+			ctx:  ctx,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+			},
+			webhook:  "invalidUrl",
+			tenantID: namespace.TenantID,
+			ownerID:  user.ID,
+			expected: Expected{
+				[]validator.InvalidField{{"", "invalid", "url", ""}},
+				nil,
+				ErrBadRequest,
+			},
+		},
+		{
+			name: "UpdateWebhook succeeds",
+			ctx:  ctx,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("NamespaceSetWebhook", ctx, namespace.TenantID, webhook).Return(&models.Namespace{
+					Name:     strings.ToLower("namespace"),
+					Owner:    user.ID,
+					Members:  []interface{}{user.ID},
+					Settings: &models.NamespaceSettings{SessionRecord: true, Webhook: models.WebhookOptions{URL: "http://example.com", Active: true}},
+					TenantID: "xxxxx",
+				}, nil).Once()
+			},
+			webhook:  webhook,
+			tenantID: namespace.TenantID,
+			ownerID:  user.ID,
+			expected: Expected{
+				nil,
+				&models.Namespace{
+					Name:     strings.ToLower("namespace"),
+					Owner:    user.ID,
+					Members:  []interface{}{user.ID},
+					Settings: &models.NamespaceSettings{SessionRecord: true, Webhook: models.WebhookOptions{URL: "http://example.com", Active: true}},
+					TenantID: "xxxxx",
+				}, nil,
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.requiredMocks()
+			invalids, returnedNamespace, err := s.UpdateWebhook(ctx, tc.webhook, tc.tenantID, tc.ownerID)
+			assert.Equal(t, tc.expected, Expected{invalids, returnedNamespace, err})
+		})
+	}
+	mock.AssertExpectations(t)
+}
+
+func TestSetWebhookStatus(t *testing.T) {
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
+
+	ctx := context.TODO()
+
+	type Expected struct {
+		ns  *models.Namespace
+		err error
+	}
+
+	user := &models.User{Name: "name1", Username: "user1", ID: "ID1"}
+	user2 := &models.User{Name: "name2", Username: "hash2", ID: "ID2"}
+
+	namespace := &models.Namespace{
+		Name:     strings.ToLower("namespace"),
+		Owner:    user.ID,
+		Members:  []interface{}{user.ID},
+		Settings: &models.NamespaceSettings{SessionRecord: true, Webhook: models.WebhookOptions{URL: "http://example.com", Active: true}},
+		TenantID: "xxxxx",
+	}
+
+	cases := []struct {
+		name          string
+		ctx           context.Context
+		requiredMocks func()
+		active        bool
+		tenantID      string
+		ownerID       string
+		expected      Expected
+	}{
+		{
+			name: "SetWebhookstatus fails when the user is not the owner",
+			ctx:  ctx,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+			},
+			active:   false,
+			tenantID: namespace.TenantID,
+			ownerID:  user2.ID,
+			expected: Expected{
+				nil,
+				ErrUnauthorized,
+			},
+		},
+		{
+			name: "SetWebhookstatus succeeds",
+			ctx:  ctx,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("NamespaceSetWebhookStatus", ctx, namespace.TenantID, false).
+					Return(&models.Namespace{
+						Name:     strings.ToLower("namespace"),
+						Owner:    user.ID,
+						Members:  []interface{}{user.ID},
+						Settings: &models.NamespaceSettings{SessionRecord: true, Webhook: models.WebhookOptions{URL: "http://example.com", Active: false}},
+						TenantID: "xxxxx",
+					}, nil).Once()
+			},
+			active:   false,
+			tenantID: namespace.TenantID,
+			ownerID:  user.ID,
+			expected: Expected{&models.Namespace{
+				Name:     strings.ToLower("namespace"),
+				Owner:    user.ID,
+				Members:  []interface{}{user.ID},
+				Settings: &models.NamespaceSettings{SessionRecord: true, Webhook: models.WebhookOptions{URL: "http://example.com", Active: false}},
+				TenantID: "xxxxx",
+			}, nil},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.requiredMocks()
+			returnedNamespace, err := s.SetWebhookStatus(ctx, tc.active, tc.tenantID, tc.ownerID)
+			assert.Equal(t, tc.expected, Expected{returnedNamespace, err})
+		})
+	}
 	mock.AssertExpectations(t)
 }
 
