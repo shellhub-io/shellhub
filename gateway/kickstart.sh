@@ -46,6 +46,7 @@ $SUDO docker run -d \
        -v /var/run/docker.sock:/var/run/docker.sock \
        -v /etc/passwd:/etc/passwd \
        -v /etc/group:/etc/group \
+       -v /etc/resolv.conf:/etc/resolv.conf \
        -v /var/run:/var/run \
        -v /var/log:/var/log \
        -e SHELLHUB_SERVER_ADDRESS={{scheme}}://{{host}} \
