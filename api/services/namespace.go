@@ -1,4 +1,4 @@
-package nsadm
+package services
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
-type Service interface {
+type NamespaceService interface {
 	ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error)
 	CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
@@ -26,14 +26,6 @@ type Service interface {
 	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
 	EditSessionRecordStatus(ctx context.Context, status bool, tenant, ownerID string) error
 	GetSessionRecord(ctx context.Context, tenant string) (bool, error)
-}
-
-type service struct {
-	store store.Store
-}
-
-func NewService(store store.Store) Service {
-	return &service{store}
 }
 
 func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
