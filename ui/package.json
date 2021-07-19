@@ -47,7 +47,7 @@
     "@vue/test-utils": "^1.2.1",
     "babel-eslint": "^10.1.0",
     "deepmerge": "^4.2.2",
-    "eslint": "^7.30.0",
+    "eslint": "^7.31.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-import-resolver-webpack": "^0.13.0",
     "eslint-plugin-vue": "^7.13.0",
