@@ -10,7 +10,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.0
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/labstack/echo/v4 v4.3.0
+	github.com/labstack/echo/v4 v4.4.0
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/shellhub-io/shellhub v0.5.2
