@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
-	"github.com/shellhub-io/shellhub/api/deviceadm"
+	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -30,9 +30,7 @@ type filterQuery struct {
 	OrderBy string `query:"order_by"`
 }
 
-func GetDeviceList(c apicontext.Context) error {
-	svc := deviceadm.NewService(c.Store())
-
+func (h *handler) GetDeviceList(c apicontext.Context) error {
 	query := filterQuery{}
 	if err := c.Bind(&query); err != nil {
 		return err
@@ -40,7 +38,7 @@ func GetDeviceList(c apicontext.Context) error {
 
 	query.Normalize()
 
-	devices, count, err := svc.ListDevices(c.Ctx(), query.Query, query.Filter, query.Status, query.SortBy, query.OrderBy)
+	devices, count, err := h.service.ListDevices(c.Ctx(), query.Query, query.Filter, query.Status, query.SortBy, query.OrderBy)
 	if err != nil {
 		return err
 	}
@@ -50,10 +48,8 @@ func GetDeviceList(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, devices)
 }
 
-func GetDevice(c apicontext.Context) error {
-	svc := deviceadm.NewService(c.Store())
-
-	device, err := svc.GetDevice(c.Ctx(), models.UID(c.Param("uid")))
+func (h *handler) GetDevice(c apicontext.Context) error {
+	device, err := h.service.GetDevice(c.Ctx(), models.UID(c.Param("uid")))
 	if err != nil {
 		return err
 	}
@@ -61,9 +57,7 @@ func GetDevice(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, device)
 }
 
-func DeleteDevice(c apicontext.Context) error {
-	svc := deviceadm.NewService(c.Store())
-
+func (h *handler) DeleteDevice(c apicontext.Context) error {
 	tenant := ""
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID
@@ -74,8 +68,8 @@ func DeleteDevice(c apicontext.Context) error {
 		id = v.ID
 	}
 
-	if err := svc.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenant, id); err != nil {
-		if err == deviceadm.ErrUnauthorized {
+	if err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenant, id); err != nil {
+		if err == services.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
 
@@ -85,7 +79,7 @@ func DeleteDevice(c apicontext.Context) error {
 	return nil
 }
 
-func RenameDevice(c apicontext.Context) error {
+func (h *handler) RenameDevice(c apicontext.Context) error {
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -104,30 +98,26 @@ func RenameDevice(c apicontext.Context) error {
 		id = v.ID
 	}
 
-	svc := deviceadm.NewService(c.Store())
-
-	err := svc.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant, id)
+	err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant, id)
 	switch err {
-	case deviceadm.ErrUnauthorized:
+	case services.ErrUnauthorized:
 		return c.NoContent(http.StatusForbidden)
-	case deviceadm.ErrDuplicatedDeviceName:
+	case services.ErrDuplicatedDeviceName:
 		return c.NoContent(http.StatusConflict)
 	default:
 		return err
 	}
 }
 
-func OfflineDevice(c apicontext.Context) error {
-	svc := deviceadm.NewService(c.Store())
-
-	if err := svc.UpdateDeviceStatus(c.Ctx(), models.UID(c.Param("uid")), false); err != nil {
+func (h *handler) OfflineDevice(c apicontext.Context) error {
+	if err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(c.Param("uid")), false); err != nil {
 		return err
 	}
 
 	return c.JSON(http.StatusOK, nil)
 }
 
-func LookupDevice(c apicontext.Context) error {
+func (h *handler) LookupDevice(c apicontext.Context) error {
 	var query struct {
 		Domain    string `query:"domain"`
 		Name      string `query:"name"`
@@ -139,9 +129,7 @@ func LookupDevice(c apicontext.Context) error {
 		return err
 	}
 
-	svc := deviceadm.NewService(c.Store())
-
-	device, err := svc.LookupDevice(c.Ctx(), query.Domain, query.Name)
+	device, err := h.service.LookupDevice(c.Ctx(), query.Domain, query.Name)
 	if err != nil {
 		return nil
 	}
@@ -149,9 +137,7 @@ func LookupDevice(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, device)
 }
 
-func UpdatePendingStatus(c apicontext.Context) error {
-	svc := deviceadm.NewService(c.Store())
-
+func (h *handler) UpdatePendingStatus(c apicontext.Context) error {
 	tenant := ""
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID
@@ -169,8 +155,8 @@ func UpdatePendingStatus(c apicontext.Context) error {
 		"unused":  "unused",
 	}
 
-	if err := svc.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenant, id); err != nil {
-		if err == deviceadm.ErrUnauthorized {
+	if err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenant, id); err != nil {
+		if err == services.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
 

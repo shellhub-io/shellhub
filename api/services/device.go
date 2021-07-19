@@ -1,10 +1,9 @@
-package deviceadm
+package services
 
 import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"strings"
 
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
@@ -13,30 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
-
-var (
-	ErrUnauthorized          = errors.New("unauthorized")
-	ErrMaxDeviceCountReached = errors.New("maximum number of accepted devices reached")
-	ErrDuplicatedDeviceName  = errors.New("the name already exists in the namespace")
-)
-
-type Service interface {
-	ListDevices(ctx context.Context, pagination paginator.Query, filter string, status string, sort string, order string) ([]models.Device, int, error)
-	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
-	DeleteDevice(ctx context.Context, uid models.UID, tenant, ownerID string) error
-	RenameDevice(ctx context.Context, uid models.UID, name, tenant, ownerID string) error
-	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
-	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
-	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, ownerID string) error
-}
-
-type service struct {
-	store store.Store
-}
-
-func NewService(store store.Store) Service {
-	return &service{store}
-}
 
 func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filterB64 string, status string, sort string, order string) ([]models.Device, int, error) {
 	raw, err := base64.StdEncoding.DecodeString(filterB64)

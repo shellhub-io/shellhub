@@ -1,4 +1,4 @@
-package user
+package services
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 func TestUpdateDataUser(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	ctx := context.TODO()
 
@@ -94,7 +94,7 @@ func TestUpdateDataUser(t *testing.T) {
 
 func TestUpdatePasswordUser(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	ctx := context.TODO()
 

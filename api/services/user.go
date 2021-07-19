@@ -1,32 +1,11 @@
-package user
+package services
 
 import (
 	"context"
-	"errors"
 
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
-
-var (
-	ErrUnauthorized = errors.New("unauthorized")
-	ErrConflict     = errors.New("conflict")
-	ErrBadRequest   = errors.New("bad request")
-)
-
-type Service interface {
-	UpdateDataUser(ctx context.Context, data *models.User, id string) ([]validator.InvalidField, error)
-	UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, id string) error
-}
-
-type service struct {
-	store store.Store
-}
-
-func NewService(store store.Store) Service {
-	return &service{store}
-}
 
 func (s *service) UpdateDataUser(ctx context.Context, data *models.User, id string) ([]validator.InvalidField, error) {
 	var invalid []validator.InvalidField

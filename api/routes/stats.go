@@ -10,8 +10,8 @@ const (
 	GetStatsURL = "/stats"
 )
 
-func GetStats(c apicontext.Context) error {
-	stats, err := c.Store().GetStats(c.Ctx())
+func (h *handler) GetStats(c apicontext.Context) error {
+	stats, err := h.service.GetStats(c.Ctx())
 	if err != nil {
 		return err
 	}

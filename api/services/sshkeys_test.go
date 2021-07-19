@@ -1,4 +1,4 @@
-package sshkeys
+package services
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 func TestListPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	ctx := context.TODO()
 	keys := []models.PublicKey{
@@ -36,7 +36,7 @@ func TestListPublicKeys(t *testing.T) {
 
 func TestGetPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	ctx := context.TODO()
 	key := &models.PublicKey{
@@ -54,7 +54,7 @@ func TestGetPublicKeys(t *testing.T) {
 
 func TestUpdatePublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	ctx := context.TODO()
 	key := &models.PublicKey{
@@ -79,7 +79,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 
 func TestDeletePublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	ctx := context.TODO()
 	key := &models.PublicKey{

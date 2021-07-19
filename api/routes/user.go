@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
-	"github.com/shellhub-io/shellhub/api/user"
+	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -15,7 +15,7 @@ const (
 	UpdateUserPasswordURL = "/users/:id/password" //nolint:gosec
 )
 
-func UpdateUserData(c apicontext.Context) error {
+func (h *handler) UpdateUserData(c apicontext.Context) error {
 	var req models.User
 
 	if err := c.Bind(&req); err != nil {
@@ -24,13 +24,11 @@ func UpdateUserData(c apicontext.Context) error {
 
 	ID := c.Param("id")
 
-	svc := user.NewService(c.Store())
-
-	if invalidFields, err := svc.UpdateDataUser(c.Ctx(), &req, ID); err != nil {
+	if invalidFields, err := h.service.UpdateDataUser(c.Ctx(), &req, ID); err != nil {
 		switch {
-		case err == user.ErrBadRequest:
+		case err == services.ErrBadRequest:
 			return c.JSON(http.StatusBadRequest, invalidFields)
-		case err == user.ErrConflict:
+		case err == services.ErrConflict:
 			return c.JSON(http.StatusConflict, invalidFields)
 		default:
 			return err
@@ -40,7 +38,7 @@ func UpdateUserData(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
-func UpdateUserPassword(c apicontext.Context) error {
+func (h *handler) UpdateUserPassword(c apicontext.Context) error {
 	var req struct {
 		CurrentPassword string `json:"currentPassword"`
 		NewPassword     string `json:"newPassword"`
@@ -63,11 +61,9 @@ func UpdateUserPassword(c apicontext.Context) error {
 		req.NewPassword = hex.EncodeToString(sumByte)
 	}
 
-	svc := user.NewService(c.Store())
-
-	if err := svc.UpdatePasswordUser(c.Ctx(), req.CurrentPassword, req.NewPassword, ID); err != nil {
+	if err := h.service.UpdatePasswordUser(c.Ctx(), req.CurrentPassword, req.NewPassword, ID); err != nil {
 		switch {
-		case err == user.ErrUnauthorized:
+		case err == services.ErrUnauthorized:
 			return c.JSON(http.StatusForbidden, nil)
 		default:
 			return err

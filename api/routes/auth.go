@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/mitchellh/mapstructure"
 	"github.com/shellhub-io/shellhub/api/apicontext"
-	"github.com/shellhub-io/shellhub/api/authsvc"
+	"github.com/shellhub-io/shellhub/api/services"
 	api "github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -23,7 +23,7 @@ const (
 	AuthPublicKeyURL = "/auth/ssh"
 )
 
-func AuthRequest(c apicontext.Context) error {
+func (h *handler) AuthRequest(c apicontext.Context) error {
 	token := c.Get("user").(*jwt.Token)
 	rawClaims := token.Claims.(*jwt.MapClaims)
 
@@ -57,16 +57,14 @@ func AuthRequest(c apicontext.Context) error {
 	return echo.ErrUnauthorized
 }
 
-func AuthDevice(c apicontext.Context) error {
+func (h *handler) AuthDevice(c apicontext.Context) error {
 	var req models.DeviceAuthRequest
 
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	svc := authsvc.NewService(c.Store(), nil, nil)
-
-	res, err := svc.AuthDevice(c.Ctx(), &req)
+	res, err := h.service.AuthDevice(c.Ctx(), &req)
 	if err != nil {
 		return err
 	}
@@ -74,16 +72,14 @@ func AuthDevice(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func AuthUser(c apicontext.Context) error {
+func (h *handler) AuthUser(c apicontext.Context) error {
 	var req models.UserAuthRequest
 
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	svc := authsvc.NewService(c.Store(), nil, nil)
-
-	res, err := svc.AuthUser(c.Ctx(), req)
+	res, err := h.service.AuthUser(c.Ctx(), req)
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
@@ -91,17 +87,15 @@ func AuthUser(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func AuthUserInfo(c apicontext.Context) error {
+func (h *handler) AuthUserInfo(c apicontext.Context) error {
 	username := c.Request().Header.Get("X-Username")
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 	token := c.Request().Header.Get(echo.HeaderAuthorization)
 
-	svc := authsvc.NewService(c.Store(), nil, nil)
-
-	res, err := svc.AuthUserInfo(c.Ctx(), username, tenant, token)
+	res, err := h.service.AuthUserInfo(c.Ctx(), username, tenant, token)
 	if err != nil {
 		switch err {
-		case authsvc.ErrUnauthorized:
+		case services.ErrUnauthorized:
 			return echo.ErrUnauthorized
 		default:
 			return err
@@ -111,9 +105,8 @@ func AuthUserInfo(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func AuthGetToken(c apicontext.Context) error {
-	svc := authsvc.NewService(c.Store(), nil, nil)
-	res, err := svc.AuthGetToken(c.Ctx(), c.Param("tenant"))
+func (h *handler) AuthGetToken(c apicontext.Context) error {
+	res, err := h.service.AuthGetToken(c.Ctx(), c.Param("tenant"))
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
@@ -121,15 +114,13 @@ func AuthGetToken(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func AuthSwapToken(c apicontext.Context) error {
-	svc := authsvc.NewService(c.Store(), nil, nil)
-
+func (h *handler) AuthSwapToken(c apicontext.Context) error {
 	id := ""
 	if v := c.ID(); v != nil {
 		id = v.ID
 	}
 
-	res, err := svc.AuthSwapToken(c.Ctx(), id, c.Param("tenant"))
+	res, err := h.service.AuthSwapToken(c.Ctx(), id, c.Param("tenant"))
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
@@ -137,16 +128,14 @@ func AuthSwapToken(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func AuthPublicKey(c apicontext.Context) error {
+func (h *handler) AuthPublicKey(c apicontext.Context) error {
 	var req models.PublicKeyAuthRequest
 
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	svc := authsvc.NewService(c.Store(), nil, nil)
-
-	res, err := svc.AuthPublicKey(c.Ctx(), &req)
+	res, err := h.service.AuthPublicKey(c.Ctx(), &req)
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
@@ -157,11 +146,10 @@ func AuthPublicKey(c apicontext.Context) error {
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Get("ctx").(*apicontext.Context)
-		svc := authsvc.NewService(ctx.Store(), nil, nil)
 
 		jwt := middleware.JWTWithConfig(middleware.JWTConfig{
 			Claims:        &jwt.MapClaims{},
-			SigningKey:    svc.PublicKey(),
+			SigningKey:    ctx.Service().PublicKey(),
 			SigningMethod: "RS256",
 		})
 

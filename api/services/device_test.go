@@ -1,4 +1,4 @@
-package deviceadm
+package services
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 
 func TestListDevices(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	ctx := context.TODO()
 
@@ -109,7 +109,7 @@ func TestListDevices(t *testing.T) {
 
 func TestGetDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	Err := errors.New("error")
 
@@ -167,7 +167,7 @@ func TestGetDevice(t *testing.T) {
 
 func TestDeleteDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	ctx := context.TODO()
 
@@ -262,7 +262,7 @@ func TestDeleteDevice(t *testing.T) {
 
 func TestRenameDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	ctx := context.TODO()
 
@@ -427,7 +427,7 @@ func TestRenameDevice(t *testing.T) {
 
 func TestLookupDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	ctx := context.TODO()
 
@@ -487,7 +487,7 @@ func TestLookupDevice(t *testing.T) {
 
 func TestUpdateDeviceStatus(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	Err := errors.New("error")
 
@@ -535,7 +535,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 
 func TestUpdatePendingStatus(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
+	s := NewService(store.Store(mock), nil, nil)
 
 	user := &models.User{Name: "name", Username: "username", ID: "id"}
 	user2 := &models.User{Name: "name2", Username: "username2", ID: "id2"}

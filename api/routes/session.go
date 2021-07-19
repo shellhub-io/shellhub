@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
-	"github.com/shellhub-io/shellhub/api/sessionmngr"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -20,9 +19,7 @@ const (
 	PlaySessionURL             = "/sessions/:uid/play"
 )
 
-func GetSessionList(c apicontext.Context) error {
-	svc := sessionmngr.NewService(c.Store())
-
+func (h *handler) GetSessionList(c apicontext.Context) error {
 	query := paginator.NewQuery()
 	if err := c.Bind(query); err != nil {
 		return err
@@ -31,7 +28,7 @@ func GetSessionList(c apicontext.Context) error {
 	// TODO: normalize is not required when request is privileged
 	query.Normalize()
 
-	sessions, count, err := svc.ListSessions(c.Ctx(), *query)
+	sessions, count, err := h.service.ListSessions(c.Ctx(), *query)
 	if err != nil {
 		return err
 	}
@@ -41,10 +38,8 @@ func GetSessionList(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, sessions)
 }
 
-func GetSession(c apicontext.Context) error {
-	svc := sessionmngr.NewService(c.Store())
-
-	session, err := svc.GetSession(c.Ctx(), models.UID(c.Param("uid")))
+func (h *handler) GetSession(c apicontext.Context) error {
+	session, err := h.service.GetSession(c.Ctx(), models.UID(c.Param("uid")))
 	if err != nil {
 		return err
 	}
@@ -52,7 +47,7 @@ func GetSession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, session)
 }
 
-func SetSessionAuthenticated(c apicontext.Context) error {
+func (h *handler) SetSessionAuthenticated(c apicontext.Context) error {
 	var req struct {
 		Authenticated bool `json:"authenticated"`
 	}
@@ -61,21 +56,17 @@ func SetSessionAuthenticated(c apicontext.Context) error {
 		return err
 	}
 
-	svc := sessionmngr.NewService(c.Store())
-
-	return svc.SetSessionAuthenticated(c.Ctx(), models.UID(c.Param("uid")), req.Authenticated)
+	return h.service.SetSessionAuthenticated(c.Ctx(), models.UID(c.Param("uid")), req.Authenticated)
 }
 
-func CreateSession(c apicontext.Context) error {
+func (h *handler) CreateSession(c apicontext.Context) error {
 	session := new(models.Session)
 
 	if err := c.Bind(&session); err != nil {
 		return err
 	}
 
-	svc := sessionmngr.NewService(c.Store())
-
-	session, err := svc.CreateSession(c.Ctx(), *session)
+	session, err := h.service.CreateSession(c.Ctx(), *session)
 	if err != nil {
 		return err
 	}
@@ -83,20 +74,18 @@ func CreateSession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, session)
 }
 
-func FinishSession(c apicontext.Context) error {
-	svc := sessionmngr.NewService(c.Store())
-
-	return svc.DeactivateSession(c.Ctx(), models.UID(c.Param("uid")))
+func (h *handler) FinishSession(c apicontext.Context) error {
+	return h.service.DeactivateSession(c.Ctx(), models.UID(c.Param("uid")))
 }
 
-func RecordSession(c apicontext.Context) error {
+func (h *handler) RecordSession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
-func PlaySession(c apicontext.Context) error {
+func (h *handler) PlaySession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
-func DeleteRecordedSession(c apicontext.Context) error {
+func (h *handler) DeleteRecordedSession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }

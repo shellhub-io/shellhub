@@ -1,4 +1,4 @@
-package sshkeys
+package services
 
 import (
 	"context"
@@ -6,10 +6,8 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"regexp"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -17,31 +15,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var (
-	ErrInvalidFormat        = errors.New("invalid format")
-	ErrDuplicateFingerprint = errors.New("this fingerprint already exits")
-)
-
-type Service interface {
-	EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
-	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
-	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
-	CreatePublicKey(ctx context.Context, key *models.PublicKey) error
-	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error)
-	DeletePublicKey(ctx context.Context, fingerprint, tenant string) error
-	CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error)
-}
-
-type service struct {
-	store store.Store
-}
-
 type Request struct {
 	Namespace string
-}
-
-func NewService(store store.Store) Service {
-	return &service{store}
 }
 
 func (s *service) EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
@@ -61,7 +36,7 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
 }
 
-func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) error {
+func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, tenant string) error {
 	key.CreatedAt = clock.Now()
 
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint:dogsled
@@ -71,7 +46,7 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey) er
 
 	key.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
-	returnedKey, err := s.store.PublicKeyGet(ctx, key.Fingerprint, apicontext.TenantFromContext(ctx).ID)
+	returnedKey, err := s.store.PublicKeyGet(ctx, key.Fingerprint, tenant)
 	if err != nil && err != store.ErrNoDocuments {
 		return err
 	}
