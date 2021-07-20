@@ -72,65 +72,66 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		return err
 	}
 
-	if parent != nil {
-		if err := d.stopContainer(parent); err != nil {
-			return err
-		}
+	if parent == nil {
+		return nil
+	}
 
-		_, pv := parent.splitImageVersion()
-		v, _ := semver.NewVersion(pv)
-		v0_4_0, _ := semver.NewVersion("v0.4.0")
+	if err := d.stopContainer(parent); err != nil {
+		return err
+	}
 
-		// Append /dev to mount if old container version is less than v0.4.0
-		// since /dev from host is required inside container to mount a pseudo-tty
-		if v.LessThan(v0_4_0) {
-			parent.info.HostConfig.Mounts = []mount.Mount{
-				{
-					Type:   mount.TypeBind,
-					Source: "/dev",
-					Target: "/dev",
-				},
-			}
-		}
+	_, pv := parent.splitImageVersion()
+	v, _ := semver.NewVersion(pv)
+	v0_4_0, _ := semver.NewVersion("v0.4.0")
 
-		// Append /var/run and /var/log to mount if old container
-		// version is less than v0.5.0 since utmp and wtmp are
-		// required inside container to record login sessions
-		v0_5_0, _ := semver.NewVersion("v0.5.0")
-		if v.LessThan(v0_5_0) {
-			parent.info.HostConfig.Mounts = []mount.Mount{
-				{
-					Type:   mount.TypeBind,
-					Source: "/var/run",
-					Target: "/var/run",
-				},
-				{
-					Type:   mount.TypeBind,
-					Source: "/var/log",
-					Target: "/var/log",
-				},
-			}
+	// Append /dev to mount if old container version is less than v0.4.0
+	// since /dev from host is required inside container to mount a pseudo-tty
+	if v.LessThan(v0_4_0) {
+		parent.info.HostConfig.Mounts = []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: "/dev",
+				Target: "/dev",
+			},
 		}
+	}
 
-		// Append /etc/resolv.conf to mount if old container
-		// version is less than v0.7.3 since /etc/resolv.conf
-		// is required inside the container to update host
-		// networking after boot.
-		v0_7_3, _ := semver.NewVersion("v0.7.3")
-		if v.LessThan(v0_7_3) {
-			parent.info.HostConfig.Mounts = []mount.Mount{
-				{
-					Type:   mount.TypeBind,
-					Source: "/etc/resolv.conf",
-					Target: "/etc/resolv.conf",
-				},
-			}
+	// Append /var/run and /var/log to mount if old container
+	// version is less than v0.5.0 since utmp and wtmp are
+	// required inside container to record login sessions
+	v0_5_0, _ := semver.NewVersion("v0.5.0")
+	if v.LessThan(v0_5_0) {
+		parent.info.HostConfig.Mounts = []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: "/var/run",
+				Target: "/var/run",
+			},
+			{
+				Type:   mount.TypeBind,
+				Source: "/var/log",
+				Target: "/var/log",
+			},
 		}
+	}
 
-		_, err = d.updateContainer(parent, container.info.Config.Image, parent.info.Name, false)
-		if err != nil {
-			return err
+	// Append /etc/resolv.conf to mount if old container version
+	// is less than v0.7.3 since /etc/resolv.conf is required
+	// inside the container to update host networking after boot.
+	v0_7_3, _ := semver.NewVersion("v0.7.3")
+	if v.LessThan(v0_7_3) {
+		parent.info.HostConfig.Mounts = []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: "/etc/resolv.conf",
+				Target: "/etc/resolv.conf",
+			},
 		}
+	}
+
+	_, err = d.updateContainer(parent, container.info.Config.Image, parent.info.Name, false)
+	if err != nil {
+		return err
 	}
 
 	return nil
