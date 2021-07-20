@@ -112,6 +112,21 @@ func (d *dockerUpdater) CompleteUpdate() error {
 			}
 		}
 
+		// Append /etc/resolv.conf to mount if old container
+		// version is less than v0.7.3 since /etc/resolv.conf
+		// is required inside the container to update host
+		// networking after boot.
+		v0_7_3, _ := semver.NewVersion("v0.7.3")
+		if v.LessThan(v0_7_3) {
+			parent.info.HostConfig.Mounts = []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: "/etc/resolv.conf",
+					Target: "/etc/resolv.conf",
+				},
+			}
+		}
+
 		_, err = d.updateContainer(parent, container.info.Config.Image, parent.info.Name, false)
 		if err != nil {
 			return err
