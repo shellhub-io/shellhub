@@ -35,6 +35,10 @@ module.exports = {
       js: 'never',
       vue: 'never',
     }],
+    'spaced-comment': [2, 'always', {
+      exceptions: ['////'],
+      markers: ['/'],
+    }],
   },
   settings: {
     'import/resolver': ['webpack', {
