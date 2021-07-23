@@ -33,13 +33,32 @@ describe('Snackbar', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Process data in the computed', () => {
     expect(wrapper.vm.message).toEqual(snackbarMessageAndContentType);
+  });
+
+  //////
+  // HTML validation
+  //////
+
+  it('Renders the template with components', () => {
+    expect(wrapper.find('[data-test="snackbarSuccess-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="snackbarError-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="snackbarCopy-component"]').exists()).toBe(true);
   });
 });

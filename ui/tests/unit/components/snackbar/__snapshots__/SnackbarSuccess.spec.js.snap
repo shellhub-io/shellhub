@@ -1,9 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SnackbarSuccess Renders the component 1`] = `
+exports[`SnackbarSuccess Action message type Renders the component 1`] = `
 <fragment-stub>
   <v-snackbar-stub color="#4caf50" outlined="true" tag="div" value="true" top="true" contentclass="" text="true" timeout="4000" transition="v-snack-transition">
-    The renaming device has succeeded.
+    The request has succeeded.
+  </v-snackbar-stub>
+</fragment-stub>
+`;
+
+exports[`SnackbarSuccess Default message type Renders the component 1`] = `
+<fragment-stub>
+  <v-snackbar-stub color="#4caf50" outlined="true" tag="div" value="true" top="true" contentclass="" text="true" timeout="4000" transition="v-snack-transition">
+    The request has succeeded.
   </v-snackbar-stub>
 </fragment-stub>
 `;

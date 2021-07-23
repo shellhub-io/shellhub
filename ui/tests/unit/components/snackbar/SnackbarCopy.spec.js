@@ -21,8 +21,7 @@ describe('SnackbarCopy', () => {
       'snackbar/snackbarCopy': (state) => state.snackbarCopy,
     },
     actions: {
-      'snackbar/unsetShowStatusSnackbarCopy': () => {
-      },
+      'snackbar/unsetShowStatusSnackbarCopy': () => {},
     },
   });
 
@@ -35,17 +34,34 @@ describe('SnackbarCopy', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Receive data in props', () => {
     expect(wrapper.vm.mainContent).toEqual(mainContent);
   });
   it('Process data in the computed', async () => {
     expect(wrapper.vm.snackbar).toEqual(snackbarCopy);
     expect(wrapper.vm.message).toEqual(message);
+  });
+
+  //////
+  // HTML validation
+  //////
+
+  it('Renders the template with data', () => {
+    expect(wrapper.find('[data-test="message-snackbar"]').text()).toEqual(message);
   });
 });

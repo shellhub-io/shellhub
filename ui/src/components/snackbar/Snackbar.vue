@@ -3,13 +3,16 @@
     <snackbarSuccess
       :type-message="message.typeMessage"
       :main-content="message.typeContent"
+      data-test="snackbarSuccess-component"
     />
     <snackbarError
       :type-message="message.typeMessage"
       :main-content="message.typeContent"
+      data-test="snackbarError-component"
     />
     <snackbarCopy
       :main-content="message.typeContent"
+      data-test="snackbarCopy-component"
     />
   </fragment>
 </template>
