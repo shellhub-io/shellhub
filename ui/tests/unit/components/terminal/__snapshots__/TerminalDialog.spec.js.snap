@@ -1,57 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TerminalDialog Renders the component 1`] = `
-<fragment-stub username="user" password="user">
-  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>Terminal</span></v-tooltip-stub>
-  <v-dialog-stub opendelay="0" closedelay="0" value="true" contentclass="" maxwidth="1024px" origin="center center" retainfocus="true" transition="dialog-transition" width="auto">
-    <v-card-stub loaderheight="4" tag="div">
-      <v-toolbar-stub color="primary" dark="true" tag="header" extensionheight="48" src="">
-        <v-btn-stub dark="true" tag="button" activeclass="" icon="true" type="button">
-          <v-icon-stub>close</v-icon-stub>
-        </v-btn-stub>
-        <v-toolbar-title-stub>Terminal</v-toolbar-title-stub>
-        <v-spacer-stub></v-spacer-stub>
-      </v-toolbar-stub>
-      <v-card-stub loaderheight="4" tag="div" outlined="true" class="ma-0 px-6 py-4">
-        <v-tabs-stub activeclass="" centered="true" nexticon="$next" previcon="$prev" slidersize="2">
-          <v-tab-stub ripple="true">
-            Password
-          </v-tab-stub>
-          <v-tab-stub ripple="true">
-            PublicKey
-          </v-tab-stub>
-          <v-tab-item-stub>
-            <v-card-stub loaderheight="4" tag="div" flat="true">
-              <v-form-stub lazyvalidation="true" value="true">
-                <v-text-field-stub errorcount="1" errormessages="" messages="" rules="[Function]" successmessages="" validateonblur="true" value="" backgroundcolor="" label="Username" loaderheight="2" autofocus="true" clearicon="$clear" type="text" data-test="username"></v-text-field-stub>
-                <v-text-field-stub errorcount="1" errormessages="" messages="" rules="[Function]" successmessages="" validateonblur="true" value="" backgroundcolor="" label="Password" loaderheight="2" clearicon="$clear" type="password" data-test="passwd"></v-text-field-stub>
-                <v-card-actions-stub>
-                  <v-spacer-stub></v-spacer-stub>
-                  <v-btn-stub color="primary" tag="button" activeclass="" type="submit" class="mt-4">
-                    Connect
-                  </v-btn-stub>
-                </v-card-actions-stub>
-              </v-form-stub>
-            </v-card-stub>
-          </v-tab-item-stub>
-          <v-tab-item-stub>
-            <v-card-stub loaderheight="4" tag="div" flat="true">
-              <v-form-stub lazyvalidation="true" value="true">
-                <v-text-field-stub errorcount="1" errormessages="" messages="" rules="[Function]" successmessages="" validateonblur="true" value="" backgroundcolor="" label="Username" loaderheight="2" autofocus="true" clearicon="$clear" type="text" data-test="username"></v-text-field-stub>
-                <v-select-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="" appendicon="$dropdown" backgroundcolor="" label="Private Keys" loaderheight="2" clearicon="$clear" type="text" valuecomparator="[Function]" nodatatext="$vuetify.noDataText" items="" itemcolor="primary" itemdisabled="disabled" itemtext="name" itemvalue="data" menuprops="[object Object]"></v-select-stub>
-                <v-card-actions-stub>
-                  <v-spacer-stub></v-spacer-stub>
-                  <v-btn-stub color="primary" tag="button" activeclass="" type="submit" class="mt-4">
-                    Connect
-                  </v-btn-stub>
-                </v-card-actions-stub>
-              </v-form-stub>
-            </v-card-stub>
-          </v-tab-item-stub>
-        </v-tabs-stub>
-      </v-card-stub>
-      <div></div>
-    </v-card-stub>
-  </v-dialog-stub>
+exports[`TerminalDialog Dialog opened Renders the component 1`] = `
+<fragment-stub><button type="button" class="v-icon notranslate v-icon--link mdi mdi-console theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`TerminalDialog Icon Renders the component 1`] = `
+<fragment-stub><button type="button" class="v-icon notranslate v-icon--link mdi mdi-console theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
 </fragment-stub>
 `;
