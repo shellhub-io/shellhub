@@ -53,7 +53,7 @@ export default {
       case 'notRequest':
         return `The ${this.mainContent} has failed, please try again.`;
       case 'incorrect':
-        return `Incorrect ${this.mainContent} information, please try again`;
+        return `Incorrect ${this.mainContent} information, please try again.`;
       default:
         return 'The request has failed, please try again.';
       }
