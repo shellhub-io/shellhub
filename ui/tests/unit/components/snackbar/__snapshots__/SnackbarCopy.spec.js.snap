@@ -2,7 +2,7 @@
 
 exports[`SnackbarCopy Renders the component 1`] = `
 <fragment-stub>
-  <v-snackbar-stub tag="div" value="true" contentclass="" timeout="4000" transition="v-snack-transition">
+  <v-snackbar-stub tag="div" value="true" contentclass="" timeout="4000" transition="v-snack-transition" data-test="message-snackbar">
     Command copied to clipboard.
   </v-snackbar-stub>
 </fragment-stub>

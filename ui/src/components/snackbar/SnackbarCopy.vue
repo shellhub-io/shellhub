@@ -3,6 +3,7 @@
     <v-snackbar
       v-model="snackbar"
       :timeout="4000"
+      data-test="message-snackbar"
     >
       {{ message }}
     </v-snackbar>

@@ -2,8 +2,8 @@
 
 exports[`Snackbar Renders the component 1`] = `
 <fragment-stub>
-  <snackbarsuccess-stub typemessage="" maincontent=""></snackbarsuccess-stub>
-  <snackbarerror-stub typemessage="" maincontent=""></snackbarerror-stub>
-  <snackbarcopy-stub maincontent=""></snackbarcopy-stub>
+  <snackbarsuccess-stub typemessage="" maincontent="" data-test="snackbarSuccess-component"></snackbarsuccess-stub>
+  <snackbarerror-stub typemessage="" maincontent="" data-test="snackbarError-component"></snackbarerror-stub>
+  <snackbarcopy-stub maincontent="" data-test="snackbarCopy-component"></snackbarcopy-stub>
 </fragment-stub>
 `;

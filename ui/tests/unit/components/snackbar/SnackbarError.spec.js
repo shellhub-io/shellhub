@@ -9,11 +9,9 @@ describe('SnackbarError', () => {
   let wrapper;
 
   const snackbarError = true;
-  let typeMessage = 'loading';
-  let mainContent = 'dashboard';
-  const loadingMessage = `Loading the ${mainContent} has failed, please try again.`;
-  let actionMessage = `The ${mainContent} request has failed, please try again.`;
-  const defaultMessage = 'The request has failed, please try again.';
+  let typeMessage = '';
+  let mainContent = '';
+  let message = '';
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -24,54 +22,220 @@ describe('SnackbarError', () => {
       'snackbar/snackbarError': (state) => state.snackbarError,
     },
     actions: {
-      'snackbar/unsetShowStatusSnackbarError': () => {
-      },
+      'snackbar/unsetShowStatusSnackbarError': () => {},
     },
   });
 
-  beforeEach(() => {
-    wrapper = shallowMount(SnackbarError, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { typeMessage, mainContent },
+  ///////
+  // In this case, the main objective is to change the message.
+  // For this test to work, the message type is changed to loading.
+  ///////
+
+  describe('Loading message type', () => {
+    typeMessage = 'loading';
+    mainContent = 'dashboard';
+    message = `Loading the ${mainContent} has failed, please try again.`;
+
+    beforeEach(() => {
+      wrapper = shallowMount(SnackbarError, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { typeMessage, mainContent },
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.snackbar).toEqual(snackbarError);
+      expect(wrapper.vm.message).toEqual(message);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.message).toEqual(message);
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
+  ///////
+  // In this case, the main objective is to change the message.
+  // For this test to work, the message type is changed to association.
+  ///////
+
+  describe('Association message type', () => {
+    typeMessage = 'association';
+    message = 'There is no namespace associated with your account.';
+
+    beforeEach(() => {
+      wrapper = shallowMount(SnackbarError, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { typeMessage, mainContent },
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.snackbar).toEqual(snackbarError);
+      expect(wrapper.vm.message).toEqual(message);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.message).toEqual(message);
+    });
   });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Process data in the computed - loading message type', async () => {
-    expect(wrapper.vm.snackbar).toEqual(snackbarError);
-    expect(wrapper.vm.message).toEqual(loadingMessage);
-  });
-  it('Process data in the computed - action message type', async () => {
-    typeMessage = 'action';
+
+  ///////
+  // In this case, the main objective is to change the message.
+  // For this test to work, the message type is changed to not request.
+  ///////
+
+  describe('NotRequest message type', () => {
+    typeMessage = 'notRequest';
     mainContent = 'deviceDelete';
-    actionMessage = `The ${mainContent} request has failed, please try again.`;
+    message = `The ${mainContent} has failed, please try again.`;
 
-    wrapper = shallowMount(SnackbarError, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { typeMessage, mainContent },
+    beforeEach(() => {
+      wrapper = shallowMount(SnackbarError, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { typeMessage, mainContent },
+      });
     });
 
-    expect(wrapper.vm.message).toEqual(actionMessage);
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.snackbar).toEqual(snackbarError);
+      expect(wrapper.vm.message).toEqual(message);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.message).toEqual(message);
+    });
   });
-  it('Process data in the computed - default message type', async () => {
-    typeMessage = 'default';
 
-    wrapper = shallowMount(SnackbarError, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { typeMessage, mainContent },
+  ///////
+  // In this case, the main objective is to change the message.
+  // For this test to work, the message type is changed to incorrect.
+  ///////
+
+  describe('Incorrect message type', () => {
+    typeMessage = 'incorrect';
+    mainContent = 'deviceDelete';
+    message = `Incorrect ${mainContent} information, please try again.`;
+
+    beforeEach(() => {
+      wrapper = shallowMount(SnackbarError, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { typeMessage, mainContent },
+      });
     });
 
-    expect(wrapper.vm.message).toEqual(defaultMessage);
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.snackbar).toEqual(snackbarError);
+      expect(wrapper.vm.message).toEqual(message);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.message).toEqual(message);
+    });
+  });
+
+  ///////
+  // In this case, the main objective is to change the message.
+  // For this test to work, the message type is changed to default.
+  ///////
+
+  describe('Default message type', () => {
+    typeMessage = 'default';
+    message = 'The request has failed, please try again.';
+
+    beforeEach(() => {
+      wrapper = shallowMount(SnackbarError, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { typeMessage, mainContent },
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.snackbar).toEqual(snackbarError);
+      expect(wrapper.vm.message).toEqual(message);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.message).toEqual(message);
+    });
   });
 });
