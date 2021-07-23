@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/mitchellh/mapstructure"
 	"github.com/shellhub-io/shellhub/api/apicontext"
-	"github.com/shellhub-io/shellhub/api/services"
+	svc "github.com/shellhub-io/shellhub/api/services"
 	api "github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -95,7 +95,7 @@ func (h *Handler) AuthUserInfo(c apicontext.Context) error {
 	res, err := h.service.AuthUserInfo(c.Ctx(), username, tenant, token)
 	if err != nil {
 		switch err {
-		case services.ErrUnauthorized:
+		case svc.ErrUnauthorized:
 			return echo.ErrUnauthorized
 		default:
 			return err
@@ -149,7 +149,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		jwt := middleware.JWTWithConfig(middleware.JWTConfig{
 			Claims:        &jwt.MapClaims{},
-			SigningKey:    ctx.Service().PublicKey(),
+			SigningKey:    ctx.Service().(svc.Service).PublicKey(),
 			SigningMethod: "RS256",
 		})
 

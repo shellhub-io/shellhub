@@ -4,20 +4,19 @@ import (
 	"context"
 
 	"github.com/labstack/echo/v4"
-	itf "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type Context struct {
-	service itf.Service
+	service interface{}
 	echo.Context
 }
 
-func NewContext(service itf.Service, c echo.Context) *Context {
+func NewContext(service interface{}, c echo.Context) *Context {
 	return &Context{service: service, Context: c}
 }
 
-func (c *Context) Service() itf.Service {
+func (c *Context) Service() interface{} {
 	return c.service
 }
 
