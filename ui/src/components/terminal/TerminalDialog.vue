@@ -9,14 +9,16 @@
           mdi-console
         </v-icon>
       </template>
-      <span>Terminal</span>
+      <span data-test="console-tooltip">
+        Terminal
+      </span>
     </v-tooltip>
 
     <v-dialog
       v-model="show"
       max-width="1024px"
     >
-      <v-card>
+      <v-card data-test="terminal-dialog">
         <v-toolbar
           dark
           color="primary"
@@ -44,6 +46,7 @@
             <v-tab
               v-for="tab in tabs"
               :key="tab"
+              :data-test="tab+'-tab'"
               @click="resetFieldValidation"
             >
               {{ tab }}
@@ -62,21 +65,21 @@
                   <v-text-field
                     ref="username"
                     v-model="username"
-                    data-test="username"
                     label="Username"
                     autofocus
                     :rules="[rules.required]"
                     :validate-on-blur="true"
+                    data-test="username-field"
                   />
 
                   <v-text-field
                     ref="passwd"
                     v-model="passwd"
-                    data-test="passwd"
                     label="Password"
                     type="password"
                     :rules="[rules.required]"
                     :validate-on-blur="true"
+                    data-test="passwd-field"
                   />
 
                   <v-card-actions>
@@ -85,6 +88,7 @@
                       type="submit"
                       color="primary"
                       class="mt-4"
+                      data-test="connect-btn"
                     >
                       Connect
                     </v-btn>
@@ -106,11 +110,11 @@
                   <v-text-field
                     ref="username"
                     v-model="username"
-                    data-test="username"
                     label="Username"
                     autofocus
                     :rules="[rules.required]"
                     :validate-on-blur="true"
+                    data-test="username2-field"
                   />
 
                   <v-select
@@ -119,6 +123,7 @@
                     item-text="name"
                     item-value="data"
                     label="Private Keys"
+                    data-test="privatekeys-select"
                   />
 
                   <v-card-actions>
@@ -127,6 +132,7 @@
                       type="submit"
                       color="primary"
                       class="mt-4"
+                      data-test="connect2-btn"
                     >
                       Connect
                     </v-btn>
