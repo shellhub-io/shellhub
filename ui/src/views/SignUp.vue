@@ -178,11 +178,11 @@ export default {
   data() {
     return {
       newUser: {
-        name: null,
-        username: null,
-        email: null,
-        password: null,
-        confirmPassword: null,
+        name: '',
+        username: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
       },
       delay: 500,
       overlay: false,

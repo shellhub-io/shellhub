@@ -2,6 +2,6 @@
 
 exports[`Terminal Renders the component 1`] = `
 <div>
-  <sessiondetails-stub></sessiondetails-stub>
+  <sessiondetails-stub data-test="sessionDetails-component"></sessiondetails-stub>
 </div>
 `;

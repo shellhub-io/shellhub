@@ -63,6 +63,7 @@
           <v-card-subtitle
             v-if="$env.isCloud"
             class="d-flex align-center justify-center pa-4 mx-auto"
+            data-test="isCloud-card"
           >
             Don't have an account?
 
@@ -86,8 +87,8 @@ export default {
 
   data() {
     return {
-      username: null,
-      password: null,
+      username: '',
+      password: '',
       error: false,
     };
   },

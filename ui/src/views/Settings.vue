@@ -14,6 +14,7 @@
             v-for="item in visibleItems"
             :key="item.title"
             :to="item.path"
+            :data-test="item.title+'-tab'"
           >
             {{ item.title }}
           </v-tab>

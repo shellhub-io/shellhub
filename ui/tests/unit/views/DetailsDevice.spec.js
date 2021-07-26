@@ -15,10 +15,22 @@ describe('Terminal', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+
+  //////
+  // HTML validation
+  //////
+
+  it('Renders the template with components', () => {
+    expect(wrapper.find('[data-test="deviceDetails-component"]').exists()).toBe(true);
   });
 });
