@@ -1,3 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SessionPlay Renders the component 1`] = `""`;
+exports[`SessionPlay Dialog opened Renders the component 1`] = `
+<fragment-stub data-test="render-fragment"><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-play-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`SessionPlay Dialog opened Renders the component 2`] = `""`;
+
+exports[`SessionPlay Icon Renders the component 1`] = `
+<fragment-stub data-test="render-fragment"><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-play-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;

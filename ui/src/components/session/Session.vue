@@ -15,6 +15,7 @@
       <BoxMessageSession
         v-if="showBoxMessage"
         type-message="session"
+        data-test="BoxMessageSession-component"
       />
     </v-card>
   </fragment>
