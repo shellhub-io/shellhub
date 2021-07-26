@@ -4,7 +4,6 @@
       <v-data-table
         :headers="headers"
         :items="getFirewallRules"
-        data-test="dataTable-field"
         item-key="uid"
         :sort-by="['started_at']"
         :sort-desc="[true]"
@@ -13,6 +12,7 @@
         :server-items-length="getNumberFirewallRules"
         :options.sync="pagination"
         :disable-sort="true"
+        data-test="firewallRuleList-dataTable"
       >
         <template #[`item.active`]="{ item }">
           <v-icon
@@ -51,14 +51,14 @@
 
         <template #[`item.actions`]="{ item }">
           <FirewallRuleEdit
-            data-test="firewall-dialog-field-2"
             :firewall-rule="item"
             :create-rule="false"
+            data-test="firewallRuleEdit-component"
             @update="refresh"
           />
           <FirewallRuleDelete
             :id="item.id"
-            data-test="firewall-delete-field"
+            data-test="firewallRuleDelete-component"
             @update="refresh"
           />
         </template>

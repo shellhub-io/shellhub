@@ -15,24 +15,62 @@ describe('FirewallRuleList', () => {
 
   const firewalls = [
     {
-      id: '5f1996c84d2190a22d5857bb',
-      tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+      id: '5f1996c8',
+      tenant_id: 'xxxxxxxx',
       priority: 4,
       action: 'allow',
       active: true,
-      source_ip: '127.0.0.1',
+      source_ip: '00.00.00',
       username: 'shellhub',
       hostname: 'shellhub',
     },
     {
-      id: '5f1996c84d2190a22d5857cc',
-      tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+      id: '5f1996c8',
+      tenant_id: 'xxxxxxxx',
       priority: 3,
       action: 'allow',
       active: false,
-      source_ip: '127.0.0.1',
+      source_ip: '00.00.00',
       username: 'shellhub',
       hostname: 'shellhub',
+    },
+  ];
+
+  const headers = [
+    {
+      text: 'Active',
+      value: 'active',
+      align: 'center',
+    },
+    {
+      text: 'Priority',
+      value: 'priority',
+      align: 'center',
+    },
+    {
+      text: 'Action',
+      value: 'action',
+      align: 'center',
+    },
+    {
+      text: 'Source IP',
+      value: 'source_ip',
+      align: 'center',
+    },
+    {
+      text: 'Username',
+      value: 'username',
+      align: 'center',
+    },
+    {
+      text: 'Hostname',
+      value: 'hostname',
+      align: 'center',
+    },
+    {
+      text: 'Actions',
+      value: 'actions',
+      align: 'center',
     },
   ];
 
@@ -49,14 +87,10 @@ describe('FirewallRuleList', () => {
       'boxs/getStatus': (state) => state.status,
     },
     actions: {
-      'firewallrules/fetch': () => {
-      },
-      'boxs/setStatus': () => {
-      },
-      'snackbar/showSnackbarErrorAssociation': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
+      'firewallrules/fetch': () => {},
+      'boxs/setStatus': () => {},
+      'snackbar/showSnackbarErrorAssociation': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
@@ -69,22 +103,40 @@ describe('FirewallRuleList', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.headers).toEqual(headers);
+    expect(wrapper.vm.showHelp).toEqual(false);
+  });
   it('Process data in the computed', () => {
     expect(wrapper.vm.getFirewallRules).toEqual(firewalls);
     expect(wrapper.vm.getNumberFirewallRules).toEqual(numberFirewalls);
   });
+
+  //////
+  // HTML validation
+  //////
+
   it('Renders the template with data', () => {
-    const dt = wrapper.find('[data-test="dataTable-field"]');
+    const dt = wrapper.find('[data-test="firewallRuleList-dataTable"]');
     const dataTableProps = dt.vm.$options.propsData;
 
     expect(dataTableProps.items).toHaveLength(numberFirewalls);
-    expect(wrapper.find('[data-test="firewall-dialog-field-2"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="firewall-delete-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="firewallRuleEdit-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="firewallRuleDelete-component"]').exists()).toBe(true);
   });
 });

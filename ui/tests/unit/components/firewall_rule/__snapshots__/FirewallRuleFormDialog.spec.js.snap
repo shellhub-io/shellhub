@@ -1,14 +1,77 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FirewallRuleFormDialog Renders the component 1`] = `
+exports[`FirewallRuleFormDialog Button Renders the component 1`] = `
 <fragment-stub>
-  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" disabled="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
-      You are not the owner of this namespace
-    </span></v-tooltip-stub>
-  <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="400" origin="center center" retainfocus="true" transition="dialog-transition" width="auto">
-    <v-card-stub loaderheight="4" tag="div">
-      <validationobserver-stub tag="span" vid="obs_1"></validationobserver-stub>
-    </v-card-stub>
-  </v-dialog-stub>
+  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="add-btn"><span class="v-btn__content">
+          Add Rule
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Button Renders the component 2`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Button Renders the component 3`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="add-btn"><span class="v-btn__content">
+          Add Rule
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <div role="document" tabindex="0" class="v-dialog__content v-dialog__content--active" style="z-index: 202;">
+      <transition-stub name="dialog-transition" appear="true">
+        <div class="v-dialog v-dialog--active" style="transform-origin: center center; max-width: 400px;">
+          <div class="v-card v-sheet theme--light" data-test="firewallRuleForm-card"><span><div class="v-card__title headline grey lighten-2 text-center">
+          New Rule
+        </div> <div class="v-card__text"><div class="layout justify-space-between align-center"><div class="flex"><div class="v-card v-sheet theme--light elevation-0"><div class="v-card__text v-label theme--light pl-0">
+                  Active
+                </div></div></div> <div class="flex xs2"><div class="v-card v-sheet theme--light elevation-0"><div class="v-input v-input--is-label-active v-input--is-dirty theme--light v-input--selection-controls v-input--switch primary--text"><div class="v-input__control"><div class="v-input__slot"><div class="v-input--selection-controls__input"><input aria-checked="true" id="input-125" role="switch" type="checkbox" aria-disabled="false" value=""><div class="v-input--selection-controls__ripple primary--text"></div><div class="v-input--switch__track theme--light primary--text"></div><div class="v-input--switch__thumb theme--light primary--text"><transition-stub name="fab-transition" mode="out-in"></transition-stub></div></div></div><div class="v-messages theme--light primary--text"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></div></div> <span><div class="v-input theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-130" class="v-label theme--light" style="left: 0px; position: absolute;">Priority</label><input required="required" id="input-130" type="number"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input theme--light v-text-field v-select"><div class="v-input__control"><div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-134" class="v-input__slot"><div class="v-select__slot"><label for="input-134" class="v-label theme--light" style="left: 0px; position: absolute;">Action</label><div class="v-select__selections"><input required="required" id="input-134" readonly="readonly" type="text" aria-readonly="false" autocomplete="off"></div><div class="v-input__append-inner"><div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div></div><input type="hidden"></div><div class="v-menu"><!----></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-140" class="v-label theme--light" style="left: 0px; position: absolute;">Source IP</label><input required="required" id="input-140" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-144" class="v-label theme--light" style="left: 0px; position: absolute;">Username</label><input required="required" id="input-144" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-148" class="v-label theme--light" style="left: 0px; position: absolute;">Hostname</label><input required="required" id="input-148" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div>
+          <div class="v-card__actions">
+            <div class="spacer"></div> <button type="button" class="v-btn v-btn--text theme--light v-size--default" data-test="cancel-btn"><span class="v-btn__content">
+            Cancel
+          </span></button> <button type="button" class="v-btn v-btn--text theme--light v-size--default" data-test="create-btn"><span class="v-btn__content">
+            Create
+          </span></button>
+          </div>
+          </span>
+        </div>
+    </div>
+    </transition-stub>
+  </div>
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Button Renders the component 4`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <div role="document" tabindex="0" class="v-dialog__content v-dialog__content--active" style="z-index: 202;">
+      <transition-stub name="dialog-transition" appear="true">
+        <div class="v-dialog v-dialog--active" style="transform-origin: center center; max-width: 400px;">
+          <div class="v-card v-sheet theme--light" data-test="firewallRuleForm-card"><span><div class="v-card__title headline grey lighten-2 text-center">
+          Edit Rule
+        </div> <div class="v-card__text"><div class="layout justify-space-between align-center"><div class="flex"><div class="v-card v-sheet theme--light elevation-0"><div class="v-card__text v-label theme--light pl-0">
+                  Active
+                </div></div></div> <div class="flex xs2"><div class="v-card v-sheet theme--light elevation-0"><div class="v-input v-input--is-label-active v-input--is-dirty theme--light v-input--selection-controls v-input--switch primary--text"><div class="v-input__control"><div class="v-input__slot"><div class="v-input--selection-controls__input"><input aria-checked="true" id="input-330" role="switch" type="checkbox" aria-disabled="false" value=""><div class="v-input--selection-controls__ripple primary--text"></div><div class="v-input--switch__track theme--light primary--text"></div><div class="v-input--switch__thumb theme--light primary--text"><transition-stub name="fab-transition" mode="out-in"></transition-stub></div></div></div><div class="v-messages theme--light primary--text"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></div></div> <span><div class="v-input v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-335" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Priority</label><input required="required" id="input-335" type="number"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input v-input--is-label-active v-input--is-dirty theme--light v-text-field v-select"><div class="v-input__control"><div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-339" class="v-input__slot"><div class="v-select__slot"><label for="input-339" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Action</label><div class="v-select__selections"><div class="v-select__selection v-select__selection--comma">allow</div><input required="required" id="input-339" readonly="readonly" type="text" aria-readonly="false" autocomplete="off"></div><div class="v-input__append-inner"><div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div></div><input type="hidden" value="allow"></div><div class="v-menu"><!----></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-345" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Source IP</label><input required="required" id="input-345" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-349" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Username</label><input required="required" id="input-349" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span> <span><div class="v-input v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-353" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Hostname</label><input required="required" id="input-353" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div>
+          <div class="v-card__actions">
+            <div class="spacer"></div> <button type="button" class="v-btn v-btn--text theme--light v-size--default" data-test="cancel-btn"><span class="v-btn__content">
+            Cancel
+          </span></button> <button type="button" class="v-btn v-btn--text theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content">
+            Edit
+          </span></button>
+          </div>
+          </span>
+        </div>
+    </div>
+    </transition-stub>
+  </div>
+  </div>
 </fragment-stub>
 `;

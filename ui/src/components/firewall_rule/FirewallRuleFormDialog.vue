@@ -12,6 +12,7 @@
             class="v-btn--active"
             text
             color="primary"
+            data-test="add-btn"
             @click="dialog = !dialog"
           >
             Add Rule
@@ -41,7 +42,10 @@
       </template>
 
       <div>
-        <span v-if="isOwner">
+        <span
+          v-if="isOwner"
+          data-test="text-tooltip"
+        >
           Edit
         </span>
 
@@ -56,7 +60,7 @@
       max-width="400"
       @click:outside="close"
     >
-      <v-card>
+      <v-card data-test="firewallRuleForm-card">
         <ValidationObserver
           ref="obs"
           v-slot="{ passes }"
@@ -174,6 +178,7 @@
 
             <v-btn
               text
+              data-test="cancel-btn"
               @click="close"
             >
               Cancel
@@ -182,6 +187,7 @@
             <v-btn
               v-if="createRule"
               text
+              data-test="create-btn"
               @click="passes(create)"
             >
               Create
@@ -190,6 +196,7 @@
             <v-btn
               v-else
               text
+              data-test="edit-btn"
               @click="passes(edit)"
             >
               Edit

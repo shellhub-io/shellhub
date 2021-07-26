@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FirewallRule Renders the component 1`] = `
+exports[`FirewallRule Without firewall rules Renders the component 1`] = `
 <fragment-stub>
   <div class="d-flex pa-0 align-center">
     <h1>Firewall Rules</h1> <button type="button" class="ml-2 v-btn v-btn--icon v-btn--round theme--light v-size--x-small"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-help-circle theme--light"></i></span></button>
     <div class="spacer"></div>
     <div class="spacer"></div>
-    <fragment-stub data-test="firewall-dialog-field">
-      <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default"><span class="v-btn__content">
+    <fragment-stub data-test="firewallRuleCreate-component">
+      <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Rule
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
       <div role="dialog" class="v-dialog__container">
@@ -18,7 +18,7 @@ exports[`FirewallRule Renders the component 1`] = `
   <!---->
   <div class="mt-2 v-card v-sheet theme--light">
     <!---->
-    <fragment-stub>
+    <fragment-stub data-test="boxMessageFirewall-component">
       <div class="mx-auto py-6 v-card v-sheet v-sheet--outlined theme--light">
         <div class="v-card__title justify-center">
           <div><i aria-hidden="true" data-test="boxMessage-icon" class="v-icon notranslate material-icons theme--light" style="font-size: 40px;">security</i></div>
@@ -38,7 +38,7 @@ exports[`FirewallRule Renders the component 1`] = `
         </div>
         <div class="v-card__actions justify-center pt-8 pb-0">
           <!---->
-          <fragment-stub><span class="v-tooltip v-tooltip--bottom"><!----><div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default"><span class="v-btn__content">
+          <fragment-stub><span class="v-tooltip v-tooltip--bottom"><!----><div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Rule
         </span></button>
         </div></span>
@@ -50,5 +50,28 @@ exports[`FirewallRule Renders the component 1`] = `
   </div>
 </fragment-stub>
 </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRule Without firewall rules Renders the component 2`] = `
+<fragment-stub>
+  <div class="d-flex pa-0 align-center">
+    <h1>Firewall Rules</h1> <button type="button" class="ml-2 v-btn v-btn--icon v-btn--round theme--light v-size--x-small"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-help-circle theme--light"></i></span></button>
+    <div class="spacer"></div>
+    <div class="spacer"></div>
+    <fragment-stub data-test="firewallRuleCreate-component">
+      <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Rule
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      <div role="dialog" class="v-dialog__container">
+        <!---->
+      </div>
+    </fragment-stub>
+  </div>
+  <!---->
+  <div class="mt-2 v-card v-sheet theme--light">
+    <router-view></router-view>
+    <!---->
+  </div>
 </fragment-stub>
 `;

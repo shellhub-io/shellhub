@@ -1,30 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FirewallRuleDelete Renders the component 1`] = `
-<fragment-stub>
-  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span">
-    <div><span>
-        Remove
-      </span></div>
-  </v-tooltip-stub>
-  <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="400" origin="center center" retainfocus="true" transition="dialog-transition" width="auto">
-    <v-card-stub loaderheight="4" tag="div">
-      <v-card-title-stub class="headline grey lighten-2 text-center">
-        Are you sure?
-      </v-card-title-stub>
-      <v-card-text-stub class="mt-4 mb-3 pb-1">
-        You are about to remove this firewall rule.
-      </v-card-text-stub>
-      <v-card-actions-stub>
-        <v-spacer-stub></v-spacer-stub>
-        <v-btn-stub tag="button" activeclass="" text="true" type="button">
+exports[`FirewallRuleDelete Dialog opened Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <div role="document" tabindex="0" class="v-dialog__content v-dialog__content--active" style="z-index: 202;">
+      <transition-stub name="dialog-transition" appear="true">
+        <div class="v-dialog v-dialog--active" style="transform-origin: center center; max-width: 400px;">
+          <div class="v-card v-sheet theme--light" data-test="firewallRuleDelete-card">
+            <div class="v-card__title headline grey lighten-2 text-center">
+              Are you sure?
+            </div>
+            <div class="v-card__text mt-4 mb-3 pb-1">
+              You are about to remove this firewall rule.
+            </div>
+            <div class="v-card__actions">
+              <div class="spacer"></div> <button type="button" class="v-btn v-btn--text theme--light v-size--default" data-test="cancel-btn"><span class="v-btn__content">
           Close
-        </v-btn-stub>
-        <v-btn-stub color="red darken-1" tag="button" activeclass="" text="true" type="button">
+        </span></button> <button type="button" class="v-btn v-btn--text theme--light v-size--default red--text text--darken-1" data-test="remove-btn"><span class="v-btn__content">
           Remove
-        </v-btn-stub>
-      </v-card-actions-stub>
-    </v-card-stub>
-  </v-dialog-stub>
+        </span></button>
+            </div>
+          </div>
+        </div>
+      </transition-stub>
+    </div>
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleDelete Icon Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
 </fragment-stub>
 `;
