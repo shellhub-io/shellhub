@@ -16,20 +16,20 @@ describe('DeviceAdd', () => {
 
   const sessions = [
     {
-      uid: '8c354a00f50',
-      device_uid: 'a582b47a42d',
+      uid: '8c354a00',
+      device_uid: 'a582b47a',
       device: {
-        uid: 'a582b47a42d',
+        uid: 'a582b47a',
         name: '39-5e-2a',
         identity: {
-          mac: '00:00:00:00:00:00',
+          mac: '00:00:00',
         },
         info: {
           id: 'debian',
-          pretty_name: 'Debian GNU/Linux 10 (buster)',
+          pretty_name: 'Debian',
           version: 'v0.2.5',
         },
-        public_key: '----- PUBLIC KEY -----',
+        public_key: 'xxxxxxxx',
         tenant_id: '00000000',
         last_seen: '2020-05-18T13:27:02.498Z',
         online: false,
@@ -37,27 +37,27 @@ describe('DeviceAdd', () => {
       },
       tenant_id: '00000000',
       username: 'user',
-      ip_address: '000.000.000.000',
+      ip_address: '00.00.00',
       started_at: '2020-05-18T12:30:28.824Z',
       last_seen: '2020-05-18T12:30:30.205Z',
       active: true,
       authenticated: false,
     },
     {
-      uid: '8c354a00f51',
-      device_uid: 'a582b47a42d',
+      uid: '8c354a00',
+      device_uid: 'a582b47a',
       device: {
-        uid: 'a582b47a42d',
+        uid: 'a582b47a',
         name: 'b4-2e-99',
         identity: {
-          mac: '00:00:00:00:00:00',
+          mac: '00:00:00',
         },
         info: {
           id: 'debian',
-          pretty_name: 'Debian GNU/Linux 10 (buster)',
+          pretty_name: 'Debian',
           version: 'v0.2.5',
         },
-        public_key: '----- PUBLIC KEY -----',
+        public_key: 'xxxxxxxx',
         tenant_id: '00000000',
         last_seen: '2020-05-18T13:27:02.498Z',
         online: false,
@@ -65,11 +65,54 @@ describe('DeviceAdd', () => {
       },
       tenant_id: '00000000',
       username: 'user',
-      ip_address: '000.000.000.000',
+      ip_address: '00.00.00',
       started_at: '2020-05-18T12:30:28.824Z',
       last_seen: '2020-05-18T12:30:30.205Z',
       active: false,
       authenticated: false,
+    },
+  ];
+
+  const headers = [
+    {
+      text: 'Active',
+      value: 'active',
+      align: 'center',
+    },
+    {
+      text: 'Device',
+      value: 'device',
+      align: 'center',
+    },
+    {
+      text: 'Username',
+      value: 'username',
+      align: 'center',
+    },
+    {
+      text: 'Authenticated',
+      value: 'authenticated',
+      align: 'center',
+    },
+    {
+      text: 'IP Address',
+      value: 'ip_address',
+      align: 'center',
+    },
+    {
+      text: 'Started',
+      value: 'started',
+      align: 'center',
+    },
+    {
+      text: 'Last Seen',
+      value: 'last_seen',
+      align: 'center',
+    },
+    {
+      text: 'Actions',
+      value: 'actions',
+      align: 'center',
     },
   ];
 
@@ -104,16 +147,33 @@ describe('DeviceAdd', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.headers).toEqual(headers);
+  });
   it('Process data in the computed', () => {
     expect(wrapper.vm.getListSessions).toEqual(sessions);
     expect(wrapper.vm.getNumberSessions).toEqual(numberSessions);
   });
+
+  //////
+  // HTML validation
+  //////
+
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;

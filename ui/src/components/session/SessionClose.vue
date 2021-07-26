@@ -14,7 +14,10 @@
       </template>
 
       <div>
-        <span v-if="isOwner">
+        <span
+          v-if="isOwner"
+          data-test="text-tooltip"
+        >
           Close
         </span>
 
@@ -28,7 +31,7 @@
       v-model="dialog"
       max-width="400"
     >
-      <v-card>
+      <v-card data-test="sessionClose-card">
         <v-card-title class="headline grey lighten-2 text-center">
           Are you sure?
         </v-card-title>
@@ -42,6 +45,7 @@
 
           <v-btn
             text
+            data-test="cancel-btn"
             @click="dialog=!dialog"
           >
             Cancel
@@ -50,6 +54,7 @@
           <v-btn
             color="red darken-1"
             text
+            data-test="close-btn"
             @click="close();"
           >
             Close

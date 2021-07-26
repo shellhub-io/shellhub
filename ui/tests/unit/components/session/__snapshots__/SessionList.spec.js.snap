@@ -40,7 +40,7 @@ exports[`DeviceAdd Renders the component 1`] = `
                 <!---->
               </td>
               <td class="text-center"><i aria-hidden="true" class="v-icon notranslate mdi mdi-shield-alert theme--light error--text"></i><span class="v-tooltip v-tooltip--bottom"><!----></span></td>
-              <td class="text-center"><code>000.000.000.000</code></td>
+              <td class="text-center"><code>00.00.00</code></td>
               <td class="text-center">
                 Monday, May 18th 2020, 12:30:28 pm
               </td>
@@ -67,7 +67,7 @@ exports[`DeviceAdd Renders the component 1`] = `
                 <!---->
               </td>
               <td class="text-center"><i aria-hidden="true" class="v-icon notranslate mdi mdi-shield-alert theme--light error--text"></i><span class="v-tooltip v-tooltip--bottom"><!----></span></td>
-              <td class="text-center"><code>000.000.000.000</code></td>
+              <td class="text-center"><code>00.00.00</code></td>
               <td class="text-center">
                 Monday, May 18th 2020, 12:30:28 pm
               </td>

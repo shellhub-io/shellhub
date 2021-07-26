@@ -1,6 +1,7 @@
 <template>
   <fragment
     v-if="hidden()"
+    data-test="render-fragment"
   >
     <v-tooltip
       v-if="recorded"
@@ -19,7 +20,10 @@
       </template>
 
       <div>
-        <span v-if="isOwner">
+        <span
+          v-if="isOwner"
+          data-test="text-tooltip"
+        >
           Play
         </span>
 
@@ -36,6 +40,7 @@
     >
       <v-card
         :elevation="0"
+        data-test="sessionPlay-card"
       >
         <v-toolbar
           dark

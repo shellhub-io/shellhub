@@ -10,44 +10,132 @@ describe('Session', () => {
 
   let wrapper;
 
-  const numberSessions = 0;
+  const numberSessionsEqualZero = 0;
+  const numberSessionsGreaterThanZero = 1;
 
-  const store = new Vuex.Store({
+  const storeWithoutSessions = new Vuex.Store({
     namespaced: true,
     state: {
-      numberSessions,
+      numberSessions: numberSessionsEqualZero,
     },
     getters: {
       'sessions/getNumberSessions': (state) => state.numberSessions,
     },
     actions: {
-      'sessions/refresh': () => {
-      },
-      'boxs/setStatus': () => {
-      },
-      'sessions/resetPagePerpage': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
+      'sessions/refresh': () => {},
+      'boxs/setStatus': () => {},
+      'sessions/resetPagePerpage': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
-  beforeEach(() => {
-    wrapper = mount(Session, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      vuetify,
+  const storeWithSessions = new Vuex.Store({
+    namespaced: true,
+    state: {
+      numberSessions: numberSessionsGreaterThanZero,
+    },
+    getters: {
+      'sessions/getNumberSessions': (state) => state.numberSessions,
+    },
+    actions: {
+      'sessions/refresh': () => {},
+      'boxs/setStatus': () => {},
+      'sessions/resetPagePerpage': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
+    },
+  });
+
+  ///////
+  // In this case, the rendering of the component that shows the
+  // message when it does not have access to the device is tested.
+  ///////
+
+  describe('Without sessions', () => {
+    beforeEach(() => {
+      wrapper = mount(Session, {
+        store: storeWithoutSessions,
+        localVue,
+        stubs: ['fragment'],
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with the default and defined value', () => {
+      expect(wrapper.vm.show).toEqual(true);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.hasSession).toEqual(false);
+      expect(wrapper.vm.showBoxMessage).toEqual(true);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="BoxMessageSession-component"]').exists()).toBe(true);
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.hasSession).toEqual(false);
+  ///////
+  // In this case, it is tested when it has already accessed a
+  // device.
+  ///////
+
+  describe('With sessions', () => {
+    beforeEach(() => {
+      wrapper = mount(Session, {
+        store: storeWithSessions,
+        localVue,
+        stubs: ['fragment'],
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with the default and defined value', () => {
+      expect(wrapper.vm.show).toEqual(true);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.hasSession).toEqual(true);
+      expect(wrapper.vm.showBoxMessage).toEqual(false);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="BoxMessageSession-component"]').exists()).toBe(false);
+    });
   });
 });

@@ -40,21 +40,24 @@
         <v-spacer />
 
         <SessionPlay
+          v-if="session.recorded"
           :uid="session.uid"
           :recorded="session.authenticated && session.recorded"
+          data-test="sessionPlay-component"
         />
 
         <SessionClose
           v-if="session.active"
           :uid="session.uid"
           :device="session.device_uid"
+          data-test="sessionClose-component"
           @update="refresh"
         />
 
         <SessionDeleteRecord
           v-if="session.recorded"
-          data-test="record-delete"
           :uid="session.uid"
+          data-test="sessionDeleteRecord-component"
           @update="refresh"
         />
       </v-toolbar>

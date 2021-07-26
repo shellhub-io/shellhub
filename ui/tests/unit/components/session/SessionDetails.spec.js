@@ -9,32 +9,32 @@ describe('SessionDetails', () => {
   let wrapper;
 
   const session = {
-    uid: '8c354a00f50',
-    device_uid: 'a582b47a42d',
+    uid: '8c354a00',
+    device_uid: 'a582b47a',
     device: {
-      uid: 'a582b47a42d',
+      uid: 'a582b47a',
       name: '39-5e-2a',
       identity: {
-        mac: '00:00:00:00:00:00',
+        mac: '00:00:00',
       },
       info: {
         id: 'debian',
-        pretty_name: 'Debian GNU/Linux 10 (buster)',
+        pretty_name: 'Debian',
         version: 'v0.2.5',
       },
-      public_key: '----- PUBLIC KEY -----',
+      public_key: 'xxxxxxxx',
       tenant_id: '00000000',
       last_seen: '2020-05-18T13:27:02.498Z',
-      online: false,
+      online: true,
       namespace: 'user',
     },
     tenant_id: '00000000',
     username: 'user',
-    ip_address: '000.000.000.000',
+    ip_address: '00.00.00',
     started_at: '2020-05-18T12:30:28.824Z',
     last_seen: '2020-05-18T12:30:30.205Z',
-    active: false,
-    authenticated: false,
+    active: true,
+    authenticated: true,
     recorded: true,
   };
 
@@ -47,10 +47,9 @@ describe('SessionDetails', () => {
       'sessions/get': (state) => state.session,
     },
     actions: {
-      'sessions/get': () => {
-      },
-      'sessions/close': () => {
-      },
+      'sessions/get': () => {},
+      'sessions/close': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
@@ -63,67 +62,217 @@ describe('SessionDetails', () => {
       'sessions/get': (state) => state.session,
     },
     actions: {
-      'sessions/get': () => {
-      },
-      'sessions/close': () => {
-      },
+      'sessions/get': () => {},
+      'sessions/close': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
-  beforeEach(() => {
-    wrapper = shallowMount(SessionDetails, {
-      store: storeRecordedTrue,
-      localVue,
-      stubs: ['fragment'],
-      mocks: {
-        $route: {
-          params: {
-            id: '8c354a00f50',
+  const storeRecordedFalseAndOffline = new Vuex.Store({
+    namespaced: true,
+    state: {
+      session: {
+        ...session, device: { online: false }, active: false, recorded: false,
+      },
+    },
+    getters: {
+      'sessions/get': (state) => state.session,
+    },
+    actions: {
+      'sessions/get': () => {},
+      'sessions/close': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
+    },
+  });
+
+  ///////
+  // In this case, it is checking the rendering of components when
+  // the session has been recorded and the device is online.
+  ///////
+
+  describe('Recorded is true and device is online', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(SessionDetails, {
+        store: storeRecordedTrue,
+        localVue,
+        stubs: ['fragment'],
+        mocks: {
+          $route: {
+            params: {
+              id: session.uid,
+            },
           },
         },
-      },
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.uid).toEqual(session.uid);
+      expect(wrapper.vm.session).toEqual(session);
+      expect(wrapper.vm.dialog).toEqual(false);
+      expect(wrapper.vm.hide).toEqual(true);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="sessionPlay-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="sessionClose-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="sessionDeleteRecord-component"]').exists()).toBe(true);
+    });
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="sessionUid-field"]').text()).toEqual(session.uid);
+      expect(wrapper.find('[data-test="sessionUser-field"]').text()).toEqual(session.username);
+      expect(wrapper.find('[data-test="sessionIpAddress-field"]').text()).toEqual(session.ip_address);
+      expect(wrapper.find('[data-test="sessionStartedAt-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:28 pm');
+      expect(wrapper.find('[data-test="sessionLastSeen-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:30 pm');
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  Object.keys(session).forEach((field) => {
-    it(`Receives the field ${field} of session state from store`, () => {
-      expect(wrapper.vm.session[field]).toEqual(session[field]);
-    });
-  });
-  it('Compare data with default value', () => {
-    expect(wrapper.vm.uid).toEqual(session.uid);
-    expect(wrapper.vm.session).toEqual(session);
-    expect(wrapper.vm.dialog).toEqual(false);
-    expect(wrapper.vm.hide).toEqual(true);
-  });
-  it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="sessionUid-field"]').text()).toEqual(session.uid);
-    expect(wrapper.find('[data-test="sessionUser-field"]').text()).toEqual(session.username);
-    expect(wrapper.find('[data-test="sessionIpAddress-field"]').text()).toEqual(session.ip_address);
-    expect(wrapper.find('[data-test="sessionStartedAt-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:28 pm');
-    expect(wrapper.find('[data-test="sessionLastSeen-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:30 pm');
-    expect(wrapper.find('[data-test="record-delete"]').exists()).toEqual(true);
-  });
-  it('Hides SessionDeleteRecord component when the session is not recorded', () => {
-    wrapper = shallowMount(SessionDetails, {
-      store: storeRecordedFalse,
-      localVue,
-      stubs: ['fragment'],
-      mocks: {
-        $route: {
-          params: {
-            id: '8c354a00f50',
+  ///////
+  // In this case, it is checking the rendering of components when
+  // the session has not been recorded and the device is online.
+  ///////
+
+  describe('Recorded is false and device is online', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(SessionDetails, {
+        store: storeRecordedFalse,
+        localVue,
+        stubs: ['fragment'],
+        mocks: {
+          $route: {
+            params: {
+              id: session.uid,
+            },
           },
         },
-      },
+      });
     });
 
-    expect(wrapper.find('[data-test="record-delete"]').exists()).toEqual(false);
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.uid).toEqual(session.uid);
+      expect(wrapper.vm.session).toEqual({ ...session, recorded: false });
+      expect(wrapper.vm.dialog).toEqual(false);
+      expect(wrapper.vm.hide).toEqual(true);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="sessionPlay-component"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="sessionClose-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="sessionDeleteRecord-component"]').exists()).toBe(false);
+    });
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="sessionUid-field"]').text()).toEqual(session.uid);
+      expect(wrapper.find('[data-test="sessionUser-field"]').text()).toEqual(session.username);
+      expect(wrapper.find('[data-test="sessionIpAddress-field"]').text()).toEqual(session.ip_address);
+      expect(wrapper.find('[data-test="sessionStartedAt-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:28 pm');
+      expect(wrapper.find('[data-test="sessionLastSeen-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:30 pm');
+    });
+  });
+
+  ///////
+  // In this case, it is checking the rendering of components when
+  // the session has not been recorded and the device is offline.
+  ///////
+
+  describe('Recorded is false and device is offline', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(SessionDetails, {
+        store: storeRecordedFalseAndOffline,
+        localVue,
+        stubs: ['fragment'],
+        mocks: {
+          $route: {
+            params: {
+              id: session.uid,
+            },
+          },
+        },
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receive data in props', () => {
+      expect(wrapper.vm.uid).toEqual(session.uid);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.uid).toEqual(session.uid);
+      expect(wrapper.vm.session).toEqual({
+        ...session, device: { online: false }, active: false, recorded: false,
+      });
+      expect(wrapper.vm.dialog).toEqual(false);
+      expect(wrapper.vm.hide).toEqual(true);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="sessionPlay-component"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="sessionClose-component"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="sessionDeleteRecord-component"]').exists()).toBe(false);
+    });
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="sessionUid-field"]').text()).toEqual(session.uid);
+      expect(wrapper.find('[data-test="sessionUser-field"]').text()).toEqual(session.username);
+      expect(wrapper.find('[data-test="sessionIpAddress-field"]').text()).toEqual(session.ip_address);
+      expect(wrapper.find('[data-test="sessionStartedAt-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:28 pm');
+      expect(wrapper.find('[data-test="sessionLastSeen-field"]').text()).toEqual('Monday, May 18th 2020, 12:30:30 pm');
+    });
   });
 });
