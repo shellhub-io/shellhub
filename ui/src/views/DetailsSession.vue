@@ -1,6 +1,6 @@
 <template>
   <div>
-    <SessionDetails />
+    <SessionDetails data-test="sessionDetails-component" />
   </div>
 </template>
 

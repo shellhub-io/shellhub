@@ -1,6 +1,6 @@
 <template>
   <div>
-    <DeviceList />
+    <DeviceList data-test="deviceList-component" />
   </div>
 </template>
 

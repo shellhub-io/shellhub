@@ -2,6 +2,6 @@
 
 exports[`Sessions Renders the component 1`] = `
 <div>
-  <session-stub></session-stub>
+  <session-stub data-test="session-component"></session-stub>
 </div>
 `;

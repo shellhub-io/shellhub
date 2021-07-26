@@ -2,6 +2,6 @@
 
 exports[`Publickeys Renders the component 1`] = `
 <div>
-  <publickey-stub></publickey-stub>
+  <publickey-stub data-test="publickey-component"></publickey-stub>
 </div>
 `;

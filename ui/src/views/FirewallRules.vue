@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Firewall />
+    <Firewall data-test="firewall-component" />
   </div>
 </template>
 

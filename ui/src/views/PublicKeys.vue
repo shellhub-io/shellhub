@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Publickey />
+    <Publickey data-test="publickey-component" />
   </div>
 </template>
 

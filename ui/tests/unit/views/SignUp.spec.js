@@ -59,19 +59,35 @@ describe('SignUp', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="name-text"]').element.value).toEqual(newUser.name);
-    expect(wrapper.find('[data-test="username-text"]').element.value).toEqual(newUser.username);
-    expect(wrapper.find('[data-test="email-text"]').element.value).toEqual(newUser.email);
-    expect(wrapper.find('[data-test="password-text"]').element.value).toEqual(newUser.password);
-    expect(wrapper.find('[data-test="confirmPassword-text"]').element.value).toEqual(newUser.confirmPassword);
+
+  ///////
+  // Data and Props checking
+  //////
+
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.newUser.name).toEqual(newUser.name);
+    expect(wrapper.vm.newUser.username).toEqual(newUser.username);
+    expect(wrapper.vm.newUser.email).toEqual(newUser.email);
+    expect(wrapper.vm.newUser.password).toEqual(newUser.password);
+    expect(wrapper.vm.newUser.confirmPassword).toEqual(newUser.confirmPassword);
+    expect(wrapper.vm.delay).toEqual(500);
+    expect(wrapper.vm.overlay).toEqual(false);
   });
+
+  //////
+  // HTML validation
+  //////
+
   it('Show empty fields required in validation', async () => {
     const validatorName = wrapper.vm.$refs.providerName;
     const validatorUsername = wrapper.vm.$refs.providerUsername;
@@ -97,5 +113,13 @@ describe('SignUp', () => {
     expect(validatorPassword.errors[0]).toBe('Your password should be 5-30 characters long');
     await validatorConfirmPassword.validate();
     expect(validatorConfirmPassword.errors[0]).toBe('The passwords do not match');
+  });
+  it('Renders the template with data', () => {
+    expect(wrapper.find('[data-test="name-text"]').element.value).toEqual(newUser.name);
+    expect(wrapper.find('[data-test="username-text"]').element.value).toEqual(newUser.username);
+    expect(wrapper.find('[data-test="email-text"]').element.value).toEqual(newUser.email);
+    expect(wrapper.find('[data-test="password-text"]').element.value).toEqual(newUser.password);
+    expect(wrapper.find('[data-test="confirmPassword-text"]').element.value).toEqual(newUser.confirmPassword);
+    expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
   });
 });
