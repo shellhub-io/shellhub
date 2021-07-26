@@ -10,44 +10,135 @@ describe('FirewallRule', () => {
 
   let wrapper;
 
-  const numberFirewalls = 0;
+  const numberFirewallsEqualZero = 0;
+  const numberFirewallsGreaterThanZero = 1;
 
-  const store = new Vuex.Store({
+  const storeWithoutFirewalls = new Vuex.Store({
     namespaced: true,
     state: {
-      numberFirewalls,
+      numberFirewalls: numberFirewallsEqualZero,
     },
     getters: {
       'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
     },
     actions: {
-      'boxs/setStatus': () => {
-      },
-      'firewallrules/resetPagePerpage': () => {
-      },
-      'firewallrules/refresh': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
+      'boxs/setStatus': () => {},
+      'firewallrules/resetPagePerpage': () => {},
+      'firewallrules/refresh': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
-  beforeEach(() => {
-    wrapper = mount(FirewallRule, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      vuetify,
+  const storeWithFirewalls = new Vuex.Store({
+    namespaced: true,
+    state: {
+      numberFirewalls: numberFirewallsGreaterThanZero,
+    },
+    getters: {
+      'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
+    },
+    actions: {
+      'boxs/setStatus': () => {},
+      'firewallrules/resetPagePerpage': () => {},
+      'firewallrules/refresh': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
+    },
+  });
+
+  ///////
+  // In this case, the rendering of the component that shows the
+  // message when it does not have access to the device is tested.
+  ///////
+
+  describe('Without firewall rules', () => {
+    beforeEach(() => {
+      wrapper = mount(FirewallRule, {
+        store: storeWithoutFirewalls,
+        localVue,
+        stubs: ['fragment'],
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.hasFirewallRule).toEqual(false);
+      expect(wrapper.vm.showBoxMessage).toEqual(true);
+    });
+    it('Compare data with the default', () => {
+      expect(wrapper.vm.show).toEqual(true);
+      expect(wrapper.vm.showHelp).toEqual(false);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="firewallRuleCreate-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="boxMessageFirewall-component"]').exists()).toBe(true);
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="firewall-dialog-field"]').exists()).toBe(true);
+  ///////
+  // In this case, it is tested when there is already a registered
+  // firewall.
+  ///////
+
+  describe('Without firewall rules', () => {
+    beforeEach(() => {
+      wrapper = mount(FirewallRule, {
+        store: storeWithFirewalls,
+        localVue,
+        stubs: ['fragment'],
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.hasFirewallRule).toEqual(true);
+      expect(wrapper.vm.showBoxMessage).toEqual(false);
+    });
+    it('Compare data with the default and defined value', () => {
+      expect(wrapper.vm.show).toEqual(true);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="firewallRuleCreate-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="boxMessageFirewall-component"]').exists()).toBe(false);
+    });
   });
 });

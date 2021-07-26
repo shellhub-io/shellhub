@@ -17,7 +17,7 @@
 
       <FirewallRuleCreate
         :create-rule="true"
-        data-test="firewall-dialog-field"
+        data-test="firewallRuleCreate-component"
         @update="refresh"
       />
     </div>
@@ -36,6 +36,7 @@
       <BoxMessageFirewall
         v-if="showBoxMessage"
         type-message="firewall"
+        data-test="boxMessageFirewall-component"
       />
     </v-card>
   </fragment>
