@@ -4,7 +4,6 @@
       <v-data-table
         :headers="headers"
         :items="getPublicKeys"
-        data-test="dataTable-field"
         item-key="fingerprint"
         :sort-by="['started_at']"
         :sort-desc="[true]"
@@ -13,6 +12,7 @@
         :server-items-length="getNumberPublicKeys"
         :options.sync="pagination"
         :disable-sort="true"
+        data-test="publickeyList-dataTable"
       >
         <template #[`item.name`]="{ item }">
           {{ item.name }}
