@@ -1,79 +1,68 @@
 <template>
   <fragment>
     <v-card class="mt-2">
-      <v-app-bar
-        flat
-        color="transparent"
+      <v-data-table
+        :headers="headers"
+        :items="getFirewallRules"
+        data-test="dataTable-field"
+        item-key="uid"
+        :sort-by="['started_at']"
+        :sort-desc="[true]"
+        :items-per-page="10"
+        :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
+        :server-items-length="getNumberFirewallRules"
+        :options.sync="pagination"
+        :disable-sort="true"
       >
-        <v-toolbar-title />
-      </v-app-bar>
+        <template #[`item.active`]="{ item }">
+          <v-icon
+            v-if="item.active"
+            color="success"
+          >
+            check_circle
+          </v-icon>
+          <v-icon
+            v-else
+            bottom
+          >
+            check_circle
+          </v-icon>
+        </template>
 
-      <v-divider />
+        <template #[`item.priority`]="{ item }">
+          {{ item.priority }}
+        </template>
 
-      <v-card-text class="pa-0">
-        <v-data-table
-          :headers="headers"
-          :items="getFirewallRules"
-          data-test="dataTable-field"
-          item-key="uid"
-          :sort-by="['started_at']"
-          :sort-desc="[true]"
-          :items-per-page="10"
-          :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
-          :server-items-length="getNumberFirewallRules"
-          :options.sync="pagination"
-          :disable-sort="true"
-        >
-          <template #[`item.active`]="{ item }">
-            <v-icon
-              v-if="item.active"
-              color="success"
-            >
-              check_circle
-            </v-icon>
-            <v-icon
-              v-else
-              bottom
-            >
-              check_circle
-            </v-icon>
-          </template>
+        <template #[`item.action`]="{ item }">
+          {{ item.action }}
+        </template>
 
-          <template #[`item.priority`]="{ item }">
-            {{ item.priority }}
-          </template>
+        <template #[`item.source_ip`]="{ item }">
+          {{ item.source_ip }}
+        </template>
 
-          <template #[`item.action`]="{ item }">
-            {{ item.action }}
-          </template>
+        <template #[`item.username`]="{ item }">
+          {{ item.username }}
+        </template>
 
-          <template #[`item.source_ip`]="{ item }">
-            {{ item.source_ip }}
-          </template>
+        <template #[`item.hostname`]="{ item }">
+          {{ item.hostname }}
+        </template>
 
-          <template #[`item.username`]="{ item }">
-            {{ item.username }}
-          </template>
-
-          <template #[`item.hostname`]="{ item }">
-            {{ item.hostname }}
-          </template>
-
-          <template #[`item.actions`]="{ item }">
-            <FirewallRuleEdit
-              data-test="firewall-dialog-field-2"
-              :firewall-rule="item"
-              :create-rule="false"
-              @update="refresh"
-            />
-            <FirewallRuleDelete
-              :id="item.id"
-              data-test="firewall-delete-field"
-              @update="refresh"
-            />
-          </template>
-        </v-data-table>
-      </v-card-text>
+        <template #[`item.actions`]="{ item }">
+          <FirewallRuleEdit
+            data-test="firewall-dialog-field-2"
+            :firewall-rule="item"
+            :create-rule="false"
+            @update="refresh"
+          />
+          <FirewallRuleDelete
+            :id="item.id"
+            data-test="firewall-delete-field"
+            @update="refresh"
+          />
+        </template>
+      </v-data-table>
     </v-card>
   </fragment>
 </template>
