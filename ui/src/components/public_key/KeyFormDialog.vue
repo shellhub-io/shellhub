@@ -12,6 +12,7 @@
             class="v-btn--active"
             text
             color="primary"
+            data-test="createKey-btn"
             @click="dialog = !dialog"
           >
             Add {{ action }} Key
@@ -41,7 +42,10 @@
       </template>
 
       <div>
-        <span v-if="isOwner || action == 'private'">
+        <span
+          v-if="isOwner || action == 'private'"
+          data-test="text-tooltip"
+        >
           Edit
         </span>
 
@@ -56,7 +60,7 @@
       max-width="400"
       @click:outside="close"
     >
-      <v-card>
+      <v-card data-test="keyFormDialog-card">
         <ValidationObserver
           ref="obs"
           v-slot="{ passes }"
@@ -77,9 +81,10 @@
           <v-card-text>
             <ValidationProvider
               v-slot="{ errors }"
+              ref="providerName"
+              vid="name"
               name="Name"
               rules="required"
-              vid="name"
             >
               <v-text-field
                 v-model="keyLocal.name"
@@ -103,6 +108,7 @@
 
             <ValidationProvider
               v-slot="{ errors }"
+              ref="providerData"
               vid="key"
               name="Data"
               :rules="`required|parseKey:${action}`"
@@ -124,6 +130,7 @@
 
             <v-btn
               text
+              data-test="cancel-btn"
               @click="close"
             >
               Cancel
@@ -132,6 +139,7 @@
             <v-btn
               v-if="createKey"
               text
+              data-test="create-btn"
               @click="passes(create)"
             >
               Create
@@ -140,6 +148,7 @@
             <v-btn
               v-else
               text
+              data-test="edit-btn"
               @click="passes(edit)"
             >
               Edit

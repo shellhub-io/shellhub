@@ -8,6 +8,7 @@
 
       <PublicKeyCreate
         :create-key="true"
+        data-test="publicKeyCreate-component"
         @update="refresh"
       />
     </div>
@@ -20,6 +21,7 @@
       <BoxMessagePublicKey
         v-if="showBoxMessage"
         type-message="publicKey"
+        data-test="boxMessagePublicKey-component"
       />
     </v-card>
   </fragment>

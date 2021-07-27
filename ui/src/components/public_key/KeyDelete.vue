@@ -16,7 +16,10 @@
       </template>
 
       <div>
-        <span v-if="isOwner || action == 'private'">
+        <span
+          v-if="isOwner || action == 'private'"
+          data-test="text-tooltip"
+        >
           Remove
         </span>
 
@@ -30,7 +33,7 @@
       v-model="dialog"
       max-width="400"
     >
-      <v-card>
+      <v-card data-test="keyDelete-card">
         <v-card-title class="headline grey lighten-2 text-center">
           Are you sure?
         </v-card-title>
@@ -44,6 +47,7 @@
 
           <v-btn
             text
+            data-test="close-btn"
             @click="dialog=!dialog"
           >
             Close
@@ -52,6 +56,7 @@
           <v-btn
             color="red darken-1"
             text
+            data-test="Remove-btn"
             @click="remove();"
           >
             Remove

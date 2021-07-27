@@ -13,18 +13,46 @@ describe('PublicKeyList', () => {
 
   const publicKeys = [
     {
-      data: 'BBGVvbmFyZG8=',
-      fingerprint: 'b8:26:d5',
+      data: 'BBGVvbmF',
+      fingerprint: '00:00:00',
       created_at: '2020-11-23T20:59:13.323Z',
-      tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+      tenant_id: 'xxxxxxxx',
       name: 'shellhub',
     },
     {
-      data: 'AbGVvbmFyZG8=',
-      fingerprint: 'b7:25:f8',
+      data: 'AbGVvbmF',
+      fingerprint: '00:00:00',
       created_at: '2020-11-23T20:59:13.323Z',
-      tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+      tenant_id: 'xxxxxxxx',
       name: 'shellhub',
+    },
+  ];
+
+  const headers = [
+    {
+      text: 'Name',
+      value: 'name',
+      align: 'center',
+    },
+    {
+      text: 'Fingerprint',
+      value: 'fingerprint',
+      align: 'center',
+    },
+    {
+      text: 'Hostname',
+      value: 'hostname',
+      align: 'center',
+    },
+    {
+      text: 'Created At',
+      value: 'created_at',
+      align: 'center',
+    },
+    {
+      text: 'Actions',
+      value: 'actions',
+      align: 'center',
     },
   ];
 
@@ -41,12 +69,9 @@ describe('PublicKeyList', () => {
       'boxs/getStatus': (state) => state.status,
     },
     actions: {
-      'publickeys/fetch': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
-      'boxs/setStatus': () => {
-      },
+      'publickeys/fetch': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
+      'boxs/setStatus': () => {},
     },
   });
 
@@ -58,18 +83,35 @@ describe('PublicKeyList', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.headers).toEqual(headers);
+  });
   it('Process data in the computed', () => {
     expect(wrapper.vm.getPublicKeys).toEqual(publicKeys);
     expect(wrapper.vm.getNumberPublicKeys).toEqual(numberPublicKeys);
   });
+
+  //////
+  // HTML validation
+  //////
+
   it('Renders the template with data', () => {
-    const dt = wrapper.find('[data-test="dataTable-field"]');
+    const dt = wrapper.find('[data-test="publickeyList-dataTable"]');
     const dataTableProps = dt.vm.$options.propsData;
 
     expect(dataTableProps.items).toHaveLength(numberPublicKeys);
