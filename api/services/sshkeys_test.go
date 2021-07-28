@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -14,7 +15,7 @@ import (
 
 func TestListPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 	keys := []models.PublicKey{
@@ -36,7 +37,7 @@ func TestListPublicKeys(t *testing.T) {
 
 func TestGetPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 	key := &models.PublicKey{
@@ -54,7 +55,7 @@ func TestGetPublicKeys(t *testing.T) {
 
 func TestUpdatePublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 	key := &models.PublicKey{
@@ -79,7 +80,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 
 func TestDeletePublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 	key := &models.PublicKey{

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
+	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -25,7 +26,7 @@ func TestAuthDevice(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.NoError(t, err)
 
-	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey)
+	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -83,7 +84,7 @@ func TestAuthUser(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.NoError(t, err)
 
-	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey)
+	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -123,7 +124,7 @@ func TestAuthUserInfo(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.NoError(t, err)
 
-	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey)
+	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 

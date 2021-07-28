@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	storecache "github.com/shellhub-io/shellhub/api/cache"
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
@@ -116,7 +117,7 @@ func TestIsNamespaceOwner(t *testing.T) {
 
 func TestListNamespaces(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 	Err := errors.New("error")
@@ -185,7 +186,7 @@ func TestListNamespaces(t *testing.T) {
 
 func TestGetNamespace(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -244,7 +245,7 @@ func TestGetNamespace(t *testing.T) {
 
 func TestListMembers(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 	envMock := &env_mocks.Backend{}
@@ -353,7 +354,7 @@ func TestListMembers(t *testing.T) {
 
 func TestCreateNamespace(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 	envMock := &env_mocks.Backend{}
@@ -588,7 +589,7 @@ func TestCreateNamespace(t *testing.T) {
 
 func TestEditNamespace(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -711,7 +712,7 @@ func TestEditNamespace(t *testing.T) {
 
 func TestDeleteNamespace(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	Err := errors.New("error")
 
@@ -775,7 +776,7 @@ func TestDeleteNamespace(t *testing.T) {
 
 func TestAddNamespaceUser(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 	ctx := context.TODO()
 
 	namespace := &models.Namespace{Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
@@ -887,7 +888,7 @@ func TestAddNamespaceUser(t *testing.T) {
 
 func TestRemoveNamespaceUser(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 	ctx := context.TODO()
 	user := &models.User{Name: "user1", Username: "username1", ID: "hash1"}
 	user2 := &models.User{Name: "user2", Username: "username2", ID: "hash2"}
@@ -997,7 +998,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 
 func TestGetSessionRecord(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -1073,7 +1074,7 @@ func TestGetSessionRecord(t *testing.T) {
 
 func TestEditSessionRecord(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 

@@ -7,10 +7,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/shellhub-io/shellhub/api/apicontext"
+	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/routes"
 	"github.com/shellhub-io/shellhub/api/routes/middlewares"
 	"github.com/shellhub-io/shellhub/api/services"
-	storecache "github.com/shellhub-io/shellhub/api/store/cache"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -81,7 +81,7 @@ func startServer() error {
 
 	// apply dependency injection through project layers
 	store := mongo.NewStore(client.Database("main"), cache)
-	service := services.NewService(store, nil, nil)
+	service := services.NewService(store, nil, nil, cache)
 	handler := routes.NewHandler(service)
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {

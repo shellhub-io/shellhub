@@ -3,6 +3,7 @@ package services
 import (
 	"crypto/rsa"
 
+	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 )
 
@@ -10,6 +11,7 @@ type service struct {
 	store   store.Store
 	privKey *rsa.PrivateKey
 	pubKey  *rsa.PublicKey
+	cache   cache.Cache
 }
 
 type Service interface {
@@ -22,7 +24,7 @@ type Service interface {
 	StatsService
 }
 
-func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey) Service {
+func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache) Service {
 	if privKey == nil || pubKey == nil {
 		var err error
 		privKey, pubKey, err = LoadKeys()
@@ -31,5 +33,5 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		}
 	}
 
-	return &service{store, privKey, pubKey}
+	return &service{store, privKey, pubKey, cache}
 }
