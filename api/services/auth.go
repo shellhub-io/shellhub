@@ -35,6 +35,35 @@ type AuthService interface {
 func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
 	uid := sha256.Sum256(structhash.Dump(req.DeviceAuth, 1))
 
+	key := hex.EncodeToString(uid[:])
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.DeviceAuthClaims{
+		UID: hex.EncodeToString(uid[:]),
+		AuthClaims: models.AuthClaims{
+			Claims: "device",
+		},
+	})
+
+	tokenStr, err := token.SignedString(s.privKey)
+	if err != nil {
+		return nil, err
+	}
+
+	type Device struct {
+		Name      string
+		Namespace string
+	}
+
+	var value *Device
+
+	if err := s.cache.Get(ctx, strings.Join([]string{"auth_device", key}, "/"), &value); err == nil && value != nil {
+		return &models.DeviceAuthResponse{
+			UID:       hex.EncodeToString(uid[:]),
+			Token:     tokenStr,
+			Name:      value.Name,
+			Namespace: value.Namespace,
+		}, nil
+	}
 	device := models.Device{
 		UID:       hex.EncodeToString(uid[:]),
 		Identity:  req.Identity,
@@ -60,18 +89,6 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		return nil, err
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.DeviceAuthClaims{
-		UID: hex.EncodeToString(uid[:]),
-		AuthClaims: models.AuthClaims{
-			Claims: "device",
-		},
-	})
-
-	tokenStr, err := token.SignedString(s.privKey)
-	if err != nil {
-		return nil, err
-	}
-
 	if err := s.store.DeviceSetOnline(ctx, models.UID(device.UID), true); err != nil {
 		return nil, err
 	}
@@ -84,6 +101,9 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 
 	dev, err := s.store.DeviceGetByUID(ctx, models.UID(device.UID), device.TenantID)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.cache.Set(ctx, strings.Join([]string{"auth_device", key}, "/"), &Device{Name: dev.Name, Namespace: namespace.Name}, time.Second*30); err != nil {
 		return nil, err
 	}
 

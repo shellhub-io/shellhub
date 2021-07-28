@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -14,7 +15,7 @@ import (
 
 func TestUpdateDataUser(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -94,7 +95,7 @@ func TestUpdateDataUser(t *testing.T) {
 
 func TestUpdatePasswordUser(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 

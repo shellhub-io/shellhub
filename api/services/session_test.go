@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -14,7 +15,7 @@ import (
 
 func TestListSessions(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -81,7 +82,7 @@ func TestListSessions(t *testing.T) {
 
 func TestGetSession(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -140,7 +141,7 @@ func TestGetSession(t *testing.T) {
 
 func TestCreateSession(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -198,7 +199,7 @@ func TestCreateSession(t *testing.T) {
 
 func TestDeactivateSession(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -243,7 +244,7 @@ func TestDeactivateSession(t *testing.T) {
 
 func TestSetSessionAuthenticated(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"testing"
 
+	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -17,7 +18,7 @@ import (
 
 func TestListDevices(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -109,7 +110,7 @@ func TestListDevices(t *testing.T) {
 
 func TestGetDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	Err := errors.New("error")
 
@@ -167,7 +168,7 @@ func TestGetDevice(t *testing.T) {
 
 func TestDeleteDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -262,7 +263,7 @@ func TestDeleteDevice(t *testing.T) {
 
 func TestRenameDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -427,7 +428,7 @@ func TestRenameDevice(t *testing.T) {
 
 func TestLookupDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -487,7 +488,7 @@ func TestLookupDevice(t *testing.T) {
 
 func TestUpdateDeviceStatus(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	Err := errors.New("error")
 
@@ -535,7 +536,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 
 func TestUpdatePendingStatus(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 
 	user := &models.User{Name: "name", Username: "username", ID: "id"}
 	user2 := &models.User{Name: "name2", Username: "username2", ID: "id2"}

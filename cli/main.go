@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/kelseyhightower/envconfig"
-	storecache "github.com/shellhub-io/shellhub/api/store/cache"
+	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

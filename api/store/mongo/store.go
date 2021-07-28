@@ -3,8 +3,8 @@ package mongo
 import (
 	"errors"
 
+	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/cache"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
