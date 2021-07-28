@@ -16,6 +16,7 @@
               <PrivateKeyFormDialog
                 :create-key="true"
                 action="private"
+                data-test="privateKeyFormDialogFirst-component"
               />
             </div>
 
@@ -39,10 +40,12 @@
                   :key-object="item"
                   :create-key="false"
                   action="private"
+                  data-test="privateKeyFormDialogSecond-component"
                 />
                 <PrivateKeyDelete
                   :fingerprint="item.data"
                   action="private"
+                  data-test="privateKeyDelete-component"
                 />
               </template>
             </v-data-table>
@@ -80,6 +83,7 @@
           <v-btn
             color="primary"
             text
+            data-test="gotIt-btn"
             @click="accept"
           >
             Got it

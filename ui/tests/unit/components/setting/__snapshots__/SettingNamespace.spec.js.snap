@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SettingNamespace Renders the component 1`] = `
+exports[`SettingNamespace Hosted version Renders the component 1`] = `
 <fragment-stub>
   <v-container-stub tag="div">
     <v-row-stub tag="div" align="center" justify="center" class="mt-4">
@@ -15,10 +15,10 @@ exports[`SettingNamespace Renders the component 1`] = `
             </v-col-stub>
             <v-col-stub md="auto" tag="div" class="ml-auto">
               <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" class="auto">
-                <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete"><span data-test="tenant">
+                <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete"><span data-test="tenant-span">
                     e359bf484715
                   </span>
-                  <v-icon-stub right="" data-clipboard-click-handler="$7" data-clipboard-success-handler="$8">
+                  <v-icon-stub right="" data-clipboard-click-handler="$3" data-clipboard-success-handler="$4">
                     mdi-content-copy
                   </v-icon-stub>
                 </v-chip-stub>
@@ -28,12 +28,12 @@ exports[`SettingNamespace Renders the component 1`] = `
           <v-divider-stub></v-divider-stub>
           <v-divider-stub></v-divider-stub>
         </div>
-        <div data-test="editOperation" class="mt-6">
-          <validationobserver-stub tag="span" vid="obs_2"></validationobserver-stub>
+        <div data-test="editOperation-div" class="mt-6">
+          <validationobserver-stub tag="span" vid="obs_1"></validationobserver-stub>
           <v-divider-stub></v-divider-stub>
           <v-divider-stub></v-divider-stub>
         </div>
-        <div data-test="userOperation" class="mt-6">
+        <div data-test="userOperation-div" class="mt-6">
           <v-row-stub tag="div">
             <v-col-stub tag="div">
               <h3>
@@ -41,7 +41,7 @@ exports[`SettingNamespace Renders the component 1`] = `
               </h3>
             </v-col-stub>
             <v-spacer-stub></v-spacer-stub>
-            <div data-test="new-member">
+            <div data-test="newMember-div">
               <v-col-stub md="auto" tag="div" class="ml-auto">
                 <namespacenewmember-stub nstenant="e359bf484715"></namespacenewmember-stub>
               </v-col-stub>
@@ -57,14 +57,14 @@ exports[`SettingNamespace Renders the component 1`] = `
                     </v-icon-stub>
                   </v-col-stub>
                   <v-col-stub tag="div">
-                    <v-list-item-title-stub datatest="user6" data-test="user6">
+                    <v-list-item-title-stub datatest="user6-list" data-test="user6-list">
                       user6
                     </v-list-item-title-stub>
                   </v-col-stub>
                   <v-spacer-stub></v-spacer-stub>
                   <div>
                     <v-col-stub md="auto" tag="div" class="ml-auto">
-                      <p data-test="owner" class="mr-3">
+                      <p data-test="owner-p" class="mr-3">
                         Owner
                       </p>
                     </v-col-stub>
@@ -79,14 +79,14 @@ exports[`SettingNamespace Renders the component 1`] = `
                     </v-icon-stub>
                   </v-col-stub>
                   <v-col-stub tag="div">
-                    <v-list-item-title-stub datatest="user7" data-test="user7">
+                    <v-list-item-title-stub datatest="user7-list" data-test="user7-list">
                       user7
                     </v-list-item-title-stub>
                   </v-col-stub>
                   <v-spacer-stub></v-spacer-stub>
                   <div>
                     <v-col-stub md="auto" tag="div" class="ml-auto">
-                      <v-btn-stub outlined="true" tag="button" activeclass="" type="button" data-test="remove-member">
+                      <v-btn-stub outlined="true" tag="button" activeclass="" type="button" data-test="removeMember-btn">
                         <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
                             Remove user
                           </span></v-tooltip-stub>
@@ -103,14 +103,14 @@ exports[`SettingNamespace Renders the component 1`] = `
                     </v-icon-stub>
                   </v-col-stub>
                   <v-col-stub tag="div">
-                    <v-list-item-title-stub datatest="user8" data-test="user8">
+                    <v-list-item-title-stub datatest="user8-list" data-test="user8-list">
                       user8
                     </v-list-item-title-stub>
                   </v-col-stub>
                   <v-spacer-stub></v-spacer-stub>
                   <div>
                     <v-col-stub md="auto" tag="div" class="ml-auto">
-                      <v-btn-stub outlined="true" tag="button" activeclass="" type="button" data-test="remove-member">
+                      <v-btn-stub outlined="true" tag="button" activeclass="" type="button" data-test="removeMember-btn">
                         <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
                             Remove user
                           </span></v-tooltip-stub>
@@ -124,12 +124,201 @@ exports[`SettingNamespace Renders the component 1`] = `
           <v-divider-stub></v-divider-stub>
           <v-divider-stub></v-divider-stub>
         </div>
-        <div data-test="securityOperation" class="mt-6">
+        <div data-test="securityOperation-div" class="mt-6">
           <settingsecurity-stub hastenant="true"></settingsecurity-stub>
           <v-divider-stub></v-divider-stub>
           <v-divider-stub></v-divider-stub>
         </div>
-        <div data-test="deleteOperation" class="mt-6">
+        <div data-test="deleteOperation-div" class="mt-6">
+          <h3 class="mb-5">
+            Danger Zone
+          </h3>
+          <v-row-stub tag="div" class="mt-4 mb-2">
+            <v-col-stub tag="div" class="ml-3">
+              <h4>
+                Delete this namespace
+              </h4>
+              <div class="ml-2">
+                <p>
+                  After deleting a namespace, there is no going back. Be sure.
+                </p>
+              </div>
+            </v-col-stub>
+            <v-col-stub md="auto" tag="div" class="ml-auto mb-4">
+              <namespacedelete-stub nstenant="e359bf484715"></namespacedelete-stub>
+            </v-col-stub>
+          </v-row-stub>
+        </div>
+      </v-col-stub>
+    </v-row-stub>
+  </v-container-stub>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Not the owner of this namespace Renders the component 1`] = `
+<fragment-stub>
+  <v-container-stub tag="div">
+    <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+      <v-col-stub sm="8" tag="div">
+        <div style="text-align: center;">
+          <h3 class="pl-6"><span data-test="notTheOwner-span">
+              You're not the owner of this namespace.
+            </span>
+            <p data-test="namespaceOwnerMessage-p">
+              Contact user6 user for more information.
+            </p>
+          </h3> <br>
+        </div>
+        <div class="mt-6">
+          <v-row-stub tag="div" class="mb-2">
+            <v-col-stub md="auto" tag="div">
+              <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true">
+                Tenant ID:
+              </v-card-stub>
+            </v-col-stub>
+            <v-col-stub md="auto" tag="div" class="ml-auto">
+              <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" class="auto">
+                <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete"><span data-test="tenant-span">
+
+                  </span>
+                  <v-icon-stub right="" data-clipboard-click-handler="$15" data-clipboard-success-handler="$16">
+                    mdi-content-copy
+                  </v-icon-stub>
+                </v-chip-stub>
+              </v-card-stub>
+            </v-col-stub>
+          </v-row-stub>
+          <v-divider-stub></v-divider-stub>
+          <v-divider-stub></v-divider-stub>
+        </div>
+        <!---->
+        <!---->
+        <!---->
+        <!---->
+      </v-col-stub>
+    </v-row-stub>
+  </v-container-stub>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Open version Renders the component 1`] = `
+<fragment-stub>
+  <v-container-stub tag="div">
+    <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+      <v-col-stub sm="8" tag="div">
+        <!---->
+        <div class="mt-6">
+          <v-row-stub tag="div" class="mb-2">
+            <v-col-stub md="auto" tag="div">
+              <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true">
+                Tenant ID:
+              </v-card-stub>
+            </v-col-stub>
+            <v-col-stub md="auto" tag="div" class="ml-auto">
+              <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" class="auto">
+                <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete"><span data-test="tenant-span">
+                    e359bf484715
+                  </span>
+                  <v-icon-stub right="" data-clipboard-click-handler="$27" data-clipboard-success-handler="$28">
+                    mdi-content-copy
+                  </v-icon-stub>
+                </v-chip-stub>
+              </v-card-stub>
+            </v-col-stub>
+          </v-row-stub>
+          <v-divider-stub></v-divider-stub>
+          <v-divider-stub></v-divider-stub>
+        </div>
+        <div data-test="editOperation-div" class="mt-6">
+          <validationobserver-stub tag="span" vid="obs_7"></validationobserver-stub>
+          <v-divider-stub></v-divider-stub>
+          <v-divider-stub></v-divider-stub>
+        </div>
+        <div data-test="userOperation-div" class="mt-6">
+          <v-row-stub tag="div">
+            <v-col-stub tag="div">
+              <h3>
+                Members
+              </h3>
+            </v-col-stub>
+            <v-spacer-stub></v-spacer-stub>
+            <!---->
+          </v-row-stub>
+          <div class="mt-5">
+            <v-list-stub tag="div">
+              <v-list-item-stub activeclass="" tag="div">
+                <v-row-stub tag="div">
+                  <v-col-stub md="auto" tag="div" class="ml-auto">
+                    <v-icon-stub>
+                      mdi-account
+                    </v-icon-stub>
+                  </v-col-stub>
+                  <v-col-stub tag="div">
+                    <v-list-item-title-stub datatest="user6-list" data-test="user6-list">
+                      user6
+                    </v-list-item-title-stub>
+                  </v-col-stub>
+                  <v-spacer-stub></v-spacer-stub>
+                  <div data-test="role-div">
+                    <v-col-stub md="auto" tag="div" class="ml-auto">
+                      <p data-test="role-text">
+                        Owner
+                      </p>
+                    </v-col-stub>
+                  </div>
+                </v-row-stub>
+              </v-list-item-stub>
+              <v-list-item-stub activeclass="" tag="div">
+                <v-row-stub tag="div">
+                  <v-col-stub md="auto" tag="div" class="ml-auto">
+                    <v-icon-stub>
+                      mdi-account
+                    </v-icon-stub>
+                  </v-col-stub>
+                  <v-col-stub tag="div">
+                    <v-list-item-title-stub datatest="user7-list" data-test="user7-list">
+                      user7
+                    </v-list-item-title-stub>
+                  </v-col-stub>
+                  <v-spacer-stub></v-spacer-stub>
+                  <div data-test="role-div">
+                    <v-col-stub md="auto" tag="div" class="ml-auto">
+                      <p data-test="role-text">
+                        Member
+                      </p>
+                    </v-col-stub>
+                  </div>
+                </v-row-stub>
+              </v-list-item-stub>
+              <v-list-item-stub activeclass="" tag="div">
+                <v-row-stub tag="div">
+                  <v-col-stub md="auto" tag="div" class="ml-auto">
+                    <v-icon-stub>
+                      mdi-account
+                    </v-icon-stub>
+                  </v-col-stub>
+                  <v-col-stub tag="div">
+                    <v-list-item-title-stub datatest="user8-list" data-test="user8-list">
+                      user8
+                    </v-list-item-title-stub>
+                  </v-col-stub>
+                  <v-spacer-stub></v-spacer-stub>
+                  <div data-test="role-div">
+                    <v-col-stub md="auto" tag="div" class="ml-auto">
+                      <p data-test="role-text">
+                        Member
+                      </p>
+                    </v-col-stub>
+                  </div>
+                </v-row-stub>
+              </v-list-item-stub>
+            </v-list-stub>
+          </div>
+          <v-divider-stub></v-divider-stub>
+          <v-divider-stub></v-divider-stub>
+        </div>
+        <!---->
+        <div data-test="deleteOperation-div" class="mt-6">
           <h3 class="mb-5">
             Danger Zone
           </h3>

@@ -12,10 +12,10 @@
             style="text-align:center"
           >
             <h3 class="pl-6">
-              <span data-test="notTheOwner">
+              <span data-test="notTheOwner-span">
                 You're not the owner of this namespace.
               </span>
-              <p data-test="namespaceOwnerMessage">
+              <p data-test="namespaceOwnerMessage-p">
                 Contact {{ namespaceOwnerName() }} user for more information.
               </p>
             </h3>
@@ -43,7 +43,7 @@
                   :elevation="0"
                 >
                   <v-chip>
-                    <span data-test="tenant">
+                    <span data-test="tenant-span">
                       {{ tenant }}
                     </span>
                     <v-icon
@@ -67,7 +67,7 @@
           <div
             v-if="isOwner"
             class="mt-6"
-            data-test="editOperation"
+            data-test="editOperation-div"
           >
             <ValidationObserver
               ref="obs"
@@ -121,7 +121,7 @@
 
           <div
             v-if="isOwner"
-            data-test="userOperation"
+            data-test="userOperation-div"
             class="mt-6"
           >
             <v-row>
@@ -135,7 +135,7 @@
 
               <div
                 v-if="isEnterpriseOwner"
-                data-test="new-member"
+                data-test="newMember-div"
               >
                 <v-col
                   md="auto"
@@ -163,7 +163,7 @@
                     </v-col>
 
                     <v-col>
-                      <v-list-item-title :data-test="item.name">
+                      <v-list-item-title :data-test="item.name+'-list'">
                         {{ item.name }}
                       </v-list-item-title>
                     </v-col>
@@ -179,8 +179,8 @@
                       >
                         <v-btn
                           v-if="item.id!==owner"
-                          data-test="remove-member"
                           outlined
+                          data-test="removeMember-btn"
                           @click="remove(item.name)"
                         >
                           <v-tooltip
@@ -199,7 +199,7 @@
 
                         <p
                           v-else
-                          data-test="owner"
+                          data-test="owner-p"
                           class="mr-3"
                         >
                           Owner
@@ -208,7 +208,7 @@
                     </div>
                     <div
                       v-else
-                      data-test="role"
+                      data-test="role-div"
                     >
                       <v-col
                         md="auto"
@@ -231,7 +231,7 @@
           <div
             v-if="isEnterpriseOwner"
             class="mt-6"
-            data-test="securityOperation"
+            data-test="securityOperation-div"
           >
             <SettingSecurity :has-tenant="hasTenant()" />
 
@@ -242,7 +242,7 @@
           <div
             v-if="isOwner"
             class="mt-6"
-            data-test="deleteOperation"
+            data-test="deleteOperation-div"
           >
             <h3 class="mb-5">
               Danger Zone
