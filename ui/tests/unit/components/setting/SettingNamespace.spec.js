@@ -12,13 +12,14 @@ describe('SettingNamespace', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
 
-  let wrapperOwner;
-  let wrapperNotOwner;
-  let wrapperOwnerOpen;
+  let wrapper;
 
   const idOwner = '6';
   const idNotOwner = '10';
   const owner = true;
+  const hasTenant = true;
+  const isEnterpriseOwner = true;
+  const isEnterprise = true;
   const textRole = ['Owner', 'Member', 'Member'];
 
   const countDevicesHasNamespacePercent = {
@@ -59,16 +60,11 @@ describe('SettingNamespace', () => {
       'auth/tenant': (state) => state.tenant,
     },
     actions: {
-      'namespaces/put': () => {
-      },
-      'namespaces/get': () => {
-      },
-      'namespaces/removeUser': () => {
-      },
-      'snackbar/showSnackbarSuccessAction': () => {
-      },
-      'snackbar/showSnackbarErrorAction': () => {
-      },
+      'namespaces/put': () => {},
+      'namespaces/get': () => {},
+      'namespaces/removeUser': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
     },
   });
 
@@ -87,16 +83,11 @@ describe('SettingNamespace', () => {
       'auth/tenant': (state) => state.tenant,
     },
     actions: {
-      'namespaces/put': () => {
-      },
-      'namespaces/get': () => {
-      },
-      'namespaces/removeUser': () => {
-      },
-      'snackbar/showSnackbarSuccessAction': () => {
-      },
-      'snackbar/showSnackbarErrorAction': () => {
-      },
+      'namespaces/put': () => {},
+      'namespaces/get': () => {},
+      'namespaces/removeUser': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
     },
   });
 
@@ -115,143 +106,275 @@ describe('SettingNamespace', () => {
       'auth/tenant': (state) => state.tenant,
     },
     actions: {
-      'namespaces/put': () => {
-      },
-      'namespaces/get': () => {
-      },
-      'namespaces/removeUser': () => {
-      },
-      'snackbar/showSnackbarSuccessAction': () => {
-      },
-      'snackbar/showSnackbarErrorAction': () => {
-      },
+      'namespaces/put': () => {},
+      'namespaces/get': () => {},
+      'namespaces/removeUser': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
     },
   });
 
-  beforeEach(() => {
-    jest.spyOn(Storage.prototype, 'getItem').mockReturnValue('e359bf484715');
+  ///////
+  // In this case, hosted version tests
+  ///////
 
-    wrapperOwner = shallowMount(SettingNamespace, {
-      store: storeOwner,
-      localVue,
-      stubs: ['fragment'],
-      mocks: ['$env'],
+  describe('Hosted version', () => {
+    beforeEach(() => {
+      jest.spyOn(Storage.prototype, 'getItem').mockReturnValue('e359bf484715');
+
+      wrapper = shallowMount(SettingNamespace, {
+        store: storeOwner,
+        localVue,
+        stubs: ['fragment'],
+        mocks: ['$env'],
+      });
     });
-    wrapperNotOwner = shallowMount(SettingNamespace, {
-      localVue,
-      store: storeNotOwner,
-      stubs: ['fragment'],
-      mocks: ['$env'],
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
     });
-    wrapperOwnerOpen = shallowMount(SettingNamespace, {
-      localVue,
-      store: storeOwnerOpen,
-      stubs: ['fragment'],
-      mocks: {
-        $env: {
-          isEnterprise: false,
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.name).toEqual(namespace.name);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.isOwner).toEqual(owner);
+      expect(wrapper.vm.owner).toEqual(namespace.owner);
+      expect(wrapper.vm.namespace).toEqual(namespace);
+      expect(wrapper.vm.tenant).toEqual(namespace.tenant_id);
+      expect(wrapper.vm.isEnterpriseOwner).toEqual(isEnterpriseOwner);
+      expect(wrapper.vm.isEnterprise).toEqual(isEnterprise);
+    });
+    it('Process data in methods', () => {
+      let percent = 0;
+      if (namespace.max_devices >= 0) {
+        percent = (wrapper.vm.countDevicesHasNamespace() / namespace.max_devices) * 100;
+      }
+      countDevicesHasNamespacePercent.maxDevices = namespace.max_devices;
+      countDevicesHasNamespacePercent.percent = percent;
+
+      expect(wrapper.vm.hasTenant()).toEqual(hasTenant);
+      expect(wrapper.vm.countDevicesHasNamespace()).toEqual(namespace.devices_count);
+      expect(wrapper.vm.countDevicesHasNamespacePercent())
+        .toEqual(countDevicesHasNamespacePercent);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="tenant-span"]').text()).toEqual(namespace.tenant_id);
+
+      //////
+      // Check rendering of member names in the list.
+      //////
+
+      namespace.members.forEach((member) => {
+        expect(wrapper.find(`[data-test="${member.name}-list"]`).text()).toEqual(member.name);
+      });
+
+      //////
+      // Check owner fields rendering.
+      //////
+
+      expect(wrapper.find('[data-test="owner-p"]').text()).toEqual('Owner');
+
+      expect(wrapper.find('[data-test="editOperation-div"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="userOperation-div"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="deleteOperation-div"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="securityOperation-div"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="notTheOwner-span"]').exists()).toEqual(false);
+      expect(wrapper.findAll('[data-test="removeMember-btn"]').length).toEqual(namespace.members.length - 1);
+      expect(wrapper.find('[data-test="role-div"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="newMember-div"]').exists()).toEqual(true);
+    });
+  });
+
+  ///////
+  // In this case, not the owner of this namespace
+  ///////
+
+  describe('Not the owner of this namespace', () => {
+    beforeEach(() => {
+      jest.spyOn(Storage.prototype, 'getItem').mockReturnValue('e359bf484715');
+
+      wrapper = shallowMount(SettingNamespace, {
+        localVue,
+        store: storeNotOwner,
+        stubs: ['fragment'],
+        mocks: ['$env'],
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.name).toEqual('');
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.isOwner).toEqual(!owner);
+      expect(wrapper.vm.owner).toEqual(namespace.owner);
+      expect(wrapper.vm.namespace).toEqual(namespace);
+      expect(wrapper.vm.tenant).toEqual('');
+      expect(wrapper.vm.isEnterpriseOwner).toEqual(!isEnterpriseOwner);
+      expect(wrapper.vm.isEnterprise).toEqual(isEnterprise);
+    });
+    it('Process data in methods', () => {
+      let percent = 0;
+      if (namespace.max_devices >= 0) {
+        percent = (wrapper.vm.countDevicesHasNamespace() / namespace.max_devices) * 100;
+      }
+      countDevicesHasNamespacePercent.maxDevices = namespace.max_devices;
+      countDevicesHasNamespacePercent.percent = percent;
+
+      expect(wrapper.vm.hasTenant()).toEqual(!hasTenant);
+      expect(wrapper.vm.countDevicesHasNamespace()).toEqual(namespace.devices_count);
+      expect(wrapper.vm.countDevicesHasNamespacePercent())
+        .toEqual(countDevicesHasNamespacePercent);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="tenant-span"]').text()).toEqual('');
+
+      //////
+      // Check owner fields rendering.
+      //////
+      const namespaceOwnerMessage = `Contact ${namespace.members[0].name} user for more information.`;
+
+      expect(wrapper.find('[data-test="owner-p"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="editOperation-div"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="userOperation-div"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="deleteOperation-div"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="securityOperation-div"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="notTheOwner-span"]').exists()).toEqual(true);
+      expect(wrapper.findAll('[data-test="removeMember-btn"]').length).toEqual(0);
+      expect(wrapper.find('[data-test="role-div"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="newMember-div"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test=namespaceOwnerMessage-p]').text()).toEqual(namespaceOwnerMessage);
+    });
+  });
+
+  ///////
+  // In this case, open version tests
+  ///////
+
+  describe('Open version', () => {
+    beforeEach(() => {
+      jest.spyOn(Storage.prototype, 'getItem').mockReturnValue('e359bf484715');
+
+      wrapper = shallowMount(SettingNamespace, {
+        localVue,
+        store: storeOwnerOpen,
+        stubs: ['fragment'],
+        mocks: {
+          $env: {
+            isEnterprise: false,
+          },
         },
-      },
+      });
     });
-  });
 
-  it('Is a Vue instance', () => {
-    expect(wrapperOwner).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapperOwner.html()).toMatchSnapshot();
-  });
-  it('Renders the template with data - hosted version tests', () => {
-    expect(wrapperOwner.find('[data-test=tenant]').text()).toEqual(namespace.tenant_id);
-  });
-  it('Process data in the computed - hosted version tests', () => {
-    expect(wrapperOwner.vm.namespace).toEqual(namespace);
-    expect(wrapperOwner.vm.tenant).toEqual(namespace.tenant_id);
-    expect(wrapperOwner.vm.isEnterpriseOwner).toEqual(true);
-    expect(wrapperOwner.vm.isEnterprise).toEqual(true);
-  });
-  it('Process data in methods - hosted version tests', () => {
-    expect(wrapperOwner.vm.hasTenant()).toEqual(true);
-  });
-  it('Loads name when component is created - hosted version tests', () => {
-    wrapperOwner.vm.$nextTick(() => {
-      expect(wrapperOwner.vm.name).toBe(namespace.name);
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
     });
-  });
-  it('Loads the owner in template - hosted version tests', () => {
-    expect(wrapperOwner.find('[data-test=owner]').text()).toEqual('Owner');
-  });
-  namespace.members.forEach((member) => {
-    it(`Loads ${member.name} member in template`, () => {
-      expect(wrapperOwner.find(`[data-test=${member.name}]`).text()).toEqual(member.name);
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
     });
-  });
-  it('Process data in methods - hosted version tests', () => {
-    expect(wrapperOwner.vm.countDevicesHasNamespace()).toEqual(namespace.devices_count);
 
-    let percent = 0;
-    if (namespace.max_devices >= 0) {
-      percent = (wrapperOwner.vm.countDevicesHasNamespace() / namespace.max_devices) * 100;
-    }
-    countDevicesHasNamespacePercent.maxDevices = namespace.max_devices;
-    countDevicesHasNamespacePercent.percent = percent;
+    ///////
+    // Data and Props checking
+    //////
 
-    expect(wrapperOwner.vm.countDevicesHasNamespacePercent())
-      .toEqual(countDevicesHasNamespacePercent);
-  });
-  it('Check owner fields rendering in hosted version of the template - hosted version tests', () => {
-    expect(wrapperOwner.find('[data-test=editOperation]').exists()).toEqual(true);
-    expect(wrapperOwner.find('[data-test=userOperation]').exists()).toEqual(true);
-    expect(wrapperOwner.find('[data-test=deleteOperation]').exists()).toEqual(true);
-    expect(wrapperOwner.find('[data-test=securityOperation]').exists()).toEqual(true);
-    expect(wrapperOwner.find('[data-test=notTheOwner]').exists()).toEqual(false);
-    expect(wrapperOwner.findAll('[data-test=remove-member]').length).toEqual(namespace.members.length - 1);
-    expect(wrapperOwner.find('[data-test=role]').exists()).toEqual(false);
-    expect(wrapperOwner.find('[data-test=new-member]').exists()).toEqual(true);
-  });
-  it('Process data in methods - not the owner of this namespace', () => {
-    expect(wrapperNotOwner.vm.hasTenant()).toEqual(false);
-  });
-  it('Check not the owner fields rendering in hosted version of the template - not the owner of this namespace', () => {
-    const notTheOwnerMessage = 'You\'re not the owner of this namespace.';
-    const namespaceOwnerMessage = `Contact ${namespace.members[0].name} user for more information.`;
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.name).toEqual(namespace.name);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.isOwner).toEqual(owner);
+      expect(wrapper.vm.owner).toEqual(namespace.owner);
+      expect(wrapper.vm.namespace).toEqual({ ...namespace, max_devices: -1 });
+      expect(wrapper.vm.tenant).toEqual(namespace.tenant_id);
+      expect(wrapper.vm.isEnterpriseOwner).toEqual(!isEnterpriseOwner);
+      expect(wrapper.vm.isEnterprise).toEqual(!isEnterprise);
+    });
+    it('Process data in methods', () => {
+      let percent = 0;
+      if (namespace.max_devices >= 0) {
+        percent = (wrapper.vm.countDevicesHasNamespace() / namespace.max_devices) * 100;
+      }
+      countDevicesHasNamespacePercent.maxDevices = namespace.max_devices;
+      countDevicesHasNamespacePercent.percent = percent;
 
-    expect(wrapperNotOwner.find('[data-test=editOperation]').exists()).toEqual(false);
-    expect(wrapperNotOwner.find('[data-test=userOperation]').exists()).toEqual(false);
-    expect(wrapperNotOwner.find('[data-test=deleteOperation]').exists()).toEqual(false);
-    expect(wrapperNotOwner.find('[data-test=securityOperation]').exists()).toEqual(false);
-    expect(wrapperNotOwner.find('[data-test=notTheOwner]').exists()).toEqual(true);
-    expect(wrapperNotOwner.find('[data-test=notTheOwner]').text()).toEqual(notTheOwnerMessage);
-    expect(wrapperNotOwner.find('[data-test=namespaceOwnerMessage]').text()).toEqual(namespaceOwnerMessage);
-  });
-  it('Process data in the computed - open version tests', () => {
-    expect(wrapperOwnerOpen.vm.isEnterprise).toEqual(false);
-  });
-  it('Process data in methods - open version tests', () => {
-    expect(wrapperOwnerOpen.vm.countDevicesHasNamespace()).toEqual(openNamespace.devices_count);
+      expect(wrapper.vm.hasTenant()).toEqual(hasTenant);
+      expect(wrapper.vm.countDevicesHasNamespace()).toEqual(namespace.devices_count);
+      expect(wrapper.vm.countDevicesHasNamespacePercent())
+        .toEqual({ ...countDevicesHasNamespacePercent, maxDevices: -1, percent: 0 });
+    });
 
-    let percent = 0;
-    if (openNamespace.max_devices >= 0) {
-      percent = (wrapperOwnerOpen.vm.countDevicesHasNamespace() / openNamespace.max_devices) * 100;
-    }
-    countDevicesHasNamespacePercent.maxDevices = openNamespace.max_devices;
-    countDevicesHasNamespacePercent.percent = percent;
+    //////
+    // HTML validation
+    //////
 
-    expect(wrapperOwnerOpen.vm.countDevicesHasNamespacePercent())
-      .toEqual(countDevicesHasNamespacePercent);
-  });
-  it('Check owner fields rendering in open version of the template - open version tests', () => {
-    expect(wrapperOwnerOpen.find('[data-test=editOperation]').exists()).toEqual(true);
-    expect(wrapperOwnerOpen.find('[data-test=userOperation]').exists()).toEqual(true);
-    expect(wrapperOwnerOpen.find('[data-test=deleteOperation]').exists()).toEqual(true);
-    expect(wrapperOwnerOpen.find('[data-test=securityOperation]').exists()).toEqual(false);
-    expect(wrapperOwnerOpen.find('[data-test=notTheOwner]').exists()).toEqual(false);
-    expect(wrapperOwnerOpen.findAll('[data-test=remove-member]').exists()).toEqual(false);
-    expect(wrapperOwnerOpen.find('[data-test=role]').exists()).toEqual(true);
-    expect(wrapperOwnerOpen.findAll('[data-test=role]').wrappers.reduce((ac, v) => {
-      ac.push(v.text());
-      return ac;
-    }, [])).toEqual(textRole);
-    expect(wrapperOwnerOpen.find('[data-test=new-member]').exists()).toEqual(false);
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="tenant-span"]').text()).toEqual(namespace.tenant_id);
+
+      //////
+      // Check rendering of member names in the list.
+      //////
+
+      namespace.members.forEach((member) => {
+        expect(wrapper.find(`[data-test="${member.name}-list"]`).text()).toEqual(member.name);
+      });
+
+      //////
+      // Check owner fields rendering.
+      //////
+
+      expect(wrapper.find('[data-test="owner-p"]').exists()).toEqual(false);
+
+      expect(wrapper.find('[data-test="editOperation-div"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="userOperation-div"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="deleteOperation-div"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="securityOperation-div"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="notTheOwner-span"]').exists()).toEqual(false);
+      expect(wrapper.findAll('[data-test="removeMember-btn"]').exists()).toEqual(false);
+      expect(wrapper.findAll('[data-test=role-div]').wrappers.reduce((ac, v) => {
+        ac.push(v.text());
+        return ac;
+      }, [])).toEqual(textRole);
+      expect(wrapper.find('[data-test="newMember-div"]').exists()).toEqual(false);
+    });
   });
 });

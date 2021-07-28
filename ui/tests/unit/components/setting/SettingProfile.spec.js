@@ -1,21 +1,10 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import SettingProfile from '@/components/setting/SettingProfile';
-import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import flushPromises from 'flush-promises';
-import { required, email } from 'vee-validate/dist/rules';
 import Vuetify from 'vuetify';
 import '@/vee-validate';
-
-extend('required', {
-  ...required,
-  message: 'This field is required',
-});
-
-extend('email', {
-  ...email,
-  message: 'This field must be a valid email',
-});
 
 describe('SettingProfile', () => {
   const localVue = createLocalVue();
@@ -26,9 +15,9 @@ describe('SettingProfile', () => {
 
   let wrapper;
 
-  const user = 'ShellHub';
+  const username = 'ShellHub';
   const emailUser = 'shellhub@shellhub.com';
-  const tenant = '';
+  const tenant = 'xxxxxxxx';
 
   // vee-validate variables bellow
   const invalidEmails = ['notemail', 'missing@dot', 'with.only.dots', 'r4ndomCH@r5'];
@@ -43,18 +32,17 @@ describe('SettingProfile', () => {
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      user,
+      username,
       email: emailUser,
       tenant,
     },
     getters: {
-      'auth/currentUser': (state) => state.user,
+      'auth/currentUser': (state) => state.username,
       'auth/email': (state) => state.email,
       'auth/tenant': (state) => state.tenant,
     },
     actions: {
-      'users/put': () => {
-      },
+      'users/put': () => {},
     },
   });
 
@@ -67,17 +55,23 @@ describe('SettingProfile', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.tenant).toEqual(tenant);
-  });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Compare data with default value', () => {
-    expect(wrapper.vm.username).toEqual(user);
+    expect(wrapper.vm.username).toEqual(username);
     expect(wrapper.vm.email).toEqual(emailUser);
     expect(wrapper.vm.currentPassword).toEqual('');
     expect(wrapper.vm.newPassword).toEqual('');
@@ -86,15 +80,19 @@ describe('SettingProfile', () => {
     expect(wrapper.vm.editPasswordStatus).toEqual(false);
     expect(wrapper.vm.show).toEqual(false);
   });
-  it('Renders the template with data', async () => {
-    expect(wrapper.find('[data-test="username-text"]').element.value).toEqual(user);
-    expect(wrapper.find('[data-test="email-text"]').element.value).toEqual(emailUser);
-    expect(wrapper.find('[data-test="password-text"]').element.value).toEqual('');
-    expect(wrapper.find('[data-test="newPassword-text"]').element.value).toEqual('');
-    expect(wrapper.find('[data-test="confirmNewPassword-text"]').element.value).toEqual('');
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.tenant).toEqual(tenant);
   });
 
-  it('Show empty fields required in validation', async () => {
+  //////
+  // HTML validation
+  //////
+
+  it('Show validation messages', async () => {
+    //////
+    // In this case, the empty fields are validated.
+    //////
+
     wrapper.setData({ username: '', email: '', currentPassword: '' });
     await flushPromises();
 
@@ -114,34 +112,27 @@ describe('SettingProfile', () => {
     expect(validatorNewPass.errors[0]).toBe('This field is required');
     await validatorConfirmPass.validate();
     expect(validatorConfirmPass.errors[0]).toBe('This field is required');
-  });
 
-  invalidEmails.forEach((iemail) => {
-    it(`Shows invalid email error for ${iemail}`, async () => {
+    //////
+    // In this case, invalid email error are validated.
+    //////
+
+    invalidEmails.forEach(async (iemail) => {
       wrapper.setData({ email: iemail });
       await flushPromises();
 
       const validator = wrapper.vm.$refs.providerEmail;
 
       await validator.validate();
+
       expect(validator.errors[0]).toBe('This field must be a valid email');
     });
-  });
 
-  validEmails.forEach((vemail) => {
-    it(`Valid email for ${vemail}`, async () => {
-      wrapper.setData({ email: vemail });
-      await flushPromises();
+    //////
+    // In this case, invalid password length are validated.
+    //////
 
-      const validator = wrapper.vm.$refs.providerEmail;
-
-      await validator.validate();
-      expect(validator.errors).toHaveLength(0);
-    });
-  });
-
-  invalidPasswords.forEach((ipass) => {
-    it(`Shows invalid password length for ${ipass}`, async () => {
+    invalidPasswords.forEach(async (ipass) => {
       wrapper.setData({ newPassword: ipass });
       await flushPromises();
 
@@ -150,22 +141,12 @@ describe('SettingProfile', () => {
       await validator.validate();
       expect(validator.errors[0]).toBe('Your password should be 5-30 characters long');
     });
-  });
 
-  validPasswords.forEach((vpass) => {
-    it(`Valid password for ${vpass}`, async () => {
-      wrapper.setData({ newPassword: vpass });
-      await flushPromises();
+    //////
+    // In this case, invalid password match are validated.
+    //////
 
-      const validator = wrapper.vm.$refs.providerNewPassword;
-
-      await validator.validate();
-      expect(validator.errors).toHaveLength(0);
-    });
-  });
-
-  confirmPasswordsMatchError.forEach((item) => {
-    it(`Shows invalid password match for ${item.new} and ${item.confirmNew}`, async () => {
+    confirmPasswordsMatchError.forEach(async (item) => {
       wrapper.setData({ newPassword: item.new, newPasswordConfirm: item.confirmNew });
       await flushPromises();
 
@@ -174,22 +155,12 @@ describe('SettingProfile', () => {
       await validator.validate();
       expect(validator.errors[0]).toBe('The passwords do not match');
     });
-  });
 
-  confirmPasswordsMatchSuccess.forEach((item) => {
-    it(`Valid password match for ${item.new} and ${item.confirmNew}`, async () => {
-      wrapper.setData({ newPassword: item.new, newPasswordConfirm: item.confirmNew });
-      await flushPromises();
+    //////
+    // In this case, error for switching to the same password are validated.
+    //////
 
-      const validator = wrapper.vm.$refs.providerConfirmPassword;
-
-      await validator.validate();
-      expect(validator.errors).toHaveLength(0);
-    });
-  });
-
-  compareOldNewError.forEach((item) => {
-    it(`Shows error for switching to the same password ${item.old}`, async () => {
+    compareOldNewError.forEach(async (item) => {
       wrapper.setData({ currentPassword: item.old, newPassword: item.new });
       await flushPromises();
 
@@ -198,10 +169,54 @@ describe('SettingProfile', () => {
       await validator.validate();
       expect(validator.errors[0]).toBe('The passwords are the same');
     });
-  });
 
-  compareOldNewSuccess.forEach((item) => {
-    it(`Valid password change from ${item.old} to ${item.new}`, async () => {
+    //////
+    // In this case, valid email are validated.
+    //////
+
+    validEmails.forEach(async (vemail) => {
+      wrapper.setData({ email: vemail });
+      await flushPromises();
+
+      const validator = wrapper.vm.$refs.providerEmail;
+
+      await validator.validate();
+      expect(validator.errors).toHaveLength(0);
+    });
+
+    //////
+    // In this case, valid password length are validated.
+    //////
+
+    validPasswords.forEach(async (vpass) => {
+      wrapper.setData({ newPassword: vpass });
+      await flushPromises();
+
+      const validator = wrapper.vm.$refs.providerNewPassword;
+
+      await validator.validate();
+      expect(validator.errors).toHaveLength(0);
+    });
+
+    //////
+    // In this case, valid password match are validated.
+    //////
+
+    confirmPasswordsMatchSuccess.forEach(async (item) => {
+      wrapper.setData({ newPassword: item.new, newPasswordConfirm: item.confirmNew });
+      await flushPromises();
+
+      const validator = wrapper.vm.$refs.providerConfirmPassword;
+
+      await validator.validate();
+      expect(validator.errors).toHaveLength(0);
+    });
+
+    //////
+    // In this case, valid password change.
+    //////
+
+    compareOldNewSuccess.forEach(async (item) => {
       wrapper.setData({ currentPassword: item.old, newPassword: item.new });
       await flushPromises();
 
@@ -210,5 +225,12 @@ describe('SettingProfile', () => {
       await validator.validate();
       expect(validator.errors).toHaveLength(0);
     });
+  });
+  it('Renders the template with data', async () => {
+    expect(wrapper.find('[data-test="username-text"]').element.value).toEqual(username);
+    expect(wrapper.find('[data-test="email-text"]').element.value).toEqual(emailUser);
+    expect(wrapper.find('[data-test="password-text"]').element.value).toEqual('');
+    expect(wrapper.find('[data-test="newPassword-text"]').element.value).toEqual('');
+    expect(wrapper.find('[data-test="confirmNewPassword-text"]').element.value).toEqual('');
   });
 });

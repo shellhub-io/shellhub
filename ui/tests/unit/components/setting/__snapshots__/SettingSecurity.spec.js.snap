@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SettingSecurity Renders the component 1`] = `
-<v-form-stub show="true">
+<v-form-stub>
   <v-row-stub tag="div">
     <v-col-stub tag="div" class="mb-6">
       <h3 class="mb-5">
