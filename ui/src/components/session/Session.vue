@@ -46,17 +46,23 @@ export default {
     showBoxMessage() {
       return !this.hasSession && this.show;
     },
+
+    isLoggedIn() {
+      return this.$store.getters['auth/isLoggedIn'];
+    },
   },
 
   async created() {
-    try {
-      this.$store.dispatch('boxs/setStatus', true);
-      this.$store.dispatch('sessions/resetPagePerpage');
+    if (this.isLoggedIn) {
+      try {
+        this.$store.dispatch('boxs/setStatus', true);
+        this.$store.dispatch('sessions/resetPagePerpage');
 
-      await this.$store.dispatch('sessions/refresh');
-      this.show = true;
-    } catch {
-      this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.sessionList);
+        await this.$store.dispatch('sessions/refresh');
+        this.show = true;
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.sessionList);
+      }
     }
   },
 };

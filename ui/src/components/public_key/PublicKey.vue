@@ -54,14 +54,20 @@ export default {
     showBoxMessage() {
       return !this.hasPublickey && this.show;
     },
+
+    isLoggedIn() {
+      return this.$store.getters['auth/isLoggedIn'];
+    },
   },
 
   async created() {
-    this.$store.dispatch('boxs/setStatus', true);
-    this.$store.dispatch('publickeys/resetPagePerpage');
+    if (this.isLoggedIn) {
+      this.$store.dispatch('boxs/setStatus', true);
+      this.$store.dispatch('publickeys/resetPagePerpage');
 
-    await this.refresh();
-    this.show = true;
+      await this.refresh();
+      this.show = true;
+    }
   },
 
   methods: {

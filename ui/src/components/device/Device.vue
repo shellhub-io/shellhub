@@ -108,6 +108,10 @@ export default {
     showBoxMessage() {
       return !this.hasDevice && this.show;
     },
+
+    isLoggedIn() {
+      return this.$store.getters['auth/isLoggedIn'];
+    },
   },
 
   watch: {
@@ -117,14 +121,16 @@ export default {
   },
 
   async created() {
-    try {
-      await this.$store.dispatch('stats/get');
-      this.show = true;
-    } catch (error) {
-      if (error.response.status === 403) {
-        this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
-      } else {
-        this.$store.dispatch('snackbar/showSnackbarErrorDefault');
+    if (this.isLoggedIn) {
+      try {
+        await this.$store.dispatch('stats/get');
+        this.show = true;
+      } catch (error) {
+        if (error.response.status === 403) {
+          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorDefault');
+        }
       }
     }
   },
