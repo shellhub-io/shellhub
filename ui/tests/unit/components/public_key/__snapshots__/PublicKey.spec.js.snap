@@ -71,3 +71,22 @@ exports[`Session Without public key Renders the component 2`] = `
   </div>
 </fragment-stub>
 `;
+
+exports[`Session Without public key Renders the component 3`] = `
+<fragment-stub>
+  <div class="d-flex pa-0 align-center">
+    <h1>Public Keys</h1>
+    <div class="spacer"></div>
+    <div class="spacer"></div>
+    <fragment-stub data-test="publicKeyCreate-component">
+      <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="createKey-btn"><span class="v-btn__content">
+          Add public Key
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      <div role="dialog" class="v-dialog__container">
+        <!---->
+      </div>
+    </fragment-stub>
+  </div>
+  <div class="mt-2 v-card v-sheet theme--light"></div>
+</fragment-stub>
+`;
