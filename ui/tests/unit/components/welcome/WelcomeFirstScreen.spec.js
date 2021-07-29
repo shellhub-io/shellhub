@@ -33,12 +33,21 @@ describe('WelcomeFirstScreen', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Process data in the computed', () => {
     expect(wrapper.vm.name).toEqual(user);
   });

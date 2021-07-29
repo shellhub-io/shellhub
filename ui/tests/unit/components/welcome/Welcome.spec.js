@@ -20,18 +20,18 @@ describe('Welcome', () => {
   };
 
   const devicePending = {
-    uid: 'a582b47a42e',
+    uid: 'a582b47a',
     name: '39-5e-2b',
     identity: {
-      mac: '00:00:00:00:00:00',
+      mac: '00:00:00',
     },
     info: {
       id: 'linuxmint',
-      pretty_name: 'Linux Mint 19.3',
+      pretty_name: 'Linux',
       version: '',
     },
-    public_key: '----- PUBLIC KEY -----',
-    tenant_id: '00000001',
+    public_key: 'xxxxxxxx',
+    tenant_id: 'xxxxxxxx',
     last_seen: '2020-05-20T19:58:53.276Z',
     online: true,
     namespace: 'user',
@@ -51,16 +51,11 @@ describe('Welcome', () => {
       'devices/getFirstPending': (state) => state.devicePending,
     },
     actions: {
-      'stats/get': () => {
-      },
-      'devices/accept': () => {
-      },
-      'notifications/fetch': () => {
-      },
-      'snackbar/showSnackbarErrorAction': () => {
-      },
-      'snackbar/showSnackbarErrorDefault': () => {
-      },
+      'stats/get': () => {},
+      'devices/accept': () => {},
+      'notifications/fetch': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
+      'snackbar/showSnackbarErrorDefault': () => {},
     },
   });
 
@@ -73,27 +68,52 @@ describe('Welcome', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Receive data in props', () => {
     expect(wrapper.vm.show).toEqual(show);
+  });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.e1).toEqual(1);
+    expect(wrapper.vm.enable).toEqual(false);
+    expect(wrapper.vm.polling).toEqual(null);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.showWelcome).toEqual(show);
   });
   it('Process data in the methods', () => {
     const command = `curl -sSf "http://localhost/install.sh?tenant_id=${tenant}" | sh`;
 
     expect(wrapper.vm.command()).toEqual(command);
   });
-  it('Compare data with default value', () => {
+
+  //////
+  // HTML validation
+  //////
+
+  it('Compare data with default value', async () => {
     expect(wrapper.vm.e1).toEqual(1);
     expect(wrapper.vm.enable).toEqual(false);
     expect(wrapper.vm.curl.hostname).toEqual('localhost');
     expect(wrapper.vm.curl.tenant).toEqual(tenant);
-  });
-  it('Test the click event', async () => {
+
+    //////
+    // In this case is tested the click event.
+    //////
+
     wrapper.find('[data-test="firstClick-btn"]').vm.$emit('click');
     expect(wrapper.vm.e1).toEqual(2);
 
