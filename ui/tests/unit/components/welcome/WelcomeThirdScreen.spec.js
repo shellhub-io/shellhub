@@ -9,17 +9,17 @@ describe('WelcomeThirdScreen', () => {
   let wrapper;
 
   const device = {
-    uid: 'a582b47a42d',
+    uid: 'a582b47a',
     name: '39-5e-2a',
     identity: {
-      mac: '00:00:00:00:00:00',
+      mac: '00:00:00',
     },
     info: {
       id: 'arch',
-      pretty_name: 'Linux Mint 19.3',
+      pretty_name: 'Linux',
       version: '',
     },
-    public_key: '----- PUBLIC KEY -----',
+    public_key: 'xxxxxxxx',
     tenant_id: '00000000',
     last_seen: '2020-05-20T18:58:53.276Z',
     online: true,
@@ -35,10 +35,8 @@ describe('WelcomeThirdScreen', () => {
       'devices/getFirstPending': (state) => state.device,
     },
     actions: {
-      'devices/setFirstPending': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
+      'devices/setFirstPending': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
@@ -50,15 +48,29 @@ describe('WelcomeThirdScreen', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Process data in the computed', () => {
     expect(wrapper.vm.getPendingDevice).toEqual(device);
   });
+
+  //////
+  // HTML validation
+  //////
+
   it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="deviceName-field"]').text()).toEqual(device.name);
     expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(device.info.pretty_name);

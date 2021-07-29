@@ -22,7 +22,7 @@ exports[`WelcomeThirdScreen Renders the component 1`] = `
         <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" data-test="devicePrettyName-field" class="pa-2 grey lighten-4">
           <div>
             <deviceicon-stub iconname="arch"></deviceicon-stub>
-            Linux Mint 19.3
+            Linux
           </div>
         </v-card-stub>
       </v-col-stub>

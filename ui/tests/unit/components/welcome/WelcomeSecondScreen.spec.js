@@ -31,15 +31,29 @@ describe('WelcomeSecondScreen', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Receive data in props', () => {
     expect(wrapper.vm.command).toEqual(command);
   });
+
+  //////
+  // HTML validation
+  //////
+
   it('Renders the template with data', () => {
     const commandText = wrapper.find('[data-test="command-text"]');
     commandText.element.value = command;
