@@ -12,11 +12,10 @@ require (
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
+	github.com/elazarl/goproxy v0.0.0-20210110162100-a92cc753f88e // indirect
 	github.com/gliderlabs/ssh v0.3.3
 	github.com/gorilla/mux v1.8.0
-	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
@@ -29,7 +28,6 @@ require (
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22
-	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
 	gotest.tools/v3 v3.0.3 // indirect
 )
 
