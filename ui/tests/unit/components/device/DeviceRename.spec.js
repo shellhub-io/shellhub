@@ -19,6 +19,15 @@ describe('DeviceRename', () => {
   const uid = 'a582b47a42d';
   const name = '39-5e-2a';
 
+  const invalidNames = [
+    '\'', '"', '!', '@', '#', '$', '%', '¨', '&', '*', '(', ')', '-', '_', '=', '+', '´', '`', '[',
+    '{', '~', '^', ']', ',', '<', '..', '>', ';', ':', '/', '?',
+  ];
+
+  const invalidMinAndMaxCharacters = [
+    'xx', 'xx', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+  ];
+
   const store = new Vuex.Store({
     namespaced: true,
     state: {
@@ -98,5 +107,45 @@ describe('DeviceRename', () => {
 
     await validator.validate();
     expect(validator.errors[0]).toBe('This field is required');
+  });
+  it('Shows invalid hostname error for dot', async () => {
+    wrapper.setData({ dialog: true });
+    await flushPromises();
+
+    wrapper.setData({ editName: 'ShelHub.' });
+    await flushPromises();
+
+    const validator = wrapper.vm.$refs.providerHostname;
+
+    await validator.validate();
+    expect(validator.errors[0]).toBe('The name must not contain dots');
+  });
+  invalidNames.forEach((invalidName) => {
+    it(`Shows invalid hostname error for ${invalidName}`, async () => {
+      wrapper.setData({ dialog: true });
+      await flushPromises();
+
+      wrapper.setData({ editName: invalidName });
+      await flushPromises();
+
+      const validator = wrapper.vm.$refs.providerHostname;
+
+      await validator.validate();
+      expect(validator.errors[0]).toBe('You entered an invalid RFC1123 name');
+    });
+  });
+  invalidMinAndMaxCharacters.forEach((character) => {
+    it(`Shows invalid hostname error for ${character}`, async () => {
+      wrapper.setData({ dialog: true });
+      await flushPromises();
+
+      wrapper.setData({ editName: character });
+      await flushPromises();
+
+      const validator = wrapper.vm.$refs.providerHostname;
+
+      await validator.validate();
+      expect(validator.errors[0]).toBe('Your hostname should be 3-30 characters long');
+    });
   });
 });

@@ -45,7 +45,7 @@
               v-slot="{ errors }"
               ref="providerHostname"
               name="Hostname"
-              rules="required|rfc1123|noDot"
+              rules="required|rfc1123|noDot|device"
               vid="hostname"
             >
               <v-text-field
@@ -157,7 +157,11 @@ export default {
         this.editName = '';
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceRename);
       } catch (error) {
-        if (error.response.status === 409) {
+        if (error.response.status === 400) {
+          this.$refs.obs.setErrors({
+            hostname: this.$errors.form.invalid('hostname', 'nonStandardCharacters'),
+          });
+        } else if (error.response.status === 409) {
           this.$refs.obs.setErrors({
             hostname: ['The name already exists in the namespace'],
           });
