@@ -12,7 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -323,7 +322,7 @@ func TestRenameDevice(t *testing.T) {
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(device, nil).Once()
 			},
-			expected: validator.ErrBadRequest,
+			expected: ErrInvalidFormat,
 		},
 		{
 			name:          "RenameDevice returns nil if the name is the same",

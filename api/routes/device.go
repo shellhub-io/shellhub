@@ -104,6 +104,8 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	case services.ErrDuplicatedDeviceName:
 		return c.NoContent(http.StatusConflict)
+	case services.ErrInvalidFormat:
+		return c.NoContent(http.StatusBadRequest)
 	default:
 		return err
 	}
