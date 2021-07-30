@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/rsa"
 	"errors"
+	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"strings"
 	"time"
 
@@ -316,7 +318,15 @@ func (s *Session) register(_ sshserver.Session) error {
 	return nil
 }
 
-func (s *Session) finish() error {
+func (s *Session) finish(conn net.Conn) error {
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", s.UID), nil)
+	if err := req.Write(conn); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"err":     err,
+			"session": s.session.Context().Value(sshserver.ContextKeySessionID),
+		}).Error("Failed to write")
+	}
+
 	if errs := client.NewClient().FinishSession(s.UID); len(errs) > 0 {
 		return errs[0]
 	}
