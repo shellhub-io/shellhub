@@ -178,6 +178,10 @@ func (s *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 		return fromMongoError(err)
 	}
 
+	if session.Closed {
+		return nil
+	}
+
 	session.LastSeen = clock.Now()
 
 	opts := options.Update().SetUpsert(true)
@@ -205,6 +209,8 @@ func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error 
 	}
 
 	session.LastSeen = clock.Now()
+	session.Closed = true
+
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session}, opts)
 	if err != nil {
