@@ -52,6 +52,8 @@ export default {
             alphanum: `The ${field} is not in an alphanumeric standard`,
             ascii: `The ${field} is not in an ascii standard`,
             email: 'The format for email is invalid',
+            nonStandardCharacters: `Your ${field} should be 3-30 characters long`,
+            nameUsed: `This ${field} is already taken`,
             other: 'The format is invalid',
           };
           return types[param] || types.other;

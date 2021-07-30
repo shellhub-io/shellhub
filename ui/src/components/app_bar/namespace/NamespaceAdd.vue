@@ -20,7 +20,7 @@
                 ref="providerNamespace"
                 vid="namespace"
                 name="namespace"
-                rules="required|rfc1123|noDot"
+                rules="required|rfc1123|noDot|namespace"
               >
                 <v-text-field
                   v-model="namespaceName"
@@ -135,7 +135,11 @@ export default {
         this.$refs.obs.reset();
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceCreating);
       } catch (error) {
-        if (error.response.status === 409) {
+        if (error.response.status === 400) {
+          this.$refs.obs.setErrors({
+            namespace: this.$errors.form.invalid('namespace', 'nonStandardCharacters'),
+          });
+        } else if (error.response.status === 409) {
           this.$refs.obs.setErrors({
             namespace: ['This name is already taken'],
           });

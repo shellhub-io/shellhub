@@ -101,7 +101,7 @@
                   ref="providerName"
                   vid="name"
                   name="Priority"
-                  rules="required|rfc1123|noDot"
+                  rules="required|rfc1123|noDot|namespace"
                 >
                   <v-text-field
                     v-model="name"
@@ -340,8 +340,18 @@ export default {
         await this.$store.dispatch('namespaces/put', { id: this.tenant, name: this.name });
         await this.$store.dispatch('namespaces/get', this.tenant);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceEdit);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceEdit);
+      } catch (error) {
+        if (error.response.status === 400) {
+          this.$refs.obs.setErrors({
+            namespace: this.$errors.form.invalid('namespace', 'nonStandardCharacters'),
+          });
+        } else if (error.response.status === 409) {
+          this.$refs.obs.setErrors({
+            namespace: this.$errors.form.invalid('namespace', 'nameUsed'),
+          });
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceEdit);
+        }
       }
     },
 

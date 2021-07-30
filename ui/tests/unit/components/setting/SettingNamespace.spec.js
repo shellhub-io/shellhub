@@ -1,6 +1,10 @@
 import Vuex from 'vuex';
-import { shallowMount, createLocalVue, config } from '@vue/test-utils';
+import { mount, createLocalVue, config } from '@vue/test-utils';
 import SettingNamespace from '@/components/setting/SettingNamespace';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import flushPromises from 'flush-promises';
+import Vuetify from 'vuetify';
+import '@/vee-validate';
 
 config.mocks = {
   $env: {
@@ -10,7 +14,12 @@ config.mocks = {
 
 describe('SettingNamespace', () => {
   const localVue = createLocalVue();
+  const vuetify = new Vuetify();
   localVue.use(Vuex);
+  localVue.component('ValidationProvider', ValidationProvider);
+  localVue.component('ValidationObserver', ValidationObserver);
+
+  document.body.setAttribute('data-app', true);
 
   let wrapper;
 
@@ -45,6 +54,15 @@ describe('SettingNamespace', () => {
     max_devices: -1,
   };
 
+  const invalidNamespaces = [
+    '\'', '"', '!', '@', '#', '$', '%', '¨', '&', '*', '(', ')', '-', '_', '=', '+', '´', '`', '[',
+    '{', '~', '^', ']', ',', '<', '..', '>', ';', ':', '/', '?',
+  ];
+
+  const invalidMinAndMaxCharacters = [
+    's', 'sh', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+  ];
+
   const storeNotOwner = new Vuex.Store({
     namespaced: true,
     state: {
@@ -65,6 +83,7 @@ describe('SettingNamespace', () => {
       'namespaces/removeUser': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
       'snackbar/showSnackbarErrorAction': () => {},
+      'security/get': () => {},
     },
   });
 
@@ -88,6 +107,7 @@ describe('SettingNamespace', () => {
       'namespaces/removeUser': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
       'snackbar/showSnackbarErrorAction': () => {},
+      'security/get': () => {},
     },
   });
 
@@ -111,6 +131,7 @@ describe('SettingNamespace', () => {
       'namespaces/removeUser': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
       'snackbar/showSnackbarErrorAction': () => {},
+      'security/get': () => {},
     },
   });
 
@@ -122,11 +143,12 @@ describe('SettingNamespace', () => {
     beforeEach(() => {
       jest.spyOn(Storage.prototype, 'getItem').mockReturnValue('e359bf484715');
 
-      wrapper = shallowMount(SettingNamespace, {
+      wrapper = mount(SettingNamespace, {
         store: storeOwner,
         localVue,
         stubs: ['fragment'],
         mocks: ['$env'],
+        vuetify,
       });
     });
 
@@ -174,6 +196,64 @@ describe('SettingNamespace', () => {
     // HTML validation
     //////
 
+    //////
+    // In this case, invalid RFC1123.
+    //////
+
+    invalidNamespaces.forEach((inamespace) => {
+      it(`Shows invalid namespace error for ${inamespace}`, async () => {
+        wrapper.setData({ name: inamespace });
+        await flushPromises();
+
+        const validator = wrapper.vm.$refs.providerName;
+
+        await validator.validate();
+        expect(validator.errors[0]).toBe('You entered an invalid RFC1123 name');
+      });
+    });
+
+    //////
+    // In this case, password should be 3-30 characters long.
+    //////
+
+    invalidMinAndMaxCharacters.forEach((character) => {
+      it(`Shows invalid namespace error for ${character}`, async () => {
+        wrapper.setData({ name: character });
+        await flushPromises();
+
+        const validator = wrapper.vm.$refs.providerName;
+
+        await validator.validate();
+        expect(validator.errors[0]).toBe('Your namespace should be 3-30 characters long');
+      });
+    });
+
+    it('Show validation messages', async () => {
+      //////
+      // In this case, validate fields required.
+      //////
+
+      wrapper.setData({ name: '' });
+      await flushPromises();
+
+      let validator = wrapper.vm.$refs.providerName;
+
+      await validator.validate();
+      expect(validator.errors[0]).toBe('This field is required');
+
+      //////
+      // In this case, must not contain dots.
+      //////
+
+      wrapper.setData({ name: 'ShelHub.' });
+      await flushPromises();
+
+      validator = wrapper.vm.$refs.providerName;
+
+      await validator.validate();
+      expect(validator.errors[0]).toBe('The name must not contain dots');
+    });
+
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="tenant-span"]').text()).toEqual(namespace.tenant_id);
 
@@ -210,11 +290,12 @@ describe('SettingNamespace', () => {
     beforeEach(() => {
       jest.spyOn(Storage.prototype, 'getItem').mockReturnValue('e359bf484715');
 
-      wrapper = shallowMount(SettingNamespace, {
+      wrapper = mount(SettingNamespace, {
         localVue,
         store: storeNotOwner,
         stubs: ['fragment'],
         mocks: ['$env'],
+        vuetify,
       });
     });
 
@@ -291,7 +372,7 @@ describe('SettingNamespace', () => {
     beforeEach(() => {
       jest.spyOn(Storage.prototype, 'getItem').mockReturnValue('e359bf484715');
 
-      wrapper = shallowMount(SettingNamespace, {
+      wrapper = mount(SettingNamespace, {
         localVue,
         store: storeOwnerOpen,
         stubs: ['fragment'],
@@ -300,6 +381,7 @@ describe('SettingNamespace', () => {
             isEnterprise: false,
           },
         },
+        vuetify,
       });
     });
 

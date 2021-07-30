@@ -23,6 +23,10 @@ describe('NamespaceAdd', () => {
     '{', '~', '^', ']', ',', '<', '..', '>', ';', ':', '/', '?',
   ];
 
+  const invalidMinAndMaxCharacters = [
+    's', 'sh', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+  ];
+
   beforeEach(() => {
     wrapper = mount(NamespaceAdd, {
       localVue,
@@ -76,6 +80,17 @@ describe('NamespaceAdd', () => {
 
       await validator.validate();
       expect(validator.errors[0]).toBe('You entered an invalid RFC1123 name');
+    });
+  });
+  invalidMinAndMaxCharacters.forEach((character) => {
+    it(`Shows invalid namespace error for ${character}`, async () => {
+      wrapper.setData({ namespaceName: character });
+      await flushPromises();
+
+      const validator = wrapper.vm.$refs.providerNamespace;
+
+      await validator.validate();
+      expect(validator.errors[0]).toBe('Your namespace should be 3-30 characters long');
     });
   });
 });

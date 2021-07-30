@@ -2,164 +2,177 @@
 
 exports[`SettingNamespace Hosted version Renders the component 1`] = `
 <fragment-stub>
-  <v-container-stub tag="div">
-    <v-row-stub tag="div" align="center" justify="center" class="mt-4">
-      <v-col-stub sm="8" tag="div">
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col">
         <!---->
         <div class="mt-6">
-          <v-row-stub tag="div" class="mb-2">
-            <v-col-stub md="auto" tag="div">
-              <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true">
+          <div class="row mb-2">
+            <div class="col-md-auto col">
+              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
                 Tenant ID:
-              </v-card-stub>
-            </v-col-stub>
-            <v-col-stub md="auto" tag="div" class="ml-auto">
-              <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" class="auto">
-                <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete"><span data-test="tenant-span">
-                    e359bf484715
-                  </span>
-                  <v-icon-stub right="" data-clipboard-click-handler="$3" data-clipboard-success-handler="$4">
-                    mdi-content-copy
-                  </v-icon-stub>
-                </v-chip-stub>
-              </v-card-stub>
-            </v-col-stub>
-          </v-row-stub>
-          <v-divider-stub></v-divider-stub>
-          <v-divider-stub></v-divider-stub>
-        </div>
-        <div data-test="editOperation-div" class="mt-6">
-          <validationobserver-stub tag="span" vid="obs_1"></validationobserver-stub>
-          <v-divider-stub></v-divider-stub>
-          <v-divider-stub></v-divider-stub>
-        </div>
-        <div data-test="userOperation-div" class="mt-6">
-          <v-row-stub tag="div">
-            <v-col-stub tag="div">
-              <h3>
-                Members
-              </h3>
-            </v-col-stub>
-            <v-spacer-stub></v-spacer-stub>
-            <div data-test="newMember-div">
-              <v-col-stub md="auto" tag="div" class="ml-auto">
-                <namespacenewmember-stub nstenant="e359bf484715"></namespacenewmember-stub>
-              </v-col-stub>
-            </div>
-          </v-row-stub>
-          <div class="mt-5">
-            <v-list-stub tag="div">
-              <v-list-item-stub activeclass="" tag="div">
-                <v-row-stub tag="div">
-                  <v-col-stub md="auto" tag="div" class="ml-auto">
-                    <v-icon-stub>
-                      mdi-account
-                    </v-icon-stub>
-                  </v-col-stub>
-                  <v-col-stub tag="div">
-                    <v-list-item-title-stub datatest="user6-list" data-test="user6-list">
-                      user6
-                    </v-list-item-title-stub>
-                  </v-col-stub>
-                  <v-spacer-stub></v-spacer-stub>
-                  <div>
-                    <v-col-stub md="auto" tag="div" class="ml-auto">
-                      <p data-test="owner-p" class="mr-3">
-                        Owner
-                      </p>
-                    </v-col-stub>
-                  </div>
-                </v-row-stub>
-              </v-list-item-stub>
-              <v-list-item-stub activeclass="" tag="div">
-                <v-row-stub tag="div">
-                  <v-col-stub md="auto" tag="div" class="ml-auto">
-                    <v-icon-stub>
-                      mdi-account
-                    </v-icon-stub>
-                  </v-col-stub>
-                  <v-col-stub tag="div">
-                    <v-list-item-title-stub datatest="user7-list" data-test="user7-list">
-                      user7
-                    </v-list-item-title-stub>
-                  </v-col-stub>
-                  <v-spacer-stub></v-spacer-stub>
-                  <div>
-                    <v-col-stub md="auto" tag="div" class="ml-auto">
-                      <v-btn-stub outlined="true" tag="button" activeclass="" type="button" data-test="removeMember-btn">
-                        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
-                            Remove user
-                          </span></v-tooltip-stub>
-                      </v-btn-stub>
-                    </v-col-stub>
-                  </div>
-                </v-row-stub>
-              </v-list-item-stub>
-              <v-list-item-stub activeclass="" tag="div">
-                <v-row-stub tag="div">
-                  <v-col-stub md="auto" tag="div" class="ml-auto">
-                    <v-icon-stub>
-                      mdi-account
-                    </v-icon-stub>
-                  </v-col-stub>
-                  <v-col-stub tag="div">
-                    <v-list-item-title-stub datatest="user8-list" data-test="user8-list">
-                      user8
-                    </v-list-item-title-stub>
-                  </v-col-stub>
-                  <v-spacer-stub></v-spacer-stub>
-                  <div>
-                    <v-col-stub md="auto" tag="div" class="ml-auto">
-                      <v-btn-stub outlined="true" tag="button" activeclass="" type="button" data-test="removeMember-btn">
-                        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
-                            Remove user
-                          </span></v-tooltip-stub>
-                      </v-btn-stub>
-                    </v-col-stub>
-                  </div>
-                </v-row-stub>
-              </v-list-item-stub>
-            </v-list-stub>
-          </div>
-          <v-divider-stub></v-divider-stub>
-          <v-divider-stub></v-divider-stub>
-        </div>
-        <div data-test="securityOperation-div" class="mt-6">
-          <settingsecurity-stub hastenant="true"></settingsecurity-stub>
-          <v-divider-stub></v-divider-stub>
-          <v-divider-stub></v-divider-stub>
-        </div>
-        <div data-test="deleteOperation-div" class="mt-6">
-          <h3 class="mb-5">
-            Danger Zone
-          </h3>
-          <v-row-stub tag="div" class="mt-4 mb-2">
-            <v-col-stub tag="div" class="ml-3">
-              <h4>
-                Delete this namespace
-              </h4>
-              <div class="ml-2">
-                <p>
-                  After deleting a namespace, there is no going back. Be sure.
-                </p>
               </div>
-            </v-col-stub>
-            <v-col-stub md="auto" tag="div" class="ml-auto mb-4">
-              <namespacedelete-stub nstenant="e359bf484715"></namespacedelete-stub>
-            </v-col-stub>
-          </v-row-stub>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span data-test="tenant-span">
+                    e359bf484715
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$3" data-clipboard-success-handler="$4"></i></span></span></div>
+            </div>
+          </div>
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
         </div>
-      </v-col-stub>
-    </v-row-stub>
-  </v-container-stub>
+        <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
+                  Namespace
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                  Rename Namespace
+                </span></button></div>
+      </div>
+      <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-68" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-68" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    </div>
+    <div data-test="userOperation-div" class="mt-6">
+      <div class="row">
+        <div class="col">
+          <h3>
+            Members
+          </h3>
+        </div>
+        <div class="spacer"></div>
+        <div data-test="newMember-div">
+          <div class="ml-auto col-md-auto col">
+            <fragment-stub><button type="button" class="ml-12 v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+    Add Member
+  </span></button>
+              <div role="dialog" class="v-dialog__container">
+                <!---->
+              </div>
+            </fragment-stub>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5">
+        <div role="list" class="v-list v-sheet theme--light">
+          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+            <div class="row">
+              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+              <div class="col">
+                <div data-test="user6-list" class="v-list-item__title">
+                  user6
+                </div>
+              </div>
+              <div class="spacer"></div>
+              <div>
+                <div class="ml-auto col-md-auto col">
+                  <p data-test="owner-p" class="mr-3">
+                    Owner
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+            <div class="row">
+              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+              <div class="col">
+                <div data-test="user7-list" class="v-list-item__title">
+                  user7
+                </div>
+              </div>
+              <div class="spacer"></div>
+              <div>
+                <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate material-icons theme--light">delete</i><span class="v-tooltip v-tooltip--bottom"><!----></span></span></button></div>
+              </div>
+            </div>
+          </div>
+          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+            <div class="row">
+              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+              <div class="col">
+                <div data-test="user8-list" class="v-list-item__title">
+                  user8
+                </div>
+              </div>
+              <div class="spacer"></div>
+              <div>
+                <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate material-icons theme--light">delete</i><span class="v-tooltip v-tooltip--bottom"><!----></span></span></button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    </div>
+    <div data-test="securityOperation-div" class="mt-6">
+      <form novalidate="novalidate" class="v-form">
+        <div class="row">
+          <div class="mb-6 col">
+            <h3 class="mb-5">
+              Security
+            </h3>
+            <div class="ml-3">
+              <div class="v-input theme--light v-input--selection-controls v-input--checkbox">
+                <div class="v-input__control">
+                  <div class="v-input__slot">
+                    <div class="v-input--selection-controls__input"><i aria-hidden="true" class="v-icon notranslate mdi mdi-checkbox-blank-outline theme--light"></i><input aria-checked="false" id="input-94" role="checkbox" type="checkbox" value="">
+                      <div class="v-input--selection-controls__ripple"></div>
+                    </div><label for="input-94" class="v-label theme--light" style="left: 0px; position: relative;">Enable session record</label>
+                  </div>
+                  <div class="v-messages theme--light">
+                    <transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub>
+                  </div>
+                </div>
+              </div>
+              <p>
+                Session record is a feature that allows you to check logged activity when
+                connecting to a device.
+              </p>
+            </div>
+          </div>
+        </div>
+      </form>
+      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    </div>
+    <div data-test="deleteOperation-div" class="mt-6">
+      <h3 class="mb-5">
+        Danger Zone
+      </h3>
+      <div class="row mt-4 mb-2">
+        <div class="ml-3 col">
+          <h4>
+            Delete this namespace
+          </h4>
+          <div class="ml-2">
+            <p>
+              After deleting a namespace, there is no going back. Be sure.
+            </p>
+          </div>
+        </div>
+        <div class="ml-auto mb-4 col-md-auto col">
+          <fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1"><span class="v-btn__content">
+    Delete namespace
+  </span></button>
+            <div role="dialog" class="v-dialog__container">
+              <!---->
+            </div>
+          </fragment-stub>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
 </fragment-stub>
 `;
 
 exports[`SettingNamespace Not the owner of this namespace Renders the component 1`] = `
 <fragment-stub>
-  <v-container-stub tag="div">
-    <v-row-stub tag="div" align="center" justify="center" class="mt-4">
-      <v-col-stub sm="8" tag="div">
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col">
         <div style="text-align: center;">
           <h3 class="pl-6"><span data-test="notTheOwner-span">
               You're not the owner of this namespace.
@@ -170,176 +183,163 @@ exports[`SettingNamespace Not the owner of this namespace Renders the component 
           </h3> <br>
         </div>
         <div class="mt-6">
-          <v-row-stub tag="div" class="mb-2">
-            <v-col-stub md="auto" tag="div">
-              <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true">
+          <div class="row mb-2">
+            <div class="col-md-auto col">
+              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
                 Tenant ID:
-              </v-card-stub>
-            </v-col-stub>
-            <v-col-stub md="auto" tag="div" class="ml-auto">
-              <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" class="auto">
-                <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete"><span data-test="tenant-span">
-
-                  </span>
-                  <v-icon-stub right="" data-clipboard-click-handler="$15" data-clipboard-success-handler="$16">
-                    mdi-content-copy
-                  </v-icon-stub>
-                </v-chip-stub>
-              </v-card-stub>
-            </v-col-stub>
-          </v-row-stub>
-          <v-divider-stub></v-divider-stub>
-          <v-divider-stub></v-divider-stub>
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span data-test="tenant-span">
+                    
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$87" data-clipboard-success-handler="$88"></i></span></span></div>
+            </div>
+          </div>
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
         </div>
         <!---->
         <!---->
         <!---->
         <!---->
-      </v-col-stub>
-    </v-row-stub>
-  </v-container-stub>
+      </div>
+    </div>
+  </div>
 </fragment-stub>
 `;
 
 exports[`SettingNamespace Open version Renders the component 1`] = `
 <fragment-stub>
-  <v-container-stub tag="div">
-    <v-row-stub tag="div" align="center" justify="center" class="mt-4">
-      <v-col-stub sm="8" tag="div">
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col">
         <!---->
         <div class="mt-6">
-          <v-row-stub tag="div" class="mb-2">
-            <v-col-stub md="auto" tag="div">
-              <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true">
+          <div class="row mb-2">
+            <div class="col-md-auto col">
+              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
                 Tenant ID:
-              </v-card-stub>
-            </v-col-stub>
-            <v-col-stub md="auto" tag="div" class="ml-auto">
-              <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" class="auto">
-                <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete"><span data-test="tenant-span">
-                    e359bf484715
-                  </span>
-                  <v-icon-stub right="" data-clipboard-click-handler="$27" data-clipboard-success-handler="$28">
-                    mdi-content-copy
-                  </v-icon-stub>
-                </v-chip-stub>
-              </v-card-stub>
-            </v-col-stub>
-          </v-row-stub>
-          <v-divider-stub></v-divider-stub>
-          <v-divider-stub></v-divider-stub>
-        </div>
-        <div data-test="editOperation-div" class="mt-6">
-          <validationobserver-stub tag="span" vid="obs_7"></validationobserver-stub>
-          <v-divider-stub></v-divider-stub>
-          <v-divider-stub></v-divider-stub>
-        </div>
-        <div data-test="userOperation-div" class="mt-6">
-          <v-row-stub tag="div">
-            <v-col-stub tag="div">
-              <h3>
-                Members
-              </h3>
-            </v-col-stub>
-            <v-spacer-stub></v-spacer-stub>
-            <!---->
-          </v-row-stub>
-          <div class="mt-5">
-            <v-list-stub tag="div">
-              <v-list-item-stub activeclass="" tag="div">
-                <v-row-stub tag="div">
-                  <v-col-stub md="auto" tag="div" class="ml-auto">
-                    <v-icon-stub>
-                      mdi-account
-                    </v-icon-stub>
-                  </v-col-stub>
-                  <v-col-stub tag="div">
-                    <v-list-item-title-stub datatest="user6-list" data-test="user6-list">
-                      user6
-                    </v-list-item-title-stub>
-                  </v-col-stub>
-                  <v-spacer-stub></v-spacer-stub>
-                  <div data-test="role-div">
-                    <v-col-stub md="auto" tag="div" class="ml-auto">
-                      <p data-test="role-text">
-                        Owner
-                      </p>
-                    </v-col-stub>
-                  </div>
-                </v-row-stub>
-              </v-list-item-stub>
-              <v-list-item-stub activeclass="" tag="div">
-                <v-row-stub tag="div">
-                  <v-col-stub md="auto" tag="div" class="ml-auto">
-                    <v-icon-stub>
-                      mdi-account
-                    </v-icon-stub>
-                  </v-col-stub>
-                  <v-col-stub tag="div">
-                    <v-list-item-title-stub datatest="user7-list" data-test="user7-list">
-                      user7
-                    </v-list-item-title-stub>
-                  </v-col-stub>
-                  <v-spacer-stub></v-spacer-stub>
-                  <div data-test="role-div">
-                    <v-col-stub md="auto" tag="div" class="ml-auto">
-                      <p data-test="role-text">
-                        Member
-                      </p>
-                    </v-col-stub>
-                  </div>
-                </v-row-stub>
-              </v-list-item-stub>
-              <v-list-item-stub activeclass="" tag="div">
-                <v-row-stub tag="div">
-                  <v-col-stub md="auto" tag="div" class="ml-auto">
-                    <v-icon-stub>
-                      mdi-account
-                    </v-icon-stub>
-                  </v-col-stub>
-                  <v-col-stub tag="div">
-                    <v-list-item-title-stub datatest="user8-list" data-test="user8-list">
-                      user8
-                    </v-list-item-title-stub>
-                  </v-col-stub>
-                  <v-spacer-stub></v-spacer-stub>
-                  <div data-test="role-div">
-                    <v-col-stub md="auto" tag="div" class="ml-auto">
-                      <p data-test="role-text">
-                        Member
-                      </p>
-                    </v-col-stub>
-                  </div>
-                </v-row-stub>
-              </v-list-item-stub>
-            </v-list-stub>
-          </div>
-          <v-divider-stub></v-divider-stub>
-          <v-divider-stub></v-divider-stub>
-        </div>
-        <!---->
-        <div data-test="deleteOperation-div" class="mt-6">
-          <h3 class="mb-5">
-            Danger Zone
-          </h3>
-          <v-row-stub tag="div" class="mt-4 mb-2">
-            <v-col-stub tag="div" class="ml-3">
-              <h4>
-                Delete this namespace
-              </h4>
-              <div class="ml-2">
-                <p>
-                  After deleting a namespace, there is no going back. Be sure.
-                </p>
               </div>
-            </v-col-stub>
-            <v-col-stub md="auto" tag="div" class="ml-auto mb-4">
-              <namespacedelete-stub nstenant="e359bf484715"></namespacedelete-stub>
-            </v-col-stub>
-          </v-row-stub>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span data-test="tenant-span">
+                    e359bf484715
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$99" data-clipboard-success-handler="$100"></i></span></span></div>
+            </div>
+          </div>
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
         </div>
-      </v-col-stub>
-    </v-row-stub>
-  </v-container-stub>
+        <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
+                  Namespace
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                  Rename Namespace
+                </span></button></div>
+      </div>
+      <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-2120" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-2120" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    </div>
+    <div data-test="userOperation-div" class="mt-6">
+      <div class="row">
+        <div class="col">
+          <h3>
+            Members
+          </h3>
+        </div>
+        <div class="spacer"></div>
+        <!---->
+      </div>
+      <div class="mt-5">
+        <div role="list" class="v-list v-sheet theme--light">
+          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+            <div class="row">
+              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+              <div class="col">
+                <div data-test="user6-list" class="v-list-item__title">
+                  user6
+                </div>
+              </div>
+              <div class="spacer"></div>
+              <div data-test="role-div">
+                <div class="ml-auto col-md-auto col">
+                  <p data-test="role-text">
+                    Owner
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+            <div class="row">
+              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+              <div class="col">
+                <div data-test="user7-list" class="v-list-item__title">
+                  user7
+                </div>
+              </div>
+              <div class="spacer"></div>
+              <div data-test="role-div">
+                <div class="ml-auto col-md-auto col">
+                  <p data-test="role-text">
+                    Member
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+            <div class="row">
+              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+              <div class="col">
+                <div data-test="user8-list" class="v-list-item__title">
+                  user8
+                </div>
+              </div>
+              <div class="spacer"></div>
+              <div data-test="role-div">
+                <div class="ml-auto col-md-auto col">
+                  <p data-test="role-text">
+                    Member
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    </div>
+    <!---->
+    <div data-test="deleteOperation-div" class="mt-6">
+      <h3 class="mb-5">
+        Danger Zone
+      </h3>
+      <div class="row mt-4 mb-2">
+        <div class="ml-3 col">
+          <h4>
+            Delete this namespace
+          </h4>
+          <div class="ml-2">
+            <p>
+              After deleting a namespace, there is no going back. Be sure.
+            </p>
+          </div>
+        </div>
+        <div class="ml-auto mb-4 col-md-auto col">
+          <fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1"><span class="v-btn__content">
+    Delete namespace
+  </span></button>
+            <div role="dialog" class="v-dialog__container">
+              <!---->
+            </div>
+          </fragment-stub>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
 </fragment-stub>
 `;
