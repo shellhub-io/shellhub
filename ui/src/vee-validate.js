@@ -41,6 +41,13 @@ extend('password', (value) => {
   return true;
 });
 
+extend('namespace', (value) => {
+  if (value.length < 3 || value.length > 30) {
+    return 'Your namespace should be 3-30 characters long';
+  }
+  return true;
+});
+
 extend('comparePasswords', {
   validate(value, { currentPassword }) {
     if (value === currentPassword) {
