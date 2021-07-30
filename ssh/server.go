@@ -100,6 +100,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		}).Error("Failed to dial to tunnel")
 
 		session.Close()
+		sess.finish(conn) // nolint:errcheck
 
 		return
 	}
@@ -126,6 +127,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		key, err := apiClient.CreatePrivateKey()
 		if err != nil {
 			session.Close()
+			sess.finish(conn) // nolint:errcheck
 
 			return
 		}
@@ -135,6 +137,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		privKey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
 		if err != nil {
 			session.Close()
+			sess.finish(conn) // nolint:errcheck
 
 			return
 		}
@@ -172,6 +175,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		session.Write([]byte("Permission denied\n")) // nolint:errcheck
 		session.Close()
+		sess.finish(conn) // nolint:errcheck
 
 		return
 	}
@@ -181,15 +185,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		return
 	}
 
-	req, _ = http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", sess.UID), nil)
-	if err = req.Write(conn); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"err":     err,
-			"session": session.Context().Value(sshserver.ContextKeySessionID),
-		}).Error("Failed to write")
-	}
-
-	sess.finish() // nolint:errcheck
+	sess.finish(conn) // nolint:errcheck
 }
 
 func (s *Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKey) bool {
