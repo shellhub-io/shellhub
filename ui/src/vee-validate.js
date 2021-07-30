@@ -48,6 +48,13 @@ extend('namespace', (value) => {
   return true;
 });
 
+extend('device', (value) => {
+  if (value.length < 3 || value.length > 30) {
+    return 'Your hostname should be 3-30 characters long';
+  }
+  return true;
+});
+
 extend('comparePasswords', {
   validate(value, { currentPassword }) {
     if (value === currentPassword) {
