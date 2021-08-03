@@ -22,6 +22,7 @@ type Service interface {
 	NamespaceService
 	AuthService
 	StatsService
+	MiddlewareService
 }
 
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache) Service {

@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -88,4 +90,44 @@ func (h *Handler) PlaySession(c apicontext.Context) error {
 
 func (h *Handler) DeleteRecordedSession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, nil)
+}
+
+func IsSessionOwner(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Get("ctx").(*apicontext.Context)
+		id := ""
+		if v := ctx.ID(); v != nil {
+			id = v.ID
+		}
+		session, err := ctx.Service().(services.Service).GetSession(ctx.Ctx(), models.UID(ctx.Param("uid")))
+		if err != nil {
+			return err
+		}
+
+		if err := ctx.Service().(services.Service).IsNamespaceOwner(ctx.Ctx(), session.TenantID, id); err != nil {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return next(c)
+	}
+}
+
+func IsSessionMember(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Get("ctx").(*apicontext.Context)
+		id := ""
+		if v := ctx.ID(); v != nil {
+			id = v.ID
+		}
+		session, err := ctx.Service().(services.Service).GetSession(ctx.Ctx(), models.UID(ctx.Param("uid")))
+		if err != nil {
+			return err
+		}
+
+		if err := ctx.Service().(services.Service).IsNamespaceMember(ctx.Ctx(), session.TenantID, id); err != nil {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return next(c)
+	}
 }

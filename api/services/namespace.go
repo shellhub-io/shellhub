@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
+	//utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -99,9 +99,9 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 }
 
 func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerID string) error {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
-		return err
-	}
+	//if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
+	//	return err
+	//}
 
 	return s.store.NamespaceDelete(ctx, tenantID)
 }
@@ -135,9 +135,9 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 }
 
 func (s *service) EditNamespace(ctx context.Context, tenantID, name, owner string) (*models.Namespace, error) {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, owner); err != nil {
-		return nil, err
-	}
+	//if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, owner); err != nil {
+	//	return nil, err
+	//}
 
 	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
@@ -159,9 +159,9 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name, owner strin
 }
 
 func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, ownerID string) (*models.Namespace, error) {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
-		return nil, err
-	}
+	//	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
+	//		return nil, err
+	//	}
 
 	user, err := s.store.UserGetByUsername(ctx, username)
 	if err == store.ErrNoDocuments {
@@ -176,9 +176,9 @@ func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, owne
 }
 
 func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, ownerID string) (*models.Namespace, error) {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
-		return nil, err
-	}
+	//	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
+	//	return nil, err
+	//}
 
 	user, err := s.store.UserGetByUsername(ctx, username)
 	if err == store.ErrNoDocuments {
@@ -193,9 +193,9 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, o
 }
 
 func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenant, ownerID string) error {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
-		return err
-	}
+	//	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
+	//		return err
+	//	}
 
 	return s.store.NamespaceSetSessionRecord(ctx, sessionRecord, tenant)
 }

@@ -107,25 +107,23 @@ func startServer() error {
 	internalAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(handler.AuthGetToken))
 	publicAPI.POST(routes.AuthPublicKeyURL, apicontext.Handler(handler.AuthPublicKey))
 	publicAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(handler.AuthSwapToken))
-
 	publicAPI.PATCH(routes.UpdateUserDataURL, apicontext.Handler(handler.UpdateUserData))
 	publicAPI.PATCH(routes.UpdateUserPasswordURL, apicontext.Handler(handler.UpdateUserPassword))
-	publicAPI.PUT(routes.EditSessionRecordStatusURL, apicontext.Handler(handler.EditSessionRecordStatus))
-	publicAPI.GET(routes.GetSessionRecordURL, apicontext.Handler(handler.GetSessionRecord))
-
+	publicAPI.PUT(routes.EditSessionRecordStatusURL, apicontext.Handler(handler.EditSessionRecordStatus), apicontext.Middleware(routes.IsSessionOwner))
+	publicAPI.GET(routes.GetSessionRecordURL, apicontext.Handler(handler.GetSessionRecord), apicontext.Middleware(routes.IsSessionOwner))
 	publicAPI.GET(routes.GetDeviceListURL,
-		middlewares.Authorize(apicontext.Handler(handler.GetDeviceList)))
+		middlewares.Authorize(apicontext.Handler(handler.GetDeviceList)), apicontext.Middleware(routes.IsDeviceMember))
 	publicAPI.GET(routes.GetDeviceURL,
 		middlewares.Authorize(apicontext.Handler(handler.GetDevice)))
-	publicAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(handler.DeleteDevice))
-	publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(handler.RenameDevice))
+	publicAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(handler.DeleteDevice), apicontext.Middleware(routes.IsDeviceOwner))
+	publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(handler.RenameDevice), apicontext.Middleware(routes.IsDeviceOwner))
 	internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(handler.OfflineDevice))
 	internalAPI.GET(routes.LookupDeviceURL, apicontext.Handler(handler.LookupDevice))
-	publicAPI.PATCH(routes.UpdateStatusURL, apicontext.Handler(handler.UpdatePendingStatus))
+	publicAPI.PATCH(routes.UpdateStatusURL, apicontext.Handler(handler.UpdatePendingStatus), apicontext.Middleware(routes.IsDeviceOwner))
 	publicAPI.GET(routes.GetSessionsURL,
 		middlewares.Authorize(apicontext.Handler(handler.GetSessionList)))
 	publicAPI.GET(routes.GetSessionURL,
-		middlewares.Authorize(apicontext.Handler(handler.GetSession)))
+		middlewares.Authorize(apicontext.Handler(handler.GetSession)), apicontext.Middleware(routes.IsSessionMember))
 	internalAPI.PATCH(routes.SetSessionAuthenticatedURL, apicontext.Handler(handler.SetSessionAuthenticated))
 	internalAPI.POST(routes.CreateSessionURL, apicontext.Handler(handler.CreateSession))
 	internalAPI.POST(routes.FinishSessionURL, apicontext.Handler(handler.FinishSession))
@@ -136,10 +134,10 @@ func startServer() error {
 	publicAPI.GET(routes.GetStatsURL,
 		middlewares.Authorize(apicontext.Handler(handler.GetStats)))
 
-	publicAPI.GET(routes.GetPublicKeysURL, apicontext.Handler(handler.GetPublicKeys))
-	publicAPI.POST(routes.CreatePublicKeyURL, apicontext.Handler(handler.CreatePublicKey))
-	publicAPI.PUT(routes.UpdatePublicKeyURL, apicontext.Handler(handler.UpdatePublicKey))
-	publicAPI.DELETE(routes.DeletePublicKeyURL, apicontext.Handler(handler.DeletePublicKey))
+	publicAPI.GET(routes.GetPublicKeysURL, apicontext.Handler(handler.GetPublicKeys), apicontext.Middleware(routes.IsKeysMember))
+	publicAPI.POST(routes.CreatePublicKeyURL, apicontext.Handler(handler.CreatePublicKey), apicontext.Middleware(routes.IsKeysOwner))
+	publicAPI.PUT(routes.UpdatePublicKeyURL, apicontext.Handler(handler.UpdatePublicKey), apicontext.Middleware(routes.IsKeysOwner))
+	publicAPI.DELETE(routes.DeletePublicKeyURL, apicontext.Handler(handler.DeletePublicKey), apicontext.Middleware(routes.IsKeysOwner))
 	internalAPI.GET(routes.GetPublicKeyURL, apicontext.Handler(handler.GetPublicKey))
 	internalAPI.POST(routes.CreatePrivateKeyURL, apicontext.Handler(handler.CreatePrivateKey))
 	internalAPI.POST(routes.EvaluateKeyURL, apicontext.Handler(handler.EvaluateKeyHostname))
@@ -147,10 +145,10 @@ func startServer() error {
 	publicAPI.GET(routes.ListNamespaceURL, apicontext.Handler(handler.GetNamespaceList))
 	publicAPI.GET(routes.GetNamespaceURL, apicontext.Handler(handler.GetNamespace))
 	publicAPI.POST(routes.CreateNamespaceURL, apicontext.Handler(handler.CreateNamespace))
-	publicAPI.DELETE(routes.DeleteNamespaceURL, apicontext.Handler(handler.DeleteNamespace))
-	publicAPI.PUT(routes.EditNamespaceURL, apicontext.Handler(handler.EditNamespace))
-	publicAPI.PATCH(routes.AddNamespaceUserURL, apicontext.Handler(handler.AddNamespaceUser))
-	publicAPI.PATCH(routes.RemoveNamespaceUserURL, apicontext.Handler(handler.RemoveNamespaceUser))
+	publicAPI.DELETE(routes.DeleteNamespaceURL, apicontext.Handler(handler.DeleteNamespace), apicontext.Middleware(routes.IsNamespaceOwner))
+	publicAPI.PUT(routes.EditNamespaceURL, apicontext.Handler(handler.EditNamespace), apicontext.Middleware(routes.IsNamespaceOwner))
+	publicAPI.PATCH(routes.AddNamespaceUserURL, apicontext.Handler(handler.AddNamespaceUser), apicontext.Middleware(routes.IsNamespaceOwner))
+	publicAPI.PATCH(routes.RemoveNamespaceUserURL, apicontext.Handler(handler.RemoveNamespaceUser), apicontext.Middleware(routes.IsNamespaceOwner))
 
 	e.Logger.Fatal(e.Start(":8080"))
 

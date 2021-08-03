@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -250,4 +251,36 @@ func (h *Handler) GetSessionRecord(c apicontext.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, status)
+}
+
+func IsNamespaceOwner(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Get("ctx").(*apicontext.Context)
+		id := ""
+		if v := ctx.ID(); v != nil {
+			id = v.ID
+		}
+
+		if err := ctx.Service().(services.Service).IsNamespaceOwner(ctx.Ctx(), c.Param("id"), id); err != nil {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return next(c)
+	}
+}
+
+func IsNamespaceMember(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Get("ctx").(*apicontext.Context)
+		id := ""
+		if v := ctx.ID(); v != nil {
+			id = v.ID
+		}
+
+		if err := ctx.Service().(services.Service).IsNamespaceMember(ctx.Ctx(), c.Param("id"), id); err != nil {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return next(c)
+	}
 }

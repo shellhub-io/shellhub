@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
+	//utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -42,9 +42,9 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 }
 
 func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, ownerID string) error {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
-		return ErrUnauthorized
-	}
+	//if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
+	//	return ErrUnauthorized
+	//}
 
 	if _, err := s.store.DeviceGetByUID(ctx, uid, tenant); err != nil {
 		return err
@@ -54,9 +54,9 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, owne
 }
 
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant, ownerID string) error {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
-		return ErrUnauthorized
-	}
+	//if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
+	//	return ErrUnauthorized
+	//}
 
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if err != nil {
@@ -105,9 +105,9 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online
 }
 
 func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, ownerID string) error {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
-		return ErrUnauthorized
-	}
+	//if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
+	//	return ErrUnauthorized
+	//	}
 
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if err != nil {

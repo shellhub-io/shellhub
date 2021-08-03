@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	//	"github.com/dgrijalva/jwt-go"
+	"github.com/labstack/echo/v4"
+	//	"github.com/labstack/echo/v4/middleware"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -166,4 +169,44 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, nil)
+}
+
+func IsDeviceOwner(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Get("ctx").(*apicontext.Context)
+		id := ""
+		if v := ctx.ID(); v != nil {
+			id = v.ID
+		}
+		device, err := ctx.Service().(services.Service).GetDevice(ctx.Ctx(), models.UID(ctx.Param("uid")))
+		if err != nil {
+			return err
+		}
+
+		if err := ctx.Service().(services.Service).IsNamespaceOwner(ctx.Ctx(), device.TenantID, id); err != nil {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return next(c)
+	}
+}
+
+func IsDeviceMember(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Get("ctx").(*apicontext.Context)
+		id := ""
+		if v := ctx.ID(); v != nil {
+			id = v.ID
+		}
+		device, err := ctx.Service().(services.Service).GetDevice(ctx.Ctx(), models.UID(ctx.Param("uid")))
+		if err != nil {
+			return err
+		}
+
+		if err := ctx.Service().(services.Service).IsNamespaceMember(ctx.Ctx(), device.TenantID, id); err != nil {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return next(c)
+	}
 }

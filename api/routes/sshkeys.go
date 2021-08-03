@@ -139,3 +139,44 @@ func (h *Handler) EvaluateKeyHostname(c apicontext.Context) error {
 
 	return c.JSON(http.StatusOK, ok)
 }
+
+func IsKeysOwner(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Get("ctx").(*apicontext.Context)
+		id := ""
+		if v := ctx.ID(); v != nil {
+			id = v.ID
+		}
+		device, err := ctx.Service().(services.Service).GetDevice(ctx.Ctx(), models.UID(ctx.Param("uid")))
+		if err != nil {
+			return err
+		}
+
+		if err := ctx.Service().(services.Service).IsNamespaceOwner(ctx.Ctx(), device.TenantID, id); err != nil {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return next(c)
+	}
+}
+
+func IsKeysMember(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Get("ctx").(*apicontext.Context)
+		id := ""
+		if v := ctx.ID(); v != nil {
+			id = v.ID
+		}
+		device, err := ctx.Service().(services.Service).GetDevice(ctx.Ctx(), models.UID(ctx.Param("uid")))
+		if err != nil {
+			return err
+		}
+
+		if err := ctx.Service().(services.Service).IsNamespaceMember(ctx.Ctx(), device.TenantID, id); err != nil {
+
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return next(c)
+	}
+}
