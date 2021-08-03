@@ -3,6 +3,7 @@
     <v-btn
       class="ml-12"
       outlined
+      data-test="add-btn"
       @click="dialog = !dialog"
     >
       Add Member

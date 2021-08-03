@@ -1,16 +1,96 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NamespaceMenu Renders the component 1`] = `
+exports[`NamespaceMenu  Renders the component 1`] = `
+<fragment-stub>
+  <div class="row">
+    <div class="col"><button type="button" class="v-btn--active float-right mr-3 v-btn v-btn--text theme--light v-size--small" data-test="add-btn"><span class="v-btn__content">
+        Add Namespace
+      </span></button></div>
+    <fragment-stub data-test="namespaceAdd-component">
+      <div class="v-list-item__title">
+        <div role="dialog" class="v-dialog__container">
+          <!---->
+        </div>
+      </div>
+    </fragment-stub>
+  </div>
+</fragment-stub>
+`;
+
+exports[`NamespaceMenu Button Renders the component 1`] = `
 <fragment-stub>
   <div class="row">
     <div class="col"><span class="float-right v-chip v-chip--clickable v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><i aria-hidden="true" class="v-icon notranslate v-icon--left mdi mdi-server theme--light" style="font-size: 24px;"></i> <div size="24" class="ml-1 mr-1">
               namespace3
             </div> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-chevron-down theme--light" style="font-size: 24px;"></i></span></span>
-      <div class="v-menu" style="display: none;">
+      <div class="v-menu" data-test="namespaceMenu-menu" style="display: none;">
         <!---->
       </div>
     </div>
-    <fragment-stub>
+    <fragment-stub data-test="namespaceAdd-component">
+      <div class="v-list-item__title">
+        <div role="dialog" class="v-dialog__container">
+          <!---->
+        </div>
+      </div>
+    </fragment-stub>
+  </div>
+</fragment-stub>
+`;
+
+exports[`NamespaceMenu Different mobile sizes Renders the component 1`] = `
+<fragment-stub>
+  <div class="row">
+    <div class="col"><span class="float-right v-chip v-chip--clickable v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><i aria-hidden="true" class="v-icon notranslate v-icon--left mdi mdi-server theme--light" style="font-size: 24px;"></i> <div size="24" class="ml-1 mr-1">
+              namespace3
+            </div> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-chevron-down theme--light" style="font-size: 24px;"></i></span></span>
+      <div class="v-menu" data-test="namespaceMenu-menu" style="display: none;">
+        <!---->
+      </div>
+    </div>
+    <fragment-stub data-test="namespaceAdd-component">
+      <div class="v-list-item__title">
+        <div role="dialog" class="v-dialog__container">
+          <!---->
+        </div>
+      </div>
+    </fragment-stub>
+  </div>
+</fragment-stub>
+`;
+
+exports[`NamespaceMenu Different mobile sizes Renders the component 2`] = `
+<fragment-stub>
+  <div class="row">
+    <div class="col"><span class="float-right v-chip v-chip--clickable v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><i aria-hidden="true" class="v-icon notranslate v-icon--left mdi mdi-server theme--light" style="font-size: 24px;"></i> <div size="24" class="ml-1 mr-1">
+              namespace3
+            </div> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-chevron-down theme--light" style="font-size: 24px;"></i></span></span>
+      <div class="v-menu" data-test="namespaceMenu-menu" style="display: none;">
+        <!---->
+      </div>
+    </div>
+    <fragment-stub data-test="namespaceAdd-component">
+      <div class="v-list-item__title">
+        <div role="dialog" class="v-dialog__container">
+          <!---->
+        </div>
+      </div>
+    </fragment-stub>
+  </div>
+</fragment-stub>
+`;
+
+exports[`NamespaceMenu Menu Renders the component 1`] = `
+<fragment-stub>
+  <div class="row">
+    <div class="col"><span class="float-right v-chip v-chip--clickable v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><i aria-hidden="true" class="v-icon notranslate v-icon--left mdi mdi-server theme--light" style="font-size: 24px;"></i> <div size="24" class="ml-1 mr-1">
+              namespace3
+            </div> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-chevron-down theme--light" style="font-size: 24px;"></i></span></span>
+      <div class="v-menu" data-test="namespaceMenu-menu" style="display: none;">
+        <!---->
+      </div>
+    </div>
+    <fragment-stub data-test="namespaceAdd-component">
       <div class="v-list-item__title">
         <div role="dialog" class="v-dialog__container">
           <!---->

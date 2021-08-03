@@ -8,6 +8,7 @@
           class="v-btn--active float-right mr-3"
           text
           small
+          data-test="add-btn"
           @click="addNamespace"
         >
           Add Namespace
@@ -19,6 +20,7 @@
           v-show="displayMenu"
           :close-on-content-click="true"
           offset-y
+          data-test="namespaceMenu-menu"
         >
           <template #activator="{ on }">
             <v-chip
@@ -150,6 +152,7 @@
       <NamespaceAdd
         :show.sync="dialog"
         :first-namespace="first"
+        data-test="namespaceAdd-component"
       />
     </v-row>
   </fragment>

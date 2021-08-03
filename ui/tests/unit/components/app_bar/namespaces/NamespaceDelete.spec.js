@@ -1,14 +1,14 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
-import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
 
 describe('NamespaceDelete', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
-  document.body.setAttribute('data-app', true);
   localVue.use(Vuex);
+
+  document.body.setAttribute('data-app', true);
 
   let wrapper;
 
@@ -33,47 +33,115 @@ describe('NamespaceDelete', () => {
       'namespaces/get': (state) => state.namespace,
     },
     actions: {
-      'namespaces/remove': () => {
-      },
-      'auth/logout': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
-      'snackbar/showSnackbarSuccessAction': () => {
-      },
+      'namespaces/remove': () => {},
+      'auth/logout': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
     },
   });
 
-  beforeEach(() => {
-    wrapper = mount(NamespaceDelete, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { nsTenant: tenant },
-      vuetify,
+  ///////
+  // In this case, the rendering of the dialog is checked. In which
+  // case with the input data it cannot take place.
+  ///////
+
+  describe('Button', () => {
+    beforeEach(() => {
+      wrapper = mount(NamespaceDelete, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { nsTenant: tenant },
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receives data in props', () => {
+      expect(wrapper.vm.nsTenant).toEqual(tenant);
+    });
+    it('Compare data with the default', () => {
+      expect(wrapper.vm.name).toEqual(namespace.name);
+      expect(wrapper.vm.dialog).toEqual(false);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with data', async () => {
+      expect(wrapper.find('[data-test="delete-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="namespaceDelete-dialog"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="remove-btn"]').exists()).toEqual(false);
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Receives data in props', () => {
-    expect(wrapper.vm.nsTenant).toEqual(tenant);
-  });
-  it('Compare data with the default', () => {
-    expect(wrapper.vm.name).toEqual(namespace.name);
-    expect(wrapper.vm.dialog).toEqual(false);
-  });
-  it('Renders the template with data', async () => {
-    expect(wrapper.find('[data-test="namespaceDelete-dialog"]').exists()).toEqual(false);
-  });
-  it('Renders the template with data - dialog is true', async () => {
-    wrapper.setData({ dialog: true });
-    await flushPromises();
+  ///////
+  // In this case, when the user owns the keys and the focus of
+  // the test is dialog rendering.
+  ///////
 
-    expect(wrapper.find('[data-test="content-text"]').text()).toEqual(text);
+  describe('Dialog', () => {
+    beforeEach(() => {
+      wrapper = mount(NamespaceDelete, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { nsTenant: tenant },
+        vuetify,
+      });
+
+      wrapper.setData({ dialog: true });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receives data in props', () => {
+      expect(wrapper.vm.nsTenant).toEqual(tenant);
+    });
+    it('Compare data with the default', () => {
+      expect(wrapper.vm.name).toEqual(namespace.name);
+      expect(wrapper.vm.dialog).toEqual(true);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="delete-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="namespaceDelete-dialog"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="remove-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="content-text"]').text()).toEqual(text);
+    });
   });
 });
