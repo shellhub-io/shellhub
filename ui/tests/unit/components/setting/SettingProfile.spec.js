@@ -88,11 +88,11 @@ describe('SettingProfile', () => {
   // HTML validation
   //////
 
-  it('Show validation messages', async () => {
-    //////
-    // In this case, the empty fields are validated.
-    //////
+  //////
+  // In this case, the empty fields are validated.
+  //////
 
+  it('Show validation messages', async () => {
     wrapper.setData({ username: '', email: '', currentPassword: '' });
     await flushPromises();
 
@@ -103,35 +103,42 @@ describe('SettingProfile', () => {
     const validatorConfirmPass = wrapper.vm.$refs.providerConfirmPassword;
 
     await validatorUser.validate();
-    expect(validatorUser.errors[0]).toBe('This field is required');
     await validatorEmail.validate();
-    expect(validatorEmail.errors[0]).toBe('This field is required');
     await validatorCurrentPass.validate();
-    expect(validatorCurrentPass.errors[0]).toBe('This field is required');
     await validatorNewPass.validate();
-    expect(validatorNewPass.errors[0]).toBe('This field is required');
     await validatorConfirmPass.validate();
+
+    expect(validatorUser.errors[0]).toBe('This field is required');
+    expect(validatorEmail.errors[0]).toBe('This field is required');
+    expect(validatorCurrentPass.errors[0]).toBe('This field is required');
+    expect(validatorNewPass.errors[0]).toBe('This field is required');
     expect(validatorConfirmPass.errors[0]).toBe('This field is required');
+  });
 
-    //////
-    // In this case, invalid email error are validated.
-    //////
+  //////
+  // In this case, invalid email error are validated.
+  //////
 
-    invalidEmails.forEach(async (iemail) => {
+  it('Show validation messages', async (done) => {
+    await invalidEmails.forEach(async (iemail) => {
       wrapper.setData({ email: iemail });
       await flushPromises();
 
       const validator = wrapper.vm.$refs.providerEmail;
 
       await validator.validate();
-
       expect(validator.errors[0]).toBe('This field must be a valid email');
+
+      await flushPromises();
+      done();
     });
+  });
 
-    //////
-    // In this case, invalid password length are validated.
-    //////
+  //////
+  // In this case, invalid password length are validated.
+  //////
 
+  it('Show validation messages', async (done) => {
     invalidPasswords.forEach(async (ipass) => {
       wrapper.setData({ newPassword: ipass });
       await flushPromises();
@@ -140,12 +147,17 @@ describe('SettingProfile', () => {
 
       await validator.validate();
       expect(validator.errors[0]).toBe('Your password should be 5-30 characters long');
+
+      await flushPromises();
+      done();
     });
+  });
 
-    //////
-    // In this case, invalid password match are validated.
-    //////
+  //////
+  // In this case, invalid password match are validated.
+  //////
 
+  it('Show validation messages', async (done) => {
     confirmPasswordsMatchError.forEach(async (item) => {
       wrapper.setData({ newPassword: item.new, newPasswordConfirm: item.confirmNew });
       await flushPromises();
@@ -154,12 +166,17 @@ describe('SettingProfile', () => {
 
       await validator.validate();
       expect(validator.errors[0]).toBe('The passwords do not match');
+
+      await flushPromises();
+      done();
     });
+  });
 
-    //////
-    // In this case, error for switching to the same password are validated.
-    //////
+  //////
+  // In this case, error for switching to the same password are validated.
+  //////
 
+  it('Show validation messages', async (done) => {
     compareOldNewError.forEach(async (item) => {
       wrapper.setData({ currentPassword: item.old, newPassword: item.new });
       await flushPromises();
@@ -168,12 +185,17 @@ describe('SettingProfile', () => {
 
       await validator.validate();
       expect(validator.errors[0]).toBe('The passwords are the same');
+
+      await flushPromises();
+      done();
     });
+  });
 
-    //////
-    // In this case, valid email are validated.
-    //////
+  //////
+  // In this case, valid email are validated.
+  //////
 
+  it('Show validation messages', async (done) => {
     validEmails.forEach(async (vemail) => {
       wrapper.setData({ email: vemail });
       await flushPromises();
@@ -182,12 +204,17 @@ describe('SettingProfile', () => {
 
       await validator.validate();
       expect(validator.errors).toHaveLength(0);
+
+      await flushPromises();
+      done();
     });
+  });
 
-    //////
-    // In this case, valid password length are validated.
-    //////
+  //////
+  // In this case, valid password length are validated.
+  //////
 
+  it('Show validation messages', async (done) => {
     validPasswords.forEach(async (vpass) => {
       wrapper.setData({ newPassword: vpass });
       await flushPromises();
@@ -196,12 +223,17 @@ describe('SettingProfile', () => {
 
       await validator.validate();
       expect(validator.errors).toHaveLength(0);
+
+      await flushPromises();
+      done();
     });
+  });
 
-    //////
-    // In this case, valid password match are validated.
-    //////
+  //////
+  // In this case, valid password match are validated.
+  //////
 
+  it('Show validation messages', async (done) => {
     confirmPasswordsMatchSuccess.forEach(async (item) => {
       wrapper.setData({ newPassword: item.new, newPasswordConfirm: item.confirmNew });
       await flushPromises();
@@ -210,12 +242,17 @@ describe('SettingProfile', () => {
 
       await validator.validate();
       expect(validator.errors).toHaveLength(0);
+
+      await flushPromises();
+      done();
     });
+  });
 
-    //////
-    // In this case, valid password change.
-    //////
+  //////
+  // In this case, valid password change.
+  //////
 
+  it('Show validation messages', async (done) => {
     compareOldNewSuccess.forEach(async (item) => {
       wrapper.setData({ currentPassword: item.old, newPassword: item.new });
       await flushPromises();
@@ -224,6 +261,9 @@ describe('SettingProfile', () => {
 
       await validator.validate();
       expect(validator.errors).toHaveLength(0);
+
+      await flushPromises();
+      done();
     });
   });
   it('Renders the template with data', async () => {
