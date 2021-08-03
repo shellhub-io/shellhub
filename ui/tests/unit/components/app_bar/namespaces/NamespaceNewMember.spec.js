@@ -30,49 +30,116 @@ describe('NamespaceNewMember', () => {
     },
   });
 
-  beforeEach(() => {
-    wrapper = mount(NamespaceNewMember, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { nsTenant: tenant },
-      vuetify,
+  ///////
+  // In this case, the rendering of the button is checked.
+  ///////
+
+  describe('Button', () => {
+    beforeEach(() => {
+      wrapper = mount(NamespaceNewMember, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { nsTenant: tenant },
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receive data in props', () => {
+      expect(wrapper.vm.nsTenant).toEqual(tenant);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.dialog).toEqual(false);
+      expect(wrapper.vm.username).toEqual('');
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.tenant).toEqual(tenant);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with data', async () => {
+      expect(wrapper.find('[data-test="add-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="namespaceNewMember-dialog"]').exists()).toEqual(false);
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Receive data in props', () => {
-    expect(wrapper.vm.nsTenant).toEqual(tenant);
-  });
-  it('Compare data with default value', () => {
-    expect(wrapper.vm.dialog).toEqual(false);
-    expect(wrapper.vm.username).toEqual('');
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.tenant).toEqual(tenant);
-  });
-  it('Renders the template with data', async () => {
-    expect(wrapper.find('[data-test="namespaceNewMember-dialog"]').exists()).toEqual(false);
-  });
-  it('Renders the template with data - dialog is true', async () => {
-    wrapper.setData({ dialog: true });
-    await flushPromises();
+  ///////
+  // In this case, the focus of the test is dialog rendering.
+  ///////
 
-    expect(wrapper.find('[data-test="namespaceNewMember-dialog"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="username-text"]').element.value).toEqual('');
-  });
-  it('Show empty fields required in validation', async () => {
-    wrapper.setData({ dialog: true, namespaceName: '' });
-    await flushPromises();
+  describe('Button', () => {
+    beforeEach(() => {
+      wrapper = mount(NamespaceNewMember, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { nsTenant: tenant },
+        vuetify,
+      });
 
-    const validator = wrapper.vm.$refs.providerUsername;
+      wrapper.setData({ dialog: true });
+    });
 
-    await validator.validate();
-    expect(validator.errors[0]).toBe('This field is required');
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receive data in props', () => {
+      expect(wrapper.vm.nsTenant).toEqual(tenant);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.dialog).toEqual(true);
+      expect(wrapper.vm.username).toEqual('');
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.tenant).toEqual(tenant);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Show validation messages', async () => {
+      wrapper.setData({ namespaceName: '' });
+      await flushPromises();
+
+      const validator = wrapper.vm.$refs.providerUsername;
+
+      await validator.validate();
+      expect(validator.errors[0]).toBe('This field is required');
+    });
+    it('Renders the template with data', async () => {
+      expect(wrapper.find('[data-test="add-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="namespaceNewMember-dialog"]').exists()).toEqual(true);
+    });
   });
 });

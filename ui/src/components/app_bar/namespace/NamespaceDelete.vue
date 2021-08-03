@@ -3,6 +3,7 @@
     <v-btn
       color="red darken-1"
       outlined
+      data-test="delete-btn"
       @click="dialog = !dialog"
     >
       Delete namespace
@@ -30,6 +31,7 @@
 
           <v-btn
             text
+            data-test="close-btn"
             @click="dialog=!dialog"
           >
             Close
@@ -38,6 +40,7 @@
           <v-btn
             color="red darken-1"
             text
+            data-test="remove-btn"
             @click="remove();"
           >
             Remove

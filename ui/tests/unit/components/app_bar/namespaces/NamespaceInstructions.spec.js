@@ -16,46 +16,113 @@ describe('NamespaceInstructions', () => {
 
   const show = true;
 
-  beforeEach(() => {
-    wrapper = shallowMount(NamespaceInstructions, {
-      localVue,
-      stubs: ['fragment'],
-      propsData: { show },
+  ///////
+  // In this case, check owner fields rendering in enterprise version of
+  // the template.
+  ///////
+
+  describe('', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(NamespaceInstructions, {
+        localVue,
+        stubs: ['fragment'],
+        propsData: { show },
+        mocks: ['$env'],
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receives data in props', () => {
+      expect(wrapper.vm.show).toEqual(show);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.dialogAdd).toEqual(false);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="namespaceAdd-component"]').exists()).toEqual(true);
+    });
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="namespaceInstructions-card"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="openContentFirst-text"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="openContentSecond-text"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="add-btn"]').exists()).toEqual(true);
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Receives data in props', () => {
-    expect(wrapper.vm.show).toEqual(show);
-  });
-  it('Compare data with default value', () => {
-    expect(wrapper.vm.dialogAdd).toEqual(false);
-  });
-  it('Renders the template with data - enterprise version', () => {
-    expect(wrapper.find('[data-test="openContentFirst-text"]').exists()).toEqual(false);
-    expect(wrapper.find('[data-test="openContentSecond-text"]').exists()).toEqual(false);
-    expect(wrapper.find('[data-test="namespace-btn"]').exists()).toEqual(true);
-  });
-  it('Renders the template with data - open version', () => {
-    config.mocks = {
-      $env: {
-        isEnterprise: false,
-      },
-    };
+  ///////
+  // In this case, check owner fields rendering in open version of
+  // the template.
+  ///////
 
-    wrapper = shallowMount(NamespaceInstructions, {
-      localVue,
-      stubs: ['fragment'],
-      propsData: { show },
+  describe('', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(NamespaceInstructions, {
+        localVue,
+        stubs: ['fragment'],
+        propsData: { show },
+        mocks: {
+          $env: {
+            isEnterprise: false,
+          },
+        },
+      });
     });
 
-    expect(wrapper.find('[data-test="openContentFirst-text"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="openContentSecond-text"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="namespace-btn"]').exists()).toEqual(false);
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receives data in props', () => {
+      expect(wrapper.vm.show).toEqual(show);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.dialogAdd).toEqual(false);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="namespaceAdd-component"]').exists()).toEqual(false);
+    });
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="namespaceInstructions-card"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="openContentFirst-text"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="openContentSecond-text"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="add-btn"]').exists()).toEqual(false);
+    });
   });
 });

@@ -6,7 +6,7 @@
       max-width="650px"
       persistent
     >
-      <v-card>
+      <v-card data-test="namespaceInstructions-card">
         <v-card-title
           class="headline grey lighten-2"
         >
@@ -50,6 +50,7 @@
             v-if="!openVersion"
             id="namespace-add"
             text
+            data-test="add-btn"
             @click="dialogAdd = !dialogAdd"
           >
             Add Namespace
@@ -60,7 +61,7 @@
         v-if="!openVersion"
         :show.sync="dialogAdd"
         :first-namespace="autoSwitch"
-        data-test="namespace-btn"
+        data-test="namespaceAdd-component"
       />
     </v-dialog>
   </v-card>

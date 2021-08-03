@@ -1,11 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NamespaceDelete Renders the component 1`] = `
-<fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1"><span class="v-btn__content">
+exports[`NamespaceDelete Button Renders the component 1`] = `
+<fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
     Delete namespace
   </span></button>
   <div role="dialog" class="v-dialog__container">
     <!---->
   </div>
+</fragment-stub>
+`;
+
+exports[`NamespaceDelete Dialog Renders the component 1`] = `
+<fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
+    Delete namespace
+  </span></button>
+  <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;

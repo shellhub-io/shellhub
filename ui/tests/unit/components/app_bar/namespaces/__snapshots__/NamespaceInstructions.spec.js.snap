@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NamespaceInstructions Renders the component 1`] = `
+exports[`NamespaceInstructions  Renders the component 1`] = `
 <v-card-stub loaderheight="4" tag="div">
   <v-dialog-stub opendelay="0" closedelay="0" value="true" contentclass="" maxwidth="650px" origin="center center" persistent="true" transition="dialog-transition" width="auto">
-    <v-card-stub loaderheight="4" tag="div">
+    <v-card-stub loaderheight="4" tag="div" data-test="namespaceInstructions-card">
       <v-card-title-stub class="headline grey lighten-2">
         There are no namespaces associated with your account
       </v-card-title-stub>
@@ -19,12 +19,48 @@ exports[`NamespaceInstructions Renders the component 1`] = `
           Close
         </v-btn-stub>
         <v-spacer-stub></v-spacer-stub>
-        <v-btn-stub tag="button" activeclass="" text="true" type="button" id="namespace-add">
+        <v-btn-stub tag="button" activeclass="" text="true" type="button" id="namespace-add" data-test="add-btn">
           Add Namespace
         </v-btn-stub>
       </v-card-actions-stub>
     </v-card-stub>
-    <namespaceadd-stub data-test="namespace-btn"></namespaceadd-stub>
+    <namespaceadd-stub data-test="namespaceAdd-component"></namespaceadd-stub>
+  </v-dialog-stub>
+</v-card-stub>
+`;
+
+exports[`NamespaceInstructions  Renders the component 2`] = `
+<v-card-stub loaderheight="4" tag="div">
+  <v-dialog-stub opendelay="0" closedelay="0" value="true" contentclass="" maxwidth="650px" origin="center center" persistent="true" transition="dialog-transition" width="auto">
+    <v-card-stub loaderheight="4" tag="div" data-test="namespaceInstructions-card">
+      <v-card-title-stub class="headline grey lighten-2">
+        There are no namespaces associated with your account
+      </v-card-title-stub>
+      <v-card-text-stub class="mt-4 mb-0 pb-1 mb-4">
+        <p>
+          In order to use ShellHub, you first need to create a namespace to associate with
+          your account or join an existing one.
+        </p>
+        <div id="cli-instructions">
+          <p data-test="openContentFirst-text">
+            The easiest way to configure a namespace is by using the cli
+            script.
+          </p>
+          <p data-test="openContentSecond-text" class="caption mb-0">
+            Check the <a href="https://docs.shellhub.io/admin-manual/managing/" target="_blank">documentation</a>
+            for more information and alternative install methods.
+          </p>
+        </div>
+      </v-card-text-stub>
+      <v-card-actions-stub>
+        <v-btn-stub tag="button" activeclass="" text="true" type="button">
+          Close
+        </v-btn-stub>
+        <v-spacer-stub></v-spacer-stub>
+        <!---->
+      </v-card-actions-stub>
+    </v-card-stub>
+    <!---->
   </v-dialog-stub>
 </v-card-stub>
 `;

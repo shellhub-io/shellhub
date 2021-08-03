@@ -6,7 +6,7 @@
         max-width="450"
         @click:outside="cancel"
       >
-        <v-card>
+        <v-card data-test="namespaceAdd-card">
           <v-card-title class="headline grey lighten-2 text-center">
             Enter Namespace
           </v-card-title>
@@ -35,6 +35,7 @@
               <v-spacer />
               <v-btn
                 text
+                data-test="cancel-btn"
                 @click="cancel"
               >
                 Close
@@ -42,6 +43,7 @@
               <v-btn
                 color="primary"
                 text
+                data-test="add-btn"
                 @click="passes(addNamespace)"
               >
                 Add
