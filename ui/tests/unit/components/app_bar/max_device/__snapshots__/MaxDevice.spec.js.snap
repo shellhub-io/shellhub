@@ -5,7 +5,7 @@ exports[`MaxDevice With devices Renders the component 1`] = `
   <v-chip-stub activeclass="" to="[object Object]" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete" data-test="devices-chip" class="float-right">
     4
 
-    <font-awesome-icon icon="microchip" class="ml-3 fa-lg"></font-awesome-icon>
+    <font-awesome-icon-stub icon="microchip" class="ml-3 fa-lg"></font-awesome-icon-stub>
   </v-chip-stub>
 </fragment-stub>
 `;
@@ -15,7 +15,7 @@ exports[`MaxDevice Without devices Renders the component 1`] = `
   <v-chip-stub activeclass="" to="[object Object]" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete" data-test="devices-chip" class="float-right">
     0
 
-    <font-awesome-icon icon="microchip" class="ml-3 fa-lg"></font-awesome-icon>
+    <font-awesome-icon-stub icon="microchip" class="ml-3 fa-lg"></font-awesome-icon-stub>
   </v-chip-stub>
 </fragment-stub>
 `;

@@ -1,6 +1,7 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue, config } from '@vue/test-utils';
 import MaxDevice from '@/components/app_bar/max_device/MaxDevice';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 config.mocks = {
   $env: {
@@ -10,6 +11,7 @@ config.mocks = {
 
 describe('MaxDevice', () => {
   const localVue = createLocalVue();
+  localVue.component('FontAwesomeIcon', FontAwesomeIcon);
   localVue.use(Vuex);
 
   let wrapper;
