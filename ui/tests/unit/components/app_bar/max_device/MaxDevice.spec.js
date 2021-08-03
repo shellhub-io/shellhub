@@ -14,134 +14,161 @@ describe('MaxDevice', () => {
 
   let wrapper;
 
-  const namespace = {
+  const namespaceWithoutDevices = {
     name: 'namespace',
     owner: 'user1',
     member_names: ['user6', 'user7', 'user8'],
-    tenant_id: 'a736a52b-5777-4f92-b0b8-e359bf484715',
+    tenant_id: 'xxxxxxxx',
     devices_count: 0,
     max_devices: 0,
   };
 
-  const store = new Vuex.Store({
+  const namespaceWithDevices = {
+    name: 'namespace1',
+    owner: 'user2',
+    member_names: ['user2', 'user4', 'user5'],
+    tenant_id: 'xxxxxxxx',
+    devices_count: 4,
+    max_devices: 10,
+  };
+
+  const storeWithoutDevices = new Vuex.Store({
     namespaced: true,
     state: {
-      namespace,
+      namespace: namespaceWithoutDevices,
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
     },
-    actions: {
+    actions: {},
+  });
+
+  const storeWithDevices = new Vuex.Store({
+    namespaced: true,
+    state: {
+      namespace: namespaceWithDevices,
     },
+    getters: {
+      'namespaces/get': (state) => state.namespace,
+    },
+    actions: {},
   });
 
-  beforeEach(() => {
-    wrapper = shallowMount(MaxDevice, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      mocks: ['$env'],
+  ///////
+  // In this case, check owner fields rendering in enterprise version
+  // and without devices of the template.
+  ///////
+
+  describe('Without devices', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(MaxDevice, {
+        store: storeWithoutDevices,
+        localVue,
+        stubs: ['fragment'],
+        mocks: ['$env'],
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.namespace).toEqual(namespaceWithoutDevices);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.find('[data-test="devices-chip"]').text()).toEqual(namespaceWithoutDevices.devices_count.toString());
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.namespace).toEqual(namespace);
-  });
-  it('Compare data with default value', () => {
-    expect(wrapper.find('[data-test="devices-field"]').text()).toEqual(namespace.devices_count.toString());
-  });
-  it('Renders correct number of Devices', () => {
-    const expectedNumbers = [4, 6, 7];
-    const WrapperArray = [
-      shallowMount(MaxDevice, {
-        store: new Vuex.Store({
-          namespaced: true,
-          state: {
-            namespace: {
-              name: 'namespace1',
-              owner: 'user2',
-              member_names: ['user2', 'user4', 'user5'],
-              tenant_id: 'a736a52b-5777-4f92-b0b8-e359bf484716',
-              devices_count: 4,
-              max_devices: 0,
-            },
-          },
-          getters: {
-            'namespaces/get': (state) => state.namespace,
-          },
-          actions: {
-          },
-        }),
+  ///////
+  // In this case, check owner fields rendering in enterprise version
+  // and with devices of the template.
+  ///////
+
+  describe('With devices', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(MaxDevice, {
+        store: storeWithDevices,
         localVue,
         stubs: ['fragment'],
-      }),
-      shallowMount(MaxDevice, {
-        store: new Vuex.Store({
-          namespaced: true,
-          state: {
-            namespace: {
-              name: 'namespace2',
-              owner: 'user2',
-              member_names: ['user2', 'user4', 'user5'],
-              tenant_id: 'a736a52b-5777-4f92-b0b8-e359bf484717',
-              devices_count: 6,
-              max_devices: 0,
-            },
-          },
-          getters: {
-            'namespaces/get': (state) => state.namespace,
-          },
-          actions: {
-          },
-        }),
-        localVue,
-        stubs: ['fragment'],
-      }),
-      shallowMount(MaxDevice, {
-        store: new Vuex.Store({
-          namespaced: true,
-          state: {
-            namespace: {
-              name: 'namespace4',
-              owner: 'user3',
-              member_names: ['user3', 'user4', 'user6'],
-              tenant_id: 'a736a52b-5777-4f92-b0b8-e359bf484718',
-              devices_count: 7,
-              max_devices: 0,
-            },
-          },
-          getters: {
-            'namespaces/get': (state) => state.namespace,
-          },
-          actions: {
-          },
-        }),
-        localVue,
-        stubs: ['fragment'],
-      }),
-    ];
-    expectedNumbers.forEach((n, i) => {
-      expect(WrapperArray[i].find('[data-test="devices-field"]').text()).toEqual(n.toString());
+        mocks: ['$env'],
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.namespace).toEqual(namespaceWithDevices);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.find('[data-test="devices-chip"]').text()).toEqual(namespaceWithDevices.devices_count.toString());
     });
   });
-  it('Check owner fields rendering in open version of the template.', () => {
-    wrapper = shallowMount(MaxDevice, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      mocks: {
-        $env: {
-          isEnterprise: false,
+
+  ///////
+  // In this case, check owner fields rendering in open version of
+  // the template.
+  ///////
+
+  describe('Without devices', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(MaxDevice, {
+        store: storeWithDevices,
+        localVue,
+        stubs: ['fragment'],
+        mocks: {
+          $env: {
+            isEnterprise: false,
+          },
         },
-      },
+      });
     });
 
-    expect(wrapper.find('[data-test=devices-field]').exists()).toEqual(false);
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.namespace).toEqual(namespaceWithDevices);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.find('[data-test=devices-chip]').exists()).toEqual(false);
+    });
   });
 });
