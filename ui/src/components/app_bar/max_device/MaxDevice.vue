@@ -3,7 +3,7 @@
     <v-chip
       v-if="isEnterprise"
       class="float-right"
-      data-test="devices-field"
+      data-test="devices-chip"
       :to="{name: 'namespaceSettings'}"
     >
       {{ namespace.devices_count }}
