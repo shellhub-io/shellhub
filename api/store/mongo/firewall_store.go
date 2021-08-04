@@ -2,10 +2,13 @@ package mongo
 
 import (
 	"context"
+	"strings"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -61,18 +64,30 @@ func (s *Store) FirewallRuleCreate(ctx context.Context, rule *models.FirewallRul
 		return fromMongoError(err)
 	}
 
-	if _, err := s.db.Collection("firewall_rules").InsertOne(ctx, &rule); err != nil {
+	result, err := s.db.Collection("firewall_rules").InsertOne(ctx, &rule)
+	if err != nil {
 		return fromMongoError(err)
+	}
+
+	if err := s.cache.Set(ctx, strings.Join([]string{"rule", result.InsertedID.(primitive.ObjectID).String()}, "/"), rule, time.Minute); err != nil {
+		logrus.Error(err)
 	}
 
 	return nil
 }
 
 func (s *Store) FirewallRuleGet(ctx context.Context, id string) (*models.FirewallRule, error) {
-	rule := new(models.FirewallRule)
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, fromMongoError(err)
+	}
+
+	var rule *models.FirewallRule
+	if err := s.cache.Get(ctx, strings.Join([]string{"rule", id}, "/"), &rule); err != nil {
+		logrus.Error(err)
+	}
+	if rule != nil {
+		return rule, nil
 	}
 
 	if err := s.db.Collection("firewall_rules").FindOne(ctx, bson.M{"_id": objID}).Decode(&rule); err != nil {
@@ -96,6 +111,10 @@ func (s *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.F
 		return nil, fromMongoError(err)
 	}
 
+	if err := s.cache.Delete(ctx, strings.Join([]string{"rule", id}, "/")); err != nil {
+		logrus.Error(err)
+	}
+
 	r, err := s.FirewallRuleGet(ctx, id)
 
 	return r, fromMongoError(err)
@@ -109,6 +128,10 @@ func (s *Store) FirewallRuleDelete(ctx context.Context, id string) error {
 
 	if _, err := s.db.Collection("firewall_rules").DeleteOne(ctx, bson.M{"_id": objID}); err != nil {
 		return fromMongoError(err)
+	}
+
+	if err := s.cache.Delete(ctx, strings.Join([]string{"rule", id}, "/")); err != nil {
+		logrus.Error(err)
 	}
 
 	return nil

@@ -254,6 +254,10 @@ func (s *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord boo
 		return fromMongoError(err)
 	}
 
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
+		logrus.Error(err)
+	}
+
 	return nil
 }
 
