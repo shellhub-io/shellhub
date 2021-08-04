@@ -104,12 +104,21 @@ describe('DeviceRejectedList', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Compare data with default value', () => {
     expect(wrapper.vm.pagination).toEqual(pagination);
     expect(wrapper.vm.headers).toEqual(headers);
@@ -118,6 +127,11 @@ describe('DeviceRejectedList', () => {
     expect(wrapper.vm.getListRejectedDevices).toEqual(devices);
     expect(wrapper.vm.getNumberRejectedDevices).toEqual(numberDevices);
   });
+
+  //////
+  // HTML validation
+  //////
+
   it('Renders the template with components', async () => {
     expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="DeviceActionButtonAccept-component"]').exists()).toEqual(true);

@@ -12,6 +12,7 @@
             text
             color="primary"
             :small="smallButton"
+            data-test="add-btn"
             @click="dialog = !dialog"
           >
             Add Device

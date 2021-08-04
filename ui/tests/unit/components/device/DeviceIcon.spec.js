@@ -45,19 +45,37 @@ describe('DeviceIcon', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Receive data in props', () => {
     expect(wrapper.vm.iconName).toBe(iconName);
   });
   it('Compare data with default value', () => {
     expect(wrapper.vm.deviceIcon).toEqual(iconsMap);
   });
-  it('Renders the template with data - default icon', () => {
+
+  //////
+  // HTML validation
+  //////
+
+  it('Renders the template with data', () => {
+    //////
+    // In this case, the default icon is tested.
+    //////
+
     wrapper = shallowMount(DeviceIcon, {
       localVue,
       stubs: ['fragment'],
@@ -66,15 +84,18 @@ describe('DeviceIcon', () => {
 
     expect(wrapper.find('[data-test="type-icon"]').text()).toBe(defaultIcon);
   });
-  Object.keys(iconsMap).forEach((iconKey) => {
-    it(`Has the ${iconKey} icon`, () => {
-      wrapper = shallowMount(DeviceIcon, {
-        localVue,
-        stubs: ['fragment'],
-        propsData: { iconName: iconKey },
-      });
 
-      expect(wrapper.find('[data-test="type-icon"]').text()).toBe(iconsMap[iconKey]);
+  //////
+  // In this case, the other icons are tested.
+  //////
+
+  Object.keys(iconsMap).forEach((iconKey) => {
+    wrapper = shallowMount(DeviceIcon, {
+      localVue,
+      stubs: ['fragment'],
+      propsData: { iconName: iconKey },
     });
+
+    expect(wrapper.find('[data-test="type-icon"]').text()).toBe(iconsMap[iconKey]);
   });
 });

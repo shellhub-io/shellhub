@@ -1,38 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DeviceAdd Renders the component 1`] = `
+exports[`DeviceAdd Button Renders the component 1`] = `
 <fragment-stub>
-  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" disabled="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
-      You are not the owner of this namespace
-    </span></v-tooltip-stub>
-  <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="800px" origin="center center" transition="dialog-transition" width="auto">
-    <v-card-stub loaderheight="4" tag="div">
-      <v-card-title-stub primarytitle="" primary-title="" class="headline grey lighten-2 text-center">
-        Registering a device
-      </v-card-title-stub>
-      <v-card-text-stub class="mt-4 mb-0 pb-1">
-        <p>
-          In order to register a device on ShellHub, you need to install ShellHub agent onto it.
-        </p>
-        <p>
-          The easiest way to install ShellHub agent is with our automatic one-line installation
-          script, which works with all Linux distributions that have Docker installed and properly
-          set up.
-        </p> <strong>Run the following command on your device:</strong>
-        <v-text-field-stub errorcount="1" errormessages="" messages="" readonly="true" rules="" successmessages="" value="curl -sSf &quot;http://localhost/install.sh?tenant_id=00000000&quot; | sh" appendicon="mdi-content-copy" backgroundcolor="" dense="true" loaderheight="2" clearicon="$clear" outlined="true" type="text" fill-width="" data-test="command-field" class="code"></v-text-field-stub>
-        <v-divider-stub></v-divider-stub>
-        <p class="caption mb-0">
-          Check the <a href="https://shellhub-io.github.io/guides/registering-device/" target="_blank">documentation</a>
-          for more information and alternative install methods.
-        </p>
-      </v-card-text-stub>
-      <v-card-actions-stub>
-        <v-spacer-stub></v-spacer-stub>
-        <v-btn-stub tag="button" activeclass="" text="true" type="button">
-          Close
-        </v-btn-stub>
-      </v-card-actions-stub>
-    </v-card-stub>
-  </v-dialog-stub>
+  <div><button type="button" class="v-btn--active mr-2 v-btn v-btn--text theme--light v-size--default primary--text" data-test="add-btn"><span class="v-btn__content">
+          Add Device
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceAdd Dialog Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn--active mr-2 v-btn v-btn--text theme--light v-size--default primary--text" data-test="add-btn"><span class="v-btn__content">
+          Add Device
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;

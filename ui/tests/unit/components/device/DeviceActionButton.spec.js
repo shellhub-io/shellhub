@@ -25,16 +25,11 @@ describe('DeviceActionButton', () => {
       'namespaces/owner': (state) => state.isOwner,
     },
     actions: {
-      'devices/refresh': () => {
-      },
-      'devices/accept': () => {
-      },
-      'devices/reject': () => {
-      },
-      'devices/remove': () => {
-      },
-      'notifications/fetch': () => {
-      },
+      'devices/refresh': () => {},
+      'devices/accept': () => {},
+      'devices/reject': () => {},
+      'devices/remove': () => {},
+      'notifications/fetch': () => {},
     },
   });
 
@@ -48,6 +43,10 @@ describe('DeviceActionButton', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     document.body.setAttribute('data-app', true);
     expect(wrapper).toBeTruthy();
@@ -55,6 +54,11 @@ describe('DeviceActionButton', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Receive data in props', () => {
     expect(wrapper.vm.uid).toEqual(uid);
     expect(wrapper.vm.notificationStatus).toEqual(notificationStatus);
@@ -66,9 +70,15 @@ describe('DeviceActionButton', () => {
   it('Process data in the computed', () => {
     expect(wrapper.vm.isOwner).toEqual(isOwner);
   });
+
+  //////
+  // HTML validation
+  //////
+
   it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(true);
   });
+
   it(`Renders the template with data - 
       notification is false,
       action is accept,

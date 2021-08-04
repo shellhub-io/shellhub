@@ -1,7 +1,6 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import DeviceList from '@/components/device/DeviceList';
-import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
 
 describe('DeviceList', () => {
@@ -145,59 +144,127 @@ describe('DeviceList', () => {
     },
   });
 
-  beforeEach(() => {
-    wrapper = mount(DeviceList, {
-      store,
-      localVue,
-      stubs: ['fragment', 'router-link'],
-      vuetify,
+  ///////
+  // In this case, it is tested when device is online.
+  ///////
+
+  describe('Device online', () => {
+    beforeEach(() => {
+      wrapper = mount(DeviceList, {
+        store,
+        localVue,
+        stubs: ['fragment', 'router-link'],
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.hostname).toEqual('localhost');
+      expect(wrapper.vm.pagination).toEqual(pagination);
+      expect(wrapper.vm.headers).toEqual(headers);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.getListDevices).toEqual(devices);
+      expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Process data in methods', () => {
+      Object.keys(devices).forEach((device) => {
+        const address = `${device.namespace}.${device.name}@localhost`;
+        expect(wrapper.vm.address(device)).toEqual(address);
+      });
+    });
+    it('Renders the template with components', async () => {
+      expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
+    });
+    it('Renders the template with data', () => {
+      const dt = wrapper.find('[data-test="dataTable-field"]');
+      const dataTableProps = dt.vm.$options.propsData;
+
+      expect(dataTableProps.items).toHaveLength(numberDevices);
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Compare data with default value', () => {
-    expect(wrapper.vm.hostname).toEqual('localhost');
-    expect(wrapper.vm.pagination).toEqual(pagination);
-    expect(wrapper.vm.headers).toEqual(headers);
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.getListDevices).toEqual(devices);
-    expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
-  });
-  it('Process data in methods', () => {
-    Object.keys(devices).forEach((device) => {
-      const address = `${device.namespace}.${device.name}@localhost`;
-      expect(wrapper.vm.address(device)).toEqual(address);
-    });
-  });
-  it('Renders the template with components', async () => {
-    expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
-  });
-  it('Renders the template with data', () => {
-    const dt = wrapper.find('[data-test="dataTable-field"]');
-    const dataTableProps = dt.vm.$options.propsData;
+  ///////
+  // In this case, it is tested when device is offline.
+  ///////
 
-    expect(dataTableProps.items).toHaveLength(numberDevices);
-  });
-  it('Renders the template with components - device offline', async () => {
-    wrapper = mount(DeviceList, {
-      store: storeDevicesOffline,
-      localVue,
-      stubs: ['fragment', 'router-link'],
-      vuetify,
+  describe('Device online', () => {
+    beforeEach(() => {
+      wrapper = mount(DeviceList, {
+        store: storeDevicesOffline,
+        localVue,
+        stubs: ['fragment', 'router-link'],
+        vuetify,
+      });
     });
 
-    await flushPromises();
+    ///////
+    // Component Rendering
+    //////
 
-    expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(false);
-    expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.hostname).toEqual('localhost');
+      expect(wrapper.vm.pagination).toEqual(pagination);
+      expect(wrapper.vm.headers).toEqual(headers);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.getListDevices).toEqual(devicesOffline);
+      expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Process data in methods', () => {
+      Object.keys(devices).forEach((device) => {
+        const address = `${device.namespace}.${device.name}@localhost`;
+        expect(wrapper.vm.address(device)).toEqual(address);
+      });
+    });
+    it('Renders the template with components', async () => {
+      expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
+    });
+    it('Renders the template with data', () => {
+      const dt = wrapper.find('[data-test="dataTable-field"]');
+      const dataTableProps = dt.vm.$options.propsData;
+
+      expect(dataTableProps.items).toHaveLength(numberDevices);
+    });
   });
 });

@@ -1,6 +1,81 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DeviceDetails Renders the component 1`] = `
+exports[`DeviceDetails Offline Renders the component 1`] = `
+<fragment-stub>
+  <div class="d-flex pa-0 align-center">
+    <h1>
+      Device Details
+    </h1>
+  </div>
+  <v-card-stub loaderheight="4" tag="div" class="mt-2">
+    <v-toolbar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="">
+      <v-toolbar-title-stub>
+        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active a year ago</span></v-tooltip-stub>
+        39-5e-2a
+      </v-toolbar-title-stub>
+      <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
+      <v-spacer-stub></v-spacer-stub>
+      <!---->
+      <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
+    </v-toolbar-stub>
+    <v-divider-stub></v-divider-stub>
+    <v-card-text-stub>
+      <div class="mt-2">
+        <div class="overline">
+          UID
+        </div>
+        <div data-test="deviceUid-field">
+          a582b47a
+        </div>
+      </div>
+      <div class="mt-2">
+        <div class="overline">
+          MAC
+        </div> <code data-test="deviceMac-field">
+          00:00:00
+        </code>
+      </div>
+      <div class="mt-2">
+        <div class="overline">
+          Operating System
+        </div>
+        <div data-test="devicePrettyName-field">
+          <deviceicon-stub iconname="arch"></deviceicon-stub>
+          Linux
+        </div>
+      </div>
+      <div class="mt-2">
+        <div class="overline">
+          Last Seen
+        </div>
+        <div data-test="deviceConvertDate-field">
+          Wednesday, May 20th 2020, 6:58:53 pm
+        </div>
+      </div>
+    </v-card-text-stub>
+  </v-card-stub>
+  <div class="text-center">
+    <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="none" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+      <v-card-stub loaderheight="4" tag="div">
+        <v-card-title-stub primarytitle="" primary-title="" class="headline grey lighten-2">
+          Device ID error
+        </v-card-title-stub>
+        <v-card-text-stub class="mt-4 mb-3 pb-1">
+          You tried to access a non-existing device ID.
+        </v-card-text-stub>
+        <v-card-actions-stub>
+          <v-spacer-stub></v-spacer-stub>
+          <v-btn-stub color="primary" tag="button" activeclass="" text="true" type="button">
+            Go back to devices
+          </v-btn-stub>
+        </v-card-actions-stub>
+      </v-card-stub>
+    </v-dialog-stub>
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceDetails Online Renders the component 1`] = `
 <fragment-stub>
   <div class="d-flex pa-0 align-center">
     <h1>
@@ -15,10 +90,10 @@ exports[`DeviceDetails Renders the component 1`] = `
         </v-icon-stub>
         39-5e-2a
       </v-toolbar-title-stub>
-      <devicerename-stub name="39-5e-2a" uid="a582b47a42d" data-test="deviceRename-component"></devicerename-stub>
+      <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
       <v-spacer-stub></v-spacer-stub>
-      <terminaldialog-stub uid="a582b47a42d" data-test="terminalDialog-component"></terminaldialog-stub>
-      <devicedelete-stub uid="a582b47a42d" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
+      <terminaldialog-stub uid="a582b47a" data-test="terminalDialog-component"></terminaldialog-stub>
+      <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
     <v-card-text-stub>
@@ -27,14 +102,14 @@ exports[`DeviceDetails Renders the component 1`] = `
           UID
         </div>
         <div data-test="deviceUid-field">
-          a582b47a42d
+          a582b47a
         </div>
       </div>
       <div class="mt-2">
         <div class="overline">
           MAC
         </div> <code data-test="deviceMac-field">
-          00:00:00:00:00:00
+          00:00:00
         </code>
       </div>
       <div class="mt-2">
@@ -43,7 +118,7 @@ exports[`DeviceDetails Renders the component 1`] = `
         </div>
         <div data-test="devicePrettyName-field">
           <deviceicon-stub iconname="arch"></deviceicon-stub>
-          Linux Mint 19.3
+          Linux
         </div>
       </div>
       <div class="mt-2">

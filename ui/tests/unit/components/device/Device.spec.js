@@ -30,12 +30,9 @@ describe('Device', () => {
       'auth/isLoggedIn': (state) => state.isLoggedIn,
     },
     actions: {
-      'stats/get': () => {
-      },
-      'devices/setFilter': () => {
-      },
-      'devices/refresh': () => {
-      },
+      'stats/get': () => {},
+      'devices/setFilter': () => {},
+      'devices/refresh': () => {},
     },
   });
 
@@ -56,12 +53,9 @@ describe('Device', () => {
       'auth/isLoggedIn': (state) => state.isLoggedIn,
     },
     actions: {
-      'stats/get': () => {
-      },
-      'devices/setFilter': () => {
-      },
-      'devices/refresh': () => {
-      },
+      'stats/get': () => {},
+      'devices/setFilter': () => {},
+      'devices/refresh': () => {},
     },
   });
 
@@ -74,12 +68,21 @@ describe('Device', () => {
       });
     });
 
+    ///////
+    // Component Rendering
+    //////
+
     it('Is a Vue instance', () => {
       expect(wrapper).toBeTruthy();
     });
     it('Renders the component', () => {
       expect(wrapper.html()).toMatchSnapshot();
     });
+
+    ///////
+    // Data and Props checking
+    //////
+
     it('Process data in the computed', () => {
       expect(wrapper.vm.getNumberPendingDevices).toEqual(pendingDevices);
       expect(wrapper.vm.hasDevice).toEqual(true);
@@ -111,6 +114,11 @@ describe('Device', () => {
           .toEqual(output[index]);
       });
     });
+
+    //////
+    // HTML validation
+    //////
+
     it('Renders the template with components', () => {
       expect(wrapper.find('[data-test="boxMessageDevice-component"]').exists()).toBe(false);
     });
@@ -139,12 +147,21 @@ describe('Device', () => {
       });
     });
 
+    ///////
+    // Component Rendering
+    //////
+
     it('Is a Vue instance', () => {
       expect(wrapper).toBeTruthy();
     });
     it('Renders the component', () => {
       expect(wrapper.html()).toMatchSnapshot();
     });
+
+    ///////
+    // Data and Props checking
+    //////
+
     it('Process data in the computed', () => {
       expect(wrapper.vm.getNumberPendingDevices).toEqual(pendingDevices);
       expect(wrapper.vm.hasDevice).toEqual(true);
@@ -176,6 +193,11 @@ describe('Device', () => {
           .toEqual(output[index]);
       });
     });
+
+    //////
+    // HTML validation
+    //////
+
     it('Renders the template with components', () => {
       expect(wrapper.find('[data-test="boxMessageDevice-component"]').exists()).toBe(false);
     });
