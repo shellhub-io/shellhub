@@ -125,7 +125,7 @@ exports[`DevicePendingList Renders the component 1`] = `
               </td>
               <td class="text-center">
                 <fragment-stub data-test="deviceIcon-component"><i aria-hidden="true" data-test="type-icon" class="v-icon notranslate icons fl fl-linuxmint theme--light"></i></fragment-stub>
-                Linux Mint 20.0
+                Linux
               </td>
               <td class="text-center">
 

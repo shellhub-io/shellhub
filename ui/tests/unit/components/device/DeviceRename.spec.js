@@ -47,105 +47,176 @@ describe('DeviceRename', () => {
     },
   });
 
-  beforeEach(() => {
-    wrapper = mount(DeviceRename, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { name, uid },
-      vuetify,
+  describe('Icon', () => {
+    beforeEach(() => {
+      wrapper = mount(DeviceRename, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { name, uid },
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      document.body.setAttribute('data-app', true);
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receive data in props', () => {
+      expect(wrapper.vm.name).toEqual(name);
+      expect(wrapper.vm.uid).toEqual(uid);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.dialog).toEqual(false);
+      expect(wrapper.vm.invalid).toEqual(false);
+      expect(wrapper.vm.editName).toEqual('39-5e-2a');
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Show message tooltip to user owner', async (done) => {
+      const icons = wrapper.findAll('.v-icon');
+      const helpIcon = icons.at(0);
+      helpIcon.trigger('mouseenter');
+      await wrapper.vm.$nextTick();
+
+      expect(icons.length).toBe(1);
+      requestAnimationFrame(() => {
+        expect(wrapper.find('[data-test="tooltipOwner-text"]').text()).toEqual('Edit');
+        done();
+      });
+    });
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="deviceRename-dialog"]').exists()).toEqual(false);
     });
   });
 
-  it('Is a Vue instance', () => {
-    document.body.setAttribute('data-app', true);
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Receive data in props', () => {
-    expect(wrapper.vm.name).toEqual(name);
-    expect(wrapper.vm.uid).toEqual(uid);
-  });
-  it('Compare data with default value', () => {
-    expect(wrapper.vm.dialog).toEqual(false);
-    expect(wrapper.vm.invalid).toEqual(false);
-    expect(wrapper.vm.editName).toEqual('39-5e-2a');
-  });
-  it('Show message tooltip to user owner', async (done) => {
-    const icons = wrapper.findAll('.v-icon');
-    const helpIcon = icons.at(0);
-    helpIcon.trigger('mouseenter');
-    await wrapper.vm.$nextTick();
+  describe('Dialog', () => {
+    beforeEach(() => {
+      wrapper = mount(DeviceRename, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { name, uid },
+        vuetify,
+      });
 
-    expect(icons.length).toBe(1);
-    requestAnimationFrame(() => {
-      expect(wrapper.find('[data-test="tooltipOwner-text"]').text()).toEqual('Edit');
-      done();
-    });
-  });
-  it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="deviceRename-dialog"]').exists()).toEqual(false);
-  });
-  it('Renders the template with data - dialog is true', async () => {
-    wrapper.setData({ dialog: true });
-    await flushPromises();
-
-    expect(wrapper.find('[data-test="deviceRename-dialog"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="rename-btn"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
-  });
-  it('Show empty fields required in validation', async () => {
-    wrapper.setData({ dialog: true });
-    await flushPromises();
-
-    wrapper.setData({ editName: '' });
-    await flushPromises();
-
-    const validator = wrapper.vm.$refs.providerHostname;
-
-    await validator.validate();
-    expect(validator.errors[0]).toBe('This field is required');
-  });
-  it('Shows invalid hostname error for dot', async () => {
-    wrapper.setData({ dialog: true });
-    await flushPromises();
-
-    wrapper.setData({ editName: 'ShelHub.' });
-    await flushPromises();
-
-    const validator = wrapper.vm.$refs.providerHostname;
-
-    await validator.validate();
-    expect(validator.errors[0]).toBe('The name must not contain dots');
-  });
-  invalidNames.forEach((invalidName) => {
-    it(`Shows invalid hostname error for ${invalidName}`, async () => {
       wrapper.setData({ dialog: true });
-      await flushPromises();
+    });
 
-      wrapper.setData({ editName: invalidName });
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      document.body.setAttribute('data-app', true);
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receive data in props', () => {
+      expect(wrapper.vm.name).toEqual(name);
+      expect(wrapper.vm.uid).toEqual(uid);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.dialog).toEqual(true);
+      expect(wrapper.vm.invalid).toEqual(false);
+      expect(wrapper.vm.editName).toEqual('39-5e-2a');
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    //////
+    // In this case, the empty fields are validated.
+    //////
+
+    it('Show validation messages', async () => {
+      wrapper.setData({ editName: '' });
       await flushPromises();
 
       const validator = wrapper.vm.$refs.providerHostname;
 
       await validator.validate();
-      expect(validator.errors[0]).toBe('You entered an invalid RFC1123 name');
+      expect(validator.errors[0]).toBe('This field is required');
     });
-  });
-  invalidMinAndMaxCharacters.forEach((character) => {
-    it(`Shows invalid hostname error for ${character}`, async () => {
-      wrapper.setData({ dialog: true });
-      await flushPromises();
 
-      wrapper.setData({ editName: character });
+    //////
+    // In this case, must not contain dots are validated.
+    //////
+
+    it('Show validation messages', async () => {
+      wrapper.setData({ editName: 'ShelHub.' });
       await flushPromises();
 
       const validator = wrapper.vm.$refs.providerHostname;
 
       await validator.validate();
-      expect(validator.errors[0]).toBe('Your hostname should be 3-30 characters long');
+      expect(validator.errors[0]).toBe('The name must not contain dots');
+    });
+
+    //////
+    // In this case, RFC1123 rules are validated.
+    //////
+
+    it('Show validation messages', async (done) => {
+      invalidNames.forEach(async (invalidName) => {
+        wrapper.setData({ editName: invalidName });
+        await flushPromises();
+
+        const validator = wrapper.vm.$refs.providerHostname;
+
+        await validator.validate();
+        expect(validator.errors[0]).toBe('You entered an invalid RFC1123 name');
+
+        await flushPromises();
+        done();
+      });
+    });
+
+    //////
+    // In this case, min and max characters are validated.
+    //////
+
+    it('Show validation messages', async (done) => {
+      invalidMinAndMaxCharacters.forEach(async (character) => {
+        wrapper.setData({ editName: character });
+        await flushPromises();
+
+        const validator = wrapper.vm.$refs.providerHostname;
+
+        await validator.validate();
+        expect(validator.errors[0]).toBe('Your hostname should be 3-30 characters long');
+
+        await flushPromises();
+        done();
+      });
+    });
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="deviceRename-dialog"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="rename-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
     });
   });
 });

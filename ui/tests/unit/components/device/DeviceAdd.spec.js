@@ -1,6 +1,7 @@
 import Vuex from 'vuex';
-import { config, shallowMount, createLocalVue } from '@vue/test-utils';
+import { config, mount, createLocalVue } from '@vue/test-utils';
 import DeviceAdd from '@/components/device/DeviceAdd';
+import Vuetify from 'vuetify';
 
 // mocks global vars and clipboard function
 config.mocks = {
@@ -14,14 +15,17 @@ config.mocks = {
 
 describe('DeviceAdd', () => {
   const localVue = createLocalVue();
+  const vuetify = new Vuetify();
   localVue.use(Vuex);
+
+  document.body.setAttribute('data-app', true);
 
   let wrapper;
 
   const isOwner = true;
-  const tenant = '00000000';
+  const tenant = 'xxxxxxxx';
 
-  const store = new Vuex.Store({
+  const storeOwner = new Vuex.Store({
     namespaced: true,
     state: {
       isOwner,
@@ -34,53 +38,142 @@ describe('DeviceAdd', () => {
       'auth/tenant': (state) => state.tenant,
     },
     actions: {
-      'modals/showAddDevice': () => {
-      },
-      'snackbar/showSnackbarCopy': () => {
-      },
+      'modals/showAddDevice': () => {},
+      'snackbar/showSnackbarCopy': () => {},
     },
   });
 
-  beforeEach(() => {
-    wrapper = shallowMount(DeviceAdd, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      mocks: ['$copy', '$command'],
+  ///////
+  // In this case, when the user owns the namespace and the focus of
+  // the test is button rendering.
+  ///////
+
+  describe('Button', () => {
+    beforeEach(() => {
+      wrapper = mount(DeviceAdd, {
+        store: storeOwner,
+        localVue,
+        stubs: ['fragment'],
+        mocks: ['$copy', '$command'],
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receive data in props', () => {
+      expect(wrapper.vm.show).toBe(false);
+      expect(wrapper.vm.tenant).toBe(tenant);
+      expect(wrapper.vm.isOwner).toBe(isOwner);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.hostname).toEqual('localhost');
+      expect(wrapper.vm.port).toEqual('');
+      expect(wrapper.vm.dialog).toEqual(false);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.tenant).toEqual(tenant);
+      expect(wrapper.vm.show).toEqual(false);
+      expect(wrapper.vm.isOwner).toEqual(isOwner);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Process data in methods', () => {
+      const command = 'curl -sSf "http://localhost/install.sh?tenant_id=xxxxxxxx" | sh';
+
+      jest.spyOn(wrapper.vm, 'copyCommand');
+      wrapper.vm.copyCommand();
+
+      expect(wrapper.vm.command()).toBe(command);
+      expect(wrapper.vm.copyCommand).toHaveBeenCalled();
+    });
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="add-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="command-field"]').exists()).toBe(false);
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Receive data in props', () => {
-    expect(wrapper.vm.show).toBe(false);
-    expect(wrapper.vm.tenant).toBe('00000000');
-    expect(wrapper.vm.isOwner).toBe(isOwner);
-  });
-  it('Compare data with default value', () => {
-    expect(wrapper.vm.hostname).toEqual('localhost');
-    expect(wrapper.vm.port).toEqual('');
-    expect(wrapper.vm.dialog).toEqual(false);
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.tenant).toEqual(tenant);
-    expect(wrapper.vm.show).toEqual(false);
-    expect(wrapper.vm.isOwner).toEqual(isOwner);
-  });
-  it('Process data in methods', () => {
-    const command = 'curl -sSf "http://localhost/install.sh?tenant_id=00000000" | sh';
+  ///////
+  // In this case, when the user owns the namespace and the focus of
+  // the test is dialog rendering.
+  ///////
 
-    jest.spyOn(wrapper.vm, 'copyCommand');
-    wrapper.vm.copyCommand();
+  describe('Dialog', () => {
+    beforeEach(() => {
+      wrapper = mount(DeviceAdd, {
+        store: storeOwner,
+        localVue,
+        stubs: ['fragment'],
+        mocks: ['$copy', '$command'],
+        vuetify,
+      });
 
-    expect(wrapper.vm.command()).toBe(command);
-    expect(wrapper.vm.copyCommand).toHaveBeenCalled();
-  });
-  it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="command-field"]').exists()).toBe(true);
+      wrapper.setData({ dialog: true });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receive data in props', () => {
+      expect(wrapper.vm.show).toBe(false);
+      expect(wrapper.vm.tenant).toBe(tenant);
+      expect(wrapper.vm.isOwner).toBe(isOwner);
+    });
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.hostname).toEqual('localhost');
+      expect(wrapper.vm.port).toEqual('');
+      expect(wrapper.vm.dialog).toEqual(true);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.tenant).toEqual(tenant);
+      expect(wrapper.vm.show).toEqual(false);
+      expect(wrapper.vm.isOwner).toEqual(isOwner);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Process data in methods', () => {
+      const command = 'curl -sSf "http://localhost/install.sh?tenant_id=xxxxxxxx" | sh';
+
+      jest.spyOn(wrapper.vm, 'copyCommand');
+      wrapper.vm.copyCommand();
+
+      expect(wrapper.vm.command()).toBe(command);
+      expect(wrapper.vm.copyCommand).toHaveBeenCalled();
+    });
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="add-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="command-field"]').exists()).toBe(true);
+    });
   });
 });
