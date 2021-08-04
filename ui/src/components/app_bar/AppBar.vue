@@ -36,6 +36,7 @@
 
       <NamespaceMenu
         :in-a-namespace="hasNamespaces"
+        data-test="namespaceMenu-component"
       />
 
       <v-chip>
@@ -48,7 +49,7 @@
         </v-icon>
       </v-chip>
 
-      <Notification />
+      <Notification data-test="notification-component" />
 
       <v-menu
         offset-y

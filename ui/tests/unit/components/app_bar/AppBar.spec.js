@@ -61,12 +61,21 @@ describe('AppBar', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  ///////
+  // Data and Props checking
+  //////
+
   it('Receive data in props', () => {
     expect(wrapper.vm.drawer).toEqual(drawer);
   });
@@ -80,6 +89,15 @@ describe('AppBar', () => {
     expect(wrapper.vm.isLoggedIn).toEqual(isLoggedIn);
     expect(wrapper.vm.hasNamespaces).toEqual(numberNamespaces !== 0);
     expect(wrapper.vm.isMobile).toEqual(isMobile);
+  });
+
+  //////
+  // HTML validation
+  //////
+
+  it('Renders the template with components', () => {
+    expect(wrapper.find('[data-test="namespaceMenu-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="notification-component"]').exists()).toBe(true);
   });
   it('Renders the template with data', async () => {
     expect(wrapper.find('[data-test="Settings"]').exists()).toEqual(true);
