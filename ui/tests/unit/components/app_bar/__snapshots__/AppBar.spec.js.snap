@@ -11,13 +11,13 @@ exports[`AppBar Renders the component 1`] = `
       BETA
     </span>
     <v-spacer-stub></v-spacer-stub>
-    <namespacemenu-stub inanamespace="true"></namespacemenu-stub>
+    <namespacemenu-stub inanamespace="true" data-test="namespaceMenu-component"></namespacemenu-stub>
     <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete">
       <v-icon-stub size="24" class="ml-1 mr-1">
         help
       </v-icon-stub>
     </v-chip-stub>
-    <notification-stub></notification-stub>
+    <notification-stub data-test="notification-component"></notification-stub>
     <v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
       <v-card-stub loaderheight="4" tag="div">
         <v-list-item-stub activeclass="" tag="div" router="" data-test="Settings">
