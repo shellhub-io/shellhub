@@ -96,9 +96,10 @@ func TestAuthUser(t *testing.T) {
 	passwd := sha256.Sum256([]byte(authReq.Password))
 
 	user := &models.User{
-		Username: "user",
-		Password: hex.EncodeToString(passwd[:]),
-		ID:       "id",
+		Username:  "user",
+		Password:  hex.EncodeToString(passwd[:]),
+		ID:        "id",
+		LastLogin: clock.Now(),
 	}
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
@@ -107,6 +108,8 @@ func TestAuthUser(t *testing.T) {
 		Return(user, nil).Once()
 	mock.On("NamespaceGetFirst", ctx, user.ID).
 		Return(namespace, nil).Once()
+	mock.On("UserUpdateData", ctx, user, user.ID).
+		Return(nil).Once()
 
 	authRes, err := s.AuthUser(ctx, *authReq)
 	assert.NoError(t, err)
