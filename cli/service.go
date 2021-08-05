@@ -9,6 +9,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
@@ -47,10 +48,11 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 	password := data.Password
 
 	if err := s.store.UserCreate(context.TODO(), &models.User{
-		Name:     strings.ToLower(data.Username),
-		Username: data.Username,
-		Password: hashPassword(password),
-		Email:    strings.ToLower(data.Email),
+		Name:      strings.ToLower(data.Username),
+		Username:  data.Username,
+		Password:  hashPassword(password),
+		Email:     strings.ToLower(data.Email),
+		CreatedAt: clock.Now(),
 	}); err != nil && err.Error() == "duplicate" {
 		var errStrings []string
 
