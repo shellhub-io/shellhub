@@ -154,6 +154,12 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			return nil, err
 		}
 
+		user.LastLogin = clock.Now()
+
+		if err := s.store.UserUpdateData(ctx, user, user.ID); err != nil {
+			return nil, err
+		}
+
 		return &models.UserAuthResponse{
 			Token:  tokenStr,
 			Name:   user.Name,

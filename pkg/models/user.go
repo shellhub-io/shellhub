@@ -15,6 +15,7 @@ type User struct {
 	Namespaces    int       `json:"namespaces" bson:"namespaces,omitempty"`
 	Authenticated bool      `json:"Authenticated"`
 	CreatedAt     time.Time `json:"created_at" bson:"created_at"`
+	LastLogin     time.Time `json:"last_login" bson:"last_login"`
 }
 
 type UserAuthRequest struct {

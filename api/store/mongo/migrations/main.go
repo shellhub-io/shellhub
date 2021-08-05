@@ -38,6 +38,7 @@ func GenerateMigrations() []migrate.Migration {
 		migration26,
 		migration27,
 		migration28,
+		migration29,
 	}
 }
 
