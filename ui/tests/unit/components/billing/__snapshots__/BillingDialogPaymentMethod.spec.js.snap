@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BillingDialogPaymentMethod Button Renders the component 1`] = `
+<fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default" data-test="show-btn"><span class="v-btn__content">
+    subscription
+  </span></button>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`BillingDialogPaymentMethod Dialog Subscription Renders the component 1`] = `
+<fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default" data-test="show-btn"><span class="v-btn__content">
+    subscription
+  </span></button>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`BillingDialogPaymentMethod Dialog Update Renders the component 1`] = `
+<fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default" data-test="show-btn"><span class="v-btn__content">
+    update
+  </span></button>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;

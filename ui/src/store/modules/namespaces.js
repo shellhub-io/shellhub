@@ -6,6 +6,7 @@ export default {
 
   state: {
     namespace: {},
+    billing: {},
     namespaces: [],
     numberNamespaces: 0,
     owner: false,
@@ -16,6 +17,7 @@ export default {
     get: (state) => state.namespace,
     getNumberNamespaces: (state) => state.numberNamespaces,
     owner: (state) => state.owner,
+    billing: (state) => state.billing,
   },
 
   mutations: {
@@ -26,6 +28,10 @@ export default {
 
     setNamespace: (state, res) => {
       Vue.set(state, 'namespace', res.data);
+    },
+
+    setBilling: (state, data) => {
+      Vue.set(state, 'billing', data);
     },
 
     removeNamespace: (state, id) => {
@@ -66,6 +72,11 @@ export default {
     get: async (context, id) => {
       const res = await apiNamespace.getNamespace(id);
       context.commit('setNamespace', res);
+
+      const { billing } = res.data;
+      if (billing !== null) {
+        context.commit('setBilling', billing);
+      }
     },
 
     put: async (context, data) => {

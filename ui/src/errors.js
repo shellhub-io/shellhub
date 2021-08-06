@@ -51,6 +51,9 @@ export default {
         recoverPassword: 'sending email',
         validationAccount: 'validation account',
         updatingAccount: 'updating account',
+        subscription: 'subscription',
+        updateSubscription: 'updating subscription',
+        cancelSubscription: 'cancelling subscription',
       },
       form: {
         invalid: (field, param, extra) => {

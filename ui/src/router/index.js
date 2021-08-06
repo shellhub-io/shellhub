@@ -147,6 +147,11 @@ const router = new Router({
           name: 'tagsSettings',
           component: () => import('@/components/setting/SettingTags'),
         },
+        {
+          path: 'billing',
+          name: 'billingSettings',
+          component: () => import('@/components/setting/SettingBilling'),
+        },
       ],
     },
     {

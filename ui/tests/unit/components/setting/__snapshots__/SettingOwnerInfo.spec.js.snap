@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SettingOwnerInfo Owner is false Renders the component 1`] = `
+<div style="text-align: center;">
+  <div data-test="message-div">
+    <h3 class="pl-6"><span>
+        You're not the owner of this namespace.
+      </span>
+      <p data-test="contactUser-p">
+        Contact user4 user for more information.
+      </p>
+    </h3>
+  </div> <br>
+</div>
+`;
+
+exports[`SettingOwnerInfo Owner is true Renders the component 1`] = `""`;

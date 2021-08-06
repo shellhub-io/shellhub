@@ -28,7 +28,7 @@ exports[`SettingNamespace Hosted version Renders the component 1`] = `
                   Rename Namespace
                 </span></button></div>
       </div>
-      <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-68" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-68" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+      <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-70" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-70" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
       <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
       <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
     </div>
@@ -116,9 +116,9 @@ exports[`SettingNamespace Hosted version Renders the component 1`] = `
               <div class="v-input theme--light v-input--selection-controls v-input--checkbox">
                 <div class="v-input__control">
                   <div class="v-input__slot">
-                    <div class="v-input--selection-controls__input"><i aria-hidden="true" class="v-icon notranslate mdi mdi-checkbox-blank-outline theme--light"></i><input aria-checked="false" id="input-94" role="checkbox" type="checkbox" value="">
+                    <div class="v-input--selection-controls__input"><i aria-hidden="true" class="v-icon notranslate mdi mdi-checkbox-blank-outline theme--light"></i><input aria-checked="false" id="input-96" role="checkbox" type="checkbox" value="">
                       <div class="v-input--selection-controls__ripple"></div>
-                    </div><label for="input-94" class="v-label theme--light" style="left: 0px; position: relative;">Enable session record</label>
+                    </div><label for="input-96" class="v-label theme--light" style="left: 0px; position: relative;">Enable session record</label>
                   </div>
                   <div class="v-messages theme--light">
                     <transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub>
@@ -173,14 +173,16 @@ exports[`SettingNamespace Not the owner of this namespace Renders the component 
   <div class="container">
     <div class="row mt-4 align-center justify-center">
       <div class="col-sm-8 col">
-        <div style="text-align: center;">
-          <h3 class="pl-6"><span data-test="notTheOwner-span">
-              You're not the owner of this namespace.
-            </span>
-            <p data-test="namespaceOwnerMessage-p">
-              Contact user6 user for more information.
-            </p>
-          </h3> <br>
+        <div style="text-align: center;" data-test="settingOwnerInfo-component">
+          <div data-test="message-div">
+            <h3 class="pl-6"><span>
+        You're not the owner of this namespace.
+      </span>
+              <p data-test="contactUser-p">
+                Contact user6 user for more information.
+              </p>
+            </h3>
+          </div> <br>
         </div>
         <div class="mt-6">
           <div class="row mb-2">
@@ -192,7 +194,7 @@ exports[`SettingNamespace Not the owner of this namespace Renders the component 
             <div class="ml-auto col-md-auto col">
               <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span data-test="tenant-span">
                     
-                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$87" data-clipboard-success-handler="$88"></i></span></span></div>
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$89" data-clipboard-success-handler="$90"></i></span></span></div>
             </div>
           </div>
           <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
@@ -224,7 +226,7 @@ exports[`SettingNamespace Open version Renders the component 1`] = `
             <div class="ml-auto col-md-auto col">
               <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span data-test="tenant-span">
                     e359bf484715
-                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$99" data-clipboard-success-handler="$100"></i></span></span></div>
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$103" data-clipboard-success-handler="$104"></i></span></span></div>
             </div>
           </div>
           <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
@@ -236,7 +238,7 @@ exports[`SettingNamespace Open version Renders the component 1`] = `
                   Rename Namespace
                 </span></button></div>
       </div>
-      <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-2120" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-2120" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+      <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-2229" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-2229" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
       <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
       <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
     </div>

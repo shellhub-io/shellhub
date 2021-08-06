@@ -1,16 +1,10 @@
 import Vuex from 'vuex';
-import { mount, createLocalVue, config } from '@vue/test-utils';
+import { mount, createLocalVue } from '@vue/test-utils';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
 import SettingNamespace from '@/components/setting/SettingNamespace';
 import '@/vee-validate';
-
-config.mocks = {
-  $env: {
-    isEnterprise: true,
-  },
-};
 
 describe('SettingNamespace', () => {
   const localVue = createLocalVue();
@@ -147,7 +141,18 @@ describe('SettingNamespace', () => {
         store: storeOwner,
         localVue,
         stubs: ['fragment'],
-        mocks: ['$env'],
+        mocks: {
+          $env: {
+            isEnterprise: true,
+          },
+          $stripe: {
+            elements: () => ({
+              create: () => ({
+                mount: () => null,
+              }),
+            }),
+          },
+        },
         vuetify,
       });
     });
@@ -254,6 +259,9 @@ describe('SettingNamespace', () => {
       expect(validator.errors[0]).toBe('The name must not contain dots');
     });
 
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="settingOwnerInfo-component"]').exists()).toBe(false);
+    });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="tenant-span"]').text()).toEqual(namespace.tenant_id);
 
@@ -294,7 +302,18 @@ describe('SettingNamespace', () => {
         localVue,
         store: storeNotOwner,
         stubs: ['fragment'],
-        mocks: ['$env'],
+        mocks: {
+          $env: {
+            isEnterprise: true,
+          },
+          $stripe: {
+            elements: () => ({
+              create: () => ({
+                mount: () => null,
+              }),
+            }),
+          },
+        },
         vuetify,
       });
     });
@@ -343,24 +362,24 @@ describe('SettingNamespace', () => {
     // HTML validation
     //////
 
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="settingOwnerInfo-component"]').exists()).toBe(true);
+    });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="tenant-span"]').text()).toEqual('');
 
       //////
       // Check owner fields rendering.
       //////
-      const namespaceOwnerMessage = `Contact ${namespace.members[0].name} user for more information.`;
 
       expect(wrapper.find('[data-test="owner-p"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="editOperation-div"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="userOperation-div"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="deleteOperation-div"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="securityOperation-div"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="notTheOwner-span"]').exists()).toEqual(true);
       expect(wrapper.findAll('[data-test="removeMember-btn"]').length).toEqual(0);
       expect(wrapper.find('[data-test="role-div"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="newMember-div"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test=namespaceOwnerMessage-p]').text()).toEqual(namespaceOwnerMessage);
     });
   });
 
@@ -379,6 +398,13 @@ describe('SettingNamespace', () => {
         mocks: {
           $env: {
             isEnterprise: false,
+          },
+          $stripe: {
+            elements: () => ({
+              create: () => ({
+                mount: () => null,
+              }),
+            }),
           },
         },
         vuetify,
@@ -429,6 +455,9 @@ describe('SettingNamespace', () => {
     // HTML validation
     //////
 
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="settingOwnerInfo-component"]').exists()).toBe(false);
+    });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="tenant-span"]').text()).toEqual(namespace.tenant_id);
 

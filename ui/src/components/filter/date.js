@@ -7,6 +7,13 @@ export const formatDate = (date) => {
   return null;
 };
 
+export const formatDateWithoutDayAndHours = (date) => {
+  if (date) {
+    return moment(date).format('MMMM Do YYYY');
+  }
+  return null;
+};
+
 export const lastSeen = (date) => {
   if (date) {
     return moment(date).fromNow();
