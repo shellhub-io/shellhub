@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BillingIcon Renders the component 1`] = `
+<fragment-stub>
+  <font-awesome-icon-stub icon="credit-card" size="lg" data-test="default-icon"></font-awesome-icon-stub>
+  <!---->
+</fragment-stub>
+`;

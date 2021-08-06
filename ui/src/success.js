@@ -32,6 +32,9 @@ export default {
       recoverPassword: 'sending email',
       validationAccount: 'validation account',
       updatingAccount: 'updating account',
+      subscription: 'subscription',
+      updateSubscription: 'updating subscription',
+      cancelSubscription: 'cancelling subscription',
     };
 
     Vue.success = success;

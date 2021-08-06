@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Settings Renders the component 1`] = `
+exports[`Settings Cloud is false Renders the component 1`] = `
 <v-container-stub tag="div">
   <v-card-stub loaderheight="4" tag="div" elevation="0">
     <v-app-bar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="" value="true">
@@ -16,6 +16,63 @@ exports[`Settings Renders the component 1`] = `
         </v-tab-stub>
         <v-tab-stub to="/settings/tags" ripple="true" data-test="Tags-tab">
           Tags
+        </v-tab-stub>
+      </v-tabs-stub>
+    </v-app-bar-stub>
+    <v-divider-stub></v-divider-stub>
+    <v-container-stub tag="div" fluid="true" class="pa-0">
+      <router-view-stub name="default"></router-view-stub>
+    </v-container-stub>
+  </v-card-stub>
+</v-container-stub>
+`;
+
+exports[`Settings Cloud is false Renders the component 2`] = `
+<v-container-stub tag="div">
+  <v-card-stub loaderheight="4" tag="div" elevation="0">
+    <v-app-bar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="" value="true">
+      <v-tabs-stub activeclass="" centered="true" nexticon="$next" previcon="$prev" slidersize="2">
+        <v-tab-stub to="/settings" ripple="true" data-test="Profile-tab">
+          Profile
+        </v-tab-stub>
+        <v-tab-stub to="/settings/namespace-manager" ripple="true" data-test="Namespace-tab">
+          Namespace
+        </v-tab-stub>
+        <v-tab-stub to="/settings/private-keys" ripple="true" data-test="Private Keys-tab">
+          Private Keys
+        </v-tab-stub>
+        <v-tab-stub to="/settings/tags" ripple="true" data-test="Tags-tab">
+          Tags
+        </v-tab-stub>
+      </v-tabs-stub>
+    </v-app-bar-stub>
+    <v-divider-stub></v-divider-stub>
+    <v-container-stub tag="div" fluid="true" class="pa-0">
+      <router-view-stub name="default"></router-view-stub>
+    </v-container-stub>
+  </v-card-stub>
+</v-container-stub>
+`;
+
+exports[`Settings Cloud is true Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-card-stub loaderheight="4" tag="div" elevation="0">
+    <v-app-bar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="" value="true">
+      <v-tabs-stub activeclass="" centered="true" nexticon="$next" previcon="$prev" slidersize="2">
+        <v-tab-stub to="/settings" ripple="true" data-test="Profile-tab">
+          Profile
+        </v-tab-stub>
+        <v-tab-stub to="/settings/namespace-manager" ripple="true" data-test="Namespace-tab">
+          Namespace
+        </v-tab-stub>
+        <v-tab-stub to="/settings/private-keys" ripple="true" data-test="Private Keys-tab">
+          Private Keys
+        </v-tab-stub>
+        <v-tab-stub to="/settings/tags" ripple="true" data-test="Tags-tab">
+          Tags
+        </v-tab-stub>
+        <v-tab-stub to="/settings/billing" ripple="true" data-test="Billing-tab">
+          Billing
         </v-tab-stub>
       </v-tabs-stub>
     </v-app-bar-stub>

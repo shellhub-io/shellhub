@@ -8,6 +8,11 @@ import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
 import Clipboard from 'v-clipboard';
 import Fragment from 'vue-fragment';
+import { StripePlugin } from '@vue-stripe/vue-stripe';
+
+const options = {
+  pk: process.env.VUE_APP_SHELLHUB_STRIPE_PUBLISHABLE_KEY,
+};
 
 // import 'vuetify/dist/vuetify.min.css'
 // import '../styles/variables.scss'
@@ -18,6 +23,7 @@ library.add(fas, fab); // Include needed icons.
 Vue.use(Vuetify);
 Vue.use(Clipboard);
 Vue.use(Fragment.Plugin);
+Vue.use(StripePlugin, options);
 
 export default new Vuetify({
   iconfont: 'md',

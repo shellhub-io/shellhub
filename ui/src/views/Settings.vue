@@ -47,11 +47,15 @@ export default {
 
   computed: {
     visibleItems() {
-      return this.items.filter((item) => item.hidden !== false);
+      return this.items.filter((item) => !item.hidden);
     },
 
     currentInANamespace() {
       return localStorage.getItem('tenant') !== '';
+    },
+
+    hasNamespace() {
+      return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
     },
 
     items() {
@@ -63,7 +67,7 @@ export default {
         {
           title: 'Namespace',
           path: '/settings/namespace-manager',
-          hidden: this.currentInANamespace,
+          hidden: !this.currentInANamespace,
         },
         {
           title: 'Private Keys',
@@ -72,6 +76,11 @@ export default {
         {
           title: 'Tags',
           path: '/settings/tags',
+        },
+        {
+          title: 'Billing',
+          path: '/settings/billing',
+          hidden: !(this.$env.isCloud && this.hasNamespace),
         },
       ];
     },

@@ -17,6 +17,7 @@ import boxs from '@/store/modules/boxs';
 import mobile from '@/store/modules/mobile';
 import tags from '@/store/modules/tags';
 import spinner from '@/store/modules/spinner';
+import billing from '@/store/modules/billing';
 
 Vue.use(Vuex);
 
@@ -39,5 +40,6 @@ export default new Vuex.Store({
     mobile,
     tags,
     spinner,
+    billing,
   },
 });
