@@ -43,10 +43,11 @@ func TestAuthDevice(t *testing.T) {
 	now := clock.Now()
 	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
 	device := &models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: now,
+		UID:        hex.EncodeToString(uid[:]),
+		Identity:   authReq.Identity,
+		TenantID:   authReq.TenantID,
+		LastSeen:   now,
+		RemoteAddr: "0.0.0.0",
 	}
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
@@ -67,13 +68,14 @@ func TestAuthDevice(t *testing.T) {
 	assert.NoError(t, err)
 	defer patch.Unpatch() //nolint:errcheck
 
-	authRes, err := s.AuthDevice(ctx, authReq)
+	authRes, err := s.AuthDevice(ctx, authReq, "0.0.0.0")
 	assert.NoError(t, err)
 
 	assert.Equal(t, device.UID, authRes.UID)
 	assert.Equal(t, device.Name, authRes.Name)
 	assert.Equal(t, namespace.Name, authRes.Namespace)
 	assert.NotEmpty(t, authRes.Token)
+	assert.Equal(t, device.RemoteAddr, "0.0.0.0")
 
 	mock.AssertExpectations(t)
 }

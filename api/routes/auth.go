@@ -64,7 +64,7 @@ func (h *Handler) AuthDevice(c apicontext.Context) error {
 		return err
 	}
 
-	res, err := h.service.AuthDevice(c.Ctx(), &req)
+	res, err := h.service.AuthDevice(c.Ctx(), &req, c.Request().Header.Get("X-Real-IP"))
 	if err != nil {
 		return err
 	}
