@@ -24,6 +24,7 @@ export default {
       namespaceRemoveUser: 'removing member',
       namespaceReload: 'reloading namespace',
       addUser: 'creating account',
+      resendEmail: 'resend email',
     };
 
     Vue.success = success;

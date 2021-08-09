@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Account Created Doesn't render component Renders the component 1`] = `
+<fragment-stub>
+  <!---->
+</fragment-stub>
+`;
+
+exports[`Account Created Render component Renders the component 1`] = `
+<fragment-stub>
+  <v-card-stub loaderheight="4" tag="div" color="transparent" data-test="accountCreated-card" class="elevation-0">
+    <v-card-title-stub class="justify-center">
+      Account Creation Successful
+    </v-card-title-stub>
+    <v-card-text-stub class="d-flex align-center justify-center">
+      Thank you for registaring an account on ShellHub.
+      An email was sent with a confirmation link. You need to click on the link
+      to activate your account.
+    </v-card-text-stub>
+    <v-card-text-stub class="d-flex align-center justify-center">
+      If you haven't received the email, click on the button.
+    </v-card-text-stub>
+    <v-card-actions-stub class="justify-center">
+      <v-btn-stub color="primary" tag="button" activeclass="" type="submit" data-test="resendEmail-btn">
+        RESEND EMAIL
+      </v-btn-stub>
+    </v-card-actions-stub>
+  </v-card-stub>
+</fragment-stub>
+`;
