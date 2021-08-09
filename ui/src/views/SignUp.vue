@@ -34,6 +34,7 @@
       </v-container>
 
       <v-card
+        v-if="!showMessage"
         color="transparent"
         class="elevation-0"
       >
@@ -156,6 +157,12 @@
           </v-card-subtitle>
         </ValidationObserver>
       </v-card>
+
+      <AccountCreated
+        :show="showMessage"
+        :email="newUser.email"
+        data-test="accountCreated-component"
+      />
     </v-flex>
   </v-layout>
 </template>
@@ -167,12 +174,15 @@ import {
   ValidationProvider,
 } from 'vee-validate';
 
+import AccountCreated from '@/components/account/AccountCreated';
+
 export default {
   name: 'SignUp',
 
   components: {
     ValidationProvider,
     ValidationObserver,
+    AccountCreated,
   },
 
   data() {
@@ -184,6 +194,7 @@ export default {
         password: '',
         confirmPassword: '',
       },
+      showMessage: false,
       delay: 500,
       overlay: false,
     };
@@ -194,7 +205,6 @@ export default {
       setTimeout(() => {
         this.overlay = false;
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.addUser);
-        this.$router.push('/login');
       }, this.delay);
     },
   },
@@ -204,6 +214,7 @@ export default {
       try {
         await this.$store.dispatch('users/signUp', this.newUser);
         this.overlay = !this.overlay;
+        this.showMessage = !this.showMessage;
       } catch (error) {
         // Invalid username and/or password
         if (error.response.status === 400) {

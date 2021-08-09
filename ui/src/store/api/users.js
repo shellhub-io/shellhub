@@ -7,6 +7,10 @@ export const signUp = async (data) => http().post('/register', {
   password: data.password,
 });
 
+export const postResendEmail = async (email) => http().post('/user/resend_email', {
+  email,
+});
+
 export const patchUserData = async (data) => http().patch(`/users/${data.id}/data`, {
   name: data.name,
   username: data.username,

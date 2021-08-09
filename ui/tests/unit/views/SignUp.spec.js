@@ -114,6 +114,9 @@ describe('SignUp', () => {
     await validatorConfirmPassword.validate();
     expect(validatorConfirmPassword.errors[0]).toBe('The passwords do not match');
   });
+  it('Renders the template with components', () => {
+    expect(wrapper.find('[data-test="accountCreated-component"]').exists()).toEqual(true);
+  });
   it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="name-text"]').element.value).toEqual(newUser.name);
     expect(wrapper.find('[data-test="username-text"]').element.value).toEqual(newUser.username);
