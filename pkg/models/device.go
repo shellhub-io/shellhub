@@ -7,17 +7,18 @@ import (
 )
 
 type Device struct {
-	UID       string          `json:"uid"`
-	Name      string          `json:"name" bson:"name,omitempty" validate:"required,hostname_rfc1123,excludes=."`
-	Identity  *DeviceIdentity `json:"identity"`
-	Info      *DeviceInfo     `json:"info"`
-	PublicKey string          `json:"public_key" bson:"public_key"`
-	TenantID  string          `json:"tenant_id" bson:"tenant_id"`
-	LastSeen  time.Time       `json:"last_seen" bson:"last_seen"`
-	Online    bool            `json:"online" bson:",omitempty"`
-	Namespace string          `json:"namespace" bson:",omitempty"`
-	Status    string          `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused`
-	CreatedAt time.Time       `json:"created_at" bson:"created_at"`
+	UID        string          `json:"uid"`
+	Name       string          `json:"name" bson:"name,omitempty" validate:"required,hostname_rfc1123,excludes=."`
+	Identity   *DeviceIdentity `json:"identity"`
+	Info       *DeviceInfo     `json:"info"`
+	PublicKey  string          `json:"public_key" bson:"public_key"`
+	TenantID   string          `json:"tenant_id" bson:"tenant_id"`
+	LastSeen   time.Time       `json:"last_seen" bson:"last_seen"`
+	Online     bool            `json:"online" bson:",omitempty"`
+	Namespace  string          `json:"namespace" bson:",omitempty"`
+	Status     string          `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused`
+	CreatedAt  time.Time       `json:"created_at" bson:"created_at"`
+	RemoteAddr string          `json:"remote_addr" bson:"remote_addr"`
 }
 
 type DeviceAuthClaims struct {
