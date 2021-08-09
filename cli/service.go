@@ -104,6 +104,7 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
+		CreatedAt: clock.Now(),
 	})
 	if err != nil {
 		return nil, ErrDuplicateNamespace
