@@ -9,7 +9,7 @@ require (
 	github.com/go-redis/cache/v8 v8.4.1
 	github.com/go-redis/redis/v8 v8.11.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/labstack/echo/v4 v4.4.0
+	github.com/labstack/echo/v4 v4.5.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/shellhub-io/shellhub v0.5.2
 	github.com/sirupsen/logrus v1.8.1
