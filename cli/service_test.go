@@ -6,9 +6,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,6 +26,14 @@ type Data struct {
 
 func TestNamespaceCreate(t *testing.T) {
 	mock := &mocks.Store{}
+	mockClock := &clockmock.Clock{}
+
+	clock.DefaultBackend = mockClock
+
+	now := time.Now()
+
+	mockClock.On("Now").Return(now).Twice()
+
 	s := NewService(store.Store(mock))
 
 	type Expected struct {
@@ -41,6 +52,7 @@ func TestNamespaceCreate(t *testing.T) {
 	Err := errors.New("error")
 
 	data := initData("none")
+	data.Namespace.CreatedAt = now
 
 	tests := []Test{
 		{
