@@ -31,10 +31,7 @@ module.exports = {
     'import/no-unresolved': 'off',
     'import/no-extraneous-dependencies': ['error', { peerDependencies: true }],
     'import/no-cycle': [0, { ignoreExternal: true }],
-    'import/extensions': ['error', 'ignorePackages', {
-      js: 'never',
-      vue: 'never',
-    }],
+    'import/extensions': 'off',
     'spaced-comment': [2, 'always', {
       exceptions: ['////'],
       markers: ['/'],
