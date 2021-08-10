@@ -28,5 +28,9 @@ export default {
     async resendEmail(context, email) {
       await apiUser.postResendEmail(email);
     },
+
+    async recoverPassword(context, email) {
+      await apiUser.postRecoverPassword(email);
+    },
   },
 };

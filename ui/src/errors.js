@@ -43,6 +43,7 @@ export default {
         addUser: 'creating account',
         loginFailed: 'login',
         logoutFailed: 'logout',
+        recoverPassword: 'sending email',
       },
       form: {
         invalid: (field, param, extra) => {

@@ -17,14 +17,14 @@ exports[`Login Is cloud Renders the component 1`] = `
     </div>
     <div class="elevation-0 v-card v-sheet theme--light transparent">
       <form novalidate="novalidate" class="v-form">
-        <div class="v-card__text">
+        <div class="v-card__text pb-0">
           <div class="v-input theme--light v-text-field">
             <div class="v-input__prepend-outer">
               <div class="v-input__icon v-input__icon--prepend"><i aria-hidden="true" class="v-icon notranslate material-icons theme--light">person</i></div>
             </div>
             <div class="v-input__control">
               <div class="v-input__slot">
-                <div class="v-text-field__slot"><label for="input-28" class="v-label theme--light" style="left: 0px; position: absolute;">Username</label><input data-test="username-text" id="input-28" type="text"></div>
+                <div class="v-text-field__slot"><label for="input-29" class="v-label theme--light" style="left: 0px; position: absolute;">Username</label><input data-test="username-text" id="input-29" type="text"></div>
               </div>
               <div class="v-text-field__details">
                 <div class="v-messages theme--light">
@@ -52,6 +52,12 @@ exports[`Login Is cloud Renders the component 1`] = `
         <div class="v-card__actions justify-center"><button type="submit" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="login-btn"><span class="v-btn__content">
             LOGIN
           </span></button></div>
+        <div data-test="forgotPassword-card" class="v-card__subtitle d-flex align-center justify-center pa-4 mx-auto pt-8 pb-0">
+          Forgot your
+          <a href="/forgot-password" class="ml-1">
+            Password?
+          </a>
+        </div>
         <div data-test="isCloud-card" class="v-card__subtitle d-flex align-center justify-center pa-4 mx-auto">
           Don't have an account?
 

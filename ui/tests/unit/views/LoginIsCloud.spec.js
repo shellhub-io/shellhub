@@ -84,6 +84,7 @@ describe('Login', () => {
       expect(wrapper.find('[data-test="username-text"]').element.value).toEqual('');
       expect(wrapper.find('[data-test="password-text"]').element.value).toEqual('');
       expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(true);
     });
   });
