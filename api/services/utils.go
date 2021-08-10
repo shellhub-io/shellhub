@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/golang-jwt/jwt"
 )
 
 func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
