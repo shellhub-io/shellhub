@@ -1,9 +1,9 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import KeyFormDialog from '@/components/public_key/KeyFormDialog';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
+import KeyFormDialog from '@/components/public_key/KeyFormDialog';
 import '@/vee-validate';
 
 describe('KeyFormDialog', () => {

@@ -1,9 +1,9 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue, config } from '@vue/test-utils';
-import SettingNamespace from '@/components/setting/SettingNamespace';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
+import SettingNamespace from '@/components/setting/SettingNamespace';
 import '@/vee-validate';
 
 config.mocks = {

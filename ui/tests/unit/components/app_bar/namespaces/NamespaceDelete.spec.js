@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
 import Vuetify from 'vuetify';
+import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
 
 describe('NamespaceDelete', () => {
   const localVue = createLocalVue();

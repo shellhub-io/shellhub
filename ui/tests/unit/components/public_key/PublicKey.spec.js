@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import publicKey from '@/components/public_key/PublicKey';
 import Vuetify from 'vuetify';
+import publicKey from '@/components/public_key/PublicKey';
 
 describe('Session', () => {
   const localVue = createLocalVue();

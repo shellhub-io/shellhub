@@ -156,8 +156,8 @@ import { FitAddon } from 'xterm-addon-fit';
 
 import 'xterm/css/xterm.css';
 
-import { parsePrivateKey } from '@/sshpk';
 import RSAKey from 'node-rsa';
+import { parsePrivateKey } from '@/sshpk';
 
 export default {
   name: 'TerminalDialog',

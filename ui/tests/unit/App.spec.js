@@ -1,9 +1,8 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
+import Vuetify from 'vuetify';
 import App from '@/App';
 import router from '@/router/index';
-
-import Vuetify from 'vuetify';
 
 describe('App', () => {
   const localVue = createLocalVue();

@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import DeviceActionButton from '@/components/device/DeviceActionButton';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
+import DeviceActionButton from '@/components/device/DeviceActionButton';
 
 describe('DeviceActionButton', () => {
   const localVue = createLocalVue();

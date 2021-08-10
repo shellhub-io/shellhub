@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue, config } from '@vue/test-utils';
-import SessionPlay from '@/components/session/SessionPlay';
 import Vuetify from 'vuetify';
+import SessionPlay from '@/components/session/SessionPlay';
 
 config.mocks = {
   $env: {
