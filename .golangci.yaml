@@ -11,8 +11,10 @@ linters-settings:
     include-go-root: true
     packages:
       - github.com/satori/go.uuid
+      - github.com/dgrijalva/jwt-go
     packages-with-error-message:
       - github.com/satori/go.uuid: "Uuid generation is only allowed using 'github.com/shellhub-io/shellhub/pkg/uuid'"
+      - github.com/dgrijalva/jwt-go: "dgrijalva/jwt-go is deprecated please use 'github.com/golang-jwt/jwt'"
 
   stylecheck:
     # Select the Go version to target. The default is '1.13'.
