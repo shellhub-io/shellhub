@@ -25,6 +25,7 @@ export default {
       namespaceReload: 'reloading namespace',
       addUser: 'creating account',
       resendEmail: 'resend email',
+      recoverPassword: 'sending email',
     };
 
     Vue.success = success;

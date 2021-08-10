@@ -20,6 +20,11 @@ const router = new Router({
       component: () => import('@/views/SignUp'),
     },
     {
+      path: '/forgot-password',
+      name: 'forgotPassword',
+      component: () => import('@/views/ForgotPassword'),
+    },
+    {
       path: '/devices',
       name: 'devices',
       component: () => import(/* webpackChunkName: 'devices' */ '@/views/Devices'),
@@ -142,7 +147,7 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-  if ((to.path !== '/login' && to.path !== '/sign-up')) {
+  if ((to.path !== '/login' && to.path !== '/sign-up') && to.path !== '/forgot-password') {
     if (store.getters['auth/isLoggedIn']) {
       return next();
     }

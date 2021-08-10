@@ -29,7 +29,7 @@
         <v-form
           @submit.prevent="login()"
         >
-          <v-card-text>
+          <v-card-text class="pb-0">
             <v-text-field
               v-model="username"
               :error="$store.getters['auth/authStatus'] == 'error'"
@@ -59,6 +59,20 @@
               LOGIN
             </v-btn>
           </v-card-actions>
+
+          <v-card-subtitle
+            v-if="$env.isCloud"
+            class="d-flex align-center justify-center pa-4 mx-auto pt-8 pb-0"
+            data-test="forgotPassword-card"
+          >
+            Forgot your
+            <router-link
+              class="ml-1"
+              :to="{ name: 'forgotPassword' }"
+            >
+              Password?
+            </router-link>
+          </v-card-subtitle>
 
           <v-card-subtitle
             v-if="$env.isCloud"
