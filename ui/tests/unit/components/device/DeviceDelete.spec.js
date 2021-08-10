@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import DeviceDelete from '@/components/device/DeviceDelete';
 import Vuetify from 'vuetify';
+import DeviceDelete from '@/components/device/DeviceDelete';
 
 describe('DeviceDelete', () => {
   const localVue = createLocalVue();

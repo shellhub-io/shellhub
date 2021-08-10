@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { config, mount, createLocalVue } from '@vue/test-utils';
-import DeviceAdd from '@/components/device/DeviceAdd';
 import Vuetify from 'vuetify';
+import DeviceAdd from '@/components/device/DeviceAdd';
 
 // mocks global vars and clipboard function
 config.mocks = {

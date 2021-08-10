@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import BoxMessage from '@/components/box/BoxMessage';
 import Vuetify from 'vuetify';
+import BoxMessage from '@/components/box/BoxMessage';
 
 describe('BoxMessage', () => {
   const localVue = createLocalVue();

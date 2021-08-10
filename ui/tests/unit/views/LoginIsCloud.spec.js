@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue, config } from '@vue/test-utils';
+import Vuetify from 'vuetify';
 import Login from '@/views/Login';
 import router from '@/router/index';
-import Vuetify from 'vuetify';
 
 config.mocks = {
   $env: {

@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import FirewallRuleFormDialog from '@/components/firewall_rule/FirewallRuleFormDialog';
 import Vuetify from 'vuetify';
+import FirewallRuleFormDialog from '@/components/firewall_rule/FirewallRuleFormDialog';
 
 describe('FirewallRuleFormDialog', () => {
   const localVue = createLocalVue();

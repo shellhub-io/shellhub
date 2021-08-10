@@ -1,7 +1,7 @@
 import Vue from 'vue';
 
-import Snackbar from '@/components/snackbar/Snackbar';
 import Hotjar from 'vue-hotjar';
+import Snackbar from '@/components/snackbar/Snackbar';
 
 import App from './App';
 import router from './router';

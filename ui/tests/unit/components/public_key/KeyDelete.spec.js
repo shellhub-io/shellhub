@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import KeyDelete from '@/components/public_key/KeyDelete';
 import Vuetify from 'vuetify';
+import KeyDelete from '@/components/public_key/KeyDelete';
 
 describe('KeyDelete', () => {
   const localVue = createLocalVue();

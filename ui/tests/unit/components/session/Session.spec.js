@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import Session from '@/components/session/Session';
 import Vuetify from 'vuetify';
+import Session from '@/components/session/Session';
 
 describe('Session', () => {
   const localVue = createLocalVue();

@@ -1,11 +1,11 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import SignUp from '@/views/SignUp';
 import Vuetify from 'vuetify';
 import flushPromises from 'flush-promises';
-import router from '@/router/index';
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
 import { required, email } from 'vee-validate/dist/rules';
+import SignUp from '@/views/SignUp';
+import router from '@/router/index';
 import '@/vee-validate';
 
 extend('required', {

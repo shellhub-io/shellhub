@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import FirewallRuleDelete from '@/components/firewall_rule/FirewallRuleDelete';
 import Vuetify from 'vuetify';
+import FirewallRuleDelete from '@/components/firewall_rule/FirewallRuleDelete';
 
 describe('FirewallRuleDelete', () => {
   const localVue = createLocalVue();

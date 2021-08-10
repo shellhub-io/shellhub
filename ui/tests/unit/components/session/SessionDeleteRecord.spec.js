@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import SessionDeleteRecord from '@/components/session/SessionDeleteRecord';
 import Vuetify from 'vuetify';
+import SessionDeleteRecord from '@/components/session/SessionDeleteRecord';
 
 describe('SessionDeleteRecord', () => {
   const localVue = createLocalVue();

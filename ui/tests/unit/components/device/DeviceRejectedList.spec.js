@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import DeviceRejectedList from '@/components/device/DeviceRejectedList';
 import Vuetify from 'vuetify';
+import DeviceRejectedList from '@/components/device/DeviceRejectedList';
 
 describe('DeviceRejectedList', () => {
   const localVue = createLocalVue();

@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue, config } from '@vue/test-utils';
-import NamespaceMenu from '@/components/app_bar/namespace/NamespaceMenu';
 import Vuetify from 'vuetify';
+import NamespaceMenu from '@/components/app_bar/namespace/NamespaceMenu';
 
 config.mocks = {
   $env: {

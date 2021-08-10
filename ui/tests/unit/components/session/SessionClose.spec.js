@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import SessionClose from '@/components/session/SessionClose';
 import Vuetify from 'vuetify';
+import SessionClose from '@/components/session/SessionClose';
 
 describe('SessionClose', () => {
   const localVue = createLocalVue();

@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue, config } from '@vue/test-utils';
-import MaxDevice from '@/components/app_bar/max_device/MaxDevice';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import MaxDevice from '@/components/app_bar/max_device/MaxDevice';
 
 config.mocks = {
   $env: {

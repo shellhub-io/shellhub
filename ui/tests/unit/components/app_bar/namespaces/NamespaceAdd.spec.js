@@ -1,9 +1,9 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import NamespaceAdd from '@/components/app_bar/namespace/NamespaceAdd';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
+import NamespaceAdd from '@/components/app_bar/namespace/NamespaceAdd';
 import '@/vee-validate';
 
 describe('NamespaceAdd', () => {

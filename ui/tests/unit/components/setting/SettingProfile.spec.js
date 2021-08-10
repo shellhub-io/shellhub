@@ -1,9 +1,9 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import SettingProfile from '@/components/setting/SettingProfile';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
+import SettingProfile from '@/components/setting/SettingProfile';
 import '@/vee-validate';
 
 describe('SettingProfile', () => {

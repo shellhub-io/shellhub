@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
-import TerminalDialog from '@/components/terminal/TerminalDialog';
 import Vuetify from 'vuetify';
+import TerminalDialog from '@/components/terminal/TerminalDialog';
 
 describe('TerminalDialog', () => {
   const localVue = createLocalVue();
