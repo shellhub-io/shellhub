@@ -160,7 +160,7 @@
 
       <AccountCreated
         :show="showMessage"
-        :email="newUser.email"
+        :username="newUser.username"
         data-test="accountCreated-component"
       />
     </v-flex>

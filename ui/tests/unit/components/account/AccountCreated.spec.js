@@ -9,7 +9,7 @@ describe('Account Created', () => {
   let wrapper;
 
   const show = false;
-  const email = 'email@email.com';
+  const username = 'username';
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -30,7 +30,7 @@ describe('Account Created', () => {
         store,
         localVue,
         stubs: ['fragment'],
-        propsData: { show, email },
+        propsData: { show, username },
       });
     });
 
@@ -52,7 +52,7 @@ describe('Account Created', () => {
 
     it('Receive data in props', () => {
       expect(wrapper.vm.show).toEqual(show);
-      expect(wrapper.vm.email).toEqual(email);
+      expect(wrapper.vm.username).toEqual(username);
     });
 
     //////
@@ -71,7 +71,7 @@ describe('Account Created', () => {
         store,
         localVue,
         stubs: ['fragment'],
-        propsData: { show: !show, email },
+        propsData: { show: !show, username },
       });
     });
 
@@ -93,7 +93,7 @@ describe('Account Created', () => {
 
     it('Receive data in props', () => {
       expect(wrapper.vm.show).toEqual(!show);
-      expect(wrapper.vm.email).toEqual(email);
+      expect(wrapper.vm.username).toEqual(username);
     });
 
     //////

@@ -25,8 +25,8 @@ export default {
       await apiUser.patchUserPassword(data);
     },
 
-    async resendEmail(context, email) {
-      await apiUser.postResendEmail(email);
+    async resendEmail(context, username) {
+      await apiUser.postResendEmail(username);
     },
 
     async recoverPassword(context, email) {

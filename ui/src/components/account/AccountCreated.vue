@@ -44,7 +44,7 @@ export default {
       type: Boolean,
       required: true,
     },
-    email: {
+    username: {
       type: String,
       required: true,
     },
@@ -65,7 +65,7 @@ export default {
   methods: {
     async resendEmail() {
       try {
-        await this.$store.dispatch('users/resendEmail', this.email);
+        await this.$store.dispatch('users/resendEmail', this.username);
 
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.snackbar.resendEmail);
       } catch {
