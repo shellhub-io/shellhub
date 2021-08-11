@@ -95,7 +95,16 @@ func TestAuthUser(t *testing.T) {
 		Password: "passwd",
 	}
 
+	wrongPasswd := sha256.Sum256([]byte("wrongPassword"))
 	passwd := sha256.Sum256([]byte(authReq.Password))
+
+	userWithWrongPassword := &models.User{
+		Username:      "user",
+		Password:      hex.EncodeToString(wrongPasswd[:]),
+		ID:            "id",
+		Authenticated: true,
+		LastLogin:     clock.Now(),
+	}
 
 	userAuthenticated := &models.User{
 		Username:      "user",
@@ -114,6 +123,26 @@ func TestAuthUser(t *testing.T) {
 	}
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
+
+	Err := errors.New("error")
+
+	// user has no account
+	mock.On("UserGetByUsername", ctx, authReq.Username).
+		Return(nil, Err).Once()
+	mock.On("UserGetByEmail", ctx, authReq.Username).
+		Return(nil, Err).Once()
+
+	_, err = s.AuthUser(ctx, *authReq)
+	assert.Equal(t, err, Err)
+
+	// user has an account but entered the wrong password
+	mock.On("UserGetByUsername", ctx, authReq.Username).
+		Return(userWithWrongPassword, nil).Once()
+	mock.On("NamespaceGetFirst", ctx, userWithWrongPassword.ID).
+		Return(namespace, nil).Once()
+
+	_, err = s.AuthUser(ctx, *authReq)
+	assert.Equal(t, err, ErrUnauthorized)
 
 	// User with account not activated
 	mock.On("UserGetByUsername", ctx, authReq.Username).
