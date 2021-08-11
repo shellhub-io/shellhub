@@ -7,8 +7,8 @@ export const signUp = async (data) => http().post('/register', {
   password: data.password,
 });
 
-export const postResendEmail = async (email) => http().post('/user/resend_email', {
-  email,
+export const postResendEmail = async (username) => http().post('/user/resend_email', {
+  username,
 });
 
 export const postRecoverPassword = async (email) => http().post('/user/recover_password', {
