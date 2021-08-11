@@ -97,26 +97,43 @@ func TestAuthUser(t *testing.T) {
 
 	passwd := sha256.Sum256([]byte(authReq.Password))
 
-	user := &models.User{
-		Username:  "user",
-		Password:  hex.EncodeToString(passwd[:]),
-		ID:        "id",
-		LastLogin: clock.Now(),
+	userAuthenticated := &models.User{
+		Username:      "user",
+		Password:      hex.EncodeToString(passwd[:]),
+		ID:            "id",
+		Authenticated: true,
+		LastLogin:     clock.Now(),
+	}
+
+	userNotActivatedAccount := &models.User{
+		Username:      "user",
+		Password:      hex.EncodeToString(passwd[:]),
+		ID:            "id",
+		Authenticated: false,
+		LastLogin:     clock.Now(),
 	}
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
+	// User with account not activated
 	mock.On("UserGetByUsername", ctx, authReq.Username).
-		Return(user, nil).Once()
-	mock.On("NamespaceGetFirst", ctx, user.ID).
+		Return(userNotActivatedAccount, nil).Once()
+
+	_, err = s.AuthUser(ctx, *authReq)
+	assert.Equal(t, err, ErrForbidden)
+
+	// User with account activated
+	mock.On("UserGetByUsername", ctx, authReq.Username).
+		Return(userAuthenticated, nil).Once()
+	mock.On("NamespaceGetFirst", ctx, userAuthenticated.ID).
 		Return(namespace, nil).Once()
-	mock.On("UserUpdateData", ctx, user, user.ID).
+	mock.On("UserUpdateData", ctx, userAuthenticated, userAuthenticated.ID).
 		Return(nil).Once()
 
 	authRes, err := s.AuthUser(ctx, *authReq)
 	assert.NoError(t, err)
 
-	assert.Equal(t, user.Username, authRes.User)
+	assert.Equal(t, userAuthenticated.Username, authRes.User)
 	assert.Equal(t, namespace.TenantID, authRes.Tenant)
 	assert.NotEmpty(t, authRes.Token)
 

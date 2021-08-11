@@ -81,7 +81,12 @@ func (h *Handler) AuthUser(c apicontext.Context) error {
 
 	res, err := h.service.AuthUser(c.Ctx(), req)
 	if err != nil {
-		return echo.ErrUnauthorized
+		switch err {
+		case svc.ErrForbidden:
+			return c.JSON(http.StatusForbidden, nil)
+		default:
+			return echo.ErrUnauthorized
+		}
 	}
 
 	return c.JSON(http.StatusOK, res)
