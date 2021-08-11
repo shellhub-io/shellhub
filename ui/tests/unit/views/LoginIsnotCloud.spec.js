@@ -80,6 +80,9 @@ describe('Login', () => {
     // HTML validation
     //////
 
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="accountCreated-component"]').exists()).toEqual(false);
+    });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="username-text"]').element.value).toEqual('');
       expect(wrapper.find('[data-test="password-text"]').element.value).toEqual('');

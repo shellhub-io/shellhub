@@ -24,7 +24,7 @@ exports[`Login Is cloud Renders the component 1`] = `
             </div>
             <div class="v-input__control">
               <div class="v-input__slot">
-                <div class="v-text-field__slot"><label for="input-29" class="v-label theme--light" style="left: 0px; position: absolute;">Username</label><input data-test="username-text" id="input-29" type="text"></div>
+                <div class="v-text-field__slot"><label for="input-30" class="v-label theme--light" style="left: 0px; position: absolute;">Username</label><input data-test="username-text" id="input-30" type="text"></div>
               </div>
               <div class="v-text-field__details">
                 <div class="v-messages theme--light">
@@ -67,6 +67,47 @@ exports[`Login Is cloud Renders the component 1`] = `
         </div>
       </form>
     </div>
+    <fragment data-test="accountCreated-component">
+      <!---->
+    </fragment>
+  </div>
+</div>
+`;
+
+exports[`Login Is cloud Renders the component 2`] = `
+<div class="layout grey lighten-4 align-center justify-center">
+  <div class="flex xs12 sm8 md4">
+    <div class="container">
+      <div class="layout align-center justify-center column">
+        <div class="flex text-center primary--text">
+          <div class="v-image v-responsive theme--light">
+            <transition-stub name="fade-transition" mode="in-out">
+              <div class="v-image__image v-image__image--preload v-image__image--cover" style="background-position: center center;"></div>
+            </transition-stub>
+            <div class="v-responsive__content"></div>
+          </div> <span class="overline">BETA</span>
+        </div>
+      </div>
+    </div>
+    <!---->
+    <fragment data-test="accountCreated-component">
+      <div class="elevation-0 v-card v-sheet theme--light transparent" data-test="accountCreated-card">
+        <div class="v-card__title justify-center">
+          Account Creation Successful
+        </div>
+        <div class="v-card__text d-flex align-center justify-center">
+          Thank you for registaring an account on ShellHub.
+          An email was sent with a confirmation link. You need to click on the link
+          to activate your account.
+        </div>
+        <div class="v-card__text d-flex align-center justify-center">
+          If you haven't received the email, click on the button.
+        </div>
+        <div class="v-card__actions justify-center"><button type="submit" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="resendEmail-btn"><span class="v-btn__content">
+        RESEND EMAIL
+      </span></button></div>
+      </div>
+    </fragment>
   </div>
 </div>
 `;
