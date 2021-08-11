@@ -125,6 +125,10 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		}
 	}
 
+	if !user.Authenticated {
+		return nil, ErrForbidden
+	}
+
 	namespace, err := s.store.NamespaceGetFirst(ctx, user.ID)
 	if err != nil && err != store.ErrNoDocuments {
 		return nil, err

@@ -8,6 +8,7 @@ var (
 	ErrConflict              = errors.New("conflict")
 	ErrBadRequest            = errors.New("bad request")
 	ErrUnauthorized          = errors.New("unauthorized")
+	ErrForbidden             = errors.New("forbidden")
 	ErrUserNotFound          = errors.New("user not found")
 	ErrNamespaceNotFound     = errors.New("namespace not found")
 	ErrDuplicateID           = errors.New("user already member of this namespace")
