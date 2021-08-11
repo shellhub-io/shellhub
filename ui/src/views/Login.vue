@@ -23,6 +23,7 @@
       </v-container>
 
       <v-card
+        v-if="!showMessage"
         color="transparent"
         class="elevation-0"
       >
@@ -90,20 +91,34 @@
           </v-card-subtitle>
         </v-form>
       </v-card>
+
+      <AccountCreated
+        v-if="$env.isCloud"
+        :show="showMessage"
+        :username="username"
+        data-test="accountCreated-component"
+      />
     </v-flex>
   </v-layout>
 </template>
 
 <script>
 
+import AccountCreated from '@/components/account/AccountCreated';
+
 export default {
   name: 'Login',
+
+  components: {
+    AccountCreated,
+  },
 
   data() {
     return {
       username: '',
       password: '',
       error: false,
+      showMessage: false,
     };
   },
 
@@ -135,6 +150,10 @@ export default {
         switch (true) {
         case (error.response.status === 401): {
           this.$store.dispatch('snackbar/showSnackbarErrorIncorrect', this.$errors.snackbar.loginFailed);
+          break;
+        }
+        case (error.response.status === 403): {
+          this.showMessage = !this.showMessage;
           break;
         }
         default: {

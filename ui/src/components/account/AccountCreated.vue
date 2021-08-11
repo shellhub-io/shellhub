@@ -66,8 +66,7 @@ export default {
     async resendEmail() {
       try {
         await this.$store.dispatch('users/resendEmail', this.username);
-
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.snackbar.resendEmail);
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.resendEmail);
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorDefault');
       }
