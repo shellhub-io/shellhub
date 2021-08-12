@@ -19,6 +19,11 @@ export const postValidationAccount = async (data) => http().get(
   `/user/validation_account?email=${data.email}&token=${data.token}`,
 );
 
+export const postUpdatePassword = async (data) => http().post(`/user/${data.id}/update_password`, {
+  password: data.password,
+  token: data.token,
+});
+
 export const patchUserData = async (data) => http().patch(`/users/${data.id}/data`, {
   name: data.name,
   username: data.username,
