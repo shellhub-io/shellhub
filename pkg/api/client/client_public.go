@@ -32,6 +32,16 @@ type publicAPI interface {
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	NewReverseListener(token string) (*revdial.Listener, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
+	ReportUsage(ur *models.UsageRecord, billingURL string) (int, error)
+}
+
+func (c *client) ReportUsage(ur *models.UsageRecord, billingURL string) (int, error) {
+	res, _, errs := c.http.Post(fmt.Sprintf("http://%s:8080/api/billing/report-usage", billingURL)).Send(&ur).End()
+	if len(errs) >= 1 {
+		return http.StatusInternalServerError, errs[0]
+	}
+
+	return res.StatusCode, nil
 }
 
 func (c *client) GetInfo(agentVersion string) (*models.Info, error) {

@@ -224,6 +224,8 @@ func TestDeleteDevice(t *testing.T) {
 					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(nil, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(Err).Once()
 			},
@@ -241,6 +243,8 @@ func TestDeleteDevice(t *testing.T) {
 					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(nil, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(nil).Once()
 			},
