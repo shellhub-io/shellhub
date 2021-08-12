@@ -26,6 +26,7 @@ export default {
       addUser: 'creating account',
       resendEmail: 'resend email',
       recoverPassword: 'sending email',
+      validationAccount: 'validation account',
     };
 
     Vue.success = success;
