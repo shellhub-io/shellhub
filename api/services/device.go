@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
+	repusage "github.com/shellhub-io/shellhub/api/pkg/reports"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -47,6 +48,15 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, owne
 	}
 
 	if _, err := s.store.DeviceGetByUID(ctx, uid, tenant); err != nil {
+		return err
+	}
+
+	ns, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil {
+		return err
+	}
+
+	if err = repusage.HandleReports(ns, uid, false); err != nil {
 		return err
 	}
 
@@ -133,6 +143,10 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 		} else {
 			ns, err := s.store.NamespaceGet(ctx, device.TenantID)
 			if err != nil {
+				return err
+			}
+
+			if err := repusage.HandleReports(ns, uid, true); err != nil {
 				return err
 			}
 
