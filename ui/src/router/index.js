@@ -20,6 +20,11 @@ const router = new Router({
       component: () => import('@/views/SignUp'),
     },
     {
+      path: '/validation-account',
+      name: 'validationAccount',
+      component: () => import('@/views/ValidationAccount'),
+    },
+    {
       path: '/forgot-password',
       name: 'forgotPassword',
       component: () => import('@/views/ForgotPassword'),
@@ -147,7 +152,7 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-  if ((to.path !== '/login' && to.path !== '/sign-up') && to.path !== '/forgot-password') {
+  if ((to.path !== '/login' && to.path !== '/sign-up') && to.path !== '/forgot-password' && to.path !== '/validation-account') {
     if (store.getters['auth/isLoggedIn']) {
       return next();
     }

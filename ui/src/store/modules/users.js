@@ -32,5 +32,9 @@ export default {
     async recoverPassword(context, email) {
       await apiUser.postRecoverPassword(email);
     },
+
+    async validationAccount(context, data) {
+      await apiUser.postValidationAccount(data);
+    },
   },
 };

@@ -44,6 +44,7 @@ export default {
         loginFailed: 'login',
         logoutFailed: 'logout',
         recoverPassword: 'sending email',
+        validationAccount: 'validation account',
       },
       form: {
         invalid: (field, param, extra) => {
