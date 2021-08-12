@@ -36,5 +36,9 @@ export default {
     async validationAccount(context, data) {
       await apiUser.postValidationAccount(data);
     },
+
+    async updatePassword(context, data) {
+      await apiUser.postUpdatePassword(data);
+    },
   },
 };

@@ -30,6 +30,11 @@ const router = new Router({
       component: () => import('@/views/ForgotPassword'),
     },
     {
+      path: '/update-password',
+      name: 'updatePassword',
+      component: () => import('@/views/UpdatePassword'),
+    },
+    {
       path: '/devices',
       name: 'devices',
       component: () => import(/* webpackChunkName: 'devices' */ '@/views/Devices'),
@@ -152,7 +157,7 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-  if ((to.path !== '/login' && to.path !== '/sign-up') && to.path !== '/forgot-password' && to.path !== '/validation-account') {
+  if ((to.path !== '/login' && to.path !== '/sign-up') && to.path !== '/forgot-password' && to.path !== '/validation-account' && to.path !== '/update-password') {
     if (store.getters['auth/isLoggedIn']) {
       return next();
     }
