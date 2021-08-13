@@ -48,11 +48,12 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 	password := data.Password
 
 	if err := s.store.UserCreate(context.TODO(), &models.User{
-		Name:      strings.ToLower(data.Username),
-		Username:  data.Username,
-		Password:  hashPassword(password),
-		Email:     strings.ToLower(data.Email),
-		CreatedAt: clock.Now(),
+		Name:          strings.ToLower(data.Username),
+		Username:      data.Username,
+		Password:      hashPassword(password),
+		Email:         strings.ToLower(data.Email),
+		Authenticated: true,
+		CreatedAt:     clock.Now(),
 	}); err != nil && err.Error() == "duplicate" {
 		var errStrings []string
 
