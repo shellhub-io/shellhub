@@ -24,8 +24,21 @@ type Data struct {
 	Arguments Arguments
 }
 
+type Test struct {
+	description   string
+	args          Arguments
+	requiredMocks func()
+	expected      Expected
+}
+
+type Expected struct {
+	namespace *models.Namespace
+	err       error
+}
+
 func TestNamespaceCreate(t *testing.T) {
-	mock := &mocks.Store{}
+	data := initData()
+
 	mockClock := &clockmock.Clock{}
 
 	clock.DefaultBackend = mockClock
@@ -34,25 +47,14 @@ func TestNamespaceCreate(t *testing.T) {
 
 	mockClock.On("Now").Return(now).Twice()
 
+	data.Namespace.CreatedAt = now
+
+	mock := &mocks.Store{}
 	s := NewService(store.Store(mock))
 
-	type Expected struct {
-		namespace *models.Namespace
-		err       error
-	}
-
-	type Test struct {
-		description   string
-		args          Arguments
-		requiredMocks func()
-		expected      Expected
-	}
-
 	ctx := context.TODO()
-	Err := errors.New("error")
 
-	data := initData("none")
-	data.Namespace.CreatedAt = now
+	Err := errors.New("error")
 
 	tests := []Test{
 		{
@@ -66,8 +68,7 @@ func TestNamespaceCreate(t *testing.T) {
 			description: "Fails to find the user",
 			args:        data.Arguments,
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, data.User.Username).
-					Return(nil, Err).Once()
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(nil, Err).Once()
 			},
 			expected: Expected{nil, ErrUserNotFound},
 		},
@@ -75,10 +76,8 @@ func TestNamespaceCreate(t *testing.T) {
 			description: "Fails when the namespace is duplicated",
 			args:        data.Arguments,
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, data.User.Username).
-					Return(data.User, nil).Once()
-				mock.On("NamespaceCreate", context.TODO(), data.Namespace).
-					Return(nil, Err).Once()
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(data.User, nil).Once()
+				mock.On("NamespaceCreate", ctx, data.Namespace).Return(nil, Err).Once()
 			},
 			expected: Expected{nil, ErrDuplicateNamespace},
 		},
@@ -86,10 +85,8 @@ func TestNamespaceCreate(t *testing.T) {
 			description: "Successfully creates Namespace",
 			args:        data.Arguments,
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, data.User.Username).
-					Return(data.User, nil).Once()
-				mock.On("NamespaceCreate", context.TODO(), data.Namespace).
-					Return(data.Namespace, nil).Once()
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(data.User, nil).Once()
+				mock.On("NamespaceCreate", ctx, data.Namespace).Return(data.Namespace, nil).Once()
 			},
 			expected: Expected{data.Namespace, nil},
 		},
@@ -106,73 +103,237 @@ func TestNamespaceCreate(t *testing.T) {
 }
 
 func TestAddUserNamespace(t *testing.T) {
-	data := initData("usrNs")
+	data := initData()
 
-	data.Mock.On("NamespaceAddMember", context.TODO(), data.Namespace.TenantID, data.User.ID).Return(data.Namespace, nil).Once()
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
 
-	ns, err := data.Service.NamespaceAddMember(data.Arguments)
-	assert.NoError(t, err)
-	assert.Equal(t, data.Namespace.Owner, ns.Owner)
-	assert.Equal(t, data.Namespace.Name, ns.Name)
+	ctx := context.TODO()
 
-	data.Mock.AssertExpectations(t)
+	Err := errors.New("error")
+
+	tests := []Test{
+		{
+			description: "Fails to find the user",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, ErrUserNotFound},
+		},
+		{
+			description: "Fails to find the namespace",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(data.User, nil).Once()
+				mock.On("NamespaceGetByName", ctx, data.User.Username).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, ErrNamespaceNotFound},
+		},
+		{
+			description: "Successfully add user to the Namespace",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(data.User, nil).Once()
+				mock.On("NamespaceGetByName", ctx, data.User.Username).Return(data.Namespace, nil).Once()
+				mock.On("NamespaceAddMember", ctx, data.Namespace.TenantID, data.User.ID).Return(data.Namespace, nil).Once()
+			},
+			expected: Expected{data.Namespace, nil},
+		},
+	}
+
+	for _, test := range tests {
+		t.Log("PASS:  ", test.description)
+		test.requiredMocks()
+		ns, err := s.NamespaceAddMember(test.args)
+		assert.Equal(t, test.expected, Expected{ns, err})
+	}
+
+	mock.AssertExpectations(t)
 }
 
 func TestDelNamespace(t *testing.T) {
-	data := initData("ns")
+	data := initData()
 
-	data.Mock.On("NamespaceDelete", context.TODO(), data.Namespace.TenantID).Return(nil).Once()
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
 
-	err := data.Service.NamespaceDelete(data.Arguments)
-	assert.NoError(t, err)
+	ctx := context.TODO()
 
-	data.Mock.AssertExpectations(t)
+	Err := errors.New("error")
+
+	tests := []Test{
+		{
+			description: "Fails to find the user",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("NamespaceGetByName", ctx, data.User.Username).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, ErrNamespaceNotFound},
+		},
+		{
+			description: "Successfully delete the Namespace",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("NamespaceGetByName", ctx, data.User.Username).Return(data.Namespace, nil).Once()
+				mock.On("NamespaceDelete", ctx, data.Namespace.TenantID).Return(nil).Once()
+			},
+			expected: Expected{nil, nil},
+		},
+	}
+
+	for _, test := range tests {
+		t.Log("PASS:  ", test.description)
+		test.requiredMocks()
+		err := s.NamespaceDelete(test.args)
+		assert.Equal(t, test.expected, Expected{nil, err})
+	}
+
+	mock.AssertExpectations(t)
 }
 
 func TestDelUser(t *testing.T) {
-	data := initData("usr")
+	data := initData()
 
-	data.Mock.On("UserDelete", context.TODO(), data.User.ID).Return(nil).Once()
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
 
-	err := data.Service.UserDelete(data.Arguments)
-	assert.NoError(t, err)
+	ctx := context.TODO()
 
-	data.Mock.AssertExpectations(t)
+	Err := errors.New("error")
+
+	tests := []Test{
+		{
+			description: "Fails to find the user",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, ErrUserNotFound},
+		},
+		{
+			description: "Successfully delete the user",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(data.User, nil).Once()
+				mock.On("UserDelete", ctx, data.User.ID).Return(nil).Once()
+			},
+			expected: Expected{nil, nil},
+		},
+	}
+
+	for _, test := range tests {
+		t.Log("PASS:  ", test.description)
+		test.requiredMocks()
+		err := s.UserDelete(test.args)
+		assert.Equal(t, test.expected, Expected{nil, err})
+	}
+
+	mock.AssertExpectations(t)
 }
 
 func TestDelUserNamespace(t *testing.T) {
-	data := initData("usrNs")
+	data := initData()
 
-	data.Mock.On("NamespaceRemoveMember", context.TODO(), data.Namespace.TenantID, data.User.ID).Return(data.Namespace, nil).Once()
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
 
-	ns, err := data.Service.NamespaceRemoveMember(data.Arguments)
-	assert.NoError(t, err)
-	assert.Equal(t, data.Namespace.Owner, ns.Owner)
-	assert.Equal(t, data.Namespace.Name, ns.Name)
+	ctx := context.TODO()
 
-	data.Mock.AssertExpectations(t)
+	Err := errors.New("error")
+
+	tests := []Test{
+		{
+			description: "Fails to find the user",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, ErrUserNotFound},
+		},
+		{
+			description: "Fails to find the namespace",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(data.User, nil).Once()
+				mock.On("NamespaceGetByName", ctx, data.User.Username).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, ErrNamespaceNotFound},
+		},
+		{
+			description: "Successfully remove member from the namespace",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(data.User, nil).Once()
+				mock.On("NamespaceGetByName", ctx, data.User.Username).Return(data.Namespace, nil).Once()
+				mock.On("NamespaceRemoveMember", ctx, data.Namespace.TenantID, data.User.ID).Return(data.Namespace, nil).Once()
+			},
+			expected: Expected{data.Namespace, nil},
+		},
+	}
+
+	for _, test := range tests {
+		t.Log("PASS:  ", test.description)
+		test.requiredMocks()
+		ns, err := s.NamespaceRemoveMember(test.args)
+		assert.Equal(t, test.expected, Expected{ns, err})
+	}
+
+	mock.AssertExpectations(t)
 }
 
 func TestResetUserPassword(t *testing.T) {
-	data := initData("usr")
-
+	data := initData()
 	data.Arguments.Password = "testService2"
 
 	hash := sha256.Sum256([]byte("testService2"))
 
-	data.Mock.On("UserUpdatePassword", context.TODO(), hex.EncodeToString(hash[:]), data.User.ID).Return(nil).Once()
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock))
 
-	err := data.Service.UserUpdate(data.Arguments)
-	assert.NoError(t, err)
+	ctx := context.TODO()
 
-	data.Mock.AssertExpectations(t)
+	Err := errors.New("error")
+
+	tests := []Test{
+		{
+			description: "Fails when the field is invalid",
+			args:        Arguments{Username: "user", Password: "pa"},
+			requiredMocks: func() {
+			},
+			expected: Expected{nil, ErrChangePassword},
+		},
+		{
+			description: "Fails to find the user",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, ErrUserNotFound},
+		},
+		{
+			description: "Successfully reset the user password",
+			args:        data.Arguments,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, data.User.Username).Return(data.User, nil).Once()
+				mock.On("UserUpdatePassword", ctx, hex.EncodeToString(hash[:]), data.User.ID).Return(nil).Once()
+			},
+			expected: Expected{nil, nil},
+		},
+	}
+
+	for _, test := range tests {
+		t.Log("PASS:  ", test.description)
+		test.requiredMocks()
+		err := s.UserUpdate(test.args)
+		assert.Equal(t, test.expected, Expected{nil, err})
+	}
+
+	mock.AssertExpectations(t)
 }
 
-func initData(dataNeeded string) Data {
+func initData() Data {
 	var data Data
-
-	data.Mock = &mocks.Store{}
-	data.Service = NewService(store.Store(data.Mock))
 
 	hash := sha256.Sum256([]byte("testService"))
 
@@ -198,17 +359,6 @@ func initData(dataNeeded string) Data {
 		Username:  "testService",
 		Namespace: "testService",
 		TenantID:  "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-	}
-
-	switch dataNeeded {
-	case "none":
-	case "usr":
-		data.Mock.On("UserGetByUsername", context.TODO(), "testService").Return(data.User, nil).Once()
-	case "ns":
-		data.Mock.On("NamespaceGetByName", context.TODO(), "testService").Return(data.Namespace, nil).Once()
-	case "usrNs":
-		data.Mock.On("UserGetByUsername", context.TODO(), "testService").Return(data.User, nil).Once()
-		data.Mock.On("NamespaceGetByName", context.TODO(), "testService").Return(data.Namespace, nil).Once()
 	}
 
 	return data
