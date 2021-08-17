@@ -14,7 +14,11 @@ var migration10 = migrate.Migration{
 	Version:     10,
 	Description: "Unset unique on session_record in the users collection",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 10 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   10,
+			"action":    "Up",
+		}).Info("Applying migration")
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"session_record", 1}},
 			Options: options.Index().SetName("session_record").SetUnique(false),
@@ -27,7 +31,11 @@ var migration10 = migrate.Migration{
 		return err
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 10 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   10,
+			"action":    "Down",
+		}).Info("Applying migration")
 
 		return nil
 	},

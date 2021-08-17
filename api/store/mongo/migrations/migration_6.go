@@ -14,7 +14,11 @@ var migration6 = migrate.Migration{
 	Version:     6,
 	Description: "Unset unique on status in the devices collection",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 6 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   6,
+			"action":    "Up",
+		}).Info("Applying migration")
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"status", 1}},
 			Options: options.Index().SetName("status").SetUnique(false),
@@ -27,7 +31,11 @@ var migration6 = migrate.Migration{
 		return err
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 6 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   6,
+			"action":    "Down",
+		}).Info("Applying migration")
 		if _, err := db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"status": ""}}); err != nil {
 			return err
 		}

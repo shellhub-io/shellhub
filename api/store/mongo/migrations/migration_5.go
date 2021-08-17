@@ -14,7 +14,11 @@ var migration5 = migrate.Migration{
 	Version:     5,
 	Description: "Set the email as unique on users collection",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 5 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   5,
+			"action":    "Up",
+		}).Info("Applying migration")
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"email", 1}},
 			Options: options.Index().SetName("email").SetUnique(true),
@@ -24,7 +28,11 @@ var migration5 = migrate.Migration{
 		return err
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 5 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   5,
+			"action":    "Down",
+		}).Info("Applying migration")
 		_, err := db.Collection("users").Indexes().DropOne(context.TODO(), "email")
 
 		return err

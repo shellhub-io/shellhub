@@ -14,7 +14,11 @@ var migration14 = migrate.Migration{
 	Version:     14,
 	Description: "Set the right tenant_id in the users collection",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 14 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   14,
+			"action":    "Up",
+		}).Info("Applying migration")
 		type user struct {
 			Username      string `json:"username" bson:",omitempty"`
 			TenantID      string `json:"tenant_id" bson:"tenant_id"`
@@ -63,7 +67,11 @@ var migration14 = migrate.Migration{
 		return cursor.Err()
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 14 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   14,
+			"action":    "Down",
+		}).Info("Applying migration")
 		cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
 		if err != nil {
 			return err

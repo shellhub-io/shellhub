@@ -14,7 +14,11 @@ var migration11 = migrate.Migration{
 	Version:     11,
 	Description: "Create a ttl for the private_keys collection",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 11 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   11,
+			"action":    "Up",
+		}).Info("Applying migration")
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"created_at", 1}},
 			Options: options.Index().SetName("ttl").SetExpireAfterSeconds(60),
@@ -27,7 +31,11 @@ var migration11 = migrate.Migration{
 		return nil
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 11 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   11,
+			"action":    "Down",
+		}).Info("Applying migration")
 		_, err := db.Collection("private_keys").Indexes().DropOne(context.TODO(), "ttl")
 
 		return err

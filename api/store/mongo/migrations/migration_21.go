@@ -14,7 +14,11 @@ var migration21 = migrate.Migration{
 	Version:     21,
 	Description: "Remove all sessions, recorded_sessions for the devices",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 21 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   21,
+			"action":    "Up",
+		}).Info("Applying migration")
 		cursor, err := db.Collection("sessions").Find(context.TODO(), bson.D{})
 		if err != nil {
 			return err
@@ -88,7 +92,11 @@ var migration21 = migrate.Migration{
 		return nil
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 21 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   21,
+			"action":    "Down",
+		}).Info("Applying migration")
 
 		return nil
 	},

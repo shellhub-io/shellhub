@@ -14,13 +14,21 @@ var migration19 = migrate.Migration{
 	Version:     19,
 	Description: "Remove all fingerprint associated with a public keys collection",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 19 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   19,
+			"action":    "Up",
+		}).Info("Applying migration")
 		_, err := db.Collection("public_keys").Indexes().DropOne(context.TODO(), "fingerprint")
 
 		return err
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 19 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   19,
+			"action":    "Down",
+		}).Info("Applying migration")
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"fingerprint", 1}},
 			Options: options.Index().SetName("fingerprint").SetUnique(true),
