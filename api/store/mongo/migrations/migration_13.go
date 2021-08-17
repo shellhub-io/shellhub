@@ -14,7 +14,11 @@ var migration13 = migrate.Migration{
 	Version:     13,
 	Description: "Change on several collections",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 13 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   13,
+			"action":    "Up",
+		}).Info("Applying migration")
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"uid", 1}},
 			Options: options.Index().SetName("uid").SetUnique(true),
@@ -90,7 +94,11 @@ var migration13 = migrate.Migration{
 		return nil
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 13 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   13,
+			"action":    "Down",
+		}).Info("Applying migration")
 		if _, err := db.Collection("devices").Indexes().DropOne(context.TODO(), "uid"); err != nil {
 			return err
 		}

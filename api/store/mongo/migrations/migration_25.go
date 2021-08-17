@@ -13,7 +13,11 @@ var migration25 = migrate.Migration{
 	Version:     25,
 	Description: "remove devices with no namespaces related",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 25 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   25,
+			"action":    "Up",
+		}).Info("Applying migration")
 		query := []bson.M{
 			{
 				"$lookup": bson.M{
@@ -49,7 +53,11 @@ var migration25 = migrate.Migration{
 		return err
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 25 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   25,
+			"action":    "Down",
+		}).Info("Applying migration")
 
 		return nil
 	},

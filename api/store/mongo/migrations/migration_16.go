@@ -14,7 +14,11 @@ var migration16 = migrate.Migration{
 	Version:     16,
 	Description: "Set the fingerprint as unique on public_keys collection",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 16 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   16,
+			"action":    "Up",
+		}).Info("Applying migration")
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"fingerprint", 1}},
 			Options: options.Index().SetName("fingerprint").SetUnique(true),
@@ -25,7 +29,11 @@ var migration16 = migrate.Migration{
 	},
 
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 16 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   16,
+			"action":    "Down",
+		}).Info("Applying migration")
 		_, err := db.Collection("public_keys").Indexes().DropOne(context.TODO(), "fingerprint")
 
 		return err

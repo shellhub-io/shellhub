@@ -14,7 +14,11 @@ var migration7 = migrate.Migration{
 	Version:     7,
 	Description: "Unset unique on uid and message in the recoded_sessions collection",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 7 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   7,
+			"action":    "Up",
+		}).Info("Applying migration")
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"uid", 1}},
 			Options: options.Index().SetName("uid").SetUnique(false),
@@ -32,7 +36,11 @@ var migration7 = migrate.Migration{
 		return err
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 7 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   7,
+			"action":    "Down",
+		}).Info("Applying migration")
 		if _, err := db.Collection("recorded_sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"uid": ""}}); err != nil {
 			return err
 		}

@@ -13,7 +13,11 @@ var migration23 = migrate.Migration{
 	Version:     23,
 	Description: "change dot in namespace name and hostname to -",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 23 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   23,
+			"action":    "Up",
+		}).Info("Applying migration")
 		if _, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.D{}, []bson.M{
 			{
 				"$set": bson.M{
@@ -41,7 +45,11 @@ var migration23 = migrate.Migration{
 		return nil
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 23 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   23,
+			"action":    "Down",
+		}).Info("Applying migration")
 
 		return nil
 	},

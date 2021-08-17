@@ -10,12 +10,20 @@ var migration4 = migrate.Migration{
 	Version:     4,
 	Description: "Rename the column version to info.version",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 4 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   4,
+			"action":    "Up",
+		}).Info("Applying migration")
 
 		return renameField(db, "devices", "version", "info.version")
 	},
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 4 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   4,
+			"action":    "Down",
+		}).Info("Applying migration")
 
 		return renameField(db, "devices", "info.version", "version")
 	},

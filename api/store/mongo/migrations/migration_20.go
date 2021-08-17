@@ -15,7 +15,11 @@ var migration20 = migrate.Migration{
 	Version:     20,
 	Description: "Change the model on db for firewall_rules collection",
 	Up: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 20 - Up")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   20,
+			"action":    "Up",
+		}).Info("Applying migration")
 		cursor, err := db.Collection("firewall_rules").Find(context.TODO(), bson.D{})
 		if err != nil {
 			return err
@@ -56,7 +60,11 @@ var migration20 = migrate.Migration{
 	},
 
 	Down: func(db *mongo.Database) error {
-		logrus.Info("Applying migration 20 - Down")
+		logrus.WithFields(logrus.Fields{
+			"component": "migration",
+			"version":   20,
+			"action":    "Down",
+		}).Info("Applying migration")
 
 		return nil
 	},
