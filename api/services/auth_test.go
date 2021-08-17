@@ -124,47 +124,70 @@ func TestAuthUser(t *testing.T) {
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
-	Err := errors.New("error")
-
-	// user has no account
-	mock.On("UserGetByUsername", ctx, authReq.Username).
-		Return(nil, Err).Once()
-	mock.On("UserGetByEmail", ctx, authReq.Username).
-		Return(nil, Err).Once()
-
-	_, err = s.AuthUser(ctx, *authReq)
-	assert.Equal(t, err, Err)
-
-	// user has an account but entered the wrong password
-	mock.On("UserGetByUsername", ctx, authReq.Username).
-		Return(userWithWrongPassword, nil).Once()
-	mock.On("NamespaceGetFirst", ctx, userWithWrongPassword.ID).
-		Return(namespace, nil).Once()
-
-	_, err = s.AuthUser(ctx, *authReq)
-	assert.Equal(t, err, ErrUnauthorized)
-
-	// User with account not activated
-	mock.On("UserGetByUsername", ctx, authReq.Username).
-		Return(userNotActivatedAccount, nil).Once()
-
-	_, err = s.AuthUser(ctx, *authReq)
-	assert.Equal(t, err, ErrForbidden)
-
-	// User with account activated
-	mock.On("UserGetByUsername", ctx, authReq.Username).
-		Return(userAuthenticated, nil).Once()
-	mock.On("NamespaceGetFirst", ctx, userAuthenticated.ID).
-		Return(namespace, nil).Once()
-	mock.On("UserUpdateData", ctx, userAuthenticated, userAuthenticated.ID).
-		Return(nil).Once()
+	mock.On("UserGetByUsername", ctx, authReq.Username).Return(userAuthenticated, nil).Once()
+	mock.On("NamespaceGetFirst", ctx, userAuthenticated.ID).Return(namespace, nil).Once()
+	mock.On("UserUpdateData", ctx, userAuthenticated, userAuthenticated.ID).Return(nil).Once()
 
 	authRes, err := s.AuthUser(ctx, *authReq)
 	assert.NoError(t, err)
 
-	assert.Equal(t, userAuthenticated.Username, authRes.User)
-	assert.Equal(t, namespace.TenantID, authRes.Tenant)
-	assert.NotEmpty(t, authRes.Token)
+	Err := errors.New("error")
+
+	type Expected struct {
+		userAuthResponse *models.UserAuthResponse
+		err              error
+	}
+
+	tests := []struct {
+		description   string
+		args          models.UserAuthRequest
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "Fails when user has no account",
+			args:        *authReq,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, authReq.Username).Return(nil, Err).Once()
+				mock.On("UserGetByEmail", ctx, authReq.Username).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, Err},
+		},
+		{
+			description: "Fails when user has account but wrong password",
+			args:        *authReq,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userWithWrongPassword, nil).Once()
+				mock.On("NamespaceGetFirst", ctx, userWithWrongPassword.ID).Return(namespace, nil).Once()
+			},
+			expected: Expected{nil, ErrUnauthorized},
+		},
+		{
+			description: "Fails when user has account but not activated",
+			args:        *authReq,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userNotActivatedAccount, nil).Once()
+			},
+			expected: Expected{nil, ErrForbidden},
+		},
+		{
+			description: "Successful authentication",
+			args:        *authReq,
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userAuthenticated, nil).Once()
+				mock.On("NamespaceGetFirst", ctx, userAuthenticated.ID).Return(namespace, nil).Once()
+				mock.On("UserUpdateData", ctx, userAuthenticated, userAuthenticated.ID).Return(nil).Once()
+			},
+			expected: Expected{authRes, nil},
+		},
+	}
+
+	for _, test := range tests {
+		t.Log("PASS:  ", test.description)
+		test.requiredMocks()
+		authRes, err := s.AuthUser(ctx, test.args)
+		assert.Equal(t, test.expected, Expected{authRes, err})
+	}
 
 	mock.AssertExpectations(t)
 }
@@ -212,39 +235,66 @@ func TestAuthUserInfo(t *testing.T) {
 
 	Err := errors.New("error")
 
-	// error getting username
-	mock.On("UserGetByUsername", ctx, "notuser").
-		Return(nil, Err).Once()
-	authRes, err := s.AuthUserInfo(ctx, "notuser", "xxxxx", "---------------token----------------")
-	assert.Error(t, err)
-	assert.Nil(t, authRes)
+	type Expected struct {
+		userAuthResponse *models.UserAuthResponse
+		err              error
+	}
 
-	// error getting namespace
-	mock.On("UserGetByUsername", ctx, "user").
-		Return(user, nil).Once()
-	mock.On("NamespaceGet", ctx, "xxxxx").
-		Return(nil, Err).Once()
-	authRes, err = s.AuthUserInfo(ctx, "user", "xxxxx", "---------------token----------------")
-	assert.Error(t, err)
-	assert.Nil(t, authRes)
+	tests := []struct {
+		description   string
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "Fails to find the user",
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, "notuser").Return(nil, Err).Once()
+			},
+			expected: Expected{nil, Err},
+		},
+		{
+			description: "Fails to find the namespace",
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
+				mock.On("NamespaceGet", ctx, "xxxxx").Return(nil, Err).Once()
+			},
+			expected: Expected{nil, Err},
+		},
+		{
+			description: "Fails empty tenant return login auth",
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
+				mock.On("NamespaceGet", ctx, "").Return(nil, store.ErrNoDocuments).Once()
+			},
+			expected: Expected{authRes1, nil},
+		},
+		{
+			description: "Successful auth login",
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+			},
+			expected: Expected{authRes2, nil},
+		},
+	}
 
-	// verify empty tenant return login auth
-	mock.On("UserGetByUsername", ctx, "user").
-		Return(user, nil).Once()
-	mock.On("NamespaceGet", ctx, "").
-		Return(nil, store.ErrNoDocuments).Once()
-	authRes, err = s.AuthUserInfo(ctx, "user", "", "---------------token----------------")
-	assert.Nil(t, err)
-	assert.Equal(t, authRes1, authRes)
+	authRes := new(models.UserAuthResponse)
 
-	// successful auth token login with namespace found
-	mock.On("UserGetByUsername", ctx, "user").
-		Return(user, nil).Once()
-	mock.On("NamespaceGet", ctx, namespace.TenantID).
-		Return(namespace, nil).Once()
-	authRes, err = s.AuthUserInfo(ctx, "user", namespace.TenantID, "---------------token----------------")
-	assert.Nil(t, err)
-	assert.Equal(t, authRes2, authRes)
+	for _, test := range tests {
+		t.Log("PASS:  ", test.description)
+		test.requiredMocks()
+		switch test.description {
+		case "Fails to find the user":
+			authRes, err = s.AuthUserInfo(ctx, "notuser", "xxxxx", "---------------token----------------")
+		case "Fails to find the namespace":
+			authRes, err = s.AuthUserInfo(ctx, "user", "xxxxx", "---------------token----------------")
+		case "Fails empty tenant return login auth":
+			authRes, err = s.AuthUserInfo(ctx, "user", "", "---------------token----------------")
+		case "Successful auth login":
+			authRes, err = s.AuthUserInfo(ctx, "user", namespace.TenantID, "---------------token----------------")
+		}
+		assert.Equal(t, test.expected, Expected{authRes, err})
+	}
 
 	mock.AssertExpectations(t)
 }
