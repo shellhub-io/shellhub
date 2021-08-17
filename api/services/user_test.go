@@ -15,7 +15,7 @@ import (
 
 func TestUpdateDataUser(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -191,7 +191,7 @@ func TestUpdateDataUser(t *testing.T) {
 
 func TestUpdatePasswordUser(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 

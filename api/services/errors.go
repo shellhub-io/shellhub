@@ -17,4 +17,5 @@ var (
 	ErrMaxDeviceCountReached = errors.New("maximum number of accepted devices reached")
 	ErrDuplicatedDeviceName  = errors.New("the name already exists in the namespace")
 	ErrDuplicateFingerprint  = errors.New("this fingerprint already exits")
+	ErrReportUsage           = errors.New("report usage error")
 )

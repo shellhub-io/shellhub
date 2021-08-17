@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"strconv"
 	"testing"
+	"time"
 
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -17,7 +19,7 @@ import (
 
 func TestListDevices(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -109,7 +111,7 @@ func TestListDevices(t *testing.T) {
 
 func TestGetDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	Err := errors.New("error")
 
@@ -167,14 +169,14 @@ func TestGetDevice(t *testing.T) {
 
 func TestDeleteDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
 	user := &models.User{Name: "name", Email: "", Username: "username", ID: "id"}
 	user2 := &models.User{Name: "name2", Email: "", Username: "username2", ID: "id2"}
 	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant"}
-	device := &models.Device{UID: "uid", TenantID: "tenant"}
+	device := &models.Device{UID: "uid", TenantID: "tenant", CreatedAt: time.Time{}}
 
 	Err := errors.New("error")
 
@@ -244,12 +246,82 @@ func TestDeleteDevice(t *testing.T) {
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(nil, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(namespace, nil).Once()
+					Return(&models.Namespace{
+						Billing: &models.Billing{
+							Active: true,
+						},
+					}, nil).Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(nil).Once()
 			},
 			id:       user.ID,
 			expected: nil,
+		},
+		{
+			name:   "DeleteDevice reports usage with success",
+			uid:    models.UID(device.UID),
+			tenant: namespace.TenantID,
+			requiredMocks: func() {
+				namespaceBilling := &models.Namespace{
+					Name:       "namespace1",
+					MaxDevices: -1,
+					Billing: &models.Billing{
+						Active: true,
+					},
+				}
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespaceBilling, nil).Once()
+				clockMock.On("Now").Return(now).Twice()
+				clientMock.On("ReportUsage", &models.UsageRecord{
+					UUID:      "uid",
+					Namespace: namespaceBilling,
+					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
+					Timestamp: now.Unix(),
+				},
+					"billing-api").Return(200, nil).Once()
+				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
+					Return(nil).Once()
+			},
+			id:       user.ID,
+			expected: nil,
+		},
+		{
+			name:   "DeleteDevice fails to report usage",
+			uid:    models.UID(device.UID),
+			tenant: namespace.TenantID,
+			requiredMocks: func() {
+				namespaceBilling := &models.Namespace{
+					Name:       "namespace1",
+					MaxDevices: -1,
+					Billing: &models.Billing{
+						Active: true,
+					},
+				}
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespaceBilling, nil).Once()
+				clockMock.On("Now").Return(now).Twice()
+				clientMock.On("ReportUsage", &models.UsageRecord{
+					UUID:      "uid",
+					Namespace: namespaceBilling,
+					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
+					Timestamp: now.Unix(),
+				},
+					"billing-api").Return(500, nil).Once()
+			},
+			id:       user.ID,
+			expected: ErrReportUsage,
 		},
 	}
 
@@ -266,7 +338,7 @@ func TestDeleteDevice(t *testing.T) {
 
 func TestRenameDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -431,7 +503,7 @@ func TestRenameDevice(t *testing.T) {
 
 func TestLookupDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -491,7 +563,7 @@ func TestLookupDevice(t *testing.T) {
 
 func TestUpdateDeviceStatus(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	Err := errors.New("error")
 
@@ -539,13 +611,13 @@ func TestUpdateDeviceStatus(t *testing.T) {
 
 func TestUpdatePendingStatus(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	user := &models.User{Name: "name", Username: "username", ID: "id"}
 	user2 := &models.User{Name: "name2", Username: "username2", ID: "id2"}
 	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", MaxDevices: -1}
 	identity := &models.DeviceIdentity{MAC: "mac"}
-	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: identity}
+	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: identity, CreatedAt: time.Time{}}
 
 	Err := errors.New("error")
 
@@ -611,12 +683,12 @@ func TestUpdatePendingStatus(t *testing.T) {
 			tenant: namespace.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
-				oldDevice := &models.Device{UID: "old_uid", Name: "name", TenantID: "tenant", Identity: identity}
+				oldDevice := &models.Device{UID: "uid2", Name: "name", TenantID: "tenant", Identity: identity}
 				mock.On("UserGetByID", ctx, user.ID, false).
 					Return(user, 0, nil).Once()
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
 					Return(device, nil).Once()
 				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
 					Return(oldDevice, nil).Once()
@@ -630,6 +702,64 @@ func TestUpdatePendingStatus(t *testing.T) {
 					Return(nil).Once()
 			},
 			expected: nil,
+		},
+		{
+			name:   "UpdatePendingStatus reports usage",
+			uid:    models.UID("uid"),
+			tenant: "tenant_max",
+			id:     user.ID,
+			requiredMocks: func() {
+				namespaceBilling := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: -1, DevicesCount: 10, Billing: &models.Billing{Active: true}}
+				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, device.TenantID).
+					Return(namespaceBilling, nil).Twice()
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
+					Return(device, nil).Once()
+				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
+					Return(nil, nil).Once()
+				clockMock.On("Now").Return(now).Twice()
+				clientMock.On("ReportUsage", &models.UsageRecord{
+					UUID:      "uid",
+					Inc:       true,
+					Namespace: namespaceBilling,
+					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
+					Timestamp: now.Unix(),
+				},
+					"billing-api").Return(200, nil).Once()
+				mock.On("DeviceUpdateStatus", ctx, models.UID(device.UID), "accepted").
+					Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
+			name:   "UpdatePendingStatus fails to reports usage",
+			uid:    models.UID("uid"),
+			tenant: "tenant_max",
+			id:     user.ID,
+			requiredMocks: func() {
+				namespaceBilling := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: -1, DevicesCount: 10, Billing: &models.Billing{Active: true}}
+				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, device.TenantID).
+					Return(namespaceBilling, nil).Twice()
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
+					Return(device, nil).Once()
+				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
+					Return(nil, nil).Once()
+				clockMock.On("Now").Return(now).Twice()
+				clientMock.On("ReportUsage", &models.UsageRecord{
+					UUID:      "uid",
+					Inc:       true,
+					Namespace: namespaceBilling,
+					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
+					Timestamp: now.Unix(),
+				},
+					"billing-api").Return(500, nil).Once()
+			},
+			expected: ErrReportUsage,
 		},
 	}
 

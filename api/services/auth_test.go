@@ -14,7 +14,6 @@ import (
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/undefinedlabs/go-mpatch"
@@ -26,7 +25,7 @@ func TestAuthDevice(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.NoError(t, err)
 
-	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -40,7 +39,6 @@ func TestAuthDevice(t *testing.T) {
 		Sessions: []string{"session"},
 	}
 
-	now := clock.Now()
 	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
 	device := &models.Device{
 		UID:        hex.EncodeToString(uid[:]),
@@ -50,6 +48,7 @@ func TestAuthDevice(t *testing.T) {
 		RemoteAddr: "0.0.0.0",
 	}
 
+	clockMock.On("Now").Return(now).Twice()
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
 	mock.On("DeviceCreate", ctx, *device, "").
@@ -86,7 +85,7 @@ func TestAuthUser(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.NoError(t, err)
 
-	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -103,7 +102,7 @@ func TestAuthUser(t *testing.T) {
 		Password:      hex.EncodeToString(wrongPasswd[:]),
 		ID:            "id",
 		Authenticated: true,
-		LastLogin:     clock.Now(),
+		LastLogin:     now,
 	}
 
 	userAuthenticated := &models.User{
@@ -111,7 +110,7 @@ func TestAuthUser(t *testing.T) {
 		Password:      hex.EncodeToString(passwd[:]),
 		ID:            "id",
 		Authenticated: true,
-		LastLogin:     clock.Now(),
+		LastLogin:     now,
 	}
 
 	userNotActivatedAccount := &models.User{
@@ -119,7 +118,7 @@ func TestAuthUser(t *testing.T) {
 		Password:      hex.EncodeToString(passwd[:]),
 		ID:            "id",
 		Authenticated: false,
-		LastLogin:     clock.Now(),
+		LastLogin:     now,
 	}
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
@@ -127,6 +126,7 @@ func TestAuthUser(t *testing.T) {
 	mock.On("UserGetByUsername", ctx, authReq.Username).Return(userAuthenticated, nil).Once()
 	mock.On("NamespaceGetFirst", ctx, userAuthenticated.ID).Return(namespace, nil).Once()
 	mock.On("UserUpdateData", ctx, userAuthenticated, userAuthenticated.ID).Return(nil).Once()
+	clockMock.On("Now").Return(now).Twice()
 
 	authRes, err := s.AuthUser(ctx, *authReq)
 	assert.NoError(t, err)
@@ -177,6 +177,7 @@ func TestAuthUser(t *testing.T) {
 				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userAuthenticated, nil).Once()
 				mock.On("NamespaceGetFirst", ctx, userAuthenticated.ID).Return(namespace, nil).Once()
 				mock.On("UserUpdateData", ctx, userAuthenticated, userAuthenticated.ID).Return(nil).Once()
+				clockMock.On("Now").Return(now).Twice()
 			},
 			expected: Expected{authRes, nil},
 		},
@@ -198,7 +199,7 @@ func TestAuthUserInfo(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.NoError(t, err)
 
-	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 

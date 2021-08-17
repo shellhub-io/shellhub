@@ -15,7 +15,7 @@ import (
 
 func TestListPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 	keys := []models.PublicKey{
@@ -37,7 +37,7 @@ func TestListPublicKeys(t *testing.T) {
 
 func TestGetPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 	key := &models.PublicKey{
@@ -55,7 +55,7 @@ func TestGetPublicKeys(t *testing.T) {
 
 func TestUpdatePublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 	key := &models.PublicKey{
@@ -80,9 +80,10 @@ func TestUpdatePublicKeys(t *testing.T) {
 
 func TestDeletePublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
+	clockMock.On("Now").Return(now).Twice()
 	key := &models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
