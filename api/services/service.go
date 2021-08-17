@@ -12,6 +12,7 @@ type service struct {
 	privKey *rsa.PrivateKey
 	pubKey  *rsa.PublicKey
 	cache   cache.Cache
+	client  interface{}
 }
 
 type Service interface {
@@ -24,7 +25,7 @@ type Service interface {
 	StatsService
 }
 
-func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache) Service {
+func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}) Service {
 	if privKey == nil || pubKey == nil {
 		var err error
 		privKey, pubKey, err = LoadKeys()
@@ -33,5 +34,5 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		}
 	}
 
-	return &service{store, privKey, pubKey, cache}
+	return &service{store, privKey, pubKey, cache, c}
 }

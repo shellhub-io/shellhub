@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/routes/middlewares"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
+	requests "github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
@@ -79,9 +80,11 @@ func startServer() error {
 		cache = storecache.NewNullCache()
 	}
 
+	requestClient := requests.NewClient()
+
 	// apply dependency injection through project layers
 	store := mongo.NewStore(client.Database("main"), cache)
-	service := services.NewService(store, nil, nil, cache)
+	service := services.NewService(store, nil, nil, cache, requestClient)
 	handler := routes.NewHandler(service)
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {

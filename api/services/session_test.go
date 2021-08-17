@@ -15,7 +15,7 @@ import (
 
 func TestListSessions(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -82,7 +82,7 @@ func TestListSessions(t *testing.T) {
 
 func TestGetSession(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -141,7 +141,7 @@ func TestGetSession(t *testing.T) {
 
 func TestCreateSession(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -199,7 +199,7 @@ func TestCreateSession(t *testing.T) {
 
 func TestDeactivateSession(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -244,7 +244,7 @@ func TestDeactivateSession(t *testing.T) {
 
 func TestSetSessionAuthenticated(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
