@@ -17,7 +17,7 @@ type Device struct {
 	Online     bool            `json:"online" bson:",omitempty"`
 	Namespace  string          `json:"namespace" bson:",omitempty"`
 	Status     string          `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused`
-	CreatedAt  time.Time       `json:"created_at" bson:"created_at"`
+	CreatedAt  time.Time       `json:"created_at" bson:"created_at,omitempty"`
 	RemoteAddr string          `json:"remote_addr" bson:"remote_addr"`
 }
 
