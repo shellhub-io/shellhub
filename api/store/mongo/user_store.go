@@ -187,7 +187,7 @@ func (s *Store) UserUpdateData(ctx context.Context, data *models.User, id string
 		return fromMongoError(err)
 	}
 
-	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"name": data.Name, "username": data.Username, "email": data.Email}}); err != nil {
+	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"name": data.Name, "username": data.Username, "email": data.Email, "last_login": data.LastLogin}}); err != nil {
 		return fromMongoError(err)
 	}
 
