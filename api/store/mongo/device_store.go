@@ -211,8 +211,9 @@ func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname stri
 
 	q := bson.M{
 		"$setOnInsert": bson.M{
-			"name":   hostname,
-			"status": "pending",
+			"name":       hostname,
+			"status":     "pending",
+			"created_at": clock.Now(),
 		},
 		"$set": d,
 	}
