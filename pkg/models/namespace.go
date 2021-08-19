@@ -23,6 +23,7 @@ type NamespaceSettings struct {
 }
 
 type Member struct {
-	ID   string `json:"id" bson:"id"`
-	Name string `json:"name,omitempty" bson:"-"`
+	ID         string `json:"id" bson:"id"`
+	Name       string `json:"name,omitempty" bson:"-"`
+	AccessType string `json:"access_type, omitempty" bson:"access_type" validate:"required,oneof=owner admin operator observer`
 }

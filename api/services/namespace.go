@@ -21,7 +21,7 @@ type NamespaceService interface {
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, tenantID, ownerUsername string) error
 	EditNamespace(ctx context.Context, tenantID, name, ownerUsername string) (*models.Namespace, error)
-	AddNamespaceUser(ctx context.Context, tenantID, username, ownerUsername string) (*models.Namespace, error)
+	AddNamespaceUser(ctx context.Context, tenantID, username, role, ownerUsername string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, tenantID, username, ownerUsername string) (*models.Namespace, error)
 	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
 	EditSessionRecordStatus(ctx context.Context, status bool, tenant, ownerID string) error
@@ -56,7 +56,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	ns := &models.Namespace{
 		Name:     strings.ToLower(namespace.Name),
 		Owner:    user.ID,
-		Members:  []interface{}{user.ID},
+		Members:  []interface{}{&models.Member{ID: user.ID, AccessType: "owner"}},
 		Settings: &models.NamespaceSettings{SessionRecord: true},
 		TenantID: namespace.TenantID,
 	}
@@ -117,8 +117,8 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 	}
 
 	members := []models.Member{}
-	for _, memberID := range ns.Members {
-		user, _, err := s.store.UserGetByID(ctx, memberID.(string), false)
+	for _, memberInterface := range ns.Members {
+		user, _, err := s.store.UserGetByID(ctx, memberInterface.(models.Member).ID, false)
 		if err == store.ErrNoDocuments {
 			return nil, ErrUserNotFound
 		}
@@ -127,7 +127,8 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 			return nil, err
 		}
 
-		member := models.Member{ID: memberID.(string), Name: user.Username}
+		member := memberInterface.(models.Member)
+		member.Name = user.Username
 		members = append(members, member)
 	}
 
@@ -158,7 +159,7 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name, owner strin
 	return s.store.NamespaceRename(ctx, ns.TenantID, lowerName)
 }
 
-func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, ownerID string) (*models.Namespace, error) {
+func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, role, ownerID string) (*models.Namespace, error) {
 	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
 		return nil, err
 	}
@@ -172,7 +173,14 @@ func (s *service) AddNamespaceUser(ctx context.Context, tenantID, username, owne
 		return nil, err
 	}
 
-	return s.store.NamespaceAddMember(ctx, tenantID, user.ID)
+	member := &models.Member{
+		ID:         user.ID,
+		AccessType: role,
+	}
+
+	validator.ValidateStruct(member)
+
+	return s.store.NamespaceAddMember(ctx, tenantID, member)
 }
 
 func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, username, ownerID string) (*models.Namespace, error) {

@@ -299,7 +299,7 @@ func (s *Store) UserDelete(ctx context.Context, id string) error {
 
 	findOptions := options.Find()
 
-	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": id}, findOptions)
+	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": bson.M{"id": id}}, findOptions)
 	if err != nil {
 		return fromMongoError(err)
 	}

@@ -153,6 +153,7 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 	var req struct {
 		Username string `json:"username"`
+		Role     string `json:"access_type"`
 	}
 
 	id := ""
@@ -164,7 +165,7 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 		return err
 	}
 
-	namespace, err := h.service.AddNamespaceUser(c.Ctx(), c.Param("id"), req.Username, id)
+	namespace, err := h.service.AddNamespaceUser(c.Ctx(), c.Param("id"), req.Username, req.Role, id)
 	if err != nil {
 		switch err {
 		case services.ErrUnauthorized:
