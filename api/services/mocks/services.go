@@ -514,6 +514,20 @@ func (_m *Service) GetStats(ctx context.Context) (*models.Stats, error) {
 	return r0, r1
 }
 
+// HandleReports provides a mock function with given fields: ns, ui, inc, device
+func (_m *Service) HandleReports(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error {
+	ret := _m.Called(ns, ui, inc, device)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*models.Namespace, models.UID, bool, *models.Device) error); ok {
+		r0 = rf(ns, ui, inc, device)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListDevices provides a mock function with given fields: ctx, pagination, filter, status, sort, order
 func (_m *Service) ListDevices(ctx context.Context, pagination paginator.Query, filter string, status string, sort string, order string) ([]models.Device, int, error) {
 	ret := _m.Called(ctx, pagination, filter, status, sort, order)
