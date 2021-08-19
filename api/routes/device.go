@@ -158,8 +158,11 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 	}
 
 	if err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenant, id); err != nil {
-		if err == services.ErrUnauthorized {
+		switch err {
+		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
+		case services.ErrMaxDeviceCountReached:
+			return c.NoContent(http.StatusPaymentRequired)
 		}
 
 		return err
