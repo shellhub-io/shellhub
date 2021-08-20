@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/shellhub-io/shellhub/pkg/geoip"
-
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/client"
@@ -201,13 +199,8 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 }
 
 func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip string) error {
-	g, err := geoip.NewGeoLite2()
-	if err != nil {
-		return err
-	}
-
 	ipParsed := net.ParseIP(ip)
-	position, err := g.GetPosition(ipParsed)
+	position, err := s.locator.GetPosition(ipParsed)
 	if err != nil {
 		return err
 	}

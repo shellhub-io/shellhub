@@ -5,9 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"net"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/shellhub-io/shellhub/pkg/geoip"
+	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -19,7 +23,7 @@ import (
 
 func TestListDevices(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
 
@@ -111,7 +115,7 @@ func TestListDevices(t *testing.T) {
 
 func TestGetDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	Err := errors.New("error")
 
@@ -169,7 +173,7 @@ func TestGetDevice(t *testing.T) {
 
 func TestDeleteDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
 
@@ -338,7 +342,7 @@ func TestDeleteDevice(t *testing.T) {
 
 func TestRenameDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
 
@@ -503,7 +507,7 @@ func TestRenameDevice(t *testing.T) {
 
 func TestLookupDevice(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
 
@@ -563,7 +567,7 @@ func TestLookupDevice(t *testing.T) {
 
 func TestUpdateDeviceStatus(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	Err := errors.New("error")
 
@@ -611,7 +615,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 
 func TestUpdatePendingStatus(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	user := &models.User{Name: "name", Username: "username", ID: "id"}
 	user2 := &models.User{Name: "name2", Username: "username2", ID: "id2"}
@@ -767,6 +771,75 @@ func TestUpdatePendingStatus(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
 			err := s.UpdatePendingStatus(ctx, tc.uid, "accepted", tc.tenant, tc.id)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
+
+func TestSetDevicePosition(t *testing.T) {
+	locator := &mocksGeoIp.Locator{}
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+
+	ctx := context.TODO()
+
+	device := &models.Device{UID: "uid"}
+
+	Err := errors.New("error")
+
+	positionGeoIP := geoip.Position{Longitude: 0, Latitude: 0}
+	positionDeviceModel := models.DevicePosition{Longitude: 0, Latitude: 0}
+
+	cases := []struct {
+		name          string
+		requiredMocks func()
+		uid           models.UID
+		ip            string
+		expected      error
+	}{
+		{
+			name: "SetDevicePosition fails when GetPosition return error",
+			requiredMocks: func() {
+				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
+					Return(geoip.Position{}, Err).Once()
+			},
+			uid:      models.UID(device.UID),
+			ip:       "127.0.0.1",
+			expected: Err,
+		},
+		{
+			name: "SetDevicePosition fails when DeviceSetPosition return error",
+			requiredMocks: func() {
+				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
+					Return(positionGeoIP, nil).Once()
+				mock.On("DeviceSetPosition", ctx, models.UID(device.UID), positionDeviceModel).
+					Return(Err).Once()
+			},
+			uid:      models.UID(device.UID),
+			ip:       "127.0.0.1",
+			expected: Err,
+		},
+		{
+			name: "SetDevicePosition success",
+			requiredMocks: func() {
+				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
+					Return(positionGeoIP, nil).Once()
+				mock.On("DeviceSetPosition", ctx, models.UID(device.UID), positionDeviceModel).
+					Return(nil).Once()
+			},
+			uid:      models.UID(device.UID),
+			ip:       "127.0.0.1",
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.requiredMocks()
+
+			err := s.SetDevicePosition(ctx, tc.uid, "127.0.0.1")
 			assert.Equal(t, tc.expected, err)
 		})
 	}
