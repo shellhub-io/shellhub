@@ -46,7 +46,7 @@ services:
     image: shellhubio/ui:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
-      - VUE_APP_STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - SHELLHUB_STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
     depends_on:
