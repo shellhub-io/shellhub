@@ -94,12 +94,13 @@ func main() {
 
 		&cobra.Command{
 			Use:   "add-user-namespace",
-			Short: "Usage: <username> <namespace>",
+			Short: "Usage: <username> <namespace> <access_type>",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				ns, err := svc.NamespaceAddMember(Arguments{
-					Username:  args[0],
-					Namespace: args[1],
+					Username:   args[0],
+					Namespace:  args[1],
+					AccessType: args[2],
 				})
 				if err != nil {
 					return err

@@ -15,11 +15,12 @@ import (
 )
 
 type Arguments struct {
-	Username  string `validate:"required,min=3,max=30,alphanum,ascii"`
-	Namespace string `validate:"required,min=3,max=30,alphanum,ascii"`
-	Password  string `validate:"required,min=5,max=30"`
-	Email     string `validate:"required,email"`
-	TenantID  string
+	Username   string `validate:"required,min=3,max=30,alphanum,ascii"`
+	Namespace  string `validate:"required,min=3,max=30,alphanum,ascii"`
+	Password   string `validate:"required,min=5,max=30"`
+	Email      string `validate:"required,email"`
+	TenantID   string
+	AccessType string `validate:"required,oneof=admin operator observer`
 }
 
 type Service interface {
@@ -101,7 +102,7 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		Name:     data.Namespace,
 		Owner:    usr.ID,
 		TenantID: tenantID,
-		Members:  []interface{}{usr.ID},
+		Members:  []interface{}{&models.Member{ID: user.ID, AccessType: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -124,8 +125,9 @@ func (s *service) NamespaceAddMember(data Arguments) (*models.Namespace, error) 
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
-
-	ns, err = s.store.NamespaceAddMember(context.TODO(), ns.TenantID, usr.ID)
+member:
+	&models.Member{ID: usr.ID, AccessType: data.AccessType}
+	ns, err = s.store.NamespaceAddMember(context.TODO(), ns.TenantID, member)
 	if err != nil {
 		return nil, err
 	}
