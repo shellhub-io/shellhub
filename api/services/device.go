@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"net"
 	"strconv"
 	"strings"
+
+	"github.com/shellhub-io/shellhub/pkg/geoip"
 
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -25,6 +28,7 @@ type DeviceService interface {
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
 	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, ownerID string) error
 	HandleReports(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error
+	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
 }
 
 func (s *service) HandleReports(ns *models.Namespace, uid models.UID, inc bool, device *models.Device) error {
@@ -194,4 +198,29 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 	}
 
 	return s.store.DeviceUpdateStatus(ctx, uid, status)
+}
+
+func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip string) error {
+	g, err := geoip.NewGeoLite2()
+	if err != nil {
+		return err
+	}
+
+	ipParsed := net.ParseIP(ip)
+	position, err := g.GetPosition(ipParsed)
+	if err != nil {
+		return err
+	}
+
+	devicePosition := models.DevicePosition{
+		Longitude: position.Longitude,
+		Latitude:  position.Latitude,
+	}
+
+	err = s.store.DeviceSetPosition(ctx, uid, devicePosition)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

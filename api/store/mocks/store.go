@@ -1403,3 +1403,40 @@ func (_m *Store) UserUpdatePassword(ctx context.Context, newPassword string, ID 
 
 	return r0
 }
+
+// DeviceSetPosition provides a mock function with given fields: ctx, uid, position
+func (_m *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
+	ret := _m.Called(ctx, uid, position)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DevicePosition) error); ok {
+		r0 = rf(ctx, uid, position)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeviceGetPosition provides a mock function with given fields: ctx, uid
+func (_m *Store) DeviceGetPosition(ctx context.Context, uid models.UID) (*models.DevicePosition, error) {
+	ret := _m.Called(ctx, uid)
+
+	var r0 *models.DevicePosition
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID) *models.DevicePosition); ok {
+		r0 = rf(ctx, uid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DevicePosition)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
+		r1 = rf(ctx, uid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
