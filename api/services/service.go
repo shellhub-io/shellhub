@@ -5,6 +5,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/geoip"
 )
 
 type service struct {
@@ -13,6 +14,7 @@ type service struct {
 	pubKey  *rsa.PublicKey
 	cache   cache.Cache
 	client  interface{}
+	locator geoip.Locator
 }
 
 type Service interface {
@@ -25,7 +27,7 @@ type Service interface {
 	StatsService
 }
 
-func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}) Service {
+func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}, l geoip.Locator) Service {
 	if privKey == nil || pubKey == nil {
 		var err error
 		privKey, pubKey, err = LoadKeys()
@@ -34,5 +36,5 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		}
 	}
 
-	return &service{store, privKey, pubKey, cache, c}
+	return &service{store, privKey, pubKey, cache, c, l}
 }

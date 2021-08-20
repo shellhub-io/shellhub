@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	requests "github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
@@ -84,7 +85,11 @@ func startServer() error {
 
 	// apply dependency injection through project layers
 	store := mongo.NewStore(client.Database("main"), cache)
-	service := services.NewService(store, nil, nil, cache, requestClient)
+	locator, err := geoip.NewGeoLite2()
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to init GeoLite2 database")
+	}
+	service := services.NewService(store, nil, nil, cache, requestClient, locator)
 	handler := routes.NewHandler(service)
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
