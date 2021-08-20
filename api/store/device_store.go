@@ -19,4 +19,5 @@ type DeviceStore interface {
 	DeviceGetByMac(ctx context.Context, mac, tenant, status string) (*models.Device, error)
 	DeviceGetByName(ctx context.Context, name, tenant string) (*models.Device, error)
 	DeviceGetByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error)
+	DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error
 }

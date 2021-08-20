@@ -71,6 +71,12 @@ func (h *Handler) CreateSession(c apicontext.Context) error {
 		return err
 	}
 
+	ip := c.Request().Header.Get("X-Real-IP")
+	err = h.service.SetDevicePosition(c.Ctx(), session.DeviceUID, ip)
+	if err != nil {
+		return err
+	}
+
 	return c.JSON(http.StatusOK, session)
 }
 
