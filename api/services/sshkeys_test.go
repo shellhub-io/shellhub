@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	storecache "github.com/shellhub-io/shellhub/api/cache"
@@ -13,8 +14,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	InvalidTenantID        = "invalid_tenant_id"
+	InvalidFingerprint     = "invalid_fingerprint"
+	invalidTenantIDStr     = "Fails when the tenant is invalid"
+	InvalidFingerprintStr  = "Fails when the fingerprint is invalid"
+	InvalidFingerTenantStr = "Fails when the fingerprint and tenant is invalid"
+)
+
 func TestListPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
+
+	clockMock.On("Now").Return(now).Twice()
+
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
@@ -23,38 +35,161 @@ func TestListPublicKeys(t *testing.T) {
 		{Data: []byte("teste2"), Fingerprint: "fingerprint2", CreatedAt: clock.Now(), TenantID: "tenant2", PublicKeyFields: models.PublicKeyFields{Name: "teste2"}},
 	}
 
-	query := paginator.Query{Page: 1, PerPage: 10}
+	validQuery := paginator.Query{Page: 1, PerPage: 10}
+	invalidQuery := paginator.Query{Page: -1, PerPage: 10}
 
-	mock.On("PublicKeyList", ctx, query).Return(keys, len(keys), nil).Once()
+	Err := errors.New("error")
 
-	returnedKeys, count, err := s.ListPublicKeys(ctx, query)
-	assert.NoError(t, err)
-	assert.Equal(t, keys, returnedKeys)
-	assert.Equal(t, count, len(keys))
+	type Expected struct {
+		returnedKeys []models.PublicKey
+		count        int
+		err          error
+	}
+
+	cases := []struct {
+		description   string
+		ctx           context.Context
+		keys          []models.PublicKey
+		query         paginator.Query
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "Fails when the querry is invalid",
+			ctx:         ctx,
+			keys:        keys,
+			query:       invalidQuery,
+			requiredMocks: func() {
+				mock.On("PublicKeyList", ctx, invalidQuery).Return(nil, 0, Err).Once()
+			},
+			expected: Expected{nil, 0, Err},
+		},
+		{
+			description: "Successful list the keys",
+			ctx:         ctx,
+			keys:        keys,
+			query:       validQuery,
+			requiredMocks: func() {
+				mock.On("PublicKeyList", ctx, validQuery).Return(keys, len(keys), nil).Once()
+			},
+			expected: Expected{keys, len(keys), nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+			returnedKeys, count, err := s.ListPublicKeys(ctx, tc.query)
+			assert.Equal(t, tc.expected, Expected{returnedKeys, count, err})
+		})
+	}
 
 	mock.AssertExpectations(t)
 }
 
 func TestGetPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
+
+	clockMock.On("Now").Return(now).Twice()
+
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
-	key := &models.PublicKey{
+	key := models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
 
-	mock.On("PublicKeyGet", ctx, key.Fingerprint, key.TenantID).Return(key, nil).Once()
+	Err := errors.New("error")
 
-	returnedKey, err := s.GetPublicKey(ctx, key.Fingerprint, key.TenantID)
-	assert.NoError(t, err)
-	assert.Equal(t, key, returnedKey)
+	type Expected struct {
+		returnedKey *models.PublicKey
+		err         error
+	}
+
+	cases := []struct {
+		description   string
+		ctx           context.Context
+		key           *models.PublicKey
+		fingerprint   string
+		tenantID      string
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: invalidTenantIDStr,
+			ctx:         ctx,
+			key:         nil,
+			fingerprint: key.Fingerprint,
+			tenantID:    InvalidTenantID,
+			requiredMocks: func() {
+				mock.On("PublicKeyGet", ctx, key.Fingerprint, InvalidTenantID).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, Err},
+		},
+		{
+
+			description: InvalidFingerprintStr,
+			ctx:         ctx,
+			key:         nil,
+			fingerprint: InvalidFingerprint,
+			tenantID:    key.TenantID,
+			requiredMocks: func() {
+				mock.On("PublicKeyGet", ctx, InvalidFingerprint, key.TenantID).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, Err},
+		},
+		{
+
+			description: InvalidFingerTenantStr,
+			ctx:         ctx,
+			key:         nil,
+			fingerprint: InvalidFingerprint,
+			tenantID:    InvalidTenantID,
+			requiredMocks: func() {
+				mock.On("PublicKeyGet", ctx, InvalidFingerprint, InvalidTenantID).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, Err},
+		},
+		{
+			description: "Successful get the key",
+			ctx:         ctx,
+			key:         &key,
+			fingerprint: key.Fingerprint,
+			tenantID:    key.TenantID,
+			requiredMocks: func() {
+				mock.On("PublicKeyGet", ctx, key.Fingerprint, key.TenantID).Return(&key, nil).Once()
+			},
+			expected: Expected{&key, nil},
+		},
+	}
+
+	var returnedKey *models.PublicKey
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+			switch tc.description {
+			case invalidTenantIDStr:
+				returnedKey, Err = s.GetPublicKey(ctx, key.Fingerprint, InvalidTenantID)
+			case InvalidFingerprintStr:
+				returnedKey, Err = s.GetPublicKey(ctx, InvalidFingerprint, key.TenantID)
+			case InvalidFingerTenantStr:
+				returnedKey, Err = s.GetPublicKey(ctx, InvalidFingerprint, InvalidTenantID)
+			default:
+				returnedKey, Err = s.GetPublicKey(ctx, key.Fingerprint, key.TenantID)
+			}
+			assert.Equal(t, tc.expected, Expected{returnedKey, Err})
+		})
+	}
 
 	mock.AssertExpectations(t)
 }
 
 func TestUpdatePublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
+
+	clockMock.On("Now").Return(now).Twice()
+
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
@@ -69,29 +204,184 @@ func TestUpdatePublicKeys(t *testing.T) {
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste2"},
 	}
 
-	mock.On("PublicKeyUpdate", ctx, key.Fingerprint, key.TenantID, keyUpdate).Return(newKey, nil).Once()
+	Err := errors.New("error")
 
-	returnedKey, err := s.UpdatePublicKey(ctx, key.Fingerprint, key.TenantID, keyUpdate)
-	assert.NoError(t, err)
-	assert.Equal(t, newKey, returnedKey)
+	type Expected struct {
+		returnedKey *models.PublicKey
+		err         error
+	}
+
+	cases := []struct {
+		description   string
+		ctx           context.Context
+		key           *models.PublicKey
+		fingerprint   string
+		tenantID      string
+		keyUpdate     *models.PublicKeyUpdate
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: invalidTenantIDStr,
+			ctx:         ctx,
+			key:         nil,
+			fingerprint: key.Fingerprint,
+			tenantID:    InvalidTenantID,
+			keyUpdate:   keyUpdate,
+			requiredMocks: func() {
+				mock.On("PublicKeyUpdate", ctx, key.Fingerprint, InvalidTenantID, keyUpdate).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, Err},
+		},
+		{
+
+			description: InvalidFingerprintStr,
+			ctx:         ctx,
+			key:         nil,
+			fingerprint: InvalidFingerprint,
+			tenantID:    key.TenantID,
+			keyUpdate:   keyUpdate,
+			requiredMocks: func() {
+				mock.On("PublicKeyUpdate", ctx, InvalidFingerprint, key.TenantID, keyUpdate).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, Err},
+		},
+		{
+
+			description: InvalidFingerTenantStr,
+			ctx:         ctx,
+			key:         nil,
+			fingerprint: InvalidFingerprint,
+			tenantID:    InvalidTenantID,
+			keyUpdate:   keyUpdate,
+			requiredMocks: func() {
+				mock.On("PublicKeyUpdate", ctx, InvalidFingerprint, InvalidTenantID, keyUpdate).Return(nil, Err).Once()
+			},
+			expected: Expected{nil, Err},
+		},
+		{
+			description: "Successful update the key",
+			ctx:         ctx,
+			key:         newKey,
+			fingerprint: key.Fingerprint,
+			tenantID:    key.TenantID,
+			keyUpdate:   keyUpdate,
+			requiredMocks: func() {
+				mock.On("PublicKeyUpdate", ctx, key.Fingerprint, key.TenantID, keyUpdate).Return(newKey, nil).Once()
+			},
+			expected: Expected{newKey, nil},
+		},
+	}
+
+	var returnedKey *models.PublicKey
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+			switch tc.description {
+			case invalidTenantIDStr:
+				returnedKey, Err = s.UpdatePublicKey(ctx, key.Fingerprint, InvalidTenantID, keyUpdate)
+			case InvalidFingerprintStr:
+				returnedKey, Err = s.UpdatePublicKey(ctx, InvalidFingerprint, key.TenantID, keyUpdate)
+			case InvalidFingerTenantStr:
+				returnedKey, Err = s.UpdatePublicKey(ctx, InvalidFingerprint, InvalidTenantID, keyUpdate)
+			default:
+				returnedKey, Err = s.UpdatePublicKey(ctx, key.Fingerprint, key.TenantID, keyUpdate)
+			}
+			assert.Equal(t, tc.expected, Expected{returnedKey, Err})
+		})
+	}
 
 	mock.AssertExpectations(t)
 }
 
 func TestDeletePublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
+
+	clockMock.On("Now").Return(now).Twice()
+
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
-	clockMock.On("Now").Return(now).Twice()
+
 	key := &models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
 
-	mock.On("PublicKeyDelete", ctx, key.Fingerprint, key.TenantID).Return(nil).Once()
+	Err := errors.New("error")
 
-	err := s.DeletePublicKey(ctx, key.Fingerprint, key.TenantID)
-	assert.NoError(t, err)
+	type Expected struct {
+		err error
+	}
+
+	cases := []struct {
+		description   string
+		ctx           context.Context
+		fingerprint   string
+		tenantID      string
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: invalidTenantIDStr,
+			ctx:         ctx,
+			fingerprint: key.Fingerprint,
+			tenantID:    InvalidTenantID,
+			requiredMocks: func() {
+				mock.On("PublicKeyDelete", ctx, key.Fingerprint, InvalidTenantID).Return(Err).Once()
+			},
+			expected: Expected{Err},
+		},
+		{
+
+			description: InvalidFingerprintStr,
+			ctx:         ctx,
+			fingerprint: InvalidFingerprint,
+			tenantID:    key.TenantID,
+			requiredMocks: func() {
+				mock.On("PublicKeyDelete", ctx, InvalidFingerprint, key.TenantID).Return(Err).Once()
+			},
+			expected: Expected{Err},
+		},
+		{
+
+			description: InvalidFingerTenantStr,
+			ctx:         ctx,
+			fingerprint: InvalidFingerprint,
+			tenantID:    InvalidTenantID,
+			requiredMocks: func() {
+				mock.On("PublicKeyDelete", ctx, InvalidFingerprint, InvalidTenantID).Return(Err).Once()
+			},
+			expected: Expected{Err},
+		},
+		{
+			description: "Successful delete the key",
+			ctx:         ctx,
+			fingerprint: key.Fingerprint,
+			tenantID:    key.TenantID,
+			requiredMocks: func() {
+				mock.On("PublicKeyDelete", ctx, key.Fingerprint, key.TenantID).Return(nil).Once()
+			},
+			expected: Expected{nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+			switch tc.description {
+			case invalidTenantIDStr:
+				Err = s.DeletePublicKey(ctx, key.Fingerprint, InvalidTenantID)
+			case InvalidFingerprintStr:
+				Err = s.DeletePublicKey(ctx, InvalidFingerprint, key.TenantID)
+			case InvalidFingerTenantStr:
+				Err = s.DeletePublicKey(ctx, InvalidFingerprint, InvalidTenantID)
+			default:
+				Err = s.DeletePublicKey(ctx, key.Fingerprint, key.TenantID)
+			}
+			assert.Equal(t, tc.expected, Expected{Err})
+		})
+	}
 
 	mock.AssertExpectations(t)
 }
