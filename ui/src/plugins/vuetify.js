@@ -5,6 +5,7 @@ import 'font-logos/assets/font-logos.css';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { fas } from '@fortawesome/free-solid-svg-icons';
+import { fab } from '@fortawesome/free-brands-svg-icons';
 import Clipboard from 'v-clipboard';
 import Fragment from 'vue-fragment';
 
@@ -12,7 +13,7 @@ import Fragment from 'vue-fragment';
 // import '../styles/variables.scss'
 
 Vue.component('FontAwesomeIcon', FontAwesomeIcon); // Register component globally
-library.add(fas); // Include needed icons.
+library.add(fas, fab); // Include needed icons.
 
 Vue.use(Vuetify);
 Vue.use(Clipboard);

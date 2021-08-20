@@ -10,6 +10,7 @@
     "lint:no-fix": "vue-cli-service lint --no-fix"
   },
   "dependencies": {
+    "@fortawesome/free-brands-svg-icons": "^5.15.4",
     "axios": "^0.21.4",
     "browserify": "^17.0.0",
     "core-js": "^3.18.1",
