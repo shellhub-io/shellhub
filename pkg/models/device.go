@@ -19,6 +19,7 @@ type Device struct {
 	Status     string          `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused`
 	CreatedAt  time.Time       `json:"created_at" bson:"created_at,omitempty"`
 	RemoteAddr string          `json:"remote_addr" bson:"remote_addr"`
+	Position   *DevicePosition `json:"position" bson:"position"`
 }
 
 type DeviceAuthClaims struct {
@@ -65,4 +66,9 @@ type ConnectedDevice struct {
 	TenantID string    `json:"tenant_id" bson:"tenant_id"`
 	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
 	Status   string    `json:"status" bson:"status"`
+}
+
+type DevicePosition struct {
+	Latitude  float64 `json:"latitude" bson:"latitude"`
+	Longitude float64 `json:"longitude" bson:"longitude"`
 }

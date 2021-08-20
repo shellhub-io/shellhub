@@ -1,8 +1,6 @@
 package geoip
 
-import (
-	"net"
-)
+import "net"
 
 type Locator interface {
 	GetCountry(ip net.IP) (string, error)

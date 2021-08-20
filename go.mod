@@ -13,6 +13,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/mholt/archiver/v3 v3.5.0
 	github.com/oschwald/geoip2-golang v1.5.0
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/pkg/errors v0.9.1
