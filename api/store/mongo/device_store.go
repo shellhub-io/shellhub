@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -214,6 +215,7 @@ func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname stri
 			"name":       hostname,
 			"status":     "pending",
 			"created_at": clock.Now(),
+			"tags":       []string{},
 		},
 		"$set": d,
 	}
@@ -434,4 +436,39 @@ func (s *Store) DeviceChoice(ctx context.Context, tenant string, chosen []string
 	}
 
 	return nil
+}
+
+func (s *Store) DeviceCreateTag(ctx context.Context, uid models.UID, tag string) error {
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$push": bson.M{"tags": tag}})
+
+	return err
+}
+
+func (s *Store) DeviceDeleteTag(ctx context.Context, uid models.UID, tag string) error {
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$pull": bson.M{"tags": tag}})
+
+	return err
+}
+
+func (s *Store) DeviceRenameTag(ctx context.Context, uid models.UID, currentTagName string, newTagName string) error {
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid, "tags": currentTagName}, bson.M{"$set": bson.M{"tags.$": newTagName}})
+
+	return err
+}
+
+func (s *Store) DeviceListTag(ctx context.Context) ([]string, int, error) {
+	tagList, err := s.db.Collection("devices").Distinct(ctx, "tags", bson.M{})
+
+	tags := make([]string, len(tagList))
+	for i, v := range tagList {
+		tags[i] = fmt.Sprint(v)
+	}
+
+	return tags, len(tags), err
+}
+
+func (s *Store) DeviceUpdateTag(ctx context.Context, uid models.UID, tags []string) error {
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"tags": tags}})
+
+	return err
 }

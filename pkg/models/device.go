@@ -20,6 +20,7 @@ type Device struct {
 	CreatedAt  time.Time       `json:"created_at" bson:"created_at,omitempty"`
 	RemoteAddr string          `json:"remote_addr" bson:"remote_addr"`
 	Position   *DevicePosition `json:"position" bson:"position"`
+	Tags       []string        `json:"tags" bson:"tags,omitempty"`
 }
 
 type DeviceAuthClaims struct {

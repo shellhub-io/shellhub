@@ -264,6 +264,20 @@ func (_m *Service) CreateSession(ctx context.Context, session models.Session) (*
 	return r0, r1
 }
 
+// CreateTag provides a mock function with given fields: ctx, uid, name
+func (_m *Service) CreateTag(ctx context.Context, uid models.UID, name string) error {
+	ret := _m.Called(ctx, uid, name)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
+		r0 = rf(ctx, uid, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeactivateSession provides a mock function with given fields: ctx, uid
 func (_m *Service) DeactivateSession(ctx context.Context, uid models.UID) error {
 	ret := _m.Called(ctx, uid)
@@ -313,6 +327,20 @@ func (_m *Service) DeletePublicKey(ctx context.Context, fingerprint string, tena
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
 		r0 = rf(ctx, fingerprint, tenant)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteTag provides a mock function with given fields: ctx, uid, name
+func (_m *Service) DeleteTag(ctx context.Context, uid models.UID, name string) error {
+	ret := _m.Called(ctx, uid, name)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
+		r0 = rf(ctx, uid, name)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -692,6 +720,36 @@ func (_m *Service) ListSessions(ctx context.Context, pagination paginator.Query)
 	return r0, r1, r2
 }
 
+// ListTag provides a mock function with given fields: ctx
+func (_m *Service) ListTag(ctx context.Context) ([]string, int, error) {
+	ret := _m.Called(ctx)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context) []string); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context) int); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context) error); ok {
+		r2 = rf(ctx)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // LookupDevice provides a mock function with given fields: ctx, namespace, name
 func (_m *Service) LookupDevice(ctx context.Context, namespace string, name string) (*models.Device, error) {
 	ret := _m.Called(ctx, namespace, name)
@@ -761,6 +819,34 @@ func (_m *Service) RenameDevice(ctx context.Context, uid models.UID, name string
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, string, string) error); ok {
 		r0 = rf(ctx, uid, name, tenant, ownerID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RenameTag provides a mock function with given fields: ctx, uid, currentName, newName
+func (_m *Service) RenameTag(ctx context.Context, uid models.UID, currentName string, newName string) error {
+	ret := _m.Called(ctx, uid, currentName, newName)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, string) error); ok {
+		r0 = rf(ctx, uid, currentName, newName)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SetDevicePosition provides a mock function with given fields: ctx, uid, ip
+func (_m *Service) SetDevicePosition(ctx context.Context, uid models.UID, ip string) error {
+	ret := _m.Called(ctx, uid, ip)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
+		r0 = rf(ctx, uid, ip)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -870,36 +956,13 @@ func (_m *Service) UpdatePublicKey(ctx context.Context, fingerprint string, tena
 	return r0, r1
 }
 
-// GetDevicePosition provides a mock function with given fields: ctx, uid
-func (_m *Service) GetDevicePosition(ctx context.Context, uid models.UID) (*models.DevicePosition, error) {
-	ret := _m.Called(ctx, uid)
-
-	var r0 *models.DevicePosition
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) *models.DevicePosition); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.DevicePosition)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
-		r1 = rf(ctx, uid)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SetDevicePosition provides a mock function with given fields: ctx, uid, ip
-func (_m *Service) SetDevicePosition(ctx context.Context, uid models.UID, ip string) error {
-	ret := _m.Called(ctx, uid, ip)
+// UpdateTag provides a mock function with given fields: ctx, uid, tags
+func (_m *Service) UpdateTag(ctx context.Context, uid models.UID, tags []string) error {
+	ret := _m.Called(ctx, uid, tags)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, ip)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, []string) error); ok {
+		r0 = rf(ctx, uid, tags)
 	} else {
 		r0 = ret.Error(0)
 	}

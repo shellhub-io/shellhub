@@ -146,6 +146,13 @@ func startServer() error {
 	internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(handler.OfflineDevice))
 	internalAPI.GET(routes.LookupDeviceURL, apicontext.Handler(handler.LookupDevice))
 	publicAPI.PATCH(routes.UpdateStatusURL, apicontext.Handler(handler.UpdatePendingStatus))
+
+	publicAPI.POST(routes.CreateTagURL, apicontext.Handler(handler.CreateTag))
+	publicAPI.DELETE(routes.DeleteTagURL, apicontext.Handler(handler.DeleteTag))
+	publicAPI.PUT(routes.RenameTagURL, apicontext.Handler(handler.RenameTag))
+	publicAPI.GET(routes.ListTagURL, apicontext.Handler(handler.ListTag))
+	publicAPI.PUT(routes.UpdateTagURL, apicontext.Handler(handler.UpdateTag))
+
 	publicAPI.GET(routes.GetSessionsURL,
 		middlewares.Authorize(apicontext.Handler(handler.GetSessionList)))
 	publicAPI.GET(routes.GetSessionURL,

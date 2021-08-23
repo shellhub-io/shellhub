@@ -18,6 +18,11 @@ const (
 	OfflineDeviceURL = "/devices/:uid/offline"
 	LookupDeviceURL  = "/lookup"
 	UpdateStatusURL  = "/devices/:uid/:status"
+	CreateTagURL     = "/devices/:uid/tags"
+	DeleteTagURL     = "/devices/:uid/tags/:name"
+	RenameTagURL     = "/devices/:uid/tags/:name"
+	ListTagURL       = "/devices/tags"
+	UpdateTagURL     = "/devices/:uid/tags"
 )
 
 const TenantIDHeader = "X-Tenant-ID"
@@ -165,6 +170,113 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrMaxDeviceCountReached:
 			return c.NoContent(http.StatusPaymentRequired)
+		}
+
+		return err
+	}
+
+	return c.JSON(http.StatusOK, nil)
+}
+
+func (h *Handler) CreateTag(c apicontext.Context) error {
+	var req struct {
+		Name string `json:"name"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := h.service.CreateTag(c.Ctx(), models.UID(c.Param("uid")), req.Name); err != nil {
+		switch err {
+		case services.ErrUnauthorized:
+			return c.NoContent(http.StatusForbidden)
+		case services.ErrInvalidFormat:
+			return c.NoContent(http.StatusBadRequest)
+		case services.ErrMaxTagReached:
+			return c.NoContent(http.StatusNotAcceptable)
+		case services.ErrDuplicateTagName:
+			return c.NoContent(http.StatusConflict)
+		}
+
+		return err
+	}
+
+	return c.JSON(http.StatusOK, nil)
+}
+
+func (h *Handler) DeleteTag(c apicontext.Context) error {
+	if err := h.service.DeleteTag(c.Ctx(), models.UID(c.Param("uid")), c.Param("name")); err != nil {
+		switch err {
+		case services.ErrUnauthorized:
+			return c.NoContent(http.StatusForbidden)
+		case services.ErrNotFound:
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		return err
+	}
+
+	return c.JSON(http.StatusOK, nil)
+}
+
+func (h *Handler) RenameTag(c apicontext.Context) error {
+	var req struct {
+		NewName string `json:"new_name"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := h.service.RenameTag(c.Ctx(), models.UID(c.Param("uid")), c.Param("name"), req.NewName); err != nil {
+		switch err {
+		case services.ErrUnauthorized:
+			return c.NoContent(http.StatusForbidden)
+		case services.ErrInvalidFormat:
+			return c.NoContent(http.StatusBadRequest)
+		case services.ErrMaxTagReached:
+			return c.NoContent(http.StatusForbidden)
+		case services.ErrNotFound:
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		return err
+	}
+
+	return c.JSON(http.StatusOK, nil)
+}
+
+func (h *Handler) ListTag(c apicontext.Context) error {
+	tags, count, err := h.service.ListTag(c.Ctx())
+	if err != nil {
+		return err
+	}
+
+	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
+
+	return c.JSON(http.StatusOK, tags)
+}
+
+func (h *Handler) UpdateTag(c apicontext.Context) error {
+	var req struct {
+		Tags []string `json:"tags"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := h.service.UpdateTag(c.Ctx(), models.UID(c.Param("uid")), req.Tags); err != nil {
+		switch err {
+		case services.ErrUnauthorized:
+			return c.NoContent(http.StatusForbidden)
+		case services.ErrInvalidFormat:
+			return c.NoContent(http.StatusBadRequest)
+		case services.ErrMaxTagReached:
+			return c.NoContent(http.StatusForbidden)
+		case services.ErrNotFound:
+			return c.NoContent(http.StatusNotFound)
 		}
 
 		return err
