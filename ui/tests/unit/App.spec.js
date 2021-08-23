@@ -16,6 +16,7 @@ describe('App', () => {
   const tenant = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
   const isLoggedIn = true;
   const isMobile = false;
+  const hasSpinner = false;
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -23,11 +24,13 @@ describe('App', () => {
       tenant,
       isLoggedIn,
       isMobile,
+      hasSpinner,
     },
     getters: {
       'auth/tenant': (state) => state.tenant,
       'auth/isLoggedIn': (state) => state.isLoggedIn,
       'mobile/isMobile': (state) => state.isMobile,
+      'spinner/getStatus': (state) => state.hasSpinner,
     },
     actions: {
       'auth/logout': () => {},

@@ -47,5 +47,8 @@ exports[`App Renders the component 1`] = `
     </v-container-stub>
     <snackbar-stub></snackbar-stub>
   </v-main-stub>
+  <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
+    <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
+  </v-overlay-stub>
 </v-app-stub>
 `;
