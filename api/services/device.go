@@ -28,6 +28,11 @@ type DeviceService interface {
 	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, ownerID string) error
 	HandleReports(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error
 	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
+	CreateTag(ctx context.Context, uid models.UID, name string) error
+	DeleteTag(ctx context.Context, uid models.UID, name string) error
+	RenameTag(ctx context.Context, uid models.UID, currentName string, newName string) error
+	ListTag(ctx context.Context) ([]string, int, error)
+	UpdateTag(ctx context.Context, uid models.UID, tags []string) error
 }
 
 func (s *service) HandleReports(ns *models.Namespace, uid models.UID, inc bool, device *models.Device) error {
@@ -239,4 +244,104 @@ func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip stri
 	}).Debug("Success to set device's position")
 
 	return nil
+}
+
+func (s *service) CreateTag(ctx context.Context, uid models.UID, name string) error {
+	if _, err := validator.ValidateVar(name, "required,min=3,max=255,alphanum,ascii"); err != nil {
+		return ErrInvalidFormat
+	}
+
+	device, err := s.store.DeviceGet(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	if device == nil {
+		return ErrDeviceNotFound
+	}
+
+	if len(device.Tags) == 5 {
+		return ErrMaxTagReached
+	}
+
+	if contains(device.Tags, name) {
+		return ErrDuplicateTagName
+	}
+
+	return s.store.DeviceCreateTag(ctx, uid, name)
+}
+
+func (s *service) DeleteTag(ctx context.Context, uid models.UID, name string) error {
+	device, err := s.store.DeviceGet(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	if device == nil {
+		return ErrDeviceNotFound
+	}
+
+	return s.store.DeviceDeleteTag(ctx, uid, name)
+}
+
+func (s *service) RenameTag(ctx context.Context, uid models.UID, currentName string, newName string) error {
+	if _, err := validator.ValidateVar(newName, "required,min=3,max=255,alphanum,ascii"); err != nil {
+		return ErrInvalidFormat
+	}
+
+	device, err := s.store.DeviceGet(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	if device == nil {
+		return ErrDeviceNotFound
+	}
+
+	if contains(device.Tags, newName) {
+		return ErrDuplicateTagName
+	}
+
+	if !contains(device.Tags, currentName) {
+		return ErrNotFound
+	}
+
+	return s.store.DeviceRenameTag(ctx, uid, currentName, newName)
+}
+
+func (s *service) ListTag(ctx context.Context) ([]string, int, error) {
+	return s.store.DeviceListTag(ctx)
+}
+
+func (s *service) UpdateTag(ctx context.Context, uid models.UID, tags []string) error {
+	for _, tag := range tags {
+		if _, err := validator.ValidateVar(tag, "required,min=3,max=255,alphanum,ascii"); err != nil {
+			return ErrInvalidFormat
+		}
+	}
+
+	device, err := s.store.DeviceGet(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	if device == nil {
+		return ErrDeviceNotFound
+	}
+
+	if len(device.Tags) == 5 {
+		return ErrMaxTagReached
+	}
+
+	return s.store.DeviceUpdateTag(ctx, uid, tags)
+}
+
+func contains(s []string, name string) bool {
+	for _, tag := range s {
+		if tag == name {
+			return true
+		}
+	}
+
+	return false
 }
