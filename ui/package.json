@@ -16,7 +16,7 @@
     "eslint-plugin-import": "^2.24.0",
     "flush-promises": "^1.0.2",
     "gitter-sidecar": "^1.5.0",
-    "is-valid-hostname": "1.0.1",
+    "is-valid-hostname": "1.0.2",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
     "node-rsa": "^1.1.1",
