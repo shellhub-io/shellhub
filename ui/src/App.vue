@@ -52,6 +52,13 @@
 
       <snackbar />
     </v-main>
+
+    <v-overlay :value="hasSpinner">
+      <v-progress-circular
+        indeterminate
+        size="64"
+      />
+    </v-overlay>
   </v-app>
 </template>
 
@@ -122,6 +129,10 @@ export default {
 
     hasNamespaces() {
       return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
+    },
+
+    hasSpinner() {
+      return this.$store.getters['spinner/getStatus'];
     },
 
     showNavigationDrawer: {
