@@ -102,7 +102,7 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		Name:     data.Namespace,
 		Owner:    usr.ID,
 		TenantID: tenantID,
-		Members:  []interface{}{&models.Member{ID: user.ID, AccessType: "owner"}},
+		Members:  []interface{}{&models.Member{ID: usr.ID, AccessType: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -125,8 +125,7 @@ func (s *service) NamespaceAddMember(data Arguments) (*models.Namespace, error) 
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
-member:
-	&models.Member{ID: usr.ID, AccessType: data.AccessType}
+	member := &models.Member{ID: usr.ID, AccessType: data.AccessType}
 	ns, err = s.store.NamespaceAddMember(context.TODO(), ns.TenantID, member)
 	if err != nil {
 		return nil, err
