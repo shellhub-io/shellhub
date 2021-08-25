@@ -201,17 +201,22 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		go func() {
 			buf := make([]byte, 1024)
 			n, err := stdout.Read(buf)
-			waitingString := ""
 			if err == nil {
-				waitingString = string(buf[:n])
 				c.RecordSession(&models.SessionRecorded{
 					UID:     s.UID,
-					Message: waitingString,
+					Message: string(buf[:n]),
 					Width:   pty.Window.Height,
 					Height:  pty.Window.Width,
 				}, opts.RecordURL)
-				waitingString = ""
 			}
+
+			lineBuf := make([]byte, 2048)
+			lineIndex := 0
+
+			// \n []byte type
+			NLbytes := []byte("\n")
+			NLbytesLen := len(NLbytes)
+
 			for {
 				bufReader := bytes.NewReader(buf[:n])
 				if _, err = io.Copy(s.session, bufReader); err != nil {
@@ -224,14 +229,32 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 				if err != nil {
 					break
 				}
-				waitingString += string(buf[:n])
-				c.RecordSession(&models.SessionRecorded{
-					UID:     s.UID,
-					Message: waitingString,
-					Width:   pty.Window.Height,
-					Height:  pty.Window.Width,
-				}, opts.RecordURL)
-				waitingString = ""
+
+				// copy bytes from buf to lineBuf，wait buf contains '\n'，then record
+				copy(lineBuf[lineIndex:lineIndex+n], buf[:n])
+				lineIndex += n
+
+				if bytes.Contains(buf[:n], NLbytes) {
+					begin := 0
+					for {
+						index := bytes.Index(lineBuf[begin:lineIndex], NLbytes)
+						if index < 0 {
+							if begin != 0 {
+								copy(lineBuf, lineBuf[begin:lineIndex])
+								lineIndex -= begin
+							}
+
+							break
+						}
+						c.RecordSession(&models.SessionRecorded{
+							UID:     s.UID,
+							Message: string(lineBuf[begin : begin+index]),
+							Width:   pty.Window.Height,
+							Height:  pty.Window.Width,
+						}, opts.RecordURL)
+						begin += (index + NLbytesLen)
+					}
+				}
 			}
 		}()
 
