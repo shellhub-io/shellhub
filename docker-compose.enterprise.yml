@@ -5,14 +5,14 @@ services:
     environment:
       - RECORD_URL=cloud-api:8080
   cloud-api:
-    image: docker-registry.ossystems.com.br/shellhubio/cloud-api:${SHELLHUB_VERSION}
+    image: registry.infra.ossystems.io/shellhub/cloud-api:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
       - API_STORE_CACHE=${SHELLHUB_STORE_CACHE}
     networks:
       - shellhub
   admin-api:
-    image: docker-registry.ossystems.com.br/shellhubio/admin-api:${SHELLHUB_VERSION}
+    image: registry.infra.ossystems.io/shellhub/admin-api:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
       - ADMIN_API_USERNAME=${SHELLHUB_ENTERPRISE_ADMIN_USERNAME}
@@ -24,7 +24,7 @@ services:
     networks:
       - shellhub
   dashboard:
-    image: docker-registry.ossystems.com.br/shellhubio/dashboard:${SHELLHUB_VERSION}
+    image: registry.infra.ossystems.io/shellhub/dashboard:${SHELLHUB_VERSION}
     restart: unless-stopped
     networks:
       - shellhub
