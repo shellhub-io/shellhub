@@ -6,7 +6,7 @@ require (
 	github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962
 	github.com/Masterminds/semver v1.5.0
 	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/containerd/containerd v1.4.3 // indirect
+	github.com/containerd/containerd v1.4.9 // indirect
 	github.com/creack/pty v1.1.15
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v20.10.8+incompatible
