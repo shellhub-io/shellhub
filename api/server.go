@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
@@ -39,6 +40,10 @@ type config struct {
 }
 
 func startServer() error {
+	if os.Getenv("SHELLHUB_ENV") == "development" {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
 	logrus.Info("Starting API server")
 
 	e := echo.New()
