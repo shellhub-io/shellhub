@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
+	"github.com/sirupsen/logrus"
 )
 
 type DeviceService interface {
@@ -202,14 +203,13 @@ func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip stri
 	ipParsed := net.ParseIP(ip)
 	position, err := s.locator.GetPosition(ipParsed)
 	if err != nil {
-		return err
+		logrus.WithError(err).Error("Failed to get device position")
 	}
 
 	devicePosition := models.DevicePosition{
 		Longitude: position.Longitude,
 		Latitude:  position.Latitude,
 	}
-
 	err = s.store.DeviceSetPosition(ctx, uid, devicePosition)
 	if err != nil {
 		return err

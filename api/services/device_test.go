@@ -800,16 +800,6 @@ func TestSetDevicePosition(t *testing.T) {
 		expected      error
 	}{
 		{
-			name: "SetDevicePosition fails when GetPosition return error",
-			requiredMocks: func() {
-				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
-					Return(geoip.Position{}, Err).Once()
-			},
-			uid:      models.UID(device.UID),
-			ip:       "127.0.0.1",
-			expected: Err,
-		},
-		{
 			name: "SetDevicePosition fails when DeviceSetPosition return error",
 			requiredMocks: func() {
 				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
