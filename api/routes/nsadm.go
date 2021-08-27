@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -32,17 +33,20 @@ func (h *Handler) GetNamespaceList(c apicontext.Context) error {
 		return err
 	}
 
+	fmt.Println("ERRO 1")
+
 	for count, namespace := range namespaces {
 		members, err := h.service.ListMembers(c.Ctx(), namespace.TenantID)
 		if err != nil {
 			return err
 		}
-
+		fmt.Println("ERRO 2")
 		namespaces[count].Members = make([]interface{}, 0)
-
+		fmt.Println("ERRO 3")
 		for _, member := range members {
 			namespaces[count].Members = append(namespaces[count].Members, member)
 		}
+		fmt.Println("ERRO 4")
 	}
 
 	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))

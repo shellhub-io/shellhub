@@ -61,18 +61,16 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 
 	// Only match for the respective tenant if requested
 	if id := apicontext.IDFromContext(ctx); id != nil {
-		user, _, err := s.UserGetByID(ctx, id.ID, false)
+		_, _, err := s.UserGetByID(ctx, id.ID, false)
 		if err != nil {
 			return nil, 0, err
 		}
 
-		query = append(query, bson.M{
-			"$match": bson.M{
-				"members": bson.M{
-					"id": user.ID,
-				},
-			},
-		})
+		//	query = append(query, bson.M{
+		//	"$match": bson.M{
+		//		"$members.id": user.ID,
+		//	},
+		//	})
 	}
 
 	queryCount := append(query, bson.M{"$count": "count"})

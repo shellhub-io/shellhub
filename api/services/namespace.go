@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
@@ -56,7 +57,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	ns := &models.Namespace{
 		Name:     strings.ToLower(namespace.Name),
 		Owner:    user.ID,
-		Members:  []interface{}{&models.Member{ID: user.ID, AccessType: "owner"}},
+		Members:  []interface{}{models.Member{ID: user.ID, AccessType: "owner"}},
 		Settings: &models.NamespaceSettings{SessionRecord: true},
 		TenantID: namespace.TenantID,
 	}
@@ -117,8 +118,17 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 	}
 
 	members := []models.Member{}
+	fmt.Println("list members erro 1")
+	//membersTest := ns.Members.(models.Member)
+	//	fmt.Println(membersTest)
 	for _, memberInterface := range ns.Members {
-		user, _, err := s.store.UserGetByID(ctx, memberInterface.(models.Member).ID, false)
+		fmt.Println("list members erro 2")
+		member := memberInterface.(models.Member)
+		fmt.Println("list members erro 2.5")
+
+		user, _, err := s.store.UserGetByID(ctx, member.ID, false)
+		fmt.Println("list members erro 3")
+
 		if err == store.ErrNoDocuments {
 			return nil, ErrUserNotFound
 		}
@@ -126,13 +136,21 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println("list members erro 4")
 
-		member := memberInterface.(models.Member)
+		//	member := memberInterface.(models.Member)
+		fmt.Println("list members erro 5")
+
 		member.Name = user.Username
+		fmt.Println("list members erro 6")
+
 		members = append(members, member)
+		fmt.Println("list members erro 7")
+
 	}
 
-	return members, nil
+	//	return members, nil
+	return nil, nil
 }
 
 func (s *service) EditNamespace(ctx context.Context, tenantID, name, owner string) (*models.Namespace, error) {
