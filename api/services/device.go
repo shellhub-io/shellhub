@@ -203,17 +203,35 @@ func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip stri
 	ipParsed := net.ParseIP(ip)
 	position, err := s.locator.GetPosition(ipParsed)
 	if err != nil {
-		logrus.WithError(err).Error("Failed to get device position")
+		logrus.
+			WithError(err).
+			WithFields(logrus.Fields{
+				"uid": uid,
+				"ip":  ip,
+			}).Error("Failed to get device's position")
 	}
 
 	devicePosition := models.DevicePosition{
 		Longitude: position.Longitude,
 		Latitude:  position.Latitude,
 	}
+
 	err = s.store.DeviceSetPosition(ctx, uid, devicePosition)
 	if err != nil {
+		logrus.
+			WithError(err).
+			WithFields(logrus.Fields{
+				"uid": uid,
+				"ip":  ip,
+			}).Error("Failed to set device's position to database")
+
 		return err
 	}
+	logrus.WithFields(logrus.Fields{
+		"uid":      uid,
+		"ip":       ip,
+		"position": position,
+	}).Debug("Success to set device's position")
 
 	return nil
 }
