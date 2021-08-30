@@ -79,6 +79,8 @@
     <NamespaceInstructions
       :show.sync="showInstructions"
     />
+
+    <BillingWarning />
   </fragment>
 </template>
 
@@ -87,6 +89,7 @@
 import DeviceAdd from '@/components/device/DeviceAdd';
 import Welcome from '@/components/welcome/Welcome';
 import NamespaceInstructions from '@/components/app_bar/namespace/NamespaceInstructions';
+import BillingWarning from '@/components/billing/BillingWarning';
 
 export default {
   name: 'Dashboard',
@@ -95,6 +98,7 @@ export default {
     DeviceAdd,
     Welcome,
     NamespaceInstructions,
+    BillingWarning,
   },
 
   data() {

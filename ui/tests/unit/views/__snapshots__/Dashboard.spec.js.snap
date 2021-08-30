@@ -92,6 +92,7 @@ exports[`Dashboard Dashboard Renders the component 1`] = `
   </v-row-stub>
   <welcome-stub></welcome-stub>
   <namespaceinstructions-stub></namespaceinstructions-stub>
+  <billingwarning-stub></billingwarning-stub>
 </fragment-stub>
 `;
 
@@ -187,5 +188,6 @@ exports[`Dashboard Dashboard Renders the component 2`] = `
   </v-row-stub>
   <welcome-stub></welcome-stub>
   <namespaceinstructions-stub></namespaceinstructions-stub>
+  <billingwarning-stub></billingwarning-stub>
 </fragment-stub>
 `;
