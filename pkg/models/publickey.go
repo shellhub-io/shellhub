@@ -10,6 +10,7 @@ import (
 type PublicKeyFields struct {
 	Name     string `json:"name"`
 	Hostname string `json:"hostname" bson:"hostname,omitempty" validate:"regexp"`
+	Username string `json:"username" bson:"username,omitempty" validate:"regexp"`
 }
 
 func (p *PublicKeyFields) Validate() error {
