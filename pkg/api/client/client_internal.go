@@ -25,7 +25,7 @@ type internalAPI interface {
 	LookupDevice()
 	GetPublicKey(fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePrivateKey() (*models.PrivateKey, error)
-	EvaluateKey(fingerprint string, dev *models.Device) (bool, error)
+	EvaluateKey(fingerprint string, dev *models.Device, username string) (bool, error)
 	DevicesOffline(id string) error
 	FirewallEvaluate(lookup map[string]string) []error
 	PatchSessions(uid string) []error
@@ -52,10 +52,10 @@ func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, er
 	return pubKey, nil
 }
 
-func (c *client) EvaluateKey(fingerprint string, dev *models.Device) (bool, error) {
+func (c *client) EvaluateKey(fingerprint string, dev *models.Device, username string) (bool, error) {
 	var evaluate *bool
 
-	resp, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/sshkeys/public-keys/evaluate/%s", fingerprint))).Send(dev).EndStruct(&evaluate)
+	resp, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/sshkeys/public-keys/evaluate/%s/%s", fingerprint, username))).Send(dev).EndStruct(&evaluate)
 	if len(errs) > 0 {
 		var err error
 		for _, e := range errs {
