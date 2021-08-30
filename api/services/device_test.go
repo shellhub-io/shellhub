@@ -18,6 +18,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	req "github.com/shellhub-io/shellhub/pkg/requests"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -225,13 +226,12 @@ func TestDeleteDevice(t *testing.T) {
 			tenant: namespace.TenantID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(namespace, nil).Once()
+					Return(namespace, nil).Twice()
 				mock.On("UserGetByID", ctx, user.ID, false).
 					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
-					Return(nil, nil).Once()
-				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(namespace, nil).Once()
+					Return(device, nil).Once()
+				clockMock.On("Now").Return(now).Twice()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(Err).Once()
 			},
@@ -248,7 +248,8 @@ func TestDeleteDevice(t *testing.T) {
 				mock.On("UserGetByID", ctx, user.ID, false).
 					Return(user, 0, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
-					Return(nil, nil).Once()
+					Return(device, nil).Once()
+				clockMock.On("Now").Return(now).Twice()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(&models.Namespace{
 						Billing: &models.Billing{
@@ -281,7 +282,6 @@ func TestDeleteDevice(t *testing.T) {
 					Return(device, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespaceBilling, nil).Once()
-				clockMock.On("Now").Return(now).Twice()
 				clientMock.On("ReportUsage", &models.UsageRecord{
 					UUID:      "uid",
 					Namespace: namespaceBilling,
@@ -325,7 +325,7 @@ func TestDeleteDevice(t *testing.T) {
 					"billing-api").Return(500, nil).Once()
 			},
 			id:       user.ID,
-			expected: ErrReportUsage,
+			expected: req.ErrReportUsage,
 		},
 	}
 
@@ -676,6 +676,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 					Return(namespaceExceedLimit, nil).Twice()
 				mock.On("DeviceGetByUID", ctx, models.UID(deviceExceed.UID), deviceExceed.TenantID).
 					Return(deviceExceed, nil).Once()
+				clockMock.On("Now").Return(now).Twice()
 				mock.On("DeviceGetByMac", ctx, "mac", deviceExceed.TenantID, "accepted").
 					Return(nil, nil).Once()
 			},
@@ -763,7 +764,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				},
 					"billing-api").Return(500, nil).Once()
 			},
-			expected: ErrReportUsage,
+			expected: req.ErrReportUsage,
 		},
 	}
 

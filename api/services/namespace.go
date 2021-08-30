@@ -8,10 +8,11 @@ import (
 
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
-	req "github.com/shellhub-io/shellhub/pkg/api/client"
+	cl "github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	req "github.com/shellhub-io/shellhub/pkg/requests"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
@@ -27,31 +28,6 @@ type NamespaceService interface {
 	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
 	EditSessionRecordStatus(ctx context.Context, status bool, tenant, ownerID string) error
 	GetSessionRecord(ctx context.Context, tenant string) (bool, error)
-	HandleCustomerDeletion(ns *models.Namespace) error
-}
-
-func (s *service) HandleCustomerDeletion(ns *models.Namespace) error {
-	if ns.Billing == nil || !ns.Billing.Active || ns.MaxDevices != -1 {
-		return nil
-	}
-
-	status, err := s.client.(req.Client).DeleteCustomer(
-		"billing-api",
-	)
-	if err != nil {
-		return err
-	}
-
-	switch status {
-	case 402:
-		return nil
-	case 200:
-		return nil
-	case 400:
-		return nil
-	}
-
-	return ErrDeletionReport
 }
 
 func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
@@ -134,7 +110,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerID string)
 		return ErrNamespaceNotFound
 	}
 
-	if err = s.HandleCustomerDeletion(ns); err != nil {
+	if err = req.HandleCustomerDeletion(ns, s.client.(cl.Client)); err != nil {
 		return err
 	}
 

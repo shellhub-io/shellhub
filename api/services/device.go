@@ -10,10 +10,11 @@ import (
 
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
-	req "github.com/shellhub-io/shellhub/pkg/api/client"
+	cl "github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	req "github.com/shellhub-io/shellhub/pkg/requests"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/sirupsen/logrus"
 )
@@ -26,41 +27,7 @@ type DeviceService interface {
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
 	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, ownerID string) error
-	HandleReports(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error
 	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
-}
-
-func (s *service) HandleReports(ns *models.Namespace, uid models.UID, inc bool, device *models.Device) error {
-	if ns.Billing == nil || !ns.Billing.Active || ns.MaxDevices != -1 {
-		return nil
-	}
-
-	record := &models.UsageRecord{
-		UUID:      string(uid),
-		Inc:       inc,
-		Timestamp: clock.Now().Unix(),
-		Namespace: ns,
-		Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
-	}
-
-	status, err := s.client.(req.Client).ReportUsage(
-		record,
-		"billing-api",
-	)
-	if err != nil {
-		return err
-	}
-
-	switch status {
-	case 402:
-		return nil
-	case 200:
-		return nil
-	case 400:
-		return nil
-	}
-
-	return ErrReportUsage
 }
 
 func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filterB64 string, status string, sort string, order string) ([]models.Device, int, error) {
@@ -96,8 +63,14 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, owne
 		return err
 	}
 
-	if err = s.HandleReports(ns, uid, false, device); err != nil {
-		return err
+	if err := req.HandleReportUsage(&models.UsageRecord{
+		UUID:      string(uid),
+		Inc:       false,
+		Timestamp: clock.Now().Unix(),
+		Namespace: ns,
+		Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
+	}, s.client.(cl.Client)); err != nil {
+		return req.ErrReportUsage
 	}
 
 	return s.store.DeviceDelete(ctx, uid)
@@ -186,8 +159,14 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 				return err
 			}
 
-			if err := s.HandleReports(ns, uid, true, device); err != nil {
-				return err
+			if err := req.HandleReportUsage(&models.UsageRecord{
+				UUID:      string(uid),
+				Inc:       true,
+				Timestamp: clock.Now().Unix(),
+				Namespace: ns,
+				Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
+			}, s.client.(cl.Client)); err != nil {
+				return req.ErrReportUsage
 			}
 
 			if ns.MaxDevices > 0 && ns.MaxDevices <= ns.DevicesCount {
