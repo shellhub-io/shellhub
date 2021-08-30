@@ -60,6 +60,27 @@ func (_m *Client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) 
 	return r0, r1
 }
 
+// DeleteCustomer provides a mock function with given fields: billingURL
+func (_m *Client) DeleteCustomer(billingURL string) (int, error) {
+	ret := _m.Called(billingURL)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string) int); ok {
+		r0 = rf(billingURL)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(billingURL)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Endpoints provides a mock function with given fields:
 func (_m *Client) Endpoints() (*models.Endpoints, error) {
 	ret := _m.Called()

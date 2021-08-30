@@ -514,6 +514,20 @@ func (_m *Service) GetStats(ctx context.Context) (*models.Stats, error) {
 	return r0, r1
 }
 
+// HandleCustomerDeletion provides a mock function with given fields: ns
+func (_m *Service) HandleCustomerDeletion(ns *models.Namespace) error {
+	ret := _m.Called(ns)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*models.Namespace) error); ok {
+		r0 = rf(ns)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // HandleReports provides a mock function with given fields: ns, ui, inc, device
 func (_m *Service) HandleReports(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error {
 	ret := _m.Called(ns, ui, inc, device)
@@ -747,6 +761,20 @@ func (_m *Service) RenameDevice(ctx context.Context, uid models.UID, name string
 	return r0
 }
 
+// SetDevicePosition provides a mock function with given fields: ctx, uid, ip
+func (_m *Service) SetDevicePosition(ctx context.Context, uid models.UID, ip string) error {
+	ret := _m.Called(ctx, uid, ip)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
+		r0 = rf(ctx, uid, ip)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SetSessionAuthenticated provides a mock function with given fields: ctx, uid, authenticated
 func (_m *Service) SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
 	ret := _m.Called(ctx, uid, authenticated)
@@ -847,41 +875,4 @@ func (_m *Service) UpdatePublicKey(ctx context.Context, fingerprint string, tena
 	}
 
 	return r0, r1
-}
-
-// GetDevicePosition provides a mock function with given fields: ctx, uid
-func (_m *Service) GetDevicePosition(ctx context.Context, uid models.UID) (*models.DevicePosition, error) {
-	ret := _m.Called(ctx, uid)
-
-	var r0 *models.DevicePosition
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) *models.DevicePosition); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.DevicePosition)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
-		r1 = rf(ctx, uid)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SetDevicePosition provides a mock function with given fields: ctx, uid, ip
-func (_m *Service) SetDevicePosition(ctx context.Context, uid models.UID, ip string) error {
-	ret := _m.Called(ctx, uid, ip)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, ip)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }

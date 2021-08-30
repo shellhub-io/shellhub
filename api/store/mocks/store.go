@@ -363,6 +363,20 @@ func (_m *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online boo
 	return r0
 }
 
+// DeviceSetPosition provides a mock function with given fields: ctx, uid, position
+func (_m *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
+	ret := _m.Called(ctx, uid, position)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DevicePosition) error); ok {
+		r0 = rf(ctx, uid, position)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeviceUpdateStatus provides a mock function with given fields: ctx, uid, status
 func (_m *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status string) error {
 	ret := _m.Called(ctx, uid, status)
@@ -1196,6 +1210,29 @@ func (_m *Store) UserDeleteTokens(ctx context.Context, ID string) error {
 	return r0
 }
 
+// UserDetachInfo provides a mock function with given fields: ctx, ID
+func (_m *Store) UserDetachInfo(ctx context.Context, ID string) (map[string][]*models.Namespace, error) {
+	ret := _m.Called(ctx, ID)
+
+	var r0 map[string][]*models.Namespace
+	if rf, ok := ret.Get(0).(func(context.Context, string) map[string][]*models.Namespace); ok {
+		r0 = rf(ctx, ID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]*models.Namespace)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, ID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UserGetByEmail provides a mock function with given fields: ctx, email
 func (_m *Store) UserGetByEmail(ctx context.Context, email string) (*models.User, error) {
 	ret := _m.Called(ctx, email)
@@ -1402,41 +1439,4 @@ func (_m *Store) UserUpdatePassword(ctx context.Context, newPassword string, ID 
 	}
 
 	return r0
-}
-
-// DeviceSetPosition provides a mock function with given fields: ctx, uid, position
-func (_m *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
-	ret := _m.Called(ctx, uid, position)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DevicePosition) error); ok {
-		r0 = rf(ctx, uid, position)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeviceGetPosition provides a mock function with given fields: ctx, uid
-func (_m *Store) DeviceGetPosition(ctx context.Context, uid models.UID) (*models.DevicePosition, error) {
-	ret := _m.Called(ctx, uid)
-
-	var r0 *models.DevicePosition
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) *models.DevicePosition); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.DevicePosition)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
-		r1 = rf(ctx, uid)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
