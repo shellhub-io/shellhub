@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func TestDeviceCreate(t *testing.T) {
@@ -2346,4 +2347,103 @@ func TestBillingRemoveInstance(t *testing.T) {
 	ns, _ := mongostore.NamespaceGet(ctx, namespace.TenantID)
 	assert.Empty(t, ns.Billing)
 	assert.Nil(t, ns.Billing)
+}
+
+func TestUserDelete(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	user := models.User{ID: "60af83d418d2dc3007cd445c", Name: "name", Username: "username", Password: "password", Email: "user@email.com"}
+
+	objID, err := primitive.ObjectIDFromHex(user.ID)
+
+	assert.NoError(t, err)
+
+	_, _ = db.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{
+		"_id":      objID,
+		"name":     user.Name,
+		"username": user.Username,
+		"password": user.Password,
+		"email":    user.Email,
+	})
+
+	err = mongostore.UserDelete(ctx, user.ID)
+	assert.NoError(t, err)
+	_, err = mongostore.UserGetByUsername(ctx, "username")
+	assert.Error(t, err, mongo.ErrNoDocuments)
+}
+
+func TestUserDetachInfo(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	user := models.User{ID: "60af83d418d2dc3007cd445c", Name: "name", Username: "username", Password: "password", Email: "user@email.com"}
+
+	objID, err := primitive.ObjectIDFromHex(user.ID)
+
+	assert.NoError(t, err)
+
+	_, _ = db.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{
+		"_id":      objID,
+		"name":     user.Name,
+		"username": user.Username,
+		"password": user.Password,
+		"email":    user.Email,
+	})
+
+	namespacesOwner := []*models.Namespace{
+		{
+			Owner:   user.ID,
+			Name:    "ns2",
+			Members: []interface{}{user.ID},
+		},
+		{
+			Owner:   user.ID,
+			Name:    "ns4",
+			Members: []interface{}{user.ID},
+		},
+	}
+
+	namespacesMember := []*models.Namespace{
+		{
+			Owner:   "id2",
+			Name:    "ns1",
+			Members: []interface{}{"id2", user.ID},
+		},
+		{
+			Owner:   "id2",
+			Name:    "ns3",
+			Members: []interface{}{"id2", user.ID},
+		},
+		{
+			Owner:   "id2",
+			Name:    "ns5",
+			Members: []interface{}{"id2", user.ID},
+		},
+	}
+
+	namespaces := append(namespacesOwner, namespacesMember...)
+	nss := make([]interface{}, len(namespaces))
+
+	for i, v := range namespaces {
+		nss[i] = v
+	}
+
+	_, _ = db.Client().Database("test").Collection("namespaces").InsertMany(ctx, nss)
+
+	u, err := mongostore.UserGetByUsername(ctx, "username")
+	assert.NoError(t, err)
+	assert.Equal(t, user.Username, u.Username)
+
+	namespacesMap, err := mongostore.UserDetachInfo(ctx, user.ID)
+
+	assert.NoError(t, err)
+	assert.Equal(t, namespacesMap["member"], namespacesMember)
+	assert.Equal(t, namespacesMap["owner"], namespacesOwner)
 }

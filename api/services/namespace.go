@@ -8,6 +8,7 @@ import (
 
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
+	req "github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -50,7 +51,7 @@ func (s *service) HandleCustomerDeletion(ns *models.Namespace) error {
 		return nil
 	}
 
-	return ErrReportUsage
+	return ErrDeletionReport
 }
 
 func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
@@ -125,6 +126,15 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 
 func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerID string) error {
 	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
+		return err
+	}
+
+	ns, err := s.store.NamespaceGet(ctx, tenantID)
+	if err == store.ErrNoDocuments {
+		return ErrNamespaceNotFound
+	}
+
+	if err = s.HandleCustomerDeletion(ns); err != nil {
 		return err
 	}
 

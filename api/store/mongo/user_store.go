@@ -297,30 +297,37 @@ func (s *Store) UserDelete(ctx context.Context, id string) error {
 		return fromMongoError(err)
 	}
 
+	return nil
+}
+
+func (s *Store) UserDetachInfo(ctx context.Context, id string) (map[string][]*models.Namespace, error) {
 	findOptions := options.Find()
 
 	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": id}, findOptions)
 	if err != nil {
-		return fromMongoError(err)
+		return nil, fromMongoError(err)
 	}
 	defer cursor.Close(ctx)
+
+	namespaces := make(map[string][]*models.Namespace, 2)
+	nssOwner := make([]*models.Namespace, 0)
+	nssMember := make([]*models.Namespace, 0)
 
 	for cursor.Next(ctx) {
 		namespace := new(models.Namespace)
 		if err := cursor.Decode(&namespace); err != nil {
-			return fromMongoError(err)
+			return nil, fromMongoError(err)
 		}
 
 		if namespace.Owner != id {
-			if _, err := s.NamespaceRemoveMember(ctx, namespace.TenantID, id); err != nil {
-				return fromMongoError(err)
-			}
+			nssMember = append(nssMember, namespace)
 		} else {
-			if err := s.NamespaceDelete(ctx, namespace.TenantID); err != nil {
-				return fromMongoError(err)
-			}
+			nssOwner = append(nssOwner, namespace)
 		}
 	}
 
-	return fromMongoError(err)
+	namespaces["member"] = nssMember
+	namespaces["owner"] = nssOwner
+
+	return namespaces, nil
 }

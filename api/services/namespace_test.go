@@ -744,18 +744,54 @@ func TestDeleteNamespace(t *testing.T) {
 			tenantID: namespace.TenantID,
 			ownerID:  user1.ID,
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Twice()
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(Err).Once()
 			},
 			expected: Err,
 		},
 		{
+			name:     "DeleteNamespace handles customer deletion 1",
+			tenantID: namespace.TenantID,
+			ownerID:  user1.ID,
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(&models.Namespace{
+					Owner: "ID1",
+					Billing: &models.Billing{
+						Active: true,
+					},
+					MaxDevices: -1,
+				}, nil).Twice()
+				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
+				clientMock.On("DeleteCustomer", "billing-api").Return(200, nil).Once()
+				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
+			name:     "DeleteNamespace handles customer deletion 2",
+			tenantID: namespace.TenantID,
+			ownerID:  user1.ID,
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(&models.Namespace{
+					Owner: "ID1",
+					Billing: &models.Billing{
+						Active: true,
+					},
+					MaxDevices: -1,
+				}, nil).Twice()
+				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
+				clientMock.On("DeleteCustomer", "billing-api").Return(402, nil).Once()
+				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
 			name:     "DeleteNamespace succeeds",
 			tenantID: namespace.TenantID,
 			ownerID:  user1.ID,
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Twice()
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
 			},
