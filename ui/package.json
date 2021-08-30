@@ -13,7 +13,7 @@
     "axios": "^0.21.1",
     "browserify": "^17.0.0",
     "core-js": "^3.16.2",
-    "eslint-plugin-import": "^2.24.1",
+    "eslint-plugin-import": "^2.24.2",
     "flush-promises": "^1.0.2",
     "gitter-sidecar": "^1.5.0",
     "is-valid-hostname": "1.0.2",
