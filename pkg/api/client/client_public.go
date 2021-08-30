@@ -33,6 +33,16 @@ type publicAPI interface {
 	NewReverseListener(token string) (*revdial.Listener, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
 	ReportUsage(ur *models.UsageRecord, billingURL string) (int, error)
+	DeleteCustomer(billingURL string) (int, error)
+}
+
+func (c *client) DeleteCustomer(billingURL string) (int, error) {
+	res, _, errs := c.http.Delete(fmt.Sprintf("http://%s:8080/api/billing/customer", billingURL)).End()
+	if len(errs) >= 1 {
+		return http.StatusInternalServerError, errs[0]
+	}
+
+	return res.StatusCode, nil
 }
 
 func (c *client) ReportUsage(ur *models.UsageRecord, billingURL string) (int, error) {
