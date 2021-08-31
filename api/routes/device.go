@@ -132,8 +132,10 @@ func (h *Handler) LookupDevice(c apicontext.Context) error {
 	}
 
 	device, err := h.service.LookupDevice(c.Ctx(), query.Domain, query.Name)
-	if err != nil {
-		return nil
+	if err == services.ErrNotFound {
+		return c.NoContent(http.StatusNotFound)
+	} else if err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusOK, device)

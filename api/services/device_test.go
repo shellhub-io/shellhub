@@ -461,6 +461,19 @@ func TestLookupDevice(t *testing.T) {
 			},
 		},
 		{
+			name:       "LookupDevice fails when the device is not found",
+			namespace:  namespace.Name,
+			deviceName: device.Name,
+			requiredMocks: func() {
+				mock.On("DeviceLookup", ctx, namespace.Name, device.Name).
+					Return(nil, store.ErrNoDocuments).Once()
+			},
+			expected: Expected{
+				nil,
+				ErrNotFound,
+			},
+		},
+		{
 			name:       "LookupDevice succeeds",
 			namespace:  namespace.Name,
 			deviceName: device.Name,
