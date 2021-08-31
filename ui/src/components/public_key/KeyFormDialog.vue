@@ -107,6 +107,19 @@
             </ValidationProvider>
 
             <ValidationProvider
+              v-if="action == 'public'"
+              v-slot="{ errors }"
+              name="Username"
+              data-test="username-validationProvider"
+            >
+              <v-text-field
+                v-model="keyLocal.username"
+                label="Username"
+                :error-messages="errors"
+              />
+            </ValidationProvider>
+
+            <ValidationProvider
               v-slot="{ errors }"
               ref="providerData"
               vid="key"

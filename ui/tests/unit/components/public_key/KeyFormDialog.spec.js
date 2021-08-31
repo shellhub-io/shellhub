@@ -411,6 +411,7 @@ describe('KeyFormDialog', () => {
     });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="username-validationProvider"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="create-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="edit-btn"]').exists()).toEqual(false);
@@ -513,6 +514,7 @@ describe('KeyFormDialog', () => {
     });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="username-validationProvider"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="create-btn"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="edit-btn"]').exists()).toEqual(true);
@@ -628,6 +630,7 @@ describe('KeyFormDialog', () => {
     });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="username-validationProvider"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="create-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="edit-btn"]').exists()).toEqual(false);
@@ -743,6 +746,7 @@ describe('KeyFormDialog', () => {
     });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="username-validationProvider"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="create-btn"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="edit-btn"]').exists()).toEqual(true);

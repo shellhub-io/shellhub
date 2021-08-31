@@ -26,6 +26,10 @@
           {{ item.hostname }}
         </template>
 
+        <template #[`item.username`]="{ item }">
+          {{ item.username }}
+        </template>
+
         <template #[`item.created_at`]="{ item }">
           {{ item.created_at | moment("ddd, MMM Do YY, h:mm:ss a") }}
         </template>
@@ -78,6 +82,11 @@ export default {
         {
           text: 'Hostname',
           value: 'hostname',
+          align: 'center',
+        },
+        {
+          text: 'Username',
+          value: 'username',
           align: 'center',
         },
         {
