@@ -378,6 +378,27 @@ func (_m *Service) EvaluateKeyHostname(ctx context.Context, key *models.PublicKe
 	return r0, r1
 }
 
+// EvaluateKeyUsername provides a mock function with given fields: ctx, key, username
+func (_m *Service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error) {
+	ret := _m.Called(ctx, key, username)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(context.Context, *models.PublicKey, string) bool); ok {
+		r0 = rf(ctx, key, username)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *models.PublicKey, string) error); ok {
+		r1 = rf(ctx, key, username)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetDevice provides a mock function with given fields: ctx, uid
 func (_m *Service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	ret := _m.Called(ctx, uid)

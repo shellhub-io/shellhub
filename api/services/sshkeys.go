@@ -17,6 +17,7 @@ import (
 
 type SSHKeysService interface {
 	EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
+	EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error)
 	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
 	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePublicKey(ctx context.Context, key *models.PublicKey, tenant string) error
@@ -35,6 +36,19 @@ func (s *service) EvaluateKeyHostname(ctx context.Context, key *models.PublicKey
 	}
 
 	ok, err := regexp.MatchString(key.Hostname, dev.Name)
+	if err != nil {
+		return false, err
+	}
+
+	return ok, nil
+}
+
+func (s *service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error) {
+	if key.Username == "" {
+		return true, nil
+	}
+
+	ok, err := regexp.MatchString(key.Username, username)
 	if err != nil {
 		return false, err
 	}

@@ -166,7 +166,7 @@ func startServer() error {
 	publicAPI.DELETE(routes.DeletePublicKeyURL, apicontext.Handler(handler.DeletePublicKey))
 	internalAPI.GET(routes.GetPublicKeyURL, apicontext.Handler(handler.GetPublicKey))
 	internalAPI.POST(routes.CreatePrivateKeyURL, apicontext.Handler(handler.CreatePrivateKey))
-	internalAPI.POST(routes.EvaluateKeyURL, apicontext.Handler(handler.EvaluateKeyHostname))
+	internalAPI.POST(routes.EvaluateKeyURL, apicontext.Handler(handler.EvaluateKey))
 
 	publicAPI.GET(routes.ListNamespaceURL, apicontext.Handler(handler.GetNamespaceList))
 	publicAPI.GET(routes.GetNamespaceURL, apicontext.Handler(handler.GetNamespace))

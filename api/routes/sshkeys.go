@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -20,7 +19,7 @@ const (
 	UpdatePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
 	DeletePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
 	CreatePrivateKeyURL = "/sshkeys/private-keys"
-	EvaluateKeyURL      = "/sshkeys/public-keys/evaluate/:fingerprint"
+	EvaluateKeyURL      = "/sshkeys/public-keys/evaluate/:fingerprint/:username"
 )
 
 func (h *Handler) GetPublicKeys(c apicontext.Context) error {
@@ -121,7 +120,8 @@ func (h *Handler) CreatePrivateKey(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, privKey)
 }
 
-func (h *Handler) EvaluateKeyHostname(c apicontext.Context) error {
+func (h *Handler) EvaluateKey(c apicontext.Context) error {
+	username := c.Param("username")
 	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param("fingerprint"), c.Param("tenant"))
 	if err != nil {
 		return c.JSON(http.StatusForbidden, err)
@@ -132,10 +132,15 @@ func (h *Handler) EvaluateKeyHostname(c apicontext.Context) error {
 		return c.JSON(http.StatusForbidden, err)
 	}
 
-	ok, err := h.service.EvaluateKeyHostname(c.Ctx(), pubKey, device)
+	usernameOk, err := h.service.EvaluateKeyUsername(c.Ctx(), pubKey, username)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, ok)
+	hostnameOk, err := h.service.EvaluateKeyHostname(c.Ctx(), pubKey, device)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, usernameOk && hostnameOk)
 }
