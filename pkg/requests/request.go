@@ -39,7 +39,7 @@ func HandleCustomerDeletion(ns *models.Namespace, c req.Client) error {
 		return nil
 	}
 
-	status, err := c.DeleteCustomer(BillingURL)
+	status, err := c.DeleteCustomer(ns, BillingURL)
 	if err != nil {
 		return err
 	}
