@@ -261,7 +261,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 	}
 
 	for _, i := range namespace.Members {
-		if user.ID == i.(string) {
+		if user.ID == i.ID {
 			token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 				Username: user.Username,
 				Admin:    true,

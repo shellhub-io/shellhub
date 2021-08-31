@@ -102,7 +102,7 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 		Name:     data.Namespace,
 		Owner:    usr.ID,
 		TenantID: tenantID,
-		Members:  []interface{}{&models.Member{ID: usr.ID, AccessType: "owner"}},
+		Members:  []models.Member{models.Member{ID: usr.ID, AccessType: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},

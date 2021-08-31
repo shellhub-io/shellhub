@@ -25,6 +25,22 @@ var migration14 = migrate.Migration{
 			ID            string `json:"id,omitempty" bson:"_id,omitempty"`
 			SessionRecord bool   `json:"session_record" bson:"session_record,omitempty"`
 		}
+		type namespaceSettings struct {
+			SessionRecord bool `json:"session_record" bson:"session_record,omitempty"`
+		}
+		type namespace struct {
+			Name     string             `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
+			Owner    string             `json:"owner"`
+			TenantID string             `json:"tenant_id" bson:"tenant_id,omitempty"`
+			Members  []interface{}      `json:"members" bson:"members"`
+			Settings *namespaceSettings `json:"settings"`
+		}
+
+		type member struct {
+			ID   string `json:"id" bson:"id"`
+			Name string `json:"name,omitempty" bson:"-"`
+		}
+
 		if _, err := db.Collection("users").Indexes().DropOne(context.TODO(), "tenant_id"); err != nil {
 			return err
 		}
@@ -43,8 +59,8 @@ var migration14 = migrate.Migration{
 			if err != nil {
 				return err
 			}
-			settings := &models.NamespaceSettings{SessionRecord: true}
-			namespace := &models.Namespace{
+			settings := &namespaceSettings{SessionRecord: true}
+			namespace := &namespace{
 				Owner:    user.ID,
 				Members:  []interface{}{user.ID},
 				TenantID: user.TenantID,

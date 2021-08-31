@@ -20,12 +20,28 @@ var migration22 = migrate.Migration{
 			"version":   22,
 			"action":    "Up",
 		}).Info("Applying migration")
+		type namespaceSettings struct {
+			SessionRecord bool `json:"session_record" bson:"session_record,omitempty"`
+		}
+		type namespace struct {
+			Name     string             `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
+			Owner    string             `json:"owner"`
+			TenantID string             `json:"tenant_id" bson:"tenant_id,omitempty"`
+			Members  []interface{}      `json:"members" bson:"members"`
+			Settings *namespaceSettings `json:"settings"`
+		}
+
+		type member struct {
+			ID   string `json:"id" bson:"id"`
+			Name string `json:"name,omitempty" bson:"-"`
+		}
+
 		cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
 		if err != nil {
 			return err
 		}
 		for cursor.Next(context.TODO()) {
-			namespace := new(models.Namespace)
+			namespace := new(namespace)
 			err = cursor.Decode(&namespace)
 			if err != nil {
 				return err

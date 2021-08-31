@@ -57,7 +57,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	ns := &models.Namespace{
 		Name:     strings.ToLower(namespace.Name),
 		Owner:    user.ID,
-		Members:  []interface{}{models.Member{ID: user.ID, AccessType: "owner"}},
+		Members:  []models.Member{models.Member{ID: user.ID, AccessType: "owner"}},
 		Settings: &models.NamespaceSettings{SessionRecord: true},
 		TenantID: namespace.TenantID,
 	}
@@ -121,10 +121,7 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 	fmt.Println("list members erro 1")
 	//membersTest := ns.Members.(models.Member)
 	//	fmt.Println(membersTest)
-	for _, memberInterface := range ns.Members {
-		fmt.Println("list members erro 2")
-		member := memberInterface.(models.Member)
-		fmt.Println("list members erro 2.5")
+	for _, member := range ns.Members {
 
 		user, _, err := s.store.UserGetByID(ctx, member.ID, false)
 		fmt.Println("list members erro 3")

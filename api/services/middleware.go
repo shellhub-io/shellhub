@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	//"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type MiddlewareService interface {
@@ -12,9 +12,9 @@ type MiddlewareService interface {
 	IsNamespaceMember(ctx context.Context, tenantID, memberID string) error
 }
 
-func contains(members []interface{}, user string) bool {
+func contains(members []models.Member, user string) bool {
 	for _, member := range members {
-		if member.(string) == user {
+		if member.ID == user {
 			return true
 		}
 	}
