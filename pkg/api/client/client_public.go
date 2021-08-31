@@ -37,7 +37,11 @@ type publicAPI interface {
 }
 
 func (c *client) DeleteCustomer(ns *models.Namespace, billingURL string) (int, error) {
-	res, _, errs := c.http.Delete(fmt.Sprintf("http://%s:8080/api/billing/customer", billingURL)).Send(&ns).End()
+	res, _, errs := c.http.Delete(fmt.Sprintf("http://%s:8080/api/billing/customer", billingURL)).Send(struct {
+		Namespace *models.Namespace `json:"namespace"`
+	}{
+		Namespace: ns,
+	}).End()
 	if len(errs) >= 1 {
 		return http.StatusInternalServerError, errs[0]
 	}
