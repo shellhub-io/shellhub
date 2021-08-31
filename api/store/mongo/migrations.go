@@ -15,12 +15,6 @@ import (
 )
 
 func ApplyMigrations(db *mongo.Database) error {
-	if err := fixMigrations072(db); err != nil {
-		logrus.WithError(err).Fatal("Failed to fix the migrations lock bug")
-
-		return err
-	}
-
 	logrus.Info("Creating lock for the resource migrations")
 
 	lockClient := lock.NewClient(db.Collection("locks", options.Collection().SetWriteConcern(writeconcern.New(writeconcern.WMajority()))))
@@ -34,6 +28,12 @@ func ApplyMigrations(db *mongo.Database) error {
 
 	if err := lockClient.XLock(context.TODO(), "migrations", lockID, lock.LockDetails{}); err != nil {
 		logrus.WithError(err).Fatal("Failed to lock the migrations")
+	}
+
+	if err := fixMigrations072(db); err != nil {
+		logrus.WithError(err).Fatal("Failed to fix the migrations lock bug")
+
+		return err
 	}
 
 	err := migrate.NewMigrate(db, migrations.GenerateMigrations()...).Up(migrate.AllAvailable)
