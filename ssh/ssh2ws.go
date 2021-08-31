@@ -58,7 +58,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 			return
 		}
 
-		if ok, err := apiClient.EvaluateKey(fingerprint, device); !ok || err != nil {
+		if ok, err := apiClient.EvaluateKey(fingerprint, device, parts[0]); !ok || err != nil {
 			if err != nil {
 				fmt.Println(err) //nolint:forbidigo
 			}
