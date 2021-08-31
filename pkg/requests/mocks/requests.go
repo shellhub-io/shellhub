@@ -60,20 +60,20 @@ func (_m *Client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) 
 	return r0, r1
 }
 
-// DeleteCustomer provides a mock function with given fields: billingURL
-func (_m *Client) DeleteCustomer(billingURL string) (int, error) {
-	ret := _m.Called(billingURL)
+// DeleteCustomer provides a mock function with given fields: ns, billingURL
+func (_m *Client) DeleteCustomer(ns *models.Namespace, billingURL string) (int, error) {
+	ret := _m.Called(ns, billingURL)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(string) int); ok {
-		r0 = rf(billingURL)
+	if rf, ok := ret.Get(0).(func(*models.Namespace, string) int); ok {
+		r0 = rf(ns, billingURL)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(billingURL)
+	if rf, ok := ret.Get(1).(func(*models.Namespace, string) error); ok {
+		r1 = rf(ns, billingURL)
 	} else {
 		r1 = ret.Error(1)
 	}
