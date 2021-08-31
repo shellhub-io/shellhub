@@ -45,6 +45,11 @@ describe('PublicKeyList', () => {
       align: 'center',
     },
     {
+      text: 'Username',
+      value: 'username',
+      align: 'center',
+    },
+    {
       text: 'Created At',
       value: 'created_at',
       align: 'center',
