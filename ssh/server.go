@@ -199,6 +199,7 @@ func (s *Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.Public
 
 	c := client.NewClient()
 
+	username := parts[0]
 	target = parts[1]
 	var lookup map[string]string
 	if !strings.Contains(parts[1], ".") {
@@ -239,7 +240,7 @@ func (s *Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.Public
 			return false
 		}
 
-		if ok, err := apiClient.EvaluateKey(fingerprint, device); !ok || err != nil {
+		if ok, err := apiClient.EvaluateKey(fingerprint, device, username); !ok || err != nil {
 			return false
 		}
 	}
