@@ -13,6 +13,7 @@ describe('NamespaceDelete', () => {
   let wrapper;
 
   const tenant = 'xxxxxx';
+  const owner = true;
 
   const namespace = {
     name: 'namespace3',
@@ -21,22 +22,70 @@ describe('NamespaceDelete', () => {
     tenant_id: 'a736a52b-5777-4f92-b0b8-e359bf484715',
   };
 
-  const text = `This action cannot be undone. This will permanently delete the
-         ${namespace.name} and its related data.`;
+  const inactiveBilling = {
+    active: false,
+    current_period_end: 0,
+    customer_id: '',
+    subscription_id: '',
+    payment_method_id: '',
+  };
 
-  const store = new Vuex.Store({
+  const activeBilling = {
+    active: true,
+    current_period_end: 12121,
+    customer_id: 'cus_123',
+    subscription_id: 'subs_123',
+    payment_method_id: 'pm_123',
+  };
+
+  const text = `This action cannot be undone. This will permanently delete the
+           ${namespace.name} and its related data.`;
+
+  const storeOwnerWithoutSubscription = new Vuex.Store({
     namespaced: true,
     state: {
       namespace,
+      stateBilling: inactiveBilling.active,
+      billing: inactiveBilling,
+      owner,
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
+      'billing/active': (state) => state.stateBilling,
+      'billing/get': (state) => state.billing,
+      'namespaces/owner': (state) => state.owner,
     },
     actions: {
       'namespaces/remove': () => {},
       'auth/logout': () => {},
+      'billing/getSubscription': () => {},
       'snackbar/showSnackbarErrorLoading': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorDefault': () => {},
+    },
+  });
+
+  const storeOwnerWithSubscription = new Vuex.Store({
+    namespaced: true,
+    state: {
+      namespace,
+      stateBilling: activeBilling.active,
+      billing: activeBilling,
+      owner,
+    },
+    getters: {
+      'namespaces/get': (state) => state.namespace,
+      'billing/active': (state) => state.stateBilling,
+      'billing/get': (state) => state.billing,
+      'namespaces/owner': (state) => state.owner,
+    },
+    actions: {
+      'namespaces/remove': () => {},
+      'auth/logout': () => {},
+      'billing/getSubscription': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorDefault': () => {},
     },
   });
 
@@ -48,11 +97,20 @@ describe('NamespaceDelete', () => {
   describe('Button', () => {
     beforeEach(() => {
       wrapper = mount(NamespaceDelete, {
-        store,
+        store: storeOwnerWithoutSubscription,
         localVue,
         stubs: ['fragment'],
         propsData: { nsTenant: tenant },
         vuetify,
+        mocks: {
+          $stripe: {
+            elements: () => ({
+              create: () => ({
+                mount: () => null,
+              }),
+            }),
+          },
+        },
       });
     });
 
@@ -86,6 +144,7 @@ describe('NamespaceDelete', () => {
     it('Renders the template with data', async () => {
       expect(wrapper.find('[data-test="delete-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="namespaceDelete-dialog"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="contentSubscription-p"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="remove-btn"]').exists()).toEqual(false);
     });
@@ -96,14 +155,23 @@ describe('NamespaceDelete', () => {
   // the test is dialog rendering.
   ///////
 
-  describe('Dialog', () => {
+  describe('Dialog without subscription', () => {
     beforeEach(() => {
       wrapper = mount(NamespaceDelete, {
-        store,
+        store: storeOwnerWithoutSubscription,
         localVue,
         stubs: ['fragment'],
         propsData: { nsTenant: tenant },
         vuetify,
+        mocks: {
+          $stripe: {
+            elements: () => ({
+              create: () => ({
+                mount: () => null,
+              }),
+            }),
+          },
+        },
       });
 
       wrapper.setData({ dialog: true });
@@ -139,6 +207,71 @@ describe('NamespaceDelete', () => {
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="delete-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="namespaceDelete-dialog"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="contentSubscription-p"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="remove-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="content-text"]').text()).toEqual(text);
+    });
+  });
+
+  ///////
+  // In this case, when the user owns the keys and the focus of
+  // the test is dialog rendering.
+  ///////
+
+  describe('Dialog with subscription', () => {
+    beforeEach(() => {
+      wrapper = mount(NamespaceDelete, {
+        store: storeOwnerWithSubscription,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { nsTenant: tenant },
+        vuetify,
+        mocks: {
+          $stripe: {
+            elements: () => ({
+              create: () => ({
+                mount: () => null,
+              }),
+            }),
+          },
+        },
+      });
+
+      wrapper.setData({ dialog: true });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receives data in props', () => {
+      expect(wrapper.vm.nsTenant).toEqual(tenant);
+    });
+    it('Compare data with the default', () => {
+      expect(wrapper.vm.name).toEqual(namespace.name);
+      expect(wrapper.vm.dialog).toEqual(true);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="delete-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="namespaceDelete-dialog"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="contentSubscription-p"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="remove-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="content-text"]').text()).toEqual(text);
