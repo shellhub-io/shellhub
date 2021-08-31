@@ -147,7 +147,12 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 }
 
 func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
-	return s.store.DeviceLookup(ctx, namespace, name)
+	device, err := s.store.DeviceLookup(ctx, namespace, name)
+	if err != nil && err == store.ErrNoDocuments {
+		return nil, ErrNotFound
+	}
+
+	return device, err
 }
 
 func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
