@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/kelseyhightower/envconfig"
@@ -40,9 +41,11 @@ type config struct {
 }
 
 func startServer() error {
-	if os.Getenv("SHELLHUB_ENV") == "development" {
+	_ = enableByEnv("SHELLHUB_ENV", func(_ string) error {
 		logrus.SetLevel(logrus.DebugLevel)
-	}
+
+		return nil
+	})
 
 	logrus.Info("Starting API server")
 
@@ -90,10 +93,20 @@ func startServer() error {
 
 	// apply dependency injection through project layers
 	store := mongo.NewStore(client.Database("main"), cache)
-	locator, err := geoip.NewGeoLite2()
+
+	var locator geoip.Locator
+	err = enableByEnv("MAXMIND_LICENSE", func(_ string) error {
+		locator, err = geoip.NewGeoLite2()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to init GeoLite2 database")
+		logrus.WithError(err).Info("Failed to init GeoLite2 database: feature disabled")
 	}
+
 	service := services.NewService(store, nil, nil, cache, requestClient, locator)
 	handler := routes.NewHandler(service)
 
@@ -168,4 +181,18 @@ func startServer() error {
 	e.Logger.Fatal(e.Start(":8080"))
 
 	return nil
+}
+
+func enableByEnv(env string, fn func(v string) error) error {
+	v, ok := os.LookupEnv(env)
+	if !ok {
+		err := fn(v)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	return fmt.Errorf("could not find this env: %s", env)
 }
