@@ -37,7 +37,7 @@ type publicAPI interface {
 }
 
 func (c *client) CancelSubscription(ns *models.Namespace, billingURL string) (int, error) {
-	res, _, errs := c.http.Delete(fmt.Sprintf("http://%s:8080/api/billing/subscription", billingURL)).Send(struct {
+	res, _, errs := c.http.Delete(fmt.Sprintf("http://%s:8080/api/billing/namespace/subscription", billingURL)).Send(struct {
 		Namespace *models.Namespace `json:"namespace"`
 	}{
 		Namespace: ns,
