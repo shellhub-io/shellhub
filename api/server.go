@@ -37,6 +37,8 @@ type config struct {
 	RedisURI string `envconfig:"redis_uri" default:"redis://redis:6379"`
 	// Enable store cache
 	StoreCache bool `envconfig:"store_cache" default:"false"`
+	// Enable geoip feature
+	GeoIP bool `envconfig:"geoip" default:"false"`
 }
 
 func startServer() error {
@@ -90,10 +92,19 @@ func startServer() error {
 
 	// apply dependency injection through project layers
 	store := mongo.NewStore(client.Database("main"), cache)
-	locator, err := geoip.NewGeoLite2()
-	if err != nil {
-		logrus.WithError(err).Fatal("Failed to init GeoLite2 database")
+
+	var locator geoip.Locator
+	if cfg.GeoIP {
+		logrus.Info("Using GeoIp for geolocation")
+		locator, err = geoip.NewGeoLite2()
+		if err != nil {
+			logrus.WithError(err).Fatalln("Failed to init GeoIp")
+		}
+	} else {
+		logrus.Info("GeoIp is disabled")
+		locator = geoip.NewNullGeoLite()
 	}
+
 	service := services.NewService(store, nil, nil, cache, requestClient, locator)
 	handler := routes.NewHandler(service)
 
