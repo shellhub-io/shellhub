@@ -33,11 +33,11 @@ type publicAPI interface {
 	NewReverseListener(token string) (*revdial.Listener, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
 	ReportUsage(ur *models.UsageRecord, billingURL string) (int, error)
-	DeleteCustomer(ns *models.Namespace, billingURL string) (int, error)
+	CancelSubscription(ns *models.Namespace, billingURL string) (int, error)
 }
 
-func (c *client) DeleteCustomer(ns *models.Namespace, billingURL string) (int, error) {
-	res, _, errs := c.http.Delete(fmt.Sprintf("http://%s:8080/api/billing/customer", billingURL)).Send(struct {
+func (c *client) CancelSubscription(ns *models.Namespace, billingURL string) (int, error) {
+	res, _, errs := c.http.Delete(fmt.Sprintf("http://%s:8080/api/billing/subscription", billingURL)).Send(struct {
 		Namespace *models.Namespace `json:"namespace"`
 	}{
 		Namespace: ns,

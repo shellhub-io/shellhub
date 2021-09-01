@@ -34,12 +34,12 @@ func HandleResponse(status int, err error) error {
 	return err
 }
 
-func HandleCustomerDeletion(ns *models.Namespace, c req.Client) error {
+func HandleSubscriptionDeletion(ns *models.Namespace, c req.Client) error {
 	if !HasBillingInstance(ns) {
 		return nil
 	}
 
-	status, err := c.DeleteCustomer(ns, BillingURL)
+	status, err := c.CancelSubscription(ns, BillingURL)
 	if err != nil {
 		return err
 	}

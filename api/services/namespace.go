@@ -110,7 +110,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerID string)
 		return ErrNamespaceNotFound
 	}
 
-	if err = req.HandleCustomerDeletion(ns, s.client.(cl.Client)); err != nil {
+	if err = req.HandleSubscriptionDeletion(ns, s.client.(cl.Client)); err != nil {
 		return err
 	}
 
