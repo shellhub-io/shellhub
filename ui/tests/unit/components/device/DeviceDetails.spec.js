@@ -24,6 +24,7 @@ describe('DeviceDetails', () => {
     last_seen: '2020-05-20T18:58:53.276Z',
     online: true,
     namespace: 'user',
+    tags: ['device1', 'device2'],
   };
 
   const deviceOffline = { ...deviceOnline, online: false };
@@ -38,6 +39,9 @@ describe('DeviceDetails', () => {
     },
     actions: {
       'devices/get': () => {},
+      'devices/updateTag': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
     },
   });
 
@@ -51,6 +55,9 @@ describe('DeviceDetails', () => {
     },
     actions: {
       'devices/get': () => {},
+      'devices/updateTag': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
     },
   });
 
@@ -97,6 +104,7 @@ describe('DeviceDetails', () => {
       expect(wrapper.vm.device).toEqual(deviceOnline);
       expect(wrapper.vm.dialogDelete).toEqual(false);
       expect(wrapper.vm.dialogError).toEqual(false);
+      expect(wrapper.vm.list).toEqual(deviceOnline.tags);
     });
     it('Process data in methods', () => {
       wrapper.vm.receiveName('ShellHub');
@@ -111,6 +119,7 @@ describe('DeviceDetails', () => {
       expect(wrapper.find('[data-test="deviceRename-component"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="deviceTag-field"]').exists()).toEqual(true);
     });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(deviceOnline.uid);
@@ -177,6 +186,7 @@ describe('DeviceDetails', () => {
       expect(wrapper.find('[data-test="deviceRename-component"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="deviceTag-field"]').exists()).toEqual(true);
     });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(deviceOffline.uid);

@@ -35,6 +35,11 @@ describe('DeviceList', () => {
       align: 'center',
     },
     {
+      text: 'Tags',
+      value: 'tag',
+      align: 'center',
+    },
+    {
       text: 'Operating System',
       value: 'info.pretty_name',
       align: 'center',
@@ -72,6 +77,7 @@ describe('DeviceList', () => {
       online: false,
       namespace: 'user',
       status: 'accepted',
+      tags: ['device1', 'device2'],
     },
     {
       uid: 'a582b47a42e',
@@ -90,6 +96,7 @@ describe('DeviceList', () => {
       online: true,
       namespace: 'user',
       status: 'accepted',
+      tags: ['device1', 'device2'],
     },
   ];
 

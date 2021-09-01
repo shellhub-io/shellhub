@@ -4,6 +4,7 @@ export default {
     const success = {
       deviceRename: 'renaming device',
       deviceDelete: 'deleting device',
+      deviceTagUpdate: 'updating tag',
       sessionClose: 'closing session',
       sessionRemoveRecord: 'deleting recorded session',
       firewallRuleCreating: 'creating rule',
