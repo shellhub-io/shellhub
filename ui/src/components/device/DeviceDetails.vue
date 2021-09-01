@@ -84,6 +84,21 @@
         </div>
 
         <div class="mt-2">
+          <v-combobox
+            id="targetInput"
+            v-model="list"
+            label="Tag"
+            hint="Maximum of 5 tags"
+            multiple
+            chips
+            append-icon
+            data-test="deviceTag-field"
+            :deletable-chips="true"
+            :rules="[tagRule]"
+          />
+        </div>
+
+        <div class="mt-2">
           <div class="overline">
             Operating System
           </div>
@@ -164,12 +179,23 @@ export default {
   data() {
     return {
       uid: '',
+      errorMsg: '',
       hostname: window.location.hostname,
       hide: true,
       device: null,
       dialogDelete: false,
       dialogError: false,
+      list: [],
+      oldList: [],
     };
+  },
+
+  watch: {
+    list(newList) {
+      if (JSON.stringify(newList) !== JSON.stringify(this.oldList)) {
+        this.actionTag(newList);
+      }
+    },
   },
 
   async created() {
@@ -177,6 +203,8 @@ export default {
     try {
       await this.$store.dispatch('devices/get', this.uid);
       this.device = this.$store.getters['devices/get'];
+      this.list = this.device.tags;
+      this.oldList = this.device.tags;
     } catch (error) {
       this.hide = false;
       this.dialogError = true;
@@ -192,6 +220,49 @@ export default {
 
     receiveName(params) {
       this.device.name = params;
+    },
+
+    tagRule() {
+      if (this.errorMsg !== '') {
+        return this.errorMsg;
+      }
+
+      return true;
+    },
+
+    async actionTag(newList) {
+      const device = this.$store.getters['devices/get'];
+      const data = { uid: device.uid, tags: newList };
+
+      try {
+        this.errorMsg = '';
+        await this.$store.dispatch('devices/updateTag', data);
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceTagUpdate);
+        this.oldList = newList;
+      } catch (error) {
+        this.$nextTick(() => this.list.pop());
+        switch (true) {
+        // when the name the format is invalid.
+        case (error.response.status === 400): {
+          this.errorMsg = 'The format is invalid. Min 3, Max 255 characters!';
+          break;
+        }
+        // when the user is not authorized.
+        case (error.response.status === 403): {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceTagUpdate);
+          break;
+        }
+        // When the array tag size reached the max capacity.
+        case (error.response.status === 406): {
+          this.errorMsg = 'The maximum capacity has reached.';
+          break;
+        }
+        default: {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceTagUpdate);
+        }
+        }
+      }
+      return false;
     },
   },
 };

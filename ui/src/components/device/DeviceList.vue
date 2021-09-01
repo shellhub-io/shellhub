@@ -37,6 +37,67 @@
           </router-link>
         </template>
 
+        <template #[`item.tag`]="{ item }">
+          <div
+            v-if="item.tags"
+          >
+            <v-tooltip
+              bottom
+              :disabled="!showTag(item.tags[0])"
+            >
+              <template #activator="{ on }">
+                <v-chip
+                  v-if="item.tags != null && item.tags.length > 0"
+                  class="short justify-center"
+                  v-on="on"
+                >
+                  {{ displayOnlyTenCharacters(item.tags[0]) }}
+                </v-chip>
+              </template>
+              <span>
+                <div v-if="showTag(item.tags[0])">
+                  {{ item.tags[0] }}
+                </div>
+              </span>
+            </v-tooltip>
+
+            <v-menu
+              v-if="item.tags != null && item.tags.length > 0"
+              open-on-hover
+              bottom
+              offset-y
+            >
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  v-if="item.tags != null && item.tags.length >= 2"
+                  text
+                  v-bind="attrs"
+                  small
+                  v-on="on"
+                >
+                  <div
+                    text
+                    small
+                    flat
+                    class="test justify-center"
+                  >
+                    {{ `+ ${item.tags.length - 1}` }}
+                  </div>
+                </v-btn>
+              </template>
+
+              <v-list>
+                <v-list-item
+                  v-for="(tag, index) in item.tags.slice(1,item.tags.length)"
+                  :key="index"
+                >
+                  <v-list-item-title>{{ tag }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </div>
+        </template>
+
         <template #[`item.info.pretty_name`]="{ item }">
           <DeviceIcon
             :icon-name="item.info.id"
@@ -113,6 +174,7 @@ export default {
     return {
       hostname: window.location.hostname,
       pagination: {},
+      tags: [],
       headers: [
         {
           text: 'Online',
@@ -122,6 +184,11 @@ export default {
         {
           text: 'Hostname',
           value: 'hostname',
+          align: 'center',
+        },
+        {
+          text: 'Tags',
+          value: 'tag',
           align: 'center',
         },
         {
@@ -219,6 +286,22 @@ export default {
     refresh() {
       this.getDevices();
     },
+
+    displayOnlyTenCharacters(str) {
+      if (str !== undefined) {
+        if (str.length > 10) return `${str.substr(0, 10)}...`;
+      }
+      return str;
+    },
+
+    showTag(str) {
+      if (str !== undefined) {
+        if (str.length > 10) {
+          return true;
+        }
+      }
+      return false;
+    },
   },
 };
 
@@ -232,6 +315,19 @@ export default {
 
 .icons{
   margin-right: 4px;
+}
+
+.btn-right{
+  left: 210px;
+}
+
+.short{
+  width:140px;
+}
+.short span{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 </style>

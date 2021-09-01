@@ -29,3 +29,5 @@ export const getDevice = async (uid) => http().get(`/devices/${uid}`);
 export const acceptDevice = async (uid) => http().patch(`/devices/${uid}/accept`);
 
 export const rejectDevice = async (uid) => http().patch(`/devices/${uid}/reject`);
+
+export const updateTag = async (data) => http().put(`/devices/${data.uid}/tags`, { tags: data.tags });

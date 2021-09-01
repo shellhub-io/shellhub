@@ -15,6 +15,7 @@ export default {
         deviceListRejected: 'list of rejected device',
         deviceDetails: 'details device',
         deviceRename: 'rename device',
+        deviceTagUpdate: 'updating tag',
         sessionList: 'list session',
         sessionClose: 'close session',
         sessionPlay: 'play session',
