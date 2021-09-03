@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import * as apiDevice from '@/store/api/devices';
+import * as apiBilling from '@/store/api/billing';
 
 export default {
   namespaced: true,
@@ -14,6 +15,8 @@ export default {
     status: '',
     sortStatusField: null,
     sortStatusString: '',
+    deviceWarning: false,
+    devicesSelected: [],
   },
 
   getters: {
@@ -25,6 +28,8 @@ export default {
     getFilter: (state) => state.filter,
     getStatus: (state) => state.status,
     getFirstPending: (state) => state.device,
+    getDeviceWarning: (state) => state.deviceWarning,
+    getDevicesSelected: (state) => state.devicesSelected,
   },
 
   mutations: {
@@ -58,6 +63,14 @@ export default {
 
     setFilter: (state, filter) => {
       Vue.set(state, 'filter', filter);
+    },
+
+    setDeviceWarning: (state, status) => {
+      Vue.set(state, 'deviceWarning', status);
+    },
+
+    setDevicesSelected: (state, data) => {
+      Vue.set(state, 'devicesSelected', data);
     },
 
     clearListDevices: (state) => {
@@ -143,6 +156,28 @@ export default {
         context.commit('setDevice', res.data[0]);
       } catch (error) {
         context.commit('clearObjectDevice');
+        throw error;
+      }
+    },
+
+    setDeviceWarning: async (context, status) => {
+      context.commit('setDeviceWarning', status);
+    },
+
+    setDevicesSelected: (context, data) => {
+      context.commit('setDevicesSelected', data);
+    },
+
+    postDevicesChoice: async (context, data) => {
+      await apiBilling.postDevicesChoice(data);
+    },
+
+    getDevicesMostUsed: async (context) => {
+      try {
+        const res = await apiBilling.getDevicesMostUsed();
+        context.commit('setDevices', res);
+      } catch (error) {
+        context.commit('clearListDevices');
         throw error;
       }
     },

@@ -59,6 +59,8 @@
         size="64"
       />
     </v-overlay>
+
+    <DeviceWarning data-test="deviceWarning-component" />
   </v-app>
 </template>
 
@@ -66,6 +68,7 @@
 
 import Snackbar from '@/components/snackbar/Snackbar';
 import AppBar from '@/components/app_bar/AppBar';
+import DeviceWarning from '@/components/device/DeviceWarning';
 
 export default {
   name: 'App',
@@ -73,6 +76,7 @@ export default {
   components: {
     Snackbar,
     AppBar,
+    DeviceWarning,
   },
 
   data() {
