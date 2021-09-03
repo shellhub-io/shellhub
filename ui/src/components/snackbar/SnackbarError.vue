@@ -54,6 +54,8 @@ export default {
         return `The ${this.mainContent} has failed, please try again.`;
       case 'incorrect':
         return `Incorrect ${this.mainContent} information, please try again.`;
+      case 'deviceChoice':
+        return 'You need to select 3 devices.';
       default:
         return 'The request has failed, please try again.';
       }

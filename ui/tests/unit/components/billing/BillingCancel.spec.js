@@ -14,14 +14,25 @@ describe('BillingCancel', () => {
 
   const nextPaymentDue = 1234;
 
+  const stats = {
+    registered_devices: 0,
+    online_devices: 0,
+    active_sessions: 0,
+    pending_devices: 1,
+    rejected_devices: 0,
+  };
+
   const store = new Vuex.Store({
     namespaced: true,
     state: {
+      stats,
     },
     getters: {
+      'stats/stats': (state) => state.stats,
     },
     actions: {
       'billing/cancelSubscription': () => {},
+      'devices/setDeviceWarning': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
       'snackbar/showSnackbarErrorAction': () => {},
     },

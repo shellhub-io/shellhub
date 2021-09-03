@@ -58,6 +58,9 @@ describe('App', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Renders the template with components', async () => {
+    expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toEqual(true);
+  });
   it('Renders the template with data', async () => {
     expect(wrapper.find('[data-test="dashboard"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="devices"]').exists()).toEqual(true);

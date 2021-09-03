@@ -199,6 +199,50 @@ describe('SnackbarError', () => {
 
   ///////
   // In this case, the main objective is to change the message.
+  // For this test to work, the message type is changed to choice
+  // devices.
+  ///////
+
+  describe('Incorrect message type', () => {
+    typeMessage = 'deviceChoice';
+    mainContent = '';
+    message = 'You need to select 3 devices.';
+
+    beforeEach(() => {
+      wrapper = shallowMount(SnackbarError, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { typeMessage, mainContent },
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.snackbar).toEqual(snackbarError);
+      expect(wrapper.vm.message).toEqual(message);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.message).toEqual(message);
+    });
+  });
+
+  ///////
+  // In this case, the main objective is to change the message.
   // For this test to work, the message type is changed to default.
   ///////
 

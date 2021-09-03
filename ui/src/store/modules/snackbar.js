@@ -135,5 +135,10 @@ export default {
       const data = { typeMessage: 'incorrect', typeContent: value };
       context.commit('setSnackbarErrorIncorrect', data);
     },
+
+    showSnackbarDeviceChoice: (context) => {
+      const data = { typeMessage: 'deviceChoice', typeContent: '' };
+      context.commit('setSnackbarErrorAssociation', data);
+    },
   },
 };

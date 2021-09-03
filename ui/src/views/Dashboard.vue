@@ -164,6 +164,10 @@ export default {
         if (this.hasNamespaces) {
           await this.$store.dispatch('stats/get');
           this.showScreenWelcome();
+
+          this.$store.dispatch('devices/setDeviceWarning',
+            this.$store.getters['stats/stats'].registered_devices > 3
+            && !this.$store.getters['billing/active']);
         } else {
           // This shows the namespace instructions when the user has no namespace
           this.showInstructions = true;
