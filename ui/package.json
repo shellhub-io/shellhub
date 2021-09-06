@@ -57,7 +57,7 @@
     "node-sass": "^6.0.1",
     "sass": "^1.32.12",
     "sass-loader": "~10.2.0",
-    "stylus": "^0.54.8",
+    "stylus": "^0.55.0",
     "stylus-loader": "^6.1.0",
     "vue-cli-plugin-vuetify": "^2.4.2",
     "vue-template-compiler": "^2.6.14",
