@@ -304,6 +304,64 @@ func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status s
 	return nil
 }
 
+func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.Device, error) {
+	query := []bson.M{
+		{
+			"$match": bson.M{
+				"status":    "accepted",
+				"tenant_id": tenant,
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "sessions",
+				"localField":   "uid",
+				"foreignField": "device_uid",
+				"as":           "sessions",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"sessionsCount": bson.M{
+					"$size": "$sessions",
+				},
+			},
+		},
+		{
+			"$sort": bson.M{
+				"sessionsCount": -1,
+			},
+		},
+		{
+			"$project": bson.M{
+				"sessions":      0,
+				"sessionsCount": 0,
+			},
+		},
+		{
+			"$limit": 3,
+		},
+	}
+
+	devices := make([]models.Device, 0)
+	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
+	if err != nil {
+		return devices, fromMongoError(err)
+	}
+
+	for cursor.Next(ctx) {
+		device := new(models.Device)
+		err = cursor.Decode(&device)
+		if err != nil {
+			return devices, err
+		}
+
+		devices = append(devices, *device)
+	}
+
+	return devices, nil
+}
+
 func (s *Store) DeviceGetByMac(ctx context.Context, mac, tenant, status string) (*models.Device, error) {
 	device := new(models.Device)
 	if status != "" {
@@ -353,4 +411,27 @@ func (s *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position 
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"position": position}})
 
 	return err
+}
+
+func (s *Store) DeviceChoice(ctx context.Context, tenant string, chosen []string) error {
+	filter := bson.M{
+		"status":    "accepted",
+		"tenant_id": tenant,
+		"uid": bson.M{
+			"$nin": chosen,
+		},
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"status": "pending",
+		},
+	}
+
+	_, err := s.db.Collection("devices").UpdateMany(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -162,6 +162,20 @@ func (_m *Store) BillingUpdateSubscriptionPeriodEnd(ctx context.Context, subscri
 	return r0
 }
 
+// DeviceChoice provides a mock function with given fields: ctx, tenant, chosen
+func (_m *Store) DeviceChoice(ctx context.Context, tenant string, chosen []string) error {
+	ret := _m.Called(ctx, tenant, chosen)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
+		r0 = rf(ctx, tenant, chosen)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeviceCreate provides a mock function with given fields: ctx, d, hostname
 func (_m *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
 	ret := _m.Called(ctx, d, hostname)
@@ -312,6 +326,29 @@ func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, fil
 	return r0, r1, r2
 }
 
+// DeviceListByUsage provides a mock function with given fields: ctx, tenant
+func (_m *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.Device, error) {
+	ret := _m.Called(ctx, tenant)
+
+	var r0 []models.Device
+	if rf, ok := ret.Get(0).(func(context.Context, string) []models.Device); ok {
+		r0 = rf(ctx, tenant)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Device)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenant)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeviceLookup provides a mock function with given fields: ctx, namespace, name
 func (_m *Store) DeviceLookup(ctx context.Context, namespace string, name string) (*models.Device, error) {
 	ret := _m.Called(ctx, namespace, name)
@@ -356,6 +393,20 @@ func (_m *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online boo
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, bool) error); ok {
 		r0 = rf(ctx, uid, online)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeviceSetPosition provides a mock function with given fields: ctx, uid, position
+func (_m *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
+	ret := _m.Called(ctx, uid, position)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DevicePosition) error); ok {
+		r0 = rf(ctx, uid, position)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1402,41 +1453,4 @@ func (_m *Store) UserUpdatePassword(ctx context.Context, newPassword string, ID 
 	}
 
 	return r0
-}
-
-// DeviceSetPosition provides a mock function with given fields: ctx, uid, position
-func (_m *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
-	ret := _m.Called(ctx, uid, position)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DevicePosition) error); ok {
-		r0 = rf(ctx, uid, position)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeviceGetPosition provides a mock function with given fields: ctx, uid
-func (_m *Store) DeviceGetPosition(ctx context.Context, uid models.UID) (*models.DevicePosition, error) {
-	ret := _m.Called(ctx, uid)
-
-	var r0 *models.DevicePosition
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) *models.DevicePosition); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.DevicePosition)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
-		r1 = rf(ctx, uid)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
