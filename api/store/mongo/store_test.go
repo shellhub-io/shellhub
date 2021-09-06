@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"testing"
 	"time"
 
@@ -2346,4 +2347,119 @@ func TestBillingRemoveInstance(t *testing.T) {
 	ns, _ := mongostore.NamespaceGet(ctx, namespace.TenantID)
 	assert.Empty(t, ns.Billing)
 	assert.Nil(t, ns.Billing)
+}
+
+func TestDeviceListByUsage(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	devices := make([]models.Device, 0)
+	sessions := make([]models.Session, 0)
+
+	quantities := []int{10, 5, 3, 1, 1, 0, 0, 0}
+
+	for i, q := range quantities {
+		devices = append(devices, models.Device{
+			UID:      fmt.Sprintf("%s%d", "uid", i+1),
+			TenantID: "tenant",
+			Status:   "accepted",
+		})
+		for j := 0; j < q; j++ {
+			sessions = append(sessions, models.Session{
+				UID:       fmt.Sprintf("%s%d", "uid", j),
+				TenantID:  "tenant",
+				DeviceUID: models.UID(fmt.Sprintf("%s%d", "uid", i+1)),
+			})
+		}
+	}
+
+	sessionsInterfaces := make([]interface{}, len(sessions))
+	devicesInterfaces := make([]interface{}, len(devices))
+
+	for i, v := range sessions {
+		sessionsInterfaces[i] = v
+	}
+
+	for i, v := range devices {
+		devicesInterfaces[i] = v
+	}
+
+	_, _ = db.Client().Database("test").Collection("sessions").InsertMany(ctx, sessionsInterfaces)
+	_, _ = db.Client().Database("test").Collection("devices").InsertMany(ctx, devicesInterfaces)
+
+	devices, err = mongostore.DeviceListByUsage(ctx, namespace.TenantID)
+	expectedUIDs := []string{"uid1", "uid2", "uid3"}
+
+	assert.NoError(t, err)
+	assert.Equal(t, len(expectedUIDs), len(devices))
+
+	for i, device := range devices {
+		assert.Equal(t, expectedUIDs[i], device.UID)
+	}
+}
+
+func TestDeviceChoice(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	devices := make([]models.Device, 0)
+
+	devicesInterfaces := make([]interface{}, 5)
+
+	for i := 0; i < 5; i++ {
+		devices = append(devices, models.Device{
+			UID:      fmt.Sprintf("%s%d", "uid", i+1),
+			TenantID: "tenant",
+			Status:   "accepted",
+		})
+	}
+
+	for i, v := range devices {
+		devicesInterfaces[i] = v
+	}
+
+	_, err = db.Client().Database("test").Collection("devices").InsertMany(ctx, devicesInterfaces)
+	assert.NoError(t, err)
+
+	err = mongostore.DeviceChoice(ctx, namespace.TenantID, []string{"uid1", "uid2", "uid5"})
+	assert.NoError(t, err)
+
+	devices, _, err = mongostore.DeviceList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
+	assert.NoError(t, err)
+
+	pending := make([]string, 0)
+
+	expected := []string{"uid3", "uid4"}
+
+	for _, dev := range devices {
+		if dev.Status == "pending" {
+			pending = append(pending, dev.UID)
+		}
+	}
+
+	assert.Equal(t, expected, pending)
 }
