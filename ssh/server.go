@@ -15,6 +15,7 @@ import (
 	"time"
 
 	sshserver "github.com/gliderlabs/ssh"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/api/webhook"
@@ -167,7 +168,13 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		return
 	}
 
-	if err = sess.connect(passwd, privKey, session, conn); err != nil {
+	c := client.NewClient()
+	opts := ConfigOptions{}
+	if err := envconfig.Process("", &opts); err != nil {
+		return
+	}
+
+	if err = sess.connect(passwd, privKey, session, conn, c, opts); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"err":     err,
 			"session": session.Context().Value(sshserver.ContextKeySessionID),

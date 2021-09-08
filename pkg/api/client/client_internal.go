@@ -31,6 +31,7 @@ type internalAPI interface {
 	PatchSessions(uid string) []error
 	FinishSession(uid string) []error
 	RecordSession(session *models.SessionRecorded, recordURL string)
+	BillingEvaluate(tenantID string) (*models.Namespace, int, error)
 	Lookup(lookup map[string]string) (string, []error)
 	DeviceLookup(lookup map[string]string) (*models.Device, []error)
 }
@@ -50,6 +51,16 @@ func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, er
 	}
 
 	return pubKey, nil
+}
+
+func (c *client) BillingEvaluate(tenantID string) (*models.Namespace, int, error) {
+	var namespace *models.Namespace
+	resp, _, errs := c.http.Get("http://billing-api:8080/internal/billing/evaluate").Send(&models.Namespace{TenantID: tenantID}).EndStruct(&namespace)
+	if len(errs) > 0 {
+		return nil, resp.StatusCode, errs[0]
+	}
+
+	return namespace, resp.StatusCode, nil
 }
 
 func (c *client) EvaluateKey(fingerprint string, dev *models.Device, username string) (bool, error) {

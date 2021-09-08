@@ -12,7 +12,6 @@ import (
 	"time"
 
 	sshserver "github.com/gliderlabs/ssh"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -22,7 +21,10 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var ErrInvalidSessionTarget = errors.New("invalid session target")
+var (
+	ErrInvalidSessionTarget = errors.New("invalid session target")
+	ErrBillingBlock         = errors.New("reached the device limit, update to premium or choose 3 devices")
+)
 
 type Session struct {
 	session       sshserver.Session
@@ -109,17 +111,31 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 			return nil, ErrInvalidSessionTarget
 		}
 	}
+
+	if envs.IsCloud() {
+		device, err := c.GetDevice(s.Target)
+		if err != nil {
+			return nil, ErrInvalidSessionTarget
+		}
+
+		_, status, _ := c.BillingEvaluate(device.TenantID)
+
+		if status == 200 || status == 402 {
+			goto end
+		}
+
+		return nil, ErrBillingBlock
+
+	end:
+	}
+
 	_, _, isPty := s.session.Pty()
 	s.Pty = isPty
 
 	return s, nil
 }
 
-func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn) error {
-	c := client.NewClient()
-	opts := ConfigOptions{}
-	err := envconfig.Process("", &opts)
-
+func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn, c client.Client, opts ConfigOptions) error {
 	config := &ssh.ClientConfig{
 		User: s.User,
 		Auth: []ssh.AuthMethod{},
