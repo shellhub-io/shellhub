@@ -41,7 +41,7 @@ ARG GOPROXY
 ENV GOPROXY ${GOPROXY}
 
 RUN apk add --update openssl openssh-client
-RUN go get github.com/markbates/refresh && go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.37.1
+RUN go get github.com/markbates/refresh && go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
