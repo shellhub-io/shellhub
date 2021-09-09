@@ -12,31 +12,28 @@ import (
 var ErrNoConnection = errors.New("no connection")
 
 type ConnectionManager struct {
-	dialers map[string]*revdial.Dialer
-	lock    sync.RWMutex
-	status  chan TunnelStatus
-}
-
-type TunnelStatus struct {
-	id     string
-	online bool
+	dialers            map[string]*revdial.Dialer
+	lock               sync.RWMutex
+	DialerDoneCallback func(string, *revdial.Dialer)
 }
 
 func New() *ConnectionManager {
 	return &ConnectionManager{
 		dialers: make(map[string]*revdial.Dialer),
-		status:  make(chan TunnelStatus),
+		DialerDoneCallback: func(string, *revdial.Dialer) {
+		},
 	}
 }
 
 func (m *ConnectionManager) Set(key string, conn net.Conn) {
 	m.lock.Lock()
-	m.dialers[key] = revdial.NewDialer(conn, "/ssh/revdial")
+	dialer := revdial.NewDialer(conn, "/ssh/revdial")
+	m.dialers[key] = dialer
 	m.lock.Unlock()
 
 	go func() {
-		stats := TunnelStatus{id: key, online: m.dialers[key].IsOnline()}
-		m.status <- stats
+		<-dialer.Done()
+		m.DialerDoneCallback(key, dialer)
 	}()
 }
 
@@ -51,12 +48,4 @@ func (m *ConnectionManager) Dial(ctx context.Context, key string) (net.Conn, err
 	m.lock.RUnlock()
 
 	return dialer.Dial(ctx)
-}
-
-func (m *ConnectionManager) Online() (id string, online bool) {
-	status := <-m.status
-	id = status.id
-	online = status.online
-
-	return
 }
