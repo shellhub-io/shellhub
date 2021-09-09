@@ -30,6 +30,11 @@ func main() {
 	tunnel.ConnectionHandler = func(r *http.Request) (string, error) {
 		return r.Header.Get(client.DeviceUIDHeader), nil
 	}
+	tunnel.CloseHandler = func(id string) {
+		if err := client.NewClient().DevicesOffline(id); err != nil {
+			logrus.Error(err)
+		}
+	}
 
 	router := tunnel.Router().(*mux.Router)
 	router.HandleFunc("/sessions/{uid}/close", func(res http.ResponseWriter, req *http.Request) {
@@ -62,16 +67,6 @@ func main() {
 	router.Handle("/ws/ssh", websocket.Handler(HandlerWebsocket))
 
 	go http.ListenAndServe(":8080", router) // nolint:errcheck
-
-	go func() {
-		for {
-			if id, online := tunnel.Online(); !online {
-				if err := client.NewClient().DevicesOffline(id); err != nil {
-					logrus.Info(err)
-				}
-			}
-		}
-	}()
 
 	var err error
 	magicKey, err = rsa.GenerateKey(rand.Reader, 2048)
