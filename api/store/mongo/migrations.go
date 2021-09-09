@@ -30,21 +30,40 @@ func ApplyMigrations(db *mongo.Database) error {
 		logrus.WithError(err).Fatal("Failed to lock the migrations")
 	}
 
+	defer func() {
+		logrus.Info("Unlocking the resource migrations")
+
+		if _, err := lockClient.Unlock(context.TODO(), lockID); err != nil {
+			logrus.WithError(err).Fatal("Failed to unlock the migrations")
+		}
+	}()
+
 	if err := fixMigrations072(db); err != nil {
 		logrus.WithError(err).Fatal("Failed to fix the migrations lock bug")
-
-		return err
 	}
 
-	err := migrate.NewMigrate(db, migrations.GenerateMigrations()...).Up(migrate.AllAvailable)
+	list := migrations.GenerateMigrations()
+	migration := migrate.NewMigrate(db, list...)
 
-	logrus.Info("Unlocking the resource migrations")
-
-	if _, err := lockClient.Unlock(context.TODO(), lockID); err != nil {
-		logrus.WithError(err).Fatal("Failed to unlock the migrations")
+	current, _, err := migration.Version()
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to get current migration version")
 	}
 
-	return err
+	latest := list[len(list)-1] //nolint:ifshort
+
+	if current == latest.Version {
+		logrus.Info("No migrations to apply")
+
+		return nil
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"from": current,
+		"to":   latest.Version,
+	}).Info("Migrating database")
+
+	return migration.Up(migrate.AllAvailable)
 }
 
 // This function is necessary due the lock bug on v0.7.2.
