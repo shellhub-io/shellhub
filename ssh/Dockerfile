@@ -51,7 +51,7 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/ssh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
-FROM alpine:3.11 AS production
+FROM alpine:3.14 AS production
 
 RUN apk add --update openssh-client
 
