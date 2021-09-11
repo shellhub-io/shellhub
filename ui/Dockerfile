@@ -35,7 +35,7 @@ COPY --from=base /app/node_modules ./node_modules
 
 RUN npm run build
 
-FROM nginx:1.16.0-alpine as production
+FROM nginx:1.21.3-alpine as production
 
 RUN rm /etc/nginx/conf.d/default.conf
 COPY ui/nginx.conf /etc/nginx/conf.d
