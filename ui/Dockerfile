@@ -1,8 +1,8 @@
-FROM node:12.16.0-alpine as base
+FROM node:15.14.0-alpine3.13 as base
 
 ARG NPM_CONFIG_REGISTRY
 
-RUN apk add --update build-base python
+RUN apk add --update build-base python3
 
 WORKDIR /app
 
