@@ -16,6 +16,7 @@ services:
       - ./.golangci.yaml:/.golangci.yaml
     environment:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
   api:
     image: api
     build:
