@@ -7,6 +7,7 @@ services:
     environment:
       - PRIVATE_KEY=/run/secrets/ssh_private_key
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - RECORD_URL=${SHELLHUB_RECORD_URL}
       - BILLING_URL=${SHELLHUB_BILLING_URL}
       - WEBHOOK_URL=${SHELLHUB_WEBHOOK_URL}
