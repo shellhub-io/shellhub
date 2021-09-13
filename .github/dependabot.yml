@@ -1,6 +1,42 @@
 version: 2
 
 updates:
+- package-ecosystem: docker
+  directory: "/cli"
+  schedule:
+    interval: weekly
+  commit-message:
+    prefix: "docker: cli"
+- package-ecosystem: docker
+  directory: "/api"
+  schedule:
+    interval: weekly
+  commit-message:
+    prefix: "docker: api"
+- package-ecosystem: docker
+  directory: "/gateway"
+  schedule:
+    interval: weekly
+  commit-message:
+    prefix: "docker: gateway"
+- package-ecosystem: docker
+  directory: "/ui"
+  schedule:
+    interval: weekly
+  commit-message:
+    prefix: "docker: ui"
+- package-ecosystem: docker
+  directory: "/agent"
+  schedule:
+    interval: weekly
+  commit-message:
+    prefix: "docker: agent"
+- package-ecosystem: docker
+  directory: "/ssh"
+  schedule:
+    interval: weekly
+  commit-message:
+    prefix: "docker: ssh"
 - package-ecosystem: npm
   directory: "/ui"
   schedule:
