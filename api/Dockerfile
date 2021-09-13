@@ -38,9 +38,9 @@ ARG GOPROXY
 ENV GOPROXY ${GOPROXY}
 
 RUN apk add --update openssl build-base docker-cli
-RUN go get github.com/markbates/refresh && \
-    go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1 && \
-    go get github.com/vektra/mockery/v2/.../
+RUN go install github.com/markbates/refresh@v1.11.1 && \
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1 && \
+    go install github.com/vektra/mockery/v2/...@v2.9.2
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
