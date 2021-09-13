@@ -98,15 +98,15 @@ describe('DeviceDetails', () => {
       expect(wrapper.vm.dialogDelete).toEqual(false);
       expect(wrapper.vm.dialogError).toEqual(false);
     });
+    it('Process data in methods', () => {
+      wrapper.vm.receiveName('ShellHub');
+      expect(wrapper.vm.device.name).toEqual('ShellHub');
+    });
 
     //////
     // HTML validation
     //////
 
-    it('Process data in methods', () => {
-      wrapper.vm.receiveName('ShellHub');
-      expect(wrapper.vm.device.name).toEqual('ShellHub');
-    });
     it('Renders the template with components', () => {
       expect(wrapper.find('[data-test="deviceRename-component"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(true);
@@ -164,24 +164,24 @@ describe('DeviceDetails', () => {
       expect(wrapper.vm.dialogDelete).toEqual(false);
       expect(wrapper.vm.dialogError).toEqual(false);
     });
+    it('Process data in methods', () => {
+      wrapper.vm.receiveName('ShellHub');
+      expect(wrapper.vm.device.name).toEqual('ShellHub');
+    });
 
     //////
     // HTML validation
     //////
 
-    it('Process data in methods', () => {
-      wrapper.vm.receiveName('ShellHub');
-      expect(wrapper.vm.device.name).toEqual('ShellHub');
-    });
     it('Renders the template with components', () => {
       expect(wrapper.find('[data-test="deviceRename-component"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
     });
     it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(deviceOnline.uid);
-      expect(wrapper.find('[data-test="deviceMac-field"]').text()).toEqual(deviceOnline.identity.mac);
-      expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(deviceOnline.info.pretty_name);
+      expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(deviceOffline.uid);
+      expect(wrapper.find('[data-test="deviceMac-field"]').text()).toEqual(deviceOffline.identity.mac);
+      expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(deviceOffline.info.pretty_name);
       expect(wrapper.find('[data-test="deviceConvertDate-field"]').text()).toEqual('Wednesday, May 20th 2020, 6:58:53 pm');
     });
   });

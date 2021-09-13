@@ -182,17 +182,17 @@ describe('DeviceList', () => {
       expect(wrapper.vm.getListDevices).toEqual(devices);
       expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
     });
-
-    //////
-    // HTML validation
-    //////
-
     it('Process data in methods', () => {
       Object.keys(devices).forEach((device) => {
         const address = `${device.namespace}.${device.name}@localhost`;
         expect(wrapper.vm.address(device)).toEqual(address);
       });
     });
+
+    //////
+    // HTML validation
+    //////
+
     it('Renders the template with components', async () => {
       expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(true);
@@ -244,17 +244,17 @@ describe('DeviceList', () => {
       expect(wrapper.vm.getListDevices).toEqual(devicesOffline);
       expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
     });
-
-    //////
-    // HTML validation
-    //////
-
     it('Process data in methods', () => {
       Object.keys(devices).forEach((device) => {
         const address = `${device.namespace}.${device.name}@localhost`;
         expect(wrapper.vm.address(device)).toEqual(address);
       });
     });
+
+    //////
+    // HTML validation
+    //////
+
     it('Renders the template with components', async () => {
       expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(false);
