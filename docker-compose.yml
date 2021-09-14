@@ -78,7 +78,7 @@ services:
     networks:
       - shellhub
   mongo:
-    image: mongo:4.4.4
+    image: mongo:4.4.8
     restart: unless-stopped
     networks:
       - shellhub
