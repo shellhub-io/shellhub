@@ -164,6 +164,10 @@ upgrade_mongodb:
 				start_mongodb 4.4.8
 				;;
 			4.4*)
+				echo "Upgrading MongoDB from 4.4-series to 5.0-series..."
+				start_mongodb 5.0.6
+				;;
+			5.0*)
 				echo "MongoDB upgrade successful!"
 				break
 				;;
