@@ -10,7 +10,7 @@ import (
 type NamespaceStore interface {
 	NamespaceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error)
 	NamespaceGet(ctx context.Context, tenantID string) (*models.Namespace, error)
-	NamespaceGetByName(ctx context.Context, tenantID string) (*models.Namespace, error)
+	NamespaceGetByName(ctx context.Context, name string) (*models.Namespace, error)
 	NamespaceCreate(ctx context.Context, tenantID *models.Namespace) (*models.Namespace, error)
 	NamespaceRename(ctx context.Context, tenantID, name string) (*models.Namespace, error)
 	NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error
