@@ -69,6 +69,10 @@ export default {
           title: 'Private Keys',
           path: '/settings/private-keys',
         },
+        {
+          title: 'Tags',
+          path: '/settings/tags',
+        },
       ];
     },
   },

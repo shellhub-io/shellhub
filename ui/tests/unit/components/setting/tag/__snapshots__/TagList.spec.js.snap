@@ -1,0 +1,101 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TagList With Data Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-data-table theme--light" data-test="tagListList-dataTable">
+    <div class="v-data-table__wrapper">
+      <table>
+        <colgroup>
+          <col class="">
+          <col class="">
+        </colgroup>
+        <thead class="v-data-table-header">
+          <tr>
+            <th role="columnheader" scope="col" aria-label="Name: Not sorted. Activate to sort ascending." aria-sort="none" class="text-center sortable"><span>Name</span><i aria-hidden="true" class="v-icon notranslate v-data-table-header__icon mdi mdi-arrow-up theme--light" style="font-size: 18px;"></i></th>
+            <th role="columnheader" scope="col" aria-label="Actions" class="text-center"><span>Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="">
+            <td class="text-center">
+              tag1
+            </td>
+            <td class="text-center">
+              <fragment-stub data-test="tagFormDialog-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <div role="dialog" class="v-dialog__container">
+                  <!---->
+                </div>
+              </fragment-stub>
+              <fragment-stub data-test="tagDelete-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <div role="dialog" class="v-dialog__container">
+                  <!---->
+                </div>
+              </fragment-stub>
+            </td>
+          </tr>
+          <tr class="">
+            <td class="text-center">
+              tag2
+            </td>
+            <td class="text-center">
+              <fragment-stub data-test="tagFormDialog-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <div role="dialog" class="v-dialog__container">
+                  <!---->
+                </div>
+              </fragment-stub>
+              <fragment-stub data-test="tagDelete-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <div role="dialog" class="v-dialog__container">
+                  <!---->
+                </div>
+              </fragment-stub>
+            </td>
+          </tr>
+          <tr class="">
+            <td class="text-center">
+              tag3
+            </td>
+            <td class="text-center">
+              <fragment-stub data-test="tagFormDialog-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <div role="dialog" class="v-dialog__container">
+                  <!---->
+                </div>
+              </fragment-stub>
+              <fragment-stub data-test="tagDelete-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <div role="dialog" class="v-dialog__container">
+                  <!---->
+                </div>
+              </fragment-stub>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</fragment-stub>
+`;
+
+exports[`TagList Without Data Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-data-table theme--light" data-test="tagListList-dataTable">
+    <div class="v-data-table__wrapper">
+      <table>
+        <colgroup>
+          <col class="">
+          <col class="">
+        </colgroup>
+        <thead class="v-data-table-header">
+          <tr>
+            <th role="columnheader" scope="col" aria-label="Name: Not sorted. Activate to sort ascending." aria-sort="none" class="text-center sortable"><span>Name</span><i aria-hidden="true" class="v-icon notranslate v-data-table-header__icon mdi mdi-arrow-up theme--light" style="font-size: 18px;"></i></th>
+            <th role="columnheader" scope="col" aria-label="Actions" class="text-center"><span>Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="v-data-table__empty-wrapper">
+            <td colspan="2">No data available</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</fragment-stub>
+`;
