@@ -1886,6 +1886,33 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestGetNamespaceByName(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	err := mongostore.UserCreate(ctx, &models.User{
+		Name:     "user",
+		Email:    "user@shellhub.io",
+		Password: "password",
+	})
+	assert.NoError(t, err)
+	ns, err := mongostore.NamespaceCreate(ctx, &models.Namespace{
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []interface{}{"owner"},
+		MaxDevices: -1,
+	})
+	assert.NoError(t, err)
+
+	returnedNs, err := mongostore.NamespaceGetByName(ctx, "namespace")
+	assert.NoError(t, err)
+	assert.Equal(t, ns, returnedNs)
+}
+
 func TestLoadLicense(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
