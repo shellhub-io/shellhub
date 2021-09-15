@@ -23,6 +23,10 @@ describe('Settings', () => {
       title: 'Private Keys',
       path: '/settings/private-keys',
     },
+    {
+      title: 'Tags',
+      path: '/settings/tags',
+    },
   ];
 
   beforeEach(() => {

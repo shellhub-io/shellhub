@@ -142,6 +142,11 @@ const router = new Router({
           name: 'privateKeysSettings',
           component: () => import('@/components/setting/SettingPrivateKeys'),
         },
+        {
+          path: 'tags',
+          name: 'tagsSettings',
+          component: () => import('@/components/setting/SettingTags'),
+        },
       ],
     },
     {

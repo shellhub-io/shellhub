@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SettingTags Renders the component 1`] = `
+<fragment-stub>
+  <v-container-stub tag="div">
+    <v-row-stub tag="div" align="center" justify="center" class="mt-4 mb-4">
+      <v-col-stub sm="8" tag="div">
+        <v-card-stub loaderheight="4" tag="div" class="pb-0 elevation-0">
+          <div class="d-flex pa-0 align-center">
+            <v-spacer-stub></v-spacer-stub>
+            <v-spacer-stub></v-spacer-stub>
+          </div>
+        </v-card-stub>
+        <taglist-stub data-test="tagList-component"></taglist-stub>
+      </v-col-stub>
+    </v-row-stub>
+  </v-container-stub>
+</fragment-stub>
+`;

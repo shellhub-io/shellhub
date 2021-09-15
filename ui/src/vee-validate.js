@@ -34,6 +34,11 @@ extend('rfc1123', {
   message: 'You entered an invalid RFC1123 name',
 });
 
+extend('routeIdentifier', {
+  validate: (value) => !/\/|@|&|:/.test(value),
+  message: 'The name must not contain /, @, &, and :.',
+});
+
 extend('password', (value) => {
   if (value.length < 5 || value.length > 30) {
     return 'Your password should be 5-30 characters long';
@@ -51,6 +56,13 @@ extend('namespace', (value) => {
 extend('device', (value) => {
   if (value.length < 3 || value.length > 30) {
     return 'Your hostname should be 3-30 characters long';
+  }
+  return true;
+});
+
+extend('tag', (value) => {
+  if (value.length < 3 || value.length > 255) {
+    return 'Your tag should be 3-255 characters long';
   }
   return true;
 });

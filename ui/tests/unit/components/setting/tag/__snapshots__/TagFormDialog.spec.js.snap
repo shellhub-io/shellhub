@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TagFormDialog Dialog Edit Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`TagFormDialog Dialog create Renders the component 1`] = `
+<fragment-stub><button type="button" class="v-icon notranslate v-icon--link mdi mdi-tag theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`TagFormDialog Icon create Renders the component 1`] = `
+<fragment-stub><button type="button" class="v-icon notranslate v-icon--link mdi mdi-tag theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`TagFormDialog Icon edit Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
