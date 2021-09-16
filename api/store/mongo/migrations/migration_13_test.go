@@ -3,6 +3,7 @@ package migrations
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -10,6 +11,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 )
+
+// ConnectedDevice was removed from `pkg/models` so we need to define own type here.
+type connectedDevice struct {
+	UID      string    `json:"uid"`
+	TenantID string    `json:"tenant_id" bson:"tenant_id"`
+	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+	Status   string    `json:"status" bson:"status"`
+}
 
 func TestMigration13(t *testing.T) {
 	logrus.Info("Testing Migration 13 - Test the several changes on the collections")
@@ -39,11 +48,11 @@ func TestMigration13(t *testing.T) {
 
 	logrus.Info("Test if the uid in the connected_devices collection is not unique")
 
-	connectedDevice1 := models.ConnectedDevice{
+	connectedDevice1 := connectedDevice{
 		UID: "1",
 	}
 
-	connectedDevice2 := models.ConnectedDevice{
+	connectedDevice2 := connectedDevice{
 		UID: "1",
 	}
 
