@@ -20,14 +20,14 @@ export const fetchDevices = async (
   return http().get(query);
 };
 
-export const removeDevice = async (uid) => http().delete(`/devices/${uid}`);
+export const getDevice = async (uid) => http().get(`/devices/${uid}`);
 
 export const renameDevice = async (data) => http().patch(`/devices/${data.uid}`, { name: data.name });
-
-export const getDevice = async (uid) => http().get(`/devices/${uid}`);
 
 export const acceptDevice = async (uid) => http().patch(`/devices/${uid}/accept`);
 
 export const rejectDevice = async (uid) => http().patch(`/devices/${uid}/reject`);
 
 export const updateTag = async (data) => http().put(`/devices/${data.uid}/tags`, { tags: data.tags });
+
+export const removeDevice = async (uid) => http().delete(`/devices/${uid}`);
