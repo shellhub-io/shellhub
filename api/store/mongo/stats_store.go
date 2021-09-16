@@ -10,8 +10,7 @@ import (
 
 func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	query := []bson.M{
-		{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
-		{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
+		{"$count": "count"},
 	}
 
 	// Only match for the respective tenant if requested
@@ -26,10 +25,11 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	query = append([]bson.M{{
 		"$match": bson.M{
 			"status": "accepted",
+			"online": true,
 		},
 	}}, query...)
 
-	onlineDevices, err := aggregateCount(ctx, s.db.Collection("connected_devices"), query)
+	onlineDevices, err := aggregateCount(ctx, s.db.Collection("devices"), query)
 	if err != nil {
 		return nil, err
 	}
