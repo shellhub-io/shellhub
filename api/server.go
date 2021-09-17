@@ -153,6 +153,7 @@ func startServer() error {
 	publicAPI.GET(routes.ListTagURL, apicontext.Handler(handler.ListTag))
 	publicAPI.PUT(routes.UpdateTagURL, apicontext.Handler(handler.UpdateTag))
 	publicAPI.GET(routes.GetTagsURL, apicontext.Handler(handler.GetTags))
+	publicAPI.DELETE(routes.DeleteAllTagsURL, apicontext.Handler(handler.DeleteAllTags))
 
 	publicAPI.GET(routes.GetSessionsURL,
 		middlewares.Authorize(apicontext.Handler(handler.GetSessionList)))
