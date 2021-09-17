@@ -1176,3 +1176,73 @@ func TestUpdateTag(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
+
+func TestGetTags(t *testing.T) {
+	locator := &mocksGeoIp.Locator{}
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+
+	ctx := context.TODO()
+
+	device := &models.Device{UID: "uid", Namespace: "namespace", TenantID: "tenant", Tags: []string{"device1", "device2"}}
+	namespace := &models.Namespace{Name: "namespace", TenantID: "tenant"}
+
+	type Expected struct {
+		Tags  []string
+		Count int
+		Error error
+	}
+
+	cases := []struct {
+		name          string
+		requiredMocks func()
+		uid           models.UID
+		tenantID      string
+		expected      Expected
+	}{
+		{
+			name: "fail find the namespace",
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, ErrNotFound).Once()
+			},
+			tenantID: "not_found_tenant",
+			expected: Expected{
+				Tags:  nil,
+				Count: 0,
+				Error: ErrNotFound,
+			},
+		},
+		{
+			name: "successful get tags",
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("DeviceGetTags", ctx, "tenant").Return(device.Tags, len(device.Tags), nil).Once()
+			},
+			tenantID: device.TenantID,
+			expected: Expected{
+				Tags:  device.Tags,
+				Count: len(device.Tags),
+				Error: nil,
+			},
+		},
+	}
+
+	var returnedTags []string
+	var count int
+	var err error
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.requiredMocks()
+			switch tc.name {
+			case "fail find the namespace":
+				returnedTags, count, err = s.GetTags(ctx, "not_found_tenant")
+			case "successful get tags":
+				returnedTags, count, err = s.GetTags(ctx, "tenant")
+			}
+			assert.Equal(t, tc.expected, Expected{returnedTags, count, err})
+		})
+	}
+
+	mock.AssertExpectations(t)
+}

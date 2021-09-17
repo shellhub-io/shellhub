@@ -324,6 +324,36 @@ func (_m *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenant stri
 	return r0, r1
 }
 
+// DeviceGetTags provides a mock function with given fields: ctx, tenantID
+func (_m *Store) DeviceGetTags(ctx context.Context, tenantID string) ([]string, int, error) {
+	ret := _m.Called(ctx, tenantID)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
+		r0 = rf(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
+		r1 = rf(ctx, tenantID)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
+		r2 = rf(ctx, tenantID)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // DeviceList provides a mock function with given fields: ctx, pagination, filters, status, sort, order
 func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
 	ret := _m.Called(ctx, pagination, filters, status, sort, order)

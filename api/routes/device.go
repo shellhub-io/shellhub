@@ -23,6 +23,7 @@ const (
 	RenameTagURL     = "/devices/tags/:name"
 	ListTagURL       = "/devices/tags"
 	UpdateTagURL     = "/devices/:uid/tags"
+	GetTagsURL       = "/devices/tags"
 )
 
 const TenantIDHeader = "X-Tenant-ID"
@@ -286,4 +287,22 @@ func (h *Handler) UpdateTag(c apicontext.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, nil)
+}
+
+func (h *Handler) GetTags(c apicontext.Context) error {
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
+	}
+
+	tags, count, err := h.service.GetTags(c.Ctx(), tenant)
+	if err == services.ErrUnauthorized {
+		return c.NoContent(http.StatusForbidden)
+	} else if err != nil {
+		return err
+	}
+
+	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
+
+	return c.JSON(http.StatusOK, tags)
 }
