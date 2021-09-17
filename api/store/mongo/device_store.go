@@ -430,3 +430,14 @@ func (s *Store) DeviceUpdateTag(ctx context.Context, uid models.UID, tags []stri
 
 	return err
 }
+
+func (s *Store) DeviceGetTags(ctx context.Context, tenantID string) ([]string, int, error) {
+	tagList, err := s.db.Collection("devices").Distinct(ctx, "tags", bson.M{"tenant_id": tenantID})
+
+	tags := make([]string, len(tagList))
+	for i, v := range tagList {
+		tags[i] = fmt.Sprint(v)
+	}
+
+	return tags, len(tags), err
+}

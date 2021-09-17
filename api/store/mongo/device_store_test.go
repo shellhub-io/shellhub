@@ -734,3 +734,43 @@ func TestDeviceUpdateTag(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, d.Tags, tags)
 }
+
+func TestDeviceGetTags(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	device1 := models.Device{
+		UID:       "1",
+		Namespace: "namespace1",
+		TenantID:  "tenant1",
+		Tags: []string{
+			"device1",
+			"device5",
+			"device3",
+		},
+	}
+
+	device2 := models.Device{
+		UID:       "2",
+		Namespace: "namespace2",
+		TenantID:  "tenant2",
+		Tags: []string{
+			"device4",
+			"device5",
+			"device6",
+		},
+	}
+
+	_, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, &device1)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device2)
+	assert.NoError(t, err)
+
+	_, count, err := mongostore.DeviceGetTags(ctx, "tenant1")
+	assert.NoError(t, err)
+	assert.Equal(t, count, 3)
+}

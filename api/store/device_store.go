@@ -27,4 +27,5 @@ type DeviceStore interface {
 	DeviceRenameTag(ctx context.Context, tenantID string, currentTagName string, newTagName string) error
 	DeviceListTag(ctx context.Context) ([]string, int, error)
 	DeviceUpdateTag(ctx context.Context, uid models.UID, tags []string) error
+	DeviceGetTags(ctx context.Context, tenantID string) ([]string, int, error)
 }
