@@ -151,8 +151,8 @@ export default {
       context.commit('clearListDevices');
     },
 
-    updateTag: async (context, data) => {
-      await apiDevice.updateTag(data);
+    updateDeviceTag: async (context, data) => {
+      await apiDevice.updateDeviceTag(data);
     },
   },
 };
