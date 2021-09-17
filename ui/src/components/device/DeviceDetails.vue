@@ -236,7 +236,7 @@ export default {
 
       try {
         this.errorMsg = '';
-        await this.$store.dispatch('devices/updateTag', data);
+        await this.$store.dispatch('devices/updateDeviceTag', data);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceTagUpdate);
         this.oldList = newList;
       } catch (error) {
