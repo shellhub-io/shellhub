@@ -34,6 +34,7 @@ type DeviceService interface {
 	ListTag(ctx context.Context) ([]string, int, error)
 	UpdateTag(ctx context.Context, uid models.UID, tags []string) error
 	GetTags(ctx context.Context, tenant string) ([]string, int, error)
+	DeleteAllTags(ctx context.Context, tenant string, name string) error
 }
 
 func (s *service) HandleReports(ns *models.Namespace, uid models.UID, inc bool, device *models.Device) error {
@@ -331,6 +332,19 @@ func (s *service) GetTags(ctx context.Context, tenant string) ([]string, int, er
 	}
 
 	return s.store.DeviceGetTags(ctx, ns.TenantID)
+}
+
+func (s *service) DeleteAllTags(ctx context.Context, tenant string, name string) error {
+	ns, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil {
+		return err
+	}
+
+	if ns == nil {
+		return ErrNotFound
+	}
+
+	return s.store.DeviceDeleteAllTags(ctx, ns.TenantID, name)
 }
 
 func contains(s []string, name string) bool {

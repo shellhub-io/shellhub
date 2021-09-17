@@ -292,6 +292,20 @@ func (_m *Service) DeactivateSession(ctx context.Context, uid models.UID) error 
 	return r0
 }
 
+// DeleteAllTags provides a mock function with given fields: ctx, tenant, name
+func (_m *Service) DeleteAllTags(ctx context.Context, tenant string, name string) error {
+	ret := _m.Called(ctx, tenant, name)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, tenant, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteDevice provides a mock function with given fields: ctx, uid, tenant, ownerID
 func (_m *Service) DeleteDevice(ctx context.Context, uid models.UID, tenant string, ownerID string) error {
 	ret := _m.Called(ctx, uid, tenant, ownerID)

@@ -1246,3 +1246,57 @@ func TestGetTags(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
+
+func TestDeleteAllTags(t *testing.T) {
+	locator := &mocksGeoIp.Locator{}
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+
+	ctx := context.TODO()
+
+	device := &models.Device{UID: "uid", Namespace: "namespace", TenantID: "tenant", Tags: []string{"device1", "device2"}}
+	namespace := &models.Namespace{Name: "namespace", TenantID: "tenant"}
+
+	cases := []struct {
+		name          string
+		requiredMocks func()
+		uid           models.UID
+		tenantID      string
+		expected      error
+	}{
+		{
+			name: "fail find the namespace",
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, ErrNotFound).Once()
+			},
+			tenantID: "not_found_tenant",
+			expected: ErrNotFound,
+		},
+		{
+			name: "successful get tags",
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("DeviceDeleteAllTags", ctx, "tenant", "device1").Return(nil).Once()
+			},
+			tenantID: device.TenantID,
+			expected: nil,
+		},
+	}
+
+	var err error
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.requiredMocks()
+			switch tc.name {
+			case "fail find the namespace":
+				err = s.DeleteAllTags(ctx, "not_found_tenant", "device1")
+			case "successful get tags":
+				err = s.DeleteAllTags(ctx, "tenant", "device1")
+			}
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+
+	mock.AssertExpectations(t)
+}

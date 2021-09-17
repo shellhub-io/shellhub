@@ -24,6 +24,7 @@ const (
 	ListTagURL       = "/devices/tags"
 	UpdateTagURL     = "/devices/:uid/tags"
 	GetTagsURL       = "/devices/tags"
+	DeleteAllTagsURL = "/devices/tags/:name"
 )
 
 const TenantIDHeader = "X-Tenant-ID"
@@ -305,4 +306,19 @@ func (h *Handler) GetTags(c apicontext.Context) error {
 	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
 
 	return c.JSON(http.StatusOK, tags)
+}
+
+func (h *Handler) DeleteAllTags(c apicontext.Context) error {
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
+	}
+
+	if err := h.service.DeleteAllTags(c.Ctx(), tenant, c.Param("name")); err == services.ErrUnauthorized {
+		return c.NoContent(http.StatusForbidden)
+	} else if err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
 }

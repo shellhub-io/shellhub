@@ -441,3 +441,9 @@ func (s *Store) DeviceGetTags(ctx context.Context, tenantID string) ([]string, i
 
 	return tags, len(tags), err
 }
+
+func (s *Store) DeviceDeleteAllTags(ctx context.Context, tenantID string, name string) error {
+	_, err := s.db.Collection("devices").UpdateMany(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"tags": name}})
+
+	return err
+}
