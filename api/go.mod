@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/elazarl/goproxy v0.0.0-20210110162100-a92cc753f88e // indirect
-	github.com/go-redis/cache/v8 v8.4.2
+	github.com/go-redis/cache/v8 v8.4.3
 	github.com/go-redis/redis/v8 v8.11.3
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/snappy v0.0.3 // indirect
