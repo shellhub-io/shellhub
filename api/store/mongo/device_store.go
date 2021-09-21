@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	mongodriver "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -391,8 +392,24 @@ func (s *Store) DeviceDeleteTag(ctx context.Context, uid models.UID, tag string)
 	return err
 }
 
-func (s *Store) DeviceRenameTag(ctx context.Context, uid models.UID, currentTagName string, newTagName string) error {
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid, "tags": currentTagName}, bson.M{"$set": bson.M{"tags.$": newTagName}})
+func (s *Store) DeviceRenameTag(ctx context.Context, tenantID string, currentTagName string, newTagName string) error {
+	// Create a session to run the transaction.
+	session, err := s.db.Client().StartSession()
+	if err != nil {
+		return err
+	}
+	defer session.EndSession(ctx)
+
+	// Rename all devices tags inside a transaction.
+	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
+		if _, err := s.db.Collection("devices").UpdateMany(ctx,
+			bson.M{"tags": currentTagName, "tenant_id": tenantID},
+			bson.M{"$set": bson.M{"tags.$": newTagName}}); err != nil {
+			return nil, fromMongoError(err)
+		}
+
+		return nil, nil
+	})
 
 	return err
 }

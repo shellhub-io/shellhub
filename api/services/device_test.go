@@ -995,37 +995,25 @@ func TestRenameTag(t *testing.T) {
 
 	ctx := context.TODO()
 
-	device := &models.Device{UID: "uid", TenantID: "tenant", Tags: []string{"device3"}}
-
 	Err := errors.New("error")
 
 	cases := []struct {
 		name          string
 		requiredMocks func()
-		uid           models.UID
+		tenantID      string
 		expected      error
 	}{
 		{
-			name: invalidUID,
-			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID("invalid_uid")).Return(nil, ErrDeviceNotFound).Once()
-			},
-			uid:      "invalid_uid",
-			expected: ErrDeviceNotFound,
-		},
-		{
 			name:          invalidFormat,
 			requiredMocks: func() {},
-			uid:           models.UID(device.UID),
+			tenantID:      "tenant",
 			expected:      ErrInvalidFormat,
 		},
 		{
 			name: "successful rename a tag",
 			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
-				mock.On("DeviceRenameTag", ctx, models.UID(device.UID), "device3", "device1").Return(nil).Once()
+				mock.On("DeviceRenameTag", ctx, "tenant", "device3", "device1").Return(nil).Once()
 			},
-			uid:      models.UID(device.UID),
 			expected: nil,
 		},
 	}
@@ -1034,12 +1022,10 @@ func TestRenameTag(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
 			switch tc.name {
-			case invalidUID:
-				Err = s.RenameTag(ctx, "invalid_uid", "device1", "device3")
 			case invalidFormat:
-				Err = s.RenameTag(ctx, models.UID(device.UID), "device3", "de")
+				Err = s.RenameTag(ctx, "tenant", "device3", "de/@&:")
 			case "successful rename a tag":
-				Err = s.RenameTag(ctx, models.UID(device.UID), "device3", "device1")
+				Err = s.RenameTag(ctx, "tenant", "device3", "device1")
 			}
 			assert.Equal(t, tc.expected, Err)
 		})

@@ -826,13 +826,13 @@ func (_m *Service) RenameDevice(ctx context.Context, uid models.UID, name string
 	return r0
 }
 
-// RenameTag provides a mock function with given fields: ctx, uid, currentName, newName
-func (_m *Service) RenameTag(ctx context.Context, uid models.UID, currentName string, newName string) error {
-	ret := _m.Called(ctx, uid, currentName, newName)
+// RenameTag provides a mock function with given fields: ctx, tenantID, currentName, newName
+func (_m *Service) RenameTag(ctx context.Context, tenantID string, currentName string, newName string) error {
+	ret := _m.Called(ctx, tenantID, currentName, newName)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, string) error); ok {
-		r0 = rf(ctx, uid, currentName, newName)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenantID, currentName, newName)
 	} else {
 		r0 = ret.Error(0)
 	}
