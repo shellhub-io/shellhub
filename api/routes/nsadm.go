@@ -110,7 +110,7 @@ func (h *Handler) DeleteNamespace(c apicontext.Context) error {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
-			return c.String(http.StatusNotFound, err.Error())
+			return c.NoContent(http.StatusNotFound)
 		default:
 			return err
 		}
@@ -141,7 +141,7 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
-			return c.String(http.StatusNotFound, err.Error())
+			return c.NoContent(http.StatusNotFound)
 		default:
 			return err
 		}
@@ -170,11 +170,11 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrUserNotFound:
-			return c.String(http.StatusNotFound, err.Error())
+			return c.NoContent(http.StatusNotFound)
 		case services.ErrNamespaceNotFound:
-			return c.String(http.StatusNotFound, err.Error())
+			return c.NoContent(http.StatusNotFound)
 		case services.ErrDuplicateID:
-			return c.String(http.StatusConflict, err.Error())
+			return c.NoContent(http.StatusConflict)
 		default:
 			return err
 		}
@@ -202,11 +202,11 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
-			return c.String(http.StatusNotFound, err.Error())
+			return c.NoContent(http.StatusNotFound)
 		case services.ErrUserNotFound:
-			return c.String(http.StatusNotFound, err.Error())
+			return c.NoContent(http.StatusNotFound)
 		case services.ErrDuplicateID:
-			return c.String(http.StatusConflict, err.Error())
+			return c.NoContent(http.StatusConflict)
 		default:
 			return err
 		}
