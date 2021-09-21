@@ -444,13 +444,13 @@ func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, name string) 
 	return r0
 }
 
-// DeviceRenameTag provides a mock function with given fields: ctx, uid, currentTagName, newTagName
-func (_m *Store) DeviceRenameTag(ctx context.Context, uid models.UID, currentTagName string, newTagName string) error {
-	ret := _m.Called(ctx, uid, currentTagName, newTagName)
+// DeviceRenameTag provides a mock function with given fields: ctx, tenantID, currentTagName, newTagName
+func (_m *Store) DeviceRenameTag(ctx context.Context, tenantID string, currentTagName string, newTagName string) error {
+	ret := _m.Called(ctx, tenantID, currentTagName, newTagName)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, string) error); ok {
-		r0 = rf(ctx, uid, currentTagName, newTagName)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenantID, currentTagName, newTagName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -761,13 +761,13 @@ func (_m *Store) NamespaceGet(ctx context.Context, tenantID string) (*models.Nam
 	return r0, r1
 }
 
-// NamespaceGetByName provides a mock function with given fields: ctx, tenantID
-func (_m *Store) NamespaceGetByName(ctx context.Context, tenantID string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID)
+// NamespaceGetByName provides a mock function with given fields: ctx, name
+func (_m *Store) NamespaceGetByName(ctx context.Context, name string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, name)
 
 	var r0 *models.Namespace
 	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID)
+		r0 = rf(ctx, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -776,7 +776,7 @@ func (_m *Store) NamespaceGetByName(ctx context.Context, tenantID string) (*mode
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenantID)
+		r1 = rf(ctx, name)
 	} else {
 		r1 = ret.Error(1)
 	}

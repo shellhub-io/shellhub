@@ -20,7 +20,7 @@ const (
 	UpdateStatusURL  = "/devices/:uid/:status"
 	CreateTagURL     = "/devices/:uid/tags"
 	DeleteTagURL     = "/devices/:uid/tags/:name"
-	RenameTagURL     = "/devices/:uid/tags/:name"
+	RenameTagURL     = "/devices/tags/:name"
 	ListTagURL       = "/devices/tags"
 	UpdateTagURL     = "/devices/:uid/tags"
 )
@@ -222,21 +222,24 @@ func (h *Handler) DeleteTag(c apicontext.Context) error {
 
 func (h *Handler) RenameTag(c apicontext.Context) error {
 	var req struct {
-		NewName string `json:"new_name"`
+		Name string `json:"name"`
+	}
+
+	tenant := ""
+	if v := c.Tenant(); v != nil {
+		tenant = v.ID
 	}
 
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	if err := h.service.RenameTag(c.Ctx(), models.UID(c.Param("uid")), c.Param("name"), req.NewName); err != nil {
+	if err := h.service.RenameTag(c.Ctx(), tenant, c.Param("name"), req.Name); err != nil {
 		switch err {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrInvalidFormat:
 			return c.NoContent(http.StatusBadRequest)
-		case services.ErrMaxTagReached:
-			return c.NoContent(http.StatusForbidden)
 		case services.ErrNotFound:
 			return c.NoContent(http.StatusNotFound)
 		}
@@ -244,7 +247,7 @@ func (h *Handler) RenameTag(c apicontext.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) ListTag(c apicontext.Context) error {

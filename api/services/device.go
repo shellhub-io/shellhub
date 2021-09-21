@@ -30,7 +30,7 @@ type DeviceService interface {
 	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
 	CreateTag(ctx context.Context, uid models.UID, name string) error
 	DeleteTag(ctx context.Context, uid models.UID, name string) error
-	RenameTag(ctx context.Context, uid models.UID, currentName string, newName string) error
+	RenameTag(ctx context.Context, tenantID string, currentName string, newName string) error
 	ListTag(ctx context.Context) ([]string, int, error)
 	UpdateTag(ctx context.Context, uid models.UID, tags []string) error
 }
@@ -284,29 +284,12 @@ func (s *service) DeleteTag(ctx context.Context, uid models.UID, name string) er
 	return s.store.DeviceDeleteTag(ctx, uid, name)
 }
 
-func (s *service) RenameTag(ctx context.Context, uid models.UID, currentName string, newName string) error {
-	if _, err := validator.ValidateVar(newName, "required,min=3,max=255,alphanum,ascii"); err != nil {
-		return ErrInvalidFormat
-	}
-
-	device, err := s.store.DeviceGet(ctx, uid)
-	if err != nil {
+func (s *service) RenameTag(ctx context.Context, tenantID string, currentName string, newName string) error {
+	if err := validateTagName(newName); err != nil {
 		return err
 	}
 
-	if device == nil {
-		return ErrDeviceNotFound
-	}
-
-	if contains(device.Tags, newName) {
-		return ErrDuplicateTagName
-	}
-
-	if !contains(device.Tags, currentName) {
-		return ErrNotFound
-	}
-
-	return s.store.DeviceRenameTag(ctx, uid, currentName, newName)
+	return s.store.DeviceRenameTag(ctx, tenantID, currentName, newName)
 }
 
 func (s *service) ListTag(ctx context.Context) ([]string, int, error) {
