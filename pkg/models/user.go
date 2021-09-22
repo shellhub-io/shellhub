@@ -13,7 +13,7 @@ type User struct {
 	Username      string    `json:"username" bson:",omitempty" validate:"required,min=3,max=30,alphanum,ascii"`
 	Password      string    `json:"password" bson:",omitempty"`
 	Namespaces    int       `json:"namespaces" bson:"namespaces,omitempty"`
-	Authenticated bool      `json:"Authenticated"`
+	Authenticated bool      `json:"authenticated"`
 	CreatedAt     time.Time `json:"created_at" bson:"created_at"`
 	LastLogin     time.Time `json:"last_login" bson:"last_login"`
 }
