@@ -116,7 +116,7 @@ func (h *Handler) DeleteNamespace(c apicontext.Context) error {
 		}
 	}
 
-	return nil
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) EditNamespace(c apicontext.Context) error {
@@ -235,7 +235,7 @@ func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) GetSessionRecord(c apicontext.Context) error {

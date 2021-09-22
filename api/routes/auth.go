@@ -40,7 +40,7 @@ func (h *Handler) AuthRequest(c apicontext.Context) error {
 		c.Response().Header().Set("X-Username", claims.Username)
 		c.Response().Header().Set("X-ID", claims.ID)
 
-		return nil
+		return c.NoContent(http.StatusOK)
 	case "device":
 		var claims models.DeviceAuthClaims
 
@@ -51,7 +51,7 @@ func (h *Handler) AuthRequest(c apicontext.Context) error {
 		// Extract device UID from JWT
 		c.Response().Header().Set(api.DeviceUIDHeader, claims.UID)
 
-		return nil
+		return c.NoContent(http.StatusOK)
 	}
 
 	return echo.ErrUnauthorized
@@ -89,7 +89,7 @@ func (h *Handler) AuthUser(c apicontext.Context) error {
 	if err != nil {
 		switch err {
 		case svc.ErrForbidden:
-			return c.JSON(http.StatusForbidden, nil)
+			return c.NoContent(http.StatusForbidden)
 		default:
 			return echo.ErrUnauthorized
 		}

@@ -83,7 +83,7 @@ func (h *Handler) DeleteDevice(c apicontext.Context) error {
 		return err
 	}
 
-	return nil
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) RenameDevice(c apicontext.Context) error {
@@ -123,7 +123,7 @@ func (h *Handler) OfflineDevice(c apicontext.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) LookupDevice(c apicontext.Context) error {
@@ -177,7 +177,7 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) CreateTag(c apicontext.Context) error {
@@ -204,7 +204,7 @@ func (h *Handler) CreateTag(c apicontext.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) DeleteTag(c apicontext.Context) error {
@@ -219,7 +219,7 @@ func (h *Handler) DeleteTag(c apicontext.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) RenameTag(c apicontext.Context) error {
@@ -287,7 +287,7 @@ func (h *Handler) UpdateTag(c apicontext.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) GetTags(c apicontext.Context) error {
