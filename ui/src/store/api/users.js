@@ -31,8 +31,8 @@ export const patchUserData = async (data) => http().patch(`/users/${data.id}/dat
 });
 
 export const patchUserPassword = async (data) => http().patch(`/users/${data.id}/password`, {
-  currentPassword: data.currentPassword,
-  newPassword: data.newPassword,
+  current_password: data.currentPassword,
+  new_password: data.newPassword,
 });
 
 export const putSecurity = async (data) => http().put(`/users/security/${data.id}`, {
