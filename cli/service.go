@@ -152,6 +152,26 @@ func (s *service) UserDelete(data Arguments) error {
 		return ErrUserNotFound
 	}
 
+	info, err := s.store.UserDetachInfo(context.TODO(), usr.ID)
+	if err != nil {
+		return ErrNamespaceNotFound
+	}
+
+	ownedNamespaces := info["owner"]
+	memberNamespaces := info["member"]
+
+	for _, on := range ownedNamespaces {
+		if err := s.store.NamespaceDelete(context.TODO(), on.TenantID); err != nil {
+			return err
+		}
+	}
+
+	for _, mn := range memberNamespaces {
+		if _, err := s.store.NamespaceRemoveMember(context.TODO(), mn.TenantID, usr.ID); err != nil {
+			return err
+		}
+	}
+
 	if err := s.store.UserDelete(context.TODO(), usr.ID); err != nil {
 		return ErrFailedDeleteUser
 	}
