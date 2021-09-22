@@ -40,8 +40,8 @@ func (h *Handler) UpdateUserData(c apicontext.Context) error {
 
 func (h *Handler) UpdateUserPassword(c apicontext.Context) error {
 	var req struct {
-		CurrentPassword string `json:"currentPassword"`
-		NewPassword     string `json:"newPassword"`
+		CurrentPassword string `json:"current_password"`
+		NewPassword     string `json:"new_password"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return err
