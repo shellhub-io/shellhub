@@ -1,5 +1,7 @@
 import http from '@/store/helpers/http';
 
+export const postTag = async (data) => http().post(`/devices/${data.uid}/tags`, { name: data.name });
+
 export const fetchDevices = async (
   perPage,
   page,
