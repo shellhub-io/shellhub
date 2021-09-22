@@ -3,6 +3,7 @@
     <v-tooltip bottom>
       <template #activator="{ on }">
         <v-icon
+          class="ml-1"
           v-on="on"
           @click="open()"
         >

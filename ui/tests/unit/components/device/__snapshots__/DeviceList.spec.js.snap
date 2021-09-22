@@ -51,6 +51,11 @@ exports[`DeviceList Device online Renders the component 1`] = `
           user.39-5e-2a@localhost
           <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
               <td class="text-center"><button type="button" class="v-icon notranslate icons v-icon--link material-icons theme--light">info</button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <fragment-stub data-test="tagFormDialog-component"><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-tag theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
                 <!---->
                 <fragment-stub data-test="deviceDelete-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                   <div role="dialog" class="v-dialog__container">
@@ -85,7 +90,12 @@ exports[`DeviceList Device online Renders the component 1`] = `
           user.39-5e-2b@localhost
           <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
               <td class="text-center"><button type="button" class="v-icon notranslate icons v-icon--link material-icons theme--light">info</button><span class="v-tooltip v-tooltip--bottom"><!----></span>
-                <fragment-stub data-test="terminalDialog-component"><button type="button" class="v-icon notranslate v-icon--link mdi mdi-console theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <fragment-stub data-test="tagFormDialog-component"><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-tag theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="terminalDialog-component"><button type="button" class="v-icon notranslate ml-1 v-icon--link mdi mdi-console theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
                   <div role="dialog" class="v-dialog__container">
                     <!---->
                   </div>
@@ -103,10 +113,10 @@ exports[`DeviceList Device online Renders the component 1`] = `
       <div class="v-data-footer">
         <div class="v-data-footer__select">Rows per page:<div class="v-input v-input--hide-details v-input--is-label-active v-input--is-dirty theme--light v-text-field v-select">
             <div class="v-input__control">
-              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-119" class="v-input__slot">
+              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-139" class="v-input__slot">
                 <div class="v-select__slot">
                   <div class="v-select__selections">
-                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-119" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
+                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-139" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
                   </div>
                   <div class="v-input__append-inner">
                     <div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div>
@@ -179,6 +189,11 @@ exports[`DeviceList Device online Renders the component 2`] = `
           user.39-5e-2a@localhost
           <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
               <td class="text-center"><button type="button" class="v-icon notranslate icons v-icon--link material-icons theme--light">info</button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <fragment-stub data-test="tagFormDialog-component"><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-tag theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
                 <!---->
                 <fragment-stub data-test="deviceDelete-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                   <div role="dialog" class="v-dialog__container">
@@ -213,6 +228,11 @@ exports[`DeviceList Device online Renders the component 2`] = `
           user.39-5e-2b@localhost
           <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
               <td class="text-center"><button type="button" class="v-icon notranslate icons v-icon--link material-icons theme--light">info</button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                <fragment-stub data-test="tagFormDialog-component"><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-tag theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
                 <!---->
                 <fragment-stub data-test="deviceDelete-component"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                   <div role="dialog" class="v-dialog__container">
@@ -227,10 +247,10 @@ exports[`DeviceList Device online Renders the component 2`] = `
       <div class="v-data-footer">
         <div class="v-data-footer__select">Rows per page:<div class="v-input v-input--hide-details v-input--is-label-active v-input--is-dirty theme--light v-text-field v-select">
             <div class="v-input__control">
-              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-531" class="v-input__slot">
+              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-621" class="v-input__slot">
                 <div class="v-select__slot">
                   <div class="v-select__selections">
-                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-531" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
+                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-621" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
                   </div>
                   <div class="v-input__append-inner">
                     <div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div>

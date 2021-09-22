@@ -133,6 +133,13 @@
             <span>Details</span>
           </v-tooltip>
 
+          <TagFormDialog
+            action="create"
+            :uid="item.uid"
+            data-test="tagFormDialog-component"
+            @update="getDevices()"
+          />
+
           <TerminalDialog
             v-if="item.online"
             :uid="item.uid"
@@ -154,6 +161,7 @@
 import TerminalDialog from '@/components/terminal/TerminalDialog';
 import DeviceIcon from '@/components/device/DeviceIcon';
 import DeviceDelete from '@/components/device/DeviceDelete';
+import TagFormDialog from '@/components/setting/tag/TagFormDialog';
 import formatOrdering from '@/components/device/Device';
 import { lastSeen } from '@/components/filter/date';
 
@@ -164,6 +172,7 @@ export default {
     TerminalDialog,
     DeviceIcon,
     DeviceDelete,
+    TagFormDialog,
   },
 
   filters: { lastSeen },
