@@ -247,8 +247,8 @@ func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip stri
 }
 
 func (s *service) CreateTag(ctx context.Context, uid models.UID, name string) error {
-	if _, err := validator.ValidateVar(name, "required,min=3,max=255,alphanum,ascii"); err != nil {
-		return ErrInvalidFormat
+	if err := validateTagName(name); err != nil {
+		return err
 	}
 
 	device, err := s.store.DeviceGet(ctx, uid)
@@ -315,8 +315,8 @@ func (s *service) ListTag(ctx context.Context) ([]string, int, error) {
 
 func (s *service) UpdateTag(ctx context.Context, uid models.UID, tags []string) error {
 	for _, tag := range tags {
-		if _, err := validator.ValidateVar(tag, "required,min=3,max=255,alphanum,ascii"); err != nil {
-			return ErrInvalidFormat
+		if err := validateTagName(tag); err != nil {
+			return err
 		}
 	}
 
@@ -344,4 +344,12 @@ func contains(s []string, name string) bool {
 	}
 
 	return false
+}
+
+func validateTagName(tag string) error {
+	if _, err := validator.ValidateVar(tag, "required,min=3,max=255,alphanum,ascii,excludes=/@&:"); err != nil {
+		return ErrInvalidFormat
+	}
+
+	return nil
 }
