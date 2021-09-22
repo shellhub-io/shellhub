@@ -212,10 +212,22 @@ func TestDelUser(t *testing.T) {
 			expected: Expected{nil, ErrUserNotFound},
 		},
 		{
-			description: "Successfully delete the user",
+			description: "Successfully delete the user and associated data",
 			args:        data.Arguments,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, data.User.Username).Return(data.User, nil).Once()
+				ownerData := []*models.Namespace{{TenantID: "123"}, {TenantID: "124"}, {TenantID: "125"}}
+				memberData := []*models.Namespace{{TenantID: "126"}, {TenantID: "127"}, {TenantID: "128"}}
+				mock.On("UserDetachInfo", ctx, data.User.ID).Return(map[string][]*models.Namespace{
+					"owner":  ownerData,
+					"member": memberData,
+				}, nil)
+				for _, v := range ownerData {
+					mock.On("NamespaceDelete", ctx, v.TenantID).Return(nil).Once()
+				}
+				for _, v := range memberData {
+					mock.On("NamespaceRemoveMember", ctx, v.TenantID, data.User.ID).Return(nil, nil).Once()
+				}
 				mock.On("UserDelete", ctx, data.User.ID).Return(nil).Once()
 			},
 			expected: Expected{nil, nil},
