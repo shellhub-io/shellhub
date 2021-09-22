@@ -35,7 +35,7 @@ func (h *Handler) UpdateUserData(c apicontext.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) UpdateUserPassword(c apicontext.Context) error {
@@ -64,11 +64,11 @@ func (h *Handler) UpdateUserPassword(c apicontext.Context) error {
 	if err := h.service.UpdatePasswordUser(c.Ctx(), req.CurrentPassword, req.NewPassword, ID); err != nil {
 		switch {
 		case err == services.ErrUnauthorized:
-			return c.JSON(http.StatusForbidden, nil)
+			return c.NoContent(http.StatusForbidden)
 		default:
 			return err
 		}
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
