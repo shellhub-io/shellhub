@@ -9,7 +9,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	svc "github.com/shellhub-io/shellhub/api/services"
-	api "github.com/shellhub-io/shellhub/pkg/api/client"
+	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -49,7 +49,7 @@ func (h *Handler) AuthRequest(c apicontext.Context) error {
 		}
 
 		// Extract device UID from JWT
-		c.Response().Header().Set(api.DeviceUIDHeader, claims.UID)
+		c.Response().Header().Set(client.DeviceUIDHeader, claims.UID)
 
 		return c.NoContent(http.StatusOK)
 	}
