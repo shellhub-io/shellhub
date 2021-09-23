@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Login Is cloud Renders the component 1`] = `
+exports[`Login Renders the component 1`] = `
 <div class="layout grey lighten-4 align-center justify-center">
   <div class="flex xs12 sm8 md4">
     <div class="container">
@@ -24,7 +24,7 @@ exports[`Login Is cloud Renders the component 1`] = `
             </div>
             <div class="v-input__control">
               <div class="v-input__slot">
-                <div class="v-text-field__slot"><label for="input-27" class="v-label theme--light" style="left: 0px; position: absolute;">Username</label><input data-test="username-text" id="input-27" type="text"></div>
+                <div class="v-text-field__slot"><label for="input-24" class="v-label theme--light" style="left: 0px; position: absolute;">Username</label><input data-test="username-text" id="input-24" type="text"></div>
               </div>
               <div class="v-text-field__details">
                 <div class="v-messages theme--light">

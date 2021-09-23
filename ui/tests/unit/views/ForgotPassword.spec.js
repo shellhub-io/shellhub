@@ -3,14 +3,25 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import flushPromises from 'flush-promises';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import router from '@/router/index';
+import Router from 'vue-router';
 import ForgotPassword from '@/views/ForgotPassword';
 import '@/vee-validate';
 
+const router = new Router({
+  routes: [
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/Login'),
+    },
+  ],
+});
+
 describe('ForgotPassword', () => {
   const localVue = createLocalVue();
-  localVue.use(Vuex);
   const vuetify = new Vuetify();
+  localVue.use(Vuex);
+  localVue.use(Router);
 
   localVue.component('ValidationProvider', ValidationProvider);
   localVue.component('ValidationObserver', ValidationObserver);

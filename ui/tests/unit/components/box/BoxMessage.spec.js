@@ -74,14 +74,10 @@ describe('BoxMessage', () => {
     getters: {
     },
     actions: {
-      'boxs/setStatus': () => {
-      },
-      'firewallrules/refresh': () => {
-      },
-      'publickeys/refresh': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
+      'boxs/setStatus': () => {},
+      'firewallrules/refresh': () => {},
+      'publickeys/refresh': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 

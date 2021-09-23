@@ -2,29 +2,7 @@
 
 exports[`FirewallRuleDelete Dialog opened Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <div role="document" tabindex="0" class="v-dialog__content v-dialog__content--active" style="z-index: 202;">
-      <transition-stub name="dialog-transition" appear="true">
-        <div class="v-dialog v-dialog--active" style="transform-origin: center center; max-width: 400px;">
-          <div class="v-card v-sheet theme--light" data-test="firewallRuleDelete-card">
-            <div class="v-card__title headline grey lighten-2 text-center">
-              Are you sure?
-            </div>
-            <div class="v-card__text mt-4 mb-3 pb-1">
-              You are about to remove this firewall rule.
-            </div>
-            <div class="v-card__actions">
-              <div class="spacer"></div> <button type="button" class="v-btn v-btn--text theme--light v-size--default" data-test="cancel-btn"><span class="v-btn__content">
-          Close
-        </span></button> <button type="button" class="v-btn v-btn--text theme--light v-size--default red--text text--darken-1" data-test="remove-btn"><span class="v-btn__content">
-          Remove
-        </span></button>
-            </div>
-          </div>
-        </div>
-      </transition-stub>
-    </div>
-  </div>
+  <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 

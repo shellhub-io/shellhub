@@ -1,12 +1,19 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
 import FirewallRuleFormDialog from '@/components/firewall_rule/FirewallRuleFormDialog';
+import '@/vee-validate';
 
 describe('FirewallRuleFormDialog', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
   localVue.use(Vuex);
+  localVue.component('ValidationProvider', ValidationProvider);
+  localVue.component('ValidationObserver', ValidationObserver);
+
+  document.body.setAttribute('data-app', true);
 
   let wrapper;
 
@@ -56,7 +63,7 @@ describe('FirewallRuleFormDialog', () => {
   // the test is button rendering. Add firewall rule
   ///////
 
-  describe('Button', () => {
+  describe('Button add firewall rule', () => {
     beforeEach(() => {
       wrapper = mount(FirewallRuleFormDialog, {
         store,
@@ -106,7 +113,7 @@ describe('FirewallRuleFormDialog', () => {
   // the test is icon rendering. Editing firewall rule
   //////
 
-  describe('Button', () => {
+  describe('Icon editing firewall rule', () => {
     beforeEach(() => {
       wrapper = mount(FirewallRuleFormDialog, {
         store,
@@ -159,7 +166,7 @@ describe('FirewallRuleFormDialog', () => {
     });
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="add-btn"]').exists()).toEqual(false);
-      expect(wrapper.find('[firewallRuleForm-card]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="firewallRuleForm-card"]').exists()).toEqual(false);
     });
   });
 
@@ -168,8 +175,8 @@ describe('FirewallRuleFormDialog', () => {
   // the test is dialog rendering. Creating firewall rule
   ///////
 
-  describe('Button', () => {
-    beforeEach(() => {
+  describe('Dialog creating firewall rule', () => {
+    beforeEach(async () => {
       wrapper = mount(FirewallRuleFormDialog, {
         store,
         localVue,
@@ -179,6 +186,7 @@ describe('FirewallRuleFormDialog', () => {
       });
 
       wrapper.setData({ dialog: true });
+      await flushPromises();
     });
 
     ///////
@@ -222,17 +230,20 @@ describe('FirewallRuleFormDialog', () => {
   // the test is dialog rendering. Editing firewall rule
   //////
 
-  describe('Button', () => {
-    beforeEach(() => {
-      wrapper = mount(FirewallRuleFormDialog, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { firewallRule, createRule: !createRule },
-        vuetify,
-      });
+  describe('Dialog editing firewall rule', () => {
+    beforeEach(async () => {
+      beforeEach(async () => {
+        wrapper = mount(FirewallRuleFormDialog, {
+          store,
+          localVue,
+          stubs: ['fragment'],
+          propsData: { firewallRule, createRule: !createRule },
+          vuetify,
+        });
 
-      wrapper.setData({ dialog: true });
+        wrapper.setData({ dialog: true });
+        await flushPromises();
+      });
     });
 
     ///////

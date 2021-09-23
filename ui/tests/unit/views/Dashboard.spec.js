@@ -51,14 +51,10 @@ describe('Dashboard', () => {
       'namespaces/get': (state) => state.namespace,
     },
     actions: {
-      'stats/get': () => {
-      },
-      'namespaces/get': () => {
-      },
-      'auth/setShowWelcomeScreen': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
+      'stats/get': () => {},
+      'namespaces/get': () => {},
+      'auth/setShowWelcomeScreen': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
@@ -75,14 +71,10 @@ describe('Dashboard', () => {
       'namespaces/get': (state) => state.namespace,
     },
     actions: {
-      'stats/get': () => {
-      },
-      'namespaces/get': () => {
-      },
-      'auth/setShowWelcomeScreen': () => {
-      },
-      'snackbar/showSnackbarErrorLoading': () => {
-      },
+      'stats/get': () => {},
+      'namespaces/get': () => {},
+      'auth/setShowWelcomeScreen': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 

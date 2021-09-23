@@ -39,7 +39,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
             accept
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
-                  <div role="dialog" class="v-dialog__container" data-test="dialog-field">
+                  <div role="dialog" class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>
@@ -47,7 +47,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
             reject
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
-                  <div role="dialog" class="v-dialog__container" data-test="dialog-field">
+                  <div role="dialog" class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>
@@ -71,7 +71,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
             accept
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
-                  <div role="dialog" class="v-dialog__container" data-test="dialog-field">
+                  <div role="dialog" class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>
@@ -79,7 +79,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
             reject
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
-                  <div role="dialog" class="v-dialog__container" data-test="dialog-field">
+                  <div role="dialog" class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>
@@ -103,7 +103,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
             accept
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
-                  <div role="dialog" class="v-dialog__container" data-test="dialog-field">
+                  <div role="dialog" class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>
@@ -111,7 +111,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
             reject
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
-                  <div role="dialog" class="v-dialog__container" data-test="dialog-field">
+                  <div role="dialog" class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>
@@ -135,7 +135,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
             accept
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
-                  <div role="dialog" class="v-dialog__container" data-test="dialog-field">
+                  <div role="dialog" class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>
@@ -143,7 +143,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
             reject
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
-                  <div role="dialog" class="v-dialog__container" data-test="dialog-field">
+                  <div role="dialog" class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>

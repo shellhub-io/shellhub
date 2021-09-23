@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TerminalDialog Dialog opened Renders the component 1`] = `
-<fragment-stub><button type="button" class="v-icon notranslate v-icon--link mdi mdi-console theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+<fragment-stub><button type="button" class="v-icon notranslate ml-1 v-icon--link mdi mdi-console theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
 exports[`TerminalDialog Icon Renders the component 1`] = `
-<fragment-stub><button type="button" class="v-icon notranslate v-icon--link mdi mdi-console theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
+<fragment-stub><button type="button" class="v-icon notranslate ml-1 v-icon--link mdi mdi-console theme--light"></button><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
     <!---->
   </div>

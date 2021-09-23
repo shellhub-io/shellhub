@@ -1,11 +1,13 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
+import Router from 'vue-router';
 import AppBar from '@/components/app_bar/AppBar';
-import router from '@/router/index';
 
 describe('AppBar', () => {
   const localVue = createLocalVue();
+  const router = new Router();
   localVue.use(Vuex);
+  localVue.use(Router);
 
   let wrapper;
 
@@ -46,8 +48,7 @@ describe('AppBar', () => {
       'mobile/isMobile': (state) => state.isMobile,
     },
     actions: {
-      'auth/logout': () => {
-      },
+      'auth/logout': () => {},
     },
   });
 

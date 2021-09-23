@@ -1,5 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`FirewallRule With firewall rules Renders the component 1`] = `
+<fragment-stub>
+  <div class="d-flex pa-0 align-center">
+    <h1>Firewall Rules</h1> <button type="button" class="ml-2 v-btn v-btn--icon v-btn--round theme--light v-size--x-small"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-help-circle theme--light"></i></span></button>
+    <div class="spacer"></div>
+    <div class="spacer"></div>
+    <fragment-stub data-test="firewallRuleCreate-component">
+      <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Rule
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      <div role="dialog" class="v-dialog__container">
+        <!---->
+      </div>
+    </fragment-stub>
+  </div>
+  <!---->
+  <div class="mt-2 v-card v-sheet theme--light"></div>
+</fragment-stub>
+`;
+
 exports[`FirewallRule Without firewall rules Renders the component 1`] = `
 <fragment-stub>
   <div class="d-flex pa-0 align-center">
@@ -53,30 +73,7 @@ exports[`FirewallRule Without firewall rules Renders the component 1`] = `
 </fragment-stub>
 `;
 
-exports[`FirewallRule Without firewall rules Renders the component 2`] = `
-<fragment-stub>
-  <div class="d-flex pa-0 align-center">
-    <h1>Firewall Rules</h1> <button type="button" class="ml-2 v-btn v-btn--icon v-btn--round theme--light v-size--x-small"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-help-circle theme--light"></i></span></button>
-    <div class="spacer"></div>
-    <div class="spacer"></div>
-    <fragment-stub data-test="firewallRuleCreate-component">
-      <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
-          Add Rule
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-      <div role="dialog" class="v-dialog__container">
-        <!---->
-      </div>
-    </fragment-stub>
-  </div>
-  <!---->
-  <div class="mt-2 v-card v-sheet theme--light">
-    <router-view></router-view>
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`FirewallRule Without firewall rules Renders the component 3`] = `
+exports[`FirewallRule Without firewall rules logout Renders the component 1`] = `
 <fragment-stub>
   <div class="d-flex pa-0 align-center">
     <h1>Firewall Rules</h1> <button type="button" class="ml-2 v-btn v-btn--icon v-btn--round theme--light v-size--x-small"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-help-circle theme--light"></i></span></button>

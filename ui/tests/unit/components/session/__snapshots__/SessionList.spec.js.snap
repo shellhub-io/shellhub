@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DeviceAdd Renders the component 1`] = `
+exports[`SessionList Renders the component 1`] = `
 <fragment-stub>
   <div class="v-card__text pa-0">
     <div class="v-data-table v-data-table--has-bottom theme--light" data-test="dataTable-field">

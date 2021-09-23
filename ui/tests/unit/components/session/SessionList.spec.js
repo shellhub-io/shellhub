@@ -3,7 +3,7 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import SessionList from '@/components/session/SessionList';
 
-describe('DeviceAdd', () => {
+describe('SessionList', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
 
@@ -44,7 +44,7 @@ describe('DeviceAdd', () => {
       authenticated: false,
     },
     {
-      uid: '8c354a00',
+      uid: '8c354a01',
       device_uid: 'a582b47a',
       device: {
         uid: 'a582b47a',
@@ -128,10 +128,8 @@ describe('DeviceAdd', () => {
       'sessions/getNumberSessions': (state) => state.numberSessions,
     },
     actions: {
-      'sessions/fetch': () => {
-      },
-      'sessions/close': () => {
-      },
+      'sessions/fetch': () => {},
+      'sessions/close': () => {},
     },
   });
 

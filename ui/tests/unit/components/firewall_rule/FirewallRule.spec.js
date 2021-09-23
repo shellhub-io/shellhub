@@ -1,12 +1,21 @@
 import Vuex from 'vuex';
-import { mount, createLocalVue } from '@vue/test-utils';
+import { mount, createLocalVue, config } from '@vue/test-utils';
 import Vuetify from 'vuetify';
+import Router from 'vue-router';
 import FirewallRule from '@/components/firewall_rule/FirewallRule';
+
+config.mocks = {
+  $env: {
+    isCloud: true,
+  },
+};
 
 describe('FirewallRule', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
+  const router = new Router();
   localVue.use(Vuex);
+  localVue.use(Router);
 
   let wrapper;
 
@@ -79,6 +88,7 @@ describe('FirewallRule', () => {
         store: storeWithoutFirewalls,
         localVue,
         stubs: ['fragment'],
+        router,
         vuetify,
       });
     });
@@ -122,12 +132,13 @@ describe('FirewallRule', () => {
   // firewall.
   ///////
 
-  describe('Without firewall rules', () => {
+  describe('With firewall rules', () => {
     beforeEach(() => {
       wrapper = mount(FirewallRule, {
         store: storeWithFirewalls,
         localVue,
         stubs: ['fragment'],
+        router,
         vuetify,
       });
     });
@@ -170,12 +181,13 @@ describe('FirewallRule', () => {
   // For this, the show variable must be false.
   ///////
 
-  describe('Without firewall rules', () => {
+  describe('Without firewall rules logout', () => {
     beforeEach(() => {
       wrapper = mount(FirewallRule, {
         store: storeWithoutFirewallsLogout,
         localVue,
         stubs: ['fragment'],
+        router,
         vuetify,
       });
     });

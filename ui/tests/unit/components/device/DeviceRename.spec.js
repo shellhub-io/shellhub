@@ -38,12 +38,9 @@ describe('DeviceRename', () => {
       'devices/get': (state) => state.device,
     },
     actions: {
-      'devices/rename': () => {
-      },
-      'snackbar/showSnackbarSuccessAction': () => {
-      },
-      'snackbar/showSnackbarErrorAction': () => {
-      },
+      'devices/rename': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
     },
   });
 
