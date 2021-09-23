@@ -1,5 +1,6 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue, config } from '@vue/test-utils';
+import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
 import SessionPlay from '@/components/session/SessionPlay';
 
@@ -21,6 +22,7 @@ describe('SessionPlay', () => {
   const isOwner = true;
   const recorded = true;
   const speedList = [0.5, 1, 1.5, 2, 4];
+  const sessionUid = '1a0536ab';
 
   const session = [
     {
@@ -44,8 +46,7 @@ describe('SessionPlay', () => {
       'sessions/get': (state) => state.session,
     },
     actions: {
-      'sessions/getLogSession': () => {
-      },
+      'sessions/getLogSession': () => {},
     },
   });
 
@@ -60,7 +61,7 @@ describe('SessionPlay', () => {
         store,
         localVue,
         stubs: ['fragment'],
-        propsData: { uid: session.uid, recorded },
+        propsData: { uid: sessionUid, recorded },
         mocks: ['$env'],
         vuetify,
       });
@@ -82,7 +83,7 @@ describe('SessionPlay', () => {
     //////
 
     it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(session.uid);
+      expect(wrapper.vm.uid).toEqual(sessionUid);
       expect(wrapper.vm.recorded).toEqual(recorded);
     });
     it('Compare data with default value', () => {
@@ -133,17 +134,20 @@ describe('SessionPlay', () => {
   ///////
 
   describe('Dialog opened', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       wrapper = mount(SessionPlay, {
         store,
         localVue,
         stubs: ['fragment'],
-        propsData: { uid: session.uid, recorded },
+        propsData: { uid: sessionUid, recorded },
         mocks: ['$env'],
         vuetify,
       });
 
+      wrapper.setData({ logs: session });
+
       wrapper.setData({ dialog: true });
+      await flushPromises();
     });
 
     ///////
@@ -162,7 +166,7 @@ describe('SessionPlay', () => {
     //////
 
     it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(session.uid);
+      expect(wrapper.vm.uid).toEqual(sessionUid);
       expect(wrapper.vm.recorded).toEqual(recorded);
     });
     it('Compare data with default value', () => {
@@ -170,19 +174,19 @@ describe('SessionPlay', () => {
       expect(wrapper.vm.currentTime).toEqual(0);
       expect(wrapper.vm.totalLength).toEqual(0);
       expect(wrapper.vm.endTimerDisplay).toEqual(0);
-      expect(wrapper.vm.getTimerNow).toEqual(0);
+      expect(wrapper.vm.getTimerNow).toEqual('00:00');
       expect(wrapper.vm.paused).toEqual(false);
       expect(wrapper.vm.previousPause).toEqual(false);
       expect(wrapper.vm.sliderChange).toEqual(false);
       expect(wrapper.vm.speedList).toEqual(speedList);
-      expect(wrapper.vm.logs).toEqual([]);
+      expect(wrapper.vm.logs).toEqual(session);
       expect(wrapper.vm.frames).toEqual([]);
       expect(wrapper.vm.defaultSpeed).toEqual(1);
       expect(wrapper.vm.transition).toEqual(false);
     });
     it('Process data in the computed', () => {
-      expect(wrapper.vm.length).toEqual(0);
-      expect(wrapper.vm.nowTimerDisplay).toEqual(0);
+      expect(wrapper.vm.length).toEqual(1);
+      expect(wrapper.vm.nowTimerDisplay).toEqual('00:00');
       expect(wrapper.vm.isOwner).toEqual(true);
     });
 
@@ -201,13 +205,13 @@ describe('SessionPlay', () => {
   // not the owner.
   ///////
 
-  describe('Dialog opened', () => {
+  describe('Dialog opened is not owner', () => {
     beforeEach(() => {
       wrapper = mount(SessionPlay, {
         store,
         localVue,
         stubs: ['fragment'],
-        propsData: { uid: session.uid, recorded },
+        propsData: { uid: sessionUid, recorded },
         mocks: {
           $env: {
             isEnterprise: false,
@@ -235,7 +239,7 @@ describe('SessionPlay', () => {
     //////
 
     it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(session.uid);
+      expect(wrapper.vm.uid).toEqual(sessionUid);
       expect(wrapper.vm.recorded).toEqual(recorded);
     });
     it('Compare data with default value', () => {

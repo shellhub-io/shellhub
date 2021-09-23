@@ -53,7 +53,8 @@ describe('MaxDevice', () => {
     getters: {
       'namespaces/get': (state) => state.namespace,
     },
-    actions: {},
+    actions: {
+    },
   });
 
   ///////

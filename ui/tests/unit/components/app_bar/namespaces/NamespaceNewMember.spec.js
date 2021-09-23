@@ -20,13 +20,14 @@ describe('NamespaceNewMember', () => {
 
   const store = new Vuex.Store({
     namespaced: true,
+    state: {
+    },
+    getters: {
+    },
     actions: {
-      'namespaces/adduser': () => {
-      },
-      'snackbar/showSnackbarSuccessAction': () => {
-      },
-      'snackbar/showSnackbarErrorAction': () => {
-      },
+      'namespaces/adduser': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
     },
   });
 
@@ -85,7 +86,7 @@ describe('NamespaceNewMember', () => {
   // In this case, the focus of the test is dialog rendering.
   ///////
 
-  describe('Button', () => {
+  describe('Dialog', () => {
     beforeEach(() => {
       wrapper = mount(NamespaceNewMember, {
         store,
@@ -129,7 +130,7 @@ describe('NamespaceNewMember', () => {
     //////
 
     it('Show validation messages', async () => {
-      wrapper.setData({ namespaceName: '' });
+      wrapper.setData({ username: '' });
       await flushPromises();
 
       const validator = wrapper.vm.$refs.providerUsername;

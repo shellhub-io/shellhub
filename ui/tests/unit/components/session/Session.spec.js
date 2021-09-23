@@ -1,12 +1,21 @@
 import Vuex from 'vuex';
-import { mount, createLocalVue } from '@vue/test-utils';
+import { mount, createLocalVue, config } from '@vue/test-utils';
 import Vuetify from 'vuetify';
+import Router from 'vue-router';
 import Session from '@/components/session/Session';
+
+config.mocks = {
+  $env: {
+    isCloud: true,
+  },
+};
 
 describe('Session', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
+  const router = new Router();
   localVue.use(Vuex);
+  localVue.use(Router);
 
   let wrapper;
 
@@ -80,6 +89,7 @@ describe('Session', () => {
         localVue,
         stubs: ['fragment'],
         vuetify,
+        router,
       });
     });
 
@@ -127,6 +137,7 @@ describe('Session', () => {
         localVue,
         stubs: ['fragment'],
         vuetify,
+        router,
       });
     });
 
@@ -167,13 +178,14 @@ describe('Session', () => {
   // For this, the show variable must be false.
   ///////
 
-  describe('Without sessions', () => {
+  describe('Without sessions Logout', () => {
     beforeEach(() => {
       wrapper = mount(Session, {
         store: storeWithoutSessionsLogout,
         localVue,
         stubs: ['fragment'],
         vuetify,
+        router,
       });
     });
 

@@ -1,12 +1,14 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
+import Router from 'vue-router';
 import App from '@/App';
-import router from '@/router/index';
 
 describe('App', () => {
   const localVue = createLocalVue();
+  const router = new Router();
   localVue.use(Vuex);
+  localVue.use(Router);
   const vuetify = new Vuetify();
 
   let wrapper;
@@ -28,12 +30,9 @@ describe('App', () => {
       'mobile/isMobile': (state) => state.isMobile,
     },
     actions: {
-      'auth/logout': () => {
-      },
-      'privatekeys/fetch': () => {
-      },
-      'mobile/setIsMobileStatus': () => {
-      },
+      'auth/logout': () => {},
+      'privatekeys/fetch': () => {},
+      'mobile/setIsMobileStatus': () => {},
     },
   });
 

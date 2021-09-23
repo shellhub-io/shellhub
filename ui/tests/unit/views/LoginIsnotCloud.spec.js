@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue, config } from '@vue/test-utils';
 import Vuetify from 'vuetify';
+import Router from 'vue-router';
 import Login from '@/views/Login';
-import router from '@/router/index';
 
 config.mocks = {
   $env: {
@@ -10,10 +10,26 @@ config.mocks = {
   },
 };
 
+const router = new Router({
+  routes: [
+    {
+      path: '/sign-up',
+      name: 'signUp',
+      component: () => import('@/views/SignUp'),
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgotPassword',
+      component: () => import('@/views/ForgotPassword'),
+    },
+  ],
+});
+
 describe('Login', () => {
   const localVue = createLocalVue();
-  localVue.use(Vuex);
   const vuetify = new Vuetify();
+  localVue.use(Vuex);
+  localVue.use(Router);
 
   let wrapper;
 
@@ -40,55 +56,48 @@ describe('Login', () => {
     },
   });
 
-  describe('Is cloud', () => {
-    beforeEach(() => {
-      wrapper = mount(Login, {
-        store,
-        localVue,
-        router,
-        mocks: {
-          $route: {
-            query: {},
-          },
-        },
-        vuetify,
-      });
+  beforeEach(() => {
+    wrapper = mount(Login, {
+      store,
+      localVue,
+      router,
+      vuetify,
     });
+  });
 
-    ///////
-    // Component Rendering
-    //////
+  ///////
+  // Component Rendering
+  //////
 
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
+  it('Is a Vue instance', () => {
+    expect(wrapper).toBeTruthy();
+  });
+  it('Renders the component', () => {
+    expect(wrapper.html()).toMatchSnapshot();
+  });
 
-    ///////
-    // Data and Props checking
-    //////
+  ///////
+  // Data and Props checking
+  //////
 
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.username).toEqual('');
-      expect(wrapper.vm.password).toEqual('');
-      expect(wrapper.vm.error).toEqual(false);
-    });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.username).toEqual('');
+    expect(wrapper.vm.password).toEqual('');
+    expect(wrapper.vm.error).toEqual(false);
+  });
 
-    //////
-    // HTML validation
-    //////
+  //////
+  // HTML validation
+  //////
 
-    it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="accountCreated-component"]').exists()).toEqual(false);
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="username-text"]').element.value).toEqual('');
-      expect(wrapper.find('[data-test="password-text"]').element.value).toEqual('');
-      expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(false);
-      expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(false);
-    });
+  it('Renders the template with components', () => {
+    expect(wrapper.find('[data-test="accountCreated-component"]').exists()).toEqual(false);
+  });
+  it('Renders the template with data', () => {
+    expect(wrapper.find('[data-test="username-text"]').element.value).toEqual('');
+    expect(wrapper.find('[data-test="password-text"]').element.value).toEqual('');
+    expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(false);
   });
 });

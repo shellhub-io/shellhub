@@ -1,11 +1,15 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
+import Vuetify from 'vuetify';
+import Router from 'vue-router';
 import ValidationAccount from '@/views/ValidationAccount';
-import router from '@/router/index';
 
 describe('ValidationAccount', () => {
   const localVue = createLocalVue();
+  const vuetify = new Vuetify();
+  const router = new Router();
   localVue.use(Vuex);
+  localVue.use(Router);
 
   let wrapper;
 
@@ -27,6 +31,17 @@ describe('ValidationAccount', () => {
       stubs: ['fragment'],
       localVue,
       router,
+      vuetify,
+      mocks: {
+        $success: {
+          validationAccount: 'validation account',
+        },
+        $errors: {
+          snackbar: {
+            validationAccount: 'validation account',
+          },
+        },
+      },
     });
   });
 

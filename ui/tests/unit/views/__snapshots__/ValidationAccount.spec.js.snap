@@ -12,7 +12,7 @@ exports[`ValidationAccount Renders the component 1`] = `
     </v-container-stub>
     <v-card-stub loaderheight="4" tag="div" color="transparent" data-test="accountCreated-card" class="elevation-0">
       <v-card-title-stub class="justify-center">
-        Verification Success
+        Verification Account
       </v-card-title-stub>
       <v-card-text-stub class="d-flex align-center justify-center">
         Congrats and welcome to ShellHub.

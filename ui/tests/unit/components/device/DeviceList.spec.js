@@ -138,16 +138,11 @@ describe('DeviceList', () => {
       'devices/getNumberDevices': (state) => state.numberDevices,
     },
     actions: {
-      'modals/showAddDevice': () => {
-      },
-      'devices/fetch': () => {
-      },
-      'devices/rename': () => {
-      },
-      'devices/resetListDevices': () => {
-      },
-      'stats/get': () => {
-      },
+      'modals/showAddDevice': () => {},
+      'devices/fetch': () => {},
+      'devices/rename': () => {},
+      'devices/resetListDevices': () => {},
+      'stats/get': () => {},
     },
   });
 

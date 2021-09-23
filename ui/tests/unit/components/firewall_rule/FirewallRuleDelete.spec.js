@@ -8,6 +8,8 @@ describe('FirewallRuleDelete', () => {
   const vuetify = new Vuetify();
   localVue.use(Vuex);
 
+  document.body.setAttribute('data-app', true);
+
   let wrapper;
 
   const isOwner = true;

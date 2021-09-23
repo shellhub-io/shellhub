@@ -4,8 +4,8 @@ import Vuetify from 'vuetify';
 import flushPromises from 'flush-promises';
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
 import { required, email } from 'vee-validate/dist/rules';
+import Router from 'vue-router';
 import SignUp from '@/views/SignUp';
-import router from '@/router/index';
 import '@/vee-validate';
 
 extend('required', {
@@ -26,10 +26,21 @@ const newUser = {
   confirmPassword: '',
 };
 
+const router = new Router({
+  routes: [
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/Login'),
+    },
+  ],
+});
+
 describe('SignUp', () => {
   const localVue = createLocalVue();
-  localVue.use(Vuex);
   const vuetify = new Vuetify();
+  localVue.use(Vuex);
+  localVue.use(Router);
 
   localVue.component('ValidationProvider', ValidationProvider);
   localVue.component('ValidationObserver', ValidationObserver);
@@ -42,10 +53,8 @@ describe('SignUp', () => {
     getters: {
     },
     actions: {
-      'users/signUp': () => {
-      },
-      'snackbar/showSnackbarErrorAction': () => {
-      },
+      'users/signUp': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
     },
   });
 

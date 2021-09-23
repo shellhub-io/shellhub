@@ -44,9 +44,8 @@
     <v-dialog
       v-model="dialog"
       max-width="400"
-      data-test="dialog-field"
     >
-      <v-card>
+      <v-card data-test="deviceActionButton-card">
         <v-card-title class="headline grey lighten-2 text-center">
           Are you sure?
         </v-card-title>
@@ -62,6 +61,7 @@
 
           <v-btn
             text
+            data-test="cancel-btn"
             @click="dialog=!dialog"
           >
             Cancel

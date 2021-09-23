@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue, config } from '@vue/test-utils';
 import Vuetify from 'vuetify';
+import Router from 'vue-router';
 import Login from '@/views/Login';
-import router from '@/router/index';
 
 config.mocks = {
   $env: {
@@ -10,10 +10,26 @@ config.mocks = {
   },
 };
 
+const router = new Router({
+  routes: [
+    {
+      path: '/sign-up',
+      name: 'signUp',
+      component: () => import('@/views/SignUp'),
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgotPassword',
+      component: () => import('@/views/ForgotPassword'),
+    },
+  ],
+});
+
 describe('Login', () => {
   const localVue = createLocalVue();
-  localVue.use(Vuex);
   const vuetify = new Vuetify();
+  localVue.use(Vuex);
+  localVue.use(Router);
 
   let wrapper;
 
@@ -44,17 +60,13 @@ describe('Login', () => {
   // In this case, the login screen appears to enter the data.
   //////
 
-  describe('Is cloud', () => {
+  describe('Account has been activated', () => {
     beforeEach(() => {
       wrapper = mount(Login, {
         store,
         localVue,
+        stubs: ['fragment'],
         router,
-        mocks: {
-          $route: {
-            query: {},
-          },
-        },
         vuetify,
       });
     });
@@ -101,17 +113,13 @@ describe('Login', () => {
   // In this case, user tries to login but your account has not been activated.
   //////
 
-  describe('Is cloud', () => {
+  describe('Account has not been activated', () => {
     beforeEach(() => {
       wrapper = mount(Login, {
         store,
         localVue,
+        stubs: ['fragment'],
         router,
-        mocks: {
-          $route: {
-            query: {},
-          },
-        },
         vuetify,
       });
 

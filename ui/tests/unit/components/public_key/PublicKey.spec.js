@@ -1,12 +1,21 @@
 import Vuex from 'vuex';
-import { mount, createLocalVue } from '@vue/test-utils';
+import { mount, createLocalVue, config } from '@vue/test-utils';
 import Vuetify from 'vuetify';
+import Router from 'vue-router';
 import publicKey from '@/components/public_key/PublicKey';
 
-describe('Session', () => {
+config.mocks = {
+  $env: {
+    isCloud: true,
+  },
+};
+
+describe('PublicKey', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
+  const router = new Router();
   localVue.use(Vuex);
+  localVue.use(Router);
 
   let wrapper;
 
@@ -80,6 +89,7 @@ describe('Session', () => {
         localVue,
         stubs: ['fragment'],
         vuetify,
+        router,
       });
     });
 
@@ -121,13 +131,14 @@ describe('Session', () => {
   // public key.
   ///////
 
-  describe('Without public key', () => {
+  describe('With public key', () => {
     beforeEach(() => {
       wrapper = mount(publicKey, {
         store: storeWithPublickeys,
         localVue,
         stubs: ['fragment'],
         vuetify,
+        router,
       });
     });
 
@@ -169,13 +180,14 @@ describe('Session', () => {
   // For this, the show variable must be false.
   ///////
 
-  describe('Without public key', () => {
+  describe('Without public key logout', () => {
     beforeEach(() => {
       wrapper = mount(publicKey, {
         store: storeWithoutPublickeysLogout,
         localVue,
         stubs: ['fragment'],
         vuetify,
+        router,
       });
     });
 

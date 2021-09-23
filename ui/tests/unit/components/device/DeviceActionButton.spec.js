@@ -12,6 +12,7 @@ describe('DeviceActionButton', () => {
   let wrapper;
 
   const isOwner = true;
+  const isActive = true;
   const uid = '';
   let notificationStatus = true;
   let action = 'accept';
@@ -20,9 +21,11 @@ describe('DeviceActionButton', () => {
     namespaced: true,
     state: {
       isOwner,
+      isActive,
     },
     getters: {
       'namespaces/owner': (state) => state.isOwner,
+      isActive: (state) => state.isActive,
     },
     actions: {
       'devices/refresh': () => {},
@@ -30,6 +33,10 @@ describe('DeviceActionButton', () => {
       'devices/reject': () => {},
       'devices/remove': () => {},
       'notifications/fetch': () => {},
+      'stats/get': () => {},
+      'snackbar/showSnackbarErrorDefault': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
@@ -91,6 +98,7 @@ describe('DeviceActionButton', () => {
       localVue,
       stubs: ['fragment'],
       propsData: { uid, notificationStatus, action },
+      vuetify,
     });
 
     expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(false);
@@ -110,6 +118,7 @@ describe('DeviceActionButton', () => {
       localVue,
       stubs: ['fragment'],
       propsData: { uid, notificationStatus, action },
+      vuetify,
     });
 
     expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(false);
@@ -129,6 +138,7 @@ describe('DeviceActionButton', () => {
       localVue,
       stubs: ['fragment'],
       propsData: { uid, notificationStatus, action },
+      vuetify,
     });
 
     expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(false);
@@ -148,6 +158,7 @@ describe('DeviceActionButton', () => {
       localVue,
       stubs: ['fragment'],
       propsData: { uid, notificationStatus, action },
+      vuetify,
     });
 
     wrapper.setData({ dialog: true });
@@ -155,9 +166,10 @@ describe('DeviceActionButton', () => {
 
     const text = `You are about to ${action} this device.`;
 
-    expect(wrapper.find('[data-test="dialog-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="deviceActionButton-card"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
     expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
+    expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
   });
   it(`Renders the template with data -
@@ -173,6 +185,7 @@ describe('DeviceActionButton', () => {
       localVue,
       stubs: ['fragment'],
       propsData: { uid, notificationStatus, action },
+      vuetify,
     });
 
     wrapper.setData({ dialog: true });
@@ -180,9 +193,10 @@ describe('DeviceActionButton', () => {
 
     const text = `You are about to ${action} this device.`;
 
-    expect(wrapper.find('[data-test="dialog-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="deviceActionButton-card"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
     expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
+    expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
   });
   it(`Renders the template with data -
@@ -198,6 +212,7 @@ describe('DeviceActionButton', () => {
       localVue,
       stubs: ['fragment'],
       propsData: { uid, notificationStatus, action },
+      vuetify,
     });
 
     wrapper.setData({ dialog: true });
@@ -205,9 +220,10 @@ describe('DeviceActionButton', () => {
 
     const text = `You are about to ${action} this device.`;
 
-    expect(wrapper.find('[data-test="dialog-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="deviceActionButton-card"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
     expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
+    expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
   });
 });

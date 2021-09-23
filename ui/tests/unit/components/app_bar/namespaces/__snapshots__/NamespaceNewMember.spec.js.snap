@@ -10,7 +10,7 @@ exports[`NamespaceNewMember Button Renders the component 1`] = `
 </fragment-stub>
 `;
 
-exports[`NamespaceNewMember Button Renders the component 2`] = `
+exports[`NamespaceNewMember Dialog Renders the component 1`] = `
 <fragment-stub><button type="button" class="ml-12 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
     Add Member
   </span></button>
