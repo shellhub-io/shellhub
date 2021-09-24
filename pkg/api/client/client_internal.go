@@ -1,8 +1,10 @@
+//go:build internal_api
 // +build internal_api
 
 package client
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -27,7 +29,7 @@ type internalAPI interface {
 	CreatePrivateKey() (*models.PrivateKey, error)
 	EvaluateKey(fingerprint string, dev *models.Device, username string) (bool, error)
 	DevicesOffline(id string) error
-	FirewallEvaluate(lookup map[string]string) []error
+	FirewallEvaluate(lookup map[string]string) error
 	PatchSessions(uid string) []error
 	FinishSession(uid string) []error
 	RecordSession(session *models.SessionRecorded, recordURL string)
@@ -102,9 +104,14 @@ func (c *client) DevicesOffline(id string) error {
 	return nil
 }
 
-func (c *client) FirewallEvaluate(lookup map[string]string) []error {
-	if res, _, errs := c.http.Get(buildURL(c, "/internal/firewall/rules/evaluate")).Query(lookup).End(); res.StatusCode != http.StatusOK {
-		return errs
+func (c *client) FirewallEvaluate(lookup map[string]string) error {
+	res, _, errs := c.http.Get("http://cloud-api:8080/internal/firewall/rules/evaluate").Query(lookup).End()
+	if len(errs) > 0 {
+		return fmt.Errorf("failed to make the request to evaluate the firewall: %v with error %w", lookup, errs)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return errors.New("a firewall rule prohibit this connection")
 	}
 
 	return nil

@@ -107,7 +107,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	s.Lookup = lookup
 
 	if envs.IsEnterprise() {
-		if errs := c.FirewallEvaluate(lookup); len(errs) > 0 {
+		if err := c.FirewallEvaluate(lookup); err != nil {
 			return nil, ErrInvalidSessionTarget
 		}
 	}
