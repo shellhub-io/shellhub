@@ -1,7 +1,4 @@
-//go:build internal_api
-// +build internal_api
-
-package client
+package internalclient
 
 import (
 	"errors"
@@ -36,9 +33,19 @@ type internalAPI interface {
 	BillingEvaluate(tenantID string) (*models.Namespace, int, error)
 	Lookup(lookup map[string]string) (string, []error)
 	DeviceLookup(lookup map[string]string) (*models.Device, []error)
+	ReportUsage(ur *models.UsageRecord, billingURL string) (int, error)
 }
 
 func (c *client) LookupDevice() {
+}
+
+func (c *client) ReportUsage(ur *models.UsageRecord, billingURL string) (int, error) {
+	res, _, errs := c.http.Post(fmt.Sprintf("http://%s:8080/api/billing/report-usage", billingURL)).Send(&ur).End()
+	if len(errs) >= 1 {
+		return http.StatusInternalServerError, errs[0]
+	}
+
+	return res.StatusCode, nil
 }
 
 func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, error) {
@@ -107,7 +114,7 @@ func (c *client) DevicesOffline(id string) error {
 func (c *client) FirewallEvaluate(lookup map[string]string) error {
 	res, _, errs := c.http.Get("http://cloud-api:8080/internal/firewall/rules/evaluate").Query(lookup).End()
 	if len(errs) > 0 {
-		return fmt.Errorf("failed to make the request to evaluate the firewall: %v with error %w", lookup, errs)
+		return fmt.Errorf("failed to make the request to evaluate the firewall: %v with error %v", lookup, errs)
 	}
 
 	if res.StatusCode != http.StatusOK {

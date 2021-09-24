@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
-	"github.com/shellhub-io/shellhub/pkg/api/client"
+	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/sirupsen/logrus"
 )
