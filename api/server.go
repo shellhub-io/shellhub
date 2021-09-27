@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
@@ -12,7 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/routes"
-	"github.com/shellhub-io/shellhub/api/routes/middlewares"
+	apimiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	requests "github.com/shellhub-io/shellhub/pkg/api/client"
@@ -51,7 +49,7 @@ func startServer() error {
 	logrus.Info("Starting API server")
 
 	e := echo.New()
-	e.Use(logMiddleware)
+	e.Use(apimiddleware.Log)
 	e.Use(middleware.RequestID())
 
 	// Populates configuration based on environment variables prefixed with 'API_'
@@ -141,9 +139,9 @@ func startServer() error {
 	publicAPI.GET(routes.GetSessionRecordURL, apicontext.Handler(handler.GetSessionRecord))
 
 	publicAPI.GET(routes.GetDeviceListURL,
-		middlewares.Authorize(apicontext.Handler(handler.GetDeviceList)))
+		apimiddleware.Authorize(apicontext.Handler(handler.GetDeviceList)))
 	publicAPI.GET(routes.GetDeviceURL,
-		middlewares.Authorize(apicontext.Handler(handler.GetDevice)))
+		apimiddleware.Authorize(apicontext.Handler(handler.GetDevice)))
 	publicAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(handler.DeleteDevice))
 	publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(handler.RenameDevice))
 	internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(handler.OfflineDevice))
@@ -159,9 +157,9 @@ func startServer() error {
 	publicAPI.DELETE(routes.DeleteAllTagsURL, apicontext.Handler(handler.DeleteAllTags))
 
 	publicAPI.GET(routes.GetSessionsURL,
-		middlewares.Authorize(apicontext.Handler(handler.GetSessionList)))
+		apimiddleware.Authorize(apicontext.Handler(handler.GetSessionList)))
 	publicAPI.GET(routes.GetSessionURL,
-		middlewares.Authorize(apicontext.Handler(handler.GetSession)))
+		apimiddleware.Authorize(apicontext.Handler(handler.GetSession)))
 	internalAPI.PATCH(routes.SetSessionAuthenticatedURL, apicontext.Handler(handler.SetSessionAuthenticated))
 	internalAPI.POST(routes.CreateSessionURL, apicontext.Handler(handler.CreateSession))
 	internalAPI.POST(routes.FinishSessionURL, apicontext.Handler(handler.FinishSession))
@@ -170,7 +168,7 @@ func startServer() error {
 	publicAPI.DELETE(routes.RecordSessionURL, apicontext.Handler(handler.DeleteRecordedSession))
 
 	publicAPI.GET(routes.GetStatsURL,
-		middlewares.Authorize(apicontext.Handler(handler.GetStats)))
+		apimiddleware.Authorize(apicontext.Handler(handler.GetStats)))
 
 	publicAPI.GET(routes.GetPublicKeysURL, apicontext.Handler(handler.GetPublicKeys))
 	publicAPI.POST(routes.CreatePublicKeyURL, apicontext.Handler(handler.CreatePublicKey))
@@ -191,63 +189,4 @@ func startServer() error {
 	e.Logger.Fatal(e.Start(":8080"))
 
 	return nil
-}
-
-func logMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	log := logrus.New()
-	log.SetFormatter(&logrus.JSONFormatter{})
-
-	return func(c echo.Context) error {
-		level := logrus.InfoLevel
-
-		// Assign request tracking ID to log entry
-		entry := logrus.NewEntry(log).WithFields(logrus.Fields{
-			"id": c.Request().Header.Get(echo.HeaderXRequestID),
-		})
-
-		// Set context log entry
-		c.Set("log", entry)
-
-		// Request started log entry
-		entry = entry.WithFields(logrus.Fields{
-			"remote_ip":  c.RealIP(),
-			"host":       c.Request().Host,
-			"uri":        c.Request().RequestURI,
-			"method":     c.Request().Method,
-			"user_agent": c.Request().UserAgent(),
-		})
-
-		entry.Info("request started")
-
-		// Measure request execution time
-		start := time.Now()
-		err := next(c)
-		elapsed := time.Since(start)
-
-		// Append error fields to log entry if request has returned an error
-		if err != nil {
-			level = logrus.ErrorLevel
-			entry = entry.WithFields(logrus.Fields{
-				"error": err.Error(),
-			})
-
-			c.Error(err)
-		}
-
-		bytesIn := c.Request().Header.Get(echo.HeaderContentLength)
-		if bytesIn == "" {
-			bytesIn = "0"
-		}
-
-		// Request finished log entry
-		entry.WithFields(logrus.Fields{
-			"status":        c.Response().Status,
-			"latency":       strconv.FormatInt(elapsed.Nanoseconds()/1000, 10),
-			"latency_human": elapsed.String(),
-			"bytes_in":      bytesIn,
-			"bytes_out":     strconv.FormatInt(c.Response().Size, 10),
-		}).Log(level, "request finished")
-
-		return nil
-	}
 }
