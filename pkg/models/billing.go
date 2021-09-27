@@ -11,6 +11,7 @@ type Billing struct {
 	CustomerID       string         `json:"customer_id" bson:"customer_id,omitempty"`
 	PaymentMethodID  string         `json:"payment_method_id" bson:"payment_method_id,omitempty"`
 	PaymentFailed    *PaymentFailed `json:"payment_failed" bson:"payment_failed,omitempty"`
+	State            string         `json:"state" bson:"state,omitempty"`
 	Active           bool           `json:"active" bson:"active,omitempty"`
 }
 
