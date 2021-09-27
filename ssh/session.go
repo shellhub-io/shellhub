@@ -13,7 +13,7 @@ import (
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/parnurzeal/gorequest"
-	"github.com/shellhub-io/shellhub/pkg/api/client"
+	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"

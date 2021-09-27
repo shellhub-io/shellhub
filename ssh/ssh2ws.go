@@ -10,7 +10,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/shellhub-io/shellhub/pkg/api/client"
+	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/websocket"

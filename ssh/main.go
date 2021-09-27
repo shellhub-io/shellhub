@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"golang.org/x/net/websocket"
 
-	"github.com/shellhub-io/shellhub/pkg/api/client"
+	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/sirupsen/logrus"
 )
