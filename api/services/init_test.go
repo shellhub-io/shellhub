@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/internalclient/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmocks "github.com/shellhub-io/shellhub/pkg/clock/mocks"
-	"github.com/shellhub-io/shellhub/pkg/requests/mocks"
 )
 
 var (
