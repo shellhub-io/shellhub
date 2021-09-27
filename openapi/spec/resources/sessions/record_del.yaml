@@ -15,12 +15,24 @@ delete:
     '200':
       $ref: ../../shared/responses/OkResponse.yaml
     '400':
-      $ref: ../../shared/responses/BadRequestResponse.yaml
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: string
     '401':
       $ref: ../../shared/responses/UnauthorizedResponse.yaml
     '403':
-      $ref: ../../shared/responses/ForbiddenResponse.yaml
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            type: string
     '404':
-      $ref: ../../shared/responses/NotFoundResponse.yaml
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: string
     '500':
       $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
