@@ -218,13 +218,13 @@ func (_m *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	return r0
 }
 
-// DeviceDeleteAllTags provides a mock function with given fields: ctx, namespace, name
-func (_m *Store) DeviceDeleteAllTags(ctx context.Context, namespace string, name string) error {
-	ret := _m.Called(ctx, namespace, name)
+// DeviceDeleteAllTags provides a mock function with given fields: ctx, tenantID, name
+func (_m *Store) DeviceDeleteAllTags(ctx context.Context, tenantID string, name string) error {
+	ret := _m.Called(ctx, tenantID, name)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, namespace, name)
+		r0 = rf(ctx, tenantID, name)
 	} else {
 		r0 = ret.Error(0)
 	}

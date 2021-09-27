@@ -18,4 +18,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
 	       exec api mockery --name Uuid --dir ../pkg/uuid/ --output ../pkg/uuid/mocks --filename uuid.go
 
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	exec api mockery --name Client --dir ../pkg/api/client --output ../pkg/requests/mocks --filename requests.go
+	exec api mockery --name Client --dir ../pkg/api/internalclient --output ../pkg/api/internalclient/mocks --filename internalclient.go
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
+	exec api mockery --name Client --dir ../pkg/api/client --output ../pkg/api/client/mocks --filename client.go
