@@ -17,7 +17,7 @@ import (
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pires/go-proxyproto"
-	"github.com/shellhub-io/shellhub/pkg/api/client"
+	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/webhook"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/sirupsen/logrus"
