@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	hp "github.com/shellhub-io/shellhub/pkg/requests"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/sirupsen/logrus"
 )
@@ -26,7 +27,7 @@ type DeviceService interface {
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
 	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, ownerID string) error
-	HandleReports(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error
+	HandleReportUsage(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error
 	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
 	CreateTag(ctx context.Context, uid models.UID, name string) error
 	DeleteTag(ctx context.Context, uid models.UID, name string) error
@@ -37,8 +38,8 @@ type DeviceService interface {
 	DeleteAllTags(ctx context.Context, tenant string, name string) error
 }
 
-func (s *service) HandleReports(ns *models.Namespace, uid models.UID, inc bool, device *models.Device) error {
-	if ns.Billing == nil || !ns.Billing.Active || ns.MaxDevices != -1 {
+func (s *service) HandleReportUsage(ns *models.Namespace, uid models.UID, inc bool, device *models.Device) error {
+	if !hp.HasBillingInstance(ns) {
 		return nil
 	}
 
@@ -52,22 +53,12 @@ func (s *service) HandleReports(ns *models.Namespace, uid models.UID, inc bool, 
 
 	status, err := s.client.(req.Client).ReportUsage(
 		record,
-		"billing-api",
 	)
 	if err != nil {
 		return err
 	}
 
-	switch status {
-	case 402:
-		return nil
-	case 200:
-		return nil
-	case 400:
-		return nil
-	}
-
-	return ErrReportUsage
+	return hp.HandleStatusResponse(status)
 }
 
 func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filterB64 string, status string, sort string, order string) ([]models.Device, int, error) {
@@ -103,7 +94,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, owne
 		return err
 	}
 
-	if err = s.HandleReports(ns, uid, false, device); err != nil {
+	if err = s.HandleReportUsage(ns, uid, false, device); err != nil {
 		return err
 	}
 
@@ -198,7 +189,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 				return err
 			}
 
-			if err := s.HandleReports(ns, uid, true, device); err != nil {
+			if err := s.HandleReportUsage(ns, uid, true, device); err != nil {
 				return err
 			}
 

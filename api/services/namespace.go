@@ -8,9 +8,11 @@ import (
 
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
+	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	hp "github.com/shellhub-io/shellhub/pkg/requests"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
@@ -26,6 +28,20 @@ type NamespaceService interface {
 	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
 	EditSessionRecordStatus(ctx context.Context, status bool, tenant, ownerID string) error
 	GetSessionRecord(ctx context.Context, tenant string) (bool, error)
+	HandleReportDelete(ns *models.Namespace) error
+}
+
+func (s *service) HandleReportDelete(ns *models.Namespace) error {
+	if !hp.HasBillingInstance(ns) {
+		return nil
+	}
+
+	status, err := s.client.(req.Client).ReportDelete(ns)
+	if err != nil {
+		return err
+	}
+
+	return hp.HandleStatusResponse(status)
 }
 
 func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
@@ -100,6 +116,14 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 
 func (s *service) DeleteNamespace(ctx context.Context, tenantID, ownerID string) error {
 	if err := utils.IsNamespaceOwner(ctx, s.store, tenantID, ownerID); err != nil {
+		return err
+	}
+
+	ns, err := s.store.NamespaceGet(ctx, tenantID)
+	if err != nil {
+		return err
+	}
+	if err := s.HandleReportDelete(ns); err != nil {
 		return err
 	}
 

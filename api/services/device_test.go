@@ -292,8 +292,7 @@ func TestDeleteDevice(t *testing.T) {
 					Namespace: namespaceBilling,
 					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
 					Timestamp: now.Unix(),
-				},
-					"billing-api").Return(200, nil).Once()
+				}).Return(200, nil).Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(nil).Once()
 			},
@@ -326,11 +325,10 @@ func TestDeleteDevice(t *testing.T) {
 					Namespace: namespaceBilling,
 					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
 					Timestamp: now.Unix(),
-				},
-					"billing-api").Return(500, nil).Once()
+				}).Return(500, nil).Once()
 			},
 			id:       user.ID,
-			expected: ErrReportUsage,
+			expected: ErrReport,
 		},
 	}
 
@@ -748,8 +746,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 					Namespace: namespaceBilling,
 					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
 					Timestamp: now.Unix(),
-				},
-					"billing-api").Return(200, nil).Once()
+				}).Return(200, nil).Once()
 				mock.On("DeviceUpdateStatus", ctx, models.UID(device.UID), "accepted").
 					Return(nil).Once()
 			},
@@ -778,10 +775,9 @@ func TestUpdatePendingStatus(t *testing.T) {
 					Namespace: namespaceBilling,
 					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
 					Timestamp: now.Unix(),
-				},
-					"billing-api").Return(500, nil).Once()
+				}).Return(500, nil).Once()
 			},
-			expected: ErrReportUsage,
+			expected: ErrReport,
 		},
 	}
 

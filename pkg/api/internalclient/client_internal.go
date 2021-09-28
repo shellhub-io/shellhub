@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	apiHost   = "api"
-	apiPort   = 8080
-	apiScheme = "http"
+	apiHost    = "api"
+	apiPort    = 8080
+	apiScheme  = "http"
+	billingURL = "billing-api"
 )
 
 type Client interface {
@@ -33,14 +34,28 @@ type internalAPI interface {
 	BillingEvaluate(tenantID string) (*models.Namespace, int, error)
 	Lookup(lookup map[string]string) (string, []error)
 	DeviceLookup(lookup map[string]string) (*models.Device, []error)
-	ReportUsage(ur *models.UsageRecord, billingURL string) (int, error)
+	ReportUsage(ur *models.UsageRecord) (int, error)
+	ReportDelete(ns *models.Namespace) (int, error)
 }
 
 func (c *client) LookupDevice() {
 }
 
-func (c *client) ReportUsage(ur *models.UsageRecord, billingURL string) (int, error) {
-	res, _, errs := c.http.Post(fmt.Sprintf("http://%s:8080/api/billing/report-usage", billingURL)).Send(&ur).End()
+func (c *client) ReportDelete(ns *models.Namespace) (int, error) {
+	res, _, errs := c.http.Delete(fmt.Sprintf("%s://%s:%d/internal/billing/namespace-subscription", apiScheme, billingURL, apiPort)).Send(struct {
+		Namespace *models.Namespace `json:"namespace"`
+	}{
+		Namespace: ns,
+	}).End()
+	if len(errs) >= 1 {
+		return http.StatusInternalServerError, errs[0]
+	}
+
+	return res.StatusCode, nil
+}
+
+func (c *client) ReportUsage(ur *models.UsageRecord) (int, error) {
+	res, _, errs := c.http.Post(fmt.Sprintf("%s://%s:%d/internal/billing/report-usage", apiScheme, billingURL, apiPort)).Send(&ur).End()
 	if len(errs) >= 1 {
 		return http.StatusInternalServerError, errs[0]
 	}
@@ -64,7 +79,7 @@ func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, er
 
 func (c *client) BillingEvaluate(tenantID string) (*models.Namespace, int, error) {
 	var namespace *models.Namespace
-	resp, _, errs := c.http.Get("http://billing-api:8080/internal/billing/evaluate").Send(&models.Namespace{TenantID: tenantID}).EndStruct(&namespace)
+	resp, _, errs := c.http.Get(fmt.Sprintf("%s://%s:%d/internal/billing/evaluate", apiScheme, billingURL, apiPort)).Send(&models.Namespace{TenantID: tenantID}).End()
 	if len(errs) > 0 {
 		return nil, resp.StatusCode, errs[0]
 	}

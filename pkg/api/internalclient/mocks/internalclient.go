@@ -273,20 +273,41 @@ func (_m *Client) RecordSession(session *models.SessionRecorded, recordURL strin
 	_m.Called(session, recordURL)
 }
 
-// ReportUsage provides a mock function with given fields: ur, billingURL
-func (_m *Client) ReportUsage(ur *models.UsageRecord, billingURL string) (int, error) {
-	ret := _m.Called(ur, billingURL)
+// ReportDelete provides a mock function with given fields: ns
+func (_m *Client) ReportDelete(ns *models.Namespace) (int, error) {
+	ret := _m.Called(ns)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(*models.UsageRecord, string) int); ok {
-		r0 = rf(ur, billingURL)
+	if rf, ok := ret.Get(0).(func(*models.Namespace) int); ok {
+		r0 = rf(ns)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*models.UsageRecord, string) error); ok {
-		r1 = rf(ur, billingURL)
+	if rf, ok := ret.Get(1).(func(*models.Namespace) error); ok {
+		r1 = rf(ns)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReportUsage provides a mock function with given fields: ur
+func (_m *Client) ReportUsage(ur *models.UsageRecord) (int, error) {
+	ret := _m.Called(ur)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(*models.UsageRecord) int); ok {
+		r0 = rf(ur)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*models.UsageRecord) error); ok {
+		r1 = rf(ur)
 	} else {
 		r1 = ret.Error(1)
 	}

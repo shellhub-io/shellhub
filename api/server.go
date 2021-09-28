@@ -13,7 +13,7 @@ import (
 	apimiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
-	requests "github.com/shellhub-io/shellhub/pkg/api/client"
+	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

@@ -607,8 +607,22 @@ func (_m *Service) GetTags(ctx context.Context, tenant string) ([]string, int, e
 	return r0, r1, r2
 }
 
-// HandleReports provides a mock function with given fields: ns, ui, inc, device
-func (_m *Service) HandleReports(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error {
+// HandleReportDelete provides a mock function with given fields: ns
+func (_m *Service) HandleReportDelete(ns *models.Namespace) error {
+	ret := _m.Called(ns)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*models.Namespace) error); ok {
+		r0 = rf(ns)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// HandleReportUsage provides a mock function with given fields: ns, ui, inc, device
+func (_m *Service) HandleReportUsage(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error {
 	ret := _m.Called(ns, ui, inc, device)
 
 	var r0 error
