@@ -19,7 +19,7 @@ delete:
       content:
         application/json:
           schema:
-            type: string
+            $ref: ../../shared/models/StringModel.yaml
     '401':
       $ref: ../../shared/responses/UnauthorizedResponse.yaml
     '403':
@@ -27,12 +27,12 @@ delete:
       content:
         application/json:
           schema:
-            type: string
+            $ref: ../../shared/models/StringModel.yaml
     '404':
       description: Not Found
       content:
         application/json:
           schema:
-            type: string
+            $ref: ../../shared/models/StringModel.yaml
     '500':
       $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
