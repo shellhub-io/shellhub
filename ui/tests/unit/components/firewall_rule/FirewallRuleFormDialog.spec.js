@@ -56,7 +56,7 @@ describe('FirewallRuleFormDialog', () => {
   // the test is button rendering. Add firewall rule
   ///////
 
-  describe('Button', () => {
+  describe('Button add firewall rule', () => {
     beforeEach(() => {
       wrapper = mount(FirewallRuleFormDialog, {
         store,
