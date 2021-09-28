@@ -289,7 +289,7 @@ func (s *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
 func (s *Store) UserDelete(ctx context.Context, id string) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil
+		return fromMongoError(err)
 	}
 
 	_, err = s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
@@ -297,30 +297,37 @@ func (s *Store) UserDelete(ctx context.Context, id string) error {
 		return fromMongoError(err)
 	}
 
+	return nil
+}
+
+func (s *Store) UserDetachInfo(ctx context.Context, id string) (map[string][]*models.Namespace, error) {
 	findOptions := options.Find()
 
 	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": id}, findOptions)
 	if err != nil {
-		return fromMongoError(err)
+		return nil, fromMongoError(err)
 	}
 	defer cursor.Close(ctx)
+
+	namespacesMap := make(map[string][]*models.Namespace, 2)
+	ownerNamespaceList := make([]*models.Namespace, 0)
+	membersNamespaceList := make([]*models.Namespace, 0)
 
 	for cursor.Next(ctx) {
 		namespace := new(models.Namespace)
 		if err := cursor.Decode(&namespace); err != nil {
-			return fromMongoError(err)
+			return nil, fromMongoError(err)
 		}
 
 		if namespace.Owner != id {
-			if _, err := s.NamespaceRemoveMember(ctx, namespace.TenantID, id); err != nil {
-				return fromMongoError(err)
-			}
+			membersNamespaceList = append(membersNamespaceList, namespace)
 		} else {
-			if err := s.NamespaceDelete(ctx, namespace.TenantID); err != nil {
-				return fromMongoError(err)
-			}
+			ownerNamespaceList = append(ownerNamespaceList, namespace)
 		}
 	}
 
-	return fromMongoError(err)
+	namespacesMap["member"] = membersNamespaceList
+	namespacesMap["owner"] = ownerNamespaceList
+
+	return namespacesMap, nil
 }

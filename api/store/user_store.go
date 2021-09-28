@@ -21,5 +21,6 @@ type UserStore interface {
 	UserGetToken(ctx context.Context, ID string) (*models.UserTokenRecover, error)
 	UserDeleteTokens(ctx context.Context, ID string) error
 	UserUpdateAccountStatus(ctx context.Context, ID string) error
+	UserDetachInfo(ctx context.Context, id string) (map[string][]*models.Namespace, error)
 	UserDelete(ctx context.Context, ID string) error
 }
