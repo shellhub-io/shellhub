@@ -1377,6 +1377,29 @@ func (_m *Store) UserDeleteTokens(ctx context.Context, ID string) error {
 	return r0
 }
 
+// UserDetachInfo provides a mock function with given fields: ctx, id
+func (_m *Store) UserDetachInfo(ctx context.Context, id string) (map[string][]*models.Namespace, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 map[string][]*models.Namespace
+	if rf, ok := ret.Get(0).(func(context.Context, string) map[string][]*models.Namespace); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]*models.Namespace)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UserGetByEmail provides a mock function with given fields: ctx, email
 func (_m *Store) UserGetByEmail(ctx context.Context, email string) (*models.User, error) {
 	ret := _m.Called(ctx, email)
