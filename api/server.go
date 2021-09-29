@@ -6,15 +6,16 @@ import (
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/routes"
-	apimiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
+	apiMiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	requests "github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
+	"github.com/shellhub-io/shellhub/pkg/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
@@ -49,8 +50,8 @@ func startServer() error {
 	logrus.Info("Starting API server")
 
 	e := echo.New()
-	e.Use(apimiddleware.Log)
-	e.Use(middleware.RequestID())
+	e.Use(middleware.Log)
+	e.Use(echoMiddleware.RequestID())
 
 	// Populates configuration based on environment variables prefixed with 'API_'
 	var cfg config
@@ -139,9 +140,9 @@ func startServer() error {
 	publicAPI.GET(routes.GetSessionRecordURL, apicontext.Handler(handler.GetSessionRecord))
 
 	publicAPI.GET(routes.GetDeviceListURL,
-		apimiddleware.Authorize(apicontext.Handler(handler.GetDeviceList)))
+		apiMiddleware.Authorize(apicontext.Handler(handler.GetDeviceList)))
 	publicAPI.GET(routes.GetDeviceURL,
-		apimiddleware.Authorize(apicontext.Handler(handler.GetDevice)))
+		apiMiddleware.Authorize(apicontext.Handler(handler.GetDevice)))
 	publicAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(handler.DeleteDevice))
 	publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(handler.RenameDevice))
 	internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(handler.OfflineDevice))
@@ -157,9 +158,9 @@ func startServer() error {
 	publicAPI.DELETE(routes.DeleteAllTagsURL, apicontext.Handler(handler.DeleteAllTags))
 
 	publicAPI.GET(routes.GetSessionsURL,
-		apimiddleware.Authorize(apicontext.Handler(handler.GetSessionList)))
+		apiMiddleware.Authorize(apicontext.Handler(handler.GetSessionList)))
 	publicAPI.GET(routes.GetSessionURL,
-		apimiddleware.Authorize(apicontext.Handler(handler.GetSession)))
+		apiMiddleware.Authorize(apicontext.Handler(handler.GetSession)))
 	internalAPI.PATCH(routes.SetSessionAuthenticatedURL, apicontext.Handler(handler.SetSessionAuthenticated))
 	internalAPI.POST(routes.CreateSessionURL, apicontext.Handler(handler.CreateSession))
 	internalAPI.POST(routes.FinishSessionURL, apicontext.Handler(handler.FinishSession))
@@ -168,7 +169,7 @@ func startServer() error {
 	publicAPI.DELETE(routes.RecordSessionURL, apicontext.Handler(handler.DeleteRecordedSession))
 
 	publicAPI.GET(routes.GetStatsURL,
-		apimiddleware.Authorize(apicontext.Handler(handler.GetStats)))
+		apiMiddleware.Authorize(apicontext.Handler(handler.GetStats)))
 
 	publicAPI.GET(routes.GetPublicKeysURL, apicontext.Handler(handler.GetPublicKeys))
 	publicAPI.POST(routes.CreatePublicKeyURL, apicontext.Handler(handler.CreatePublicKey))
