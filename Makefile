@@ -24,7 +24,7 @@ api_public_key:
 
 # Generate required private key for ssh service
 ssh_private_key:
-	@$(KEYGEN) genrsa -out ssh_private_key 2048
+	@$(KEYGEN) genrsa -aes256 -out ssh_private_key 2048
 
 .PHONY: keygen
 # Generate required keys
