@@ -162,8 +162,8 @@ import TerminalDialog from '@/components/terminal/TerminalDialog';
 import DeviceIcon from '@/components/device/DeviceIcon';
 import DeviceDelete from '@/components/device/DeviceDelete';
 import TagFormDialog from '@/components/setting/tag/TagFormDialog';
-import formatOrdering from '@/components/device/Device';
 import { lastSeen } from '@/components/filter/date';
+import formatDeviceSort from '@/components/filter/object';
 
 export default {
   name: 'DeviceList',
@@ -176,8 +176,6 @@ export default {
   },
 
   filters: { lastSeen },
-
-  mixins: [formatOrdering],
 
   data() {
     return {
@@ -249,7 +247,10 @@ export default {
     async getDevices() {
       let sortStatusMap = {};
 
-      sortStatusMap = this.formatSortObject(this.pagination.sortBy[0], this.pagination.sortDesc[0]);
+      sortStatusMap = formatDeviceSort(
+        this.pagination.sortBy[0],
+        this.pagination.sortDesc[0],
+      );
 
       const data = {
         perPage: this.pagination.itemsPerPage,

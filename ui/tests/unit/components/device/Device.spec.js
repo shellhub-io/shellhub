@@ -96,24 +96,6 @@ describe('Device', () => {
 
       expect(wrapper.vm.search).toEqual('ShellHub');
     });
-    it('Process data in methods', () => {
-      const inputs = [
-        { field: undefined, isDesc: undefined },
-        { field: 'hostname', isDesc: undefined },
-        { field: 'hostname', isDesc: true },
-      ];
-
-      const output = [
-        { field: null, status: false, statusString: 'asc' },
-        { field: 'name', status: false, statusString: 'asc' },
-        { field: 'name', status: true, statusString: 'desc' },
-      ];
-
-      Object.keys(inputs).forEach((index) => {
-        expect(wrapper.vm.formatSortObject(inputs[index].field, inputs[index].isDesc))
-          .toEqual(output[index]);
-      });
-    });
 
     //////
     // HTML validation
@@ -174,24 +156,6 @@ describe('Device', () => {
       wrapper.setData({ search: 'ShellHub' });
 
       expect(wrapper.vm.search).toEqual('ShellHub');
-    });
-    it('Process data in methods', () => {
-      const inputs = [
-        { field: undefined, isDesc: undefined },
-        { field: 'hostname', isDesc: undefined },
-        { field: 'hostname', isDesc: true },
-      ];
-
-      const output = [
-        { field: null, status: false, statusString: 'asc' },
-        { field: 'name', status: false, statusString: 'asc' },
-        { field: 'name', status: true, statusString: 'desc' },
-      ];
-
-      Object.keys(inputs).forEach((index) => {
-        expect(wrapper.vm.formatSortObject(inputs[index].field, inputs[index].isDesc))
-          .toEqual(output[index]);
-      });
     });
 
     //////
