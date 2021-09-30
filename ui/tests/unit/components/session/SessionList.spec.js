@@ -1,6 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
+import timezoneMock from 'timezone-mock';
 import SessionList from '@/components/session/SessionList';
 
 describe('SessionList', () => {
@@ -134,6 +135,8 @@ describe('SessionList', () => {
   });
 
   beforeEach(() => {
+    timezoneMock.register('UTC');
+
     wrapper = mount(SessionList, {
       store,
       localVue,

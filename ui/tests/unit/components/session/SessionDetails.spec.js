@@ -1,5 +1,6 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
+import timezoneMock from 'timezone-mock';
 import SessionDetails from '@/components/session/SessionDetails';
 
 describe('SessionDetails', () => {
@@ -92,6 +93,8 @@ describe('SessionDetails', () => {
 
   describe('Recorded is true and device is online', () => {
     beforeEach(() => {
+      timezoneMock.register('UTC');
+
       wrapper = shallowMount(SessionDetails, {
         store: storeRecordedTrue,
         localVue,
@@ -154,6 +157,8 @@ describe('SessionDetails', () => {
 
   describe('Recorded is false and device is online', () => {
     beforeEach(() => {
+      timezoneMock.register('UTC');
+
       wrapper = shallowMount(SessionDetails, {
         store: storeRecordedFalse,
         localVue,
@@ -216,6 +221,8 @@ describe('SessionDetails', () => {
 
   describe('Recorded is false and device is offline', () => {
     beforeEach(() => {
+      timezoneMock.register('UTC');
+
       wrapper = shallowMount(SessionDetails, {
         store: storeRecordedFalseAndOffline,
         localVue,
