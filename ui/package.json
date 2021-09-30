@@ -21,6 +21,7 @@
     "moment-duration-format": "^2.3.2",
     "node-rsa": "^1.1.1",
     "sshpk": "^1.16.1",
+    "timezone-mock": "^1.2.2",
     "tmp": "^0.2.1",
     "v-clipboard": "^2.2.3",
     "vee-validate": "^3.4.13",
