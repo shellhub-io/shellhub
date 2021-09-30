@@ -57,7 +57,7 @@
 
 import DeviceIcon from '@/components/device//DeviceIcon';
 import DeviceActionButton from '@/components/device/DeviceActionButton';
-import formatOrdering from '@/components/device//Device';
+import formatDeviceSort from '@/components/filter/object';
 
 export default {
   name: 'DeviceList',
@@ -66,8 +66,6 @@ export default {
     DeviceIcon,
     DeviceActionButton,
   },
-
-  mixins: [formatOrdering],
 
   data() {
     return {
@@ -127,7 +125,10 @@ export default {
     async getRejectedDevices() {
       let sortStatusMap = {};
 
-      sortStatusMap = this.formatSortObject(this.pagination.sortBy[0], this.pagination.sortDesc[0]);
+      sortStatusMap = formatDeviceSort(
+        this.pagination.sortBy[0],
+        this.pagination.sortDesc[0],
+      );
 
       const data = {
         perPage: this.pagination.itemsPerPage,
