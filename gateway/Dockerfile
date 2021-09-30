@@ -6,6 +6,8 @@ COPY --from=hairyhenderson/gomplate:v2.5.0-slim /gomplate /bin/gomplate
 
 RUN apk add --no-cache perl curl && opm get bungle/lua-resty-template
 
+RUN mkdir -p /etc/nginx/default.d
+
 COPY gateway/nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
 COPY gateway/shellhub.conf /etc/nginx/conf.d/
 COPY gateway/kickstart.sh /usr/local/openresty/nginx/html/
