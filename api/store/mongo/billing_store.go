@@ -2,14 +2,20 @@ package mongo
 
 import (
 	"context"
+	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (s *Store) BillingUpdateInstance(ctx context.Context, namespace *models.Namespace, billing *models.Billing) error {
 	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace.TenantID}, bson.M{"$set": bson.M{"billing": billing}}); err != nil {
 		return fromMongoError(err)
+	}
+
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace.TenantID}, "/")); err != nil {
+		logrus.Error(err)
 	}
 
 	return nil
