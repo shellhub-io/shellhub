@@ -12,7 +12,7 @@
   "dependencies": {
     "@fortawesome/free-brands-svg-icons": "^5.15.4",
     "@vue-stripe/vue-stripe": "^4.2.5",
-    "axios": "^0.21.4",
+    "axios": "^0.22.0",
     "browserify": "^17.0.0",
     "core-js": "^3.18.1",
     "eslint-plugin-import": "^2.24.2",
