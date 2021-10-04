@@ -38,7 +38,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 	key := hex.EncodeToString(uid[:])
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.DeviceAuthClaims{
-		UID: hex.EncodeToString(uid[:]),
+		UID: key,
 		AuthClaims: models.AuthClaims{
 			Claims: "device",
 		},
@@ -58,14 +58,14 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 
 	if err := s.cache.Get(ctx, strings.Join([]string{"auth_device", key}, "/"), &value); err == nil && value != nil {
 		return &models.DeviceAuthResponse{
-			UID:       hex.EncodeToString(uid[:]),
+			UID:       key,
 			Token:     tokenStr,
 			Name:      value.Name,
 			Namespace: value.Namespace,
 		}, nil
 	}
 	device := models.Device{
-		UID:        hex.EncodeToString(uid[:]),
+		UID:        key,
 		Identity:   req.Identity,
 		Info:       req.Info,
 		PublicKey:  req.PublicKey,
@@ -109,7 +109,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 	}
 
 	return &models.DeviceAuthResponse{
-		UID:       hex.EncodeToString(uid[:]),
+		UID:       key,
 		Token:     tokenStr,
 		Name:      dev.Name,
 		Namespace: namespace.Name,
