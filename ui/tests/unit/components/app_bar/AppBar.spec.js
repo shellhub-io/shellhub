@@ -49,6 +49,9 @@ describe('AppBar', () => {
     },
     actions: {
       'auth/logout': () => {},
+      'layout/setLayout': () => {},
+      'namespaces/clearNamespaceList': () => {},
+      'snackbar/showSnackbarErrorNotRequest': () => {},
     },
   });
 

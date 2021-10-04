@@ -123,9 +123,13 @@ export default {
   },
 
   created() {
+    this.$store.dispatch('layout/setLayout', 'simpleLayout');
+
     if (this.$route.query.token) {
       this.$store.dispatch('auth/logout');
+
       this.$store.dispatch('auth/loginToken', this.$route.query.token).then(() => {
+        this.$store.dispatch('layout/setLayout', 'appLayout');
         this.$store.dispatch('notifications/fetch');
         this.$router.push({ name: 'dashboard' }).catch(() => {});
       });
@@ -140,6 +144,8 @@ export default {
             username: this.username,
             password: this.password,
           });
+
+        this.$store.dispatch('layout/setLayout', 'appLayout');
 
         if (this.$route.query.redirect) {
           this.$router.push(this.$route.query.redirect);

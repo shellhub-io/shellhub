@@ -1,55 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`App Renders the component 1`] = `
+exports[`App Logged in Renders the component 1`] = `
 <v-app-stub id="app">
-  <snackbar-stub></snackbar-stub>
-  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" dark="true" clipped="true" height="100vh" minivariantwidth="56" src="" tag="nav" width="256" value="true">
-    <v-list-stub tag="div">
-      <v-list-item-stub activeclass="" to="/" tag="div" twoline="true">
-        <v-list-item-action-stub>
-          <v-icon-stub>dashboard</v-icon-stub>
-        </v-list-item-action-stub>
-        <v-list-item-content-stub>
-          <v-list-item-title-stub datatest="dashboard" data-test="dashboard">Dashboard</v-list-item-title-stub>
-        </v-list-item-content-stub>
-      </v-list-item-stub>
-      <v-list-item-stub activeclass="" to="/devices" tag="div" twoline="true">
-        <v-list-item-action-stub>
-          <v-icon-stub>devices</v-icon-stub>
-        </v-list-item-action-stub>
-        <v-list-item-content-stub>
-          <v-list-item-title-stub datatest="devices" data-test="devices">Devices</v-list-item-title-stub>
-        </v-list-item-content-stub>
-      </v-list-item-stub>
-      <v-list-item-stub activeclass="" to="/sessions" tag="div" twoline="true">
-        <v-list-item-action-stub>
-          <v-icon-stub>history</v-icon-stub>
-        </v-list-item-action-stub>
-        <v-list-item-content-stub>
-          <v-list-item-title-stub datatest="history" data-test="history">Sessions</v-list-item-title-stub>
-        </v-list-item-content-stub>
-      </v-list-item-stub>
-      <v-list-item-stub activeclass="" to="/sshkeys/public-keys" tag="div" twoline="true">
-        <v-list-item-action-stub>
-          <v-icon-stub>vpn_key</v-icon-stub>
-        </v-list-item-action-stub>
-        <v-list-item-content-stub>
-          <v-list-item-title-stub datatest="vpn_key" data-test="vpn_key">Public Keys</v-list-item-title-stub>
-        </v-list-item-content-stub>
-      </v-list-item-stub>
-    </v-list-stub>
-  </v-navigation-drawer-stub>
-  <appbar-stub></appbar-stub>
-  <!---->
-  <v-main-stub tag="main" class="grey lighten-4">
-    <v-container-stub tag="div" fluid="true" class="pa-8">
-      <router-view-stub name="default"></router-view-stub>
-    </v-container-stub>
-    <snackbar-stub></snackbar-stub>
-  </v-main-stub>
-  <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
-    <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
-  </v-overlay-stub>
-  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+  <applayout-stub data-test="appLayout-component"></applayout-stub>
+</v-app-stub>
+`;
+
+exports[`App Not logged in Renders the component 1`] = `
+<v-app-stub id="app">
+  <simplelayout-stub data-test="simpleLayout-component"></simplelayout-stub>
 </v-app-stub>
 `;

@@ -51,6 +51,7 @@ describe('Login', () => {
       'auth/login': () => {},
       'auth/loginToken': () => {},
       'notifications/fetch': () => {},
+      'layout/setLayout': () => {},
       'snackbar/showSnackbarErrorIncorrect': () => {},
       'snackbar/showSnackbarErrorDefault': () => {},
     },

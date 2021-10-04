@@ -176,6 +176,8 @@ export default {
       try {
         this.$store.dispatch('auth/logout');
         await this.$router.push('/login');
+
+        this.$store.dispatch('layout/setLayout', 'simpleLayout');
         this.$store.dispatch('namespaces/clearNamespaceList');
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorNotRequest', this.$errors.snackbar.logoutFailed);
