@@ -1,69 +1,132 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import Vuetify from 'vuetify';
-import Router from 'vue-router';
 import App from '@/App';
 
 describe('App', () => {
   const localVue = createLocalVue();
-  const router = new Router();
   localVue.use(Vuex);
-  localVue.use(Router);
-  const vuetify = new Vuetify();
 
   let wrapper;
 
-  const tenant = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
-  const isLoggedIn = true;
-  const isMobile = false;
-  const hasSpinner = false;
+  const isLoggedIn = false;
+  const authId = 'xxxxxxxx';
+  const layouts = ['simpleLayout', 'appLayout'];
 
-  const store = new Vuex.Store({
+  const storeNotLoggedIn = new Vuex.Store({
     namespaced: true,
     state: {
-      tenant,
+      layout: layouts[0],
       isLoggedIn,
-      isMobile,
-      hasSpinner,
+      authId,
     },
     getters: {
-      'auth/tenant': (state) => state.tenant,
+      'layout/getLayout': (state) => state.layout,
       'auth/isLoggedIn': (state) => state.isLoggedIn,
-      'mobile/isMobile': (state) => state.isMobile,
-      'spinner/getStatus': (state) => state.hasSpinner,
+      'auth/id': (state) => state.authId,
     },
     actions: {
-      'auth/logout': () => {},
-      'privatekeys/fetch': () => {},
-      'mobile/setIsMobileStatus': () => {},
+      'layout/setLayout': () => {},
     },
   });
 
-  beforeEach(() => {
-    wrapper = shallowMount(App, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      mocks: {
-        $env: (isEnterprise) => isEnterprise,
-      },
-      router,
-      vuetify,
+  const storeLoggedIn = new Vuex.Store({
+    namespaced: true,
+    state: {
+      layout: layouts[1],
+      isLoggedIn: !isLoggedIn,
+      authId,
+    },
+    getters: {
+      'layout/getLayout': (state) => state.layout,
+      'auth/isLoggedIn': (state) => state.isLoggedIn,
+      'auth/id': (state) => state.authId,
+    },
+    actions: {
+      'layout/setLayout': () => {},
+    },
+  });
+
+  ///////
+  // In this case, is to check the rendering app layout when the user
+  // is not logged in.
+  ///////
+
+  describe('Not logged in', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(App, {
+        store: storeNotLoggedIn,
+        localVue,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.layout).toEqual(layouts[0]);
+      expect(wrapper.vm.isLoggedIn).toEqual(isLoggedIn);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find(`[data-test="${layouts[0]}-component"]`).exists()).toBe(true);
     });
   });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-  it('Renders the template with components', async () => {
-    expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toEqual(true);
-  });
-  it('Renders the template with data', async () => {
-    expect(wrapper.find('[data-test="dashboard"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="devices"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="history"]').exists()).toEqual(true);
+  ///////
+  // In this case, is to check the rendering app layout when the user
+  // is logged in.
+  ///////
+
+  describe('Logged in', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(App, {
+        store: storeLoggedIn,
+        localVue,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.layout).toEqual(layouts[1]);
+      expect(wrapper.vm.isLoggedIn).toEqual(!isLoggedIn);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find(`[data-test="${layouts[1]}-component"]`).exists()).toBe(true);
+    });
   });
 });

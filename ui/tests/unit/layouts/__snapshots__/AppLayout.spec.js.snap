@@ -1,0 +1,133 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
+<fragment-stub>
+  <snackbar-stub></snackbar-stub>
+  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" dark="true" clipped="true" height="100vh" minivariantwidth="56" src="" tag="nav" width="256" value="true">
+    <v-list-stub tag="div">
+      <v-list-item-stub activeclass="" to="/" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>dashboard</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub>
+          <v-list-item-title-stub datatest="dashboard-listItem" data-test="dashboard-listItem">Dashboard</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" to="/devices" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>devices</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub>
+          <v-list-item-title-stub datatest="devices-listItem" data-test="devices-listItem">Devices</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" to="/sessions" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>history</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub>
+          <v-list-item-title-stub datatest="history-listItem" data-test="history-listItem">Sessions</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" to="/firewall/rules" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>security</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub>
+          <v-list-item-title-stub datatest="security-listItem" data-test="security-listItem">Firewall Rules</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" to="/sshkeys/public-keys" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>vpn_key</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub>
+          <v-list-item-title-stub datatest="vpn_key-listItem" data-test="vpn_key-listItem">Public Keys</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+    </v-list-stub>
+  </v-navigation-drawer-stub>
+  <appbar-stub></appbar-stub>
+  <v-main-stub tag="main" class="grey lighten-4">
+    <v-container-stub tag="div" fluid="true" class="pa-8">
+      <router-view-stub name="default"></router-view-stub>
+    </v-container-stub>
+    <snackbar-stub></snackbar-stub>
+  </v-main-stub>
+  <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
+    <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
+  </v-overlay-stub>
+  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+</fragment-stub>
+`;
+
+exports[`AppLayout Is not enterprise and has namespace Renders the component 1`] = `
+<fragment-stub>
+  <snackbar-stub></snackbar-stub>
+  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" dark="true" clipped="true" height="100vh" minivariantwidth="56" src="" tag="nav" width="256" value="true">
+    <v-list-stub tag="div">
+      <v-list-item-stub activeclass="" to="/" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>dashboard</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub>
+          <v-list-item-title-stub datatest="dashboard-listItem" data-test="dashboard-listItem">Dashboard</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" to="/devices" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>devices</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub>
+          <v-list-item-title-stub datatest="devices-listItem" data-test="devices-listItem">Devices</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" to="/sessions" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>history</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub>
+          <v-list-item-title-stub datatest="history-listItem" data-test="history-listItem">Sessions</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" to="/sshkeys/public-keys" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>vpn_key</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub>
+          <v-list-item-title-stub datatest="vpn_key-listItem" data-test="vpn_key-listItem">Public Keys</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+    </v-list-stub>
+  </v-navigation-drawer-stub>
+  <appbar-stub></appbar-stub>
+  <v-main-stub tag="main" class="grey lighten-4">
+    <v-container-stub tag="div" fluid="true" class="pa-8">
+      <router-view-stub name="default"></router-view-stub>
+    </v-container-stub>
+    <snackbar-stub></snackbar-stub>
+  </v-main-stub>
+  <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
+    <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
+  </v-overlay-stub>
+  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+</fragment-stub>
+`;
+
+exports[`AppLayout Is not enterprise and not has namespace Renders the component 1`] = `
+<fragment-stub>
+  <snackbar-stub></snackbar-stub>
+  <!---->
+  <appbar-stub></appbar-stub>
+  <v-main-stub tag="main" class="grey lighten-4">
+    <v-container-stub tag="div" fluid="true" class="pa-8">
+      <router-view-stub name="default"></router-view-stub>
+    </v-container-stub>
+    <snackbar-stub></snackbar-stub>
+  </v-main-stub>
+  <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
+    <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
+  </v-overlay-stub>
+  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+</fragment-stub>
+`;
