@@ -15,6 +15,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type Data struct {
+	User              models.User
+	Namespace         models.Namespace
+	FirewallRule      models.FirewallRule
+	Device            models.Device
+	Subscription      models.Billing
+	PublicKey         models.PublicKey
+	Session           models.Session
+	RecordedSession   models.RecordedSession
+	DeviceAuthRequest models.DeviceAuthRequest
+	Context           context.Context
+}
+
 func TestStoreGetStats(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -114,4 +127,83 @@ func TestStoreSaveLicense(t *testing.T) {
 		CreatedAt: clock.Now().Truncate(time.Millisecond),
 	})
 	assert.NoError(t, err)
+}
+
+func initData() Data {
+	authReq := models.DeviceAuthRequest{
+		DeviceAuth: &models.DeviceAuth{
+			TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			Identity: &models.DeviceIdentity{
+				MAC: "mac",
+			},
+		},
+		Sessions: []string{"session"},
+	}
+
+	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
+
+	return Data{
+		models.User{
+			ID:       "1",
+			Name:     "user",
+			Username: "username",
+			Email:    "user@shellhub.io",
+			Password: "password",
+		},
+		models.Namespace{
+			Name:       "namespace",
+			Owner:      "owner",
+			TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			Members:    []interface{}{"owner"},
+			MaxDevices: -1,
+			Settings:   &models.NamespaceSettings{SessionRecord: true},
+		},
+		models.FirewallRule{
+			FirewallRuleFields: models.FirewallRuleFields{
+				Priority: 1,
+				Action:   "allow",
+				Active:   true,
+				SourceIP: ".*",
+				Username: ".*",
+				Hostname: ".*",
+			},
+		},
+		models.Device{
+			UID:      hex.EncodeToString(uid[:]),
+			Identity: authReq.Identity,
+			TenantID: authReq.TenantID,
+			LastSeen: clock.Now(),
+		},
+		models.Billing{
+			SubscriptionID:   "subc_1111x",
+			CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
+			PriceID:          "pid_11x",
+			Active:           true,
+			State:            "pending",
+		},
+		models.PublicKey{
+			Data:            []byte("teste"),
+			Fingerprint:     "fingerprint",
+			TenantID:        "tenant1",
+			PublicKeyFields: models.PublicKeyFields{Name: "teste1", Hostname: ".*"},
+		},
+		models.Session{
+			Username:      "username",
+			UID:           "uid",
+			TenantID:      "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			DeviceUID:     models.UID(hex.EncodeToString(uid[:])),
+			IPAddress:     "0.0.0.0",
+			Authenticated: true,
+		},
+		models.RecordedSession{
+			UID:      models.UID("uid"),
+			Message:  "message",
+			TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			Time:     clock.Now(),
+			Width:    0,
+			Height:   0,
+		},
+		authReq,
+		context.TODO(),
+	}
 }

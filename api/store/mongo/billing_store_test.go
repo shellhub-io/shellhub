@@ -1,7 +1,6 @@
 package mongo
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -12,44 +11,40 @@ import (
 )
 
 func TestBillingUpdateInstance(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	ns := &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		MaxDevices: -1,
-	}
-	_, err := mongostore.NamespaceCreate(ctx, ns)
+
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	subscription := &models.Billing{
+	err = mongostore.BillingUpdateInstance(data.Context, &data.Namespace, &data.Subscription)
+	assert.NoError(t, err)
+
+	ns, err := mongostore.NamespaceGet(data.Context, data.Namespace.TenantID)
+	assert.NoError(t, err)
+	assert.Equal(t, &models.Billing{
 		SubscriptionID:   "subc_1111x",
 		CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
 		PriceID:          "pid_11x",
 		Active:           true,
 		State:            "pending",
-	}
-
-	err = mongostore.BillingUpdateInstance(ctx, ns, subscription)
-	assert.NoError(t, err)
-
-	ns, err = mongostore.NamespaceGet(ctx, ns.TenantID)
-	assert.NoError(t, err)
-	assert.Equal(t, subscription, ns.Billing)
+	}, ns.Billing)
 }
 
 func TestBillingUpdatePaymentFailed(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
-
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
+	assert.NoError(t, err)
 
 	pf := &models.PaymentFailed{
 		Status:  true,
@@ -58,133 +53,93 @@ func TestBillingUpdatePaymentFailed(t *testing.T) {
 		Amount:  47.54,
 	}
 
-	ns := &models.Namespace{
-		TenantID: "tenant",
-	}
-
-	_, err := mongostore.NamespaceCreate(ctx, ns)
-	assert.NoError(t, err)
-
-	_, err = mongostore.BillingUpdatePaymentFailed(ctx, "subs_id", true, pf)
+	_, err = mongostore.BillingUpdatePaymentFailed(data.Context, "subs_id", true, pf)
 	assert.Error(t, err)
 
-	subsID := "subs_id_1"
-
-	ns2 := &models.Namespace{
+	_, err = mongostore.NamespaceCreate(data.Context, &models.Namespace{
 		TenantID: "tenant2",
 		Billing: &models.Billing{
-			SubscriptionID: subsID,
+			SubscriptionID: "subs_id_1",
 		},
-	}
-
-	_, err = mongostore.NamespaceCreate(ctx, ns2)
+	})
 	assert.NoError(t, err)
 
-	ns2, err = mongostore.BillingUpdatePaymentFailed(ctx, subsID, true, pf)
+	ns2, err := mongostore.BillingUpdatePaymentFailed(data.Context, "subs_id_1", true, pf)
 	assert.NoError(t, err)
-
 	assert.Equal(t, pf, ns2.Billing.PaymentFailed)
 
-	ns2, err = mongostore.BillingUpdatePaymentFailed(ctx, subsID, false, nil)
+	ns2, err = mongostore.BillingUpdatePaymentFailed(data.Context, "subs_id_1", false, nil)
 	assert.NoError(t, err)
-
 	assert.Nil(t, ns2.Billing.PaymentFailed)
 }
 
 func TestBillingUpdateDeviceLimit(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	ns := &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		MaxDevices: 3,
-		Billing: &models.Billing{
-			SubscriptionID:   "subc_1111x",
-			CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
-			PriceID:          "pid_11x",
-		},
-	}
-	_, err := mongostore.NamespaceCreate(ctx, ns)
+
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	newDeviceLimit := -1
-
-	_, err = mongostore.BillingUpdateDeviceLimit(ctx, ns.TenantID, newDeviceLimit)
+	_, err = mongostore.BillingUpdateDeviceLimit(data.Context, data.Namespace.TenantID, -1)
 	assert.NoError(t, err)
 
-	ns, _ = mongostore.NamespaceGet(ctx, ns.TenantID)
-	assert.Equal(t, ns.MaxDevices, newDeviceLimit)
+	ns, err := mongostore.NamespaceGet(data.Context, data.Namespace.TenantID)
+	assert.NoError(t, err)
+	assert.Equal(t, ns.MaxDevices, -1)
 }
 
 func TestBillingDeleteSubscription(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	subsID := "subc_1111x"
-	ns := &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		MaxDevices: -1,
-		Billing: &models.Billing{
-			SubscriptionID:   subsID,
-			CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
-			Active:           true,
-			PriceID:          "pid_11x",
-		},
-	}
-
-	_, err := mongostore.NamespaceCreate(ctx, ns)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	err = mongostore.BillingDeleteSubscription(ctx, ns.TenantID)
+	err = mongostore.BillingDeleteSubscription(data.Context, data.Namespace.TenantID)
 	assert.NoError(t, err)
 
-	ns, _ = mongostore.NamespaceGet(ctx, ns.TenantID)
+	ns, err := mongostore.NamespaceGet(data.Context, data.Namespace.TenantID)
+	assert.NoError(t, err)
 	assert.Equal(t, false, ns.Billing.Active)
 }
 
 func TestBillingRemoveInstance(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	subsID := "sub_1x"
-	billing := models.Billing{
-		CustomerID:      "cust_111x",
-		PaymentMethodID: "pid_111x",
-		SubscriptionID:  subsID,
-	}
-
-	namespace := models.Namespace{
-		TenantID: "tenant",
-	}
-
-	namespaceBill := models.Namespace{
-		TenantID: namespace.TenantID,
-		Billing:  &billing,
-	}
-
-	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, &namespaceBill)
-
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, _ = mongostore.NamespaceGet(ctx, namespace.TenantID)
-	err = mongostore.BillingRemoveInstance(ctx, billing.CustomerID)
+	_, err = mongostore.NamespaceCreate(data.Context, &models.Namespace{
+		TenantID: data.Namespace.TenantID,
+		Billing: &models.Billing{
+			CustomerID:      "cust_111x",
+			PaymentMethodID: "pid_111x",
+			SubscriptionID:  "sub_1x",
+		},
+	})
 	assert.NoError(t, err)
 
-	ns, _ := mongostore.NamespaceGet(ctx, namespace.TenantID)
+	_, err = mongostore.NamespaceGet(data.Context, data.Namespace.TenantID)
+	assert.NoError(t, err)
+
+	err = mongostore.BillingRemoveInstance(data.Context, "cust_111x")
+	assert.NoError(t, err)
+
+	ns, err := mongostore.NamespaceGet(data.Context, data.Namespace.TenantID)
+	assert.NoError(t, err)
 	assert.Empty(t, ns.Billing)
 	assert.Nil(t, ns.Billing)
 }

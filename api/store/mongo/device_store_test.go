@@ -2,445 +2,212 @@ package mongo
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"testing"
 
-	"github.com/cnf/structhash"
 	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDeviceCreate(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	assert.NoError(t, err)
-
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
-		},
-		Sessions: []string{"session"},
-	}
-
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
-
-	device := models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: clock.Now(),
-	}
-
-	err = mongostore.DeviceCreate(ctx, device, "")
+	err := mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 }
 
 func TestDeviceGet(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
-		},
-		Sessions: []string{"session"},
-	}
-
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
-
-	device := models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: clock.Now(),
-	}
-
-	err = mongostore.DeviceCreate(ctx, device, "")
-	assert.NoError(t, err)
-	d, err := mongostore.DeviceGet(ctx, models.UID(device.UID))
+	d, err := mongostore.DeviceGet(data.Context, models.UID(data.Device.UID))
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
 
 func TestDeviceRename(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
-		},
-		Sessions: []string{"session"},
-	}
-
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
-
-	device := models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: clock.Now(),
-	}
-
-	err = mongostore.DeviceCreate(ctx, device, "")
-	assert.NoError(t, err)
-	err = mongostore.DeviceRename(ctx, models.UID(device.UID), "newHostname")
+	err = mongostore.DeviceRename(data.Context, models.UID(data.Device.UID), "newHostname")
 	assert.NoError(t, err)
 }
 
 func TestDeviceLookup(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
-		},
-		Sessions: []string{"session"},
-	}
-
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
-
-	device := models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: clock.Now(),
-	}
-
-	err = mongostore.DeviceCreate(ctx, device, "device")
+	err = mongostore.DeviceUpdateStatus(data.Context, models.UID(data.Device.UID), "accepted")
 	assert.NoError(t, err)
 
-	err = mongostore.DeviceUpdateStatus(ctx, models.UID(device.UID), "accepted")
-	assert.NoError(t, err)
-
-	d, err := mongostore.DeviceLookup(ctx, "name", "device")
+	d, err := mongostore.DeviceLookup(data.Context, data.Namespace.Name, "hostname")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
 
 func TestDeviceUpdateStatus(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
-		},
-		Sessions: []string{"session"},
-	}
-
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
-
-	device := models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: clock.Now(),
-	}
-
-	err = mongostore.DeviceCreate(ctx, device, "device")
-	assert.NoError(t, err)
-
-	err = mongostore.DeviceUpdateStatus(ctx, models.UID(device.UID), "accepted")
+	err = mongostore.DeviceUpdateStatus(data.Context, models.UID(data.Device.UID), "accepted")
 	assert.NoError(t, err)
 }
 
 func TestDeviceSetOnline(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
-		},
-		Sessions: []string{"session"},
-	}
-
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
-
-	device := models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: clock.Now(),
-	}
-
-	err = mongostore.DeviceCreate(ctx, device, "")
-	assert.NoError(t, err)
-	err = mongostore.DeviceSetOnline(ctx, models.UID(device.UID), true)
+	err = mongostore.DeviceSetOnline(data.Context, models.UID(data.Device.UID), true)
 	assert.NoError(t, err)
 }
 
 func TestDeviceGetByMac(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
-		},
-		Sessions: []string{"session"},
-	}
-
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
-
-	device := models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: clock.Now(),
-	}
-
-	err = mongostore.DeviceCreate(ctx, device, "")
-	assert.NoError(t, err)
-	d, err := mongostore.DeviceGetByMac(ctx, "mac", "tenant", "pending")
+	d, err := mongostore.DeviceGetByMac(data.Context, "mac", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "pending")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
 
 func TestDeviceGetByName(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
-		},
-		Sessions: []string{"session"},
-	}
-
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
-
-	device := models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: clock.Now(),
-	}
-
-	err = mongostore.DeviceCreate(ctx, device, "hostname")
-	assert.NoError(t, err)
-	d, err := mongostore.DeviceGetByName(ctx, "hostname", "tenant")
+	d, err := mongostore.DeviceGetByName(data.Context, "hostname", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
 
 func TestDeviceGetByUID(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
-		},
-		Sessions: []string{"session"},
-	}
-
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
-
-	device := models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: clock.Now(),
-	}
-
-	err = mongostore.DeviceCreate(ctx, device, "")
-	assert.NoError(t, err)
-	d, err := mongostore.DeviceGetByUID(ctx, models.UID(device.UID), "tenant")
+	d, err := mongostore.DeviceGetByUID(data.Context, models.UID(data.Device.UID), "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
 
 func TestDevicesList(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
-		},
-		Sessions: []string{"session"},
-	}
-
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
-
-	device := models.Device{
-		UID:      hex.EncodeToString(uid[:]),
-		Identity: authReq.Identity,
-		TenantID: authReq.TenantID,
-		LastSeen: clock.Now(),
-	}
-
-	err = mongostore.DeviceCreate(ctx, device, "")
-	assert.NoError(t, err)
-
-	devices, count, err := mongostore.DeviceList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
+	devices, count, err := mongostore.DeviceList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, devices)
 }
 
 func TestDeviceListByUsage(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
 	devices := make([]models.Device, 0)
@@ -451,13 +218,13 @@ func TestDeviceListByUsage(t *testing.T) {
 	for i, q := range quantities {
 		devices = append(devices, models.Device{
 			UID:      fmt.Sprintf("%s%d", "uid", i+1),
-			TenantID: "tenant",
+			TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 			Status:   "accepted",
 		})
 		for j := 0; j < q; j++ {
 			sessions = append(sessions, models.Session{
 				UID:       fmt.Sprintf("%s%d", "uid", j),
-				TenantID:  "tenant",
+				TenantID:  "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 				DeviceUID: models.UID(fmt.Sprintf("%s%d", "uid", i+1)),
 			})
 		}
@@ -474,10 +241,10 @@ func TestDeviceListByUsage(t *testing.T) {
 		devicesInterfaces[i] = v
 	}
 
-	_, _ = db.Client().Database("test").Collection("sessions").InsertMany(ctx, sessionsInterfaces)
-	_, _ = db.Client().Database("test").Collection("devices").InsertMany(ctx, devicesInterfaces)
+	_, _ = db.Client().Database("test").Collection("sessions").InsertMany(data.Context, sessionsInterfaces)
+	_, _ = db.Client().Database("test").Collection("devices").InsertMany(data.Context, devicesInterfaces)
 
-	devices, err = mongostore.DeviceListByUsage(ctx, namespace.TenantID)
+	devices, err = mongostore.DeviceListByUsage(data.Context, data.Namespace.TenantID)
 	expectedUIDs := []string{"uid1", "uid2", "uid3"}
 
 	assert.NoError(t, err)
@@ -489,19 +256,14 @@ func TestDeviceListByUsage(t *testing.T) {
 }
 
 func TestDeviceChoice(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
 	devices := make([]models.Device, 0)
@@ -511,7 +273,7 @@ func TestDeviceChoice(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		devices = append(devices, models.Device{
 			UID:      fmt.Sprintf("%s%d", "uid", i+1),
-			TenantID: "tenant",
+			TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 			Status:   "accepted",
 		})
 	}
@@ -520,13 +282,13 @@ func TestDeviceChoice(t *testing.T) {
 		devicesInterfaces[i] = v
 	}
 
-	_, err = db.Client().Database("test").Collection("devices").InsertMany(ctx, devicesInterfaces)
+	_, err = db.Client().Database("test").Collection("devices").InsertMany(data.Context, devicesInterfaces)
 	assert.NoError(t, err)
 
-	err = mongostore.DeviceChoice(ctx, namespace.TenantID, []string{"uid1", "uid2", "uid5"})
+	err = mongostore.DeviceChoice(data.Context, data.Namespace.TenantID, []string{"uid1", "uid2", "uid5"})
 	assert.NoError(t, err)
 
-	devices, _, err = mongostore.DeviceList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
+	devices, _, err = mongostore.DeviceList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
 	assert.NoError(t, err)
 
 	pending := make([]string, 0)
@@ -543,61 +305,57 @@ func TestDeviceChoice(t *testing.T) {
 }
 
 func TestDeviceCreateTag(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	device := models.Device{
-		UID:      "1",
-		TenantID: "tenant",
-		Tags:     []string{},
-	}
-
-	tags := []string{
-		"device1",
-		"device2",
-	}
-
-	_, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, &device)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	err = mongostore.DeviceCreateTag(ctx, models.UID(device.UID), "device1")
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	err = mongostore.DeviceCreateTag(ctx, models.UID(device.UID), "device2")
+	err = mongostore.DeviceCreateTag(data.Context, models.UID(data.Device.UID), "device1")
 	assert.NoError(t, err)
 
-	d, err := mongostore.DeviceGetByUID(ctx, models.UID(device.UID), "tenant")
+	err = mongostore.DeviceCreateTag(data.Context, models.UID(data.Device.UID), "device2")
 	assert.NoError(t, err)
-	assert.Equal(t, d.Tags, tags)
+
+	d, err := mongostore.DeviceGetByUID(data.Context, models.UID(data.Device.UID), "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	assert.NoError(t, err)
+	assert.Equal(t, d.Tags, []string{"device1", "device2"})
 }
 
 func TestDeviceDeleteTag(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	device := models.Device{
-		UID:      "1",
-		TenantID: "tenant",
-		Tags: []string{
-			"device1",
-			"device2",
-			"device3",
-		},
-	}
-
-	_, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, &device)
+	_, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	err = mongostore.DeviceDeleteTag(ctx, models.UID(device.UID), "device2")
+	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	d, err := mongostore.DeviceGetByUID(ctx, models.UID(device.UID), "tenant")
+	err = mongostore.DeviceCreateTag(data.Context, models.UID(data.Device.UID), "device1")
+	assert.NoError(t, err)
+
+	err = mongostore.DeviceCreateTag(data.Context, models.UID(data.Device.UID), "device2")
+	assert.NoError(t, err)
+
+	err = mongostore.DeviceCreateTag(data.Context, models.UID(data.Device.UID), "device3")
+	assert.NoError(t, err)
+
+	err = mongostore.DeviceDeleteTag(data.Context, models.UID(data.Device.UID), "device2")
+	assert.NoError(t, err)
+
+	d, err := mongostore.DeviceGetByUID(data.Context, models.UID(data.Device.UID), "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 	assert.Equal(t, len(d.Tags), 2)
 	assert.Equal(t, d.Tags, []string{"device1", "device3"})
