@@ -5,7 +5,7 @@
       data-test="show-btn"
       @click="show"
     >
-      {{ typeOperation }}
+      {{ actionButton(typeOperation) }}
     </v-btn>
 
     <v-dialog
@@ -18,15 +18,18 @@
           class="headline grey lighten-2 text-center"
           data-test="text-cardTitle"
         >
-          {{ typeOperation | capitalizeFirstLetter }} payment method
+          {{ typeTitle(typeOperation) }}
         </v-card-title>
 
         <v-card-text class="mt-4 mb-3 pb-1">
           <div v-if="typeOperation === 'subscription'">
-            Add payment method information below
+            <h4>Subscribe to premium plan</h4>
+            <p>
+              The amount charged will be based on the device usage.
+            </p>
           </div>
 
-          <v-card class="mt-8">
+          <v-card class="mt-6">
             <v-col>
               <div ref="card" />
             </v-col>
@@ -108,6 +111,17 @@ export default {
   },
 
   methods: {
+    typeTitle(type) {
+      switch (type) {
+      case 'subscription':
+        return 'Create subscription';
+      case 'update':
+        return 'Update payment method';
+      default:
+        return 'Operation not found';
+      }
+    },
+
     show() {
       this.dialog = !this.dialog;
       this.$nextTick(async () => {
@@ -123,15 +137,24 @@ export default {
       }
     },
 
-    doAction() {
+    actionButton(type) {
+      if (type === 'subscription') {
+        return 'subscribe';
+      }
+
+      return type;
+    },
+
+    async doAction() {
       this.lockButton = true;
 
       switch (this.typeOperation) {
       case 'subscription':
-        this.subscriptionPaymentMethod();
+        await this.subscriptionPaymentMethod();
         break;
       case 'update':
-        this.updatePaymentMethod();
+        await this.updatePaymentMethod();
+        this.dialog = false;
         break;
       default:
         this.lockButton = false;
@@ -162,7 +185,6 @@ export default {
             payment_method_id: result.paymentMethod.id,
           });
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.subscription);
-          this.$emit('update');
         } catch {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.subscription);
         }

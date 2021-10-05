@@ -30,6 +30,8 @@ describe('Billing', () => {
       id: subsId,
     };
 
+    const state = 'pending';
+
     store.commit('billing/setSubscription', data);
 
     ['status', 'customer', 'id'].map((v) => (
@@ -41,8 +43,10 @@ describe('Billing', () => {
       active,
       customer_id: customerId,
       subscription_id: subsId,
+      state,
     });
     expect(store.getters['billing/active']).toEqual(active);
+    expect(store.getters['billing/status']).toEqual(state);
   });
 
   ///////
@@ -58,6 +62,7 @@ describe('Billing', () => {
       },
       pm: paymentMethodId,
       id: subsId,
+      state: 'processed',
     };
 
     store.commit('billing/setPaymentMethod', data);
@@ -91,6 +96,8 @@ describe('Billing', () => {
       id: subsId,
     };
 
+    const state = 'pending';
+
     store.commit('billing/deactivateSubscription');
 
     ['status', 'customer', 'id'].map((v) => (
@@ -103,7 +110,9 @@ describe('Billing', () => {
       customer_id: customerId,
       subscription_id: subsId,
       payment_method_id: paymentMethodId,
+      state,
     });
     expect(store.getters['billing/active']).toEqual(!active);
+    expect(store.getters['billing/status']).toEqual(state);
   });
 });

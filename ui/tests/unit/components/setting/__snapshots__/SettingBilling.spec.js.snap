@@ -1,18 +1,70 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SettingBilling Doesn't own the namespace Renders the component 1`] = `
+exports[`SettingBilling Renders component according to billing instance Renders the component - Create subscription 1`] = `
 <v-container-stub tag="div">
   <v-row-stub tag="div" align="center" justify="center" class="mt-4">
     <v-col-stub sm="8" tag="div">
-      <settingownerinfo-stub data-test="settingOwnerInfo-component"></settingownerinfo-stub>
-      <!---->
+      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <div data-test="content-div">
+        <v-row-stub tag="div">
+          <v-col-stub tag="div">
+            <h3>
+              Subscription info
+            </h3>
+          </v-col-stub>
+          <v-spacer-stub></v-spacer-stub>
+          <v-col-stub md="auto" tag="div" class="ml-auto">
+            <paymentmethod-stub typeoperation="subscription" data-test="subscriptionPaymentMethod-component"></paymentmethod-stub>
+          </v-col-stub>
+        </v-row-stub>
+        <div class="mt-6 pl-4 pr-4">
+          <div>
+            <div data-test="freePlan-div">
+              <p>
+                Plan: <b> Free </b></p>
+              <p>
+                Description: you can only add 3 devices.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
       <!---->
     </v-col-stub>
   </v-row-stub>
 </v-container-stub>
 `;
 
-exports[`SettingBilling Namespace owner with subscription Renders the component 1`] = `
+exports[`SettingBilling Renders component according to billing instance Renders the component - Pending request 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <div data-test="content-div">
+        <v-row-stub tag="div">
+          <v-col-stub tag="div">
+            <h3>
+              Subscription info
+            </h3>
+          </v-col-stub>
+          <v-spacer-stub></v-spacer-stub>
+          <!---->
+        </v-row-stub>
+        <div class="mt-6 pl-4 pr-4">
+          <div data-test="pendingRetrial-div">
+            <p class="ma-4">
+              You have a pending request, please wait a while ...
+            </p>
+          </div>
+        </div>
+      </div>
+      <!---->
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Renders component according to billing instance Renders the component - Premium usage 1`] = `
 <v-container-stub tag="div">
   <v-row-stub tag="div" align="center" justify="center" class="mt-4">
     <v-col-stub sm="8" tag="div">
@@ -29,12 +81,14 @@ exports[`SettingBilling Namespace owner with subscription Renders the component 
         </v-row-stub>
         <div class="mt-6 pl-4 pr-4">
           <div>
-            <p>
-              Plan: <b> Premium usage </b></p>
-            <p>
-              Description: In this plan, the amount is charged according to the number of
-              devices used.
-            </p>
+            <div data-test="premiumPlan-div">
+              <p>
+                Plan: <b> Premium usage </b></p>
+              <p>
+                Description: In this plan, the amount is charged according to the number of
+                devices used.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -51,7 +105,7 @@ exports[`SettingBilling Namespace owner with subscription Renders the component 
           </v-row-stub>
           <div class="mt-6 pl-4 pr-4">
             <p>
-              Date: <b> January 1st 1970 </b></p>
+              Date: <b> </b></p>
             <p>
               Estimated total:
               <b>
@@ -84,7 +138,7 @@ exports[`SettingBilling Namespace owner with subscription Renders the component 
         </div>
         <v-divider-stub></v-divider-stub>
         <v-divider-stub></v-divider-stub>
-        <div class="mt-6">
+        <div data-test="cancel-div" class="mt-6">
           <v-row-stub tag="div">
             <v-col-stub tag="div">
               <h3>
@@ -112,33 +166,12 @@ exports[`SettingBilling Namespace owner with subscription Renders the component 
 </v-container-stub>
 `;
 
-exports[`SettingBilling Namespace owner without subscription Renders the component 1`] = `
+exports[`SettingBilling Renders component according to billing instance Renders the component - User not owner 1`] = `
 <v-container-stub tag="div">
   <v-row-stub tag="div" align="center" justify="center" class="mt-4">
     <v-col-stub sm="8" tag="div">
-      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
-      <div data-test="content-div">
-        <v-row-stub tag="div">
-          <v-col-stub tag="div">
-            <h3>
-              Subscription info
-            </h3>
-          </v-col-stub>
-          <v-spacer-stub></v-spacer-stub>
-          <v-col-stub md="auto" tag="div" class="ml-auto">
-            <paymentmethod-stub typeoperation="subscription" data-test="subscriptionPaymentMethod-component"></paymentmethod-stub>
-          </v-col-stub>
-        </v-row-stub>
-        <div class="mt-6 pl-4 pr-4">
-          <div>
-            <p>
-              Plan: <b> Free </b></p>
-            <p>
-              Description: you can only add 3 devices.
-            </p>
-          </div>
-        </div>
-      </div>
+      <settingownerinfo-stub data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <!---->
       <!---->
     </v-col-stub>
   </v-row-stub>

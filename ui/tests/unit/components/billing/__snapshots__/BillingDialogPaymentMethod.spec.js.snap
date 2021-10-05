@@ -2,7 +2,7 @@
 
 exports[`BillingDialogPaymentMethod Button Renders the component 1`] = `
 <fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default" data-test="show-btn"><span class="v-btn__content">
-    subscription
+    subscribe
   </span></button>
   <div role="dialog" class="v-dialog__container">
     <!---->
@@ -12,7 +12,7 @@ exports[`BillingDialogPaymentMethod Button Renders the component 1`] = `
 
 exports[`BillingDialogPaymentMethod Dialog Subscription Renders the component 1`] = `
 <fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default" data-test="show-btn"><span class="v-btn__content">
-    subscription
+    subscribe
   </span></button>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>

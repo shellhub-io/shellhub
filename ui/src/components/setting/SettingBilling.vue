@@ -27,44 +27,65 @@
             <v-spacer />
 
             <v-col
-              v-if="isOwner && !active"
+              v-if="isOwner && state === 'inactive'"
               md="auto"
               class="ml-auto"
             >
               <PaymentMethod
                 type-operation="subscription"
                 data-test="subscriptionPaymentMethod-component"
-                @update="getSubscriptionInfo()"
               />
             </v-col>
           </v-row>
 
           <div class="mt-6 pl-4 pr-4">
-            <div v-if="isOwner && !active">
-              <p>
-                Plan: <b> Free </b>
-              </p>
-
-              <p>
-                Description: you can only add 3 devices.
+            <div
+              v-if="state === 'pending' && !retrialExceeded"
+              data-test="pendingRetrial-div"
+            >
+              <p class="ma-4">
+                You have a pending request, please wait a while ...
               </p>
             </div>
 
-            <div v-else-if="isOwner && active">
-              <p>
-                Plan: <b> Premium usage </b>
+            <div
+              v-else-if="state === 'pending' && retrialExceeded"
+              data-test="pendingExceeded-div"
+            >
+              <p class="ma-4">
+                Couldn't proccess your last request, please try again later.
               </p>
+            </div>
 
-              <p>
-                Description: In this plan, the amount is charged according to the number of
-                devices used.
-              </p>
+            <div v-else-if="isOwner && state === 'inactive'">
+              <div data-test="freePlan-div">
+                <p>
+                  Plan: <b> Free </b>
+                </p>
+
+                <p>
+                  Description: you can only add 3 devices.
+                </p>
+              </div>
+            </div>
+
+            <div v-else-if="isOwner && active && state === 'processed'">
+              <div data-test="premiumPlan-div">
+                <p>
+                  Plan: <b> Premium usage </b>
+                </p>
+
+                <p>
+                  Description: In this plan, the amount is charged according to the number of
+                  devices used.
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
         <div
-          v-if="isOwner && active && renderData"
+          v-if="isOwner && active && renderData && state==='processed'"
           class="mt-4 mb-4"
           data-test="subscriptionActive-div"
         >
@@ -135,7 +156,10 @@
           <v-divider />
           <v-divider />
 
-          <div class="mt-6">
+          <div
+            data-test="cancel-div"
+            class="mt-6"
+          >
             <v-row>
               <v-col>
                 <h3>
@@ -161,10 +185,24 @@
                   <BillingCancel
                     v-if="renderData"
                     :next-payment-due="infoBillingData.nextPaymentDue"
-                    @update="updateNamespace()"
+                    @cancel="cancel()"
                   />
                 </v-col>
               </v-row>
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="state==='processed' && active">
+          <div
+            data-test="activeLoading-div"
+          >
+            <v-divider />
+            <v-divider />
+            <div class="mt-6 mb-2">
+              <p>
+                Loading data
+              </p>
             </div>
           </div>
         </div>
@@ -198,6 +236,8 @@ export default {
   data() {
     return {
       card: null,
+      pollMax: 4,
+      retrials: 0,
       elements: null,
       billingData: { info: Object, card: Object },
       renderData: false,
@@ -205,6 +245,10 @@ export default {
   },
 
   computed: {
+    retrialExceeded() {
+      return this.retrials >= this.pollMax;
+    },
+
     active() {
       return this.$store.getters['billing/active'];
     },
@@ -217,6 +261,10 @@ export default {
       return this.$store.getters['namespaces/owner'];
     },
 
+    state() {
+      return this.$store.getters['billing/status'];
+    },
+
     infoBillingData() {
       return this.billingData.info;
     },
@@ -227,6 +275,18 @@ export default {
   },
 
   watch: {
+    state(val) {
+      if (val === 'pending') {
+        this.startPolling();
+      } else {
+        clearInterval(this.polling);
+        if (this.state === 'processed') {
+          this.getSubscriptionInfo();
+        }
+        this.retrials = 0;
+      }
+    },
+
     isOwner(status) {
       if (status) {
         this.stripeData();
@@ -235,7 +295,16 @@ export default {
   },
 
   created() {
+    if (this.state === 'pending') {
+      this.startPolling();
+    }
     this.updateNamespace();
+  },
+
+  destroyed() {
+    if (this.polling !== null) {
+      clearInterval(this.polling);
+    }
   },
 
   mounted() {
@@ -245,6 +314,17 @@ export default {
   },
 
   methods: {
+    startPolling() {
+      this.polling = setInterval(() => {
+        if (this.retrialExceeded) {
+          clearInterval(this.polling);
+        } else {
+          this.updateNamespace();
+          this.retrials += 1;
+        }
+      }, 3000);
+    },
+
     stripeData() {
       this.mountStripeElements();
 
