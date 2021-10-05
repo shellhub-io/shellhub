@@ -1,7 +1,6 @@
 package mongo
 
 import (
-	"context"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/cache"
@@ -11,210 +10,162 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const user2Username = "username2"
+
 func TestNamespaceGetDataUserSecurity(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "hash1"}
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: true}}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	returnedStatus, err := mongostore.NamespaceGetSessionRecord(ctx, namespace.TenantID)
-	assert.Equal(t, returnedStatus, namespace.Settings.SessionRecord)
+	returnedStatus, err := mongostore.NamespaceGetSessionRecord(data.Context, data.Namespace.TenantID)
+	assert.Equal(t, returnedStatus, data.Namespace.Settings.SessionRecord)
 	assert.NoError(t, err)
 }
 
 func TestNamespaceUpdateDataUserSecurity(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "hash1"}
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: true}}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	err = mongostore.NamespaceSetSessionRecord(ctx, false, namespace.TenantID)
+	err = mongostore.NamespaceSetSessionRecord(data.Context, false, data.Namespace.TenantID)
+	assert.NoError(t, err)
+
+	returnedStatus, err := mongostore.NamespaceGetSessionRecord(data.Context, data.Namespace.TenantID)
+	assert.Equal(t, returnedStatus, false)
 	assert.NoError(t, err)
 }
 
 func TestNamespaceCreate(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	err := mongostore.UserCreate(ctx, &models.User{
-		Name:     "user",
-		Email:    "user@shellhub.io",
-		Password: "password",
-	})
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
-	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		MaxDevices: -1,
-	})
+
+	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 }
 
 func TestNamespaceDelete(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	err := mongostore.UserCreate(ctx, &models.User{
-		Name:     "user",
-		Email:    "user@shellhub.io",
-		Password: "password",
-	})
-	assert.NoError(t, err)
-	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		MaxDevices: -1,
-	})
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	err = mongostore.NamespaceDelete(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
+	assert.NoError(t, err)
+
+	err = mongostore.NamespaceDelete(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 }
 
 func TestNamespaceGet(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	err := mongostore.UserCreate(ctx, &models.User{
-		Name:     "user",
-		Email:    "user@shellhub.io",
-		Password: "password",
-	})
-	assert.NoError(t, err)
-	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		MaxDevices: -1,
-	})
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceGet(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
+	assert.NoError(t, err)
+
+	_, err = mongostore.NamespaceGet(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 	assert.NoError(t, err)
 }
 
 func TestNamespacesList(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	err := mongostore.UserCreate(ctx, &models.User{
-		Username: "user",
-		Email:    "user@shellhub.io",
-		Password: "password",
-	})
-	assert.NoError(t, err)
-	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		MaxDevices: -1,
-	})
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	_, count, err := mongostore.NamespaceList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil, false)
+	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
+	assert.NoError(t, err)
+
+	_, count, err := mongostore.NamespaceList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil, false)
 	assert.Equal(t, 1, count)
 	assert.NoError(t, err)
 }
 
 func TestNamespaceAddMember(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	err := mongostore.UserCreate(ctx, &models.User{
-		Username: "user",
-		Email:    "user@shellhub.io",
-		Password: "password",
-		ID:       "user_id",
-	})
-	assert.NoError(t, err)
-	err = mongostore.UserCreate(ctx, &models.User{
-		Username: "user2",
-		Email:    "user@shellhub.io",
-		Password: "password",
-		ID:       "user2_id",
-	})
-	assert.NoError(t, err)
-	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		MaxDevices: -1,
-	})
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	u, err := mongostore.UserGetByUsername(ctx, "user")
+	user2 := data.User
+	user2.Username = user2Username
+	user2.ID = "user2_id"
+
+	err = mongostore.UserCreate(data.Context, &user2)
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceAddMember(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
+	assert.NoError(t, err)
+
+	u, err := mongostore.UserGetByUsername(data.Context, "username")
+	assert.NoError(t, err)
+
+	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
 }
 
 func TestNamespaceUpdate(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	err := mongostore.UserCreate(ctx, &models.User{
-		Name:     "name",
-		Username: "user",
-		Email:    "user@shellhub.io",
-		Password: "password",
-	})
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		Settings:   &models.NamespaceSettings{SessionRecord: true},
-		MaxDevices: -1,
-	})
+	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	err = mongostore.NamespaceUpdate(ctx, "tenant", &models.Namespace{
+	err = mongostore.NamespaceUpdate(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", &models.Namespace{
 		Name:       "name",
 		Settings:   &models.NamespaceSettings{SessionRecord: false},
 		MaxDevices: 3,
@@ -223,66 +174,51 @@ func TestNamespaceUpdate(t *testing.T) {
 }
 
 func TestNamespaceRemoveMember(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	err := mongostore.UserCreate(ctx, &models.User{
-		Username: "user",
-		Email:    "user@shellhub.io",
-		Password: "password",
-	})
-	assert.NoError(t, err)
-	err = mongostore.UserCreate(ctx, &models.User{
-		Username: "user2",
-		Email:    "user@shellhub.io",
-		Password: "password",
-	})
-	assert.NoError(t, err)
-	_, err = mongostore.NamespaceCreate(ctx, &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		MaxDevices: -1,
-	})
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	u, err := mongostore.UserGetByUsername(ctx, "user")
+	user2 := data.User
+	user2.Username = user2Username
+	user2.ID = "user2_id"
+
+	err = mongostore.UserCreate(data.Context, &user2)
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceAddMember(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceRemoveMember(ctx, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	u, err := mongostore.UserGetByUsername(data.Context, "username")
+	assert.NoError(t, err)
+
+	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	assert.NoError(t, err)
+
+	_, err = mongostore.NamespaceRemoveMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
 	assert.NoError(t, err)
 }
 
 func TestNamespaceGetByName(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	err := mongostore.UserCreate(ctx, &models.User{
-		Name:     "user",
-		Email:    "user@shellhub.io",
-		Password: "password",
-	})
-	assert.NoError(t, err)
-	ns, err := mongostore.NamespaceCreate(ctx, &models.Namespace{
-		Name:       "namespace",
-		Owner:      "owner",
-		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:    []interface{}{"owner"},
-		MaxDevices: -1,
-	})
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	returnedNs, err := mongostore.NamespaceGetByName(ctx, "namespace")
+	ns, err := mongostore.NamespaceCreate(data.Context, &data.Namespace)
+	assert.NoError(t, err)
+
+	returnedNs, err := mongostore.NamespaceGetByName(data.Context, "namespace")
 	assert.NoError(t, err)
 	assert.Equal(t, ns, returnedNs)
 }

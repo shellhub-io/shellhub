@@ -15,55 +15,49 @@ import (
 )
 
 func TestUserGetByUsername(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "owner"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	assert.NoError(t, err)
-
-	u, err := mongostore.UserGetByUsername(ctx, "username")
+	u, err := mongostore.UserGetByUsername(data.Context, "username")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, u)
-	assert.Equal(t, u.ID, user.ID)
+	assert.Equal(t, u.ID, data.User.ID)
 }
 
 func TestUserGetByEmail(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	u, err := mongostore.UserGetByEmail(ctx, "email")
+	u, err := mongostore.UserGetByEmail(data.Context, "user@shellhub.io")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, u)
 }
 
 func TestUserUpdateData(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	result, err := db.Client().Database("test").Collection("users").InsertOne(data.Context, user)
 	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
@@ -76,10 +70,10 @@ func TestUserUpdateData(t *testing.T) {
 		Email:    "new@email.com",
 	}
 
-	err = mongostore.UserUpdateData(ctx, &userNewData, objID)
+	err = mongostore.UserUpdateData(data.Context, &userNewData, objID)
 	assert.NoError(t, err)
 
-	us, _, err := mongostore.UserGetByID(ctx, objID, false)
+	us, _, err := mongostore.UserGetByID(data.Context, objID, false)
 	assert.Equal(t, us, &userNewData)
 	assert.NoError(t, err)
 }
@@ -200,112 +194,107 @@ func TestUserGetByID(t *testing.T) {
 }
 
 func TestUserUpdatePassword(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	result, err := db.Client().Database("test").Collection("users").InsertOne(data.Context, user)
 	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
 
-	newPassword := "password2"
-
-	err = mongostore.UserUpdatePassword(ctx, newPassword, objID)
+	err = mongostore.UserUpdatePassword(data.Context, "password2", objID)
 	assert.NoError(t, err)
 
-	us, _, err := mongostore.UserGetByID(ctx, objID, false)
-	assert.Equal(t, us.Password, newPassword)
+	us, _, err := mongostore.UserGetByID(data.Context, objID, false)
+	assert.Equal(t, us.Password, "password2")
 	assert.NoError(t, err)
 }
 
 func TestUpdateUserFromAdmin(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
 	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 
-	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	result, err := db.Client().Database("test").Collection("users").InsertOne(data.Context, user)
 	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
-	err = mongostore.UserUpdateFromAdmin(ctx, "newName", "newUsername", "newEmail", "password", objID)
+
+	err = mongostore.UserUpdateFromAdmin(data.Context, "newName", "newUsername", "newEmail", "password", objID)
 	assert.NoError(t, err)
 }
 
 func TestUserCreateToken(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", Authenticated: false}
 
-	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+
+	result, err := db.Client().Database("test").Collection("users").InsertOne(data.Context, user)
 	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
 
 	UserTokenRecover := models.UserTokenRecover{Token: "token", User: objID}
 
-	err = mongostore.UserCreateToken(ctx, &UserTokenRecover)
+	err = mongostore.UserCreateToken(data.Context, &UserTokenRecover)
 	assert.NoError(t, err)
 
-	userToken, err := mongostore.UserGetToken(ctx, objID)
+	userToken, err := mongostore.UserGetToken(data.Context, objID)
 	assert.Equal(t, userToken.Token, UserTokenRecover.Token)
 	assert.NoError(t, err)
 }
 
 func TestUserUpdateAccountStatus(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", Authenticated: false}
 
-	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+
+	result, err := db.Client().Database("test").Collection("users").InsertOne(data.Context, user)
 	assert.NoError(t, err)
 
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
 
-	err = mongostore.UserUpdateAccountStatus(ctx, objID)
+	err = mongostore.UserUpdateAccountStatus(data.Context, objID)
 	assert.NoError(t, err)
 
-	us, _, err := mongostore.UserGetByID(ctx, objID, false)
+	us, _, err := mongostore.UserGetByID(data.Context, objID, false)
 	assert.Equal(t, us.Authenticated, true)
 	assert.NoError(t, err)
 }
 
 func TestUsersList(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
-	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	userID := result.InsertedID.(primitive.ObjectID).Hex()
-	namespace := models.Namespace{Name: "name", Owner: userID, TenantID: "tenant"}
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	assert.NoError(t, err)
-
-	users, count, err := mongostore.UserList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil)
+	users, count, err := mongostore.UserList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, users)
@@ -373,17 +362,14 @@ func TestUsersListWithFilter(t *testing.T) {
 }
 
 func TestUserCreate(t *testing.T) {
+	data := initData()
+
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	err := mongostore.UserCreate(ctx, &models.User{
-		Name:     "user",
-		Email:    "user@shellhub.io",
-		Password: "password",
-	})
+	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 }
 
@@ -482,6 +468,7 @@ func TestUserDelete(t *testing.T) {
 
 	err = mongostore.UserDelete(ctx, user.ID)
 	assert.NoError(t, err)
+
 	_, err = mongostore.UserGetByUsername(ctx, "username")
 	assert.Error(t, err, mongo.ErrNoDocuments)
 }
