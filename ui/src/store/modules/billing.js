@@ -10,6 +10,7 @@ export default {
   getters: {
     get: (state) => state.billing,
     active: (state) => state.billing.active || false,
+    status: (state) => state.billing.state || 'inactive',
   },
 
   mutations: {
@@ -20,12 +21,14 @@ export default {
         customer_id: data.customer.id,
         payment_method_id: data.payment_method_id,
         subscription_id: data.id,
+        state: 'pending',
       });
     },
 
     setPaymentMethod: (state, data) => {
       Vue.set(state, 'billing', {
         ...state.billing,
+        state: 'processed',
         payment_method_id: data.pm,
       });
     },
@@ -33,6 +36,7 @@ export default {
     deactivateSubscription: (state) => {
       Vue.set(state, 'billing', {
         ...state.billing,
+        state: 'pending',
         active: false,
       });
     },
