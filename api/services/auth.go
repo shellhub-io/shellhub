@@ -44,9 +44,21 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 		},
 	})
 
-	tokenStr, err := token.SignedString(s.privKey)
-	if err != nil {
+	var tokenStr string
+	if err := s.cache.Get(ctx, strings.Join([]string{"device", string(uid[:]), "token"}, "/"), &tokenStr); err != nil {
 		return nil, err
+	}
+
+	if tokenStr == "" {
+		tokenStrCache, err := token.SignedString(s.privKey)
+		if err != nil {
+			return nil, err
+		}
+		err = s.cache.Set(ctx, strings.Join([]string{"device", string(uid[:]), "token"}, "/"), tokenStrCache, time.Minute*5)
+		if err != nil {
+			return nil, err
+		}
+		tokenStr = tokenStrCache
 	}
 
 	type Device struct {
