@@ -204,7 +204,7 @@ export default {
 
   updated() {
     if (this.dialog) {
-      this.getTimerNow = this.getDisplaySliderInfo(this.currentTime).display;
+      this.setSliderDiplayTime(this.currentTime);
     }
   },
 
@@ -214,9 +214,11 @@ export default {
         // receive data
         await this.$store.dispatch('sessions/getLogSession', this.uid);
         this.logs = this.$store.getters['sessions/get'];
-        this.totalLength = this.getDisplaySliderInfo(null).intervalLength;
-        this.endTimerDisplay = this.getDisplaySliderInfo(null).display;
-        this.getTimerNow = this.getDisplaySliderInfo(this.currentTime).display;
+
+        this.totalLength = this.getSliderIntervalLength(null);
+        this.setSliderDiplayTime(null);
+        this.setSliderDiplayTime(this.currentTime);
+
         this.frames = this.createFrames();
 
         this.xterm = new Terminal({ // instantiate Terminal
@@ -252,7 +254,7 @@ export default {
       this.timer();
     },
 
-    getDisplaySliderInfo(timeMs) {
+    getSliderIntervalLength(timeMs) {
       let interval;
 
       if (!timeMs) { // not params, will return metrics to max timelengtht
@@ -263,6 +265,11 @@ export default {
         interval = timeMs;
       }
 
+      return interval;
+    },
+
+    setSliderDiplayTime(timeMs) {
+      const interval = this.getSliderIntervalLength(timeMs);
       const duration = moment.duration(interval, 'milliseconds');
 
       // format according to how long
@@ -274,10 +281,11 @@ export default {
         trim: false,
       });
 
-      return {
-        display: displayTime, // format the slider label
-        intervalLength: interval, // length of slider in Ms
-      };
+      if (timeMs) {
+        this.endTimerDisplay = displayTime;
+      } else {
+        this.getTimerNow = displayTime;
+      }
     },
 
     createFrames() { // create cumulative frames for the exibition in slider
