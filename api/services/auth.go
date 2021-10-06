@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"errors"
+	"math/big"
 	"strings"
 	"time"
 
@@ -33,6 +34,11 @@ type AuthService interface {
 }
 
 func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAdrr string) (*models.DeviceAuthResponse, error) {
+	duration, err := rand.Int(rand.Reader, big.NewInt(5))
+	if err != nil {
+		return nil, err
+	}
+	time.Sleep(time.Second * time.Duration(duration.Int64()))
 	uid := sha256.Sum256(structhash.Dump(req.DeviceAuth, 1))
 
 	key := hex.EncodeToString(uid[:])
