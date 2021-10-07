@@ -24,8 +24,15 @@ const (
 )
 
 func (h *Handler) AuthRequest(c apicontext.Context) error {
-	token := c.Get("user").(*jwt.Token)
-	rawClaims := token.Claims.(*jwt.MapClaims)
+	token, ok := c.Get("user").(*jwt.Token)
+	if !ok {
+		return svc.ErrTypeAssertion
+	}
+
+	rawClaims, ok := token.Claims.(*jwt.MapClaims)
+	if !ok {
+		return svc.ErrTypeAssertion
+	}
 
 	switch claims := (*rawClaims)["claims"]; claims {
 	case "user":
@@ -156,7 +163,10 @@ func (h *Handler) AuthPublicKey(c apicontext.Context) error {
 
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		ctx := c.Get("ctx").(*apicontext.Context)
+		ctx, ok := c.Get("ctx").(*apicontext.Context)
+		if !ok {
+			return svc.ErrTypeAssertion
+		}
 
 		jwt := middleware.JWTWithConfig(middleware.JWTConfig{
 			Claims:        &jwt.MapClaims{},

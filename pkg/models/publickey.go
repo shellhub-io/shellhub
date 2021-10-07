@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"time"
 
-	"gopkg.in/go-playground/validator.v9"
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 type PublicKeyFields struct {

@@ -156,7 +156,8 @@ func TestUserGetByID(t *testing.T) {
 		},
 	}
 
-	namespaces := append(namespacesOwner, namespacesNotOwner...)
+	namespaces := namespacesOwner
+	namespaces = append(namespaces, namespacesNotOwner...)
 	nss := make([]interface{}, len(namespaces))
 
 	for i, v := range namespaces {
@@ -425,7 +426,8 @@ func TestUserDetachInfo(t *testing.T) {
 		},
 	}
 
-	namespaces := append(namespacesOwner, namespacesMember...)
+	namespaces := namespacesOwner
+	namespaces = append(namespaces, namespacesMember...)
 	nss := make([]interface{}, len(namespaces))
 
 	for i, v := range namespaces {

@@ -84,7 +84,11 @@ func (dbs *DBServer) start() {
 	if err != nil {
 		panic("unable to listen on a local address: " + err.Error())
 	}
-	addr := l.Addr().(*net.TCPAddr)
+	addr, ok := l.Addr().(*net.TCPAddr)
+	if !ok {
+		panic("Type assertion failed")
+	}
+
 	l.Close()
 
 	dbs.network = "host" // Use same network as docker host

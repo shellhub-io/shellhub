@@ -3,7 +3,7 @@ package validator
 import (
 	"strings"
 
-	"gopkg.in/go-playground/validator.v9"
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 type InvalidField struct {

@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/hashicorp/go-retryablehttp"
+	retryablehttp "github.com/hashicorp/go-retryablehttp"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/parnurzeal/gorequest"
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"

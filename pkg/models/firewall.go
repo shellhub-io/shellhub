@@ -3,7 +3,7 @@ package models
 import (
 	"regexp"
 
-	"gopkg.in/go-playground/validator.v9"
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 type FirewallRuleFields struct {

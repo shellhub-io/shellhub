@@ -13,9 +13,8 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/mholt/archiver/v3"
-
-	"github.com/oschwald/geoip2-golang"
+	archiver "github.com/mholt/archiver/v3"
+	geoip2 "github.com/oschwald/geoip2-golang"
 )
 
 // dbPath is the default path for Database.
