@@ -195,22 +195,22 @@ func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname stri
 	return fromMongoError(err)
 }
 
-func (s *Store) DeviceRename(ctx context.Context, uid models.UID, name string) error {
-	if _, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": name}}); err != nil {
+func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname string) error {
+	if _, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": hostname}}); err != nil {
 		return fromMongoError(err)
 	}
 
 	return nil
 }
 
-func (s *Store) DeviceLookup(ctx context.Context, namespace, name string) (*models.Device, error) {
+func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error) {
 	ns := new(models.Namespace)
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
 		return nil, fromMongoError(err)
 	}
 
 	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": ns.TenantID, "name": name, "status": "accepted"}).Decode(&device); err != nil {
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": ns.TenantID, "name": hostname, "status": "accepted"}).Decode(&device); err != nil {
 		return nil, fromMongoError(err)
 	}
 
@@ -306,14 +306,14 @@ func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.
 	return devices, nil
 }
 
-func (s *Store) DeviceGetByMac(ctx context.Context, mac, tenant, status string) (*models.Device, error) {
+func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status string) (*models.Device, error) {
 	device := new(models.Device)
 	if status != "" {
-		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}, "status": status}).Decode(&device); err != nil {
+		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "identity": bson.M{"mac": mac}, "status": status}).Decode(&device); err != nil {
 			return nil, fromMongoError(err)
 		}
 	} else {
-		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
+		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
 			return nil, fromMongoError(err)
 		}
 	}
@@ -321,16 +321,16 @@ func (s *Store) DeviceGetByMac(ctx context.Context, mac, tenant, status string) 
 	return device, nil
 }
 
-func (s *Store) DeviceGetByName(ctx context.Context, name, tenant string) (*models.Device, error) {
+func (s *Store) DeviceGetByName(ctx context.Context, name string, tenantID string) (*models.Device, error) {
 	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "name": name}).Decode(&device); err != nil {
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "name": name}).Decode(&device); err != nil {
 		return nil, fromMongoError(err)
 	}
 
 	return device, nil
 }
 
-func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error) {
+func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID string) (*models.Device, error) {
 	var device *models.Device
 	if err := s.cache.Get(ctx, strings.Join([]string{"device", string(uid)}, "/"), &device); err != nil {
 		logrus.Error(err)
@@ -340,7 +340,7 @@ func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenant strin
 		return device, nil
 	}
 
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}).Decode(&device); err != nil {
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "uid": uid}).Decode(&device); err != nil {
 		return nil, fromMongoError(err)
 	}
 
@@ -357,10 +357,10 @@ func (s *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position 
 	return err
 }
 
-func (s *Store) DeviceChoice(ctx context.Context, tenant string, chosen []string) error {
+func (s *Store) DeviceChoice(ctx context.Context, tenantID string, chosen []string) error {
 	filter := bson.M{
 		"status":    "accepted",
-		"tenant_id": tenant,
+		"tenant_id": tenantID,
 		"uid": bson.M{
 			"$nin": chosen,
 		},
@@ -442,8 +442,8 @@ func (s *Store) DeviceGetTags(ctx context.Context, tenantID string) ([]string, i
 	return tags, len(tags), err
 }
 
-func (s *Store) DeviceDeleteAllTags(ctx context.Context, tenantID string, name string) error {
-	_, err := s.db.Collection("devices").UpdateMany(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"tags": name}})
+func (s *Store) DeviceDeleteAllTags(ctx context.Context, tenantID string, tagName string) error {
+	_, err := s.db.Collection("devices").UpdateMany(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"tags": tagName}})
 
 	return err
 }

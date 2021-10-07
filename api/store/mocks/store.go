@@ -104,13 +104,13 @@ func (_m *Store) BillingUpdatePaymentFailed(ctx context.Context, subscriptionID 
 	return r0, r1
 }
 
-// DeviceChoice provides a mock function with given fields: ctx, tenant, chosen
-func (_m *Store) DeviceChoice(ctx context.Context, tenant string, chosen []string) error {
-	ret := _m.Called(ctx, tenant, chosen)
+// DeviceChoice provides a mock function with given fields: ctx, tenantID, chosen
+func (_m *Store) DeviceChoice(ctx context.Context, tenantID string, chosen []string) error {
+	ret := _m.Called(ctx, tenantID, chosen)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
-		r0 = rf(ctx, tenant, chosen)
+		r0 = rf(ctx, tenantID, chosen)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -160,13 +160,13 @@ func (_m *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	return r0
 }
 
-// DeviceDeleteAllTags provides a mock function with given fields: ctx, tenantID, name
-func (_m *Store) DeviceDeleteAllTags(ctx context.Context, tenantID string, name string) error {
-	ret := _m.Called(ctx, tenantID, name)
+// DeviceDeleteAllTags provides a mock function with given fields: ctx, tenantID, tagName
+func (_m *Store) DeviceDeleteAllTags(ctx context.Context, tenantID string, tagName string) error {
+	ret := _m.Called(ctx, tenantID, tagName)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, tenantID, name)
+		r0 = rf(ctx, tenantID, tagName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -211,13 +211,13 @@ func (_m *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device,
 	return r0, r1
 }
 
-// DeviceGetByMac provides a mock function with given fields: ctx, mac, tenant, status
-func (_m *Store) DeviceGetByMac(ctx context.Context, mac string, tenant string, status string) (*models.Device, error) {
-	ret := _m.Called(ctx, mac, tenant, status)
+// DeviceGetByMac provides a mock function with given fields: ctx, mac, tenantID, status
+func (_m *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status string) (*models.Device, error) {
+	ret := _m.Called(ctx, mac, tenantID, status)
 
 	var r0 *models.Device
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *models.Device); ok {
-		r0 = rf(ctx, mac, tenant, status)
+		r0 = rf(ctx, mac, tenantID, status)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
@@ -226,7 +226,7 @@ func (_m *Store) DeviceGetByMac(ctx context.Context, mac string, tenant string, 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, mac, tenant, status)
+		r1 = rf(ctx, mac, tenantID, status)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -234,13 +234,13 @@ func (_m *Store) DeviceGetByMac(ctx context.Context, mac string, tenant string, 
 	return r0, r1
 }
 
-// DeviceGetByName provides a mock function with given fields: ctx, name, tenant
-func (_m *Store) DeviceGetByName(ctx context.Context, name string, tenant string) (*models.Device, error) {
-	ret := _m.Called(ctx, name, tenant)
+// DeviceGetByName provides a mock function with given fields: ctx, name, tenantID
+func (_m *Store) DeviceGetByName(ctx context.Context, name string, tenantID string) (*models.Device, error) {
+	ret := _m.Called(ctx, name, tenantID)
 
 	var r0 *models.Device
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Device); ok {
-		r0 = rf(ctx, name, tenant)
+		r0 = rf(ctx, name, tenantID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
@@ -249,7 +249,7 @@ func (_m *Store) DeviceGetByName(ctx context.Context, name string, tenant string
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, name, tenant)
+		r1 = rf(ctx, name, tenantID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -257,13 +257,13 @@ func (_m *Store) DeviceGetByName(ctx context.Context, name string, tenant string
 	return r0, r1
 }
 
-// DeviceGetByUID provides a mock function with given fields: ctx, uid, tenant
-func (_m *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenant string) (*models.Device, error) {
-	ret := _m.Called(ctx, uid, tenant)
+// DeviceGetByUID provides a mock function with given fields: ctx, uid, tenantID
+func (_m *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID string) (*models.Device, error) {
+	ret := _m.Called(ctx, uid, tenantID)
 
 	var r0 *models.Device
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) *models.Device); ok {
-		r0 = rf(ctx, uid, tenant)
+		r0 = rf(ctx, uid, tenantID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
@@ -272,7 +272,7 @@ func (_m *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenant stri
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, models.UID, string) error); ok {
-		r1 = rf(ctx, uid, tenant)
+		r1 = rf(ctx, uid, tenantID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -340,13 +340,13 @@ func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, fil
 	return r0, r1, r2
 }
 
-// DeviceListByUsage provides a mock function with given fields: ctx, tenant
-func (_m *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.Device, error) {
-	ret := _m.Called(ctx, tenant)
+// DeviceListByUsage provides a mock function with given fields: ctx, tenantID
+func (_m *Store) DeviceListByUsage(ctx context.Context, tenantID string) ([]models.Device, error) {
+	ret := _m.Called(ctx, tenantID)
 
 	var r0 []models.Device
 	if rf, ok := ret.Get(0).(func(context.Context, string) []models.Device); ok {
-		r0 = rf(ctx, tenant)
+		r0 = rf(ctx, tenantID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
@@ -355,7 +355,7 @@ func (_m *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenant)
+		r1 = rf(ctx, tenantID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -393,13 +393,13 @@ func (_m *Store) DeviceListTag(ctx context.Context) ([]string, int, error) {
 	return r0, r1, r2
 }
 
-// DeviceLookup provides a mock function with given fields: ctx, namespace, name
-func (_m *Store) DeviceLookup(ctx context.Context, namespace string, name string) (*models.Device, error) {
-	ret := _m.Called(ctx, namespace, name)
+// DeviceLookup provides a mock function with given fields: ctx, namespace, hostname
+func (_m *Store) DeviceLookup(ctx context.Context, namespace string, hostname string) (*models.Device, error) {
+	ret := _m.Called(ctx, namespace, hostname)
 
 	var r0 *models.Device
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Device); ok {
-		r0 = rf(ctx, namespace, name)
+		r0 = rf(ctx, namespace, hostname)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
@@ -408,7 +408,7 @@ func (_m *Store) DeviceLookup(ctx context.Context, namespace string, name string
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, namespace, name)
+		r1 = rf(ctx, namespace, hostname)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -416,13 +416,13 @@ func (_m *Store) DeviceLookup(ctx context.Context, namespace string, name string
 	return r0, r1
 }
 
-// DeviceRename provides a mock function with given fields: ctx, uid, name
-func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, name string) error {
-	ret := _m.Called(ctx, uid, name)
+// DeviceRename provides a mock function with given fields: ctx, uid, hostname
+func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname string) error {
+	ret := _m.Called(ctx, uid, hostname)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, name)
+		r0 = rf(ctx, uid, hostname)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -664,13 +664,13 @@ func (_m *Store) LicenseSave(ctx context.Context, license *models.License) error
 	return r0
 }
 
-// NamespaceAddMember provides a mock function with given fields: ctx, tenantID, ID
-func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, ID string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID, ID)
+// NamespaceAddMember provides a mock function with given fields: ctx, tenantID, id
+func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, id string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenantID, id)
 
 	var r0 *models.Namespace
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, ID)
+		r0 = rf(ctx, tenantID, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -679,7 +679,7 @@ func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, ID str
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenantID, ID)
+		r1 = rf(ctx, tenantID, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -687,13 +687,13 @@ func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, ID str
 	return r0, r1
 }
 
-// NamespaceCreate provides a mock function with given fields: ctx, tenantID
-func (_m *Store) NamespaceCreate(ctx context.Context, tenantID *models.Namespace) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID)
+// NamespaceCreate provides a mock function with given fields: ctx, namespace
+func (_m *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
+	ret := _m.Called(ctx, namespace)
 
 	var r0 *models.Namespace
 	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID)
+		r0 = rf(ctx, namespace)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -702,7 +702,7 @@ func (_m *Store) NamespaceCreate(ctx context.Context, tenantID *models.Namespace
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *models.Namespace) error); ok {
-		r1 = rf(ctx, tenantID)
+		r1 = rf(ctx, namespace)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -770,13 +770,13 @@ func (_m *Store) NamespaceGetByName(ctx context.Context, name string) (*models.N
 	return r0, r1
 }
 
-// NamespaceGetFirst provides a mock function with given fields: ctx, ID
-func (_m *Store) NamespaceGetFirst(ctx context.Context, ID string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, ID)
+// NamespaceGetFirst provides a mock function with given fields: ctx, id
+func (_m *Store) NamespaceGetFirst(ctx context.Context, id string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, id)
 
 	var r0 *models.Namespace
 	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Namespace); ok {
-		r0 = rf(ctx, ID)
+		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -785,7 +785,7 @@ func (_m *Store) NamespaceGetFirst(ctx context.Context, ID string) (*models.Name
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, ID)
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -844,13 +844,13 @@ func (_m *Store) NamespaceList(ctx context.Context, pagination paginator.Query, 
 	return r0, r1, r2
 }
 
-// NamespaceRemoveMember provides a mock function with given fields: ctx, tenantID, ID
-func (_m *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, ID string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID, ID)
+// NamespaceRemoveMember provides a mock function with given fields: ctx, tenantID, id
+func (_m *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, id string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenantID, id)
 
 	var r0 *models.Namespace
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, ID)
+		r0 = rf(ctx, tenantID, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -859,7 +859,7 @@ func (_m *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, ID 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenantID, ID)
+		r1 = rf(ctx, tenantID, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -969,13 +969,13 @@ func (_m *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) err
 	return r0
 }
 
-// PublicKeyDelete provides a mock function with given fields: ctx, fingerprint, tenant
-func (_m *Store) PublicKeyDelete(ctx context.Context, fingerprint string, tenant string) error {
-	ret := _m.Called(ctx, fingerprint, tenant)
+// PublicKeyDelete provides a mock function with given fields: ctx, fingerprint, tenantID
+func (_m *Store) PublicKeyDelete(ctx context.Context, fingerprint string, tenantID string) error {
+	ret := _m.Called(ctx, fingerprint, tenantID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, fingerprint, tenant)
+		r0 = rf(ctx, fingerprint, tenantID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -983,13 +983,13 @@ func (_m *Store) PublicKeyDelete(ctx context.Context, fingerprint string, tenant
 	return r0
 }
 
-// PublicKeyGet provides a mock function with given fields: ctx, fingerprint, tenant
-func (_m *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenant string) (*models.PublicKey, error) {
-	ret := _m.Called(ctx, fingerprint, tenant)
+// PublicKeyGet provides a mock function with given fields: ctx, fingerprint, tenantID
+func (_m *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
+	ret := _m.Called(ctx, fingerprint, tenantID)
 
 	var r0 *models.PublicKey
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.PublicKey); ok {
-		r0 = rf(ctx, fingerprint, tenant)
+		r0 = rf(ctx, fingerprint, tenantID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.PublicKey)
@@ -998,7 +998,7 @@ func (_m *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenant st
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, fingerprint, tenant)
+		r1 = rf(ctx, fingerprint, tenantID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1036,13 +1036,13 @@ func (_m *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) 
 	return r0, r1, r2
 }
 
-// PublicKeyUpdate provides a mock function with given fields: ctx, fingerprint, tenant, key
-func (_m *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	ret := _m.Called(ctx, fingerprint, tenant, key)
+// PublicKeyUpdate provides a mock function with given fields: ctx, fingerprint, tenantID, key
+func (_m *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
+	ret := _m.Called(ctx, fingerprint, tenantID, key)
 
 	var r0 *models.PublicKey
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.PublicKeyUpdate) *models.PublicKey); ok {
-		r0 = rf(ctx, fingerprint, tenant, key)
+		r0 = rf(ctx, fingerprint, tenantID, key)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.PublicKey)
@@ -1051,7 +1051,7 @@ func (_m *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenant
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, *models.PublicKeyUpdate) error); ok {
-		r1 = rf(ctx, fingerprint, tenant, key)
+		r1 = rf(ctx, fingerprint, tenantID, key)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1291,13 +1291,13 @@ func (_m *Store) UserCreateToken(ctx context.Context, token *models.UserTokenRec
 	return r0
 }
 
-// UserDelete provides a mock function with given fields: ctx, ID
-func (_m *Store) UserDelete(ctx context.Context, ID string) error {
-	ret := _m.Called(ctx, ID)
+// UserDelete provides a mock function with given fields: ctx, id
+func (_m *Store) UserDelete(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, ID)
+		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1305,13 +1305,13 @@ func (_m *Store) UserDelete(ctx context.Context, ID string) error {
 	return r0
 }
 
-// UserDeleteTokens provides a mock function with given fields: ctx, ID
-func (_m *Store) UserDeleteTokens(ctx context.Context, ID string) error {
-	ret := _m.Called(ctx, ID)
+// UserDeleteTokens provides a mock function with given fields: ctx, id
+func (_m *Store) UserDeleteTokens(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, ID)
+		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1365,13 +1365,13 @@ func (_m *Store) UserGetByEmail(ctx context.Context, email string) (*models.User
 	return r0, r1
 }
 
-// UserGetByID provides a mock function with given fields: ctx, ID, ns
-func (_m *Store) UserGetByID(ctx context.Context, ID string, ns bool) (*models.User, int, error) {
-	ret := _m.Called(ctx, ID, ns)
+// UserGetByID provides a mock function with given fields: ctx, id, ns
+func (_m *Store) UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error) {
+	ret := _m.Called(ctx, id, ns)
 
 	var r0 *models.User
 	if rf, ok := ret.Get(0).(func(context.Context, string, bool) *models.User); ok {
-		r0 = rf(ctx, ID, ns)
+		r0 = rf(ctx, id, ns)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
@@ -1380,14 +1380,14 @@ func (_m *Store) UserGetByID(ctx context.Context, ID string, ns bool) (*models.U
 
 	var r1 int
 	if rf, ok := ret.Get(1).(func(context.Context, string, bool) int); ok {
-		r1 = rf(ctx, ID, ns)
+		r1 = rf(ctx, id, ns)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
 	if rf, ok := ret.Get(2).(func(context.Context, string, bool) error); ok {
-		r2 = rf(ctx, ID, ns)
+		r2 = rf(ctx, id, ns)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1395,13 +1395,13 @@ func (_m *Store) UserGetByID(ctx context.Context, ID string, ns bool) (*models.U
 	return r0, r1, r2
 }
 
-// UserGetByTenant provides a mock function with given fields: ctx, tenant
-func (_m *Store) UserGetByTenant(ctx context.Context, tenant string) (*models.User, error) {
-	ret := _m.Called(ctx, tenant)
+// UserGetByTenant provides a mock function with given fields: ctx, tenantID
+func (_m *Store) UserGetByTenant(ctx context.Context, tenantID string) (*models.User, error) {
+	ret := _m.Called(ctx, tenantID)
 
 	var r0 *models.User
 	if rf, ok := ret.Get(0).(func(context.Context, string) *models.User); ok {
-		r0 = rf(ctx, tenant)
+		r0 = rf(ctx, tenantID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
@@ -1410,7 +1410,7 @@ func (_m *Store) UserGetByTenant(ctx context.Context, tenant string) (*models.Us
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenant)
+		r1 = rf(ctx, tenantID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1441,13 +1441,13 @@ func (_m *Store) UserGetByUsername(ctx context.Context, username string) (*model
 	return r0, r1
 }
 
-// UserGetToken provides a mock function with given fields: ctx, ID
-func (_m *Store) UserGetToken(ctx context.Context, ID string) (*models.UserTokenRecover, error) {
-	ret := _m.Called(ctx, ID)
+// UserGetToken provides a mock function with given fields: ctx, id
+func (_m *Store) UserGetToken(ctx context.Context, id string) (*models.UserTokenRecover, error) {
+	ret := _m.Called(ctx, id)
 
 	var r0 *models.UserTokenRecover
 	if rf, ok := ret.Get(0).(func(context.Context, string) *models.UserTokenRecover); ok {
-		r0 = rf(ctx, ID)
+		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserTokenRecover)
@@ -1456,7 +1456,7 @@ func (_m *Store) UserGetToken(ctx context.Context, ID string) (*models.UserToken
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, ID)
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1494,13 +1494,13 @@ func (_m *Store) UserList(ctx context.Context, pagination paginator.Query, filte
 	return r0, r1, r2
 }
 
-// UserUpdateAccountStatus provides a mock function with given fields: ctx, ID
-func (_m *Store) UserUpdateAccountStatus(ctx context.Context, ID string) error {
-	ret := _m.Called(ctx, ID)
+// UserUpdateAccountStatus provides a mock function with given fields: ctx, id
+func (_m *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, ID)
+		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1508,13 +1508,13 @@ func (_m *Store) UserUpdateAccountStatus(ctx context.Context, ID string) error {
 	return r0
 }
 
-// UserUpdateData provides a mock function with given fields: ctx, data, ID
-func (_m *Store) UserUpdateData(ctx context.Context, data *models.User, ID string) error {
-	ret := _m.Called(ctx, data, ID)
+// UserUpdateData provides a mock function with given fields: ctx, data, id
+func (_m *Store) UserUpdateData(ctx context.Context, data *models.User, id string) error {
+	ret := _m.Called(ctx, data, id)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *models.User, string) error); ok {
-		r0 = rf(ctx, data, ID)
+		r0 = rf(ctx, data, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1522,13 +1522,13 @@ func (_m *Store) UserUpdateData(ctx context.Context, data *models.User, ID strin
 	return r0
 }
 
-// UserUpdateFromAdmin provides a mock function with given fields: ctx, name, username, email, password, ID
-func (_m *Store) UserUpdateFromAdmin(ctx context.Context, name string, username string, email string, password string, ID string) error {
-	ret := _m.Called(ctx, name, username, email, password, ID)
+// UserUpdateFromAdmin provides a mock function with given fields: ctx, name, username, email, password, id
+func (_m *Store) UserUpdateFromAdmin(ctx context.Context, name string, username string, email string, password string, id string) error {
+	ret := _m.Called(ctx, name, username, email, password, id)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) error); ok {
-		r0 = rf(ctx, name, username, email, password, ID)
+		r0 = rf(ctx, name, username, email, password, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1536,13 +1536,13 @@ func (_m *Store) UserUpdateFromAdmin(ctx context.Context, name string, username 
 	return r0
 }
 
-// UserUpdatePassword provides a mock function with given fields: ctx, newPassword, ID
-func (_m *Store) UserUpdatePassword(ctx context.Context, newPassword string, ID string) error {
-	ret := _m.Called(ctx, newPassword, ID)
+// UserUpdatePassword provides a mock function with given fields: ctx, newPassword, id
+func (_m *Store) UserUpdatePassword(ctx context.Context, newPassword string, id string) error {
+	ret := _m.Called(ctx, newPassword, id)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, newPassword, ID)
+		r0 = rf(ctx, newPassword, id)
 	} else {
 		r0 = ret.Error(0)
 	}

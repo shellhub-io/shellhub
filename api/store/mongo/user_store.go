@@ -194,7 +194,7 @@ func (s *Store) UserUpdateData(ctx context.Context, data *models.User, id string
 	return nil
 }
 
-func (s *Store) UserUpdatePassword(ctx context.Context, newPassword, id string) error {
+func (s *Store) UserUpdatePassword(ctx context.Context, newPassword string, id string) error {
 	if _, _, err := s.UserGetByID(ctx, id, false); err != nil {
 		return fromMongoError(err)
 	}
@@ -211,7 +211,7 @@ func (s *Store) UserUpdatePassword(ctx context.Context, newPassword, id string) 
 	return nil
 }
 
-func (s *Store) UserUpdateFromAdmin(ctx context.Context, name, username, email, password, id string) error {
+func (s *Store) UserUpdateFromAdmin(ctx context.Context, name string, username string, email string, password string, id string) error {
 	user, _, err := s.UserGetByID(ctx, id, false)
 	objID, _ := primitive.ObjectIDFromHex(id)
 
