@@ -36,7 +36,11 @@ func main() {
 		}
 	}
 
-	router := tunnel.Router().(*mux.Router)
+	router, ok := tunnel.Router().(*mux.Router)
+	if !ok {
+		logrus.Error("type assertion failed")
+	}
+
 	router.HandleFunc("/sessions/{uid}/close", func(res http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		decoder := json.NewDecoder(req.Body)

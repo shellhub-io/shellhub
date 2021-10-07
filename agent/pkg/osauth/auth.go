@@ -75,6 +75,7 @@ func AuthUser(username, passwd string) bool {
 func parseShadowReader(r io.Reader) (map[string]ShadowEntry, error) {
 	lines := bufio.NewReader(r)
 	entries := make(map[string]ShadowEntry)
+
 	for {
 		line, _, err := lines.ReadLine()
 		if err != nil {

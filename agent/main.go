@@ -133,7 +133,15 @@ func main() {
 	tunnel := NewTunnel()
 	tunnel.connHandler = func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		conn := r.Context().Value("http-conn").(net.Conn)
+		conn, ok := r.Context().Value("http-conn").(net.Conn)
+		if !ok {
+			logrus.WithFields(logrus.Fields{
+				"version": AgentVersion,
+			}).Warning("Type assertion failed")
+
+			return
+		}
+
 		sshserver.Sessions[vars["id"]] = conn
 		sshserver.HandleConn(conn)
 	}

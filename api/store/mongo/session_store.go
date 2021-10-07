@@ -43,7 +43,8 @@ func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]
 		})
 	}
 
-	queryCount := append(query, bson.M{"$count": "count"})
+	queryCount := query
+	queryCount = append(queryCount, bson.M{"$count": "count"})
 	count, err := aggregateCount(ctx, s.db.Collection("sessions"), queryCount)
 	if err != nil {
 		return nil, 0, fromMongoError(err)

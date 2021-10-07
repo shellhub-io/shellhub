@@ -255,9 +255,17 @@ func (s *Server) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey
 		return false
 	}
 
-	cryptoKey := key.(ssh.CryptoPublicKey)
+	cryptoKey, ok := key.(ssh.CryptoPublicKey)
+	if !ok {
+		return false
+	}
+
 	pubCrypto := cryptoKey.CryptoPublicKey()
-	pubKey := pubCrypto.(*rsa.PublicKey)
+
+	pubKey, ok := pubCrypto.(*rsa.PublicKey)
+	if !ok {
+		return false
+	}
 
 	if err = rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, sigHash[:], digest); err != nil {
 		return false

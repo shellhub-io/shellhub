@@ -257,7 +257,14 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 
 		disconnected := make(chan bool)
 
-		serverConn := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
+		serverConn, ok := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
+		if !ok {
+			logrus.WithFields(logrus.Fields{
+				"session": s.UID,
+			}).Warning("Type assertion failed")
+
+			return errors.New("type assertion failed")
+		}
 
 		if errs := c.PatchSessions(s.UID); len(errs) > 0 {
 			return errs[0]
@@ -316,8 +323,6 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 				"session": s.UID,
 				"err":     err,
 			}).Error("Failed to start session raw command")
-
-			return nil
 		}
 
 		if err := client.Wait(); err != nil {

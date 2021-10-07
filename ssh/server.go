@@ -197,7 +197,11 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 func (s *Server) publicKeyHandler(ctx sshserver.Context, pubKey sshserver.PublicKey) bool {
 	fingerprint := ssh.FingerprintLegacyMD5(pubKey)
-	target := ctx.Value(sshserver.ContextKeyUser).(string)
+
+	target, ok := ctx.Value(sshserver.ContextKeyUser).(string)
+	if !ok {
+		return false
+	}
 
 	parts := strings.SplitN(target, "@", 2)
 	if len(parts) != 2 {

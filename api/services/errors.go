@@ -24,4 +24,5 @@ var (
 	ErrDuplicateTagName      = errors.New("this tag name already exists")
 	ErrTagNameNotFound       = errors.New("tag name not found")
 	ErrNoTags                = errors.New("no tags has found")
+	ErrTypeAssertion         = errors.New("type assertion failed")
 )

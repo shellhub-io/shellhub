@@ -23,7 +23,7 @@ func GeneratePrivateKey(filename string) error {
 	_, err = os.Stat(filepath.Dir(filename))
 	if os.IsNotExist(err) {
 		// Create parent directory if it does not exist
-		if err = os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
+		if err = os.MkdirAll(filepath.Dir(filename), 0o700); err != nil {
 			return err
 		}
 	} else if err != nil {

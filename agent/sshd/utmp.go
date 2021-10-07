@@ -115,7 +115,7 @@ func updUtmp(u Utmpx, id string) {
 	file, err := os.OpenFile(
 		UtmpxFile,
 		os.O_RDWR|os.O_CREATE,
-		0644)
+		0o644)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": UtmpxFile,
@@ -193,7 +193,7 @@ func updWtmp(u Utmpx) {
 	file, err := os.OpenFile(
 		WtmpxFile,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
-		0644)
+		0o644)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": WtmpxFile,

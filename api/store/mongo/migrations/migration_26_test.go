@@ -50,10 +50,17 @@ func TestMigration26(t *testing.T) {
 	err = cursor.All(context.TODO(), &results)
 	assert.NoError(t, err)
 
-	keyField := results[1]["key"].(primitive.M)
+	keyField, ok := results[1]["key"].(primitive.M)
+	if !ok {
+		panic("type assertion failed")
+	}
+
 	assert.Equal(t, int32(1), keyField["created_at"])
 
-	keyField = results[2]["key"].(primitive.M)
+	keyField, ok = results[2]["key"].(primitive.M)
+	if !ok {
+		panic("type assertion failed")
+	}
 	assert.Equal(t, int32(1), keyField["token"])
 
 	value, key := results[1]["expireAfterSeconds"]

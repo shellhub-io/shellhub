@@ -52,7 +52,8 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 		query = append(query, queryMatch...)
 	}
 
-	queryCount := append(query, bson.M{"$count": "count"})
+	queryCount := query
+	queryCount = append(queryCount, bson.M{"$count": "count"})
 	count, err := aggregateCount(ctx, s.db.Collection("users"), queryCount)
 	if err != nil {
 		return nil, 0, fromMongoError(err)
