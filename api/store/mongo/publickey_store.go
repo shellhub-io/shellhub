@@ -9,10 +9,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (s *Store) PublicKeyGet(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
+func (s *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
 	pubKey := new(models.PublicKey)
-	if tenant != "" {
-		if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenant}).Decode(&pubKey); err != nil {
+	if tenantID != "" {
+		if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}).Decode(&pubKey); err != nil {
 			return nil, fromMongoError(err)
 		}
 	} else {
@@ -80,7 +80,7 @@ func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) erro
 	return fromMongoError(err)
 }
 
-func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
+func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
 	if err := key.Validate(); err != nil {
 		return nil, err
 	}
@@ -93,11 +93,11 @@ func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint, tenant string,
 		return nil, err
 	}
 
-	return s.PublicKeyGet(ctx, fingerprint, tenant)
+	return s.PublicKeyGet(ctx, fingerprint, tenantID)
 }
 
-func (s *Store) PublicKeyDelete(ctx context.Context, fingerprint, tenant string) error {
-	_, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenant})
+func (s *Store) PublicKeyDelete(ctx context.Context, fingerprint string, tenantID string) error {
+	_, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID})
 
 	return err
 }
