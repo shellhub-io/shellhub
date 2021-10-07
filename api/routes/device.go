@@ -105,17 +105,20 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 		id = v.ID
 	}
 
-	err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant, id)
-	switch err {
-	case services.ErrUnauthorized:
-		return c.NoContent(http.StatusForbidden)
-	case services.ErrDuplicatedDeviceName:
-		return c.NoContent(http.StatusConflict)
-	case services.ErrInvalidFormat:
-		return c.NoContent(http.StatusBadRequest)
-	default:
-		return err
+	if err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant, id); err != nil {
+		switch err {
+		case services.ErrUnauthorized:
+			return c.NoContent(http.StatusForbidden)
+		case services.ErrDuplicatedDeviceName:
+			return c.NoContent(http.StatusConflict)
+		case services.ErrInvalidFormat:
+			return c.NoContent(http.StatusBadRequest)
+		default:
+			return err
+		}
 	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) OfflineDevice(c apicontext.Context) error {
