@@ -11,8 +11,10 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"errors"
+	"math"
 	"math/big"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cnf/structhash"
@@ -22,6 +24,9 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"gopkg.in/go-playground/validator.v9"
 )
+
+var sleepOffset float64 = 0
+var sleepOffsetMutex = new(sync.Mutex)
 
 type AuthService interface {
 	AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAdrr string) (*models.DeviceAuthResponse, error)
@@ -34,11 +39,16 @@ type AuthService interface {
 }
 
 func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAdrr string) (*models.DeviceAuthResponse, error) {
-	duration, err := rand.Int(rand.Reader, big.NewInt(5))
+	sleepOffsetMutex.Lock()
+	sleepOffset++
+	sleepOffset = math.Mod(sleepOffset, 30)
+	sleepOffsetMutex.Unlock()
+	duration, err := rand.Int(rand.Reader, big.NewInt(int64(sleepOffset)))
 	if err != nil {
 		return nil, err
 	}
 	time.Sleep(time.Second * time.Duration(duration.Int64()))
+
 	uid := sha256.Sum256(structhash.Dump(req.DeviceAuth, 1))
 
 	key := hex.EncodeToString(uid[:])
