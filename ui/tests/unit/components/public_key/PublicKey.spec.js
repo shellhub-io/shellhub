@@ -21,17 +21,14 @@ describe('PublicKey', () => {
 
   const numberPublickeysEqualZero = 0;
   const numberPublickeysGreaterThanZero = 1;
-  const isLoggedIn = true;
 
   const storeWithoutPublickeys = new Vuex.Store({
     namespaced: true,
     state: {
       numberPublickeys: numberPublickeysEqualZero,
-      isLoggedIn,
     },
     getters: {
       'publickeys/getNumberPublicKeys': (state) => state.numberPublickeys,
-      'auth/isLoggedIn': (state) => state.isLoggedIn,
     },
     actions: {
       'publickeys/refresh': () => {},
@@ -45,29 +42,9 @@ describe('PublicKey', () => {
     namespaced: true,
     state: {
       numberPublickeys: numberPublickeysGreaterThanZero,
-      isLoggedIn,
     },
     getters: {
       'publickeys/getNumberPublicKeys': (state) => state.numberPublickeys,
-      'auth/isLoggedIn': (state) => state.isLoggedIn,
-    },
-    actions: {
-      'publickeys/refresh': () => {},
-      'boxs/setStatus': () => {},
-      'publickeys/resetPagePerpage': () => {},
-      'snackbar/showSnackbarErrorLoading': () => {},
-    },
-  });
-
-  const storeWithoutPublickeysLogout = new Vuex.Store({
-    namespaced: true,
-    state: {
-      numberPublickeys: numberPublickeysEqualZero,
-      isLoggedIn: !isLoggedIn,
-    },
-    getters: {
-      'publickeys/getNumberPublicKeys': (state) => state.numberPublickeys,
-      'auth/isLoggedIn': (state) => state.isLoggedIn,
     },
     actions: {
       'publickeys/refresh': () => {},
@@ -162,55 +139,6 @@ describe('PublicKey', () => {
     });
     it('Process data in the computed', () => {
       expect(wrapper.vm.hasPublickey).toEqual(true);
-      expect(wrapper.vm.showBoxMessage).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="publicKeyCreate-component"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="boxMessagePublicKey-component"]').exists()).toBe(false);
-    });
-  });
-
-  ///////
-  // In this case, purpose is to test the completion of the logout.
-  // For this, the show variable must be false.
-  ///////
-
-  describe('Without public key logout', () => {
-    beforeEach(() => {
-      wrapper = mount(publicKey, {
-        store: storeWithoutPublickeysLogout,
-        localVue,
-        stubs: ['fragment'],
-        vuetify,
-        router,
-      });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Compare data with the default and defined value', () => {
-      expect(wrapper.vm.show).toEqual(false);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.hasPublickey).toEqual(false);
       expect(wrapper.vm.showBoxMessage).toEqual(false);
     });
 

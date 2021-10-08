@@ -150,28 +150,22 @@ export default {
     currentInANamespace() {
       return localStorage.getItem('tenant') !== '';
     },
-
-    isLoggedIn() {
-      return this.$store.getters['auth/isLoggedIn'];
-    },
   },
 
   async created() {
     try {
-      if (this.isLoggedIn) {
-        await this.getNamespaces();
+      await this.getNamespaces();
 
-        if (this.hasNamespaces) {
-          await this.$store.dispatch('stats/get');
-          this.showScreenWelcome();
+      if (this.hasNamespaces) {
+        await this.$store.dispatch('stats/get');
+        this.showScreenWelcome();
 
-          this.$store.dispatch('devices/setDeviceWarning',
-            this.$store.getters['stats/stats'].registered_devices > 3
-            && !this.$store.getters['billing/active']);
-        } else {
-          // This shows the namespace instructions when the user has no namespace
-          this.showInstructions = true;
-        }
+        this.$store.dispatch('devices/setDeviceWarning',
+          this.$store.getters['stats/stats'].registered_devices > 3
+          && !this.$store.getters['billing/active']);
+      } else {
+        // This shows the namespace instructions when the user has no namespace
+        this.showInstructions = true;
       }
     } catch (error) {
       switch (true) {

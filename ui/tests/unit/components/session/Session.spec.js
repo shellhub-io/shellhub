@@ -21,17 +21,14 @@ describe('Session', () => {
 
   const numberSessionsEqualZero = 0;
   const numberSessionsGreaterThanZero = 1;
-  const isLoggedIn = true;
 
   const storeWithoutSessions = new Vuex.Store({
     namespaced: true,
     state: {
       numberSessions: numberSessionsEqualZero,
-      isLoggedIn,
     },
     getters: {
       'sessions/getNumberSessions': (state) => state.numberSessions,
-      'auth/isLoggedIn': (state) => state.isLoggedIn,
     },
     actions: {
       'sessions/refresh': () => {},
@@ -45,29 +42,9 @@ describe('Session', () => {
     namespaced: true,
     state: {
       numberSessions: numberSessionsGreaterThanZero,
-      isLoggedIn,
     },
     getters: {
       'sessions/getNumberSessions': (state) => state.numberSessions,
-      'auth/isLoggedIn': (state) => state.isLoggedIn,
-    },
-    actions: {
-      'sessions/refresh': () => {},
-      'boxs/setStatus': () => {},
-      'sessions/resetPagePerpage': () => {},
-      'snackbar/showSnackbarErrorLoading': () => {},
-    },
-  });
-
-  const storeWithoutSessionsLogout = new Vuex.Store({
-    namespaced: true,
-    state: {
-      numberSessions: numberSessionsEqualZero,
-      isLoggedIn: !isLoggedIn,
-    },
-    getters: {
-      'sessions/getNumberSessions': (state) => state.numberSessions,
-      'auth/isLoggedIn': (state) => state.isLoggedIn,
     },
     actions: {
       'sessions/refresh': () => {},
@@ -161,54 +138,6 @@ describe('Session', () => {
     });
     it('Process data in the computed', () => {
       expect(wrapper.vm.hasSession).toEqual(true);
-      expect(wrapper.vm.showBoxMessage).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="BoxMessageSession-component"]').exists()).toBe(false);
-    });
-  });
-
-  ///////
-  // In this case, purpose is to test the completion of the logout.
-  // For this, the show variable must be false.
-  ///////
-
-  describe('Without sessions Logout', () => {
-    beforeEach(() => {
-      wrapper = mount(Session, {
-        store: storeWithoutSessionsLogout,
-        localVue,
-        stubs: ['fragment'],
-        vuetify,
-        router,
-      });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Compare data with the default and defined value', () => {
-      expect(wrapper.vm.show).toEqual(false);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.hasSession).toEqual(false);
       expect(wrapper.vm.showBoxMessage).toEqual(false);
     });
 
