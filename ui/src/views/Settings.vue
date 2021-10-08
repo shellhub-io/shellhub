@@ -80,7 +80,7 @@ export default {
         {
           title: 'Billing',
           path: '/settings/billing',
-          hidden: !(this.$env.isCloud && this.hasNamespace),
+          hidden: !(this.$env.billingEnable && this.$env.isCloud && this.hasNamespace),
         },
       ];
     },

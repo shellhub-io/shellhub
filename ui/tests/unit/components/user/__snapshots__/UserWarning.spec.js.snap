@@ -17,3 +17,12 @@ exports[`UserWarning Without devices Renders the component 1`] = `
   <billingwarning-stub data-test="billingWarning-component"></billingwarning-stub>
 </fragment-stub>
 `;
+
+exports[`UserWarning Without devices and billing disabled Renders the component 1`] = `
+<fragment-stub>
+  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+  <welcome-stub data-test="welcome-component"></welcome-stub>
+  <namespaceinstructions-stub data-test="namespaceInstructions-component" show="true"></namespaceinstructions-stub>
+  <!---->
+</fragment-stub>
+`;

@@ -150,6 +150,14 @@ const router = new Router({
         {
           path: 'billing',
           name: 'billingSettings',
+          beforeEnter: (to, from, next) => {
+            const enabled = (window.env || process.env).VUE_APP_SHELLHUB_BILLING === 'true';
+            if (enabled) {
+              next();
+            } else {
+              next('/invalid');
+            }
+          },
           component: () => import('@/components/setting/SettingBilling'),
         },
       ],
@@ -168,6 +176,9 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
   if ((to.path !== '/login' && to.path !== '/sign-up') && to.path !== '/forgot-password' && to.path !== '/validation-account' && to.path !== '/update-password') {
+    if (to.path === '/setting/billing') {
+      return next();
+    }
     if (store.getters['auth/isLoggedIn']) {
       return next();
     }
