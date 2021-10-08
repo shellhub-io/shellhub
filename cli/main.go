@@ -23,7 +23,7 @@ func main() {
 	var cfg config
 
 	if err := envconfig.Process("cli", &cfg); err != nil {
-		log.Error((err.Error()))
+		log.Error(err.Error())
 	}
 
 	client, err := mgo.Connect(context.TODO(), options.Client().ApplyURI(cfg.MongoURI))
