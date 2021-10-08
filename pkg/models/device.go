@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	jwt "github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt"
 )
 
 type Device struct {
