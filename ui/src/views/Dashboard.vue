@@ -51,7 +51,7 @@
             <div v-if="item.pathName == 'addDevice'">
               <DeviceAdd
                 :small-button="true"
-                data-cy="addDevice-btn"
+                data-test="addDevice-btn"
               />
             </div>
 
@@ -62,7 +62,7 @@
                 text
                 color="primary"
                 small
-                :data-cy="item.nameUseTest"
+                :data-test="item.nameUseTest"
               >
                 {{ item.buttonName }}
               </v-btn>
@@ -71,41 +71,23 @@
         </v-card>
       </v-col>
     </v-row>
-
-    <Welcome
-      :show.sync="show"
-    />
-
-    <NamespaceInstructions
-      :show.sync="showInstructions"
-    />
-
-    <BillingWarning />
   </fragment>
 </template>
 
 <script>
 
 import DeviceAdd from '@/components/device/DeviceAdd';
-import Welcome from '@/components/welcome/Welcome';
-import NamespaceInstructions from '@/components/app_bar/namespace/NamespaceInstructions';
-import BillingWarning from '@/components/billing/BillingWarning';
 
 export default {
   name: 'Dashboard',
 
   components: {
     DeviceAdd,
-    Welcome,
-    NamespaceInstructions,
-    BillingWarning,
   },
 
   data() {
     return {
       flag: false,
-      show: false,
-      showInstructions: false,
       items: [
         {
           title: 'Registered Devices',
@@ -143,99 +125,18 @@ export default {
       return this.$store.getters['stats/stats'];
     },
 
-    hasNamespaces() {
-      return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
-    },
-
     currentInANamespace() {
       return localStorage.getItem('tenant') !== '';
     },
   },
 
-  async created() {
-    try {
-      await this.getNamespaces();
-
-      if (this.hasNamespaces) {
-        await this.$store.dispatch('stats/get');
-        this.showScreenWelcome();
-
-        this.$store.dispatch('devices/setDeviceWarning',
-          this.$store.getters['stats/stats'].registered_devices > 3
-          && !this.$store.getters['billing/active']);
-      } else {
-        // This shows the namespace instructions when the user has no namespace
-        this.showInstructions = true;
-      }
-    } catch (error) {
-      switch (true) {
-      case (error.response.status === 403): {
-        this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
-        break;
-      }
-      default: {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.dashboard);
-      }
-      }
-    }
+  created() {
+    this.$store.dispatch('stats/get');
   },
 
   mounted() {
     this.flag = localStorage.getItem('flag');
     localStorage.removeItem('flag');
-  },
-
-  methods: {
-    namespaceHasBeenShown(tenant) {
-      return JSON.parse(localStorage.getItem('namespacesWelcome'))[tenant] !== undefined;
-    },
-
-    hasDevices() {
-      return this.stats.registered_devices !== 0
-        || this.stats.pending_devices !== 0
-        || this.stats.rejected_devices !== 0;
-    },
-
-    async getNamespace() {
-      try {
-        await this.$store.dispatch('namespaces/get', localStorage.getItem('tenant'));
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceLoad);
-      }
-    },
-
-    async getNamespaces() {
-      try {
-        await this.$store.dispatch('namespaces/fetch');
-      } catch (error) {
-        switch (true) {
-        case (!this.inANamespace && error.response.status === 403): { // dialog pops
-          break;
-        }
-        case (error.response.status === 403): {
-          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
-          break;
-        }
-        default: {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceList);
-        }
-        }
-      }
-    },
-
-    async showScreenWelcome() {
-      let status = false;
-
-      await this.getNamespace();
-      const tenantID = await this.$store.getters['namespaces/get'].tenant_id;
-
-      if (!this.namespaceHasBeenShown(tenantID) && !this.hasDevices()) {
-        this.$store.dispatch('auth/setShowWelcomeScreen', tenantID);
-        status = true;
-      }
-
-      this.show = status;
-    },
   },
 };
 

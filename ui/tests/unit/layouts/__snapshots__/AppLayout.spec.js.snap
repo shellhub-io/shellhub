@@ -57,7 +57,7 @@ exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
   <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
     <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
   </v-overlay-stub>
-  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+  <userwarning-stub data-test="userWarning-component"></userwarning-stub>
 </fragment-stub>
 `;
 
@@ -110,7 +110,7 @@ exports[`AppLayout Is not enterprise and has namespace Renders the component 1`]
   <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
     <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
   </v-overlay-stub>
-  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+  <userwarning-stub data-test="userWarning-component"></userwarning-stub>
 </fragment-stub>
 `;
 
@@ -128,6 +128,6 @@ exports[`AppLayout Is not enterprise and not has namespace Renders the component
   <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
     <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
   </v-overlay-stub>
-  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+  <userwarning-stub data-test="userWarning-component"></userwarning-stub>
 </fragment-stub>
 `;

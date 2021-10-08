@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Dashboard Dashboard Renders the component 1`] = `
+exports[`Dashboard Renders the component 1`] = `
 <fragment-stub>
   <!---->
   <v-row-stub tag="div" class="mt-4">
@@ -26,7 +26,7 @@ exports[`Dashboard Dashboard Renders the component 1`] = `
         </v-list-item-stub>
         <v-card-actions-stub class="ma-2">
           <div>
-            <deviceadd-stub smallbutton="true" data-cy="addDevice-btn"></deviceadd-stub>
+            <deviceadd-stub smallbutton="true" data-test="addDevice-btn"></deviceadd-stub>
           </div>
         </v-card-actions-stub>
       </v-card-stub>
@@ -53,7 +53,7 @@ exports[`Dashboard Dashboard Renders the component 1`] = `
         </v-list-item-stub>
         <v-card-actions-stub class="ma-2">
           <div>
-            <v-btn-stub color="primary" tag="button" activeclass="" to="[object Object]" small="true" text="true" type="button" data-cy="viewDevices-btn" class="v-btn--active">
+            <v-btn-stub color="primary" tag="button" activeclass="" to="[object Object]" small="true" text="true" type="button" data-test="viewDevices-btn" class="v-btn--active">
               View all Devices
             </v-btn-stub>
           </div>
@@ -82,7 +82,7 @@ exports[`Dashboard Dashboard Renders the component 1`] = `
         </v-list-item-stub>
         <v-card-actions-stub class="ma-2">
           <div>
-            <v-btn-stub color="primary" tag="button" activeclass="" to="[object Object]" small="true" text="true" type="button" data-cy="viewSessions-btn" class="v-btn--active">
+            <v-btn-stub color="primary" tag="button" activeclass="" to="[object Object]" small="true" text="true" type="button" data-test="viewSessions-btn" class="v-btn--active">
               View all Sessions
             </v-btn-stub>
           </div>
@@ -90,104 +90,5 @@ exports[`Dashboard Dashboard Renders the component 1`] = `
       </v-card-stub>
     </v-col-stub>
   </v-row-stub>
-  <welcome-stub></welcome-stub>
-  <namespaceinstructions-stub></namespaceinstructions-stub>
-  <billingwarning-stub></billingwarning-stub>
-</fragment-stub>
-`;
-
-exports[`Dashboard Dashboard Renders the component 2`] = `
-<fragment-stub>
-  <!---->
-  <v-row-stub tag="div" class="mt-4">
-    <v-col-stub cols="12" md="4" tag="div" class="pt-0">
-      <v-card-stub loaderheight="4" tag="div" elevation="1" outlined="true">
-        <v-list-item-stub activeclass="" tag="div" threeline="true">
-          <v-list-item-content-stub>
-            <div class="overline mb-4">
-              Registered Devices
-            </div>
-            <v-list-item-title-stub class="headline mb-1">
-              0
-            </v-list-item-title-stub>
-            <v-list-item-subtitle-stub class="grey--text">
-              Registered devices into the tenancy account
-            </v-list-item-subtitle-stub>
-          </v-list-item-content-stub>
-          <v-list-item-avatar-stub tile="true" size="80">
-            <v-icon-stub xlarge="" x-large="">
-              devices
-            </v-icon-stub>
-          </v-list-item-avatar-stub>
-        </v-list-item-stub>
-        <v-card-actions-stub class="ma-2">
-          <div>
-            <deviceadd-stub smallbutton="true" data-cy="addDevice-btn"></deviceadd-stub>
-          </div>
-        </v-card-actions-stub>
-      </v-card-stub>
-    </v-col-stub>
-    <v-col-stub cols="12" md="4" tag="div" class="pt-0">
-      <v-card-stub loaderheight="4" tag="div" elevation="1" outlined="true">
-        <v-list-item-stub activeclass="" tag="div" threeline="true">
-          <v-list-item-content-stub>
-            <div class="overline mb-4">
-              Online Devices
-            </div>
-            <v-list-item-title-stub class="headline mb-1">
-              0
-            </v-list-item-title-stub>
-            <v-list-item-subtitle-stub class="grey--text">
-              Devices are online and ready for connecting
-            </v-list-item-subtitle-stub>
-          </v-list-item-content-stub>
-          <v-list-item-avatar-stub tile="true" size="80">
-            <v-icon-stub xlarge="" x-large="">
-              devices
-            </v-icon-stub>
-          </v-list-item-avatar-stub>
-        </v-list-item-stub>
-        <v-card-actions-stub class="ma-2">
-          <div>
-            <v-btn-stub color="primary" tag="button" activeclass="" to="[object Object]" small="true" text="true" type="button" data-cy="viewDevices-btn" class="v-btn--active">
-              View all Devices
-            </v-btn-stub>
-          </div>
-        </v-card-actions-stub>
-      </v-card-stub>
-    </v-col-stub>
-    <v-col-stub cols="12" md="4" tag="div" class="pt-0">
-      <v-card-stub loaderheight="4" tag="div" elevation="1" outlined="true">
-        <v-list-item-stub activeclass="" tag="div" threeline="true">
-          <v-list-item-content-stub>
-            <div class="overline mb-4">
-              Active Sessions
-            </div>
-            <v-list-item-title-stub class="headline mb-1">
-              0
-            </v-list-item-title-stub>
-            <v-list-item-subtitle-stub class="grey--text">
-              Active SSH Sessions opened by users
-            </v-list-item-subtitle-stub>
-          </v-list-item-content-stub>
-          <v-list-item-avatar-stub tile="true" size="80">
-            <v-icon-stub xlarge="" x-large="">
-              devices
-            </v-icon-stub>
-          </v-list-item-avatar-stub>
-        </v-list-item-stub>
-        <v-card-actions-stub class="ma-2">
-          <div>
-            <v-btn-stub color="primary" tag="button" activeclass="" to="[object Object]" small="true" text="true" type="button" data-cy="viewSessions-btn" class="v-btn--active">
-              View all Sessions
-            </v-btn-stub>
-          </div>
-        </v-card-actions-stub>
-      </v-card-stub>
-    </v-col-stub>
-  </v-row-stub>
-  <welcome-stub></welcome-stub>
-  <namespaceinstructions-stub></namespaceinstructions-stub>
-  <billingwarning-stub></billingwarning-stub>
 </fragment-stub>
 `;
