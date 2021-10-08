@@ -70,20 +70,14 @@ export default {
     showBoxMessage() {
       return !this.hasFirewallRule && this.show;
     },
-
-    isLoggedIn() {
-      return this.$store.getters['auth/isLoggedIn'];
-    },
   },
 
   async created() {
-    if (this.isLoggedIn) {
-      this.$store.dispatch('boxs/setStatus', true);
-      this.$store.dispatch('firewallrules/resetPagePerpage');
+    this.$store.dispatch('boxs/setStatus', true);
+    this.$store.dispatch('firewallrules/resetPagePerpage');
 
-      await this.refresh();
-      this.show = true;
-    }
+    await this.refresh();
+    this.show = true;
   },
 
   methods: {
