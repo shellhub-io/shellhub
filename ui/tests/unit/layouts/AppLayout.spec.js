@@ -71,14 +71,12 @@ describe('AppLayout', () => {
       hasSpinner,
     },
     getters: {
-      'auth/tenant': (state) => state.tenant,
       'auth/isLoggedIn': (state) => state.isLoggedIn,
       'namespaces/getNumberNamespaces': (state) => state.numberNamespaces,
       'mobile/isMobile': (state) => state.isMobile,
       'spinner/getStatus': (state) => state.hasSpinner,
     },
     actions: {
-      'auth/logout': () => {},
       'privatekeys/fetch': () => {},
       'mobile/setIsMobileStatus': () => {},
     },
@@ -94,14 +92,12 @@ describe('AppLayout', () => {
       hasSpinner,
     },
     getters: {
-      'auth/tenant': (state) => state.tenant,
       'auth/isLoggedIn': (state) => state.isLoggedIn,
       'namespaces/getNumberNamespaces': (state) => state.numberNamespaces,
       'mobile/isMobile': (state) => state.isMobile,
       'spinner/getStatus': (state) => state.hasSpinner,
     },
     actions: {
-      'auth/logout': () => {},
       'privatekeys/fetch': () => {},
       'mobile/setIsMobileStatus': () => {},
     },
@@ -162,7 +158,7 @@ describe('AppLayout', () => {
     //////
 
     it('Renders the template with components', async () => {
-      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="userWarning-component"]').exists()).toEqual(true);
     });
     it('Renders the template with data', async () => {
       items.forEach(async (item) => {
@@ -226,7 +222,7 @@ describe('AppLayout', () => {
     //////
 
     it('Renders the template with components', async () => {
-      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="userWarning-component"]').exists()).toEqual(true);
     });
     it('Renders the template with data', async () => {
       itemsIsNotEnterprise.forEach(async (item) => {
@@ -292,7 +288,7 @@ describe('AppLayout', () => {
     //////
 
     it('Renders the template with components', async () => {
-      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="userWarning-component"]').exists()).toEqual(true);
     });
     it('Renders the template with data', async () => {
       items.forEach(async (item) => {

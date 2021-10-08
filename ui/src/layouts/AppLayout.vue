@@ -52,7 +52,7 @@
       />
     </v-overlay>
 
-    <DeviceWarning data-test="deviceWarning-component" />
+    <UserWarning data-test="userWarning-component" />
   </fragment>
 </template>
 
@@ -60,7 +60,7 @@
 
 import Snackbar from '@/components/snackbar/Snackbar';
 import AppBar from '@/components/app_bar/AppBar';
-import DeviceWarning from '@/components/device/DeviceWarning';
+import UserWarning from '@/components/user/UserWarning';
 
 export default {
   name: 'AppLayout',
@@ -68,7 +68,7 @@ export default {
   components: {
     Snackbar,
     AppBar,
-    DeviceWarning,
+    UserWarning,
   },
 
   data() {
