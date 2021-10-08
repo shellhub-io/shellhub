@@ -47,6 +47,7 @@ services:
     restart: unless-stopped
     environment:
       - SHELLHUB_STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - SHELLHUB_BILLING=${SHELLHUB_BILLING}
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
     depends_on:
