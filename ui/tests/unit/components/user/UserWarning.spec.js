@@ -81,6 +81,77 @@ describe('UserWarning', () => {
 
   ///////
   // In this case, The welcome screen loads with the expected
+  // behavior without devices and with billing environment
+  // disabled
+  ///////
+
+  describe('Without devices and billing disabled', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(UserWarning, {
+        store: storeWithoutDevices,
+        localVue,
+        stubs: ['fragment'],
+        mocks: {
+          $env: {
+            billingEnable: false,
+          },
+        },
+      });
+
+      localStorage.setItem('namespacesWelcome', JSON.stringify({}));
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with the default value', () => {
+      expect(wrapper.vm.show).toEqual(false);
+      expect(wrapper.vm.showInstructions).toEqual(true);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.hasNamespaces).toEqual(numberNamespaces !== 0);
+      expect(wrapper.vm.hasSpinner).toEqual(statusSpinner);
+      expect(wrapper.vm.stats).toEqual(statsWithoutDevices);
+    });
+    it('Process data in methods', () => {
+      expect(wrapper.vm.hasDevices()).toEqual(false);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="billingWarning-component"]').exists()).toBe(false);
+    });
+    it('Renders the template with data', async () => {
+      await wrapper.vm.showScreenWelcome();
+      expect(wrapper.vm.show).toBe(true);
+
+      localStorage.setItem('namespacesWelcome', JSON.stringify({ ...{ [namespace.tenant_id]: true } }));
+
+      await wrapper.vm.showScreenWelcome();
+      expect(wrapper.vm.show).toBe(false);
+    });
+  });
+
+  ///////
+  // In this case, The welcome screen loads with the expected
   // behavior without devices
   ///////
 
@@ -90,6 +161,11 @@ describe('UserWarning', () => {
         store: storeWithoutDevices,
         localVue,
         stubs: ['fragment'],
+        mocks: {
+          $env: {
+            billingEnable: true,
+          },
+        },
       });
 
       localStorage.setItem('namespacesWelcome', JSON.stringify({}));
@@ -146,7 +222,7 @@ describe('UserWarning', () => {
 
   ///////
   // In this case, The welcome screen loads with the expected
-  // behavior with devices
+  // behavior with devices and with billing environment enabled
   ///////
 
   describe('With devices', () => {
@@ -155,6 +231,11 @@ describe('UserWarning', () => {
         store: storeWithDevices,
         localVue,
         stubs: ['fragment'],
+        mocks: {
+          $env: {
+            billingEnable: true,
+          },
+        },
       });
 
       localStorage.setItem('namespacesWelcome', JSON.stringify({}));

@@ -61,6 +61,7 @@ describe('Settings', () => {
         mocks: {
           $env: {
             isCloud: true,
+            billingEnable: true,
           },
         },
       });

@@ -12,7 +12,10 @@
       data-test="namespaceInstructions-component"
     />
 
-    <BillingWarning data-test="billingWarning-component" />
+    <BillingWarning
+      v-if="isBillingEnabled()"
+      data-test="billingWarning-component"
+    />
   </fragment>
 </template>
 
@@ -67,10 +70,9 @@ export default {
           await this.$store.dispatch('stats/get');
 
           this.showScreenWelcome();
-
-          this.$store.dispatch('devices/setDeviceWarning',
-            this.$store.getters['stats/stats'].registered_devices > 3
-            && !this.$store.getters['billing/active']);
+          if (this.isBillingEnabled()) {
+            this.billingWarning();
+          }
         } else {
           // This shows the namespace instructions when the user has no namespace
           this.showInstructions = true;
@@ -86,6 +88,10 @@ export default {
         }
         }
       }
+    },
+
+    isBillingEnabled() {
+      return this.$env.billingEnable;
     },
 
     async getNamespaces() {
@@ -105,6 +111,12 @@ export default {
         }
         }
       }
+    },
+
+    billingWarning() {
+      this.$store.dispatch('devices/setDeviceWarning',
+        this.$store.getters['stats/stats'].registered_devices > 3
+        && !this.$store.getters['billing/active']);
     },
 
     namespaceHasBeenShown(tenant) {
