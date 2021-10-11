@@ -14,6 +14,7 @@ var (
 
 type Store interface {
 	DeviceStore
+	DeviceTagsStore
 	SessionStore
 	UserStore
 	FirewallStore

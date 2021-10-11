@@ -19,6 +19,7 @@ type service struct {
 
 type Service interface {
 	DeviceService
+	DeviceTags
 	UserService
 	SSHKeysService
 	SessionService
