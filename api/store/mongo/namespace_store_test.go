@@ -118,7 +118,11 @@ func TestNamespacesList(t *testing.T) {
 	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, count, err := mongostore.NamespaceList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil, false)
+	var nsList []models.Namespace
+	nsList = append(nsList, data.Namespace)
+
+	returnedNsList, count, err := mongostore.NamespaceList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil, false)
+	assert.Equal(t, nsList, returnedNsList)
 	assert.Equal(t, 1, count)
 	assert.NoError(t, err)
 }
