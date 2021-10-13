@@ -218,23 +218,47 @@ export default {
       } catch (error) {
         // Invalid username and/or password
         if (error.response.status === 400) {
-          this.$refs.obs.setErrors({
-            username: ['The username must be alphanumeric'],
+          error.response.data.forEach((field) => {
+            switch (field) {
+            case 'name':
+              this.$refs.obs.setErrors({
+                name: this.$errors.form.invalid(field, 'other'),
+              });
+              break;
+            case 'username':
+              this.$refs.obs.setErrors({
+                username: this.$errors.form.invalid(field, 'other'),
+              });
+              break;
+            case 'email':
+              this.$refs.obs.setErrors({
+                email: this.$errors.form.invalid(field, 'other'),
+              });
+              break;
+            case 'password':
+              this.$refs.obs.setErrors({
+                password: this.$errors.form.invalid(field, 'password'),
+              });
+              break;
+            default:
+              break;
+            }
           });
         } else if (error.response.status === 409) {
-          error.response.data.forEach((n) => {
-            if (n.Field === 'username') {
+          error.response.data.forEach((field) => {
+            switch (field) {
+            case 'username':
               this.$refs.obs.setErrors({
-                username: ['This username is already taken'],
+                username: this.$errors.form.conflict(field),
               });
-            } else if (n.Field === 'email') {
+              break;
+            case 'email':
               this.$refs.obs.setErrors({
-                email: ['This email is already taken'],
+                email: this.$errors.form.conflict(field),
               });
-            } else if (n.Field === 'password') {
-              this.$refs.obs.setErrors({
-                password: ['This email is invalid'],
-              });
+              break;
+            default:
+              break;
             }
           });
         } else {

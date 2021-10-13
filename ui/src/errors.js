@@ -66,6 +66,7 @@ export default {
             email: 'The format for email is invalid',
             nonStandardCharacters: `Your ${field} should be 3-30 characters long`,
             nameUsed: `This ${field} is already taken`,
+            password: 'This password is not valid',
             other: 'The format is invalid',
           };
           return types[param] || types.other;

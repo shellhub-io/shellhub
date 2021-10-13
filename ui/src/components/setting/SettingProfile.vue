@@ -318,40 +318,47 @@ export default {
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.profileData);
         this.enableEdit('data');
       } catch (error) {
-        switch (true) {
-        case (error.response.status === 400): {
-          error.response.data.forEach((item) => {
-            if (item.Name === 'username') {
+        if (error.response.status === 400) {
+          error.response.data.forEach((field) => {
+            switch (field) {
+            case 'name':
               this.$refs.obs.setErrors({
-                username: this.$errors.form.invalid(item.Name, item.Param, item.Extra),
+                name: this.$errors.form.invalid(field, 'other'),
               });
-            }
-            if (item.Name === 'email') {
+              break;
+            case 'username':
               this.$refs.obs.setErrors({
-                email: this.$errors.form.invalid(item.Name, item.Param, item.Extra),
+                username: this.$errors.form.invalid(field, 'other'),
               });
-            }
-          });
-          break;
-        }
-        case (error.response.status === 409): {
-          error.response.data.forEach((item) => {
-            if (item.Name === 'username') {
+              break;
+            case 'email':
               this.$refs.obs.setErrors({
-                username: this.$errors.form.conflict(item.Name),
+                email: this.$errors.form.invalid(field, 'other'),
               });
-            }
-            if (item.Name === 'email') {
-              this.$refs.obs.setErrors({
-                email: this.$errors.form.conflict(item.Name),
-              });
+              break;
+            default:
+              break;
             }
           });
-          break;
-        }
-        default: {
+        } else if (error.response.status === 409) {
+          error.response.data.forEach((field) => {
+            switch (field) {
+            case 'username':
+              this.$refs.obs.setErrors({
+                username: this.$errors.form.conflict(field),
+              });
+              break;
+            case 'email':
+              this.$refs.obs.setErrors({
+                email: this.$errors.form.conflict(field),
+              });
+              break;
+            default:
+              break;
+            }
+          });
+        } else {
           this.$store.dispatch('snackbar/showSnackbarErrorDefault');
-        }
         }
       }
     },
