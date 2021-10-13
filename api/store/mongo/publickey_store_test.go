@@ -34,7 +34,11 @@ func TestPublicKeysList(t *testing.T) {
 	err := mongostore.PublicKeyCreate(data.Context, &data.PublicKey)
 	assert.NoError(t, err)
 
-	_, count, err := mongostore.PublicKeyList(data.Context, paginator.Query{Page: -1, PerPage: -1})
+	var publicKeyList []models.PublicKey
+	publicKeyList = append(publicKeyList, data.PublicKey)
+
+	returnedPublicKeyList, count, err := mongostore.PublicKeyList(data.Context, paginator.Query{Page: -1, PerPage: -1})
+	assert.Equal(t, publicKeyList, returnedPublicKeyList)
 	assert.Equal(t, 1, count)
 	assert.NoError(t, err)
 }

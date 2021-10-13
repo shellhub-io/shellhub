@@ -42,8 +42,9 @@ func (s *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) (
 		})
 	}
 
-	query = append(query, bson.M{"$count": "count"})
-	count, err := aggregateCount(ctx, s.db.Collection("public_keys"), query)
+	queryCount := query
+	queryCount = append(queryCount, bson.M{"$count": "count"})
+	count, err := aggregateCount(ctx, s.db.Collection("public_keys"), queryCount)
 	if err != nil {
 		return nil, 0, err
 	}
