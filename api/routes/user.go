@@ -16,20 +16,20 @@ const (
 )
 
 func (h *Handler) UpdateUserData(c apicontext.Context) error {
-	var req models.User
+	var user models.User
 
-	if err := c.Bind(&req); err != nil {
+	if err := c.Bind(&user); err != nil {
 		return err
 	}
 
 	ID := c.Param("id")
 
-	if invalidFields, err := h.service.UpdateDataUser(c.Ctx(), &req, ID); err != nil {
+	if fields, err := h.service.UpdateDataUser(c.Ctx(), &user, ID); err != nil {
 		switch {
 		case err == services.ErrBadRequest:
-			return c.JSON(http.StatusBadRequest, invalidFields)
+			return c.JSON(http.StatusBadRequest, fields)
 		case err == services.ErrConflict:
-			return c.JSON(http.StatusConflict, invalidFields)
+			return c.JSON(http.StatusConflict, fields)
 		default:
 			return err
 		}
