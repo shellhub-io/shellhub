@@ -23,7 +23,10 @@ library.add(fas, fab); // Include needed icons.
 Vue.use(Vuetify);
 Vue.use(Clipboard);
 Vue.use(Fragment.Plugin);
-Vue.use(StripePlugin, options);
+
+if (process.env.VUE_APP_SHELLHUB_BILLING === 'true') {
+  Vue.use(StripePlugin, options);
+}
 
 export default new Vuetify({
   iconfont: 'md',
