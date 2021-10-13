@@ -73,8 +73,9 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 		})
 	}
 
-	query = append(query, bson.M{"$count": "count"})
-	count, err := aggregateCount(ctx, s.db.Collection("namespaces"), query)
+	queryCount := query
+	queryCount = append(queryCount, bson.M{"$count": "count"})
+	count, err := aggregateCount(ctx, s.db.Collection("namespaces"), queryCount)
 	if err != nil {
 		return nil, 0, err
 	}
