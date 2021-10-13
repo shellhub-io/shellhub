@@ -100,7 +100,6 @@ services:
     depends_on:
     - api
     - mongo
-  mongo:
   autossl:
     image: tianon/true
   openapi:
