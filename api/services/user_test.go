@@ -9,7 +9,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,22 +36,22 @@ func TestUpdateDataUser(t *testing.T) {
 
 	updateEmptyEmail := &models.User{Name: "newname", Email: "", Username: "newusername", ID: "id1"}
 
-	conflictedUsername := []validator.InvalidField{{"username", "conflict", "", ""}}
+	conflictedUsername := []string{"username"}
 
-	conflictedUserEmail := []validator.InvalidField{{"username", "conflict", "", ""}, {"email", "conflict", "", ""}}
+	conflictedUserEmail := []string{"username", "email"}
 
-	invalidUsername := []validator.InvalidField{{"username", "invalid", "alphanum", ""}}
+	invalidUsername := []string{"username"}
 
-	invalidEmail := []validator.InvalidField{{"email", "invalid", "email", ""}}
+	invalidEmail := []string{"email"}
 
-	invalidUsernameEmail := []validator.InvalidField{{"email", "invalid", "email", ""}, {"username", "invalid", "min", "3"}}
+	invalidUsernameEmail := []string{"email", "username"}
 
-	emptyUsername := []validator.InvalidField{{"name", "invalid", "required", ""}}
+	emptyUsername := []string{"name"}
 
-	emptyEmail := []validator.InvalidField{{"email", "invalid", "required", ""}}
+	emptyEmail := []string{"email"}
 
 	type Expected struct {
-		fields []validator.InvalidField
+		fields []string
 		err    error
 	}
 
@@ -160,7 +159,7 @@ func TestUpdateDataUser(t *testing.T) {
 		},
 	}
 
-	returnedFields := new([]validator.InvalidField)
+	returnedFields := new([]string)
 
 	for _, test := range tests {
 		t.Log("PASS:  ", test.description)

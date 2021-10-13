@@ -8,38 +8,37 @@ import (
 )
 
 type UserService interface {
-	UpdateDataUser(ctx context.Context, data *models.User, id string) ([]validator.InvalidField, error)
+	UpdateDataUser(ctx context.Context, user *models.User, id string) ([]string, error)
 	UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, id string) error
 }
 
-func (s *service) UpdateDataUser(ctx context.Context, data *models.User, id string) ([]validator.InvalidField, error) {
-	var invalid []validator.InvalidField
-
+func (s *service) UpdateDataUser(ctx context.Context, user *models.User, id string) ([]string, error) {
 	if _, _, err := s.store.UserGetByID(ctx, id, false); err != nil {
-		return invalid, err
+		return nil, err
 	}
 
-	if invalidFields, err := validator.ValidateStruct(data); err != nil {
+	if invalidFields, err := validator.ValidateStruct(user); err != nil {
 		return invalidFields, ErrBadRequest
 	}
 
-	var checkUsername, checkEmail bool
+	validator.FormatUser(user)
 
-	if user, err := s.store.UserGetByUsername(ctx, data.Username); err == nil && user.ID != id {
-		checkUsername = true
-		invalid = append(invalid, validator.InvalidField{"username", "conflict", "", ""})
+	var conflictFields []string
+	existentUser, _ := s.store.UserGetByUsername(ctx, user.Username)
+	if existentUser != nil && existentUser.ID != id {
+		conflictFields = append(conflictFields, "username")
 	}
 
-	if user, err := s.store.UserGetByEmail(ctx, data.Email); err == nil && user.ID != id {
-		checkEmail = true
-		invalid = append(invalid, validator.InvalidField{"email", "conflict", "", ""})
+	existentUser, _ = s.store.UserGetByEmail(ctx, user.Email)
+	if existentUser != nil && existentUser.ID != id {
+		conflictFields = append(conflictFields, "email")
 	}
 
-	if checkUsername || checkEmail {
-		return invalid, ErrConflict
+	if len(conflictFields) > 0 {
+		return conflictFields, ErrConflict
 	}
 
-	return invalid, s.store.UserUpdateData(ctx, data, id)
+	return nil, s.store.UserUpdateData(ctx, user, id)
 }
 
 func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, id string) error {
