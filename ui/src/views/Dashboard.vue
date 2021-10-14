@@ -128,10 +128,18 @@ export default {
     currentInANamespace() {
       return localStorage.getItem('tenant') !== '';
     },
+
+    hasNamespace() {
+      return this.$store.getters['namespaces/getNumberNamespaces'] > 0;
+    },
   },
 
-  created() {
-    this.$store.dispatch('stats/get');
+  watch: {
+    hasNamespace(status) {
+      if (status) {
+        this.$store.dispatch('stats/get');
+      }
+    },
   },
 
   mounted() {

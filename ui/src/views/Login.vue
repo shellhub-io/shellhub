@@ -133,7 +133,6 @@ export default {
 
       this.$store.dispatch('auth/loginToken', this.$route.query.token).then(() => {
         this.$store.dispatch('layout/setLayout', 'appLayout');
-        this.$store.dispatch('notifications/fetch');
         this.$router.push({ name: 'dashboard' }).catch(() => {});
       });
     }
