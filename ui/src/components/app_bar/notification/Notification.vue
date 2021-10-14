@@ -6,15 +6,15 @@
   >
     <template #activator="{ on }">
       <v-badge
-        :content="getNumberNotifications"
-        :value="getNumberNotifications"
+        :content="showNumberNotifications"
+        :value="showNumberNotifications"
         overlap
         offset-x="20"
         color="success"
       >
         <v-chip
           v-on="on"
-          @click="shown=true"
+          @click="getNotifications()"
         >
           <v-icon
             class="ml-2 mr-2"
@@ -118,6 +118,17 @@ export default {
       return this.$store.getters['notifications/getNumberNotifications'];
     },
 
+    showNumberNotifications() {
+      const numberNotifications = this.getNumberNotifications;
+      const pendingDevices = this.$store.getters['stats/stats'].pending_devices;
+
+      if (numberNotifications === 0 && pendingDevices !== undefined) {
+        return this.$store.getters['stats/stats'].pending_devices;
+      }
+
+      return numberNotifications;
+    },
+
     getStatusNotifications() {
       if (this.getNumberNotifications === 0) { return true; }
       return false;
@@ -135,35 +146,40 @@ export default {
   watch: {
     hasNamespace(status) {
       this.inANamespace = status;
-
-      if (status) {
-        this.getNotifications();
-      }
     },
   },
 
   methods: {
     async getNotifications() {
-      try {
-        await this.$store.dispatch('notifications/fetch');
-      } catch (error) {
-        switch (true) {
-        case (!this.inANamespace && error.response.status === 403): { // dialog pops
-          break;
-        }
-        case (error.response.status === 403): {
-          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
-          break;
-        }
-        default: {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.notificationList);
-        }
+      if (this.hasNamespace) {
+        try {
+          await this.$store.dispatch('notifications/fetch');
+          this.shown = true;
+        } catch (error) {
+          switch (true) {
+          case (!this.inANamespace && error.response.status === 403): { // dialog pops
+            break;
+          }
+          case (error.response.status === 403): {
+            this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+            break;
+          }
+          default: {
+            this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.notificationList);
+          }
+          }
         }
       }
     },
 
     refresh() {
-      this.getNotifications();
+      if (this.hasNamespace) {
+        this.getNotifications();
+
+        if (this.getNumberNotifications === 0) {
+          this.$store.dispatch('stats/get');
+        }
+      }
     },
   },
 };

@@ -13,6 +13,16 @@ describe('Notification', () => {
   const numberNotifications = 2;
   const noNotifications = Array(0);
 
+  const statsWithNotification = {
+    registered_devices: 0,
+    online_devices: 0,
+    active_sessions: 0,
+    pending_devices: 2,
+    rejected_devices: 0,
+  };
+
+  const statsWithoutNotification = { ...statsWithNotification, pending_devices: 0 };
+
   const notifications = [
     {
       uid: 'a582b47a42d',
@@ -58,6 +68,7 @@ describe('Notification', () => {
       notifications,
       numberNotifications,
       owner: !owner,
+      stats: statsWithNotification,
     },
     getters: {
       'notifications/list': (state) => state.notifications,
@@ -66,6 +77,7 @@ describe('Notification', () => {
     },
     actions: {
       'notifications/fetch': () => {},
+      'stats/get': () => {},
     },
   });
 
@@ -75,14 +87,17 @@ describe('Notification', () => {
       notifications,
       numberNotifications,
       owner,
+      stats: statsWithNotification,
     },
     getters: {
       'notifications/list': (state) => state.notifications,
       'notifications/getNumberNotifications': (state) => state.numberNotifications,
       'namespaces/owner': (state) => state.owner,
+      'stats/stats': (state) => state.stats,
     },
     actions: {
       'notifications/fetch': () => {},
+      'stats/get': () => {},
     },
   });
 
@@ -92,14 +107,17 @@ describe('Notification', () => {
       notifications: noNotifications,
       numberNotifications: 0,
       owner,
+      stats: statsWithoutNotification,
     },
     getters: {
       'notifications/list': (state) => state.notifications,
       'notifications/getNumberNotifications': (state) => state.numberNotifications,
       'namespaces/owner': (state) => state.owner,
+      'stats/stats': (state) => state.stats,
     },
     actions: {
       'notifications/fetch': () => {},
+      'stats/get': () => {},
     },
   });
 
