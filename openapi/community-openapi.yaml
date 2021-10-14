@@ -19,9 +19,9 @@ paths:
     $ref: spec/resources/user/id_data.yaml
   '/api/users/{id}/password':
     $ref: spec/resources/user/id_password.yaml
-  '/users/security/{id}':
+  '/api/users/security/{id}':
     $ref: spec/resources/user/security_id.yaml
-  /users/security:
+  /api/users/security:
     $ref: spec/resources/user/security.yaml
   /api/devices:
     $ref: spec/resources/devices/devices.yaml
@@ -31,8 +31,6 @@ paths:
     $ref: spec/resources/devices/internal/offline.yaml
   '/api/devices/{uid}/{status}':
     $ref: spec/resources/devices/uid_status.yaml
-  /internal/lookup:
-    $ref: spec/resources/devices/internal/lookup.yaml
   /api/sessions:
     $ref: spec/resources/sessions/sessions.yaml
   /internal/session:
@@ -43,12 +41,6 @@ paths:
     $ref: spec/resources/sshkeys/public-keys.yaml
   '/api/sshkeys/public-keys/{fingerprint}':
     $ref: spec/resources/sshkeys/public-keys_fingerprint.yaml
-  '/internal/sshkeys/public-keys/{fingerprint}/{tenant}':
-    $ref: spec/resources/sshkeys/internal/public-keys_fingerprint_tenant.yaml
-  '/internal/sshkeys/public-keys/evaluate/{fingerprint}/{username}':
-    $ref: spec/resources/sshkeys/internal/public-keys_evaluate_fingerprint_username.yaml
-  /internal/sshkeys/private-keys:
-    $ref: spec/resources/sshkeys/internal/private-keys.yaml
   /api/stats:
     $ref: spec/resources/devices/stats.yaml
   /api/namespaces:
