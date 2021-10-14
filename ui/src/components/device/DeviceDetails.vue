@@ -83,7 +83,10 @@
           </code>
         </div>
 
-        <div class="mt-2">
+        <div
+          v-if="false"
+          class="mt-2"
+        >
           <v-combobox
             id="targetInput"
             v-model="list"

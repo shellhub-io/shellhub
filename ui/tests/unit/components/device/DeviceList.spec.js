@@ -35,11 +35,6 @@ describe('DeviceList', () => {
       align: 'center',
     },
     {
-      text: 'Tags',
-      value: 'tag',
-      align: 'center',
-    },
-    {
       text: 'Operating System',
       value: 'info.pretty_name',
       align: 'center',
