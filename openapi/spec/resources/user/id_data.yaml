@@ -52,6 +52,6 @@ patch:
     '401':
       $ref: ../../shared/responses/UnauthorizedResponse.yaml
     '409':
-      $ref: ../../shared/responses/InvalidFieldsResponse.yaml
+      $ref: ../../shared/responses/ConflictFieldsResponse.yaml
     '500':
       $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
