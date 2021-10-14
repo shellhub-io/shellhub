@@ -79,6 +79,9 @@ describe('SettingProfile', () => {
     expect(wrapper.vm.editDataStatus).toEqual(false);
     expect(wrapper.vm.editPasswordStatus).toEqual(false);
     expect(wrapper.vm.show).toEqual(false);
+    expect(wrapper.vm.showCurrentPassword).toEqual(false);
+    expect(wrapper.vm.showNewPassword).toEqual(false);
+    expect(wrapper.vm.showConfirmPassword).toEqual(false);
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.tenant).toEqual(tenant);

@@ -173,13 +173,15 @@
               >
                 <v-text-field
                   v-model="currentPassword"
-                  type="password"
                   label="Current password"
+                  :append-icon="showCurrentPassword? 'mdi-eye': 'mdi-eye-off'"
+                  :type="showCurrentPassword ? 'text': 'password'"
                   class="mb-4"
                   :error-messages="errors"
                   required
                   :disabled="!editPasswordStatus"
                   data-test="password-text"
+                  @click:append="showCurrentPassword = !showCurrentPassword"
                 />
               </ValidationProvider>
 
@@ -192,13 +194,15 @@
               >
                 <v-text-field
                   v-model="newPassword"
-                  type="password"
                   label="New password"
+                  :append-icon="showNewPassword? 'mdi-eye': 'mdi-eye-off'"
+                  :type="showNewPassword ? 'text': 'password'"
                   class="mb-4"
                   :error-messages="errors"
                   required
                   :disabled="!editPasswordStatus"
                   data-test="newPassword-text"
+                  @click:append="showNewPassword = !showNewPassword"
                 />
               </ValidationProvider>
 
@@ -211,12 +215,14 @@
                 <v-text-field
                   v-model="newPasswordConfirm"
                   label="Confirm new password"
-                  type="password"
+                  :append-icon="showConfirmPassword? 'mdi-eye': 'mdi-eye-off'"
+                  :type="showConfirmPassword ? 'text': 'password'"
                   class="mb-4"
                   :error-messages="errors"
                   required
                   :disabled="!editPasswordStatus"
                   data-test="confirmNewPassword-text"
+                  @click:append="showConfirmPassword = !showConfirmPassword"
                 />
               </ValidationProvider>
             </div>
@@ -253,6 +259,9 @@ export default {
       editDataStatus: false,
       editPasswordStatus: false,
       show: false,
+      showCurrentPassword: false,
+      showNewPassword: false,
+      showConfirmPassword: false,
     };
   },
 
