@@ -26,10 +26,6 @@ describe('Settings', () => {
       path: '/settings/private-keys',
     },
     {
-      title: 'Tags',
-      path: '/settings/tags',
-    },
-    {
       title: 'Billing',
       path: '/settings/billing',
     },

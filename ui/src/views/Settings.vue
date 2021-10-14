@@ -74,10 +74,6 @@ export default {
           path: '/settings/private-keys',
         },
         {
-          title: 'Tags',
-          path: '/settings/tags',
-        },
-        {
           title: 'Billing',
           path: '/settings/billing',
           hidden: !(this.$env.billingEnable && this.$env.isCloud && this.hasNamespace),
