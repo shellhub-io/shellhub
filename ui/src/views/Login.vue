@@ -44,9 +44,11 @@
               v-model="password"
               :error="$store.getters['auth/authStatus'] == 'error'"
               prepend-icon="lock"
+              :append-icon="showPassword? 'mdi-eye': 'mdi-eye-off'"
               label="Password"
-              type="password"
+              :type="showPassword ? 'text': 'password'"
               data-test="password-text"
+              @click:append="showPassword = !showPassword"
               @keyup.enter="login()"
             />
           </v-card-text>
@@ -118,6 +120,7 @@ export default {
       username: '',
       password: '',
       error: false,
+      showPassword: false,
       showMessage: false,
     };
   },
