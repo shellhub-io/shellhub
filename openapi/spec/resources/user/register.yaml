@@ -20,10 +20,10 @@ post:
     '200':
       $ref: ../../shared/responses/OkResponse.yaml
     '400':
-      $ref: ../../shared/responses/BadRequestResponse.yaml
+      $ref: ../../shared/responses/InvalidFieldsResponse.yaml
     '401':
       $ref: ../../shared/responses/UnauthorizedResponse.yaml
     '409':
-      $ref: ../../shared/responses/ConflictResponse.yaml
+      $ref: ../../shared/responses/ConflictFieldsResponse.yaml
     '500':
       $ref: ../../shared/responses/AnyInternalErrorResponse.yaml

@@ -1,4 +1,4 @@
-description: Invalid Fields
+description: Conflict Fields
 content:
   application/json:
     schema:
