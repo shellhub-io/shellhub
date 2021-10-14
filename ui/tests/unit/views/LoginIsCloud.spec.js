@@ -91,6 +91,7 @@ describe('Login', () => {
       expect(wrapper.vm.username).toEqual('');
       expect(wrapper.vm.password).toEqual('');
       expect(wrapper.vm.error).toEqual(false);
+      expect(wrapper.vm.showPassword).toEqual(false);
       expect(wrapper.vm.showMessage).toEqual(false);
     });
 
@@ -146,6 +147,7 @@ describe('Login', () => {
       expect(wrapper.vm.username).toEqual('');
       expect(wrapper.vm.password).toEqual('');
       expect(wrapper.vm.error).toEqual(false);
+      expect(wrapper.vm.showPassword).toEqual(false);
       expect(wrapper.vm.showMessage).toEqual(true);
     });
 
