@@ -1,6 +1,9 @@
 <template>
   <fragment>
-    <DeviceWarning data-test="deviceWarning-component" />
+    <DeviceWarning
+      v-if="isBillingEnabled()"
+      data-test="deviceWarning-component"
+    />
 
     <Welcome
       :show.sync="show"
