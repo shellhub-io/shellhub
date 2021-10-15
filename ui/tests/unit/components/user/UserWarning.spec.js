@@ -134,7 +134,7 @@ describe('UserWarning', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="billingWarning-component"]').exists()).toBe(false);
