@@ -41,6 +41,9 @@ describe('NamespaceDelete', () => {
   const text = `This action cannot be undone. This will permanently delete the
            ${namespace.name} and its related data.`;
 
+  const mockCallWithout = jest.fn();
+  const mockCallWith = jest.fn();
+
   const storeOwnerWithoutSubscription = new Vuex.Store({
     namespaced: true,
     state: {
@@ -58,7 +61,7 @@ describe('NamespaceDelete', () => {
     actions: {
       'namespaces/remove': () => {},
       'auth/logout': () => {},
-      'billing/getSubscription': () => {},
+      'billing/getSubscription': mockCallWithout,
       'snackbar/showSnackbarErrorLoading': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
       'snackbar/showSnackbarErrorDefault': () => {},
@@ -82,7 +85,7 @@ describe('NamespaceDelete', () => {
     actions: {
       'namespaces/remove': () => {},
       'auth/logout': () => {},
-      'billing/getSubscription': () => {},
+      'billing/getSubscription': mockCallWith,
       'snackbar/showSnackbarErrorLoading': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
       'snackbar/showSnackbarErrorDefault': () => {},
@@ -103,6 +106,9 @@ describe('NamespaceDelete', () => {
         propsData: { nsTenant: tenant },
         vuetify,
         mocks: {
+          $env: {
+            billingEnable: false,
+          },
           $stripe: {
             elements: () => ({
               create: () => ({
@@ -164,6 +170,9 @@ describe('NamespaceDelete', () => {
         propsData: { nsTenant: tenant },
         vuetify,
         mocks: {
+          $env: {
+            billingEnable: false,
+          },
           $stripe: {
             elements: () => ({
               create: () => ({
@@ -198,6 +207,14 @@ describe('NamespaceDelete', () => {
     it('Compare data with the default', () => {
       expect(wrapper.vm.name).toEqual(namespace.name);
       expect(wrapper.vm.dialog).toEqual(true);
+    });
+
+    //////
+    // Call actions
+    //////
+
+    it('Call actions', () => {
+      expect(mockCallWithout).not.toHaveBeenCalled();
     });
 
     //////
@@ -228,6 +245,9 @@ describe('NamespaceDelete', () => {
         propsData: { nsTenant: tenant },
         vuetify,
         mocks: {
+          $env: {
+            billingEnable: true,
+          },
           $stripe: {
             elements: () => ({
               create: () => ({
@@ -238,7 +258,7 @@ describe('NamespaceDelete', () => {
         },
       });
 
-      wrapper.setData({ dialog: true });
+      wrapper.setData({ dialog: true, amountDue: 5 });
     });
 
     ///////
@@ -262,6 +282,14 @@ describe('NamespaceDelete', () => {
     it('Compare data with the default', () => {
       expect(wrapper.vm.name).toEqual(namespace.name);
       expect(wrapper.vm.dialog).toEqual(true);
+    });
+
+    //////
+    // Call actions
+    //////
+
+    it('Call actions', () => {
+      expect(mockCallWith).toHaveBeenCalled();
     });
 
     //////
