@@ -20,11 +20,11 @@
 
         <v-card-text class="mt-4 mb-3 pb-1">
           <p
-            v-if="active && info.nextPaymentDue !== null"
+            v-if="active && amountDue !== null"
             data-test="contentSubscription-p"
           >
             Deleting the namespace will generate an invoice,
-            estimated <b> {{ info.nextPaymentDue | formatCurrency }} </b> for the time of use.
+            estimated <b> {{ amountDue | formatCurrency }} </b> for the time of use.
           </p>
 
           <p data-test="content-text">
@@ -80,7 +80,7 @@ export default {
       dialog: false,
       card: null,
       elements: null,
-      info: {},
+      amountDue: null,
       cardItems: {},
     };
   },
@@ -108,16 +108,16 @@ export default {
   },
 
   mounted() {
-    if (this.isOwner && !this.active) {
-      this.mountStripeElements();
-    }
-
-    if (this.isOwner) {
+    if (this.isOwner && this.isBillingEnabled()) {
       this.getSubscriptionInfo();
     }
   },
 
   methods: {
+    isBillingEnabled() {
+      return this.$env.billingEnable;
+    },
+
     async remove() {
       try {
         this.dialog = !this.dialog;
@@ -137,42 +137,15 @@ export default {
       return str;
     },
 
-    mountStripeElements() {
-      this.elements = this.$stripe.elements();
-      this.card = this.elements.create('card');
-    },
-
-    getInfo(data) {
-      const li = data.latest_invoice;
-      const ui = data.upcoming_invoice;
-      const description = data.product_description;
-      const { card } = data;
-
-      return {
-        info: {
-          periodEnd: this.billing.current_period_end,
-          description,
-          latestPaymentDue: li.amount_due,
-          latestPaymentPaid: li.amount_paid,
-          nextPaymentDue: ui.amount_due,
-          nextPaymentPaid: ui.amount_paid,
-        },
-        card: {
-          brand: card.brand,
-          expYear: card.exp_year,
-          expMonth: card.exp_month,
-          last4: card.last4,
-        },
-      };
+    getDueAmount(data) {
+      return data.upcoming_invoice.amount_due;
     },
 
     async getSubscriptionInfo() {
       if (this.active) {
         try {
           const data = await this.$store.dispatch('billing/getSubscription');
-          const { info, card } = this.getInfo(data);
-          this.info = info;
-          this.cardItems = card;
+          this.amountDue = this.getDueAmount(data);
         } catch {
           this.$store.dispatch('snackbar/showSnackbarErrorDefault');
         }
