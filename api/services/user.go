@@ -17,7 +17,7 @@ func (s *service) UpdateDataUser(ctx context.Context, user *models.User, id stri
 		return nil, err
 	}
 
-	if invalidFields, err := validator.ValidateStruct(user); err != nil {
+	if invalidFields, err := validator.ValidateStruct(user.UserData); err != nil {
 		return invalidFields, ErrBadRequest
 	}
 
@@ -42,14 +42,32 @@ func (s *service) UpdateDataUser(ctx context.Context, user *models.User, id stri
 }
 
 func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, id string) error {
-	user, _, err := s.store.UserGetByID(ctx, id, false)
-	if err != nil {
-		return err
+	validatePassword := func(password string) bool {
+		if _, err := validator.ValidateVar(password, "required,min=5,max=30"); err != nil {
+			return false
+		}
+
+		return true
 	}
 
-	if user.Password == currentPassword {
-		return s.store.UserUpdatePassword(ctx, newPassword, id)
+	if !validatePassword(currentPassword) || !validatePassword(newPassword) {
+		return ErrBadRequest
 	}
 
-	return ErrUnauthorized
+	currentPassword = validator.HashPassword(currentPassword)
+	newPassword = validator.HashPassword(newPassword)
+	if currentPassword == newPassword {
+		return ErrBadRequest
+	}
+
+	user, _, _ := s.store.UserGetByID(ctx, id, false)
+	if user == nil {
+		return ErrUnauthorized
+	}
+
+	if user.Password != currentPassword {
+		return ErrUnauthorized
+	}
+
+	return s.store.UserUpdatePassword(ctx, newPassword, id)
 }

@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"net/http"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
@@ -47,24 +45,12 @@ func (h *Handler) UpdateUserPassword(c apicontext.Context) error {
 		return err
 	}
 
-	ID := c.Param("id")
-
-	if req.CurrentPassword != "" {
-		sum := sha256.Sum256([]byte(req.CurrentPassword))
-		sumByte := sum[:]
-		req.CurrentPassword = hex.EncodeToString(sumByte)
-	}
-
-	if req.NewPassword != "" {
-		sum := sha256.Sum256([]byte(req.NewPassword))
-		sumByte := sum[:]
-		req.NewPassword = hex.EncodeToString(sumByte)
-	}
-
-	if err := h.service.UpdatePasswordUser(c.Ctx(), req.CurrentPassword, req.NewPassword, ID); err != nil {
+	if err := h.service.UpdatePasswordUser(c.Ctx(), req.CurrentPassword, req.NewPassword, c.Param("id")); err != nil {
 		switch {
+		case err == services.ErrBadRequest:
+			return c.NoContent(http.StatusBadRequest)
 		case err == services.ErrUnauthorized:
-			return c.NoContent(http.StatusForbidden)
+			return c.NoContent(http.StatusUnauthorized)
 		default:
 			return err
 		}
