@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/validator"
+
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
@@ -194,49 +196,80 @@ func TestUpdatePasswordUser(t *testing.T) {
 
 	ctx := context.TODO()
 
-	user1 := &models.User{UserData: models.UserData{Name: "name", Email: "user1@email.com", Username: "username1"}, UserPassword: models.UserPassword{Password: "hash1"}, ID: "id1"}
-
 	type updatePassword struct {
 		currentPassword string
 		newPassword     string
-		expected        error
 	}
 
-	tests := []updatePassword{
+	cases := []struct {
+		name          string
+		data          updatePassword
+		id            string
+		requiredMocks func()
+		tenantID      string
+		expected      error
+	}{
 		{
-			"hiadoshioasc",
-			"hashnew",
-			ErrUnauthorized,
+			name:          "Fail when current password is invalid",
+			data:          updatePassword{currentPassword: "1234", newPassword: "1234567"},
+			id:            "1",
+			requiredMocks: func() {},
+			expected:      ErrBadRequest,
 		},
 		{
-			"pass123",
-			"hashnew",
-			ErrUnauthorized,
+			name:          "Fail when new password is invalid",
+			data:          updatePassword{currentPassword: "123456", newPassword: "123"},
+			id:            "1",
+			requiredMocks: func() {},
+			expected:      ErrBadRequest,
 		},
 		{
-			"askdhkasd",
-			"hashnew",
-			ErrUnauthorized,
+			name:          "Fail when current and new password are equals",
+			data:          updatePassword{currentPassword: "123456", newPassword: "123456"},
+			id:            "1",
+			requiredMocks: func() {},
+			expected:      ErrBadRequest,
 		},
 		{
-			"pass890",
-			"hashnew",
-			ErrUnauthorized,
+			name: "Fails when ID is not valid",
+			data: updatePassword{currentPassword: "123456", newPassword: "123567"},
+			id:   "2",
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, "2", false).Return(nil, 0, errors.New("error"))
+			},
+			expected: ErrUnauthorized,
 		},
 		{
-			"hash1",
-			"hashnew",
-			nil,
+			name: "Fails when user's password and current password is not equal",
+			data: updatePassword{currentPassword: "123456", newPassword: "123567"},
+			id:   "1",
+			requiredMocks: func() {
+				user := &models.User{UserData: models.UserData{Name: "name", Email: "user1@email.com", Username: "username1"}, UserPassword: models.UserPassword{Password: validator.HashPassword("password")}, ID: "1"}
+				mock.On("UserGetByID", ctx, "1", false).Return(user, 0, nil).Once()
+			},
+			expected: ErrUnauthorized,
+		},
+		{
+			name: "Success to update user's password",
+			data: updatePassword{currentPassword: "password", newPassword: "newpassword"},
+			id:   "1",
+			requiredMocks: func() {
+				user := &models.User{UserData: models.UserData{Name: "name", Email: "user1@email.com", Username: "username1"}, UserPassword: models.UserPassword{Password: validator.HashPassword("password")}, ID: "1"}
+				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				mock.On("UserUpdatePassword", ctx, validator.HashPassword("newpassword"), user.ID).Return(nil).Once()
+			},
+			expected: nil,
 		},
 	}
 
-	for _, test := range tests {
-		mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
-		if test.expected == nil {
-			mock.On("UserUpdatePassword", ctx, test.newPassword, user1.ID).Return(nil).Once()
-		}
-		err := s.UpdatePasswordUser(ctx, test.currentPassword, test.newPassword, user1.ID)
-		assert.Equal(t, err, test.expected)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			test := tc
+
+			test.requiredMocks()
+			err := s.UpdatePasswordUser(ctx, test.data.currentPassword, test.data.newPassword, test.id)
+			assert.Equal(t, err, test.expected)
+		})
 	}
 
 	mock.AssertExpectations(t)
