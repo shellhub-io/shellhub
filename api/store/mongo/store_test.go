@@ -34,7 +34,7 @@ func TestStoreGetStats(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "email"}, UserPassword: models.UserPassword{Password: "password"}}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
@@ -144,11 +144,15 @@ func initData() Data {
 
 	return Data{
 		models.User{
-			ID:       "1",
-			Name:     "user",
-			Username: "username",
-			Email:    "user@shellhub.io",
-			Password: "password",
+			UserData: models.UserData{
+				Name:     "user",
+				Username: "username",
+				Email:    "user@shellhub.io",
+			},
+			UserPassword: models.UserPassword{
+				Password: "password",
+			},
+			ID: "1",
 		},
 		models.Namespace{
 			Name:       "namespace",

@@ -23,8 +23,8 @@ func TestIsNamespaceOwner(t *testing.T) {
 
 	ctx := context.TODO()
 
-	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
-	user2 := &models.User{Name: "user2", Username: "hash2", ID: "hash2"}
+	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
+	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "hash2"}, ID: "hash2"}
 
 	Err := errors.New("error")
 
@@ -254,8 +254,8 @@ func TestListMembers(t *testing.T) {
 
 	Err := errors.New("error")
 
-	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
-	user2 := &models.User{Name: "user2", Username: "hash2", ID: "hash2"}
+	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
+	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "hash2"}, ID: "hash2"}
 
 	namespace := &models.Namespace{
 		Name:     strings.ToLower("namespace"),
@@ -363,7 +363,7 @@ func TestCreateNamespace(t *testing.T) {
 
 	Err := errors.New("error")
 
-	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
+	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
 
 	namespace := &models.Namespace{
 		Name:     strings.ToLower("namespace"),
@@ -587,8 +587,8 @@ func TestEditNamespace(t *testing.T) {
 
 	ctx := context.TODO()
 
-	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
-	user2 := &models.User{Name: "user2", Username: "hash2", ID: "hash2"}
+	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
+	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "hash2"}, ID: "hash2"}
 	Err := errors.New("error")
 
 	namespace := &models.Namespace{
@@ -713,8 +713,8 @@ func TestDeleteNamespace(t *testing.T) {
 	ctx := context.TODO()
 
 	namespace := &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
-	user1 := &models.User{Name: "user1", ID: "ID1", Username: "user1", Email: "user1@email.com"}
-	user2 := &models.User{Name: "user2", ID: "ID2", Username: "user2", Email: "user2@email.com"}
+	user1 := &models.User{UserData: models.UserData{Name: "user1", Username: "user1", Email: "user1@email.com"}, ID: "ID1"}
+	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "user2", Email: "user2@email.com"}, ID: "ID2"}
 
 	cases := []struct {
 		name          string
@@ -815,8 +815,8 @@ func TestAddNamespaceUser(t *testing.T) {
 	ctx := context.TODO()
 
 	namespace := &models.Namespace{Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
-	user1 := &models.User{Name: "user1", ID: "ID1", Username: "user1", Email: "user1@email.com"}
-	user2 := &models.User{Name: "user2", ID: "ID2", Username: "user2", Email: "user2@email.com"}
+	user1 := &models.User{UserData: models.UserData{Name: "user1", Username: "user1", Email: "user1@email.com"}, ID: "ID1"}
+	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "user2", Email: "user2@email.com"}, ID: "ID2"}
 
 	Err := errors.New("error")
 
@@ -925,8 +925,8 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 	ctx := context.TODO()
-	user := &models.User{Name: "user1", Username: "username1", ID: "hash1"}
-	user2 := &models.User{Name: "user2", Username: "username2", ID: "hash2"}
+	user := &models.User{UserData: models.UserData{Name: "user1", Username: "username1"}, ID: "hash1"}
+	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "username2"}, ID: "hash2"}
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []interface{}{"hash1", "hash2"}}
 	Err := errors.New("error")
 
@@ -1114,8 +1114,8 @@ func TestEditSessionRecord(t *testing.T) {
 	ctx := context.TODO()
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "xxxx", Settings: &models.NamespaceSettings{SessionRecord: true}}
-	user := &models.User{Name: "user1", Username: "username1", ID: "hash1"}
-	user2 := &models.User{Name: "user2", Username: "username2", ID: "hash2"}
+	user := &models.User{UserData: models.UserData{Name: "user1", Username: "username1"}, ID: "hash1"}
+	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "username2"}, ID: "hash2"}
 
 	Err := errors.New("error")
 

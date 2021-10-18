@@ -19,10 +19,14 @@ func TestMigration17(t *testing.T) {
 	defer db.Stop()
 
 	user := models.User{
-		Name:     "name",
-		Username: "username",
-		Password: "password",
-		Email:    "email",
+		UserData: models.UserData{
+			Name:     "name",
+			Username: "username",
+			Email:    "email",
+		},
+		UserPassword: models.UserPassword{
+			Password: "password",
+		},
 	}
 
 	namespace := models.Namespace{

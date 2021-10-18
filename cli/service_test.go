@@ -350,11 +350,15 @@ func initData() Data {
 	hash := sha256.Sum256([]byte("testService"))
 
 	data.User = &models.User{
-		ID:       "1",
-		Name:     "testService",
-		Username: "testService",
-		Password: hex.EncodeToString(hash[:]),
-		Email:    "test@shellhub.com",
+		ID: "1",
+		UserData: models.UserData{
+			Name:     "testService",
+			Username: "testService",
+			Email:    "test@shellhub.com",
+		},
+		UserPassword: models.UserPassword{
+			Password: hex.EncodeToString(hash[:]),
+		},
 	}
 
 	data.Namespace = &models.Namespace{

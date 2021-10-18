@@ -55,7 +55,7 @@ func TestUserUpdateData(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "email"}, UserPassword: models.UserPassword{Password: "password"}}
 
 	result, err := db.Client().Database("test").Collection("users").InsertOne(data.Context, user)
 	assert.NoError(t, err)
@@ -63,11 +63,15 @@ func TestUserUpdateData(t *testing.T) {
 	objID := result.InsertedID.(primitive.ObjectID).Hex()
 
 	userNewData := models.User{
-		ID:       objID,
-		Name:     "New Name",
-		Username: "newusername",
-		Password: "password",
-		Email:    "new@email.com",
+		ID: objID,
+		UserData: models.UserData{
+			Name:     "New Name",
+			Username: "newusername",
+			Email:    "new@email.com",
+		},
+		UserPassword: models.UserPassword{
+			Password: "password",
+		},
 	}
 
 	err = mongostore.UserUpdateData(data.Context, &userNewData, objID)
@@ -164,7 +168,7 @@ func TestUserGetByID(t *testing.T) {
 		nss[i] = v
 	}
 
-	user := models.User{ID: "60af83d418d2dc3007cd445c", Name: "name", Username: "username", Password: "password", Email: "user@email.com"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "user@email.com"}, UserPassword: models.UserPassword{Password: "password"}, ID: "60af83d418d2dc3007cd445c"}
 
 	objID, err := primitive.ObjectIDFromHex(user.ID)
 
@@ -202,7 +206,7 @@ func TestUserUpdatePassword(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "email"}, UserPassword: models.UserPassword{Password: "password"}}
 
 	result, err := db.Client().Database("test").Collection("users").InsertOne(data.Context, user)
 	assert.NoError(t, err)
@@ -225,7 +229,7 @@ func TestUpdateUserFromAdmin(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "email"}, UserPassword: models.UserPassword{Password: "password"}}
 
 	result, err := db.Client().Database("test").Collection("users").InsertOne(data.Context, user)
 	assert.NoError(t, err)
@@ -244,7 +248,7 @@ func TestUserCreateToken(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "email"}, UserPassword: models.UserPassword{Password: "password"}}
 
 	result, err := db.Client().Database("test").Collection("users").InsertOne(data.Context, user)
 	assert.NoError(t, err)
@@ -269,7 +273,7 @@ func TestUserUpdateAccountStatus(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "email"}, UserPassword: models.UserPassword{Password: "password"}}
 
 	result, err := db.Client().Database("test").Collection("users").InsertOne(data.Context, user)
 	assert.NoError(t, err)
@@ -308,7 +312,7 @@ func TestUsersListWithFilter(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "email"}, UserPassword: models.UserPassword{Password: "password"}}
 	result, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
 
@@ -316,7 +320,7 @@ func TestUsersListWithFilter(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	user = models.User{Name: "name", Username: "username-1", Password: "password", Email: "email-1"}
+	user = models.User{UserData: models.UserData{Name: "name", Username: "username-1", Email: "email-1"}, UserPassword: models.UserPassword{Password: "password"}}
 	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
 
@@ -324,7 +328,7 @@ func TestUsersListWithFilter(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	user = models.User{Name: "name", Username: "username-2", Password: "password", Email: "email-2"}
+	user = models.User{UserData: models.UserData{Name: "name", Username: "username-2", Email: "email-2"}, UserPassword: models.UserPassword{Password: "password"}}
 	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
 
@@ -336,7 +340,7 @@ func TestUsersListWithFilter(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	user = models.User{Name: "name", Username: "username-3", Password: "password", Email: "email-3"}
+	user = models.User{UserData: models.UserData{Name: "name", Username: "username-3", Email: "email-3"}, UserPassword: models.UserPassword{Password: "password"}}
 	result, err = db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	assert.NoError(t, err)
 
@@ -381,7 +385,7 @@ func TestUserDetachInfo(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{ID: "60af83d418d2dc3007cd445c", Name: "name", Username: "username", Password: "password", Email: "user@email.com"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "user@email.com"}, UserPassword: models.UserPassword{Password: "password"}, ID: "60af83d418d2dc3007cd445c"}
 
 	objID, err := primitive.ObjectIDFromHex(user.ID)
 
@@ -454,7 +458,7 @@ func TestUserDelete(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{ID: "60af83d418d2dc3007cd445c", Name: "name", Username: "username", Password: "password", Email: "user@email.com"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "user@email.com"}, UserPassword: models.UserPassword{Password: "password"}, ID: "60af83d418d2dc3007cd445c"}
 
 	objID, err := primitive.ObjectIDFromHex(user.ID)
 

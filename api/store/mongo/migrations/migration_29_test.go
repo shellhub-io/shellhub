@@ -20,7 +20,9 @@ func TestMigration29(t *testing.T) {
 	defer db.Stop()
 
 	user := models.User{
-		Name: "Test",
+		UserData: models.UserData{
+			Name: "Test",
+		},
 	}
 
 	_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
