@@ -19,7 +19,9 @@ func TestMigration28(t *testing.T) {
 	defer db.Stop()
 
 	user := models.User{
-		Name: "Test",
+		UserData: models.UserData{
+			Name: "Test",
+		},
 	}
 
 	device := models.Device{

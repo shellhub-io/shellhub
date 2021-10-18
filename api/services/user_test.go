@@ -20,21 +20,21 @@ func TestUpdateDataUser(t *testing.T) {
 
 	Err := errors.New("conflict")
 
-	user1 := &models.User{Name: "name", Email: "user1@email.com", Username: "username1", Password: "hash1", ID: "id1"}
+	user1 := &models.User{UserData: models.UserData{Name: "name", Email: "user1@email.com", Username: "username1"}, UserPassword: models.UserPassword{Password: "hash1"}, ID: "id1"}
 
-	user2 := &models.User{Name: "name", Email: "user2@email.com", Username: "username2", Password: "hash2", ID: "id2"}
+	user2 := &models.User{UserData: models.UserData{Name: "name", Email: "user2@email.com", Username: "username2"}, UserPassword: models.UserPassword{Password: "hash2"}, ID: "id2"}
 
-	updateUser1 := &models.User{Name: "name", Email: "user1@email2.com", Username: user2.Username, ID: "id1"}
+	updateUser1 := &models.User{UserData: models.UserData{Name: "name", Email: "user1@email2.com", Username: user2.Username}, ID: "id1"}
 
-	updateInvalidUsername := &models.User{Name: "newname", Email: "user1@email2.com", Username: "invalid_name", ID: "id1"}
+	updateInvalidUsername := &models.User{UserData: models.UserData{Name: "newname", Email: "user1@email2.com", Username: "invalid_name"}, ID: "id1"}
 
-	updateInvalidEmail := &models.User{Name: "newname", Email: "invalid.email", Username: "newusername", ID: "id1"}
+	updateInvalidEmail := &models.User{UserData: models.UserData{Name: "newname", Email: "invalid.email", Username: "newusername"}, ID: "id1"}
 
-	updateInvalidUsernameEmail := &models.User{Name: "newname", Email: "invalid.email", Username: "us", ID: "id1"}
+	updateInvalidUsernameEmail := &models.User{UserData: models.UserData{Name: "newname", Email: "invalid.email", Username: "us"}, ID: "id1"}
 
-	updateEmptyUsername := &models.User{Name: "", Email: "new@email.com", Username: "newusername", ID: "id1"}
+	updateEmptyUsername := &models.User{UserData: models.UserData{Name: "", Email: "new@email.com", Username: "newusername"}, ID: "id1"}
 
-	updateEmptyEmail := &models.User{Name: "newname", Email: "", Username: "newusername", ID: "id1"}
+	updateEmptyEmail := &models.User{UserData: models.UserData{Name: "newname", Email: "", Username: "newusername"}, ID: "id1"}
 
 	conflictedUsername := []string{"username"}
 
@@ -194,7 +194,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 
 	ctx := context.TODO()
 
-	user1 := &models.User{Name: "name", Email: "user1@email.com", Username: "username1", Password: "hash1", ID: "id1"}
+	user1 := &models.User{UserData: models.UserData{Name: "name", Email: "user1@email.com", Username: "username1"}, UserPassword: models.UserPassword{Password: "hash1"}, ID: "id1"}
 
 	type updatePassword struct {
 		currentPassword string

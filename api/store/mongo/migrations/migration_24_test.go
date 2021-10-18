@@ -27,28 +27,40 @@ func TestMigration24(t *testing.T) {
 	assert.Equal(t, uint64(23), version)
 
 	user := models.User{
-		Name:     "name",
-		Username: "USERNAME",
-		Password: "password",
-		Email:    "EMAIL@MAIL.COM",
+		UserData: models.UserData{
+			Name:     "name",
+			Username: "USERNAME",
+			Email:    "EMAIL@MAIL.COM",
+		},
+		UserPassword: models.UserPassword{
+			Password: "password",
+		},
 	}
 	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
 	user = models.User{
-		Name:     "name2",
-		Username: "Username2",
-		Password: "password",
-		Email:    "email@MAIL-TEST.com",
+		UserData: models.UserData{
+			Name:     "name2",
+			Username: "Username2",
+			Email:    "email@MAIL-TEST.com",
+		},
+		UserPassword: models.UserPassword{
+			Password: "password",
+		},
 	}
 	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
 	user = models.User{
-		Name:     "name3",
-		Username: "username3",
-		Password: "password",
-		Email:    "email@e-mail.com",
+		UserData: models.UserData{
+			Name:     "name3",
+			Username: "username3",
+			Email:    "email@e-mail.com",
+		},
+		UserPassword: models.UserPassword{
+			Password: "password",
+		},
 	}
 	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)

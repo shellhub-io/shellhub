@@ -26,10 +26,14 @@ func TestMigration32(t *testing.T) {
 	assert.Equal(t, uint64(31), version)
 
 	user := models.User{
-		Name:     "name",
-		Username: "username",
-		Password: "password",
-		Email:    "email@mail.com",
+		UserData: models.UserData{
+			Name:     "name",
+			Username: "username",
+			Email:    "email@mail.com",
+		},
+		UserPassword: models.UserPassword{
+			Password: "password",
+		},
 	}
 	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)

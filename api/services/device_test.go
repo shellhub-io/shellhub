@@ -177,8 +177,8 @@ func TestDeleteDevice(t *testing.T) {
 
 	ctx := context.TODO()
 
-	user := &models.User{Name: "name", Email: "", Username: "username", ID: "id"}
-	user2 := &models.User{Name: "name2", Email: "", Username: "username2", ID: "id2"}
+	user := &models.User{UserData: models.UserData{Name: "name", Email: "", Username: "username"}, ID: "id"}
+	user2 := &models.User{UserData: models.UserData{Name: "name2", Email: "", Username: "username2"}, ID: "id2"}
 	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant"}
 	device := &models.Device{UID: "uid", TenantID: "tenant", CreatedAt: time.Time{}}
 
@@ -344,8 +344,8 @@ func TestRenameDevice(t *testing.T) {
 
 	ctx := context.TODO()
 
-	user := &models.User{Name: "name", Email: "email", Username: "username", ID: "id"}
-	user2 := &models.User{Name: "name2", Email: "email2", Username: "username2", ID: "id2"}
+	user := &models.User{UserData: models.UserData{Name: "name", Email: "email", Username: "username"}, ID: "id"}
+	user2 := &models.User{UserData: models.UserData{Name: "name2", Email: "email2", Username: "username2"}, ID: "id2"}
 	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant"}
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant"}
 	device2 := &models.Device{UID: "uid2", Name: "newname", TenantID: "tenant2"}
@@ -628,8 +628,8 @@ func TestUpdatePendingStatus(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
-	user := &models.User{Name: "name", Username: "username", ID: "id"}
-	user2 := &models.User{Name: "name2", Username: "username2", ID: "id2"}
+	user := &models.User{UserData: models.UserData{Name: "name", Username: "username"}, ID: "id"}
+	user2 := &models.User{UserData: models.UserData{Name: "name2", Username: "username2"}, ID: "id2"}
 	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", MaxDevices: -1}
 	identity := &models.DeviceIdentity{MAC: "mac"}
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: identity, CreatedAt: time.Time{}}

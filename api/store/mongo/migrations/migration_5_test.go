@@ -17,8 +17,8 @@ func TestMigration5(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	user1 := models.User{Name: "name1", Username: "username1", Password: "password", Email: "email"}
-	user2 := models.User{Name: "name2", Username: "username2", Password: "password", Email: "email"}
+	user1 := models.User{UserData: models.UserData{Name: "name1", Username: "username1", Email: "email"}, UserPassword: models.UserPassword{Password: "password"}}
+	user2 := models.User{UserData: models.UserData{Name: "name2", Username: "username2", Email: "email"}, UserPassword: models.UserPassword{Password: "password"}}
 
 	_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
 	assert.NoError(t, err)

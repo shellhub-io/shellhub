@@ -98,24 +98,36 @@ func TestAuthUser(t *testing.T) {
 	passwd := sha256.Sum256([]byte(authReq.Password))
 
 	userWithWrongPassword := &models.User{
-		Username:      "user",
-		Password:      hex.EncodeToString(wrongPasswd[:]),
+		UserData: models.UserData{
+			Username: "user",
+		},
+		UserPassword: models.UserPassword{
+			Password: hex.EncodeToString(wrongPasswd[:]),
+		},
 		ID:            "id",
 		Authenticated: true,
 		LastLogin:     now,
 	}
 
 	userAuthenticated := &models.User{
-		Username:      "user",
-		Password:      hex.EncodeToString(passwd[:]),
+		UserData: models.UserData{
+			Username: "user",
+		},
+		UserPassword: models.UserPassword{
+			Password: hex.EncodeToString(passwd[:]),
+		},
 		ID:            "id",
 		Authenticated: true,
 		LastLogin:     now,
 	}
 
 	userNotActivatedAccount := &models.User{
-		Username:      "user",
-		Password:      hex.EncodeToString(passwd[:]),
+		UserData: models.UserData{
+			Username: "user",
+		},
+		UserPassword: models.UserPassword{
+			Password: hex.EncodeToString(passwd[:]),
+		},
 		ID:            "id",
 		Authenticated: false,
 		LastLogin:     now,
@@ -222,10 +234,12 @@ func TestAuthUserInfo(t *testing.T) {
 	}
 
 	user := &models.User{
-		Username: "user",
-		Name:     "user",
-		ID:       "id",
-		Email:    "email@email.com",
+		UserData: models.UserData{
+			Username: "user",
+			Name:     "user",
+			Email:    "email@email.com",
+		},
+		ID: "id",
 	}
 
 	namespace := &models.Namespace{
