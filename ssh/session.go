@@ -112,7 +112,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 		}
 	}
 
-	if envs.IsCloud() {
+	if envs.IsCloud() && envs.HasBilling() {
 		device, err := c.GetDevice(s.Target)
 		if err != nil {
 			return nil, ErrInvalidSessionTarget
