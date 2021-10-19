@@ -250,44 +250,7 @@ func TestDeleteDevice(t *testing.T) {
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(nil, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(&models.Namespace{
-						Billing: &models.Billing{
-							Active: true,
-						},
-					}, nil).Once()
-				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
-					Return(nil).Once()
-			},
-			id:       user.ID,
-			expected: nil,
-		},
-		{
-			name:   "DeleteDevice reports usage with success",
-			uid:    models.UID(device.UID),
-			tenant: namespace.TenantID,
-			requiredMocks: func() {
-				namespaceBilling := &models.Namespace{
-					Name:       "namespace1",
-					MaxDevices: -1,
-					Billing: &models.Billing{
-						Active: true,
-					},
-				}
-				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, user.ID, false).
-					Return(user, 0, nil).Once()
-				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
-					Return(device, nil).Once()
-				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(namespaceBilling, nil).Once()
-				clockMock.On("Now").Return(now).Twice()
-				clientMock.On("ReportUsage", &models.UsageRecord{
-					UUID:      "uid",
-					Namespace: namespaceBilling,
-					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
-					Timestamp: now.Unix(),
-				}).Return(200, nil).Once()
+					Return(&models.Namespace{TenantID: namespace.TenantID}, nil).Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(nil).Once()
 			},
@@ -315,6 +278,7 @@ func TestDeleteDevice(t *testing.T) {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespaceBilling, nil).Once()
 				clockMock.On("Now").Return(now).Twice()
+				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportUsage", &models.UsageRecord{
 					UUID:      "uid",
 					Namespace: namespaceBilling,
@@ -324,6 +288,39 @@ func TestDeleteDevice(t *testing.T) {
 			},
 			id:       user.ID,
 			expected: ErrReport,
+		},
+		{
+			name:   "DeleteDevice reports usage with success",
+			uid:    models.UID(device.UID),
+			tenant: namespace.TenantID,
+			requiredMocks: func() {
+				namespaceBilling := &models.Namespace{
+					Name: "namespace1",
+					Billing: &models.Billing{
+						Active: true,
+					},
+				}
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespaceBilling, nil).Once()
+				clockMock.On("Now").Return(now).Twice()
+				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
+				clientMock.On("ReportUsage", &models.UsageRecord{
+					UUID:      "uid",
+					Namespace: namespaceBilling,
+					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
+					Timestamp: now.Unix(),
+				}).Return(200, nil).Once()
+				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
+					Return(nil).Once()
+			},
+			id:       user.ID,
+			expected: nil,
 		},
 	}
 
@@ -735,6 +732,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
 					Return(nil, nil).Once()
 				clockMock.On("Now").Return(now).Twice()
+				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportUsage", &models.UsageRecord{
 					UUID:      "uid",
 					Inc:       true,
@@ -764,6 +762,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
 					Return(nil, nil).Once()
 				clockMock.On("Now").Return(now).Twice()
+				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportUsage", &models.UsageRecord{
 					UUID:      "uid",
 					Inc:       true,
