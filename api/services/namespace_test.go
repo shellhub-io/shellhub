@@ -12,8 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/envs"
-	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuid_mocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
@@ -248,8 +246,6 @@ func TestListMembers(t *testing.T) {
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
-	envMock := &env_mocks.Backend{}
-	envs.DefaultBackend = envMock
 
 	type Expected struct {
 		ns  []models.Member
@@ -357,8 +353,6 @@ func TestCreateNamespace(t *testing.T) {
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
-	envMock := &env_mocks.Backend{}
-	envs.DefaultBackend = envMock
 	uuidMock := &uuid_mocks.Uuid{}
 	uuid.DefaultBackend = uuidMock
 
@@ -762,6 +756,26 @@ func TestDeleteNamespace(t *testing.T) {
 			expected: nil,
 		},
 		{
+			name:     "DeleteNamespace avoids report for disabled env",
+			tenantID: namespace.TenantID,
+			ownerID:  user1.ID,
+			requiredMocks: func() {
+				ns := &models.Namespace{
+					TenantID: namespace.TenantID,
+					Owner:    user1.ID,
+					Billing: &models.Billing{
+						Active: true,
+					},
+					MaxDevices: -1,
+				}
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(ns, nil).Twice()
+				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
+				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(false)).Once()
+				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
 			name:     "DeleteNamespace reports delete",
 			tenantID: namespace.TenantID,
 			ownerID:  user1.ID,
@@ -776,6 +790,7 @@ func TestDeleteNamespace(t *testing.T) {
 				}
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(ns, nil).Twice()
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
+				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportDelete", ns).Return(200, nil).Once()
 				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
 			},
