@@ -1,5 +1,9 @@
 package envs
 
+const (
+	ENABLED = "true"
+)
+
 // Backend is an interface for any sort of underlying key/value store.
 type Backend interface {
 	Get(key string) string
@@ -14,10 +18,15 @@ func init() {
 
 // IsEnterprise returns true if the current ShellHub server instance is enterprise.
 func IsEnterprise() bool {
-	return DefaultBackend.Get("SHELLHUB_ENTERPRISE") == "true"
+	return DefaultBackend.Get("SHELLHUB_ENTERPRISE") == ENABLED
 }
 
 // IsCloud returns true if the current ShellHub server instance is cloud.
 func IsCloud() bool {
-	return DefaultBackend.Get("SHELLHUB_CLOUD") == "true"
+	return DefaultBackend.Get("SHELLHUB_CLOUD") == ENABLED
+}
+
+// HasBilling returns true if the current ShellHub server instance has billing feature enabled.
+func HasBilling() bool {
+	return DefaultBackend.Get("SHELLHUB_BILLING") == ENABLED
 }
