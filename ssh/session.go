@@ -106,7 +106,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	s.Target = uid
 	s.Lookup = lookup
 
-	if envs.IsEnterprise() {
+	if envs.IsEnterprise() || envs.IsCloud() { // avoid firewall evaluation in community instance
 		if err := c.FirewallEvaluate(lookup); err != nil {
 			return nil, ErrInvalidSessionTarget
 		}
@@ -220,12 +220,14 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			waitingString := ""
 			if err == nil {
 				waitingString = string(buf[:n])
-				c.RecordSession(&models.SessionRecorded{
-					UID:     s.UID,
-					Message: waitingString,
-					Width:   pty.Window.Height,
-					Height:  pty.Window.Width,
-				}, opts.RecordURL)
+				if envs.IsEnterprise() || envs.IsCloud() {
+					c.RecordSession(&models.SessionRecorded{
+						UID:     s.UID,
+						Message: waitingString,
+						Width:   pty.Window.Height,
+						Height:  pty.Window.Width,
+					}, opts.RecordURL)
+				}
 				waitingString = ""
 			}
 			for {
@@ -241,12 +243,14 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 					break
 				}
 				waitingString += string(buf[:n])
-				c.RecordSession(&models.SessionRecorded{
-					UID:     s.UID,
-					Message: waitingString,
-					Width:   pty.Window.Height,
-					Height:  pty.Window.Width,
-				}, opts.RecordURL)
+				if envs.IsEnterprise() || envs.IsCloud() {
+					c.RecordSession(&models.SessionRecorded{
+						UID:     s.UID,
+						Message: waitingString,
+						Width:   pty.Window.Height,
+						Height:  pty.Window.Width,
+					}, opts.RecordURL)
+				}
 				waitingString = ""
 			}
 		}()
