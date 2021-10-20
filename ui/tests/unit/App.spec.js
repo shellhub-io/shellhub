@@ -84,6 +84,7 @@ describe('App', () => {
     //////
 
     it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="snackbar-component"]').exists()).toBe(true);
       expect(wrapper.find(`[data-test="${layouts[0]}-component"]`).exists()).toBe(true);
     });
   });
@@ -126,6 +127,7 @@ describe('App', () => {
     //////
 
     it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="snackbar-component"]').exists()).toBe(true);
       expect(wrapper.find(`[data-test="${layouts[1]}-component"]`).exists()).toBe(true);
     });
   });

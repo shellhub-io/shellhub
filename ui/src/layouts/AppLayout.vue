@@ -1,7 +1,5 @@
 <template>
   <fragment>
-    <Snackbar />
-
     <v-navigation-drawer
       v-if="isLoggedIn && hasNamespaces"
       v-model="showNavigationDrawer"
@@ -58,7 +56,6 @@
 
 <script>
 
-import Snackbar from '@/components/snackbar/Snackbar';
 import AppBar from '@/components/app_bar/AppBar';
 import UserWarning from '@/components/user/UserWarning';
 
@@ -66,7 +63,6 @@ export default {
   name: 'AppLayout',
 
   components: {
-    Snackbar,
     AppBar,
     UserWarning,
   },

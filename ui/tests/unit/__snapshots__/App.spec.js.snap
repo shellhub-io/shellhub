@@ -2,12 +2,14 @@
 
 exports[`App Logged in Renders the component 1`] = `
 <v-app-stub id="app">
+  <snackbar-stub data-test="snackbar-component"></snackbar-stub>
   <applayout-stub data-test="appLayout-component"></applayout-stub>
 </v-app-stub>
 `;
 
 exports[`App Not logged in Renders the component 1`] = `
 <v-app-stub id="app">
+  <snackbar-stub data-test="snackbar-component"></snackbar-stub>
   <simplelayout-stub data-test="simpleLayout-component"></simplelayout-stub>
 </v-app-stub>
 `;

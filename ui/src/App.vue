@@ -1,5 +1,7 @@
 <template>
   <v-app>
+    <Snackbar data-test="snackbar-component" />
+
     <component
       :is="layout"
       :data-test="layout+'-component'"
@@ -11,6 +13,7 @@
 
 import AppLayout from '@/layouts/AppLayout';
 import SimpleLayout from '@/layouts/SimpleLayout';
+import Snackbar from '@/components/snackbar/Snackbar';
 
 export default {
   name: 'App',
@@ -19,6 +22,7 @@ export default {
   components: {
     appLayout: AppLayout,
     simpleLayout: SimpleLayout,
+    Snackbar,
   },
 
   computed: {
