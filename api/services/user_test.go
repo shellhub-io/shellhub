@@ -5,12 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/pkg/validator"
-
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,53 +25,22 @@ func TestUpdateDataUser(t *testing.T) {
 
 	user2 := &models.User{UserData: models.UserData{Name: "name", Email: "user2@email.com", Username: "username2"}, UserPassword: models.UserPassword{Password: "hash2"}, ID: "id2"}
 
-	updateUser1 := &models.User{UserData: models.UserData{Name: "name", Email: "user1@email2.com", Username: user2.Username}, ID: "id1"}
-
-	updateInvalidUsername := &models.User{UserData: models.UserData{Name: "newname", Email: "user1@email2.com", Username: "invalid_name"}, ID: "id1"}
-
-	updateInvalidEmail := &models.User{UserData: models.UserData{Name: "newname", Email: "invalid.email", Username: "newusername"}, ID: "id1"}
-
-	updateInvalidUsernameEmail := &models.User{UserData: models.UserData{Name: "newname", Email: "invalid.email", Username: "us"}, ID: "id1"}
-
-	updateEmptyUsername := &models.User{UserData: models.UserData{Name: "", Email: "new@email.com", Username: "newusername"}, ID: "id1"}
-
-	updateEmptyEmail := &models.User{UserData: models.UserData{Name: "newname", Email: "", Username: "newusername"}, ID: "id1"}
-
-	conflictedUsername := []string{"username"}
-
-	conflictedUserEmail := []string{"username", "email"}
-
-	invalidUsername := []string{"username"}
-
-	invalidEmail := []string{"email"}
-
-	invalidUsernameEmail := []string{"email", "username"}
-
-	emptyUsername := []string{"name"}
-
-	emptyEmail := []string{"email"}
-
 	type Expected struct {
 		fields []string
 		err    error
 	}
 
 	tests := []struct {
-		description                string
-		user1                      *models.User
-		user2                      *models.User
-		updateUser                 *models.User
-		updateInvalidUsername      *models.User
-		updateInvalidEmail         *models.User
-		updateInvalidUsernameEmail *models.User
-		updateEmptyUsername        *models.User
-		updateEmptyEmail           *models.User
-		requiredMocks              func()
-		expected                   Expected
+		description   string
+		user          *models.User
+		updateUser    *models.User
+		requiredMocks func()
+		expected      Expected
 	}{
 		{
 			description: "Fails to find the user by the ID",
-			user1:       user1,
+			user:        user1,
+			updateUser:  &models.User{UserData: models.UserData{Name: "name", Email: "user1@email2.com", Username: user2.Username}, ID: "id1"},
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(nil, 0, Err).Once()
 			},
@@ -80,111 +48,89 @@ func TestUpdateDataUser(t *testing.T) {
 		},
 		{
 			description: "Fails conflict username",
-			user1:       user1,
-			user2:       user2,
-			updateUser:  updateUser1,
+			user:        &models.User{UserData: models.UserData{Name: "name", Email: "user1@email.com", Username: "username1"}, UserPassword: models.UserPassword{Password: "hash1"}, ID: "id1"},
+			updateUser:  &models.User{UserData: models.UserData{Name: "name", Email: "user1@email2.com", Username: user2.Username}, ID: "id1"},
 			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, updateUser1.ID, false).Return(user1, 0, nil).Once()
-				mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(user2, nil).Once()
-				mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(nil, Err).Once()
+				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
+				mock.On("UserGetByUsername", ctx, user1.Username).Return(user2, nil).Once()
+				mock.On("UserGetByEmail", ctx, user1.Email).Return(user1, nil).Once()
 			},
-			expected: Expected{conflictedUsername, Err},
+			expected: Expected{[]string{"username"}, Err},
 		},
 		{
 			description: "Fails conflict email and username",
-			user1:       user1,
-			user2:       user2,
-			updateUser:  updateUser1,
+			user:        user1,
+			updateUser:  &models.User{UserData: models.UserData{Name: "name", Email: "user1@email2.com", Username: user2.Username}, ID: "id1"},
 			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, updateUser1.ID, false).Return(user1, 0, nil).Once()
-				mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(user2, nil).Once()
-				mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(user2, nil).Once()
+				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
+				mock.On("UserGetByUsername", ctx, user1.Username).Return(user2, nil).Once()
+				mock.On("UserGetByEmail", ctx, user1.Email).Return(user2, nil).Once()
 			},
-			expected: Expected{conflictedUserEmail, Err},
+			expected: Expected{[]string{"username", "email"}, Err},
 		},
 		{
-			description:           "Fails invalid username",
-			user1:                 user1,
-			updateInvalidUsername: updateInvalidUsername,
+			description: "Fails invalid username",
+			user:        &models.User{UserData: models.UserData{Name: "newname", Email: "user1@email2.com", Username: "invalid_name"}, ID: "id1"},
+			updateUser:  &models.User{UserData: models.UserData{Name: "newname", Email: "user1@email2.com", Username: "invalid_name"}, ID: "id1"},
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 			},
-			expected: Expected{invalidUsername, ErrBadRequest},
+			expected: Expected{[]string{"username"}, ErrBadRequest},
 		},
 		{
-			description:        "Fails invalid email",
-			user1:              user1,
-			updateInvalidEmail: updateInvalidEmail,
+			description: "Fails invalid email",
+			user:        &models.User{UserData: models.UserData{Name: "newname", Email: "invalid.email", Username: "newusername"}, ID: "id1"},
+			updateUser:  &models.User{UserData: models.UserData{Name: "newname", Email: "invalid.email", Username: "newusername"}, ID: "id1"},
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 			},
-			expected: Expected{invalidEmail, ErrBadRequest},
+			expected: Expected{[]string{"email"}, ErrBadRequest},
 		},
 		{
-			description:                "Fails invalid email and username",
-			user1:                      user1,
-			updateInvalidUsernameEmail: updateInvalidUsernameEmail,
+			description: "Fails invalid email and username",
+			user:        &models.User{UserData: models.UserData{Name: "newname", Email: "invalid.email", Username: "us"}, ID: "id1"},
+			updateUser:  &models.User{UserData: models.UserData{Name: "newname", Email: "invalid.email", Username: "us"}, ID: "id1"},
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 			},
-			expected: Expected{invalidUsernameEmail, ErrBadRequest},
+			expected: Expected{[]string{"email", "username"}, ErrBadRequest},
 		},
 		{
-			description:         "Fails empty username",
-			user1:               user1,
-			updateEmptyUsername: updateEmptyUsername,
+			description: "Fails empty username",
+			user:        &models.User{UserData: models.UserData{Name: "", Email: "new@email.com", Username: "newusername"}, ID: "id1"},
+			updateUser:  &models.User{UserData: models.UserData{Name: "", Email: "new@email.com", Username: "newusername"}, ID: "id1"},
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 			},
-			expected: Expected{emptyUsername, ErrBadRequest},
+			expected: Expected{[]string{"name"}, ErrBadRequest},
 		},
 		{
-			description:      "Fails empty email",
-			user1:            user1,
-			updateEmptyEmail: updateEmptyEmail,
+			description: "Fails empty email",
+			user:        &models.User{UserData: models.UserData{Name: "newname", Email: "", Username: "newusername"}, ID: "id1"},
+			updateUser:  &models.User{UserData: models.UserData{Name: "newname", Email: "", Username: "newusername"}, ID: "id1"},
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 			},
-			expected: Expected{emptyEmail, ErrBadRequest},
+			expected: Expected{[]string{"email"}, ErrBadRequest},
 		},
 		{
 			description: "Successful update user data",
-			user1:       user1,
-			updateUser:  updateUser1,
+			user:        user1,
+			updateUser:  &models.User{UserData: models.UserData{Name: "name", Email: "user1@email2.com", Username: user2.Username}, ID: "id1"},
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
-				mock.On("UserGetByUsername", ctx, updateUser1.Username).Return(nil, Err).Once()
-				mock.On("UserGetByEmail", ctx, updateUser1.Email).Return(nil, Err).Once()
-				mock.On("UserUpdateData", ctx, updateUser1, updateUser1.ID).Return(nil).Once()
+				mock.On("UserGetByUsername", ctx, user1.Username).Return(nil, Err).Once()
+				mock.On("UserGetByEmail", ctx, user1.Email).Return(nil, Err).Once()
+				mock.On("UserUpdateData", ctx, user1, user1.ID).Return(nil).Once()
 			},
 			expected: Expected{nil, nil},
 		},
 	}
 
-	returnedFields := new([]string)
-
-	for _, test := range tests {
-		t.Log("PASS:  ", test.description)
-		test.requiredMocks()
-		switch test.description {
-		case "Fails to find the user by the ID":
-			*returnedFields, Err = s.UpdateDataUser(ctx, test.user1, test.user1.ID)
-		case "Fails invalid username":
-			*returnedFields, Err = s.UpdateDataUser(ctx, test.updateInvalidUsername, test.updateInvalidUsername.ID)
-		case "Fails invalid email":
-			*returnedFields, Err = s.UpdateDataUser(ctx, test.updateInvalidEmail, test.updateInvalidEmail.ID)
-		case "Fails invalid email and username":
-			*returnedFields, Err = s.UpdateDataUser(ctx, test.updateInvalidUsernameEmail, test.updateInvalidUsernameEmail.ID)
-		case "Fails empty username":
-			*returnedFields, Err = s.UpdateDataUser(ctx, test.updateEmptyUsername, test.updateEmptyUsername.ID)
-		case "Fails empty email":
-			*returnedFields, Err = s.UpdateDataUser(ctx, test.updateEmptyEmail, test.updateEmptyEmail.ID)
-		case "Successful update user data":
-			*returnedFields, Err = s.UpdateDataUser(ctx, test.updateUser, test.updateUser.ID)
-		default:
-			*returnedFields, Err = s.UpdateDataUser(ctx, test.updateUser, test.updateUser.ID)
-		}
-		assert.Equal(t, test.expected, Expected{*returnedFields, Err})
+	for _, tc := range tests {
+		tc.requiredMocks()
+		returnedFields, err := s.UpdateDataUser(ctx, tc.user, tc.updateUser.ID)
+		assert.Equal(t, tc.expected, Expected{returnedFields, err})
 	}
 
 	mock.AssertExpectations(t)
