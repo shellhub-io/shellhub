@@ -192,7 +192,7 @@ describe('DeviceList', () => {
 
     it('Renders the template with components', async () => {
       expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="tagFormDialog-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="tagFormDialog-component"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
     });
@@ -255,7 +255,7 @@ describe('DeviceList', () => {
 
     it('Renders the template with components', async () => {
       expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="tagFormDialog-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="tagFormDialog-component"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
     });
