@@ -243,11 +243,14 @@ func TestAuthUserInfo(t *testing.T) {
 
 	tests := []struct {
 		description   string
+		username      string
+		tenantID      string
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "Fails to find the user",
+			username:    "notuser",
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, "notuser").Return(nil, Err).Once()
 			},
@@ -255,6 +258,8 @@ func TestAuthUserInfo(t *testing.T) {
 		},
 		{
 			description: "Fails to find the namespace",
+			username:    "user",
+			tenantID:    "xxxxx",
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
 				mock.On("NamespaceGet", ctx, "xxxxx").Return(nil, Err).Once()
@@ -263,6 +268,8 @@ func TestAuthUserInfo(t *testing.T) {
 		},
 		{
 			description: "Fails empty tenant return login auth",
+			username:    "user",
+			tenantID:    "",
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
 				mock.On("NamespaceGet", ctx, "").Return(nil, store.ErrNoDocuments).Once()
@@ -271,6 +278,8 @@ func TestAuthUserInfo(t *testing.T) {
 		},
 		{
 			description: "Successful auth login",
+			username:    "user",
+			tenantID:    namespace.TenantID,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
@@ -279,22 +288,11 @@ func TestAuthUserInfo(t *testing.T) {
 		},
 	}
 
-	authRes := new(models.UserAuthResponse)
-
-	for _, test := range tests {
-		t.Log("PASS:  ", test.description)
-		test.requiredMocks()
-		switch test.description {
-		case "Fails to find the user":
-			authRes, err = s.AuthUserInfo(ctx, "notuser", "xxxxx", "---------------token----------------")
-		case "Fails to find the namespace":
-			authRes, err = s.AuthUserInfo(ctx, "user", "xxxxx", "---------------token----------------")
-		case "Fails empty tenant return login auth":
-			authRes, err = s.AuthUserInfo(ctx, "user", "", "---------------token----------------")
-		case "Successful auth login":
-			authRes, err = s.AuthUserInfo(ctx, "user", namespace.TenantID, "---------------token----------------")
-		}
-		assert.Equal(t, test.expected, Expected{authRes, err})
+	for _, tc := range tests {
+		t.Log("PASS:  ", tc.description)
+		tc.requiredMocks()
+		authRes, err := s.AuthUserInfo(ctx, tc.username, tc.tenantID, "---------------token----------------")
+		assert.Equal(t, tc.expected, Expected{authRes, err})
 	}
 
 	mock.AssertExpectations(t)

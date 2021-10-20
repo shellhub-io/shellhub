@@ -30,6 +30,7 @@ func TestListPublicKeys(t *testing.T) {
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
+
 	keys := []models.PublicKey{
 		{Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"}},
 		{Data: []byte("teste2"), Fingerprint: "fingerprint2", CreatedAt: clock.Now(), TenantID: "tenant2", PublicKeyFields: models.PublicKeyFields{Name: "teste2"}},
@@ -95,6 +96,7 @@ func TestGetPublicKeys(t *testing.T) {
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
+
 	key := models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
@@ -163,22 +165,11 @@ func TestGetPublicKeys(t *testing.T) {
 		},
 	}
 
-	var returnedKey *models.PublicKey
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
-			switch tc.description {
-			case invalidTenantIDStr:
-				returnedKey, Err = s.GetPublicKey(ctx, key.Fingerprint, InvalidTenantID)
-			case InvalidFingerprintStr:
-				returnedKey, Err = s.GetPublicKey(ctx, InvalidFingerprint, key.TenantID)
-			case InvalidFingerTenantStr:
-				returnedKey, Err = s.GetPublicKey(ctx, InvalidFingerprint, InvalidTenantID)
-			default:
-				returnedKey, Err = s.GetPublicKey(ctx, key.Fingerprint, key.TenantID)
-			}
-			assert.Equal(t, tc.expected, Expected{returnedKey, Err})
+			returnedKey, err := s.GetPublicKey(ctx, tc.fingerprint, tc.tenantID)
+			assert.Equal(t, tc.expected, Expected{returnedKey, err})
 		})
 	}
 
@@ -193,6 +184,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
+
 	key := &models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
@@ -273,22 +265,11 @@ func TestUpdatePublicKeys(t *testing.T) {
 		},
 	}
 
-	var returnedKey *models.PublicKey
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
-			switch tc.description {
-			case invalidTenantIDStr:
-				returnedKey, Err = s.UpdatePublicKey(ctx, key.Fingerprint, InvalidTenantID, keyUpdate)
-			case InvalidFingerprintStr:
-				returnedKey, Err = s.UpdatePublicKey(ctx, InvalidFingerprint, key.TenantID, keyUpdate)
-			case InvalidFingerTenantStr:
-				returnedKey, Err = s.UpdatePublicKey(ctx, InvalidFingerprint, InvalidTenantID, keyUpdate)
-			default:
-				returnedKey, Err = s.UpdatePublicKey(ctx, key.Fingerprint, key.TenantID, keyUpdate)
-			}
-			assert.Equal(t, tc.expected, Expected{returnedKey, Err})
+			returnedKey, err := s.UpdatePublicKey(ctx, tc.fingerprint, tc.tenantID, keyUpdate)
+			assert.Equal(t, tc.expected, Expected{returnedKey, err})
 		})
 	}
 
@@ -369,17 +350,8 @@ func TestDeletePublicKeys(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
-			switch tc.description {
-			case invalidTenantIDStr:
-				Err = s.DeletePublicKey(ctx, key.Fingerprint, InvalidTenantID)
-			case InvalidFingerprintStr:
-				Err = s.DeletePublicKey(ctx, InvalidFingerprint, key.TenantID)
-			case InvalidFingerTenantStr:
-				Err = s.DeletePublicKey(ctx, InvalidFingerprint, InvalidTenantID)
-			default:
-				Err = s.DeletePublicKey(ctx, key.Fingerprint, key.TenantID)
-			}
-			assert.Equal(t, tc.expected, Expected{Err})
+			err := s.DeletePublicKey(ctx, tc.fingerprint, tc.tenantID)
+			assert.Equal(t, tc.expected, Expected{err})
 		})
 	}
 
