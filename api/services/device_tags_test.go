@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
@@ -27,73 +26,67 @@ func TestCreateTag(t *testing.T) {
 	ctx := context.TODO()
 
 	device := &models.Device{UID: "uid", TenantID: "tenant", Tags: []string{"device1"}}
-	device2 := &models.Device{UID: "uid2", TenantID: "tenant2", Tags: []string{"device1", "device2", "device3", "device4", "device5"}}
 
-	Err := errors.New("error")
+	device2 := &models.Device{UID: "uid2", TenantID: "tenant2", Tags: []string{"device1", "device2", "device3", "device4", "device5"}}
 
 	cases := []struct {
 		name          string
-		requiredMocks func()
 		uid           models.UID
+		deviceName    string
+		requiredMocks func()
 		expected      error
 	}{
 		{
-			name: invalidUID,
+			name:       "Fails to find the device invalid uid",
+			uid:        "invalid_uid",
+			deviceName: "device1",
 			requiredMocks: func() {
 				mock.On("DeviceGet", ctx, models.UID("invalid_uid")).Return(nil, ErrDeviceNotFound).Once()
 			},
-			uid:      "invalid_uid",
 			expected: ErrDeviceNotFound,
 		},
 		{
-			name:          invalidFormat,
-			requiredMocks: func() {},
+			name:          "Fails invalid format for name",
 			uid:           models.UID(device.UID),
+			deviceName:    "de",
+			requiredMocks: func() {},
 			expected:      ErrInvalidFormat,
 		},
 		{
-			name: "successful create a tag for the device",
+			name:       "Fails duplicated name",
+			uid:        models.UID(device.UID),
+			deviceName: "device1",
+			requiredMocks: func() {
+				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
+			},
+			expected: ErrDuplicateTagName,
+		},
+		{
+			name:       "Fails max capacity reached",
+			uid:        models.UID(device2.UID),
+			deviceName: "device6",
+			requiredMocks: func() {
+				mock.On("DeviceGet", ctx, models.UID(device2.UID)).Return(device2, nil).Once()
+			},
+			expected: ErrMaxTagReached,
+		},
+		{
+			name:       "successful create a tag for the device",
+			uid:        models.UID(device.UID),
+			deviceName: "device6",
 			requiredMocks: func() {
 				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
 				mock.On("DeviceCreateTag", ctx, models.UID(device.UID), "device6").Return(nil).Once()
 			},
-			uid:      models.UID(device.UID),
 			expected: nil,
-		},
-		{
-			name: "Fails duplicated name",
-			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
-			},
-			uid:      models.UID(device.UID),
-			expected: ErrDuplicateTagName,
-		},
-		{
-			name: "Fails max capacity reached",
-			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID(device2.UID)).Return(device2, nil).Once()
-			},
-			uid:      models.UID(device2.UID),
-			expected: ErrMaxTagReached,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			switch tc.name {
-			case invalidUID:
-				Err = s.CreateTag(ctx, "invalid_uid", "device1")
-			case "Fails invalid format for name":
-				Err = s.CreateTag(ctx, models.UID(device.UID), "de")
-			case "successful create a tag for the device":
-				Err = s.CreateTag(ctx, models.UID(device.UID), "device6")
-			case "Fails duplicated name":
-				Err = s.CreateTag(ctx, models.UID(device.UID), "device1")
-			case "Fails max capacity reached":
-				Err = s.CreateTag(ctx, models.UID(device2.UID), "device6")
-			}
-			assert.Equal(t, tc.expected, Err)
+			err := s.CreateTag(ctx, tc.uid, tc.deviceName)
+			assert.Equal(t, tc.expected, err)
 		})
 	}
 
@@ -109,29 +102,30 @@ func TestDeleteTag(t *testing.T) {
 
 	device := &models.Device{UID: "uid", TenantID: "tenant", Tags: []string{"device1"}}
 
-	Err := errors.New("error")
-
 	cases := []struct {
 		name          string
-		requiredMocks func()
 		uid           models.UID
+		deviceName    string
+		requiredMocks func()
 		expected      error
 	}{
 		{
-			name: invalidUID,
+			name:       invalidUID,
+			uid:        "invalid_uid",
+			deviceName: "device1",
 			requiredMocks: func() {
 				mock.On("DeviceGet", ctx, models.UID("invalid_uid")).Return(nil, ErrDeviceNotFound).Once()
 			},
-			uid:      "invalid_uid",
 			expected: ErrDeviceNotFound,
 		},
 		{
-			name: "successful delete a tag",
+			name:       "successful delete a tag",
+			uid:        models.UID(device.UID),
+			deviceName: "device1",
 			requiredMocks: func() {
 				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
 				mock.On("DeviceDeleteTag", ctx, models.UID(device.UID), "device1").Return(nil).Once()
 			},
-			uid:      models.UID(device.UID),
 			expected: nil,
 		},
 	}
@@ -139,13 +133,8 @@ func TestDeleteTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			switch tc.name {
-			case invalidUID:
-				Err = s.DeleteTag(ctx, "invalid_uid", "device1")
-			case "successful delete a tag":
-				Err = s.DeleteTag(ctx, models.UID(device.UID), "device1")
-			}
-			assert.Equal(t, tc.expected, Err)
+			err := s.DeleteTag(ctx, tc.uid, tc.deviceName)
+			assert.Equal(t, tc.expected, err)
 		})
 	}
 
@@ -159,22 +148,25 @@ func TestRenameTag(t *testing.T) {
 
 	ctx := context.TODO()
 
-	Err := errors.New("error")
-
 	cases := []struct {
-		name          string
-		requiredMocks func()
-		tenantID      string
-		expected      error
+		name              string
+		tenantID          string
+		currentDeviceName string
+		newDeviceName     string
+		requiredMocks     func()
+		expected          error
 	}{
 		{
 			name:          invalidFormat,
-			requiredMocks: func() {},
 			tenantID:      "tenant",
+			requiredMocks: func() {},
 			expected:      ErrInvalidFormat,
 		},
 		{
-			name: "successful rename a tag",
+			name:              "successful rename a tag",
+			tenantID:          "tenant",
+			currentDeviceName: "device3",
+			newDeviceName:     "device1",
 			requiredMocks: func() {
 				mock.On("DeviceRenameTag", ctx, "tenant", "device3", "device1").Return(nil).Once()
 			},
@@ -185,13 +177,8 @@ func TestRenameTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			switch tc.name {
-			case invalidFormat:
-				Err = s.RenameTag(ctx, "tenant", "device3", "de/@&:")
-			case "successful rename a tag":
-				Err = s.RenameTag(ctx, "tenant", "device3", "device1")
-			}
-			assert.Equal(t, tc.expected, Err)
+			err := s.RenameTag(ctx, tc.tenantID, tc.currentDeviceName, tc.newDeviceName)
+			assert.Equal(t, tc.expected, err)
 		})
 	}
 
@@ -263,58 +250,57 @@ func TestUpdateTag(t *testing.T) {
 
 	invalidTag := []string{"de"}
 
-	Err := errors.New("error")
-
 	cases := []struct {
 		name          string
-		requiredMocks func()
 		uid           models.UID
 		tags          []string
+		requiredMocks func()
 		expected      error
 	}{
 		{
 			name: invalidUID,
+			uid:  "invalid_uid",
+			tags: tags,
 			requiredMocks: func() {
 				mock.On("DeviceGet", ctx, models.UID("invalid_uid")).Return(nil, ErrDeviceNotFound).Once()
 			},
-			uid:      "invalid_uid",
-			tags:     tags,
 			expected: ErrDeviceNotFound,
 		},
 		{
 			name:          invalidFormat,
-			requiredMocks: func() {},
 			uid:           models.UID(device.UID),
+			tags:          invalidTag,
+			requiredMocks: func() {},
 			expected:      ErrInvalidFormat,
 		},
 		{
 			name: "Fails duplicated name",
+			uid:  models.UID(device.UID),
+			tags: duplicatedTags,
 			requiredMocks: func() {
 				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
 				mock.On("DeviceUpdateTag", ctx, models.UID(device.UID), duplicatedTags).Return(ErrDuplicateTagName).Once()
 			},
-			uid:      models.UID(device.UID),
-			tags:     duplicatedTags,
 			expected: ErrDuplicateTagName,
 		},
 		{
 			name: "Fails max capacity reached",
+			uid:  models.UID(device.UID),
+			tags: maxReachedTags,
 			requiredMocks: func() {
 				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
 				mock.On("DeviceUpdateTag", ctx, models.UID(device.UID), maxReachedTags).Return(ErrMaxTagReached).Once()
 			},
-			uid:      models.UID(device.UID),
-			tags:     maxReachedTags,
 			expected: ErrMaxTagReached,
 		},
 		{
 			name: "successful create tags for the device",
+			uid:  models.UID(device.UID),
+			tags: tags,
 			requiredMocks: func() {
 				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
 				mock.On("DeviceUpdateTag", ctx, models.UID(device.UID), tags).Return(nil).Once()
 			},
-			uid:      models.UID(device.UID),
-			tags:     tags,
 			expected: nil,
 		},
 	}
@@ -322,19 +308,8 @@ func TestUpdateTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			switch tc.name {
-			case invalidUID:
-				Err = s.UpdateTag(ctx, "invalid_uid", tags)
-			case "Fails invalid format for name":
-				Err = s.UpdateTag(ctx, models.UID(device.UID), invalidTag)
-			case "Fails duplicated name":
-				Err = s.UpdateTag(ctx, models.UID(device.UID), duplicatedTags)
-			case "Fails max capacity reached":
-				Err = s.UpdateTag(ctx, models.UID(device.UID), maxReachedTags)
-			case "successful create tags for the device":
-				Err = s.UpdateTag(ctx, models.UID(device.UID), tags)
-			}
-			assert.Equal(t, tc.expected, Err)
+			err := s.UpdateTag(ctx, tc.uid, tc.tags)
+			assert.Equal(t, tc.expected, err)
 		})
 	}
 
@@ -349,6 +324,7 @@ func TestGetTags(t *testing.T) {
 	ctx := context.TODO()
 
 	device := &models.Device{UID: "uid", Namespace: "namespace", TenantID: "tenant", Tags: []string{"device1", "device2"}}
+
 	namespace := &models.Namespace{Name: "namespace", TenantID: "tenant"}
 
 	type Expected struct {
@@ -359,17 +335,17 @@ func TestGetTags(t *testing.T) {
 
 	cases := []struct {
 		name          string
-		requiredMocks func()
 		uid           models.UID
 		tenantID      string
+		requiredMocks func()
 		expected      Expected
 	}{
 		{
-			name: "fail find the namespace",
+			name:     "fail find the namespace",
+			tenantID: "not_found_tenant",
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, ErrNotFound).Once()
 			},
-			tenantID: "not_found_tenant",
 			expected: Expected{
 				Tags:  nil,
 				Count: 0,
@@ -377,12 +353,12 @@ func TestGetTags(t *testing.T) {
 			},
 		},
 		{
-			name: "successful get tags",
+			name:     "successful get tags",
+			tenantID: device.TenantID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("DeviceGetTags", ctx, "tenant").Return(device.Tags, len(device.Tags), nil).Once()
 			},
-			tenantID: device.TenantID,
 			expected: Expected{
 				Tags:  device.Tags,
 				Count: len(device.Tags),
@@ -391,19 +367,10 @@ func TestGetTags(t *testing.T) {
 		},
 	}
 
-	var returnedTags []string
-	var count int
-	var err error
-
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			switch tc.name {
-			case "fail find the namespace":
-				returnedTags, count, err = s.GetTags(ctx, "not_found_tenant")
-			case "successful get tags":
-				returnedTags, count, err = s.GetTags(ctx, "tenant")
-			}
+			returnedTags, count, err := s.GetTags(ctx, tc.tenantID)
 			assert.Equal(t, tc.expected, Expected{returnedTags, count, err})
 		})
 	}
@@ -419,45 +386,41 @@ func TestDeleteAllTags(t *testing.T) {
 	ctx := context.TODO()
 
 	device := &models.Device{UID: "uid", Namespace: "namespace", TenantID: "tenant", Tags: []string{"device1", "device2"}}
+
 	namespace := &models.Namespace{Name: "namespace", TenantID: "tenant"}
 
 	cases := []struct {
 		name          string
-		requiredMocks func()
-		uid           models.UID
+		deviceName    string
 		tenantID      string
+		requiredMocks func()
 		expected      error
 	}{
 		{
-			name: "fail find the namespace",
+			name:       "fail find the namespace",
+			deviceName: "device1",
+			tenantID:   "not_found_tenant",
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, ErrNotFound).Once()
 			},
-			tenantID: "not_found_tenant",
 			expected: ErrNotFound,
 		},
 		{
-			name: "successful get tags",
+			name:       "successful get tags",
+			deviceName: "device1",
+			tenantID:   device.TenantID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("DeviceDeleteAllTags", ctx, "tenant", "device1").Return(nil).Once()
 			},
-			tenantID: device.TenantID,
 			expected: nil,
 		},
 	}
 
-	var err error
-
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			switch tc.name {
-			case "fail find the namespace":
-				err = s.DeleteAllTags(ctx, "not_found_tenant", "device1")
-			case "successful get tags":
-				err = s.DeleteAllTags(ctx, "tenant", "device1")
-			}
+			err := s.DeleteAllTags(ctx, tc.tenantID, tc.deviceName)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
