@@ -134,6 +134,7 @@
           </v-tooltip>
 
           <TagFormDialog
+            v-if="false"
             action="create"
             :uid="item.uid"
             data-test="tagFormDialog-component"
