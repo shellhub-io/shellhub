@@ -51,5 +51,5 @@ func TestMigration32(t *testing.T) {
 	var migratedUser *models.User
 	err = db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name"}).Decode(&migratedUser)
 	assert.NoError(t, err)
-	assert.Equal(t, true, migratedUser.Authenticated)
+	assert.Equal(t, false, migratedUser.Confirmed)
 }

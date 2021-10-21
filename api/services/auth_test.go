@@ -104,21 +104,21 @@ func TestAuthUser(t *testing.T) {
 		UserPassword: models.UserPassword{
 			Password: hex.EncodeToString(wrongPasswd[:]),
 		},
-		ID:            "id",
-		Authenticated: true,
-		LastLogin:     now,
+		ID:        "id",
+		Confirmed: true,
+		LastLogin: now,
 	}
 
-	userAuthenticated := &models.User{
+	userConfirmed := &models.User{
 		UserData: models.UserData{
 			Username: "user",
 		},
 		UserPassword: models.UserPassword{
 			Password: hex.EncodeToString(passwd[:]),
 		},
-		ID:            "id",
-		Authenticated: true,
-		LastLogin:     now,
+		ID:        "id",
+		Confirmed: true,
+		LastLogin: now,
 	}
 
 	userNotActivatedAccount := &models.User{
@@ -128,16 +128,16 @@ func TestAuthUser(t *testing.T) {
 		UserPassword: models.UserPassword{
 			Password: hex.EncodeToString(passwd[:]),
 		},
-		ID:            "id",
-		Authenticated: false,
-		LastLogin:     now,
+		ID:        "id",
+		Confirmed: false,
+		LastLogin: now,
 	}
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
-	mock.On("UserGetByUsername", ctx, authReq.Username).Return(userAuthenticated, nil).Once()
-	mock.On("NamespaceGetFirst", ctx, userAuthenticated.ID).Return(namespace, nil).Once()
-	mock.On("UserUpdateData", ctx, userAuthenticated, userAuthenticated.ID).Return(nil).Once()
+	mock.On("UserGetByUsername", ctx, authReq.Username).Return(userConfirmed, nil).Once()
+	mock.On("NamespaceGetFirst", ctx, userConfirmed.ID).Return(namespace, nil).Once()
+	mock.On("UserUpdateData", ctx, userConfirmed, userConfirmed.ID).Return(nil).Once()
 	clockMock.On("Now").Return(now).Twice()
 
 	authRes, err := s.AuthUser(ctx, *authReq)
@@ -186,9 +186,9 @@ func TestAuthUser(t *testing.T) {
 			description: "Successful authentication",
 			args:        *authReq,
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userAuthenticated, nil).Once()
-				mock.On("NamespaceGetFirst", ctx, userAuthenticated.ID).Return(namespace, nil).Once()
-				mock.On("UserUpdateData", ctx, userAuthenticated, userAuthenticated.ID).Return(nil).Once()
+				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userConfirmed, nil).Once()
+				mock.On("NamespaceGetFirst", ctx, userConfirmed.ID).Return(namespace, nil).Once()
+				mock.On("UserUpdateData", ctx, userConfirmed, userConfirmed.ID).Return(nil).Once()
 				clockMock.On("Now").Return(now).Twice()
 			},
 			expected: Expected{authRes, nil},

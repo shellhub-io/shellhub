@@ -284,7 +284,7 @@ func TestUserUpdateAccountStatus(t *testing.T) {
 	assert.NoError(t, err)
 
 	us, _, err := mongostore.UserGetByID(data.Context, objID, false)
-	assert.Equal(t, us.Authenticated, true)
+	assert.Equal(t, us.Confirmed, true)
 	assert.NoError(t, err)
 }
 

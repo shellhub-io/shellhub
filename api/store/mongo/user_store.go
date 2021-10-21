@@ -280,7 +280,7 @@ func (s *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
 		return err
 	}
 
-	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"authenticated": true}}); err != nil {
+	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"confirmed": true}}); err != nil {
 		return err
 	}
 

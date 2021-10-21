@@ -125,7 +125,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		}
 	}
 
-	if !user.Authenticated {
+	if !user.Confirmed {
 		return nil, ErrForbidden
 	}
 
