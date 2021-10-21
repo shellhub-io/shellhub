@@ -10,6 +10,9 @@ services:
     restart: unless-stopped
     environment:
       - API_STORE_CACHE=${SHELLHUB_STORE_CACHE}
+      - EMAIL_API_KEY=${SHELLHUB_EMAIL_API_KEY}
+      - EMAIL_FROM_NAME=${SHELLHUB_EMAIL_FROM_NAME}
+      - EMAIL_FROM_ADDRESS=${SHELLHUB_EMAIL_FROM_ADDRESS}
     networks:
       - shellhub
   admin-api:
