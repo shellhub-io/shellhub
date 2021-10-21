@@ -280,9 +280,8 @@ func TestDeleteDevice(t *testing.T) {
 				clockMock.On("Now").Return(now).Twice()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportUsage", &models.UsageRecord{
-					UUID:      "uid",
+					Device:    device,
 					Namespace: namespaceBilling,
-					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
 					Timestamp: now.Unix(),
 				}).Return(500, nil).Once()
 			},
@@ -311,9 +310,8 @@ func TestDeleteDevice(t *testing.T) {
 				clockMock.On("Now").Return(now).Twice()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportUsage", &models.UsageRecord{
-					UUID:      "uid",
+					Device:    device,
 					Namespace: namespaceBilling,
-					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
 					Timestamp: now.Unix(),
 				}).Return(200, nil).Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
@@ -734,10 +732,9 @@ func TestUpdatePendingStatus(t *testing.T) {
 				clockMock.On("Now").Return(now).Twice()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportUsage", &models.UsageRecord{
-					UUID:      "uid",
+					Device:    device,
 					Inc:       true,
 					Namespace: namespaceBilling,
-					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
 					Timestamp: now.Unix(),
 				}).Return(200, nil).Once()
 				mock.On("DeviceUpdateStatus", ctx, models.UID(device.UID), "accepted").
@@ -764,10 +761,9 @@ func TestUpdatePendingStatus(t *testing.T) {
 				clockMock.On("Now").Return(now).Twice()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportUsage", &models.UsageRecord{
-					UUID:      "uid",
-					Inc:       true,
 					Namespace: namespaceBilling,
-					Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
+					Inc:       true,
+					Device:    device,
 					Timestamp: now.Unix(),
 				}).Return(500, nil).Once()
 			},
