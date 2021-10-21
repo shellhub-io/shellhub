@@ -56,8 +56,8 @@ func (s *service) UserCreate(data Arguments) (string, error) {
 		UserPassword: models.UserPassword{
 			Password: hashPassword(password),
 		},
-		Authenticated: true,
-		CreatedAt:     clock.Now(),
+		Confirmed: true,
+		CreatedAt: clock.Now(),
 	}); err != nil && err.Error() == "duplicate" {
 		var errStrings []string
 

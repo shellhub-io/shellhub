@@ -17,13 +17,13 @@ type UserPassword struct {
 }
 
 type User struct {
-	ID            string    `json:"id,omitempty" bson:"_id,omitempty"`
-	Namespaces    int       `json:"namespaces" bson:"namespaces,omitempty"`
-	Authenticated bool      `json:"authenticated"`
-	CreatedAt     time.Time `json:"created_at" bson:"created_at"`
-	LastLogin     time.Time `json:"last_login" bson:"last_login"`
-	UserData      `bson:",inline"`
-	UserPassword  `bson:",inline"`
+	ID           string    `json:"id,omitempty" bson:"_id,omitempty"`
+	Namespaces   int       `json:"namespaces" bson:"namespaces,omitempty"`
+	Confirmed    bool      `json:"confirmed"`
+	CreatedAt    time.Time `json:"created_at" bson:"created_at"`
+	LastLogin    time.Time `json:"last_login" bson:"last_login"`
+	UserData     `bson:",inline"`
+	UserPassword `bson:",inline"`
 }
 
 type UserAuthRequest struct {
