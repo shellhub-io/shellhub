@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net"
-	"strconv"
 	"strings"
 
 	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
@@ -37,11 +36,10 @@ func (s *service) HandleReportUsage(ns *models.Namespace, uid models.UID, inc bo
 	}
 
 	record := &models.UsageRecord{
-		UUID:      string(uid),
+		Device:    device,
 		Inc:       inc,
 		Timestamp: clock.Now().Unix(),
 		Namespace: ns,
-		Created:   strconv.Itoa(int(device.CreatedAt.Unix())),
 	}
 
 	status, err := s.client.(req.Client).ReportUsage(

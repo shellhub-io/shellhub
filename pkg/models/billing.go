@@ -23,9 +23,8 @@ type PaymentFailed struct {
 }
 
 type UsageRecord struct {
-	UUID      string     `json:"uuid" bson:"uuid,omitempty"`
 	Timestamp int64      `json:"timestamp" bson:"timestamp,omitempty"`
 	Inc       bool       `json:"inc" bson:"type,omitempty"`
 	Namespace *Namespace `json:"namespace"`
-	Created   string     `json:"created"`
+	Device    *Device    `json:"device"`
 }
