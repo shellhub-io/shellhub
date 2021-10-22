@@ -329,13 +329,6 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			}).Error("Failed to start session raw command")
 		}
 
-		if err := client.Wait(); err != nil {
-			logrus.WithFields(logrus.Fields{
-				"session": s.UID,
-				"err":     err,
-			}).Error("Failed to wait remote command to exit")
-		}
-
 		<-done
 	}
 
