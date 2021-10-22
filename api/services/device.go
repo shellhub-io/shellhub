@@ -159,6 +159,10 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 	}
 
 	if status == "accepted" { //nolint:nestif
+		if device.Status == "accepted" {
+			return ErrBadRequest
+		}
+
 		sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
 		if err != nil && err != store.ErrNoDocuments {
 			return err
