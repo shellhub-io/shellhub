@@ -669,6 +669,21 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: Err,
 		},
 		{
+			name:   "UpdatePendingStatus fails when device already accepted",
+			uid:    models.UID("uid"),
+			tenant: namespace.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, device.TenantID).
+					Return(namespace, nil).Once()
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
+					Return(&models.Device{Status: "accepted"}, nil).Once()
+			},
+			expected: ErrBadRequest,
+		},
+		{
 			name:   "UpdatePendingStatus fails when the limit is exceeded",
 			uid:    models.UID("uid_limit"),
 			tenant: "tenant_max",
