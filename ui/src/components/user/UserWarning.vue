@@ -1,7 +1,7 @@
 <template>
   <fragment>
     <DeviceWarning
-      v-if="isBillingEnabled()"
+      v-if="isBillingEnabled() && hasWarning"
       data-test="deviceWarning-component"
     />
 
@@ -55,6 +55,10 @@ export default {
       return this.$store.getters['spinner/getStatus'];
     },
 
+    hasWarning() {
+      return this.$store.getters['devices/getDeviceWarning'];
+    },
+
     stats() {
       return this.$store.getters['stats/stats'];
     },
@@ -74,7 +78,7 @@ export default {
 
           this.showScreenWelcome();
           if (this.isBillingEnabled()) {
-            this.billingWarning();
+            await this.billingWarning();
           }
         } else {
           // This shows the namespace instructions when the user has no namespace
@@ -116,10 +120,10 @@ export default {
       }
     },
 
-    billingWarning() {
-      this.$store.dispatch('devices/setDeviceWarning',
-        this.$store.getters['stats/stats'].registered_devices > 3
-        && !this.$store.getters['billing/active']);
+    async billingWarning() {
+      const status = this.$store.getters['stats/stats'].registered_devices > 3
+        && !this.$store.getters['billing/active'];
+      await this.$store.dispatch('devices/setDeviceWarning', status);
     },
 
     namespaceHasBeenShown(tenant) {
