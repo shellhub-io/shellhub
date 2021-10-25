@@ -1,17 +1,26 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`UserWarning With devices Renders the component 1`] = `
+exports[`UserWarning With devices and active billing Renders the component 1`] = `
+<fragment-stub>
+  <!---->
+  <welcome-stub data-test="welcome-component"></welcome-stub>
+  <namespaceinstructions-stub data-test="namespaceInstructions-component"></namespaceinstructions-stub>
+  <billingwarning-stub data-test="billingWarning-component"></billingwarning-stub>
+</fragment-stub>
+`;
+
+exports[`UserWarning With devices and inactive billing Renders the component 1`] = `
 <fragment-stub>
   <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
   <welcome-stub data-test="welcome-component"></welcome-stub>
-  <namespaceinstructions-stub data-test="namespaceInstructions-component" show="true"></namespaceinstructions-stub>
+  <namespaceinstructions-stub data-test="namespaceInstructions-component"></namespaceinstructions-stub>
   <billingwarning-stub data-test="billingWarning-component"></billingwarning-stub>
 </fragment-stub>
 `;
 
 exports[`UserWarning Without devices Renders the component 1`] = `
 <fragment-stub>
-  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+  <!---->
   <welcome-stub data-test="welcome-component"></welcome-stub>
   <namespaceinstructions-stub data-test="namespaceInstructions-component" show="true"></namespaceinstructions-stub>
   <billingwarning-stub data-test="billingWarning-component"></billingwarning-stub>
@@ -20,7 +29,7 @@ exports[`UserWarning Without devices Renders the component 1`] = `
 
 exports[`UserWarning Without devices and billing disabled Renders the component 1`] = `
 <fragment-stub>
-  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+  <!---->
   <welcome-stub data-test="welcome-component"></welcome-stub>
   <namespaceinstructions-stub data-test="namespaceInstructions-component" show="true"></namespaceinstructions-stub>
   <!---->

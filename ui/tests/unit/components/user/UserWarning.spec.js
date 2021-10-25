@@ -11,7 +11,8 @@ describe('UserWarning', () => {
 
   const numberNamespaces = 0;
   const statusSpinner = false;
-  const activeBilling = false;
+  const activeBilling = true;
+  const warning = false;
 
   const namespace = {
     name: 'namespace',
@@ -29,7 +30,7 @@ describe('UserWarning', () => {
   };
 
   const statsWithDevices = {
-    registered_devices: 2,
+    registered_devices: 4,
     online_devices: 0,
     active_sessions: 0,
     pending_devices: 0,
@@ -40,8 +41,9 @@ describe('UserWarning', () => {
     'namespaces/getNumberNamespaces': (state) => state.numberNamespaces,
     'spinner/getStatus': (state) => state.statusSpinner,
     'stats/stats': (state) => state.stats,
-    'billing/active': (state) => state.activeBilling,
+    'billing/active': (state) => !state.activeBilling,
     'namespaces/get': (state) => state.namespace,
+    'devices/getDeviceWarning': (state) => state.warning,
   };
 
   const actions = {
@@ -56,6 +58,7 @@ describe('UserWarning', () => {
   const storeWithoutDevices = new Vuex.Store({
     namespaced: true,
     state: {
+      warning,
       numberNamespaces,
       statusSpinner,
       stats: statsWithoutDevices,
@@ -66,16 +69,36 @@ describe('UserWarning', () => {
     actions,
   });
 
-  const storeWithDevices = new Vuex.Store({
+  const storeWithDevicesInactive = new Vuex.Store({
     namespaced: true,
     state: {
-      numberNamespaces,
+      numberNamespaces: 3,
       statusSpinner,
       stats: statsWithDevices,
-      activeBilling,
+      active: false,
       namespace,
     },
-    getters,
+    getters: {
+      ...getters,
+      'billing/active': (state) => state.active,
+      'devices/getDeviceWarning': (state) => !state.warning,
+    },
+    actions,
+  });
+
+  const storeWithDevicesActive = new Vuex.Store({
+    namespaced: true,
+    state: {
+      numberNamespaces: 3,
+      statusSpinner,
+      stats: statsWithDevices,
+      active: true,
+      namespace,
+    },
+    getters: {
+      ...getters,
+      'billing/active': (state) => state.active,
+    },
     actions,
   });
 
@@ -204,10 +227,9 @@ describe('UserWarning', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="billingWarning-component"]').exists()).toBe(true);
     });
     it('Renders the template with data', async () => {
       await wrapper.vm.showScreenWelcome();
@@ -223,12 +245,99 @@ describe('UserWarning', () => {
   ///////
   // In this case, The welcome screen loads with the expected
   // behavior with devices and with billing environment enabled
+  // and inactive subscription
   ///////
 
-  describe('With devices', () => {
+  describe('With devices and inactive billing', () => {
     beforeEach(() => {
+      storeWithDevicesInactive.dispatch = jest.fn();
+
       wrapper = shallowMount(UserWarning, {
-        store: storeWithDevices,
+        store: storeWithDevicesInactive,
+        localVue,
+        stubs: ['fragment'],
+        mocks: {
+          $env: {
+            billingEnable: true,
+          },
+        },
+      });
+
+      localStorage.setItem('namespacesWelcome', JSON.stringify({}));
+    });
+
+    ///////
+    // Component Rendering
+    //////
+    //
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    //////
+    // Call actions
+    //////
+    it('Dispatches on mount', () => {
+      expect(storeWithDevicesInactive.dispatch).toHaveBeenCalledWith('devices/setDeviceWarning', true);
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with the default value', () => {
+      expect(wrapper.vm.show).toEqual(false);
+      expect(wrapper.vm.showInstructions).toEqual(false);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.hasNamespaces).toEqual(true);
+      expect(wrapper.vm.hasSpinner).toEqual(statusSpinner);
+      expect(wrapper.vm.stats).toEqual(statsWithDevices);
+    });
+    it('Process data in methods', () => {
+      expect(wrapper.vm.hasDevices()).toEqual(true);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
+    });
+    it('Renders the template with data', async () => {
+      expect(wrapper.vm.namespaceHasBeenShown(namespace.tenant_id)).toBe(false);
+
+      localStorage.setItem('namespacesWelcome', JSON.stringify({
+        ...JSON.parse(localStorage.getItem('namespacesWelcome')),
+        ...{ [namespace.tenant_id]: true },
+      }));
+
+      expect(wrapper.vm.namespaceHasBeenShown(namespace.tenant_id)).toBe(true);
+
+      await wrapper.vm.showScreenWelcome();
+      expect(Object.keys(JSON.parse(localStorage.getItem('namespacesWelcome')))).toHaveLength(1);
+    });
+  });
+
+  ///////
+  // In this case, The welcome screen loads with the expected
+  // behavior with devices and with billing environment enabled
+  // and active subscription
+  ///////
+
+  describe('With devices and active billing', () => {
+    beforeEach(() => {
+      storeWithDevicesActive.dispatch = jest.fn();
+
+      wrapper = shallowMount(UserWarning, {
+        store: storeWithDevicesActive,
         localVue,
         stubs: ['fragment'],
         mocks: {
@@ -252,16 +361,23 @@ describe('UserWarning', () => {
       expect(wrapper.html()).toMatchSnapshot();
     });
 
+    //////
+    // Call actions
+    //////
+    it('Dispatches on mount', () => {
+      expect(storeWithDevicesActive.dispatch).toHaveBeenCalledWith('devices/setDeviceWarning', false);
+    });
+
     ///////
     // Data and Props checking
     //////
 
     it('Compare data with the default value', () => {
       expect(wrapper.vm.show).toEqual(false);
-      expect(wrapper.vm.showInstructions).toEqual(true);
+      expect(wrapper.vm.showInstructions).toEqual(false);
     });
     it('Process data in the computed', () => {
-      expect(wrapper.vm.hasNamespaces).toEqual(numberNamespaces !== 0);
+      expect(wrapper.vm.hasNamespaces).toEqual(true);
       expect(wrapper.vm.hasSpinner).toEqual(statusSpinner);
       expect(wrapper.vm.stats).toEqual(statsWithDevices);
     });
@@ -274,10 +390,9 @@ describe('UserWarning', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="billingWarning-component"]').exists()).toBe(true);
     });
     it('Renders the template with data', async () => {
       expect(wrapper.vm.namespaceHasBeenShown(namespace.tenant_id)).toBe(false);
