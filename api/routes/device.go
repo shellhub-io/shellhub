@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
+
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -66,22 +68,25 @@ func (h *Handler) GetDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) DeleteDevice(c apicontext.Context) error {
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
+	userID := ""
+	tenantID := ""
+	if c.ID() != nil && c.Tenant() != nil {
+		userID = c.ID().ID
+		tenantID = c.Tenant().ID
 	}
 
-	id := ""
-	if v := c.ID(); v != nil {
-		id = v.ID
-	}
-
-	if err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenant, id); err != nil {
-		if err == services.ErrUnauthorized {
-			return c.NoContent(http.StatusForbidden)
-		}
+	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.Device.Remove, func() error {
+		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenantID)
 
 		return err
+	})
+	if err != nil {
+		switch err {
+		case services.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
+		default:
+			return err
+		}
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -96,19 +101,21 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 		return err
 	}
 
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
+	userID := ""
+	tenantID := ""
+	if c.ID() != nil && c.Tenant() != nil {
+		userID = c.ID().ID
+		tenantID = c.Tenant().ID
 	}
 
-	id := ""
-	if v := c.ID(); v != nil {
-		id = v.ID
-	}
+	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.Device.Rename, func() error {
+		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenantID)
 
-	if err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant, id); err != nil {
+		return err
+	})
+	if err != nil {
 		switch err {
-		case services.ErrUnauthorized:
+		case services.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrDuplicatedDeviceName:
 			return c.NoContent(http.StatusConflict)
@@ -153,14 +160,11 @@ func (h *Handler) LookupDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
-
-	id := ""
-	if v := c.ID(); v != nil {
-		id = v.ID
+	userID := ""
+	tenantID := ""
+	if c.ID() != nil && c.Tenant() != nil {
+		userID = c.ID().ID
+		tenantID = c.Tenant().ID
 	}
 
 	status := map[string]string{
@@ -169,11 +173,13 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 		"pending": "pending",
 		"unused":  "unused",
 	}
+	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.Device.Accept, func() error {
+		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenantID)
 
-	if err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenant, id); err != nil {
+		return err
+	})
+	if err != nil {
 		switch err {
-		case services.ErrUnauthorized:
-			return c.NoContent(http.StatusForbidden)
 		case services.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrBadRequest:

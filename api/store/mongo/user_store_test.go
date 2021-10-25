@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
@@ -401,44 +402,71 @@ func TestUserDetachInfo(t *testing.T) {
 
 	namespacesOwner := []*models.Namespace{
 		{
-			Owner:   user.ID,
-			Name:    "ns2",
-			Members: []interface{}{user.ID},
+			Owner: user.ID,
+			Name:  "ns2",
+			Members: []models.Member{
+				{
+					ID:   user.ID,
+					Type: authorizer.MemberTypeOwner,
+				},
+			},
 		},
 		{
-			Owner:   user.ID,
-			Name:    "ns4",
-			Members: []interface{}{user.ID},
+			Owner: user.ID,
+			Name:  "ns4",
+			Members: []models.Member{
+				{
+					ID:   user.ID,
+					Type: authorizer.MemberTypeOwner,
+				},
+			},
 		},
 	}
 
 	namespacesMember := []*models.Namespace{
 		{
-			Owner:   "id2",
-			Name:    "ns1",
-			Members: []interface{}{"id2", user.ID},
+			Owner: "id2",
+			Name:  "ns1",
+			Members: []models.Member{
+				{
+					ID:   user.ID,
+					Type: authorizer.MemberTypeObserver,
+				},
+			},
 		},
 		{
-			Owner:   "id2",
-			Name:    "ns3",
-			Members: []interface{}{"id2", user.ID},
+			Owner: "id2",
+			Name:  "ns3",
+			Members: []models.Member{
+				{
+					ID:   user.ID,
+					Type: authorizer.MemberTypeObserver,
+				},
+			},
 		},
 		{
-			Owner:   "id2",
-			Name:    "ns5",
-			Members: []interface{}{"id2", user.ID},
+			Owner: "id2",
+			Name:  "ns5",
+			Members: []models.Member{
+				{
+					ID:   user.ID,
+					Type: authorizer.MemberTypeObserver,
+				},
+			},
 		},
 	}
 
-	namespaces := namespacesOwner
-	namespaces = append(namespaces, namespacesMember...)
-	nss := make([]interface{}, len(namespaces))
-
-	for i, v := range namespaces {
-		nss[i] = v
+	for _, n := range namespacesOwner {
+		inserted, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, n)
+		t.Log(inserted.InsertedID)
+		assert.NoError(t, err)
 	}
 
-	_, _ = db.Client().Database("test").Collection("namespaces").InsertMany(ctx, nss)
+	for _, n := range namespacesMember {
+		inserted, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, n)
+		t.Log(inserted.InsertedID)
+		assert.NoError(t, err)
+	}
 
 	u, err := mongostore.UserGetByUsername(ctx, "username")
 	assert.NoError(t, err)
@@ -447,8 +475,8 @@ func TestUserDetachInfo(t *testing.T) {
 	namespacesMap, err := mongostore.UserDetachInfo(ctx, user.ID)
 
 	assert.NoError(t, err)
-	assert.Equal(t, namespacesMap["member"], namespacesMember)
 	assert.Equal(t, namespacesMap["owner"], namespacesOwner)
+	assert.Equal(t, namespacesMap["member"], namespacesMember)
 }
 
 func TestUserDelete(t *testing.T) {

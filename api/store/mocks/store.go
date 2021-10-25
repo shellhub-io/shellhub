@@ -694,13 +694,13 @@ func (_m *Store) LicenseSave(ctx context.Context, license *models.License) error
 	return r0
 }
 
-// NamespaceAddMember provides a mock function with given fields: ctx, tenantID, id
-func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, id string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID, id)
+// NamespaceAddMember provides a mock function with given fields: ctx, tenantID, memberID, memberType
+func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, memberID string, memberType string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenantID, memberID, memberType)
 
 	var r0 *models.Namespace
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *models.Namespace); ok {
+		r0 = rf(ctx, tenantID, memberID, memberType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -708,8 +708,8 @@ func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, id str
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenantID, id)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, tenantID, memberID, memberType)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -874,13 +874,13 @@ func (_m *Store) NamespaceList(ctx context.Context, pagination paginator.Query, 
 	return r0, r1, r2
 }
 
-// NamespaceRemoveMember provides a mock function with given fields: ctx, tenantID, id
-func (_m *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, id string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID, id)
+// NamespaceRemoveMember provides a mock function with given fields: ctx, tenantID, memberID
+func (_m *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenantID, memberID)
 
 	var r0 *models.Namespace
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, id)
+		r0 = rf(ctx, tenantID, memberID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -889,7 +889,7 @@ func (_m *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, id 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenantID, id)
+		r1 = rf(ctx, tenantID, memberID)
 	} else {
 		r1 = ret.Error(1)
 	}

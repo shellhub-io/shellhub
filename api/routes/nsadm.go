@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -32,19 +33,6 @@ func (h *Handler) GetNamespaceList(c apicontext.Context) error {
 		return err
 	}
 
-	for count, namespace := range namespaces {
-		members, err := h.service.ListMembers(c.Ctx(), namespace.TenantID)
-		if err != nil {
-			return err
-		}
-
-		namespaces[count].Members = make([]interface{}, 0)
-
-		for _, member := range members {
-			namespaces[count].Members = append(namespaces[count].Members, member)
-		}
-	}
-
 	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
 
 	return c.JSON(http.StatusOK, namespaces)
@@ -56,15 +44,15 @@ func (h *Handler) CreateNamespace(c apicontext.Context) error {
 		return err
 	}
 
-	id := ""
+	userID := ""
 	if v := c.ID(); v != nil {
-		id = v.ID
+		userID = v.ID
 	}
 
-	namespace, err := h.service.CreateNamespace(c.Ctx(), &req, id)
+	namespace, err := h.service.CreateNamespace(c.Ctx(), &req, userID)
 	if err != nil {
 		switch err {
-		case services.ErrUnauthorized:
+		case services.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrConflictName:
 			return c.NoContent(http.StatusConflict)
@@ -84,30 +72,23 @@ func (h *Handler) GetNamespace(c apicontext.Context) error {
 		return err
 	}
 
-	members, err := h.service.ListMembers(c.Ctx(), c.Param("id"))
-	if err != nil {
-		return err
-	}
-
-	namespace.Members = make([]interface{}, 0)
-
-	for _, member := range members {
-		namespace.Members = append(namespace.Members, member)
-	}
-
 	return c.JSON(http.StatusOK, namespace)
 }
 
 func (h *Handler) DeleteNamespace(c apicontext.Context) error {
-	id := ""
+	userID := ""
 	if v := c.ID(); v != nil {
-		id = v.ID
+		userID = v.ID
 	}
 
-	err := h.service.DeleteNamespace(c.Ctx(), c.Param("id"), id)
+	err := h.service.CheckPermission(c.Ctx(), c.Param("id"), userID, authorizer.Actions.Namespace.Delete, func() error {
+		err := h.service.DeleteNamespace(c.Ctx(), c.Param("id"))
+
+		return err
+	})
 	if err != nil {
 		switch err {
-		case services.ErrUnauthorized:
+		case services.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
@@ -124,22 +105,28 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 		Name string `json:"name"`
 	}
 
-	id := ""
+	userID := ""
 	if v := c.ID(); v != nil {
-		id = v.ID
+		userID = v.ID
 	}
 
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	namespace, err := h.service.EditNamespace(c.Ctx(), c.Param("id"), req.Name, id)
+	var namespace *models.Namespace
+	err := h.service.CheckPermission(c.Ctx(), c.Param("id"), userID, authorizer.Actions.Namespace.Rename, func() error {
+		var err error
+		namespace, err = h.service.EditNamespace(c.Ctx(), c.Param("id"), req.Name)
+
+		return err
+	})
 	if err != nil {
 		switch err {
+		case services.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrInvalidFormat:
 			return c.NoContent(http.StatusBadRequest)
-		case services.ErrUnauthorized:
-			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		default:
@@ -151,23 +138,30 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 }
 
 func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
-	var req struct {
+	var member struct {
 		Username string `json:"username"`
+		Type     string `json:"type"`
 	}
 
-	id := ""
-	if v := c.ID(); v != nil {
-		id = v.ID
+	userID := ""
+	if c.ID() != nil {
+		userID = c.ID().ID
 	}
 
-	if err := c.Bind(&req); err != nil {
+	if err := c.Bind(&member); err != nil {
 		return err
 	}
 
-	namespace, err := h.service.AddNamespaceUser(c.Ctx(), c.Param("id"), req.Username, id)
+	var namespace *models.Namespace
+	err := h.service.CheckPermission(c.Ctx(), c.Param("id"), userID, authorizer.Actions.Namespace.AddMember, func() error {
+		var err error
+		namespace, err = h.service.AddNamespaceUser(c.Ctx(), member.Username, member.Type, c.Param("id"), userID)
+
+		return err
+	})
 	if err != nil {
 		switch err {
-		case services.ErrUnauthorized:
+		case services.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrUserNotFound:
 			return c.NoContent(http.StatusNotFound)
@@ -175,6 +169,8 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrDuplicateID:
 			return c.NoContent(http.StatusConflict)
+		case services.ErrInvalidFormat:
+			return c.NoContent(http.StatusBadRequest)
 		default:
 			return err
 		}
@@ -184,22 +180,29 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 }
 
 func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
-	var req struct {
+	var member struct {
 		Username string `json:"username"`
 	}
 
-	id := ""
-	if v := c.ID(); v != nil {
-		id = v.ID
+	userID := ""
+	if c.ID() != nil {
+		userID = c.ID().ID
 	}
 
-	if err := c.Bind(&req); err != nil {
+	if err := c.Bind(&member); err != nil {
 		return err
 	}
-	namespace, err := h.service.RemoveNamespaceUser(c.Ctx(), c.Param("id"), req.Username, id)
+
+	var namespace *models.Namespace
+	err := h.service.CheckPermission(c.Ctx(), c.Param("id"), userID, authorizer.Actions.Namespace.RemoveMember, func() error {
+		var err error
+		namespace, err = h.service.RemoveNamespaceUser(c.Ctx(), c.Param("id"), member.Username, userID)
+
+		return err
+	})
 	if err != nil {
 		switch err {
-		case services.ErrUnauthorized:
+		case services.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
@@ -207,6 +210,8 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrDuplicateID:
 			return c.NoContent(http.StatusConflict)
+		case services.ErrInvalidFormat:
+			return c.NoContent(http.StatusBadRequest)
 		default:
 			return err
 		}
@@ -230,7 +235,11 @@ func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
 
 	tenant := c.Param("id")
 
-	err := h.service.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, tenant, id)
+	err := h.service.CheckPermission(c.Ctx(), tenant, id, authorizer.Actions.Namespace.EnableSessionRecord, func() error {
+		err := h.service.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, tenant)
+
+		return err
+	})
 	if err != nil {
 		return err
 	}
@@ -239,12 +248,12 @@ func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
 }
 
 func (h *Handler) GetSessionRecord(c apicontext.Context) error {
-	tenant := ""
+	tenantID := ""
 	if v := c.Tenant(); v != nil {
-		tenant = v.ID
+		tenantID = v.ID
 	}
 
-	status, err := h.service.GetSessionRecord(c.Ctx(), tenant)
+	status, err := h.service.GetSessionRecord(c.Ctx(), tenantID)
 	if err != nil {
 		return err
 	}

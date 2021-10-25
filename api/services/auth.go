@@ -16,6 +16,7 @@ import (
 
 	"github.com/cnf/structhash"
 	"github.com/golang-jwt/jwt"
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -30,6 +31,7 @@ type AuthService interface {
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
 	AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error)
 	PublicKey() *rsa.PublicKey
+	CheckPermission(context context.Context, tenantID, userID string, action int, service func() error) error
 }
 
 func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAddr string) (*models.DeviceAuthResponse, error) {
@@ -261,7 +263,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 	}
 
 	for _, i := range namespace.Members {
-		if user.ID == i.(string) {
+		if user.ID == i.ID {
 			token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 				Username: user.Username,
 				Admin:    true,
@@ -324,4 +326,13 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 
 func (s *service) PublicKey() *rsa.PublicKey {
 	return s.pubKey
+}
+
+// CheckPermission checks if an user, through userID, has the permission, according to its type/role on namespace, to execute an action.
+func (s *service) CheckPermission(context context.Context, tenantID, userID string, action int, service func() error) error {
+	if !guard.EvaluatePermission(context, s.store, tenantID, userID, action) {
+		return ErrForbidden
+	}
+
+	return service()
 }

@@ -5,6 +5,7 @@ import (
 )
 
 var (
+	ErrInvalidFormat               = errors.New("invalid format")
 	ErrCreateNewUser               = errors.New("failed to create a new user")
 	ErrDuplicateNamespace          = errors.New("namespace already exists")
 	ErrUserNotFound                = errors.New("user not found")
@@ -18,7 +19,6 @@ var (
 	ErrUserEmailExists             = errors.New("user email already exists")
 	ErrUserNameExists              = errors.New("user name already exists")
 	ErrUserNameAndEmailExists      = errors.New("user name and email already exists")
-	ErrPasswordInvalid             = errors.New("password is invalid")
 	ErrNamespaceInvalid            = errors.New("namespace is invalid")
 	ErrFailedNamespaceAddMember    = errors.New("could not add this member to this namespace")
 )

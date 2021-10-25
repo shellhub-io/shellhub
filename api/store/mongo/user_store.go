@@ -304,7 +304,7 @@ func (s *Store) UserDelete(ctx context.Context, id string) error {
 func (s *Store) UserDetachInfo(ctx context.Context, id string) (map[string][]*models.Namespace, error) {
 	findOptions := options.Find()
 
-	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": id}, findOptions)
+	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": bson.M{"$elemMatch": bson.M{"id": id}}}, findOptions)
 	if err != nil {
 		return nil, fromMongoError(err)
 	}

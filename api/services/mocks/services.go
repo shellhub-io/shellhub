@@ -18,13 +18,13 @@ type Service struct {
 	mock.Mock
 }
 
-// AddNamespaceUser provides a mock function with given fields: ctx, tenantID, username, ownerUsername
-func (_m *Service) AddNamespaceUser(ctx context.Context, tenantID string, username string, ownerUsername string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID, username, ownerUsername)
+// AddNamespaceUser provides a mock function with given fields: ctx, memberUsername, memberType, tenantID, userID
+func (_m *Service) AddNamespaceUser(ctx context.Context, memberUsername string, memberType string, tenantID string, userID string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, memberUsername, memberType, tenantID, userID)
 
 	var r0 *models.Namespace
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, username, ownerUsername)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) *models.Namespace); ok {
+		r0 = rf(ctx, memberUsername, memberType, tenantID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -32,8 +32,8 @@ func (_m *Service) AddNamespaceUser(ctx context.Context, tenantID string, userna
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenantID, username, ownerUsername)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
+		r1 = rf(ctx, memberUsername, memberType, tenantID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -179,13 +179,27 @@ func (_m *Service) AuthUserInfo(ctx context.Context, username string, tenant str
 	return r0, r1
 }
 
-// CreateNamespace provides a mock function with given fields: ctx, namespace, ownerUsername
-func (_m *Service) CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, namespace, ownerUsername)
+// CheckPermission provides a mock function with given fields: _a0, tenantID, userID, action, service
+func (_m *Service) CheckPermission(_a0 context.Context, tenantID string, userID string, action int, service func() error) error {
+	ret := _m.Called(_a0, tenantID, userID, action, service)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, int, func() error) error); ok {
+		r0 = rf(_a0, tenantID, userID, action, service)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CreateNamespace provides a mock function with given fields: ctx, namespace, userID
+func (_m *Service) CreateNamespace(ctx context.Context, namespace *models.Namespace, userID string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, namespace, userID)
 
 	var r0 *models.Namespace
 	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace, string) *models.Namespace); ok {
-		r0 = rf(ctx, namespace, ownerUsername)
+		r0 = rf(ctx, namespace, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -194,7 +208,7 @@ func (_m *Service) CreateNamespace(ctx context.Context, namespace *models.Namesp
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *models.Namespace, string) error); ok {
-		r1 = rf(ctx, namespace, ownerUsername)
+		r1 = rf(ctx, namespace, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -304,13 +318,13 @@ func (_m *Service) DeleteAllTags(ctx context.Context, tenant string, name string
 	return r0
 }
 
-// DeleteDevice provides a mock function with given fields: ctx, uid, tenant, ownerID
-func (_m *Service) DeleteDevice(ctx context.Context, uid models.UID, tenant string, ownerID string) error {
-	ret := _m.Called(ctx, uid, tenant, ownerID)
+// DeleteDevice provides a mock function with given fields: ctx, uid, tenant
+func (_m *Service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
+	ret := _m.Called(ctx, uid, tenant)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, string) error); ok {
-		r0 = rf(ctx, uid, tenant, ownerID)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
+		r0 = rf(ctx, uid, tenant)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -318,13 +332,13 @@ func (_m *Service) DeleteDevice(ctx context.Context, uid models.UID, tenant stri
 	return r0
 }
 
-// DeleteNamespace provides a mock function with given fields: ctx, tenantID, ownerUsername
-func (_m *Service) DeleteNamespace(ctx context.Context, tenantID string, ownerUsername string) error {
-	ret := _m.Called(ctx, tenantID, ownerUsername)
+// DeleteNamespace provides a mock function with given fields: ctx, tenantID
+func (_m *Service) DeleteNamespace(ctx context.Context, tenantID string) error {
+	ret := _m.Called(ctx, tenantID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, tenantID, ownerUsername)
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, tenantID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -360,27 +374,13 @@ func (_m *Service) DeleteTag(ctx context.Context, uid models.UID, name string) e
 	return r0
 }
 
-// DeviceHeartbeat provides a mock function with given fields: ctx, uid
-func (_m *Service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
-	ret := _m.Called(ctx, uid)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// EditNamespace provides a mock function with given fields: ctx, tenantID, name, ownerUsername
-func (_m *Service) EditNamespace(ctx context.Context, tenantID string, name string, ownerUsername string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID, name, ownerUsername)
+// EditNamespace provides a mock function with given fields: ctx, tenantID, name
+func (_m *Service) EditNamespace(ctx context.Context, tenantID string, name string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenantID, name)
 
 	var r0 *models.Namespace
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, name, ownerUsername)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Namespace); ok {
+		r0 = rf(ctx, tenantID, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -388,8 +388,8 @@ func (_m *Service) EditNamespace(ctx context.Context, tenantID string, name stri
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenantID, name, ownerUsername)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenantID, name)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -397,13 +397,13 @@ func (_m *Service) EditNamespace(ctx context.Context, tenantID string, name stri
 	return r0, r1
 }
 
-// EditSessionRecordStatus provides a mock function with given fields: ctx, status, tenant, ownerID
-func (_m *Service) EditSessionRecordStatus(ctx context.Context, status bool, tenant string, ownerID string) error {
-	ret := _m.Called(ctx, status, tenant, ownerID)
+// EditSessionRecordStatus provides a mock function with given fields: ctx, sessionRecord, tenantID
+func (_m *Service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {
+	ret := _m.Called(ctx, sessionRecord, tenantID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, bool, string, string) error); ok {
-		r0 = rf(ctx, status, tenant, ownerID)
+	if rf, ok := ret.Get(0).(func(context.Context, bool, string) error); ok {
+		r0 = rf(ctx, sessionRecord, tenantID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -545,20 +545,20 @@ func (_m *Service) GetSession(ctx context.Context, uid models.UID) (*models.Sess
 	return r0, r1
 }
 
-// GetSessionRecord provides a mock function with given fields: ctx, tenant
-func (_m *Service) GetSessionRecord(ctx context.Context, tenant string) (bool, error) {
-	ret := _m.Called(ctx, tenant)
+// GetSessionRecord provides a mock function with given fields: ctx, tenantID
+func (_m *Service) GetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
+	ret := _m.Called(ctx, tenantID)
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = rf(ctx, tenant)
+		r0 = rf(ctx, tenantID)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenant)
+		r1 = rf(ctx, tenantID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -859,13 +859,13 @@ func (_m *Service) PublicKey() *rsa.PublicKey {
 	return r0
 }
 
-// RemoveNamespaceUser provides a mock function with given fields: ctx, tenantID, username, ownerUsername
-func (_m *Service) RemoveNamespaceUser(ctx context.Context, tenantID string, username string, ownerUsername string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID, username, ownerUsername)
+// RemoveNamespaceUser provides a mock function with given fields: ctx, tenantID, memberUsername, userID
+func (_m *Service) RemoveNamespaceUser(ctx context.Context, tenantID string, memberUsername string, userID string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenantID, memberUsername, userID)
 
 	var r0 *models.Namespace
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, username, ownerUsername)
+		r0 = rf(ctx, tenantID, memberUsername, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -874,7 +874,7 @@ func (_m *Service) RemoveNamespaceUser(ctx context.Context, tenantID string, use
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenantID, username, ownerUsername)
+		r1 = rf(ctx, tenantID, memberUsername, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -882,13 +882,13 @@ func (_m *Service) RemoveNamespaceUser(ctx context.Context, tenantID string, use
 	return r0, r1
 }
 
-// RenameDevice provides a mock function with given fields: ctx, uid, name, tenant, ownerID
-func (_m *Service) RenameDevice(ctx context.Context, uid models.UID, name string, tenant string, ownerID string) error {
-	ret := _m.Called(ctx, uid, name, tenant, ownerID)
+// RenameDevice provides a mock function with given fields: ctx, uid, name, tenant
+func (_m *Service) RenameDevice(ctx context.Context, uid models.UID, name string, tenant string) error {
+	ret := _m.Called(ctx, uid, name, tenant)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, string, string) error); ok {
-		r0 = rf(ctx, uid, name, tenant, ownerID)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, string) error); ok {
+		r0 = rf(ctx, uid, name, tenant)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -989,13 +989,13 @@ func (_m *Service) UpdatePasswordUser(ctx context.Context, currentPassword strin
 	return r0
 }
 
-// UpdatePendingStatus provides a mock function with given fields: ctx, uid, status, tenant, ownerID
-func (_m *Service) UpdatePendingStatus(ctx context.Context, uid models.UID, status string, tenant string, ownerID string) error {
-	ret := _m.Called(ctx, uid, status, tenant, ownerID)
+// UpdatePendingStatus provides a mock function with given fields: ctx, uid, status, tenant
+func (_m *Service) UpdatePendingStatus(ctx context.Context, uid models.UID, status string, tenant string) error {
+	ret := _m.Called(ctx, uid, status, tenant)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, string, string) error); ok {
-		r0 = rf(ctx, uid, status, tenant, ownerID)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, string) error); ok {
+		r0 = rf(ctx, uid, status, tenant)
 	} else {
 		r0 = ret.Error(0)
 	}

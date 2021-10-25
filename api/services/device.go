@@ -7,7 +7,6 @@ import (
 	"net"
 	"strings"
 
-	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -23,11 +22,11 @@ const StatusAccepted = "accepted"
 type DeviceService interface {
 	ListDevices(ctx context.Context, pagination paginator.Query, filter string, status string, sort string, order string) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
-	DeleteDevice(ctx context.Context, uid models.UID, tenant, ownerID string) error
-	RenameDevice(ctx context.Context, uid models.UID, name, tenant, ownerID string) error
+	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
+	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
-	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, ownerID string) error
+	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant string) error
 	HandleReportUsage(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error
 	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
 	DeviceHeartbeat(ctx context.Context, uid models.UID) error
@@ -73,11 +72,7 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 	return s.store.DeviceGet(ctx, uid)
 }
 
-func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, ownerID string) error {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
-		return ErrUnauthorized
-	}
-
+func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if err != nil {
 		return err
@@ -95,11 +90,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant, owne
 	return s.store.DeviceDelete(ctx, uid)
 }
 
-func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant, ownerID string) error {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
-		return ErrUnauthorized
-	}
-
+func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if err != nil {
 		return err
@@ -151,11 +142,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online
 	return s.store.DeviceSetOnline(ctx, uid, online)
 }
 
-func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, ownerID string) error {
-	if err := utils.IsNamespaceOwner(ctx, s.store, tenant, ownerID); err != nil {
-		return ErrUnauthorized
-	}
-
+func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant string) error {
 	validateStatus := map[string]bool{
 		"accepted": true,
 		"pending":  true,

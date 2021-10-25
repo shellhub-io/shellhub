@@ -8,110 +8,15 @@ import (
 	"testing"
 
 	storecache "github.com/shellhub-io/shellhub/api/cache"
-	utils "github.com/shellhub-io/shellhub/api/pkg/namespace"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuid_mocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestIsNamespaceOwner(t *testing.T) {
-	mock := &mocks.Store{}
-
-	ctx := context.TODO()
-
-	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
-	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "hash2"}, ID: "hash2"}
-
-	Err := errors.New("error")
-
-	namespace := &models.Namespace{
-		Name:     strings.ToLower("namespace"),
-		Owner:    user.ID,
-		Members:  []interface{}{user.ID, user2.ID},
-		Settings: &models.NamespaceSettings{SessionRecord: true},
-		TenantID: "xxxxx",
-	}
-
-	cases := []struct {
-		name              string
-		tenantID, ownerID string
-		requiredMocks     func()
-		expected          error
-	}{
-		{
-			name:     "IsNamespaceOwner fails when the user document is not found",
-			tenantID: namespace.TenantID,
-			ownerID:  namespace.Owner,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(nil, 0, store.ErrNoDocuments).Once()
-			},
-			expected: ErrUnauthorized,
-		},
-		{
-			name:     "IsNamespaceOwner fails store user get by id fails",
-			tenantID: namespace.TenantID,
-			ownerID:  namespace.Owner,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(nil, 0, Err).Once()
-			},
-			expected: Err,
-		},
-		{
-			name:     "IsNamespaceOwner fails when no namespace document is found",
-			tenantID: namespace.TenantID,
-			ownerID:  namespace.Owner,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, store.ErrNoDocuments).Once()
-			},
-			expected: ErrNamespaceNotFound,
-		},
-		{
-			name:     "IsNamespaceOwner fails when store namespace get fails",
-			tenantID: namespace.TenantID,
-			ownerID:  namespace.Owner,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, Err).Once()
-			},
-			expected: Err,
-		},
-		{
-			name:     "IsNamespaceOwner fails when the user is not the owner",
-			tenantID: namespace.TenantID,
-			ownerID:  user2.ID,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-			},
-			expected: ErrUnauthorized,
-		},
-		{
-			name:     "IsNamespaceOwner succeeds",
-			tenantID: namespace.TenantID,
-			ownerID:  namespace.Owner,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-			},
-			expected: nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.requiredMocks()
-			err := utils.IsNamespaceOwner(ctx, store.Store(mock), tc.tenantID, tc.ownerID)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-
-	mock.AssertExpectations(t)
-}
 
 func TestListNamespaces(t *testing.T) {
 	mock := &mocks.Store{}
@@ -120,9 +25,23 @@ func TestListNamespaces(t *testing.T) {
 	ctx := context.TODO()
 	Err := errors.New("error")
 
+	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
 	namespaces := []models.Namespace{
-		{Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"},
-		{Name: "group2", Owner: "ID2", TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4"},
+		{
+			Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+			Members: []models.Member{
+				{
+					ID:       user.ID,
+					Username: user.Username,
+					Type:     authorizer.MemberTypeOwner,
+				},
+			},
+		},
+		{Name: "group2", Owner: "ID2", TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4", Members: []models.Member{{
+			ID:       user.ID,
+			Username: user.Username,
+			Type:     authorizer.MemberTypeObserver,
+		}}},
 	}
 
 	type Expected struct {
@@ -142,7 +61,7 @@ func TestListNamespaces(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			name:       "ListNamespaces fails",
+			name:       "ListNamespace fail when could not get the namespace list",
 			pagination: query,
 			filter:     "",
 			ctx:        ctx,
@@ -156,12 +75,76 @@ func TestListNamespaces(t *testing.T) {
 			},
 		},
 		{
-			name:       "ListNamespaces succeeds",
+			name:       "ListNamespace fail when could not get the namespace",
 			pagination: query,
 			filter:     "",
 			ctx:        ctx,
 			requiredMocks: func() {
 				mock.On("NamespaceList", ctx, query, []models.Filter(nil), false).Return(namespaces, len(namespaces), nil).Once()
+				mock.On("NamespaceGet", ctx, namespaces[0].TenantID).Return(nil, Err).Once()
+			},
+			expected: Expected{
+				namespaces: nil,
+				count:      0,
+				err:        Err,
+			},
+		},
+		{
+			name:       "ListNamespace fail when could get a user by ID",
+			pagination: query,
+			filter:     "",
+			ctx:        ctx,
+			requiredMocks: func() {
+				namespace1 := &models.Namespace{
+					Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+					Members: []models.Member{
+						{
+							ID:       user.ID,
+							Username: user.Username,
+							Type:     authorizer.MemberTypeOwner,
+						},
+					},
+				}
+				mock.On("NamespaceList", ctx, query, []models.Filter(nil), false).Return(namespaces, len(namespaces), nil).Once()
+				mock.On("NamespaceGet", ctx, namespaces[0].TenantID).Return(namespace1, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).Return(nil, 0, Err).Once()
+			},
+			expected: Expected{
+				namespaces: nil,
+				count:      0,
+				err:        Err,
+			},
+		},
+		{
+			name:       "ListNamespaces succeeds",
+			pagination: query,
+			filter:     "",
+			ctx:        ctx,
+			requiredMocks: func() {
+				namespace1 := &models.Namespace{
+					Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+					Members: []models.Member{
+						{
+							ID:       user.ID,
+							Username: user.Username,
+							Type:     authorizer.MemberTypeOwner,
+						},
+					},
+				}
+				namespace2 := &models.Namespace{
+					Name: "group2", Owner: "ID2", TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4", Members: []models.Member{
+						{
+							ID:       user.ID,
+							Username: user.Username,
+							Type:     authorizer.MemberTypeObserver,
+						},
+					},
+				}
+				mock.On("NamespaceList", ctx, query, []models.Filter(nil), false).Return(namespaces, len(namespaces), nil).Once()
+				mock.On("NamespaceGet", ctx, namespaces[0].TenantID).Return(namespace1, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaces[1].TenantID).Return(namespace2, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 			},
 			expected: Expected{
 				namespaces: namespaces,
@@ -188,7 +171,8 @@ func TestGetNamespace(t *testing.T) {
 
 	ctx := context.TODO()
 
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
+	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user.ID, Username: user.Username, Type: authorizer.MemberTypeOwner}}}
 
 	Err := errors.New("error")
 
@@ -205,7 +189,7 @@ func TestGetNamespace(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			name:     "GetNamespace fails",
+			name:     "GetNamespace fails when could not get the namespace",
 			ctx:      ctx,
 			tenantID: namespace.TenantID,
 			requiredMocks: func() {
@@ -222,6 +206,7 @@ func TestGetNamespace(t *testing.T) {
 			tenantID: namespace.TenantID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 			},
 			expected: Expected{
 				namespace: namespace,
@@ -258,9 +243,12 @@ func TestListMembers(t *testing.T) {
 	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "hash2"}, ID: "hash2"}
 
 	namespace := &models.Namespace{
-		Name:     strings.ToLower("namespace"),
-		Owner:    user.ID,
-		Members:  []interface{}{user.ID, user2.ID},
+		Name:  strings.ToLower("namespace"),
+		Owner: user.ID,
+		Members: []models.Member{
+			{ID: user.ID, Type: authorizer.MemberTypeOwner},
+			{ID: user2.ID, Type: authorizer.MemberTypeObserver},
+		},
 		Settings: &models.NamespaceSettings{SessionRecord: true},
 		TenantID: "xxxxx",
 	}
@@ -302,6 +290,7 @@ func TestListMembers(t *testing.T) {
 				tenant := namespace.TenantID
 				mock.On("NamespaceGet", ctx, tenant).Return(namespace, nil).Once()
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+
 				mock.On("UserGetByID", ctx, user2.ID, false).Return(nil, 0, store.ErrNoDocuments).Once()
 			},
 			expected: Expected{
@@ -316,6 +305,7 @@ func TestListMembers(t *testing.T) {
 				tenant := namespace.TenantID
 				mock.On("NamespaceGet", ctx, tenant).Return(namespace, nil).Once()
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+
 				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, Err).Once()
 			},
 			expected: Expected{
@@ -330,10 +320,14 @@ func TestListMembers(t *testing.T) {
 				tenant := namespace.TenantID
 				mock.On("NamespaceGet", ctx, tenant).Return(namespace, nil).Once()
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+
 				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
 			},
 			expected: Expected{
-				[]models.Member{{ID: user.ID, Name: user.Username}, {ID: user2.ID, Name: user2.Username}},
+				[]models.Member{
+					{ID: user.ID, Username: user.Username, Type: authorizer.MemberTypeOwner},
+					{ID: user2.ID, Username: user2.Username, Type: authorizer.MemberTypeObserver},
+				},
 				nil,
 			},
 		},
@@ -366,9 +360,11 @@ func TestCreateNamespace(t *testing.T) {
 	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
 
 	namespace := &models.Namespace{
-		Name:     strings.ToLower("namespace"),
-		Owner:    user.ID,
-		Members:  []interface{}{user.ID},
+		Name:  strings.ToLower("namespace"),
+		Owner: user.ID,
+		Members: []models.Member{
+			{ID: user.ID, Type: authorizer.MemberTypeOwner},
+		},
 		Settings: &models.NamespaceSettings{SessionRecord: true},
 		TenantID: "xxxxx",
 	}
@@ -389,7 +385,7 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			expected: Expected{
 				nil,
-				ErrUnauthorized,
+				ErrForbidden,
 			},
 		},
 		{
@@ -455,9 +451,11 @@ func TestCreateNamespace(t *testing.T) {
 			requiredMocks: func() {
 				var isCloud bool
 				notCloudNamespace := &models.Namespace{
-					Name:       strings.ToLower("namespace"),
-					Owner:      user.ID,
-					Members:    []interface{}{user.ID},
+					Name:  strings.ToLower("namespace"),
+					Owner: user.ID,
+					Members: []models.Member{
+						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
 					MaxDevices: -1,
@@ -475,9 +473,11 @@ func TestCreateNamespace(t *testing.T) {
 			name:    "CreateNamespace generates namespace with random tenant",
 			ownerID: user.ID,
 			namespace: &models.Namespace{
-				Name:       strings.ToLower("namespace"),
-				Owner:      user.ID,
-				Members:    []interface{}{user.ID},
+				Name:  strings.ToLower("namespace"),
+				Owner: user.ID,
+				Members: []models.Member{
+					{ID: user.ID, Type: authorizer.MemberTypeOwner},
+				},
 				Settings:   &models.NamespaceSettings{SessionRecord: true},
 				TenantID:   "",
 				MaxDevices: -1,
@@ -485,9 +485,11 @@ func TestCreateNamespace(t *testing.T) {
 			requiredMocks: func() {
 				var isCloud bool
 				notCloudNamespace := &models.Namespace{
-					Name:       strings.ToLower("namespace"),
-					Owner:      user.ID,
-					Members:    []interface{}{user.ID},
+					Name:  strings.ToLower("namespace"),
+					Owner: user.ID,
+					Members: []models.Member{
+						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "random_uuid",
 					MaxDevices: -1,
@@ -500,9 +502,11 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			expected: Expected{
 				&models.Namespace{
-					Name:       strings.ToLower("namespace"),
-					Owner:      user.ID,
-					Members:    []interface{}{user.ID},
+					Name:  strings.ToLower("namespace"),
+					Owner: user.ID,
+					Members: []models.Member{
+						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "random_uuid",
 					MaxDevices: -1,
@@ -516,9 +520,11 @@ func TestCreateNamespace(t *testing.T) {
 			requiredMocks: func() {
 				var isCloud bool
 				notCloudNamespace := &models.Namespace{
-					Name:       strings.ToLower("namespace"),
-					Owner:      user.ID,
-					Members:    []interface{}{user.ID},
+					Name:  strings.ToLower("namespace"),
+					Owner: user.ID,
+					Members: []models.Member{
+						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
 					MaxDevices: -1,
@@ -530,9 +536,11 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			expected: Expected{
 				&models.Namespace{
-					Name:       strings.ToLower(namespace.Name),
-					Owner:      user.ID,
-					Members:    []interface{}{user.ID},
+					Name:  strings.ToLower(namespace.Name),
+					Owner: user.ID,
+					Members: []models.Member{
+						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   namespace.TenantID,
 					MaxDevices: -1,
@@ -546,9 +554,11 @@ func TestCreateNamespace(t *testing.T) {
 			requiredMocks: func() {
 				isCloud := true
 				cloudNamespace := &models.Namespace{
-					Name:       strings.ToLower("namespace"),
-					Owner:      user.ID,
-					Members:    []interface{}{user.ID},
+					Name:  strings.ToLower("namespace"),
+					Owner: user.ID,
+					Members: []models.Member{
+						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
 					MaxDevices: 3,
@@ -560,9 +570,11 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			expected: Expected{
 				&models.Namespace{
-					Name:       strings.ToLower(namespace.Name),
-					Owner:      user.ID,
-					Members:    []interface{}{user.ID},
+					Name:  strings.ToLower(namespace.Name),
+					Owner: user.ID,
+					Members: []models.Member{
+						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   namespace.TenantID,
 					MaxDevices: 3,
@@ -588,12 +600,14 @@ func TestEditNamespace(t *testing.T) {
 	ctx := context.TODO()
 
 	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
-	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "hash2"}, ID: "hash2"}
 	Err := errors.New("error")
 
 	namespace := &models.Namespace{
-		Name:     "oldname",
-		Owner:    "hash1",
+		Name:  "oldname",
+		Owner: user.ID,
+		Members: []models.Member{
+			{ID: user.ID, Type: authorizer.MemberTypeOwner},
+		},
 		TenantID: "xxxxx",
 	}
 
@@ -611,23 +625,9 @@ func TestEditNamespace(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			name:     "EditNamespace fails when the user is not the owner",
-			tenantID: namespace.TenantID,
-			ownerID:  user2.ID,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-			},
-			expected: Expected{
-				nil,
-				ErrUnauthorized,
-			},
-		},
-		{
 			name: "EditNamespace fails when the name is invalid",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Twice()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 			},
 			tenantID:      "xxxxx",
 			namespaceName: "name.with.dot",
@@ -640,23 +640,21 @@ func TestEditNamespace(t *testing.T) {
 		{
 			name: "EditNamespace fails when the name is the same",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Twice()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 			},
 			tenantID:      "xxxxx",
 			namespaceName: namespace.Name,
 			ownerID:       user.ID,
 			expected: Expected{
 				nil,
-				ErrUnauthorized,
+				ErrBadRequest,
 			},
 		},
 		{
 			name: "EditNamespace fails when the store namespace rename fails",
 			requiredMocks: func() {
 				newName := "newname"
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Twice()
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 				mock.On("NamespaceRename", ctx, namespace.TenantID, newName).Return(nil, Err).Once()
 			},
 			namespaceName: "newname",
@@ -676,8 +674,7 @@ func TestEditNamespace(t *testing.T) {
 					Owner:    user.ID,
 					TenantID: "xxxxx",
 				}
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Twice()
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 				mock.On("NamespaceRename", ctx, namespace.TenantID, newName).Return(newNamespace, nil).Once()
 			},
 			namespaceName: "newname",
@@ -696,7 +693,7 @@ func TestEditNamespace(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			returnedNamespace, err := s.EditNamespace(ctx, tc.tenantID, tc.namespaceName, tc.ownerID)
+			returnedNamespace, err := s.EditNamespace(ctx, tc.tenantID, tc.namespaceName)
 			assert.Equal(t, tc.expected, Expected{returnedNamespace, err})
 		})
 	}
@@ -712,9 +709,8 @@ func TestDeleteNamespace(t *testing.T) {
 
 	ctx := context.TODO()
 
-	namespace := &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 	user1 := &models.User{UserData: models.UserData{Name: "user1", Username: "user1", Email: "user1@email.com"}, ID: "ID1"}
-	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "user2", Email: "user2@email.com"}, ID: "ID2"}
+	namespace := &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user1.ID, Type: authorizer.MemberTypeOwner}}}
 
 	cases := []struct {
 		name          string
@@ -724,22 +720,11 @@ func TestDeleteNamespace(t *testing.T) {
 		expected      error
 	}{
 		{
-			name:     "DeleteNamespace fails when the user is not the owner",
-			tenantID: namespace.TenantID,
-			ownerID:  user2.ID,
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
-			},
-			expected: ErrUnauthorized,
-		},
-		{
 			name:     "DeleteNamespace fails when store delete fails",
 			tenantID: namespace.TenantID,
 			ownerID:  user1.ID,
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Twice()
-				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(Err).Once()
 			},
 			expected: Err,
@@ -749,8 +734,7 @@ func TestDeleteNamespace(t *testing.T) {
 			tenantID: namespace.TenantID,
 			ownerID:  user1.ID,
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Twice()
-				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
 			},
 			expected: nil,
@@ -763,13 +747,15 @@ func TestDeleteNamespace(t *testing.T) {
 				ns := &models.Namespace{
 					TenantID: namespace.TenantID,
 					Owner:    user1.ID,
+					Members: []models.Member{
+						{ID: user1.ID, Type: authorizer.MemberTypeOwner},
+					},
 					Billing: &models.Billing{
 						Active: true,
 					},
 					MaxDevices: -1,
 				}
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(ns, nil).Twice()
-				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(ns, nil).Once()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(false)).Once()
 				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
 			},
@@ -783,13 +769,15 @@ func TestDeleteNamespace(t *testing.T) {
 				ns := &models.Namespace{
 					TenantID: namespace.TenantID,
 					Owner:    user1.ID,
+					Members: []models.Member{
+						{ID: user1.ID, Type: authorizer.MemberTypeOwner},
+					},
 					Billing: &models.Billing{
 						Active: true,
 					},
 					MaxDevices: -1,
 				}
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(ns, nil).Twice()
-				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(ns, nil).Once()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportDelete", ns).Return(200, nil).Once()
 				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
@@ -801,7 +789,7 @@ func TestDeleteNamespace(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.DeleteNamespace(ctx, tc.tenantID, tc.ownerID)
+			err := s.DeleteNamespace(ctx, tc.tenantID)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -814,9 +802,12 @@ func TestAddNamespaceUser(t *testing.T) {
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 	ctx := context.TODO()
 
-	namespace := &models.Namespace{Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 	user1 := &models.User{UserData: models.UserData{Name: "user1", Username: "user1", Email: "user1@email.com"}, ID: "ID1"}
 	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "user2", Email: "user2@email.com"}, ID: "ID2"}
+	namespace := &models.Namespace{Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user1.ID, Type: authorizer.MemberTypeOwner}, {
+		ID:   user2.ID,
+		Type: authorizer.MemberTypeObserver,
+	}}}
 
 	Err := errors.New("error")
 
@@ -829,31 +820,19 @@ func TestAddNamespaceUser(t *testing.T) {
 		name          string
 		tenantID      string
 		username      string
-		ownerID       string
+		ID            string
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
-			name:     "AddNamespaceUser fails when user is not the owner",
-			ownerID:  user2.ID,
-			tenantID: namespace.TenantID,
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       ErrUnauthorized,
-			},
-		},
-		{
-			name:     "AddNamespaceUser fails when user get by username has no documents",
+			name:     "AddNamespaceUser fails when member was not found",
 			username: user2.Username,
-			ownerID:  user1.ID,
+			ID:       user1.ID,
 			tenantID: namespace.TenantID,
 			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user1, 0, nil).Once()
+
 				mock.On("UserGetByUsername", ctx, user2.Username).Return(nil, store.ErrNoDocuments).Once()
 			},
 			expected: Expected{
@@ -862,30 +841,16 @@ func TestAddNamespaceUser(t *testing.T) {
 			},
 		},
 		{
-			name:     "AddNamespaceUser fails when user get by username fails",
-			username: user2.Username,
-			ownerID:  user1.ID,
-			tenantID: namespace.TenantID,
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user1, 0, nil).Once()
-				mock.On("UserGetByUsername", ctx, user2.Username).Return(nil, Err).Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       Err,
-			},
-		},
-		{
 			name:     "AddNamespaceUser fails when store namespace add member fails",
 			username: user2.Username,
-			ownerID:  user1.ID,
+			ID:       user1.ID,
 			tenantID: namespace.TenantID,
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user1, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+
 				mock.On("UserGetByUsername", ctx, user2.Username).Return(user2, nil).Once()
-				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user2.ID).Return(nil, Err).Once()
+				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user2.ID, authorizer.MemberTypeObserver).Return(nil, Err).Once()
 			},
 			expected: Expected{
 				namespace: nil,
@@ -895,13 +860,14 @@ func TestAddNamespaceUser(t *testing.T) {
 		{
 			name:     "AddNamespaceUser succeeds",
 			username: user2.Username,
-			ownerID:  user1.ID,
+			ID:       user1.ID,
 			tenantID: namespace.TenantID,
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user1, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+
 				mock.On("UserGetByUsername", ctx, user2.Username).Return(user2, nil).Once()
-				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user2.ID).Return(namespace, nil).Once()
+				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user2.ID, authorizer.MemberTypeObserver).Return(namespace, nil).Once()
 			},
 			expected: Expected{
 				namespace: namespace,
@@ -913,7 +879,7 @@ func TestAddNamespaceUser(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			ns, err := s.AddNamespaceUser(ctx, tc.tenantID, tc.username, tc.ownerID)
+			ns, err := s.AddNamespaceUser(ctx, tc.username, authorizer.MemberTypeObserver, tc.tenantID, tc.ID)
 			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
 	}
@@ -927,7 +893,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	ctx := context.TODO()
 	user := &models.User{UserData: models.UserData{Name: "user1", Username: "username1"}, ID: "hash1"}
 	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "username2"}, ID: "hash2"}
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []interface{}{"hash1", "hash2"}}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "hash1", Type: authorizer.MemberTypeOwner}, {ID: "hash2", Type: authorizer.MemberTypeObserver}}}
 	Err := errors.New("error")
 
 	type Expected struct {
@@ -944,23 +910,11 @@ func TestRemoveNamespaceUser(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			name:     "RemoveNamespaceUser fails when user is not the owner",
-			ownerID:  user2.ID,
-			tenantID: namespace.TenantID,
+			name: "RemoveNamespaceUser fails when member was not found",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       ErrUnauthorized,
-			},
-		},
-		{
-			name: "RemoveNamespaceUser fails when store user get by username has no documents",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+
 				mock.On("UserGetByUsername", ctx, user2.Username).Return(nil, store.ErrNoDocuments).Once()
 			},
 			tenantID: namespace.TenantID,
@@ -968,30 +922,23 @@ func TestRemoveNamespaceUser(t *testing.T) {
 			ownerID:  namespace.Owner,
 			expected: Expected{
 				namespace: nil,
-				err:       ErrUserNotFound,
-			},
-		},
-		{
-			name: "RemoveNamespaceUser fails when store user get by username fails",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
-				mock.On("UserGetByUsername", ctx, user2.Username).Return(nil, Err).Once()
-			},
-			tenantID: namespace.TenantID,
-			username: user2.Username,
-			ownerID:  namespace.Owner,
-			expected: Expected{
-				namespace: nil,
-				err:       Err,
+				err:       ErrForbidden,
 			},
 		},
 		{
 			name: "RemoveNamespaceUser fails when store namespace remove member fails",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+
 				mock.On("UserGetByUsername", ctx, user2.Username).Return(user2, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+
+				mock.On("UserGetByUsername", ctx, user2.Username).Return(user2, nil).Once()
+
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
 				mock.On("NamespaceRemoveMember", ctx, namespace.TenantID, user2.ID).Return(nil, Err).Once()
 			},
 			tenantID: namespace.TenantID,
@@ -1005,9 +952,18 @@ func TestRemoveNamespaceUser(t *testing.T) {
 		{
 			name: "RemoveNamespaceUser succeeds",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+
 				mock.On("UserGetByUsername", ctx, user2.Username).Return(user2, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+
+				mock.On("UserGetByUsername", ctx, user2.Username).Return(user2, nil).Once()
+
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
+
 				mock.On("NamespaceRemoveMember", ctx, namespace.TenantID, user2.ID).Return(namespace, nil).Once()
 			},
 			tenantID: namespace.TenantID,
@@ -1113,9 +1069,18 @@ func TestEditSessionRecord(t *testing.T) {
 
 	ctx := context.TODO()
 
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "xxxx", Settings: &models.NamespaceSettings{SessionRecord: true}}
 	user := &models.User{UserData: models.UserData{Name: "user1", Username: "username1"}, ID: "hash1"}
 	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "username2"}, ID: "hash2"}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "xxxx", Settings: &models.NamespaceSettings{SessionRecord: true}, Members: []models.Member{
+		{
+			ID:   user.ID,
+			Type: authorizer.MemberTypeOwner,
+		},
+		{
+			ID:   user2.ID,
+			Type: authorizer.MemberTypeObserver,
+		},
+	}}
 
 	Err := errors.New("error")
 
@@ -1127,22 +1092,10 @@ func TestEditSessionRecord(t *testing.T) {
 		expected          error
 	}{
 		{
-			name:     "RemoveNamespaceUser fails when user is not the owner",
-			ownerID:  user2.ID,
-			tenantID: namespace.TenantID,
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
-			},
-			expected: ErrUnauthorized,
-		},
-		{
 			name:    "EditSessionRecord fails when namespace set session record fails",
 			ownerID: namespace.Owner,
 			requiredMocks: func() {
 				status := true
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
 				mock.On("NamespaceSetSessionRecord", ctx, status, namespace.TenantID).Return(Err).Once()
 			},
 			tenantID:      namespace.TenantID,
@@ -1154,8 +1107,6 @@ func TestEditSessionRecord(t *testing.T) {
 			ownerID: namespace.Owner,
 			requiredMocks: func() {
 				status := true
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
 				mock.On("NamespaceSetSessionRecord", ctx, status, namespace.TenantID).Return(nil).Once()
 			},
 			tenantID:      namespace.TenantID,
@@ -1167,7 +1118,7 @@ func TestEditSessionRecord(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.EditSessionRecordStatus(ctx, tc.sessionRecord, tc.tenantID, tc.ownerID)
+			err := s.EditSessionRecordStatus(ctx, tc.sessionRecord, tc.tenantID)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
