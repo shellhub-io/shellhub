@@ -643,6 +643,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus fails when the user is not the owner",
 			uid:    models.UID("uid"),
+			status: "accepted",
 			tenant: namespace.TenantID,
 			id:     user2.ID,
 			requiredMocks: func() {
@@ -654,9 +655,24 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: ErrUnauthorized,
 		},
 		{
+			name:   "UpdatePendingStatus fails when the status is invalid",
+			uid:    models.UID("uid"),
+			tenant: namespace.TenantID,
+			status: "invalid",
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, device.TenantID).
+					Return(namespace, nil).Once()
+			},
+			expected: ErrBadRequest,
+		},
+		{
 			name:   "UpdatePendingStatus fails when the store get by uid fails",
 			uid:    models.UID("uid"),
 			tenant: namespace.TenantID,
+			status: "accepted",
 			id:     user.ID,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user.ID, false).
@@ -671,6 +687,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus fails when device already accepted",
 			uid:    models.UID("uid"),
+			status: "accepted",
 			tenant: namespace.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
@@ -681,11 +698,27 @@ func TestUpdatePendingStatus(t *testing.T) {
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
 					Return(&models.Device{Status: "accepted"}, nil).Once()
 			},
-			expected: ErrBadRequest,
+			expected: ErrForbidden,
+		},
+		{
+			name:   "UpdatePendingStatus fails to update accept",
+			uid:    models.UID("uid"),
+			status: "pending",
+			tenant: namespace.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, user.ID, false).
+					Return(user, 0, nil).Once()
+				mock.On("NamespaceGet", ctx, device.TenantID).
+					Return(namespace, nil).Once()
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).Return(&models.Device{Status: "accepted"}, nil).Once()
+			},
+			expected: ErrForbidden,
 		},
 		{
 			name:   "UpdatePendingStatus fails when the limit is exceeded",
 			uid:    models.UID("uid_limit"),
+			status: "accepted",
 			tenant: "tenant_max",
 			id:     user.ID,
 			requiredMocks: func() {
@@ -705,6 +738,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus succeeds",
 			uid:    models.UID("uid"),
+			status: "accepted",
 			tenant: namespace.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
@@ -731,6 +765,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus reports usage",
 			uid:    models.UID("uid"),
+			status: "accepted",
 			tenant: "tenant_max",
 			id:     user.ID,
 			requiredMocks: func() {
@@ -760,6 +795,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus fails to reports usage",
 			uid:    models.UID("uid"),
+			status: "accepted",
 			tenant: "tenant_max",
 			id:     user.ID,
 			requiredMocks: func() {
@@ -789,7 +825,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.UpdatePendingStatus(ctx, tc.uid, "accepted", tc.tenant, tc.id)
+			err := s.UpdatePendingStatus(ctx, tc.uid, tc.status, tc.tenant, tc.id)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

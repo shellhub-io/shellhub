@@ -173,6 +173,8 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 		switch err {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
+		case services.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrBadRequest:
 			return c.NoContent(http.StatusBadRequest)
 		case services.ErrMaxDeviceCountReached:
