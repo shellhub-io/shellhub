@@ -10,6 +10,7 @@ import (
 	"github.com/cnf/structhash"
 	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -155,10 +156,15 @@ func initData() Data {
 			ID: "1",
 		},
 		models.Namespace{
-			Name:       "namespace",
-			Owner:      "owner",
-			TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-			Members:    []interface{}{"owner"},
+			Name:     "namespace",
+			Owner:    "owner",
+			TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			Members: []models.Member{
+				{
+					ID:   "owner",
+					Type: authorizer.MemberTypeOwner,
+				},
+			},
 			MaxDevices: -1,
 			Settings:   &models.NamespaceSettings{SessionRecord: true},
 		},

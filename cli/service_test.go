@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
+
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -41,7 +43,7 @@ func TestDelUser(t *testing.T) {
 			Name:     "namespace1",
 			Owner:    user.ID,
 			TenantID: "tenantID1",
-			Members:  []interface{}{user.ID},
+			Members:  []models.Member{{ID: user.ID, Type: "owner"}},
 			Settings: &models.NamespaceSettings{
 				SessionRecord: true,
 			},
@@ -51,7 +53,7 @@ func TestDelUser(t *testing.T) {
 			Name:     "namespace2",
 			Owner:    user.ID,
 			TenantID: "tenantID2",
-			Members:  []interface{}{user.ID},
+			Members:  []models.Member{{ID: user.ID, Type: "owner"}},
 			Settings: &models.NamespaceSettings{
 				SessionRecord: true,
 			},
@@ -63,7 +65,7 @@ func TestDelUser(t *testing.T) {
 			Name:     "namespace3",
 			Owner:    "ownerID",
 			TenantID: "tenantID3",
-			Members:  []interface{}{"ownerID", user.ID},
+			Members:  []models.Member{{ID: "ownerID", Type: authorizer.MemberTypeObserver}, {ID: user.ID, Type: authorizer.MemberTypeObserver}},
 			Settings: &models.NamespaceSettings{
 				SessionRecord: true,
 			},
@@ -73,7 +75,7 @@ func TestDelUser(t *testing.T) {
 			Name:     "namespace1",
 			Owner:    "ownerID",
 			TenantID: "tenantID1",
-			Members:  []interface{}{"ownerID", user.ID},
+			Members:  []models.Member{{ID: "ownerID", Type: authorizer.MemberTypeObserver}, {ID: user.ID, Type: authorizer.MemberTypeObserver}},
 			Settings: &models.NamespaceSettings{
 				SessionRecord: true,
 			},
@@ -180,7 +182,7 @@ func TestResetUserPassword(t *testing.T) {
 			password:    userPasswordInvalid.Password,
 			requiredMocks: func() {
 			},
-			expected: ErrPasswordInvalid,
+			expected: ErrUserPasswordInvalid,
 		},
 		{
 			description: "Fails to find the user",
@@ -260,7 +262,7 @@ func TestNamespaceCreate(t *testing.T) {
 		Name:     "namespace",
 		Owner:    user.ID,
 		TenantID: "tenantID",
-		Members:  []interface{}{user.ID},
+		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -367,7 +369,7 @@ func TestAddUserNamespace(t *testing.T) {
 		Name:     "namespace",
 		Owner:    user.ID,
 		TenantID: "tenantID",
-		Members:  []interface{}{user.ID},
+		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -378,7 +380,7 @@ func TestAddUserNamespace(t *testing.T) {
 		Name:     "namespaceNotFound",
 		Owner:    user.ID,
 		TenantID: "tenantIDNotFound",
-		Members:  []interface{}{user.ID},
+		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -393,6 +395,7 @@ func TestAddUserNamespace(t *testing.T) {
 		description   string
 		username      string
 		namespace     string
+		accessType    string
 		requiredMocks func()
 		expected      Expected
 	}{
@@ -400,6 +403,7 @@ func TestAddUserNamespace(t *testing.T) {
 			description: "Fails to find the user",
 			username:    userNotFound.Username,
 			namespace:   namespace.Name,
+			accessType:  authorizer.MemberTypeObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, userNotFound.Username).Return(nil, Err).Once()
 			},
@@ -409,6 +413,7 @@ func TestAddUserNamespace(t *testing.T) {
 			description: "Fails to find the namespace",
 			username:    user.Username,
 			namespace:   namespaceNotFound.Name,
+			accessType:  authorizer.MemberTypeObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 				mock.On("NamespaceGetByName", ctx, namespaceNotFound.Name).Return(nil, Err).Once()
@@ -419,10 +424,11 @@ func TestAddUserNamespace(t *testing.T) {
 			description: "Successfully add user to the Namespace",
 			username:    user.Username,
 			namespace:   namespace.Name,
+			accessType:  authorizer.MemberTypeObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 				mock.On("NamespaceGetByName", ctx, namespace.Name).Return(namespace, nil).Once()
-				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user.ID).Return(namespace, nil).Once()
+				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user.ID, authorizer.MemberTypeObserver).Return(namespace, nil).Once()
 			},
 			expected: Expected{namespace, nil},
 		},
@@ -432,7 +438,7 @@ func TestAddUserNamespace(t *testing.T) {
 		test := ts
 		t.Run(test.description, func(t *testing.T) {
 			test.requiredMocks()
-			ns, err := s.NamespaceAddMember(test.username, test.namespace)
+			ns, err := s.NamespaceAddMember(test.username, test.namespace, test.accessType)
 			assert.Equal(t, test.expected, Expected{ns, err})
 		})
 	}
@@ -467,7 +473,7 @@ func TestDelUserNamespace(t *testing.T) {
 		Name:     "namespace",
 		Owner:    user.ID,
 		TenantID: "tenantID",
-		Members:  []interface{}{user.ID},
+		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -477,7 +483,7 @@ func TestDelUserNamespace(t *testing.T) {
 		Name:     "namespaceNotFound",
 		Owner:    user.ID,
 		TenantID: "tenantIDNotFound",
-		Members:  []interface{}{user.ID},
+		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -569,7 +575,7 @@ func TestDelNamespace(t *testing.T) {
 		Name:     "namespace",
 		Owner:    user.ID,
 		TenantID: "tenantID",
-		Members:  []interface{}{user.ID},
+		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -579,7 +585,7 @@ func TestDelNamespace(t *testing.T) {
 		Name:     "namespaceNotFound",
 		Owner:    user.ID,
 		TenantID: "tenantIDNotFound",
-		Members:  []interface{}{user.ID},
+		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},

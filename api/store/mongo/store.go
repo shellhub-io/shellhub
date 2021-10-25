@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	ErrWrongParamsType = errors.New("wrong parameters type")
-	ErrDuplicateID     = errors.New("user already member of this namespace")
-	ErrUserNotFound    = errors.New("user not found")
+	ErrWrongParamsType           = errors.New("wrong parameters type")
+	ErrNamespaceDuplicatedMember = errors.New("this member is already in this namespace")
+	ErrNamespaceMemberNotFound   = errors.New("this member does not exist in this namespace")
+	ErrUserNotFound              = errors.New("user not found")
 )
 
 type Store struct {

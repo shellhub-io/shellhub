@@ -6,6 +6,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -151,7 +152,7 @@ func TestNamespaceAddMember(t *testing.T) {
 	u, err := mongostore.UserGetByUsername(data.Context, "username")
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID, authorizer.MemberTypeObserver)
 	assert.NoError(t, err)
 }
 
@@ -201,7 +202,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 	u, err := mongostore.UserGetByUsername(data.Context, "username")
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID, "")
 	assert.NoError(t, err)
 
 	_, err = mongostore.NamespaceRemoveMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)

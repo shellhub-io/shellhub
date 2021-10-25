@@ -1,8 +1,9 @@
 #!/bin/sh
 
-[ $# -ne 2 ] && echo "Usage: $0 <username> <namespace>" && exit 1
+[ $# -ne 3 ] && echo "Usage: $0 <username> <namespace> <type>" && exit 1
 
 USERNAME=$1
 NAMESPACE=$2
+TYPE=$3
 
-docker-compose exec cli ./cli add-user-namespace $USERNAME $NAMESPACE
+docker-compose exec cli ./cli add-user-namespace $USERNAME $NAMESPACE $TYPE

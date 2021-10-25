@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -17,7 +17,7 @@ type Service interface {
 	UserDelete(username string) error
 	UserUpdate(username string, password string) error
 	NamespaceCreate(namespace, username, tenantID string) (*models.Namespace, error)
-	NamespaceAddMember(username string, namespace string) (*models.Namespace, error)
+	NamespaceAddMember(username string, namespace string, accessType string) (*models.Namespace, error)
 	NamespaceRemoveMember(username string, namespace string) (*models.Namespace, error)
 	NamespaceDelete(namespace string) error
 }
@@ -146,7 +146,7 @@ func (s *service) UserUpdate(username string, password string) error {
 	}
 	_, err := validator.ValidateStruct(passwordData)
 	if err != nil {
-		return ErrPasswordInvalid
+		return ErrUserPasswordInvalid
 	}
 
 	passwordData.Password = hashPassword(password)
@@ -177,7 +177,12 @@ func (s *service) NamespaceCreate(namespace, username, tenantID string) (*models
 		Name:     namespace,
 		Owner:    user.ID,
 		TenantID: tenantID,
-		Members:  []interface{}{user.ID},
+		Members: []models.Member{
+			{
+				ID:   user.ID,
+				Type: authorizer.MemberTypeOwner,
+			},
+		},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -196,7 +201,11 @@ func (s *service) NamespaceCreate(namespace, username, tenantID string) (*models
 	return ns, nil
 }
 
-func (s *service) NamespaceAddMember(username string, namespace string) (*models.Namespace, error) {
+func (s *service) NamespaceAddMember(username string, namespace string, accessType string) (*models.Namespace, error) {
+	if _, err := validator.ValidateStruct(models.Member{Username: username, Type: accessType}); err != nil {
+		return nil, ErrInvalidFormat
+	}
+
 	user, err := s.store.UserGetByUsername(context.Background(), username)
 	if err != nil {
 		return nil, ErrUserNotFound
@@ -207,7 +216,7 @@ func (s *service) NamespaceAddMember(username string, namespace string) (*models
 		return nil, ErrNamespaceNotFound
 	}
 
-	ns, err = s.store.NamespaceAddMember(context.Background(), ns.TenantID, user.ID)
+	ns, err = s.store.NamespaceAddMember(context.Background(), ns.TenantID, user.ID, accessType)
 	if err != nil {
 		return nil, ErrFailedNamespaceAddMember
 	}
@@ -216,17 +225,21 @@ func (s *service) NamespaceAddMember(username string, namespace string) (*models
 }
 
 func (s *service) NamespaceRemoveMember(username string, namespace string) (*models.Namespace, error) {
-	usr, err := s.store.UserGetByUsername(context.TODO(), username)
+	if _, err := validator.ValidateVar(username, "min=3,max=30,alphanum,ascii"); err != nil { // TODO Remove this static tag string.
+		return nil, ErrInvalidFormat
+	}
+
+	usr, err := s.store.UserGetByUsername(context.Background(), username)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
 
-	ns, err := s.store.NamespaceGetByName(context.TODO(), namespace)
+	ns, err := s.store.NamespaceGetByName(context.Background(), namespace)
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
 
-	ns, err = s.store.NamespaceRemoveMember(context.TODO(), ns.TenantID, usr.ID)
+	ns, err = s.store.NamespaceRemoveMember(context.Background(), ns.TenantID, usr.ID)
 	if err != nil {
 		return nil, ErrFailedNamespaceRemoveMember
 	}
@@ -240,7 +253,7 @@ func (s *service) NamespaceDelete(namespace string) error {
 		return ErrNamespaceNotFound
 	}
 
-	if err := s.store.NamespaceDelete(context.TODO(), ns.TenantID); err != nil {
+	if err := s.store.NamespaceDelete(context.Background(), ns.TenantID); err != nil {
 		return ErrFailedDeleteNamespace
 	}
 
