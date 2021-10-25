@@ -18,6 +18,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const StatusAccepted = "accepted"
+
 type DeviceService interface {
 	ListDevices(ctx context.Context, pagination paginator.Query, filter string, status string, sort string, order string) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
@@ -153,44 +155,56 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 		return ErrUnauthorized
 	}
 
+	validateStatus := map[string]bool{
+		"accepted": true,
+		"pending":  true,
+		"rejected": true,
+	}
+
+	if _, ok := validateStatus[status]; !ok {
+		return ErrBadRequest
+	}
+
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if err != nil {
 		return err
 	}
 
-	if status == "accepted" { //nolint:nestif
-		if device.Status == "accepted" {
-			return ErrBadRequest
-		}
+	if device.Status == StatusAccepted {
+		return ErrForbidden
+	}
 
-		sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
-		if err != nil && err != store.ErrNoDocuments {
+	if status != StatusAccepted {
+		return s.store.DeviceUpdateStatus(ctx, uid, status)
+	}
+
+	sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
+	if err != nil && err != store.ErrNoDocuments {
+		return err
+	}
+
+	if sameMacDev != nil && sameMacDev.UID != device.UID { //nolint:nestif
+		if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil {
+			return err
+		}
+		if err := s.store.DeviceDelete(ctx, models.UID(sameMacDev.UID)); err != nil {
+			return err
+		}
+		if err := s.store.DeviceRename(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
+			return err
+		}
+	} else {
+		ns, err := s.store.NamespaceGet(ctx, device.TenantID)
+		if err != nil {
 			return err
 		}
 
-		if sameMacDev != nil && sameMacDev.UID != device.UID {
-			if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil {
-				return err
-			}
-			if err := s.store.DeviceDelete(ctx, models.UID(sameMacDev.UID)); err != nil {
-				return err
-			}
-			if err := s.store.DeviceRename(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
-				return err
-			}
-		} else {
-			ns, err := s.store.NamespaceGet(ctx, device.TenantID)
-			if err != nil {
-				return err
-			}
+		if err := s.HandleReportUsage(ns, uid, true, device); err != nil {
+			return err
+		}
 
-			if err := s.HandleReportUsage(ns, uid, true, device); err != nil {
-				return err
-			}
-
-			if ns.MaxDevices > 0 && ns.MaxDevices <= ns.DevicesCount {
-				return ErrMaxDeviceCountReached
-			}
+		if ns.MaxDevices > 0 && ns.MaxDevices <= ns.DevicesCount {
+			return ErrMaxDeviceCountReached
 		}
 	}
 
