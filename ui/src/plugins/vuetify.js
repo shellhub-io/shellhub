@@ -9,9 +9,12 @@ import { fab } from '@fortawesome/free-brands-svg-icons';
 import Clipboard from 'v-clipboard';
 import Fragment from 'vue-fragment';
 import { StripePlugin } from '@vue-stripe/vue-stripe';
+import env from '@/env';
+
+Vue.use(env);
 
 const options = {
-  pk: process.env.VUE_APP_SHELLHUB_STRIPE_PUBLISHABLE_KEY,
+  pk: Vue.env.stripePublishableKey,
 };
 
 // import 'vuetify/dist/vuetify.min.css'
@@ -24,7 +27,7 @@ Vue.use(Vuetify);
 Vue.use(Clipboard);
 Vue.use(Fragment.Plugin);
 
-if (process.env.VUE_APP_SHELLHUB_BILLING === 'true') {
+if (Vue.env.billingEnable) {
   Vue.use(StripePlugin, options);
 }
 
