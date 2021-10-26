@@ -32,6 +32,9 @@ services:
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - /var/run/docker.sock:/var/run/docker.sock
       - ./.golangci.yaml:/.golangci.yaml
+    environment:
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
   ui:
     image: ui
     build:
