@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"context"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -24,8 +25,27 @@ var migration17 = migrate.Migration{
 		if err != nil {
 			return err
 		}
+
+		type NamespaceSettings struct {
+			SessionRecord bool `json:"session_record" bson:"session_record,omitempty"`
+		}
+
+		type Namespace struct {
+			Name         string             `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
+			Owner        string             `json:"owner"`
+			TenantID     string             `json:"tenant_id" bson:"tenant_id,omitempty"`
+			Members      []interface{}      `json:"members" bson:"members"`
+			Settings     *NamespaceSettings `json:"settings"`
+			Devices      int                `json:"devices" bson:",omitempty"`
+			Sessions     int                `json:"sessions" bson:",omitempty"`
+			MaxDevices   int                `json:"max_devices" bson:"max_devices"`
+			DevicesCount int                `json:"devices_count" bson:"devices_count,omitempty"`
+			CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
+		}
+
 		for cursor.Next(context.TODO()) {
-			namespace := new(models.Namespace)
+			namespace := Namespace{}
+
 			err = cursor.Decode(&namespace)
 			if err != nil {
 				return err
@@ -65,7 +85,7 @@ var migration17 = migrate.Migration{
 				return err
 			}
 
-			namespace := new(models.Namespace)
+			namespace := Namespace{}
 			if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": device.TenantID}).Decode(&namespace); err != nil {
 				if err != mongo.ErrNoDocuments {
 					return err
@@ -100,7 +120,7 @@ var migration17 = migrate.Migration{
 				return err
 			}
 
-			namespace := new(models.Namespace)
+			namespace := Namespace{}
 			if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": rule.TenantID}).Decode(&namespace); err != nil {
 				if err != mongo.ErrNoDocuments {
 					return err
@@ -127,7 +147,7 @@ var migration17 = migrate.Migration{
 			if err != nil {
 				return err
 			}
-			namespace := new(models.Namespace)
+			namespace := Namespace{}
 			if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": key.TenantID}).Decode(&namespace); err != nil {
 				if err != mongo.ErrNoDocuments {
 					return err

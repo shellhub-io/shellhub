@@ -3,9 +3,9 @@ package migrations
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -30,7 +30,24 @@ func TestMigration14(t *testing.T) {
 		ID:       "1",
 	}
 
-	ns := models.Namespace{
+	type NamespaceSettings struct {
+		SessionRecord bool `json:"session_record" bson:"session_record,omitempty"`
+	}
+
+	type Namespace struct {
+		Name         string             `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
+		Owner        string             `json:"owner"`
+		TenantID     string             `json:"tenant_id" bson:"tenant_id,omitempty"`
+		Members      []interface{}      `json:"members" bson:"members"`
+		Settings     *NamespaceSettings `json:"settings"`
+		Devices      int                `json:"devices" bson:",omitempty"`
+		Sessions     int                `json:"sessions" bson:",omitempty"`
+		MaxDevices   int                `json:"max_devices" bson:"max_devices"`
+		DevicesCount int                `json:"devices_count" bson:"devices_count,omitempty"`
+		CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
+	}
+
+	ns := Namespace{
 		Owner:    "1",
 		TenantID: "1",
 	}
