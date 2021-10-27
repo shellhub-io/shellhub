@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
@@ -25,12 +24,16 @@ func TestMigration18(t *testing.T) {
 		TenantID: "tenant",
 	}
 
-	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	migrations := GenerateMigrations()[:17]
+
+	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+	err := migrates.Up(migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	os.Setenv("SHELLHUB_ENTERPRISE", "true")
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[17:18]...)
+	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[17])
 	err = migrates.Up(migrate.AllAvailable)
 	assert.NoError(t, err)
 
