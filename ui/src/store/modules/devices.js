@@ -15,7 +15,9 @@ export default {
     status: '',
     sortStatusField: null,
     sortStatusString: '',
-    deviceWarning: false,
+    deviceChooserStatus: false,
+    devicesForUserToChoose: [],
+    numberdevicesForUserToChoose: 0,
     devicesSelected: [],
   },
 
@@ -28,7 +30,9 @@ export default {
     getFilter: (state) => state.filter,
     getStatus: (state) => state.status,
     getFirstPending: (state) => state.device,
-    getDeviceWarning: (state) => state.deviceWarning,
+    getDeviceChooserStatus: (state) => state.deviceChooserStatus,
+    getDevicesForUserToChoose: (state) => state.devicesForUserToChoose,
+    getNumberForUserToChoose: (state) => state.numberdevicesForUserToChoose,
     getDevicesSelected: (state) => state.devicesSelected,
   },
 
@@ -65,8 +69,13 @@ export default {
       Vue.set(state, 'filter', filter);
     },
 
-    setDeviceWarning: (state, status) => {
-      Vue.set(state, 'deviceWarning', status);
+    setDeviceChooserStatus: (state, status) => {
+      Vue.set(state, 'deviceChooserStatus', status);
+    },
+
+    setDevicesForUserToChoose: (state, res) => {
+      Vue.set(state, 'devicesForUserToChoose', res.data);
+      Vue.set(state, 'numberdevicesForUserToChoose', parseInt(res.headers['x-total-count'], 10));
     },
 
     setDevicesSelected: (state, data) => {
@@ -80,6 +89,11 @@ export default {
 
     clearObjectDevice: (state) => {
       Vue.set(state, 'device', []);
+    },
+
+    clearListDevicesForUserToChoose: (state) => {
+      Vue.set(state, 'devicesForUserToChoose', []);
+      Vue.set(state, 'numberdevicesForUserToChoose', 0);
     },
   },
 
@@ -160,24 +174,42 @@ export default {
       }
     },
 
-    setDeviceWarning: async (context, status) => {
-      context.commit('setDeviceWarning', status);
+    setDeviceChooserStatus: async (context, status) => {
+      context.commit('setDeviceChooserStatus', status);
+    },
+
+    setDevicesForUserToChoose: async (context, data) => {
+      try {
+        const res = await apiDevice.fetchDevices(
+          data.perPage,
+          data.page,
+          data.filter,
+          data.status,
+          data.sortStatusField,
+          data.sortStatusString,
+        );
+        context.commit('setDevicesForUserToChoose', res);
+        context.commit('setPagePerpageFilter', data);
+      } catch (error) {
+        context.commit('clearListDevicesForUserToChoose');
+        throw error;
+      }
     },
 
     setDevicesSelected: (context, data) => {
       context.commit('setDevicesSelected', data);
     },
 
-    postDevicesChoice: async (context, data) => {
-      await apiBilling.postDevicesChoice(data);
+    postDevicesChooser: async (context, data) => {
+      await apiBilling.postDevicesChooser(data);
     },
 
     getDevicesMostUsed: async (context) => {
       try {
         const res = await apiBilling.getDevicesMostUsed();
-        context.commit('setDevices', res);
+        context.commit('setDevicesForUserToChoose', res);
       } catch (error) {
-        context.commit('clearListDevices');
+        context.commit('clearListDevicesForUserToChoose');
         throw error;
       }
     },

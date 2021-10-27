@@ -199,12 +199,12 @@ describe('SnackbarError', () => {
 
   ///////
   // In this case, the main objective is to change the message.
-  // For this test to work, the message type is changed to choice
+  // For this test to work, the message type is changed to choose
   // devices.
   ///////
 
   describe('Incorrect message type', () => {
-    typeMessage = 'deviceChoice';
+    typeMessage = 'deviceChooser';
     mainContent = '';
     message = 'You need to select 3 devices.';
 

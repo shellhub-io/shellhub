@@ -32,7 +32,7 @@ describe('BillingCancel', () => {
     },
     actions: {
       'billing/cancelSubscription': () => {},
-      'devices/setDeviceWarning': () => {},
+      'devices/setDeviceChooserStatus': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
       'snackbar/showSnackbarErrorAction': () => {},
     },

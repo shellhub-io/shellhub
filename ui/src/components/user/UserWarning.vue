@@ -1,8 +1,8 @@
 <template>
   <fragment>
-    <DeviceWarning
+    <DeviceChooser
       v-if="isBillingEnabled() && hasWarning"
-      data-test="deviceWarning-component"
+      data-test="deviceChooser-component"
     />
 
     <Welcome
@@ -24,7 +24,7 @@
 
 <script>
 
-import DeviceWarning from '@/components/device/DeviceWarning';
+import DeviceChooser from '@/components/device/DeviceChooser';
 import Welcome from '@/components/welcome/Welcome';
 import NamespaceInstructions from '@/components/app_bar/namespace/NamespaceInstructions';
 import BillingWarning from '@/components/billing/BillingWarning';
@@ -33,7 +33,7 @@ export default {
   name: 'AppLayout',
 
   components: {
-    DeviceWarning,
+    DeviceChooser,
     Welcome,
     NamespaceInstructions,
     BillingWarning,
@@ -56,7 +56,7 @@ export default {
     },
 
     hasWarning() {
-      return this.$store.getters['devices/getDeviceWarning'];
+      return this.$store.getters['devices/getDeviceChooserStatus'];
     },
 
     stats() {
@@ -123,7 +123,7 @@ export default {
     async billingWarning() {
       const status = this.$store.getters['stats/stats'].registered_devices > 3
         && !this.$store.getters['billing/active'];
-      await this.$store.dispatch('devices/setDeviceWarning', status);
+      await this.$store.dispatch('devices/setDeviceChooserStatus', status);
     },
 
     namespaceHasBeenShown(tenant) {

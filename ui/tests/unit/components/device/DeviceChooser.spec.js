@@ -1,28 +1,34 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
-import DeviceList from '@/components/device/DeviceList';
+import DeviceChooser from '@/components/device/DeviceChooser';
 
-describe('DeviceList', () => {
+describe('DeviceChooser', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
   localVue.use(Vuex);
 
   let wrapper;
 
-  const numberDevices = 2;
+  const dialog = false;
+  const deviceChooserStatus = false;
   const devicesSelected = [];
 
-  const pagination = {
-    groupBy: [],
-    groupDesc: [],
-    itemsPerPage: 10,
-    multiSort: false,
-    mustSort: false,
-    page: 1,
-    sortBy: [],
-    sortDesc: [],
-  };
+  const hostname = 'localhost';
+  const url = `http://${hostname}/settings/billing`;
+
+  const filter = [];
+
+  const items = [
+    {
+      title: 'Suggested Devices',
+      action: 'suggestedDevices',
+    },
+    {
+      title: 'All devices',
+      action: 'allDevices',
+    },
+  ];
 
   const devices = [
     {
@@ -63,42 +69,38 @@ describe('DeviceList', () => {
     },
   ];
 
-  // const devicesOffline = JSON.parse(JSON.stringify(devices));
-  // devicesOffline[1].online = false;
-
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      devices,
-      numberDevices,
+      deviceChooserStatus,
       devicesSelected,
+      filter,
+      devices,
     },
     getters: {
-      'devices/list': (state) => state.devices,
-      'devices/getNumberDevices': (state) => state.numberDevices,
+      'devices/getDeviceChooserStatus': (state) => state.deviceChooserStatus,
       'devices/getDevicesSelected': (state) => state.devicesSelected,
+      'devices/getFilter': (state) => state.filter,
+      'devices/list': (state) => state.devices,
     },
     actions: {
-      'devices/setDevicesSelected': () => {},
+      'stats/get': () => {},
       'devices/getDevicesMostUsed': () => {},
-      'devices/fetch': () => {},
-      'devices/resetListDevices': () => {},
-      'snackbar/showSnackbarCopy': () => {},
+      'devices/postDevicesChooser': () => {},
+      'devices/setDevicesForUserToChoose': () => {},
+      'devices/setDeviceChooserStatus': () => {},
+      'snackbar/showSnackbarDeviceChooser': () => {},
       'snackbar/showSnackbarErrorAssociation': () => {},
       'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
-  ///////
-  // In this case, it is tested when device is online.
-  ///////
-
-  describe('Suggested devices', () => {
+  describe('Dialog is closes', () => {
     beforeEach(() => {
-      wrapper = mount(DeviceList, {
+      wrapper = mount(DeviceChooser, {
         store,
         localVue,
-        stubs: ['fragment', 'router-link'],
+        stubs: ['fragment'],
         vuetify,
       });
     });
@@ -108,6 +110,7 @@ describe('DeviceList', () => {
     //////
 
     it('Is a Vue instance', () => {
+      document.body.setAttribute('data-app', true);
       expect(wrapper).toBeTruthy();
     });
     it('Renders the component', () => {
@@ -119,18 +122,21 @@ describe('DeviceList', () => {
     //////
 
     it('Compare data with default value', () => {
-      expect(wrapper.vm.hostname).toEqual('localhost');
-      expect(wrapper.vm.pagination).toEqual(pagination);
+      expect(wrapper.vm.hostname).toEqual(hostname);
+      expect(wrapper.vm.action).toEqual(items[0].action);
+      expect(wrapper.vm.items).toEqual(items);
+      expect(wrapper.vm.dialog).toEqual(dialog);
     });
     it('Process data in the computed', () => {
-      expect(wrapper.vm.getListDevices).toEqual(devices);
-      expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
+      expect(wrapper.vm.show).toEqual(false);
+      expect(wrapper.vm.disableTooltipOrButton).toEqual(false);
+      expect(wrapper.vm.equalThreeDevices).toEqual(false);
     });
     it('Process data in methods', () => {
-      Object.keys(devices).forEach((device) => {
-        const address = `${device.namespace}.${device.name}@localhost`;
-        expect(wrapper.vm.address(device)).toEqual(address);
-      });
+      expect(wrapper.vm.url()).toEqual(url);
+
+      wrapper.vm.close();
+      expect(wrapper.vm.show).toEqual(false);
     });
 
     //////
@@ -138,13 +144,12 @@ describe('DeviceList', () => {
     //////
 
     it('Renders the template with components', async () => {
-      expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="r-component"]').exists()).toEqual(false);
     });
     it('Renders the template with data', () => {
-      const dt = wrapper.find('[data-test="dataTable-field"]');
-      const dataTableProps = dt.vm.$options.propsData;
-
-      expect(dataTableProps.items).toHaveLength(numberDevices);
+      expect(wrapper.find('[data-test="deviceChooserStatus-dialog"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="accept-btn"]').exists()).toEqual(false);
     });
   });
 });

@@ -8,7 +8,7 @@ export default {
       deviceTagEdit: 'editing tag',
       deviceTagUpdate: 'updating tag',
       deviceTagDelete: 'deleting tag',
-      deviceChoice: 'select device',
+      deviceChooser: 'select device',
       sessionClose: 'closing session',
       sessionRemoveRecord: 'deleting recorded session',
       firewallRuleCreating: 'creating rule',

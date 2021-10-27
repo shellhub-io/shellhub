@@ -20,7 +20,7 @@ export default {
         deviceTagEdit: 'editing tag',
         deviceTagUpdate: 'updating tag',
         deviceTagDelete: 'deleting tag',
-        deviceChoice: 'select device',
+        deviceChooser: 'select device',
         sessionList: 'list session',
         sessionClose: 'close session',
         sessionPlay: 'play session',

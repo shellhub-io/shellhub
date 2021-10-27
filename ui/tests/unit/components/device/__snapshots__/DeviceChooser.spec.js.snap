@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeviceChooser Dialog is closes Renders the component 1`] = `
+<div role="dialog" class="v-dialog__container">
+  <!---->
+</div>
+`;

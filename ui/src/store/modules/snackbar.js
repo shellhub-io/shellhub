@@ -136,8 +136,8 @@ export default {
       context.commit('setSnackbarErrorIncorrect', data);
     },
 
-    showSnackbarDeviceChoice: (context) => {
-      const data = { typeMessage: 'deviceChoice', typeContent: '' };
+    showSnackbarDeviceChooserr: (context) => {
+      const data = { typeMessage: 'deviceChooser', typeContent: '' };
       context.commit('setSnackbarErrorAssociation', data);
     },
   },

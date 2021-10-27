@@ -48,19 +48,17 @@
 <script>
 
 import DeviceIcon from '@/components/device/DeviceIcon';
-import formatOrdering from '@/components/device/Device';
+import formatDeviceSort from '@/components/filter/object';
 import { lastSeen } from '@/components/filter/date';
 
 export default {
-  name: 'DeviceListChoice',
+  name: 'DeviceListChooser',
 
   components: {
     DeviceIcon,
   },
 
   filters: { lastSeen },
-
-  mixins: [formatOrdering],
 
   props: {
     action: {
@@ -98,11 +96,11 @@ export default {
 
   computed: {
     getListDevices() {
-      return this.$store.getters['devices/list'];
+      return this.$store.getters['devices/getDevicesForUserToChoose'];
     },
 
     getNumberDevices() {
-      return this.$store.getters['devices/getNumberDevices'];
+      return this.$store.getters['devices/getNumberForUserToChoose'];
     },
 
     selected: {
@@ -137,7 +135,7 @@ export default {
 
   methods: {
     async getDevices() {
-      const sortStatusMap = this.formatSortObject(
+      const sortStatusMap = formatDeviceSort(
         this.pagination.sortBy[0],
         this.pagination.sortDesc[0],
       );
@@ -152,7 +150,7 @@ export default {
       };
 
       try {
-        await this.$store.dispatch('devices/fetch', data);
+        await this.$store.dispatch('devices/setDevicesForUserToChoose', data);
       } catch (error) {
         if (error.response.status === 403) {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
