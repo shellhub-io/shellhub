@@ -41,13 +41,13 @@ func (_m *Service) AddNamespaceUser(ctx context.Context, tenantID string, userna
 	return r0, r1
 }
 
-// AuthDevice provides a mock function with given fields: ctx, req, remoteAdrr
-func (_m *Service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAdrr string) (*models.DeviceAuthResponse, error) {
-	ret := _m.Called(ctx, req, remoteAdrr)
+// AuthDevice provides a mock function with given fields: ctx, req, remoteAddr
+func (_m *Service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAddr string) (*models.DeviceAuthResponse, error) {
+	ret := _m.Called(ctx, req, remoteAddr)
 
 	var r0 *models.DeviceAuthResponse
 	if rf, ok := ret.Get(0).(func(context.Context, *models.DeviceAuthRequest, string) *models.DeviceAuthResponse); ok {
-		r0 = rf(ctx, req, remoteAdrr)
+		r0 = rf(ctx, req, remoteAddr)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.DeviceAuthResponse)
@@ -56,7 +56,7 @@ func (_m *Service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *models.DeviceAuthRequest, string) error); ok {
-		r1 = rf(ctx, req, remoteAdrr)
+		r1 = rf(ctx, req, remoteAddr)
 	} else {
 		r1 = ret.Error(1)
 	}
