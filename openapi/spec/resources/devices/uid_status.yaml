@@ -29,6 +29,8 @@ patch:
   responses:
     '200':
       $ref: ../../shared/responses/OkResponse.yaml
+    '400':
+      $ref: ../../shared/responses/BadRequestResponse.yaml
     '401':
       $ref: ../../shared/responses/UnauthorizedResponse.yaml
     '402':
