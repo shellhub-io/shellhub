@@ -2,7 +2,7 @@ import http from '@/store/helpers/http';
 
 export const subscritionPaymentMethod = async (data) => http().post('/billing/subscription', data);
 
-export const postDevicesChoice = async (data) => http().post('/billing/devices-choice', data);
+export const postDevicesChooser = async (data) => http().post('/billing/devices-choice', data);
 
 export const getSubscriptionInfo = async () => http().get('/billing/subscription');
 

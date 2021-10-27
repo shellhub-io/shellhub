@@ -12,7 +12,7 @@ describe('UserWarning', () => {
   const numberNamespaces = 0;
   const statusSpinner = false;
   const activeBilling = true;
-  const warning = false;
+  const DeviceChooserStatus = false;
 
   const namespace = {
     name: 'namespace',
@@ -43,12 +43,12 @@ describe('UserWarning', () => {
     'stats/stats': (state) => state.stats,
     'billing/active': (state) => !state.activeBilling,
     'namespaces/get': (state) => state.namespace,
-    'devices/getDeviceWarning': (state) => state.warning,
+    'devices/getDeviceChooserStatus': (state) => state.DeviceChooserStatus,
   };
 
   const actions = {
     'stats/get': () => {},
-    'devices/setDeviceWarning': () => {},
+    'devices/setDeviceChooserStatus': () => {},
     'auth/setShowWelcomeScreen': () => {},
     'namespaces/fetch': () => {},
     'snackbar/showSnackbarErrorAssociation': () => {},
@@ -58,7 +58,7 @@ describe('UserWarning', () => {
   const storeWithoutDevices = new Vuex.Store({
     namespaced: true,
     state: {
-      warning,
+      DeviceChooserStatus,
       numberNamespaces,
       statusSpinner,
       stats: statsWithoutDevices,
@@ -81,7 +81,7 @@ describe('UserWarning', () => {
     getters: {
       ...getters,
       'billing/active': (state) => state.active,
-      'devices/getDeviceWarning': (state) => !state.warning,
+      'devices/getDeviceChooserStatus': (state) => !state.DeviceChooserStatus,
     },
     actions,
   });
@@ -157,7 +157,7 @@ describe('UserWarning', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="deviceChooser-component"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="billingWarning-component"]').exists()).toBe(false);
@@ -227,7 +227,7 @@ describe('UserWarning', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="deviceChooser-component"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
     });
@@ -282,7 +282,7 @@ describe('UserWarning', () => {
     // Call actions
     //////
     it('Dispatches on mount', () => {
-      expect(storeWithDevicesInactive.dispatch).toHaveBeenCalledWith('devices/setDeviceWarning', true);
+      expect(storeWithDevicesInactive.dispatch).toHaveBeenCalledWith('devices/setDeviceChooserStatus', true);
     });
 
     ///////
@@ -307,7 +307,7 @@ describe('UserWarning', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="deviceChooser-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
     });
@@ -365,7 +365,7 @@ describe('UserWarning', () => {
     // Call actions
     //////
     it('Dispatches on mount', () => {
-      expect(storeWithDevicesActive.dispatch).toHaveBeenCalledWith('devices/setDeviceWarning', false);
+      expect(storeWithDevicesActive.dispatch).toHaveBeenCalledWith('devices/setDeviceChooserStatus', false);
     });
 
     ///////
@@ -390,7 +390,7 @@ describe('UserWarning', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="deviceWarning-component"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="deviceChooser-component"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
     });

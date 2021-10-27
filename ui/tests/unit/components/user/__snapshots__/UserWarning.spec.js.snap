@@ -11,7 +11,7 @@ exports[`UserWarning With devices and active billing Renders the component 1`] =
 
 exports[`UserWarning With devices and inactive billing Renders the component 1`] = `
 <fragment-stub>
-  <devicewarning-stub data-test="deviceWarning-component"></devicewarning-stub>
+  <devicechooser-stub data-test="deviceChooser-component"></devicechooser-stub>
   <welcome-stub data-test="welcome-component"></welcome-stub>
   <namespaceinstructions-stub data-test="namespaceInstructions-component"></namespaceinstructions-stub>
   <billingwarning-stub data-test="billingWarning-component"></billingwarning-stub>

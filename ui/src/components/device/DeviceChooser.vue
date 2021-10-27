@@ -1,99 +1,100 @@
 <template>
-  <fragment>
-    <v-dialog
-      v-model="show"
-      max-width="900"
-    >
-      <v-card data-test="deviceWarning-dialog">
-        <v-card-title class="headline grey lighten-2 text-center">
-          Update account or select three devices
-        </v-card-title>
+  <v-dialog
+    v-model="show"
+    max-width="900"
+  >
+    <v-card data-test="deviceChooser-dialog">
+      <v-card-title class="headline grey lighten-2 text-center">
+        Update account or select three devices
+      </v-card-title>
 
-        <v-card-text class="mt-4 pb-1">
-          <p>
-            You currently have no subscription to the
-            <a :href="url()">
-              premium plan
-            </a> and the free version is limited to 3 devices. To unlock access to all
-            devices, you can subscribe to the
-            <a :href="url()">
-              premium plan
-            </a>. Case, If you want to continue on the free plan, you need to select three devices.
-          </p>
-        </v-card-text>
+      <v-card-text class="mt-4 pb-1">
+        <p>
+          You currently have no subscription to the
+          <a :href="url()">
+            premium plan
+          </a> and the free version is limited to 3 devices. To unlock access to all
+          devices, you can subscribe to the
+          <a :href="url()">
+            premium plan
+          </a>. Case, If you want to continue on the free plan, you need to select three devices.
+        </p>
+      </v-card-text>
 
-        <v-app-bar
-          flat
-          color="transparent"
-          class="mt-0"
+      <v-app-bar
+        flat
+        color="transparent"
+        class="mt-0"
+      >
+        <v-tabs
+          centered
         >
-          <v-tabs
-            centered
+          <v-tab
+            v-for="item in items"
+            :key="item.title"
+            :data-test="item.title+'-tab'"
+            @click="doAction(item.action)"
           >
-            <v-tab
-              v-for="item in items"
-              :key="item.title"
-              :data-test="item.title+'-tab'"
-              @click="doAction(item.action)"
-            >
-              {{ item.title }}
-            </v-tab>
-          </v-tabs>
-        </v-app-bar>
+            {{ item.title }}
+          </v-tab>
+        </v-tabs>
+      </v-app-bar>
 
-        <v-card-text class="mb-2 pb-0">
-          <DeviceListChoice
-            :action="action"
-            data-test="deviceListChoice-component"
-          />
-        </v-card-text>
+      <v-card-text class="mb-2 pb-0">
+        <DeviceListChooser
+          :action="action"
+          data-test="deviceListChooser-component"
+        />
+      </v-card-text>
 
-        <v-card-actions>
-          <v-spacer />
+      <v-card-actions>
+        <v-spacer />
 
-          <v-btn
-            text
-            data-test="close-btn"
-            @click="close()"
-          >
-            Close
-          </v-btn>
+        <v-btn
+          text
+          data-test="close-btn"
+          @click="close()"
+        >
+          Close
+        </v-btn>
 
-          <v-tooltip
-            :disabled="!showTooltip"
-            top
-          >
-            <template #activator="{ on, attrs }">
+        <v-tooltip
+          :disabled="!disableTooltipOrButton"
+          top
+        >
+          <template #activator="{ on, attrs }">
+            <span v-on="on">
               <v-btn
                 text
                 v-bind="attrs"
                 data-test="accept-btn"
+                :disabled="disableTooltipOrButton"
                 v-on="on"
                 @click="accept()"
               >
                 Accept
               </v-btn>
-            </template>
-
-            <span>
-              You need to select 3 devices.
             </span>
-          </v-tooltip>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </fragment>
+          </template>
+
+          <span>
+            You need to select 3 devices.
+          </span>
+        </v-tooltip>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
 
-import DeviceListChoice from '@/components/device/DeviceListChoice';
+import DeviceListChooser from '@/components/device/DeviceListChooser';
 
 export default {
-  name: 'DeviceWarning',
+  name: 'DeviceChooser',
 
   components: {
-    DeviceListChoice,
+    DeviceListChooser,
   },
 
   data() {
@@ -117,15 +118,15 @@ export default {
   computed: {
     show: {
       get() {
-        return this.$store.getters['devices/getDeviceWarning'];
+        return this.$store.getters['devices/getDeviceChooserStatus'];
       },
 
       set(value) {
-        this.$store.dispatch('devices/setDeviceWarning', value);
+        this.$store.dispatch('devices/setDeviceChooserStatus', value);
       },
     },
 
-    showTooltip() {
+    disableTooltipOrButton() {
       return this.$store.getters['devices/getDevicesSelected'].length !== 3
         && this.action !== this.items[0].action;
     },
@@ -160,7 +161,7 @@ export default {
         };
 
         try {
-          await this.$store.dispatch('devices/fetch', data);
+          await this.$store.dispatch('devices/setDevicesForUserToChoose', data);
         } catch (error) {
           if (error.response.status === 403) {
             this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
@@ -175,11 +176,11 @@ export default {
 
     accept() {
       if (this.action === this.items[0].action) {
-        this.sendDevicesChoice(this.$store.getters['devices/list']);
+        this.sendDevicesChoice(this.$store.getters['devices/getDevicesForUserToChoose']);
       } else if (this.$store.getters['devices/getDevicesSelected'].length === 3) {
         this.sendDevicesChoice(this.$store.getters['devices/getDevicesSelected']);
       } else {
-        this.$store.dispatch('snackbar/showSnackbarDeviceChoice');
+        this.$store.dispatch('snackbar/showSnackbarDeviceChooser');
       }
     },
 
@@ -190,12 +191,14 @@ export default {
       });
 
       try {
-        await this.$store.dispatch('devices/postDevicesChoice', { choices });
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceChoice);
+        await this.$store.dispatch('devices/postDevicesChooser', { choices });
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceChoose);
+
+        this.$store.dispatch('devices/refresh');
 
         this.close();
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceChoice);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceChooser);
       }
 
       this.$store.dispatch('stats/get');
@@ -206,7 +209,7 @@ export default {
     },
 
     close() {
-      this.$store.dispatch('devices/setDeviceWarning', false);
+      this.$store.dispatch('devices/setDeviceChooserStatus', false);
     },
   },
 };

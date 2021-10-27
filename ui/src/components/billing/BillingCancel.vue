@@ -76,7 +76,7 @@ export default {
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.cancelSubscription);
 
         this.$emit('update');
-        this.$store.dispatch('devices/setDeviceWarning', this.$store.getters['stats/stats'].registered_devices > 3);
+        this.$store.dispatch('devices/setDeviceChooserStatus', this.$store.getters['stats/stats'].registered_devices > 3);
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.cancelSubscription);
       }
