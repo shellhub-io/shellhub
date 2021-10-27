@@ -23,7 +23,7 @@ import (
 )
 
 type AuthService interface {
-	AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAdrr string) (*models.DeviceAuthResponse, error)
+	AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAddr string) (*models.DeviceAuthResponse, error)
 	AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error)
@@ -32,7 +32,7 @@ type AuthService interface {
 	PublicKey() *rsa.PublicKey
 }
 
-func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAdrr string) (*models.DeviceAuthResponse, error) {
+func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAddr string) (*models.DeviceAuthResponse, error) {
 	uid := sha256.Sum256(structhash.Dump(req.DeviceAuth, 1))
 
 	key := hex.EncodeToString(uid[:])
@@ -71,7 +71,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 		PublicKey:  req.PublicKey,
 		TenantID:   req.TenantID,
 		LastSeen:   clock.Now(),
-		RemoteAddr: remoteAdrr,
+		RemoteAddr: remoteAddr,
 	}
 
 	// The order here is critical as we don't want to register devices if the tenant id is invalid
