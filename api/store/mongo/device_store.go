@@ -356,7 +356,7 @@ func (s *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position 
 	return err
 }
 
-func (s *Store) DeviceChoice(ctx context.Context, tenantID string, chosen []string) error {
+func (s *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []string) error {
 	filter := bson.M{
 		"status":    "accepted",
 		"tenant_id": tenantID,
