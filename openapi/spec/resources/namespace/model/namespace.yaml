@@ -12,6 +12,23 @@ properties:
   members:
     description: Namespace members
     type: object
+    properties:
+      id:
+        required: false
+        description: User ID
+        type: string
+      username:
+        required: false
+        description: User name
+        type: string
+      type:
+        required: true
+        description: User Type
+        enum:
+        - observer
+        - operator
+        - admin
+        - owner
   settings:
     description: Namespace settings
     type: object
