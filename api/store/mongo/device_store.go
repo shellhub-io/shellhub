@@ -276,6 +276,22 @@ func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.
 			},
 		},
 		{
+			"$lookup": bson.M{
+				"from":         "namespaces",
+				"localField":   "tenant_id",
+				"foreignField": "tenant_id",
+				"as":           "namespace",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"namespace": "$namespace.name",
+			},
+		},
+		{
+			"$unwind": "$namespace",
+		},
+		{
 			"$project": bson.M{
 				"sessions":      0,
 				"sessionsCount": 0,

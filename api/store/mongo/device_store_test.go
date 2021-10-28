@@ -251,6 +251,7 @@ func TestDeviceListByUsage(t *testing.T) {
 
 	for i, device := range devices {
 		assert.Equal(t, expectedUIDs[i], device.UID)
+		assert.Equal(t, "namespace", device.Namespace)
 	}
 }
 
