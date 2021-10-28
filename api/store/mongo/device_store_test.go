@@ -255,7 +255,7 @@ func TestDeviceListByUsage(t *testing.T) {
 	}
 }
 
-func TestDeviceChoice(t *testing.T) {
+func TestDeviceChooser(t *testing.T) {
 	data := initData()
 
 	db := dbtest.DBServer{}
@@ -285,7 +285,7 @@ func TestDeviceChoice(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("devices").InsertMany(data.Context, devicesInterfaces)
 	assert.NoError(t, err)
 
-	err = mongostore.DeviceChoice(data.Context, data.Namespace.TenantID, []string{"uid1", "uid2", "uid5"})
+	err = mongostore.DeviceChooser(data.Context, data.Namespace.TenantID, []string{"uid1", "uid2", "uid5"})
 	assert.NoError(t, err)
 
 	devices, _, err = mongostore.DeviceList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")

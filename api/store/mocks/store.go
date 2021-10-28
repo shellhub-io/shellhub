@@ -104,8 +104,8 @@ func (_m *Store) BillingUpdatePaymentFailed(ctx context.Context, subscriptionID 
 	return r0, r1
 }
 
-// DeviceChoice provides a mock function with given fields: ctx, tenantID, chosen
-func (_m *Store) DeviceChoice(ctx context.Context, tenantID string, chosen []string) error {
+// DeviceChooser provides a mock function with given fields: ctx, tenantID, chosen
+func (_m *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []string) error {
 	ret := _m.Called(ctx, tenantID, chosen)
 
 	var r0 error
