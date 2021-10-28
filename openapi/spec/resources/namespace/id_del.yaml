@@ -1,16 +1,15 @@
-#// TODO Some responses here are not correct because it return a string instead a JSON object. Check on nsadm.go on routes.
 patch:
-  summary: Delete user from namespace.
-  description: Delete a user from a namespace.
+  summary: Delete a user from a namespace
+  description: Delete a user from a namespace
   tags:
     - namespace
   security:
     - Auth: []
   parameters:
     - name: id
-      description: Namespace  ID
+      description: Namespace ID
       schema:
-        type: integer
+        type: string
       in: path
   requestBody:
     content:
@@ -19,7 +18,7 @@ patch:
           type: object
           properties:
             username:
-              description: Namespace username
+              description: User name
               type: string
   responses:
     '200':
@@ -28,12 +27,13 @@ patch:
         application/json:
           schema:
             $ref: model/namespace.yaml
+    '400':
+      $ref: ../../shared/responses/BadRequestResponse.yaml
     '401':
       $ref: ../../shared/responses/UnauthorizedResponse.yaml
     '403':
       $ref: ../../shared/responses/ForbiddenResponse.yaml
     '404':
-#      // TODO This response is not a JSON, just a string with not found status
       $ref: ../../shared/responses/NotFoundResponse.yaml
     '409':
       $ref: ../../shared/responses/ConflictResponse.yaml
