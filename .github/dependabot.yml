@@ -47,6 +47,7 @@ updates:
     - dependency-name: "vue-fragment"
     - dependency-name: "sass-loader"
     - dependency-name: "sass"
+    - dependency-name: "stylus-loader"
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
