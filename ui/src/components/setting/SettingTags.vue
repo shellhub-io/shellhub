@@ -28,7 +28,7 @@
 import TagList from '@/components/setting/tag/TagList';
 
 export default {
-  name: 'SettingsTags',
+  name: 'SettingsTagsComponent',
 
   components: {
     TagList,

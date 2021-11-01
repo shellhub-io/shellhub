@@ -13,7 +13,7 @@
 <script>
 
 export default {
-  name: 'SnackbarCopy',
+  name: 'SnackbarCopyComponent',
 
   props: {
     mainContent: {

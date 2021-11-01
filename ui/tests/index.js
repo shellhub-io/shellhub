@@ -8,7 +8,7 @@ import {
 
 import Snackbar from '@/components/snackbar/Snackbar';
 
-Vue.component('Snackbar', Snackbar);
+Vue.component('SnackbarComponent', Snackbar);
 Vue.component('ValidationObserver', ValidationObserver);
 Vue.component('ValidationProvider', ValidationProvider);
 

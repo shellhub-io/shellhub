@@ -89,7 +89,7 @@ import {
 } from 'vee-validate';
 
 export default {
-  name: 'DeviceRename',
+  name: 'DeviceRenameComponent',
 
   components: {
     ValidationProvider,

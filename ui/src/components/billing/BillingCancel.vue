@@ -52,7 +52,7 @@
 import formatCurrency from '@/components/filter/currency';
 
 export default {
-  name: 'BillingWarning',
+  name: 'BillingCancelComponent',
 
   filters: { formatCurrency },
 

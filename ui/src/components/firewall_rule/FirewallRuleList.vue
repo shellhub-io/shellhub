@@ -73,7 +73,7 @@ import FirewallRuleEdit from '@/components/firewall_rule/FirewallRuleFormDialog'
 import FirewallRuleDelete from '@/components/firewall_rule/FirewallRuleDelete';
 
 export default {
-  name: 'FirewallRuleList',
+  name: 'FirewallRuleListComponent',
 
   components: {
     FirewallRuleDelete,

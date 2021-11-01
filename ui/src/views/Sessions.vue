@@ -9,7 +9,7 @@
 import Session from '@/components/session/Session';
 
 export default {
-  name: 'Sessions',
+  name: 'SessionsView',
 
   components: {
     Session,

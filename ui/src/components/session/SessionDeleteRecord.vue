@@ -66,7 +66,7 @@
 <script>
 
 export default {
-  name: 'SessionDeleteRecord',
+  name: 'SessionDeleteRecordComponent',
 
   props: {
     uid: {

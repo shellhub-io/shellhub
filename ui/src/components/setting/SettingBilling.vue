@@ -222,7 +222,7 @@ import { formatDateWithoutDayAndHours } from '@/components/filter/date';
 import formatCurrency from '@/components/filter/currency';
 
 export default {
-  name: 'SettingBilling',
+  name: 'SettingBillingComponent',
 
   components: {
     SettingOwnerInfo,

@@ -112,7 +112,7 @@ import {
 } from 'vee-validate';
 
 export default {
-  name: 'ForgotPassword',
+  name: 'ForgotPasswordView',
 
   components: {
     ValidationProvider,

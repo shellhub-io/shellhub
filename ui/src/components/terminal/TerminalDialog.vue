@@ -161,7 +161,7 @@ import RSAKey from 'node-rsa';
 import { parsePrivateKey } from '@/sshpk';
 
 export default {
-  name: 'TerminalDialog',
+  name: 'TerminalDialogComponent',
 
   props: {
     uid: {

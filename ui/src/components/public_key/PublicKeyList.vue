@@ -57,7 +57,7 @@ import PublicKeyFormDialog from '@/components/public_key/KeyFormDialog';
 import PublicKeyDelete from '@/components/public_key/KeyDelete';
 
 export default {
-  name: 'PublickeyList',
+  name: 'PublickeyListComponent',
 
   components: {
     PublicKeyFormDialog,

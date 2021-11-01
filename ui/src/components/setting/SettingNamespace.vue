@@ -276,7 +276,7 @@ import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
 import SettingOwnerInfo from '@/components/setting/SettingOwnerInfo';
 
 export default {
-  name: 'SettingNamespace',
+  name: 'SettingNamespaceComponent',
 
   components: {
     ValidationProvider,

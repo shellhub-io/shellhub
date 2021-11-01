@@ -21,6 +21,8 @@
 <script>
 
 export default {
+  name: 'SettingOwnerInfoComponent',
+
   props: {
     isOwner: {
       type: Boolean,

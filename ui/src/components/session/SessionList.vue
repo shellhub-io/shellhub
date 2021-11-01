@@ -134,7 +134,7 @@ import SessionPlay from '@/components/session/SessionPlay';
 import { formatDate, lastSeen } from '@/components/filter/date';
 
 export default {
-  name: 'SessionList',
+  name: 'SessionListComponent',
 
   components: {
     SessionClose,

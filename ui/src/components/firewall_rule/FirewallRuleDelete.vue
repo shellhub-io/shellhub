@@ -68,7 +68,7 @@
 <script>
 
 export default {
-  name: 'FirewallRuleDelete',
+  name: 'FirewallRuleDeleteComponent',
 
   props: {
     id: {

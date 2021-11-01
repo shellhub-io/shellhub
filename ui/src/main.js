@@ -15,7 +15,7 @@ import vuetify from './plugins/vuetify';
 
 Vue.config.productionTip = false;
 
-Vue.component('Snackbar', Snackbar);
+Vue.component('SnackbarComponent', Snackbar);
 
 Vue.use(require('vue-moment'));
 

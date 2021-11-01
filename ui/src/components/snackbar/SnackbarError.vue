@@ -16,7 +16,7 @@
 <script>
 
 export default {
-  name: 'SnackbarError',
+  name: 'SnackbarErrorComponent',
 
   props: {
     typeMessage: {

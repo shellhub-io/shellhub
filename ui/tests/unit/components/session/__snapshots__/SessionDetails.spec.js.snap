@@ -12,7 +12,7 @@ exports[`SessionDetails Recorded is false and device is offline Renders the comp
   <v-card-stub loaderheight="4" tag="div" class="mt-2">
     <v-toolbar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="">
       <v-toolbar-title-stub>
-        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active a year ago</span></v-tooltip-stub>
+        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active a year ago</span></v-tooltip-stub>
 
       </v-toolbar-title-stub>
       <v-spacer-stub></v-spacer-stub>
@@ -42,7 +42,7 @@ exports[`SessionDetails Recorded is false and device is offline Renders the comp
         <div class="overline">
           Authenticated
         </div>
-        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>User has been authenticated</span></v-tooltip-stub>
+        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>User has been authenticated</span></v-tooltip-stub>
       </div>
       <div class="mt-2">
         <div class="overline">
@@ -134,7 +134,7 @@ exports[`SessionDetails Recorded is false and device is online Renders the compo
         <div class="overline">
           Authenticated
         </div>
-        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>User has been authenticated</span></v-tooltip-stub>
+        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>User has been authenticated</span></v-tooltip-stub>
       </div>
       <div class="mt-2">
         <div class="overline">
@@ -226,7 +226,7 @@ exports[`SessionDetails Recorded is true and device is online Renders the compon
         <div class="overline">
           Authenticated
         </div>
-        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>User has been authenticated</span></v-tooltip-stub>
+        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>User has been authenticated</span></v-tooltip-stub>
       </div>
       <div class="mt-2">
         <div class="overline">

@@ -48,7 +48,7 @@
 <script>
 
 export default {
-  name: 'BillingWarning',
+  name: 'BillingWarningComponent',
 
   data() {
     return {

@@ -82,7 +82,7 @@
 import capitalizeFirstLetter from '@/components/filter/string';
 
 export default {
-  name: 'BillingDialogPaymentMethod',
+  name: 'BillingDialogPaymentMethodComponent',
 
   filters: { capitalizeFirstLetter },
 

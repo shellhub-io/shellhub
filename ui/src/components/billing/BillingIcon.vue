@@ -19,7 +19,7 @@
 <script>
 
 export default {
-  name: 'BillingIcon',
+  name: 'BillingIconComponent',
 
   props: {
     iconName: {

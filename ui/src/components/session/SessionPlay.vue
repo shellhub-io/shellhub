@@ -149,7 +149,7 @@ import 'moment-duration-format';
 import 'xterm/css/xterm.css';
 
 export default {
-  name: 'SessionPlay',
+  name: 'SessionPlayComponent',
 
   props: {
     uid: {

@@ -7,7 +7,7 @@
 <script>
 
 export default {
-  name: 'SimpleLayout',
+  name: 'SimpleLayoutComponent',
 };
 
 </script>

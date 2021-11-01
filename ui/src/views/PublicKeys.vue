@@ -9,7 +9,7 @@
 import Publickey from '@/components/public_key/PublicKey';
 
 export default {
-  name: 'Publickeys',
+  name: 'PublickeysView',
 
   components: {
     Publickey,

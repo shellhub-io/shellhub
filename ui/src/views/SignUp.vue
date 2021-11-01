@@ -177,7 +177,7 @@ import {
 import AccountCreated from '@/components/account/AccountCreated';
 
 export default {
-  name: 'SignUp',
+  name: 'SignUpView',
 
   components: {
     ValidationProvider,

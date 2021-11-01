@@ -63,7 +63,7 @@
 import formatCurrency from '@/components/filter/currency';
 
 export default {
-  name: 'NamespaceDelete',
+  name: 'NamespaceDeleteComponent',
 
   filters: { formatCurrency },
 

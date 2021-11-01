@@ -30,7 +30,7 @@ import NamespaceInstructions from '@/components/app_bar/namespace/NamespaceInstr
 import BillingWarning from '@/components/billing/BillingWarning';
 
 export default {
-  name: 'AppLayout',
+  name: 'AppLayoutComponent',
 
   components: {
     DeviceChooser,

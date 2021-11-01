@@ -70,7 +70,7 @@
 <script>
 
 export default {
-  name: 'TagDelete',
+  name: 'TagDeleteComponent',
 
   props: {
     tagName: {

@@ -162,7 +162,7 @@
 import NamespaceAdd from '@/components/app_bar/namespace/NamespaceAdd';
 
 export default {
-  name: 'NamespaceMenu',
+  name: 'NamespaceMenuComponent',
 
   components: {
     NamespaceAdd,

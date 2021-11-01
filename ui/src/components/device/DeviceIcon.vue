@@ -12,7 +12,7 @@
 <script>
 
 export default {
-  name: 'DeviceIcon',
+  name: 'DeviceIconComponent',
 
   props: {
     iconName: {

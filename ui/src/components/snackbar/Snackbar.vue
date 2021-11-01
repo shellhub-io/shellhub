@@ -24,7 +24,7 @@ import snackbarError from '@/components/snackbar/SnackbarError';
 import snackbarCopy from '@/components/snackbar/SnackbarCopy';
 
 export default {
-  name: 'Snackbar',
+  name: 'SnackbarComponent',
 
   components: {
     snackbarSuccess,

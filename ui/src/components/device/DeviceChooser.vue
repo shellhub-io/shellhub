@@ -91,7 +91,7 @@
 import DeviceListChooser from '@/components/device/DeviceListChooser';
 
 export default {
-  name: 'DeviceChooser',
+  name: 'DeviceChooserComponent',
 
   components: {
     DeviceListChooser,

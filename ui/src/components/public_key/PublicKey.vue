@@ -33,7 +33,7 @@ import PublicKeyCreate from '@/components/public_key/KeyFormDialog';
 import BoxMessagePublicKey from '@/components/box/BoxMessage';
 
 export default {
-  name: 'Publickey',
+  name: 'PublickeyComponent',
 
   components: {
     PublicKeyCreate,

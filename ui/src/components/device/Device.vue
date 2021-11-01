@@ -80,7 +80,7 @@ import DeviceAdd from '@/components/device/DeviceAdd';
 import BoxMessageDevice from '@/components/box/BoxMessage';
 
 export default {
-  name: 'DeviceList',
+  name: 'DeviceListComponent',
 
   components: {
     DeviceAdd,

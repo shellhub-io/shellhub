@@ -60,7 +60,7 @@ import DeviceActionButton from '@/components/device/DeviceActionButton';
 import formatDeviceSort from '@/components/filter/object';
 
 export default {
-  name: 'DeviceList',
+  name: 'DeviceListComponent',
 
   components: {
     DeviceIcon,

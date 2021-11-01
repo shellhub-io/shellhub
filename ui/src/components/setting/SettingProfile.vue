@@ -241,7 +241,7 @@ import {
 } from 'vee-validate';
 
 export default {
-  name: 'SettingProfile',
+  name: 'SettingProfileComponent',
 
   components: {
     ValidationProvider,

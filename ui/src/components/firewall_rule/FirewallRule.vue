@@ -48,7 +48,7 @@ import FirewallRuleCreate from '@/components/firewall_rule/FirewallRuleFormDialo
 import BoxMessageFirewall from '@/components/box/BoxMessage';
 
 export default {
-  name: 'FirewallRule',
+  name: 'FirewallRuleComponent',
 
   components: {
     FirewallRuleCreate,

@@ -60,7 +60,7 @@ import AppBar from '@/components/app_bar/AppBar';
 import UserWarning from '@/components/user/UserWarning';
 
 export default {
-  name: 'AppLayout',
+  name: 'AppLayoutComponent',
 
   components: {
     AppBar,

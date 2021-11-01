@@ -72,7 +72,7 @@
 import NamespaceAdd from '@/components/app_bar/namespace/NamespaceAdd';
 
 export default {
-  name: 'NamespaceInstructions',
+  name: 'NamespaceInstructionsComponent',
 
   components: {
     NamespaceAdd,

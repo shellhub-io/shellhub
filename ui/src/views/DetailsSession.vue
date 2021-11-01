@@ -9,7 +9,7 @@
 import SessionDetails from '@/components/session/SessionDetails';
 
 export default {
-  name: 'DetailsSessiom',
+  name: 'DetailsSessionView',
 
   components: {
     SessionDetails,
