@@ -125,11 +125,12 @@ export default {
     };
   },
 
-  created() {
-    this.$store.dispatch('layout/setLayout', 'simpleLayout');
-
+  async created() {
     if (this.$route.query.token) {
-      this.$store.dispatch('auth/logout');
+      this.$store.dispatch('layout/setLayout', 'simpleLayout');
+
+      await this.$store.dispatch('auth/logout');
+      await this.$store.dispatch('auth/loginToken', this.$route.query.token);
 
       this.$store.dispatch('auth/loginToken', this.$route.query.token).then(() => {
         this.$store.dispatch('layout/setLayout', 'appLayout');
@@ -147,13 +148,12 @@ export default {
             password: this.password,
           });
 
-        this.$store.dispatch('layout/setLayout', 'appLayout');
-
         if (this.$route.query.redirect) {
-          this.$router.push(this.$route.query.redirect);
+          await this.$router.push(this.$route.query.redirect);
         } else {
-          this.$router.push('/');
+          await this.$router.push('/');
         }
+        this.$store.dispatch('layout/setLayout', 'appLayout');
       } catch (error) {
         switch (true) {
         case (error.response.status === 401): {
