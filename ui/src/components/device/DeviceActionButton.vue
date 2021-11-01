@@ -83,7 +83,7 @@
 <script>
 
 export default {
-  name: 'DeviceActionButton',
+  name: 'DeviceActionButtonComponent',
 
   props: {
     uid: {

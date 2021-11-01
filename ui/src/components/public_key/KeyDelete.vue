@@ -70,7 +70,7 @@
 <script>
 
 export default {
-  name: 'KeyDelete',
+  name: 'KeyDeleteComponent',
 
   props: {
     fingerprint: {

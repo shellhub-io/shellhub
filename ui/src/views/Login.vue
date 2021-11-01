@@ -109,7 +109,7 @@
 import AccountCreated from '@/components/account/AccountCreated';
 
 export default {
-  name: 'Login',
+  name: 'LoginView',
 
   components: {
     AccountCreated,

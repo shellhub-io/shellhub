@@ -37,7 +37,7 @@
 <script>
 
 export default {
-  name: 'AccountCreated',
+  name: 'AccountCreatedComponent',
 
   props: {
     show: {

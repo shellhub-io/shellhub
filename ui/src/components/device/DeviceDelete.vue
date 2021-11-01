@@ -72,7 +72,7 @@
 <script>
 
 export default {
-  name: 'DeviceDelete',
+  name: 'DeviceDeleteComponent',
 
   props: {
     uid: {

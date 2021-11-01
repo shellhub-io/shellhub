@@ -37,7 +37,7 @@
 <script>
 
 export default {
-  name: 'WelcomeSecondScreen',
+  name: 'WelcomeSecondScreenComponent',
 
   props: {
     command: {

@@ -35,7 +35,7 @@ import TagFormDialog from '@/components/setting/tag/TagFormDialog';
 import TagDelete from '@/components/setting/tag/TagDelete';
 
 export default {
-  name: 'TagList',
+  name: 'TagListComponent',
 
   components: {
     TagFormDialog,

@@ -9,7 +9,7 @@
 import DeviceDetails from '@/components/device/DeviceDetails';
 
 export default {
-  name: 'DetailsDevice',
+  name: 'DetailsDeviceView',
 
   components: {
     DeviceDetails,

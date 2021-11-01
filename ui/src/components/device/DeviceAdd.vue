@@ -89,7 +89,7 @@
 <script>
 
 export default {
-  name: 'DeviceAdd',
+  name: 'DeviceAddComponent',
 
   props: {
     smallButton: {

@@ -102,7 +102,7 @@ import PrivateKeyDelete from '@/components/public_key/KeyDelete';
 import { parsePrivateKey } from '@/sshpk';
 
 export default {
-  name: 'SettingPrivateKeys',
+  name: 'SettingPrivateKeysComponent',
 
   components: {
     PrivateKeyFormDialog,

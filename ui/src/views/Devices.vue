@@ -9,7 +9,7 @@
 import DeviceList from '@/components/device/Device';
 
 export default {
-  name: 'Devices',
+  name: 'DevicesView',
 
   components: {
     DeviceList,

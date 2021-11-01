@@ -64,7 +64,7 @@ import {
 } from 'vee-validate';
 
 export default {
-  name: 'NamespaceAdd',
+  name: 'NamespaceAddComponent',
 
   components: {
     ValidationProvider,

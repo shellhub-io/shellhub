@@ -26,7 +26,7 @@
 import BoxMessageSession from '@/components/box/BoxMessage';
 
 export default {
-  name: 'Session',
+  name: 'SessionComponent',
 
   components: {
     BoxMessageSession,

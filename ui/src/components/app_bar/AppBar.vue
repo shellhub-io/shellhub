@@ -112,7 +112,7 @@ import NamespaceMenu from '@/components/app_bar/namespace/NamespaceMenu';
 import Notification from '@/components/app_bar/notification/Notification';
 
 export default {
-  name: 'AppBar',
+  name: 'AppBarComponent',
 
   components: {
     NamespaceMenu,

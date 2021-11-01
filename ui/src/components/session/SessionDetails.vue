@@ -95,8 +95,8 @@
           </div>
           <v-tooltip bottom>
             <template
+              v-if="session"
               #activator="{ on }"
-              :session="session"
             >
               <v-icon
                 v-if="session.authenticated"
@@ -195,7 +195,7 @@ import SessionDeleteRecord from '@/components/session/SessionDeleteRecord';
 import { formatDate, lastSeen } from '@/components/filter/date';
 
 export default {
-  name: 'SessionDetails',
+  name: 'SessionDetailsComponent',
 
   components: {
     SessionPlay,

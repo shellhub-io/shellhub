@@ -15,7 +15,7 @@
 <script>
 
 export default {
-  name: 'WelcomeFirstScreen',
+  name: 'WelcomeFirstScreenComponent',
 
   computed: {
     name() {

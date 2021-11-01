@@ -16,7 +16,7 @@
 <script>
 
 export default {
-  name: 'SnackbarSuccess',
+  name: 'SnackbarSuccessComponent',
 
   props: {
     typeMessage: {

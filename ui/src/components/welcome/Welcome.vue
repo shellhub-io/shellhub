@@ -173,7 +173,7 @@ import WelcomeThirdScreen from '@/components/welcome/WelcomeThirdScreen';
 import WelcomeFourthScreen from '@/components/welcome/WelcomeFourthScreen';
 
 export default {
-  name: 'Welcome',
+  name: 'WelcomeComponent',
 
   components: {
     WelcomeFirstScreen,

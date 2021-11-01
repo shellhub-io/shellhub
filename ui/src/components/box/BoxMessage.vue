@@ -78,7 +78,7 @@ import FirewallRuleEdit from '@/components/firewall_rule/FirewallRuleFormDialog'
 import PublicKeyCreate from '@/components/public_key/KeyFormDialog';
 
 export default {
-  name: 'BoxMessage',
+  name: 'BoxMessageComponent',
 
   components: {
     DeviceAdd,

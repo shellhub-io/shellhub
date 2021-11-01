@@ -216,7 +216,7 @@ import {
 } from 'vee-validate';
 
 export default {
-  name: 'FirewallRuleFormDialog',
+  name: 'FirewallRuleFormDialogComponent',
 
   components: {
     ValidationProvider,

@@ -181,7 +181,7 @@ import {
 } from 'vee-validate';
 
 export default {
-  name: 'KeyFormDialog',
+  name: 'KeyFormDialogComponent',
 
   components: {
     ValidationProvider,

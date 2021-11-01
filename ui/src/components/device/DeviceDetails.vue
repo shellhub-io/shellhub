@@ -168,7 +168,7 @@ import DeviceRename from '@/components/device/DeviceRename';
 import { formatDate, lastSeen } from '@/components/filter/date';
 
 export default {
-  name: 'DeviceDetails',
+  name: 'DeviceDetailsComponent',
 
   components: {
     TerminalDialog,

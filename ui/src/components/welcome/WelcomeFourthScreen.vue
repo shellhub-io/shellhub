@@ -34,7 +34,7 @@
 <script>
 
 export default {
-  name: 'WelcomeFourthScreen',
+  name: 'WelcomeFourthScreenComponent',
 };
 
 </script>

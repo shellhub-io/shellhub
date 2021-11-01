@@ -52,7 +52,7 @@ import formatDeviceSort from '@/components/filter/object';
 import { lastSeen } from '@/components/filter/date';
 
 export default {
-  name: 'DeviceListChooser',
+  name: 'DeviceListChooserComponent',
 
   components: {
     DeviceIcon,

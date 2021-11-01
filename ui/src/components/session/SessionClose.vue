@@ -68,7 +68,7 @@
 <script>
 
 export default {
-  name: 'SessionClose',
+  name: 'SessionCloseComponent',
 
   props: {
     uid: {

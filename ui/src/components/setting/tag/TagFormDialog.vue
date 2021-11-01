@@ -126,7 +126,7 @@ import {
 } from 'vee-validate';
 
 export default {
-  name: 'TagFormDialog',
+  name: 'TagFormDialogComponent',
 
   components: {
     ValidationProvider,

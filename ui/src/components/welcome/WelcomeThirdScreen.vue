@@ -61,7 +61,7 @@
 import DeviceIcon from '@/components/device/DeviceIcon';
 
 export default {
-  name: 'WelcomeThirdScreen',
+  name: 'WelcomeThirdScreenComponent',
 
   components: {
     DeviceIcon,

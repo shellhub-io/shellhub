@@ -79,7 +79,7 @@
 import DeviceAdd from '@/components/device/DeviceAdd';
 
 export default {
-  name: 'Dashboard',
+  name: 'DashboardView',
 
   components: {
     DeviceAdd,

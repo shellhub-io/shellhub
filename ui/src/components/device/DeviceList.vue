@@ -167,7 +167,7 @@ import { lastSeen } from '@/components/filter/date';
 import formatDeviceSort from '@/components/filter/object';
 
 export default {
-  name: 'DeviceList',
+  name: 'DeviceListComponent',
 
   components: {
     TerminalDialog,

@@ -19,7 +19,7 @@
 <script>
 
 export default {
-  name: 'MaxDevice',
+  name: 'MaxDeviceComponent',
 
   computed: {
     namespace() {

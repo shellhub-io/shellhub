@@ -57,7 +57,7 @@
 <script>
 
 export default {
-  name: 'AccountCreated',
+  name: 'AccountCreatedView',
 
   created() {
     this.validationAccount(this.$route.query);
