@@ -77,8 +77,10 @@ describe('NamespaceNewMember', () => {
     //////
 
     it('Renders the template with data', async () => {
-      expect(wrapper.find('[data-test="add-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="dialog-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="namespaceNewMember-dialog"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="add-btn"]').exists()).toEqual(false);
     });
   });
 
@@ -139,8 +141,10 @@ describe('NamespaceNewMember', () => {
       expect(validator.errors[0]).toBe('This field is required');
     });
     it('Renders the template with data', async () => {
-      expect(wrapper.find('[data-test="add-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="dialog-btn"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="namespaceNewMember-dialog"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="add-btn"]').exists()).toEqual(true);
     });
   });
 });

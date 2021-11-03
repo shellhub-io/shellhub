@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NamespaceNewMember Button Renders the component 1`] = `
-<fragment-stub><button type="button" class="ml-12 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+<fragment-stub><button type="button" class="ml-12 v-btn v-btn--outlined theme--light v-size--default" data-test="dialog-btn"><span class="v-btn__content">
     Add Member
   </span></button>
   <div role="dialog" class="v-dialog__container">
@@ -11,7 +11,7 @@ exports[`NamespaceNewMember Button Renders the component 1`] = `
 `;
 
 exports[`NamespaceNewMember Dialog Renders the component 1`] = `
-<fragment-stub><button type="button" class="ml-12 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+<fragment-stub><button type="button" class="ml-12 v-btn v-btn--outlined theme--light v-size--default" data-test="dialog-btn"><span class="v-btn__content">
     Add Member
   </span></button>
   <div role="dialog" class="v-dialog__container"></div>

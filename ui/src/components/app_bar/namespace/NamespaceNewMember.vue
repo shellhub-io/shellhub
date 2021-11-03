@@ -3,20 +3,22 @@
     <v-btn
       class="ml-12"
       outlined
-      data-test="add-btn"
+      data-test="dialog-btn"
       @click="dialog = !dialog"
     >
       Add Member
     </v-btn>
+
     <v-dialog
       v-model="dialog"
       max-width="450"
-      @click:outside="cancel"
+      @click:outside="close"
     >
       <v-card data-test="namespaceNewMember-dialog">
         <v-card-title class="headline grey lighten-2 text-center">
           Add member to Namespace
         </v-card-title>
+
         <ValidationObserver
           ref="obs"
           v-slot="{ passes }"
@@ -38,17 +40,21 @@
               />
             </ValidationProvider>
           </v-card-text>
+
           <v-card-actions>
             <v-spacer />
             <v-btn
               text
-              @click="cancel"
+              data-test="close-btn"
+              @click="close"
             >
               Close
             </v-btn>
+
             <v-btn
               color="primary"
               text
+              data-test="add-btn"
               @click="passes(addMember)"
             >
               Add
@@ -96,23 +102,15 @@ export default {
   },
 
   methods: {
-    cancel() {
-      this.dialog = false;
-      this.$refs.obs.reset();
-      this.username = '';
-    },
-
     async addMember() {
       try {
         await this.$store.dispatch('namespaces/addUser', {
           username: this.username,
           tenant_id: this.tenant,
         });
-        await this.$store.dispatch('namespaces/get', this.tenant);
-        this.dialog = false;
-        this.username = '';
+
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceNewMember);
-        this.$refs.obs.reset();
+        this.update();
       } catch (error) {
         if (error.response.status === 404) {
           this.$refs.obs.setErrors({
@@ -126,6 +124,17 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceNewMember);
         }
       }
+    },
+
+    update() {
+      this.$emit('update');
+      this.close();
+    },
+
+    close() {
+      this.dialog = false;
+      this.$refs.obs.reset();
+      this.username = '';
     },
   },
 };
