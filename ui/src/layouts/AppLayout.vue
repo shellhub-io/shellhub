@@ -39,8 +39,6 @@
       >
         <router-view :key="$route.fullPath" />
       </v-container>
-
-      <snackbar />
     </v-main>
 
     <v-overlay :value="hasSpinner">

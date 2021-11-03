@@ -51,7 +51,6 @@ exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
     <v-container-stub tag="div" fluid="true" class="pa-8">
       <router-view-stub name="default"></router-view-stub>
     </v-container-stub>
-    <snackbar-stub></snackbar-stub>
   </v-main-stub>
   <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
     <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
@@ -103,7 +102,6 @@ exports[`AppLayout Is not enterprise and has namespace Renders the component 1`]
     <v-container-stub tag="div" fluid="true" class="pa-8">
       <router-view-stub name="default"></router-view-stub>
     </v-container-stub>
-    <snackbar-stub></snackbar-stub>
   </v-main-stub>
   <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
     <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
@@ -120,7 +118,6 @@ exports[`AppLayout Is not enterprise and not has namespace Renders the component
     <v-container-stub tag="div" fluid="true" class="pa-8">
       <router-view-stub name="default"></router-view-stub>
     </v-container-stub>
-    <snackbar-stub></snackbar-stub>
   </v-main-stub>
   <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
     <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
