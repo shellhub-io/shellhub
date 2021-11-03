@@ -42,7 +42,7 @@ exports[`SettingNamespace Hosted version Renders the component 1`] = `
         <div class="spacer"></div>
         <div data-test="newMember-div">
           <div class="ml-auto col-md-auto col">
-            <fragment-stub><button type="button" class="ml-12 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+            <fragment-stub><button type="button" class="ml-12 v-btn v-btn--outlined theme--light v-size--default" data-test="dialog-btn"><span class="v-btn__content">
     Add Member
   </span></button>
               <div role="dialog" class="v-dialog__container">

@@ -130,7 +130,10 @@
                   md="auto"
                   class="ml-auto"
                 >
-                  <NamespaceNewMember :ns-tenant="tenant" />
+                  <NamespaceNewMember
+                    :ns-tenant="tenant"
+                    @update="refresh"
+                  />
                 </v-col>
               </div>
             </v-row>
@@ -326,6 +329,10 @@ export default {
   },
 
   methods: {
+    refresh() {
+      this.getNamespace();
+    },
+
     async editNamespace() {
       try {
         await this.$store.dispatch('namespaces/put', { id: this.tenant, name: this.name });
