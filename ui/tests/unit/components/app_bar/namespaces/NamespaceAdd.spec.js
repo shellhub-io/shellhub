@@ -95,7 +95,7 @@ describe('NamespaceAdd', () => {
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="namespaceAdd-card"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="namespace-text"]').exists()).toBe(false);
-      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="close-btn"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="add-btn"]').exists()).toBe(false);
     });
   });
@@ -215,7 +215,7 @@ describe('NamespaceAdd', () => {
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="namespaceAdd-card"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="namespace-text"]').element.value).toEqual('');
-      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="close-btn"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="add-btn"]').exists()).toBe(true);
     });
   });

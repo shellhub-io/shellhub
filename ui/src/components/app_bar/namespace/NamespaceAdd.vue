@@ -4,12 +4,13 @@
       <v-dialog
         v-model="showAddNamespace"
         max-width="450"
-        @click:outside="cancel"
+        @click:outside="update"
       >
         <v-card data-test="namespaceAdd-card">
           <v-card-title class="headline grey lighten-2 text-center">
             Enter Namespace
           </v-card-title>
+
           <ValidationObserver
             ref="obs"
             v-slot="{ passes }"
@@ -31,15 +32,17 @@
                 />
               </ValidationProvider>
             </v-card-text>
+
             <v-card-actions>
               <v-spacer />
               <v-btn
                 text
-                data-test="cancel-btn"
-                @click="cancel"
+                data-test="close-btn"
+                @click="update"
               >
                 Close
               </v-btn>
+
               <v-btn
                 color="primary"
                 text
@@ -103,13 +106,6 @@ export default {
   },
 
   methods: {
-    cancel() {
-      this.dialog = false;
-      this.$refs.obs.reset();
-      this.namespaceName = '';
-      this.$emit('update:show', false);
-    },
-
     async switchIn(tenant) {
       try {
         await this.$store.dispatch('namespaces/switchNamespace', {
@@ -128,13 +124,12 @@ export default {
         });
         if (this.$props.firstNamespace) {
           await this.switchIn(response.data.tenant_id);
+          this.close();
         } else {
           await this.$store.dispatch('namespaces/fetch');
-          this.$emit('update:show', false);
+          this.update();
         }
-        this.dialog = false;
-        this.namespaceName = '';
-        this.$refs.obs.reset();
+
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceCreating);
       } catch (error) {
         if (error.response.status === 400) {
@@ -149,6 +144,17 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceCreating);
         }
       }
+    },
+
+    update() {
+      this.$emit('update:show', false);
+      this.close();
+    },
+
+    close() {
+      this.dialog = false;
+      this.$refs.obs.reset();
+      this.namespaceName = '';
     },
   },
 };
