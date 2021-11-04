@@ -57,50 +57,105 @@ describe('Login', () => {
     },
   });
 
-  beforeEach(() => {
-    wrapper = mount(Login, {
-      store,
-      localVue,
-      router,
-      vuetify,
+  describe('Login screen', () => {
+    beforeEach(() => {
+      wrapper = mount(Login, {
+        store,
+        localVue,
+        router,
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.username).toEqual('');
+      expect(wrapper.vm.password).toEqual('');
+      expect(wrapper.vm.error).toEqual(false);
+      expect(wrapper.vm.showPassword).toEqual(false);
+      expect(wrapper.vm.showMessage).toEqual(false);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="accountCreated-component"]').exists()).toEqual(false);
+    });
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="username-text"]').element.value).toEqual('');
+      expect(wrapper.find('[data-test="password-text"]').element.value).toEqual('');
+      expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="unknownReason-card"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(false);
     });
   });
 
-  ///////
-  // Component Rendering
-  //////
+  describe('Login screen unknown reason', () => {
+    beforeEach(() => {
+      wrapper = mount(Login, {
+        store,
+        localVue,
+        router,
+        vuetify,
+      });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+      wrapper.setData({ showMessage: true });
+    });
 
-  ///////
-  // Data and Props checking
-  //////
+    ///////
+    // Component Rendering
+    //////
 
-  it('Compare data with default value', () => {
-    expect(wrapper.vm.username).toEqual('');
-    expect(wrapper.vm.password).toEqual('');
-    expect(wrapper.vm.error).toEqual(false);
-    expect(wrapper.vm.showPassword).toEqual(false);
-    expect(wrapper.vm.showMessage).toEqual(false);
-  });
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
 
-  //////
-  // HTML validation
-  //////
+    ///////
+    // Data and Props checking
+    //////
 
-  it('Renders the template with components', () => {
-    expect(wrapper.find('[data-test="accountCreated-component"]').exists()).toEqual(false);
-  });
-  it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="username-text"]').element.value).toEqual('');
-    expect(wrapper.find('[data-test="password-text"]').element.value).toEqual('');
-    expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(false);
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.username).toEqual('');
+      expect(wrapper.vm.password).toEqual('');
+      expect(wrapper.vm.error).toEqual(false);
+      expect(wrapper.vm.showPassword).toEqual(false);
+      expect(wrapper.vm.showMessage).toEqual(true);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="accountCreated-component"]').exists()).toEqual(false);
+    });
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="username-text"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="password-text"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="unknownReason-card"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(false);
+    });
   });
 });

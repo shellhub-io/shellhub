@@ -15,6 +15,7 @@ exports[`Login Account has been activated Renders the component 1`] = `
         </div>
       </div>
     </div>
+    <!---->
     <div class="elevation-0 v-card v-sheet theme--light transparent">
       <form novalidate="novalidate" class="v-form">
         <div class="v-card__text pb-0">
@@ -92,6 +93,7 @@ exports[`Login Account has not been activated Renders the component 1`] = `
         </div>
       </div>
     </div>
+    <!---->
     <!---->
     <fragment-stub data-test="accountCreated-component">
       <div class="elevation-0 v-card v-sheet theme--light transparent" data-test="accountCreated-card">
