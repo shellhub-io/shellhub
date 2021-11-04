@@ -68,6 +68,8 @@ export default {
       try {
         await this.$store.dispatch('users/validationAccount', data);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.validationAccount);
+
+        setTimeout(() => this.$router.push({ path: '/login' }), 4000);
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.validationAccount);
       }
