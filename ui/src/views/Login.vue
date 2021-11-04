@@ -23,6 +23,23 @@
       </v-container>
 
       <v-card
+        v-if="showMessage && !$env.isCloud"
+        color="transparent"
+        class="elevation-0"
+        data-test="unknownReason-card"
+      >
+        <v-card-text>
+          <v-card-title class="justify-center">
+            Activate Account
+          </v-card-title>
+
+          <div class="d-flex align-center justify-center mb-6">
+            The account is not active for an unknown reason.
+          </div>
+        </v-card-text>
+      </v-card>
+
+      <v-card
         v-if="!showMessage"
         color="transparent"
         class="elevation-0"
