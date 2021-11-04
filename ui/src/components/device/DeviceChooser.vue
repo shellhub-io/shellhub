@@ -78,7 +78,7 @@
           </template>
 
           <span>
-            You need to select 3 devices.
+            You can select 3 devices or less.
           </span>
         </v-tooltip>
       </v-card-actions>
@@ -127,7 +127,8 @@ export default {
     },
 
     disableTooltipOrButton() {
-      return this.$store.getters['devices/getDevicesSelected'].length !== 3
+      return (this.$store.getters['devices/getDevicesSelected'].length <= 0
+        || this.$store.getters['devices/getDevicesSelected'].length > 3)
         && this.action !== this.items[0].action;
     },
 
@@ -177,10 +178,8 @@ export default {
     accept() {
       if (this.action === this.items[0].action) {
         this.sendDevicesChoice(this.$store.getters['devices/getDevicesForUserToChoose']);
-      } else if (this.$store.getters['devices/getDevicesSelected'].length === 3) {
-        this.sendDevicesChoice(this.$store.getters['devices/getDevicesSelected']);
       } else {
-        this.$store.dispatch('snackbar/showSnackbarDeviceChooser');
+        this.sendDevicesChoice(this.$store.getters['devices/getDevicesSelected']);
       }
     },
 
