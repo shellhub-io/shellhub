@@ -1,4 +1,4 @@
-package main
+package session
 
 import (
 	"bytes"
@@ -135,7 +135,28 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	return s, nil
 }
 
-func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn, c client.Client, opts ConfigOptions) error {
+func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
+	if config.Timeout > 0 {
+		if err := conn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
+			return nil, err
+		}
+	}
+
+	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
+	if err != nil {
+		return nil, err
+	}
+
+	if config.Timeout > 0 {
+		if err := conn.SetReadDeadline(time.Time{}); err != nil {
+			return nil, err
+		}
+	}
+
+	return ssh.NewClient(c, chans, reqs), nil
+}
+
+func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn, c client.Client, opts ConfigOptions) error {
 	config := &ssh.ClientConfig{
 		User: s.User,
 		Auth: []ssh.AuthMethod{},
@@ -169,7 +190,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		return err
 	}
 
-	client, err := sshConn.NewSession()
+	SSHclientSession, err := sshConn.NewSession()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"session": s.UID,
@@ -180,14 +201,14 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 	pty, winCh, isPty := s.session.Pty()
 
 	if isPty { //nolint:nestif
-		err = client.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, ssh.TerminalModes{})
+		err = SSHclientSession.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, ssh.TerminalModes{})
 		if err != nil {
 			return err
 		}
 
 		go func() {
 			for win := range winCh {
-				if err = client.WindowChange(win.Height, win.Width); err != nil {
+				if err = SSHclientSession.WindowChange(win.Height, win.Width); err != nil {
 					logrus.WithFields(logrus.Fields{
 						"session": s.UID,
 						"err":     err,
@@ -196,11 +217,11 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			}
 		}()
 
-		stdin, err := client.StdinPipe()
+		stdin, err := SSHclientSession.StdinPipe()
 		if err != nil {
 			return err
 		}
-		stdout, err := client.StdoutPipe()
+		stdout, err := SSHclientSession.StdoutPipe()
 		if err != nil {
 			return err
 		}
@@ -255,7 +276,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			}
 		}()
 
-		if err = client.Shell(); err != nil {
+		if err = SSHclientSession.Shell(); err != nil {
 			return err
 		}
 
@@ -280,7 +301,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		}()
 
 		go func() {
-			client.Wait() // nolint:errcheck
+			SSHclientSession.Wait() // nolint:errcheck
 			disconnected <- true
 		}()
 
@@ -294,8 +315,8 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			return errs[0]
 		}
 
-		stdin, _ := client.StdinPipe()
-		stdout, _ := client.StdoutPipe()
+		stdin, _ := SSHclientSession.StdinPipe()
+		stdout, _ := SSHclientSession.StdoutPipe()
 
 		done := make(chan bool)
 
@@ -321,7 +342,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			done <- true
 		}()
 
-		err = client.Start(s.session.RawCommand())
+		err = SSHclientSession.Start(s.session.RawCommand())
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"session": s.UID,
@@ -335,7 +356,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 	return nil
 }
 
-func (s *Session) register(_ sshserver.Session) error {
+func (s *Session) Register(_ sshserver.Session) error {
 	if _, _, errs := gorequest.New().Post("http://api:8080/internal/sessions").Send(*s).End(); len(errs) > 0 {
 		return errs[0]
 	}
@@ -343,7 +364,7 @@ func (s *Session) register(_ sshserver.Session) error {
 	return nil
 }
 
-func (s *Session) finish(conn net.Conn) error {
+func (s *Session) Finish(conn net.Conn) error {
 	if conn != nil {
 		req, _ := http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", s.UID), nil)
 		if err := req.Write(conn); err != nil {
@@ -374,25 +395,4 @@ func loadEnv(env []string) map[string]string {
 	}
 
 	return m
-}
-
-func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
-	if config.Timeout > 0 {
-		if err := conn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
-			return nil, err
-		}
-	}
-
-	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
-	if err != nil {
-		return nil, err
-	}
-
-	if config.Timeout > 0 {
-		if err := conn.SetReadDeadline(time.Time{}); err != nil {
-			return nil, err
-		}
-	}
-
-	return ssh.NewClient(c, chans, reqs), nil
 }
