@@ -1,8 +1,19 @@
 import Vuex from 'vuex';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { shallowMount, createLocalVue, config } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import Router from 'vue-router';
 import ValidationAccount from '@/views/ValidationAccount';
+
+config.mocks = {
+  $success: {
+    validationAccount: 'validation account',
+  },
+  $errors: {
+    snackbar: {
+      validationAccount: 'validation account',
+    },
+  },
+};
 
 describe('ValidationAccount', () => {
   const localVue = createLocalVue();
@@ -13,46 +24,115 @@ describe('ValidationAccount', () => {
 
   let wrapper;
 
-  const store = new Vuex.Store({
+  const actionsValidationSuccess = {
+    'users/validationAccount': () => {},
+    'snackbar/showSnackbarSuccessAction': () => {},
+    'snackbar/showSnackbarErrorAction': () => {},
+  };
+
+  const actionsValidationFalied = {
+    'users/validationAccount': () => {
+      throw new TypeError();
+    },
+    'snackbar/showSnackbarSuccessAction': () => {},
+    'snackbar/showSnackbarErrorAction': () => {},
+  };
+
+  const storeValidationSuccess = new Vuex.Store({
     state: {
     },
     getters: {
     },
-    actions: {
-      'users/validationAccount': () => {},
-      'snackbar/showSnackbarSuccessAction': () => {},
-      'snackbar/showSnackbarErrorAction': () => {},
-    },
+    actions: actionsValidationSuccess,
   });
 
-  beforeEach(() => {
-    wrapper = shallowMount(ValidationAccount, {
-      store,
-      stubs: ['fragment'],
-      localVue,
-      router,
-      vuetify,
-      mocks: {
-        $success: {
-          validationAccount: 'validation account',
-        },
-        $errors: {
-          snackbar: {
-            validationAccount: 'validation account',
-          },
-        },
-      },
+  const storeValidationFalied = new Vuex.Store({
+    state: {
+    },
+    getters: {
+    },
+    actions: actionsValidationFalied,
+  });
+
+  describe('Success to verify account', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(ValidationAccount, {
+        store: storeValidationSuccess,
+        stubs: ['fragment'],
+        localVue,
+        router,
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.activationProcessingStatus).toEqual('success');
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="processing-cardText"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="success-cardText"]').exists()).toEqual(true);
+      expect(wrapper.find('[data-test="failed-cardText"]').exists()).toEqual(false);
     });
   });
 
-  ///////
-  // Component Rendering
-  //////
+  describe('Failed to verify account', () => {
+    beforeEach(() => {
+      wrapper = shallowMount(ValidationAccount, {
+        store: storeValidationFalied,
+        stubs: ['fragment'],
+        localVue,
+        router,
+        vuetify,
+      });
+    });
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.activationProcessingStatus).toEqual('failed');
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="processing-cardText"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="success-cardText"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="failed-cardText"]').exists()).toEqual(true);
+    });
   });
 });

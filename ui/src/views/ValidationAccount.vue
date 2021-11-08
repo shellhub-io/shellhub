@@ -33,8 +33,29 @@
           Verification Account
         </v-card-title>
 
-        <v-card-text class="d-flex align-center justify-center">
+        <v-card-text
+          v-if="verifyActivationProcessingStatus === 'processing'"
+          class="d-flex align-center justify-center"
+          data-test="processing-cardText"
+        >
+          Processing activation.
+        </v-card-text>
+
+        <v-card-text
+          v-if="verifyActivationProcessingStatus === 'success'"
+          class="d-flex align-center justify-center"
+          data-test="success-cardText"
+        >
           Congrats and welcome to ShellHub.
+        </v-card-text>
+
+        <v-card-text
+          v-if="verifyActivationProcessingStatus === 'failed'"
+          class="d-flex align-center justify-center"
+          data-test="failed-cardText"
+        >
+          There was a problem activating your account. Go to the login page, login to receive
+          another email with the activation link.
         </v-card-text>
 
         <v-card-subtitle
@@ -59,6 +80,18 @@
 export default {
   name: 'AccountCreatedView',
 
+  data() {
+    return {
+      activationProcessingStatus: 'processing',
+    };
+  },
+
+  computed: {
+    verifyActivationProcessingStatus() {
+      return this.activationProcessingStatus;
+    },
+  },
+
   created() {
     this.validationAccount(this.$route.query);
   },
@@ -69,8 +102,10 @@ export default {
         await this.$store.dispatch('users/validationAccount', data);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.validationAccount);
 
+        this.activationProcessingStatus = 'success';
         setTimeout(() => this.$router.push({ path: '/login' }), 4000);
       } catch {
+        this.activationProcessingStatus = 'failed';
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.validationAccount);
       }
     },
