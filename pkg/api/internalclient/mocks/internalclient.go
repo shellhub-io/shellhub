@@ -215,6 +215,22 @@ func (_m *Client) GetPublicKey(fingerprint string, tenant string) (*models.Publi
 	return r0, r1
 }
 
+// KeepAliveSession provides a mock function with given fields: uid
+func (_m *Client) KeepAliveSession(uid string) []error {
+	ret := _m.Called(uid)
+
+	var r0 []error
+	if rf, ok := ret.Get(0).(func(string) []error); ok {
+		r0 = rf(uid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]error)
+		}
+	}
+
+	return r0
+}
+
 // ListDevices provides a mock function with given fields:
 func (_m *Client) ListDevices() ([]models.Device, error) {
 	ret := _m.Called()

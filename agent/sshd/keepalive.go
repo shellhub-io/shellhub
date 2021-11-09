@@ -3,11 +3,12 @@ package sshd
 import (
 	"time"
 
-	"github.com/gliderlabs/ssh"
+	sshserver "github.com/gliderlabs/ssh"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
 )
 
-func StartKeepAliveLoop(interval time.Duration, session ssh.Session) {
+func StartKeepAliveLoop(interval time.Duration, session sshserver.Session) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -23,11 +24,10 @@ loop:
 	for {
 		select {
 		case <-ticker.C:
-			_, err := session.SendRequest("keepalive@shellhub.io", false, nil)
-			if err != nil {
-				log.Warning("Failed to send keep alive message")
-
-				return
+			if conn, ok := session.Context().Value(sshserver.ContextKeyConn).(ssh.Conn); ok {
+				if _, _, err := conn.SendRequest("keepalive", false, nil); err != nil {
+					log.Error(err)
+				}
 			}
 		case <-session.Context().Done():
 			log.Debug("Stopping keep alive loop after session closed")

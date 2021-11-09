@@ -143,8 +143,7 @@ func (a *Agent) probeServerInfo() error {
 // authorize send auth request to the server.
 func (a *Agent) authorize() error {
 	authData, err := a.cli.AuthDevice(&models.DeviceAuthRequest{
-		Info:     a.Info,
-		Sessions: a.sessions,
+		Info: a.Info,
 		DeviceAuth: &models.DeviceAuth{
 			Hostname:  a.opts.PreferredHostname,
 			Identity:  a.Identity,

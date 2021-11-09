@@ -1,0 +1,17 @@
+post:
+  summary: Keep session alive
+  tags:
+    - session
+  security:
+    - Auth: []
+  parameters:
+    - name: uid
+      schema:
+        description: Session UID
+        type: string
+      in: path
+  responses:
+    '200':
+      $ref: ../../../shared/responses/ok.yaml
+    '500':
+      $ref: ../../../shared/responses/any_internal_error.yaml

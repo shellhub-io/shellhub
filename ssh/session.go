@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/rsa"
 	"errors"
 	"fmt"
@@ -136,6 +137,9 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 }
 
 func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn, c client.Client, opts ConfigOptions) error {
+	ctx, cancel := context.WithCancel(session.Context())
+	defer cancel()
+
 	config := &ssh.ClientConfig{
 		User: s.User,
 		Auth: []ssh.AuthMethod{},
@@ -159,7 +163,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		}
 	}
 
-	sshConn, err := NewClientConnWithDeadline(conn, "tcp", config)
+	sshConn, reqs, err := NewClientConnWithDeadline(conn, "tcp", config)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"session": s.UID,
@@ -176,6 +180,8 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			"err":     err,
 		}).Error("Failed to create session for SSH Client")
 	}
+
+	go handleRequests(ctx, reqs, c)
 
 	pty, winCh, isPty := s.session.Pty()
 
@@ -376,23 +382,50 @@ func loadEnv(env []string) map[string]string {
 	return m
 }
 
-func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
+func handleRequests(ctx context.Context, reqs <-chan *ssh.Request, c client.Client) {
+	for {
+		select {
+		case req := <-reqs:
+			switch req.Type {
+			case "keepalive":
+				if id, ok := ctx.Value(sshserver.ContextKeySessionID).(string); ok {
+					if errs := c.KeepAliveSession(id); len(errs) > 0 {
+						logrus.Error(errs[0])
+					}
+				}
+			default:
+				if req.WantReply {
+					if err := req.Reply(false, nil); err != nil {
+						logrus.Error(err)
+					}
+				}
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, <-chan *ssh.Request, error) {
 	if config.Timeout > 0 {
 		if err := conn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if config.Timeout > 0 {
 		if err := conn.SetReadDeadline(time.Time{}); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
-	return ssh.NewClient(c, chans, reqs), nil
+	emptyCh := make(chan *ssh.Request)
+	close(emptyCh)
+
+	return ssh.NewClient(c, chans, emptyCh), reqs, nil
 }
