@@ -165,6 +165,7 @@ func startServer() error {
 	internalAPI.PATCH(routes.SetSessionAuthenticatedURL, apicontext.Handler(handler.SetSessionAuthenticated))
 	internalAPI.POST(routes.CreateSessionURL, apicontext.Handler(handler.CreateSession))
 	internalAPI.POST(routes.FinishSessionURL, apicontext.Handler(handler.FinishSession))
+	internalAPI.POST(routes.KeepAliveSessionURL, apicontext.Handler(handler.KeepAliveSession))
 	internalAPI.POST(routes.RecordSessionURL, apicontext.Handler(handler.RecordSession))
 	publicAPI.GET(routes.PlaySessionURL, apicontext.Handler(handler.PlaySession))
 	publicAPI.DELETE(routes.RecordSessionURL, apicontext.Handler(handler.DeleteRecordedSession))

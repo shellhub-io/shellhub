@@ -31,6 +31,7 @@ type internalAPI interface {
 	FirewallEvaluate(lookup map[string]string) error
 	PatchSessions(uid string) []error
 	FinishSession(uid string) []error
+	KeepAliveSession(uid string) []error
 	RecordSession(session *models.SessionRecorded, recordURL string)
 	BillingEvaluate(tenantID string) (*models.Namespace, int, error)
 	Lookup(lookup map[string]string) (string, []error)
@@ -159,6 +160,12 @@ func (c *client) PatchSessions(uid string) []error {
 
 func (c *client) FinishSession(uid string) []error {
 	_, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/sessions/%s/finish", uid))).End()
+
+	return errs
+}
+
+func (c *client) KeepAliveSession(uid string) []error {
+	_, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/sessions/%s/keepalive", uid))).End()
 
 	return errs
 }

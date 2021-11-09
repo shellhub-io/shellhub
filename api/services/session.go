@@ -12,6 +12,7 @@ type SessionService interface {
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)
 	DeactivateSession(ctx context.Context, uid models.UID) error
+	KeepAliveSession(ctx context.Context, uid models.UID) error
 	SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error
 }
 
@@ -29,6 +30,10 @@ func (s *service) CreateSession(ctx context.Context, session models.Session) (*m
 
 func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
 	return s.store.SessionDeleteActives(ctx, uid)
+}
+
+func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
+	return s.store.SessionSetLastSeen(ctx, uid)
 }
 
 func (s *service) SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {

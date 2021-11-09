@@ -15,6 +15,7 @@ const (
 	SetSessionAuthenticatedURL = "/sessions/:uid"
 	CreateSessionURL           = "/sessions"
 	FinishSessionURL           = "/sessions/:uid/finish"
+	KeepAliveSessionURL        = "/sessions/:uid/keepalive"
 	RecordSessionURL           = "/sessions/:uid/record"
 	PlaySessionURL             = "/sessions/:uid/play"
 )
@@ -82,6 +83,10 @@ func (h *Handler) CreateSession(c apicontext.Context) error {
 
 func (h *Handler) FinishSession(c apicontext.Context) error {
 	return h.service.DeactivateSession(c.Ctx(), models.UID(c.Param("uid")))
+}
+
+func (h *Handler) KeepAliveSession(c apicontext.Context) error {
+	return h.service.KeepAliveSession(c.Ctx(), models.UID(c.Param("uid")))
 }
 
 func (h *Handler) RecordSession(c apicontext.Context) error {

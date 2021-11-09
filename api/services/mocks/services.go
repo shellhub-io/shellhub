@@ -661,6 +661,20 @@ func (_m *Service) HandleReportUsage(ns *models.Namespace, ui models.UID, inc bo
 	return r0
 }
 
+// KeepAliveSession provides a mock function with given fields: ctx, uid
+func (_m *Service) KeepAliveSession(ctx context.Context, uid models.UID) error {
+	ret := _m.Called(ctx, uid)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
+		r0 = rf(ctx, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListDevices provides a mock function with given fields: ctx, pagination, filter, status, sort, order
 func (_m *Service) ListDevices(ctx context.Context, pagination paginator.Query, filter string, status string, sort string, order string) ([]models.Device, int, error) {
 	ret := _m.Called(ctx, pagination, filter, status, sort, order)
