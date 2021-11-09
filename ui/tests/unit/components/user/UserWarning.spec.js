@@ -51,6 +51,7 @@ describe('UserWarning', () => {
     'devices/setDeviceChooserStatus': () => {},
     'auth/setShowWelcomeScreen': () => {},
     'namespaces/fetch': () => {},
+    'namespaces/get': () => {},
     'snackbar/showSnackbarErrorAssociation': () => {},
     'snackbar/showSnackbarErrorLoading': () => {},
   };
@@ -250,6 +251,8 @@ describe('UserWarning', () => {
 
   describe('With devices and inactive billing', () => {
     beforeEach(() => {
+      localStorage.setItem('tenant', 'test');
+
       storeWithDevicesInactive.dispatch = jest.fn();
 
       wrapper = shallowMount(UserWarning, {
@@ -281,7 +284,9 @@ describe('UserWarning', () => {
     //////
     // Call actions
     //////
-    it('Dispatches on mount', () => {
+    it('Dispatches on mount', async () => {
+      expect(storeWithDevicesInactive.dispatch).toHaveBeenCalledWith('namespaces/get', 'test');
+      await wrapper.vm.$nextTick();
       expect(storeWithDevicesInactive.dispatch).toHaveBeenCalledWith('devices/setDeviceChooserStatus', true);
     });
 
@@ -364,7 +369,8 @@ describe('UserWarning', () => {
     //////
     // Call actions
     //////
-    it('Dispatches on mount', () => {
+    it('Dispatches on mount', async () => {
+      await wrapper.vm.$nextTick();
       expect(storeWithDevicesActive.dispatch).toHaveBeenCalledWith('devices/setDeviceChooserStatus', false);
     });
 

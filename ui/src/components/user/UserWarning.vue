@@ -69,6 +69,17 @@ export default {
   },
 
   methods: {
+    async statusWarning() {
+      const bill = this.$store.getters['namespaces/get'].billing;
+
+      if (bill === undefined) {
+        await this.$store.dispatch('namespaces/get', localStorage.getItem('tenant'));
+      }
+
+      return this.$store.getters['stats/stats'].registered_devices > 3
+        && !this.$store.getters['billing/active'];
+    },
+
     async showDialogs() {
       try {
         await this.getNamespaces();
@@ -121,8 +132,7 @@ export default {
     },
 
     async billingWarning() {
-      const status = this.$store.getters['stats/stats'].registered_devices > 3
-        && !this.$store.getters['billing/active'];
+      const status = await this.statusWarning();
       await this.$store.dispatch('devices/setDeviceChooserStatus', status);
     },
 
