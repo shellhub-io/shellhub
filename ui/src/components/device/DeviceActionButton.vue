@@ -18,16 +18,16 @@
     >
       <v-tooltip
         bottom
-        :disabled="isOwner"
+        :disabled="hasAuthorization"
       >
         <template #activator="{ on }">
           <span v-on="on">
             <v-btn
-              :disabled="!isOwner"
+              :disabled="!hasAuthorization"
               class="mr-2"
               small
               outlined
-              data-test="tooltipNotOwner-text"
+              data-test="tooltip-text"
               @click="dialog = !dialog"
             >
               {{ action }}
@@ -36,7 +36,7 @@
         </template>
 
         <span>
-          You are not the owner of this namespace
+          You don't have this kind of authorization.
         </span>
       </v-tooltip>
     </fragment>
@@ -51,7 +51,7 @@
         </v-card-title>
 
         <v-card-text class="mt-4 mb-3 pb-1">
-          <div data-test="dialog-text">
+          <div>
             You are about to {{ action }} this device.
           </div>
         </v-card-text>
@@ -82,8 +82,12 @@
 
 <script>
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'DeviceActionButtonComponent',
+
+  filters: { hasPermission },
 
   props: {
     uid: {
@@ -111,8 +115,16 @@ export default {
   },
 
   computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.device[this.action],
+        );
+      }
+
+      return false;
     },
   },
 

@@ -1,12 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SettingNamespace Hosted version Renders the component 1`] = `
+exports[`SettingNamespace Hosted version administrator Renders the component 1`] = `
 <fragment-stub>
   <div class="container">
     <div class="row mt-4 align-center justify-center">
       <div class="col-sm-8 col">
-        <!---->
-        <div class="mt-6">
+        <div data-test="tenant-div" class="mt-6">
           <div class="row mb-2">
             <div class="col-md-auto col">
               <div class="v-card v-sheet theme--light elevation-0 rounded-0">
@@ -14,8 +13,1206 @@ exports[`SettingNamespace Hosted version Renders the component 1`] = `
               </div>
             </div>
             <div class="ml-auto col-md-auto col">
-              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span data-test="tenant-span">
-                    e359bf484715
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span>
+                    xxxxxxxx
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$433" data-clipboard-success-handler="$434"></i></span></span></div>
+            </div>
+          </div>
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+        </div>
+        <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
+                  Namespace
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                        Rename Namespace
+                      </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      </div>
+    </div>
+    <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-13545" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-13545" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="userOperation-div" class="mt-6">
+    <div class="row">
+      <div class="col">
+        <h3>
+          Members
+        </h3>
+      </div>
+      <div class="spacer"></div>
+      <div>
+        <div class="ml-auto col-md-auto col">
+          <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
+            <div><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+            <div role="dialog" class="v-dialog__container">
+              <!---->
+            </div>
+          </fragment-stub>
+        </div>
+      </div>
+    </div>
+    <div class="mt-5">
+      <div role="list" class="v-list v-sheet theme--light">
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user1
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="owner-list" class="v-list-item__title">
+                owner
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user2
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="observer-list" class="v-list-item__title">
+                observer
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="securityOperation-div" class="mt-6">
+    <form novalidate="novalidate" class="v-form">
+      <div class="row">
+        <div class="mb-6 col">
+          <h3 class="mb-5">
+            Security
+          </h3>
+          <div class="ml-3">
+            <div class="v-input theme--light v-input--selection-controls v-input--checkbox">
+              <div class="v-input__control">
+                <div class="v-input__slot">
+                  <div class="v-input--selection-controls__input"><i aria-hidden="true" class="v-icon notranslate mdi mdi-checkbox-blank-outline theme--light"></i><input aria-checked="false" id="input-13588" role="checkbox" type="checkbox" value="">
+                    <div class="v-input--selection-controls__ripple"></div>
+                  </div><label for="input-13588" class="v-label theme--light" style="left: 0px; position: relative;">Enable session record</label>
+                </div>
+                <div class="v-messages theme--light">
+                  <transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub>
+                </div>
+              </div>
+            </div>
+            <p>
+              Session record is a feature that allows you to check logged activity when
+              connecting to a device.
+            </p>
+          </div>
+        </div>
+      </div>
+    </form>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="deleteOperation-div" class="mt-6">
+    <h3 class="mb-5">
+      Danger Zone
+    </h3>
+    <div class="row mt-4 mb-2">
+      <div class="ml-3 col">
+        <h4>
+          Delete this namespace
+        </h4>
+        <div class="ml-2">
+          <p>
+            After deleting a namespace, there is no going back. Be sure.
+          </p>
+        </div>
+      </div>
+      <div class="ml-auto mb-4 col-md-auto col">
+        <fragment-stub data-test="namespaceDelete-component">
+          <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
+          Delete namespace
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+          <div role="dialog" class="v-dialog__container">
+            <!---->
+          </div>
+        </fragment-stub>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+  </div>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Hosted version observer Renders the component 1`] = `
+<fragment-stub>
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col">
+        <div data-test="tenant-div" class="mt-6">
+          <div class="row mb-2">
+            <div class="col-md-auto col">
+              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
+                Tenant ID:
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span>
+                    xxxxxxxx
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$605" data-clipboard-success-handler="$606"></i></span></span></div>
+            </div>
+          </div>
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+        </div>
+        <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
+                  Namespace
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                        Rename Namespace
+                      </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      </div>
+    </div>
+    <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-19479" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-19479" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="userOperation-div" class="mt-6">
+    <div class="row">
+      <div class="col">
+        <h3>
+          Members
+        </h3>
+      </div>
+      <div class="spacer"></div>
+      <div>
+        <div class="ml-auto col-md-auto col">
+          <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
+            <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+            <div role="dialog" class="v-dialog__container">
+              <!---->
+            </div>
+          </fragment-stub>
+        </div>
+      </div>
+    </div>
+    <div class="mt-5">
+      <div role="list" class="v-list v-sheet theme--light">
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user1
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="owner-list" class="v-list-item__title">
+                owner
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user2
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="observer-list" class="v-list-item__title">
+                observer
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="securityOperation-div" class="mt-6">
+    <form novalidate="novalidate" class="v-form">
+      <div class="row">
+        <div class="mb-6 col">
+          <h3 class="mb-5">
+            Security
+          </h3>
+          <div class="ml-3">
+            <div class="v-input v-input--is-disabled theme--light v-input--selection-controls v-input--checkbox">
+              <div class="v-input__control">
+                <div class="v-input__slot">
+                  <div class="v-input--selection-controls__input"><i aria-hidden="true" class="v-icon notranslate mdi mdi-checkbox-blank-outline theme--light"></i><input aria-checked="false" disabled="disabled" id="input-19522" role="checkbox" type="checkbox" value="">
+                    <div class="v-input--selection-controls__ripple"></div>
+                  </div><label for="input-19522" class="v-label v-label--is-disabled theme--light" style="left: 0px; position: relative;">Enable session record</label>
+                </div>
+                <div class="v-messages theme--light">
+                  <transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub>
+                </div>
+              </div>
+            </div>
+            <p>
+              Session record is a feature that allows you to check logged activity when
+              connecting to a device.
+            </p>
+          </div>
+        </div>
+      </div>
+    </form>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="deleteOperation-div" class="mt-6">
+    <h3 class="mb-5">
+      Danger Zone
+    </h3>
+    <div class="row mt-4 mb-2">
+      <div class="ml-3 col">
+        <h4>
+          Delete this namespace
+        </h4>
+        <div class="ml-2">
+          <p>
+            After deleting a namespace, there is no going back. Be sure.
+          </p>
+        </div>
+      </div>
+      <div class="ml-auto mb-4 col-md-auto col">
+        <fragment-stub data-test="namespaceDelete-component">
+          <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
+          Delete namespace
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+          <div role="dialog" class="v-dialog__container">
+            <!---->
+          </div>
+        </fragment-stub>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+  </div>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Hosted version operator Renders the component 1`] = `
+<fragment-stub>
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col">
+        <div data-test="tenant-div" class="mt-6">
+          <div class="row mb-2">
+            <div class="col-md-auto col">
+              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
+                Tenant ID:
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span>
+                    xxxxxxxx
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$519" data-clipboard-success-handler="$520"></i></span></span></div>
+            </div>
+          </div>
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+        </div>
+        <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
+                  Namespace
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                        Rename Namespace
+                      </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      </div>
+    </div>
+    <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-16512" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-16512" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="userOperation-div" class="mt-6">
+    <div class="row">
+      <div class="col">
+        <h3>
+          Members
+        </h3>
+      </div>
+      <div class="spacer"></div>
+      <div>
+        <div class="ml-auto col-md-auto col">
+          <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
+            <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+            <div role="dialog" class="v-dialog__container">
+              <!---->
+            </div>
+          </fragment-stub>
+        </div>
+      </div>
+    </div>
+    <div class="mt-5">
+      <div role="list" class="v-list v-sheet theme--light">
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user1
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="owner-list" class="v-list-item__title">
+                owner
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user2
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="observer-list" class="v-list-item__title">
+                observer
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="securityOperation-div" class="mt-6">
+    <form novalidate="novalidate" class="v-form">
+      <div class="row">
+        <div class="mb-6 col">
+          <h3 class="mb-5">
+            Security
+          </h3>
+          <div class="ml-3">
+            <div class="v-input v-input--is-disabled theme--light v-input--selection-controls v-input--checkbox">
+              <div class="v-input__control">
+                <div class="v-input__slot">
+                  <div class="v-input--selection-controls__input"><i aria-hidden="true" class="v-icon notranslate mdi mdi-checkbox-blank-outline theme--light"></i><input aria-checked="false" disabled="disabled" id="input-16555" role="checkbox" type="checkbox" value="">
+                    <div class="v-input--selection-controls__ripple"></div>
+                  </div><label for="input-16555" class="v-label v-label--is-disabled theme--light" style="left: 0px; position: relative;">Enable session record</label>
+                </div>
+                <div class="v-messages theme--light">
+                  <transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub>
+                </div>
+              </div>
+            </div>
+            <p>
+              Session record is a feature that allows you to check logged activity when
+              connecting to a device.
+            </p>
+          </div>
+        </div>
+      </div>
+    </form>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="deleteOperation-div" class="mt-6">
+    <h3 class="mb-5">
+      Danger Zone
+    </h3>
+    <div class="row mt-4 mb-2">
+      <div class="ml-3 col">
+        <h4>
+          Delete this namespace
+        </h4>
+        <div class="ml-2">
+          <p>
+            After deleting a namespace, there is no going back. Be sure.
+          </p>
+        </div>
+      </div>
+      <div class="ml-auto mb-4 col-md-auto col">
+        <fragment-stub data-test="namespaceDelete-component">
+          <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
+          Delete namespace
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+          <div role="dialog" class="v-dialog__container">
+            <!---->
+          </div>
+        </fragment-stub>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+  </div>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Hosted version owner Renders the component 1`] = `
+<fragment-stub>
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col">
+        <div data-test="tenant-div" class="mt-6">
+          <div class="row mb-2">
+            <div class="col-md-auto col">
+              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
+                Tenant ID:
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span>
+                    xxxxxxxx
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$347" data-clipboard-success-handler="$348"></i></span></span></div>
+            </div>
+          </div>
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+        </div>
+        <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
+                  Namespace
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                        Rename Namespace
+                      </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      </div>
+    </div>
+    <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-10578" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-10578" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="userOperation-div" class="mt-6">
+    <div class="row">
+      <div class="col">
+        <h3>
+          Members
+        </h3>
+      </div>
+      <div class="spacer"></div>
+      <div>
+        <div class="ml-auto col-md-auto col">
+          <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
+            <div><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+            <div role="dialog" class="v-dialog__container">
+              <!---->
+            </div>
+          </fragment-stub>
+        </div>
+      </div>
+    </div>
+    <div class="mt-5">
+      <div role="list" class="v-list v-sheet theme--light">
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user1
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="owner-list" class="v-list-item__title">
+                owner
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user2
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="observer-list" class="v-list-item__title">
+                observer
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="securityOperation-div" class="mt-6">
+    <form novalidate="novalidate" class="v-form">
+      <div class="row">
+        <div class="mb-6 col">
+          <h3 class="mb-5">
+            Security
+          </h3>
+          <div class="ml-3">
+            <div class="v-input theme--light v-input--selection-controls v-input--checkbox">
+              <div class="v-input__control">
+                <div class="v-input__slot">
+                  <div class="v-input--selection-controls__input"><i aria-hidden="true" class="v-icon notranslate mdi mdi-checkbox-blank-outline theme--light"></i><input aria-checked="false" id="input-10621" role="checkbox" type="checkbox" value="">
+                    <div class="v-input--selection-controls__ripple"></div>
+                  </div><label for="input-10621" class="v-label theme--light" style="left: 0px; position: relative;">Enable session record</label>
+                </div>
+                <div class="v-messages theme--light">
+                  <transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub>
+                </div>
+              </div>
+            </div>
+            <p>
+              Session record is a feature that allows you to check logged activity when
+              connecting to a device.
+            </p>
+          </div>
+        </div>
+      </div>
+    </form>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="deleteOperation-div" class="mt-6">
+    <h3 class="mb-5">
+      Danger Zone
+    </h3>
+    <div class="row mt-4 mb-2">
+      <div class="ml-3 col">
+        <h4>
+          Delete this namespace
+        </h4>
+        <div class="ml-2">
+          <p>
+            After deleting a namespace, there is no going back. Be sure.
+          </p>
+        </div>
+      </div>
+      <div class="ml-auto mb-4 col-md-auto col">
+        <fragment-stub data-test="namespaceDelete-component">
+          <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
+          Delete namespace
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+          <div role="dialog" class="v-dialog__container">
+            <!---->
+          </div>
+        </fragment-stub>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+  </div>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Open version administrator Renders the component 1`] = `
+<fragment-stub>
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col">
+        <div data-test="tenant-div" class="mt-6">
+          <div class="row mb-2">
+            <div class="col-md-auto col">
+              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
+                Tenant ID:
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span>
+                    xxxxxxxx
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$89" data-clipboard-success-handler="$90"></i></span></span></div>
+            </div>
+          </div>
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+        </div>
+        <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
+                  Namespace
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                        Rename Namespace
+                      </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      </div>
+    </div>
+    <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-2701" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-2701" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="userOperation-div" class="mt-6">
+    <div class="row">
+      <div class="col">
+        <h3>
+          Members
+        </h3>
+      </div>
+      <div class="spacer"></div>
+      <div>
+        <div class="ml-auto col-md-auto col">
+          <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
+            <div><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+            <div role="dialog" class="v-dialog__container">
+              <!---->
+            </div>
+          </fragment-stub>
+        </div>
+      </div>
+    </div>
+    <div class="mt-5">
+      <div role="list" class="v-list v-sheet theme--light">
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user1
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="owner-list" class="v-list-item__title">
+                owner
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user2
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="observer-list" class="v-list-item__title">
+                observer
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <!---->
+  <div data-test="deleteOperation-div" class="mt-6">
+    <h3 class="mb-5">
+      Danger Zone
+    </h3>
+    <div class="row mt-4 mb-2">
+      <div class="ml-3 col">
+        <h4>
+          Delete this namespace
+        </h4>
+        <div class="ml-2">
+          <p>
+            After deleting a namespace, there is no going back. Be sure.
+          </p>
+        </div>
+      </div>
+      <div class="ml-auto mb-4 col-md-auto col">
+        <fragment-stub data-test="namespaceDelete-component">
+          <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
+          Delete namespace
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+          <div role="dialog" class="v-dialog__container">
+            <!---->
+          </div>
+        </fragment-stub>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+  </div>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Open version observer Renders the component 1`] = `
+<fragment-stub>
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col">
+        <div data-test="tenant-div" class="mt-6">
+          <div class="row mb-2">
+            <div class="col-md-auto col">
+              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
+                Tenant ID:
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span>
+                    xxxxxxxx
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$261" data-clipboard-success-handler="$262"></i></span></span></div>
+            </div>
+          </div>
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+        </div>
+        <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
+                  Namespace
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                        Rename Namespace
+                      </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      </div>
+    </div>
+    <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-7947" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-7947" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="userOperation-div" class="mt-6">
+    <div class="row">
+      <div class="col">
+        <h3>
+          Members
+        </h3>
+      </div>
+      <div class="spacer"></div>
+      <div>
+        <div class="ml-auto col-md-auto col">
+          <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
+            <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+            <div role="dialog" class="v-dialog__container">
+              <!---->
+            </div>
+          </fragment-stub>
+        </div>
+      </div>
+    </div>
+    <div class="mt-5">
+      <div role="list" class="v-list v-sheet theme--light">
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user1
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="owner-list" class="v-list-item__title">
+                owner
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user2
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="observer-list" class="v-list-item__title">
+                observer
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <!---->
+  <div data-test="deleteOperation-div" class="mt-6">
+    <h3 class="mb-5">
+      Danger Zone
+    </h3>
+    <div class="row mt-4 mb-2">
+      <div class="ml-3 col">
+        <h4>
+          Delete this namespace
+        </h4>
+        <div class="ml-2">
+          <p>
+            After deleting a namespace, there is no going back. Be sure.
+          </p>
+        </div>
+      </div>
+      <div class="ml-auto mb-4 col-md-auto col">
+        <fragment-stub data-test="namespaceDelete-component">
+          <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
+          Delete namespace
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+          <div role="dialog" class="v-dialog__container">
+            <!---->
+          </div>
+        </fragment-stub>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+  </div>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Open version operator Renders the component 1`] = `
+<fragment-stub>
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col">
+        <div data-test="tenant-div" class="mt-6">
+          <div class="row mb-2">
+            <div class="col-md-auto col">
+              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
+                Tenant ID:
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span>
+                    xxxxxxxx
+                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$175" data-clipboard-success-handler="$176"></i></span></span></div>
+            </div>
+          </div>
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+        </div>
+        <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
+                  Namespace
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                        Rename Namespace
+                      </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      </div>
+    </div>
+    <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-5324" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-5324" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="userOperation-div" class="mt-6">
+    <div class="row">
+      <div class="col">
+        <h3>
+          Members
+        </h3>
+      </div>
+      <div class="spacer"></div>
+      <div>
+        <div class="ml-auto col-md-auto col">
+          <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
+            <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+            <div role="dialog" class="v-dialog__container">
+              <!---->
+            </div>
+          </fragment-stub>
+        </div>
+      </div>
+    </div>
+    <div class="mt-5">
+      <div role="list" class="v-list v-sheet theme--light">
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user1
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="owner-list" class="v-list-item__title">
+                owner
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user2
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div data-test="observer-list" class="v-list-item__title">
+                observer
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <!---->
+  <div data-test="deleteOperation-div" class="mt-6">
+    <h3 class="mb-5">
+      Danger Zone
+    </h3>
+    <div class="row mt-4 mb-2">
+      <div class="ml-3 col">
+        <h4>
+          Delete this namespace
+        </h4>
+        <div class="ml-2">
+          <p>
+            After deleting a namespace, there is no going back. Be sure.
+          </p>
+        </div>
+      </div>
+      <div class="ml-auto mb-4 col-md-auto col">
+        <fragment-stub data-test="namespaceDelete-component">
+          <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
+          Delete namespace
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+          <div role="dialog" class="v-dialog__container">
+            <!---->
+          </div>
+        </fragment-stub>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+  </div>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Open version owner Renders the component 1`] = `
+<fragment-stub>
+  <div class="container">
+    <div class="row mt-4 align-center justify-center">
+      <div class="col-sm-8 col">
+        <div data-test="tenant-div" class="mt-6">
+          <div class="row mb-2">
+            <div class="col-md-auto col">
+              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
+                Tenant ID:
+              </div>
+            </div>
+            <div class="ml-auto col-md-auto col">
+              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span>
+                    xxxxxxxx
                   </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$3" data-clipboard-success-handler="$4"></i></span></span></div>
             </div>
           </div>
@@ -24,137 +1221,29 @@ exports[`SettingNamespace Hosted version Renders the component 1`] = `
         </div>
         <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
                   Namespace
-                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
-                  Rename Namespace
-                </span></button></div>
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                        Rename Namespace
+                      </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
       </div>
-      <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-70" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-70" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
-      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
     </div>
-    <div data-test="userOperation-div" class="mt-6">
-      <div class="row">
-        <div class="col">
-          <h3>
-            Members
-          </h3>
-        </div>
-        <div class="spacer"></div>
-        <div data-test="newMember-div">
-          <div class="ml-auto col-md-auto col">
-            <fragment-stub><button type="button" class="ml-12 v-btn v-btn--outlined theme--light v-size--default" data-test="dialog-btn"><span class="v-btn__content">
-    Add Member
-  </span></button>
-              <div role="dialog" class="v-dialog__container">
-                <!---->
-              </div>
-            </fragment-stub>
-          </div>
-        </div>
+    <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-78" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-78" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <div data-test="userOperation-div" class="mt-6">
+    <div class="row">
+      <div class="col">
+        <h3>
+          Members
+        </h3>
       </div>
-      <div class="mt-5">
-        <div role="list" class="v-list v-sheet theme--light">
-          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
-            <div class="row">
-              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
-              <div class="col">
-                <div data-test="user6-list" class="v-list-item__title">
-                  user6
-                </div>
-              </div>
-              <div class="spacer"></div>
-              <div>
-                <div class="ml-auto col-md-auto col">
-                  <p data-test="owner-p" class="mr-3">
-                    Owner
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
-            <div class="row">
-              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
-              <div class="col">
-                <div data-test="user7-list" class="v-list-item__title">
-                  user7
-                </div>
-              </div>
-              <div class="spacer"></div>
-              <div>
-                <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate material-icons theme--light">delete</i><span class="v-tooltip v-tooltip--bottom"><!----></span></span></button></div>
-              </div>
-            </div>
-          </div>
-          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
-            <div class="row">
-              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
-              <div class="col">
-                <div data-test="user8-list" class="v-list-item__title">
-                  user8
-                </div>
-              </div>
-              <div class="spacer"></div>
-              <div>
-                <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate material-icons theme--light">delete</i><span class="v-tooltip v-tooltip--bottom"><!----></span></span></button></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-    </div>
-    <div data-test="securityOperation-div" class="mt-6">
-      <form novalidate="novalidate" class="v-form">
-        <div class="row">
-          <div class="mb-6 col">
-            <h3 class="mb-5">
-              Security
-            </h3>
-            <div class="ml-3">
-              <div class="v-input theme--light v-input--selection-controls v-input--checkbox">
-                <div class="v-input__control">
-                  <div class="v-input__slot">
-                    <div class="v-input--selection-controls__input"><i aria-hidden="true" class="v-icon notranslate mdi mdi-checkbox-blank-outline theme--light"></i><input aria-checked="false" id="input-96" role="checkbox" type="checkbox" value="">
-                      <div class="v-input--selection-controls__ripple"></div>
-                    </div><label for="input-96" class="v-label theme--light" style="left: 0px; position: relative;">Enable session record</label>
-                  </div>
-                  <div class="v-messages theme--light">
-                    <transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub>
-                  </div>
-                </div>
-              </div>
-              <p>
-                Session record is a feature that allows you to check logged activity when
-                connecting to a device.
-              </p>
-            </div>
-          </div>
-        </div>
-      </form>
-      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-    </div>
-    <div data-test="deleteOperation-div" class="mt-6">
-      <h3 class="mb-5">
-        Danger Zone
-      </h3>
-      <div class="row mt-4 mb-2">
-        <div class="ml-3 col">
-          <h4>
-            Delete this namespace
-          </h4>
-          <div class="ml-2">
-            <p>
-              After deleting a namespace, there is no going back. Be sure.
-            </p>
-          </div>
-        </div>
-        <div class="ml-auto mb-4 col-md-auto col">
-          <fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
-    Delete namespace
-  </span></button>
+      <div class="spacer"></div>
+      <div>
+        <div class="ml-auto col-md-auto col">
+          <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
+            <div><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
             <div role="dialog" class="v-dialog__container">
               <!---->
             </div>
@@ -162,184 +1251,101 @@ exports[`SettingNamespace Hosted version Renders the component 1`] = `
         </div>
       </div>
     </div>
-  </div>
-  </div>
-  </div>
-</fragment-stub>
-`;
-
-exports[`SettingNamespace Not the owner of this namespace Renders the component 1`] = `
-<fragment-stub>
-  <div class="container">
-    <div class="row mt-4 align-center justify-center">
-      <div class="col-sm-8 col">
-        <div style="text-align: center;" data-test="settingOwnerInfo-component">
-          <div data-test="message-div">
-            <h3 class="pl-6"><span>
-        You're not the owner of this namespace.
-      </span>
-              <p data-test="contactUser-p">
-                Contact user6 user for more information.
-              </p>
-            </h3>
-          </div> <br>
-        </div>
-        <div class="mt-6">
-          <div class="row mb-2">
-            <div class="col-md-auto col">
-              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
-                Tenant ID:
+    <div class="mt-5">
+      <div role="list" class="v-list v-sheet theme--light">
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user1
               </div>
             </div>
             <div class="ml-auto col-md-auto col">
-              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span data-test="tenant-span">
-                    
-                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$89" data-clipboard-success-handler="$90"></i></span></span></div>
+              <div data-test="owner-list" class="v-list-item__title">
+                owner
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+              </div>
             </div>
           </div>
-          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
         </div>
-        <!---->
-        <!---->
-        <!---->
-        <!---->
-      </div>
-    </div>
-  </div>
-</fragment-stub>
-`;
-
-exports[`SettingNamespace Open version Renders the component 1`] = `
-<fragment-stub>
-  <div class="container">
-    <div class="row mt-4 align-center justify-center">
-      <div class="col-sm-8 col">
-        <!---->
-        <div class="mt-6">
-          <div class="row mb-2">
-            <div class="col-md-auto col">
-              <div class="v-card v-sheet theme--light elevation-0 rounded-0">
-                Tenant ID:
+        <div tabindex="-1" role="listitem" class="v-list-item theme--light">
+          <div class="row">
+            <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
+            <div class="col">
+              <div data-test="undefined-list" class="v-list-item__title">
+                user2
               </div>
             </div>
             <div class="ml-auto col-md-auto col">
-              <div class="auto v-card v-sheet theme--light elevation-0 rounded-0"><span class="v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content"><span data-test="tenant-span">
-                    e359bf484715
-                  </span> <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-content-copy theme--light" data-clipboard-click-handler="$103" data-clipboard-success-handler="$104"></i></span></span></div>
-            </div>
-          </div>
-          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-          <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-        </div>
-        <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
-                  Namespace
-                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
-                  Rename Namespace
-                </span></button></div>
-      </div>
-      <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-2229" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-2229" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div></span>
-      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-    </div>
-    <div data-test="userOperation-div" class="mt-6">
-      <div class="row">
-        <div class="col">
-          <h3>
-            Members
-          </h3>
-        </div>
-        <div class="spacer"></div>
-        <!---->
-      </div>
-      <div class="mt-5">
-        <div role="list" class="v-list v-sheet theme--light">
-          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
-            <div class="row">
-              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
-              <div class="col">
-                <div data-test="user6-list" class="v-list-item__title">
-                  user6
-                </div>
+              <div data-test="observer-list" class="v-list-item__title">
+                observer
               </div>
-              <div class="spacer"></div>
-              <div data-test="role-div">
-                <div class="ml-auto col-md-auto col">
-                  <p data-test="role-text">
-                    Owner
-                  </p>
-                </div>
+            </div>
+            <div class="spacer"></div>
+            <div>
+              <div class="ml-auto col-md-auto col">
+                <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
+                <fragment-stub data-test="namespaceMemberDelete-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div role="dialog" class="v-dialog__container">
+                    <!---->
+                  </div>
+                </fragment-stub>
               </div>
             </div>
           </div>
-          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
-            <div class="row">
-              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
-              <div class="col">
-                <div data-test="user7-list" class="v-list-item__title">
-                  user7
-                </div>
-              </div>
-              <div class="spacer"></div>
-              <div data-test="role-div">
-                <div class="ml-auto col-md-auto col">
-                  <p data-test="role-text">
-                    Member
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div tabindex="-1" role="listitem" class="v-list-item theme--light">
-            <div class="row">
-              <div class="ml-auto col-md-auto col"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i></div>
-              <div class="col">
-                <div data-test="user8-list" class="v-list-item__title">
-                  user8
-                </div>
-              </div>
-              <div class="spacer"></div>
-              <div data-test="role-div">
-                <div class="ml-auto col-md-auto col">
-                  <p data-test="role-text">
-                    Member
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-      <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
-    </div>
-    <!---->
-    <div data-test="deleteOperation-div" class="mt-6">
-      <h3 class="mb-5">
-        Danger Zone
-      </h3>
-      <div class="row mt-4 mb-2">
-        <div class="ml-3 col">
-          <h4>
-            Delete this namespace
-          </h4>
-          <div class="ml-2">
-            <p>
-              After deleting a namespace, there is no going back. Be sure.
-            </p>
-          </div>
-        </div>
-        <div class="ml-auto mb-4 col-md-auto col">
-          <fragment-stub><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
-    Delete namespace
-  </span></button>
-            <div role="dialog" class="v-dialog__container">
-              <!---->
-            </div>
-          </fragment-stub>
         </div>
       </div>
     </div>
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+    <hr role="separator" aria-orientation="horizontal" class="v-divider theme--light">
+  </div>
+  <!---->
+  <div data-test="deleteOperation-div" class="mt-6">
+    <h3 class="mb-5">
+      Danger Zone
+    </h3>
+    <div class="row mt-4 mb-2">
+      <div class="ml-3 col">
+        <h4>
+          Delete this namespace
+        </h4>
+        <div class="ml-2">
+          <p>
+            After deleting a namespace, there is no going back. Be sure.
+          </p>
+        </div>
+      </div>
+      <div class="ml-auto mb-4 col-md-auto col">
+        <fragment-stub data-test="namespaceDelete-component">
+          <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
+          Delete namespace
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+          <div role="dialog" class="v-dialog__container">
+            <!---->
+          </div>
+        </fragment-stub>
+      </div>
+    </div>
+  </div>
   </div>
   </div>
   </div>

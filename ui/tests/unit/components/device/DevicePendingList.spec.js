@@ -2,6 +2,7 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import DevicePendingList from '@/components/device/DevicePendingList';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('DevicePendingList', () => {
   const localVue = createLocalVue();
@@ -150,6 +151,10 @@ describe('DevicePendingList', () => {
       localVue,
       stubs: ['fragment', 'router-link'],
       vuetify,
+      mocks: {
+        $authorizer: authorizer,
+        $actions: actions,
+      },
     });
   });
 

@@ -9,12 +9,12 @@
         sm="8"
       >
         <SettingOwnerInfo
-          :is-owner="isOwner"
+          :is-owner="hasAuthorization"
           data-test="settingOwnerInfo-component"
         />
 
         <div
-          v-if="isOwner"
+          v-if="hasAuthorization"
           data-test="content-div"
         >
           <v-row>
@@ -27,7 +27,7 @@
             <v-spacer />
 
             <v-col
-              v-if="isOwner && state === 'inactive'"
+              v-if="state === 'inactive'"
               md="auto"
               class="ml-auto"
             >
@@ -57,7 +57,7 @@
               </p>
             </div>
 
-            <div v-else-if="isOwner && state === 'inactive'">
+            <div v-else-if="state === 'inactive'">
               <div data-test="freePlan-div">
                 <p>
                   Plan: <b> Free </b>
@@ -69,7 +69,7 @@
               </div>
             </div>
 
-            <div v-else-if="isOwner && active && state === 'processed'">
+            <div v-else-if="active && state === 'processed'">
               <div data-test="premiumPlan-div">
                 <p>
                   Plan: <b> Premium usage </b>
@@ -85,7 +85,7 @@
         </div>
 
         <div
-          v-if="isOwner && active && renderData && state==='processed'"
+          v-if="hasAuthorization && active && renderData && state==='processed'"
           class="mt-4 mb-4"
           data-test="subscriptionActive-div"
         >
@@ -220,6 +220,7 @@ import BillingIcon from '@/components/billing/BillingIcon';
 
 import { formatDateWithoutDayAndHours } from '@/components/filter/date';
 import formatCurrency from '@/components/filter/currency';
+import hasPermission from '@/components/filter/permission';
 
 export default {
   name: 'SettingBillingComponent',
@@ -231,7 +232,11 @@ export default {
     BillingIcon,
   },
 
-  filters: { formatDateWithoutDayAndHours, formatCurrency },
+  filters: {
+    formatDateWithoutDayAndHours,
+    formatCurrency,
+    hasPermission,
+  },
 
   data() {
     return {
@@ -271,6 +276,18 @@ export default {
 
     cardBillingData() {
       return this.billingData.card;
+    },
+
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.billing.subscribe,
+        );
+      }
+
+      return false;
     },
   },
 

@@ -10,7 +10,7 @@
       <template #activator="{ on }">
         <span v-on="on">
           <v-icon
-            :disabled="!isOwner"
+            :disabled="!hasAuthorization"
             v-on="on"
             @click="displayDialog"
           >
@@ -21,14 +21,14 @@
 
       <div>
         <span
-          v-if="isOwner"
+          v-if="hasAuthorization"
           data-test="text-tooltip"
         >
           Play
         </span>
 
         <span v-else>
-          You are not the owner of this namespace
+          You don't have this kind of authorization.
         </span>
       </div>
     </v-tooltip>
@@ -49,14 +49,19 @@
           <v-btn
             icon
             dark
+            data-test="close-btn"
             @click="dialog = !dialog"
           >
             <v-icon>close</v-icon>
           </v-btn>
+
           <v-toolbar-title>Watch Session</v-toolbar-title>
+
           <v-spacer />
         </v-toolbar>
+
         <div ref="playterminal" />
+
         <v-container class="pa-0">
           <v-row no-gutters>
             <v-col
@@ -74,21 +79,25 @@
                   large
                   class="pl-0"
                   color="primary"
+                  data-test="pause-icon"
                   @click="pauseHandler"
                 >
                   mdi-pause-circle
                 </v-icon>
+
                 <v-icon
                   v-else
                   large
                   class="pl-0"
                   color="primary"
+                  data-test="play-icon"
                   @click="pauseHandler"
                 >
                   mdi-play-circle
                 </v-icon>
               </v-card>
             </v-col>
+
             <v-col
               cols="6"
               md="9"
@@ -104,12 +113,14 @@
                   min="0"
                   :max="totalLength"
                   :label="`${nowTimerDisplay} - ${endTimerDisplay}`"
+                  data-test="time-slider"
                   @change="changeSliderTime"
                   @mousedown="previousPause=paused, paused=true"
                   @mouseup="paused=previousPause"
                 />
               </v-card>
             </v-col>
+
             <v-col
               cols="6"
               md="2"
@@ -125,6 +136,7 @@
                   :items="speedList"
                   menu-props="auto"
                   prepend-icon="mdi-speedometer"
+                  data-test="speed-select"
                   @change="speedChange"
                 >
                   <template #selection="{ item }">
@@ -148,8 +160,12 @@ import moment from 'moment';
 import 'moment-duration-format';
 import 'xterm/css/xterm.css';
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'SessionPlayComponent',
+
+  filters: { hasPermission },
 
   props: {
     uid: {
@@ -189,8 +205,16 @@ export default {
       return this.getTimerNow;
     },
 
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.session.play,
+        );
+      }
+
+      return false;
     },
   },
 

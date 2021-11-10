@@ -2,12 +2,12 @@
   <fragment>
     <v-tooltip
       bottom
-      :disabled="isOwner"
+      :disabled="hasAuthorization"
     >
       <template #activator="{ on }">
         <div v-on="on">
           <v-btn
-            :disabled="!isOwner"
+            :disabled="!hasAuthorization"
             class="v-btn--active mr-2"
             text
             color="primary"
@@ -21,7 +21,7 @@
       </template>
 
       <span>
-        You are not the owner of this namespace
+        You don't have this kind of authorization.
       </span>
     </v-tooltip>
 
@@ -30,7 +30,7 @@
       :retain-focus="false"
       max-width="800px"
     >
-      <v-card>
+      <v-card data-test="deviceAdd-dialog">
         <v-card-title
           class="headline grey lighten-2 text-center"
           primary-title
@@ -49,6 +49,7 @@
           </p>
 
           <strong>Run the following command on your device:</strong>
+
           <v-text-field
             class="code"
             fill-width
@@ -76,6 +77,7 @@
           <v-spacer />
           <v-btn
             text
+            data-test="close-btn"
             @click="dialog = !dialog"
           >
             Close
@@ -88,8 +90,12 @@
 
 <script>
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'DeviceAddComponent',
+
+  filters: { hasPermission },
 
   props: {
     smallButton: {
@@ -122,8 +128,16 @@ export default {
       },
     },
 
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.device.add,
+        );
+      }
+
+      return false;
     },
   },
 

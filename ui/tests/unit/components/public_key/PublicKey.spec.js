@@ -3,6 +3,7 @@ import { mount, createLocalVue, config } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import Router from 'vue-router';
 import publicKey from '@/components/public_key/PublicKey';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 config.mocks = {
   $env: {
@@ -67,6 +68,10 @@ describe('PublicKey', () => {
         stubs: ['fragment'],
         vuetify,
         router,
+        mocks: {
+          $authorizer: authorizer,
+          $actions: actions,
+        },
       });
     });
 
@@ -116,6 +121,10 @@ describe('PublicKey', () => {
         stubs: ['fragment'],
         vuetify,
         router,
+        mocks: {
+          $authorizer: authorizer,
+          $actions: actions,
+        },
       });
     });
 

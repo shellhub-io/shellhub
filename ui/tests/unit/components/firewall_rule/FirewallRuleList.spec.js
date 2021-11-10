@@ -2,6 +2,7 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import FirewallRuleList from '@/components/firewall_rule/FirewallRuleList';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('FirewallRuleList', () => {
   const localVue = createLocalVue();
@@ -100,6 +101,10 @@ describe('FirewallRuleList', () => {
       localVue,
       stubs: ['fragment'],
       vuetify,
+      mocks: {
+        $authorizer: authorizer,
+        $actions: actions,
+      },
     });
   });
 

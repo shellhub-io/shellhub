@@ -10,6 +10,7 @@ import env from './env';
 import success from './success';
 import errors from './errors';
 import copy from './copy';
+import { authorizerVue } from './authorizer';
 import './vee-validate';
 import vuetify from './plugins/vuetify';
 
@@ -23,6 +24,7 @@ Vue.use(env);
 Vue.use(success);
 Vue.use(errors);
 Vue.use(copy);
+Vue.use(authorizerVue);
 
 if (process.env.VUE_APP_SHELLHUB_CLOUD) {
   Vue.use(Hotjar, {

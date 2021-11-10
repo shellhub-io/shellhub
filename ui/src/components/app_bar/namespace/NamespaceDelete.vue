@@ -1,13 +1,27 @@
 <template>
   <fragment>
-    <v-btn
-      color="red darken-1"
-      outlined
-      data-test="delete-btn"
-      @click="dialog = !dialog"
+    <v-tooltip
+      bottom
+      :disabled="hasAuthorization"
     >
-      Delete namespace
-    </v-btn>
+      <template #activator="{ on }">
+        <div v-on="on">
+          <v-btn
+            :disabled="!hasAuthorization"
+            color="red darken-1"
+            outlined
+            data-test="delete-btn"
+            @click="dialog = !dialog"
+          >
+            Delete namespace
+          </v-btn>
+        </div>
+      </template>
+
+      <span>
+        You don't have this kind of authorization.
+      </span>
+    </v-tooltip>
 
     <v-dialog
       v-model="dialog"
@@ -61,11 +75,15 @@
 <script>
 
 import formatCurrency from '@/components/filter/currency';
+import hasPermission from '@/components/filter/permission';
 
 export default {
   name: 'NamespaceDeleteComponent',
 
-  filters: { formatCurrency },
+  filters: {
+    formatCurrency,
+    hasPermission,
+  },
 
   props: {
     nsTenant: {
@@ -98,8 +116,16 @@ export default {
       return this.$store.getters['billing/get'];
     },
 
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.namespace.remove,
+        );
+      }
+
+      return false;
     },
   },
 
@@ -108,7 +134,7 @@ export default {
   },
 
   mounted() {
-    if (this.isOwner && this.isBillingEnabled()) {
+    if (this.hasAuthorization && this.isBillingEnabled()) {
       this.getSubscriptionInfo();
     }
   },

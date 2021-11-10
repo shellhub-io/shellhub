@@ -4,6 +4,7 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
 import KeyFormDialog from '@/components/public_key/KeyFormDialog';
+import { actions, authorizer } from '../../../../src/authorizer';
 import '@/vee-validate';
 
 describe('KeyFormDialog', () => {
@@ -17,13 +18,21 @@ describe('KeyFormDialog', () => {
 
   let wrapper;
 
-  const isOwner = true;
-  const supportedKeys = 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.';
+  const accessType = ['owner', 'administrator', 'operator', 'observer'];
 
-  const creatingKey = {
+  const hasAuthorization = {
+    owner: true,
+    administrator: true,
+    operator: false,
+    observer: false,
+  };
+
+  const privateKeyLocal = {
     data: '',
     name: '',
   };
+
+  const publicKeyLocal = { ...privateKeyLocal, hostname: '' };
 
   const keyObject = {
     data: 'AbGVvbmF',
@@ -72,13 +81,140 @@ describe('KeyFormDialog', () => {
   sGHPNn1H/cu7eM+nr9NxzJIT2CzKMHt5w4epp/UgkYFri4n2wDNS
   -----END RSA PRIVATE KEY-----`;
 
-  const store = new Vuex.Store({
+  const tests = [
+    {
+      description: 'Button create publicKey',
+      variables: {
+        createKey: true,
+        dialog: false,
+      },
+      props: {
+        keyObject: {},
+        createKey: true,
+        action: 'public',
+      },
+      data: {
+        dialog: false,
+        keyLocal: publicKeyLocal,
+        supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
+      },
+      template: {
+        'createKey-btn': true,
+        'keyFormDialog-card': false,
+      },
+    },
+    {
+      description: 'Icon edit publicKey',
+      variables: {
+        createKey: false,
+        dialog: false,
+      },
+      props: {
+        keyObject,
+        createKey: false,
+        action: 'public',
+      },
+      data: {
+        dialog: false,
+        supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
+      },
+      template: {
+        'createKey-btn': false,
+        'keyFormDialog-card': false,
+      },
+    },
+    {
+      description: 'Button create privateKey',
+      variables: {
+        createKey: true,
+        dialog: false,
+      },
+      props: {
+        keyObject: {},
+        createKey: true,
+        action: 'private',
+      },
+      data: {
+        dialog: false,
+        keyLocal: privateKeyLocal,
+        supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
+      },
+      template: {
+        'createKey-btn': true,
+        'keyFormDialog-card': false,
+      },
+    },
+    {
+      description: 'Icon edit privateKey',
+      variables: {
+        createKey: false,
+        dialog: false,
+      },
+      props: {
+        keyObject: { name: 'xxxxxxx', data: 'xxxxxxx' },
+        createKey: false,
+        action: 'private',
+      },
+      data: {
+        dialog: false,
+        keyLocal: { name: 'xxxxxxx', data: 'xxxxxxx' },
+        supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
+      },
+      template: {
+        'createKey-btn': false,
+        'keyFormDialog-card': false,
+      },
+    },
+    {
+      description: 'Dialog edit publicKey',
+      variables: {
+        createKey: false,
+        dialog: true,
+      },
+      props: {
+        keyObject,
+        createKey: false,
+        action: 'public',
+      },
+      data: {
+        dialog: true,
+        supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
+      },
+      template: {
+        'createKey-btn': false,
+        'keyFormDialog-card': true,
+      },
+    },
+    {
+      description: 'Dialog edit privateKey',
+      variables: {
+        createKey: false,
+        dialog: true,
+      },
+      props: {
+        keyObject: { name: 'xxxxxxx', data: 'xxxxxxx' },
+        createKey: false,
+        action: 'private',
+      },
+      data: {
+        dialog: true,
+        keyLocal: { name: 'xxxxxxx', data: 'xxxxxxx' },
+        supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
+      },
+      template: {
+        'createKey-btn': false,
+        'keyFormDialog-card': true,
+      },
+    },
+  ];
+
+  const storeVuex = (currentAccessType) => new Vuex.Store({
     namespaced: true,
     state: {
-      isOwner,
+      currentAccessType,
     },
     getters: {
-      'namespaces/owner': (state) => state.isOwner,
+      'auth/accessType': (state) => state.currentAccessType,
     },
     actions: {
       'publickeys/post': () => {},
@@ -92,664 +228,172 @@ describe('KeyFormDialog', () => {
     },
   });
 
-  ///////
-  // In this case, when the user owns the namespace and the focus of
-  // the test is icon rendering. Creating public key.
-  ///////
+  tests.forEach((test) => {
+    accessType.forEach((currentAccessType) => {
+      describe(`${test.description} ${currentAccessType}`, () => {
+        beforeEach(() => {
+          wrapper = mount(KeyFormDialog, {
+            store: storeVuex(currentAccessType),
+            localVue,
+            stubs: ['fragment'],
+            propsData: {
+              keyObject: test.props.keyObject,
+              createKey: test.props.createKey,
+              action: test.props.action,
+            },
+            vuetify,
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+            },
+          });
 
-  describe('Icon', () => {
-    const createKey = true;
-    const action = 'public';
+          wrapper.setData({ dialog: test.variables.dialog });
+        });
 
-    beforeEach(() => {
-      wrapper = mount(KeyFormDialog, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { keyObject, createKey, action },
-        vuetify,
+        ///////
+        // Component Rendering
+        //////
+
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
+        });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
+
+        ///////
+        // Data checking
+        //////
+
+        it('Receive data in props', () => {
+          Object.keys(test.props).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.props[item]);
+          });
+        });
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
+          });
+        });
+        it('Process data in the computed', () => {
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+        });
+
+        //////
+        // HTML validation
+        //////
+
+        it('Renders the template with data', () => {
+          Object.keys(test.template).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+          });
+        });
+
+        if (!test.data.dialog) {
+          if (hasAuthorization[currentAccessType] && !test.variables.createKey) {
+            it('Show message tooltip to user owner', async (done) => {
+              const icons = wrapper.findAll('.v-icon');
+              const helpIcon = icons.at(0);
+              helpIcon.trigger('mouseenter');
+              await wrapper.vm.$nextTick();
+
+              expect(icons.length).toBe(1);
+              expect(helpIcon.text()).toEqual('edit');
+              requestAnimationFrame(() => {
+                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Edit');
+                done();
+              });
+            });
+          }
+        } else if (test.props.action === 'public') {
+          it('Show validation messages', async () => {
+            //////
+            // In this case, the empty fields are validated.
+            //////
+
+            wrapper.setData({ keyLocal: { name: '', data: '' } });
+            await flushPromises();
+
+            const validatorName = wrapper.vm.$refs.providerName;
+            let validatorData = wrapper.vm.$refs.providerData;
+
+            await validatorName.validate();
+            await validatorData.validate();
+            expect(validatorName.errors[0]).toBe('This field is required');
+            expect(validatorData.errors[0]).toBe('This field is required');
+
+            //////
+            // In this case, any string is validated in the data.
+            //////
+
+            wrapper.setData({ keyLocal: { data: 'xxxxxxxx' } });
+            await flushPromises();
+
+            validatorData = wrapper.vm.$refs.providerData;
+
+            await validatorData.validate();
+            expect(validatorData.errors[0]).toBe('Not valid key');
+          });
+        } else if (test.props.action === 'private') {
+          it('Show validation messages', async () => {
+            //////
+            // In this case, the empty fields are validated.
+            //////
+
+            wrapper.setData({ keyLocal: { name: '', data: '' } });
+            await flushPromises();
+
+            let validatorName = wrapper.vm.$refs.providerName;
+            let validatorData = wrapper.vm.$refs.providerData;
+
+            await validatorName.validate();
+            await validatorData.validate();
+            expect(validatorName.errors[0]).toBe('This field is required');
+            expect(validatorData.errors[0]).toBe('This field is required');
+
+            //////
+            // In this case, any string is validated in the data.
+            //////
+
+            wrapper.setData({ keyLocal: { data: 'xxxxxxxx' } });
+            await flushPromises();
+
+            validatorData = wrapper.vm.$refs.providerData;
+
+            await validatorData.validate();
+            expect(validatorData.errors[0]).toBe('Not valid key');
+
+            //////
+            // In this case, the public key is inserted where the private
+            // key should be inserted.
+            //////
+
+            wrapper.setData({ keyLocal: { data: publicKey } });
+            await flushPromises();
+
+            validatorData = wrapper.vm.$refs.providerData;
+
+            await validatorData.validate();
+            expect(validatorData.errors[0]).toBe('Not valid key');
+
+            //////
+            // In this case, the private key is inserted to validation.
+            //////
+
+            wrapper.setData({ keyLocal: { name: 'ShellHub', data: privateKey } });
+            await flushPromises();
+
+            validatorName = wrapper.vm.$refs.providerName;
+            validatorData = wrapper.vm.$refs.providerData;
+
+            await validatorName.validate();
+            await validatorData.validate();
+            expect(validatorName.errors[0]).toBe(undefined);
+            expect(validatorData.errors[0]).toBe(undefined);
+          });
+        }
       });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.keyObject).toEqual(keyObject);
-      expect(wrapper.vm.createKey).toEqual(createKey);
-      expect(wrapper.vm.action).toEqual(action);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="createKey-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the namespace and the focus of
-  // the test is icon rendering. Editing public key.
-  ///////
-
-  describe('Icon', () => {
-    const createKey = false;
-    const action = 'public';
-
-    beforeEach(() => {
-      wrapper = mount(KeyFormDialog, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { keyObject, createKey, action },
-        vuetify,
-      });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.keyObject).toEqual(keyObject);
-      expect(wrapper.vm.createKey).toEqual(createKey);
-      expect(wrapper.vm.action).toEqual(action);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show message tooltip to user owner', async (done) => {
-      const icons = wrapper.findAll('.v-icon');
-      const helpIcon = icons.at(0);
-      helpIcon.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(icons.length).toBe(1);
-      expect(helpIcon.text()).toEqual('edit');
-      requestAnimationFrame(() => {
-        expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Edit');
-        done();
-      });
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the namespace and the focus of
-  // the test is icon rendering. Creating private key.
-  ///////
-
-  describe('Icon', () => {
-    const createKey = true;
-    const action = 'private';
-
-    beforeEach(() => {
-      wrapper = mount(KeyFormDialog, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { keyObject, createKey, action },
-        vuetify,
-      });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.keyObject).toEqual(keyObject);
-      expect(wrapper.vm.createKey).toEqual(createKey);
-      expect(wrapper.vm.action).toEqual(action);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="createKey-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // in this case, when the user owns the namespace and the focus of
-  // the test is icon rendering. Editing private key.
-  ///////
-
-  describe('Icon', () => {
-    const createKey = false;
-    const action = 'private';
-
-    beforeEach(() => {
-      wrapper = mount(KeyFormDialog, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { keyObject, createKey, action },
-        vuetify,
-      });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.keyObject).toEqual(keyObject);
-      expect(wrapper.vm.createKey).toEqual(createKey);
-      expect(wrapper.vm.action).toEqual(action);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-      expect(wrapper.vm.keyLocal).toEqual(keyObject);
-      expect(wrapper.vm.supportedKeys).toEqual(supportedKeys);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show message tooltip to user owner', async (done) => {
-      const icons = wrapper.findAll('.v-icon');
-      const helpIcon = icons.at(0);
-      helpIcon.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(icons.length).toBe(1);
-      expect(helpIcon.text()).toEqual('edit');
-      requestAnimationFrame(() => {
-        expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Edit');
-        done();
-      });
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(false);
-    });
-  }, 5000);
-
-  ///////
-  // In this case, when the user owns the namespace and the focus of
-  // the test is dialog rendering. Creating public key.
-  ///////
-
-  describe('Dialog opened', () => {
-    const createKey = true;
-    const action = 'public';
-
-    beforeEach(() => {
-      wrapper = mount(KeyFormDialog, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { createKey, action },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.keyObject).toEqual({});
-      expect(wrapper.vm.createKey).toEqual(createKey);
-      expect(wrapper.vm.action).toEqual(action);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-      expect(wrapper.vm.keyLocal).toEqual({ ...creatingKey, hostname: '' });
-      expect(wrapper.vm.supportedKeys).toEqual(supportedKeys);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show validation messages', async () => {
-      //////
-      // In this case, the empty fields are validated.
-      //////
-
-      wrapper.setData({ keyLocal: { name: '', data: '' } });
-      await flushPromises();
-
-      const validatorName = wrapper.vm.$refs.providerName;
-      let validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorName.validate();
-      await validatorData.validate();
-      expect(validatorName.errors[0]).toBe('This field is required');
-      expect(validatorData.errors[0]).toBe('This field is required');
-
-      //////
-      // In this case, any string is validated in the data.
-      //////
-
-      wrapper.setData({ keyLocal: { data: 'xxxxxxxx' } });
-      await flushPromises();
-
-      validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorData.validate();
-      expect(validatorData.errors[0]).toBe('Not valid key');
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="username-validationProvider"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="create-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="edit-btn"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the namespace and the focus of
-  // the test is dialog rendering. Editing public key.
-  ///////
-
-  describe('Dialog opened', () => {
-    const createKey = false;
-    const action = 'public';
-
-    beforeEach(() => {
-      wrapper = mount(KeyFormDialog, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { keyObject, createKey, action },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.keyObject).toEqual(keyObject);
-      expect(wrapper.vm.createKey).toEqual(createKey);
-      expect(wrapper.vm.action).toEqual(action);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-      expect(wrapper.vm.supportedKeys).toEqual(supportedKeys);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show validation messages', async () => {
-      //////
-      // In this case, the empty fields are validated.
-      //////
-
-      wrapper.setData({ keyLocal: { name: '', data: '' } });
-      await flushPromises();
-
-      const validatorName = wrapper.vm.$refs.providerName;
-      let validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorName.validate();
-      await validatorData.validate();
-      expect(validatorName.errors[0]).toBe('This field is required');
-      expect(validatorData.errors[0]).toBe('This field is required');
-
-      //////
-      // In this case, any string is validated in the data.
-      //////
-
-      wrapper.setData({ keyLocal: { data: 'xxxxxxxx' } });
-      await flushPromises();
-
-      validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorData.validate();
-      expect(validatorData.errors[0]).toBe('Not valid key');
-    });
-    it('Show validation messages', async () => {
-      //////
-      // In this case, the empty fields are validated.
-      //////
-
-      wrapper.setData({ keyLocal: { name: '', data: '' } });
-      await flushPromises();
-
-      const validatorName = wrapper.vm.$refs.providerName;
-      const validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorName.validate();
-      await validatorData.validate();
-      expect(validatorName.errors[0]).toBe('This field is required');
-      expect(validatorData.errors[0]).toBe('This field is required');
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="username-validationProvider"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="create-btn"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="edit-btn"]').exists()).toEqual(true);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the namespace and the focus of
-  // the test is dialog rendering. Creating private key.
-  ///////
-
-  describe('Dialog opened', () => {
-    const createKey = true;
-    const action = 'private';
-
-    beforeEach(() => {
-      wrapper = mount(KeyFormDialog, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { createKey, action },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.keyObject).toEqual({});
-      expect(wrapper.vm.createKey).toEqual(createKey);
-      expect(wrapper.vm.action).toEqual(action);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-      expect(wrapper.vm.keyLocal).toEqual(creatingKey);
-      expect(wrapper.vm.supportedKeys).toEqual(supportedKeys);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show validation messages', async () => {
-      //////
-      // In this case, the empty fields are validated.
-      //////
-
-      wrapper.setData({ keyLocal: { name: '', data: '' } });
-      await flushPromises();
-
-      let validatorName = wrapper.vm.$refs.providerName;
-      let validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorName.validate();
-      await validatorData.validate();
-      expect(validatorName.errors[0]).toBe('This field is required');
-      expect(validatorData.errors[0]).toBe('This field is required');
-
-      //////
-      // In this case, any string is validated in the data.
-      //////
-
-      wrapper.setData({ keyLocal: { data: 'xxxxxxxx' } });
-      await flushPromises();
-
-      validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorData.validate();
-      expect(validatorData.errors[0]).toBe('Not valid key');
-
-      //////
-      // In this case, the public key is inserted where the private
-      // key should be inserted.
-      //////
-
-      wrapper.setData({ keyLocal: { data: publicKey } });
-      await flushPromises();
-
-      validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorData.validate();
-      expect(validatorData.errors[0]).toBe('Not valid key');
-
-      //////
-      // In this case, the private key is inserted to validation.
-      //////
-
-      wrapper.setData({ keyLocal: { name: 'ShellHub', data: privateKey } });
-      await flushPromises();
-
-      validatorName = wrapper.vm.$refs.providerName;
-      validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorName.validate();
-      await validatorData.validate();
-      expect(validatorName.errors[0]).toBe(undefined);
-      expect(validatorData.errors[0]).toBe(undefined);
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="username-validationProvider"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="create-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="edit-btn"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the namespace and the focus of
-  // the test is dialog rendering. Editing private key.
-  ///////
-
-  describe('Dialog opened', () => {
-    const createKey = false;
-    const action = 'private';
-
-    beforeEach(() => {
-      wrapper = mount(KeyFormDialog, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { keyObject, createKey, action },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.keyObject).toEqual(keyObject);
-      expect(wrapper.vm.createKey).toEqual(createKey);
-      expect(wrapper.vm.action).toEqual(action);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-      expect(wrapper.vm.keyLocal).toEqual(keyObject);
-      expect(wrapper.vm.supportedKeys).toEqual(supportedKeys);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show validation messages', async () => {
-      //////
-      // In this case, the empty fields are validated.
-      //////
-
-      wrapper.setData({ keyLocal: { name: '', data: '' } });
-      await flushPromises();
-
-      let validatorName = wrapper.vm.$refs.providerName;
-      let validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorName.validate();
-      await validatorData.validate();
-      expect(validatorName.errors[0]).toBe('This field is required');
-      expect(validatorData.errors[0]).toBe('This field is required');
-
-      //////
-      // In this case, any string is validated in the data.
-      //////
-
-      wrapper.setData({ keyLocal: { data: 'xxxxxxxx' } });
-      await flushPromises();
-
-      validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorData.validate();
-      expect(validatorData.errors[0]).toBe('Not valid key');
-
-      //////
-      // In this case, the public key is inserted where the private
-      // key should be inserted.
-      //////
-
-      wrapper.setData({ keyLocal: { data: publicKey } });
-      await flushPromises();
-
-      validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorData.validate();
-      expect(validatorData.errors[0]).toBe('Not valid key');
-
-      //////
-      // In this case, the private key is inserted to validation.
-      //////
-
-      wrapper.setData({ keyLocal: { name: 'ShellHub', data: privateKey } });
-      await flushPromises();
-
-      validatorName = wrapper.vm.$refs.providerName;
-      validatorData = wrapper.vm.$refs.providerData;
-
-      await validatorName.validate();
-      await validatorData.validate();
-      expect(validatorName.errors[0]).toBe(undefined);
-      expect(validatorData.errors[0]).toBe(undefined);
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="keyFormDialog-card"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="username-validationProvider"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="create-btn"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="edit-btn"]').exists()).toEqual(true);
     });
   });
 });

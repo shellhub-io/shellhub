@@ -11,6 +11,7 @@
         overlap
         offset-x="20"
         color="success"
+        data-test="notifications-badge"
       >
         <v-chip
           v-on="on"
@@ -28,6 +29,7 @@
 
     <v-card
       v-if="!getStatusNotifications"
+      data-test="hasNotifications-subheader"
     >
       <v-subheader>Pending Devices</v-subheader>
 
@@ -52,7 +54,7 @@
 
             <v-list-item-action>
               <DeviceActionButton
-                v-if="isOwner"
+                v-if="hasAuthorization"
                 :uid="item.uid"
                 :notification-status="true"
                 action="accept"
@@ -71,17 +73,18 @@
         block
         link
         small
+        data-test="show-btn"
         @click="shown=false"
       >
         Show all Pending Devices
       </v-btn>
     </v-card>
+
     <v-card
       v-else
+      data-test="noNotifications-subheader"
     >
-      <v-subheader
-        data-test="noNotifications"
-      >
+      <v-subheader>
         You don't have notifications
       </v-subheader>
     </v-card>
@@ -92,8 +95,12 @@
 
 import DeviceActionButton from '@/components/device/DeviceActionButton';
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'NotificationIcon',
+
+  filters: { hasPermission },
 
   components: {
     DeviceActionButton,
@@ -134,12 +141,20 @@ export default {
       return false;
     },
 
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
-    },
-
     hasNamespace() {
       return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
+    },
+
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.notification.view,
+        );
+      }
+
+      return false;
     },
   },
 

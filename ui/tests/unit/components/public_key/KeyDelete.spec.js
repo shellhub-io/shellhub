@@ -2,6 +2,7 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import KeyDelete from '@/components/public_key/KeyDelete';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('KeyDelete', () => {
   const localVue = createLocalVue();
@@ -12,279 +13,183 @@ describe('KeyDelete', () => {
 
   let wrapper;
 
-  const isOwner = true;
-  const fingerprint = 'b7:25:f8';
+  const accessType = ['owner', 'administrator', 'operator', 'observer'];
 
-  const store = new Vuex.Store({
+  const hasAuthorization = {
+    owner: true,
+    administrator: true,
+    operator: false,
+    observer: false,
+  };
+
+  const tests = [
+    {
+      description: 'Icon public',
+      variables: {
+        dialog: false,
+      },
+      props: {
+        fingerprint: 'b7:25:f8',
+        action: 'public',
+      },
+      data: {
+        dialog: false,
+      },
+      template: {
+        'keyDelete-card': false,
+        'close-btn': false,
+        'remove-btn': false,
+      },
+    },
+    {
+      description: 'Icon private',
+      variables: {
+        dialog: false,
+      },
+      props: {
+        fingerprint: 'b7:25:f8',
+        action: 'private',
+      },
+      data: {
+        dialog: false,
+      },
+      template: {
+        'keyDelete-card': false,
+        'close-btn': false,
+        'remove-btn': false,
+      },
+    },
+    {
+      description: 'Dialog public',
+      variables: {
+        dialog: true,
+      },
+      props: {
+        fingerprint: 'b7:25:f8',
+        action: 'public',
+      },
+      data: {
+        dialog: true,
+      },
+      template: {
+        'keyDelete-card': true,
+        'close-btn': true,
+        'remove-btn': true,
+      },
+    },
+    {
+      description: 'Dialog private',
+      variables: {
+        dialog: true,
+      },
+      props: {
+        fingerprint: 'b7:25:f8',
+        action: 'private',
+      },
+      data: {
+        dialog: true,
+      },
+      template: {
+        'keyDelete-card': true,
+        'close-btn': true,
+        'remove-btn': true,
+      },
+    },
+  ];
+
+  const storeVuex = (currentAccessType) => new Vuex.Store({
     namespaced: true,
     state: {
-      isOwner,
+      currentAccessType,
     },
     getters: {
-      'namespaces/owner': (state) => state.isOwner,
+      'auth/accessType': (state) => state.currentAccessType,
     },
     actions: {
       'publickeys/remove': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
     },
   });
 
-  ///////
-  // in this case, when the user owns the namespace and the focus of
-  // the test is icon rendering. The action is public.
-  ///////
+  tests.forEach((test) => {
+    accessType.forEach((currentAccessType) => {
+      describe(`${test.description} ${currentAccessType}`, () => {
+        beforeEach(() => {
+          wrapper = mount(KeyDelete, {
+            store: storeVuex(currentAccessType),
+            localVue,
+            stubs: ['fragment'],
+            propsData: {
+              fingerprint: test.props.fingerprint,
+              action: test.props.action,
+            },
+            vuetify,
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+            },
+          });
 
-  describe('Icon', () => {
-    beforeEach(() => {
-      const action = 'public';
+          wrapper.setData({ dialog: test.variables.dialog });
+        });
 
-      wrapper = mount(KeyDelete, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { fingerprint, action },
-        vuetify,
+        ///////
+        // Component Rendering
+        //////
+
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
+        });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
+
+        ///////
+        // Data checking
+        //////
+
+        it('Receive data in props', () => {
+          Object.keys(test.props).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.props[item]);
+          });
+        });
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
+          });
+        });
+        it('Process data in the computed', () => {
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+        });
+
+        // //////
+        // // HTML validation
+        // //////
+
+        it('Renders the template with data', () => {
+          Object.keys(test.template).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+          });
+        });
+
+        if (!test.data.dialog) {
+          if (hasAuthorization[currentAccessType]) {
+            it('Show message tooltip user has permission', async (done) => {
+              const icons = wrapper.findAll('.v-icon');
+              const helpIcon = icons.at(0);
+              helpIcon.trigger('mouseenter');
+              await wrapper.vm.$nextTick();
+
+              expect(icons.length).toBe(1);
+              requestAnimationFrame(() => {
+                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Remove');
+                done();
+              });
+            });
+          }
+        }
       });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.fingerprint).toEqual(fingerprint);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.isOwner).toEqual(isOwner);
-    });
-    it('Process data in methods', () => {
-      wrapper.vm.close();
-
-      expect(wrapper.vm.dialog).toEqual(true);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show message tooltip to user owner', async (done) => {
-      const icons = wrapper.findAll('.v-icon');
-      const helpIcon = icons.at(0);
-      helpIcon.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(icons.length).toBe(1);
-      requestAnimationFrame(() => {
-        expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Remove');
-        done();
-      });
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="keyDelete-card"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // in this case, when the user owns the namespace and the focus of
-  // the test is icon rendering. The action is private.
-  ///////
-
-  describe('Icon', () => {
-    beforeEach(() => {
-      const action = 'private';
-
-      wrapper = mount(KeyDelete, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { fingerprint, action },
-        vuetify,
-      });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.fingerprint).toEqual(fingerprint);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.isOwner).toEqual(isOwner);
-    });
-    it('Process data in methods', () => {
-      wrapper.vm.close();
-
-      expect(wrapper.vm.dialog).toEqual(true);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show message tooltip to user owner', async (done) => {
-      const icons = wrapper.findAll('.v-icon');
-      const helpIcon = icons.at(0);
-      helpIcon.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(icons.length).toBe(1);
-      requestAnimationFrame(() => {
-        expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Remove');
-        done();
-      });
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="keyDelete-card"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the keys and the focus of
-  // the test is dialog rendering. The action is public.
-  ///////
-
-  describe('Dialog opened', () => {
-    beforeEach(() => {
-      const action = 'public';
-
-      wrapper = mount(KeyDelete, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { fingerprint, action },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.fingerprint).toEqual(fingerprint);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.isOwner).toEqual(isOwner);
-    });
-    it('Process data in methods', () => {
-      wrapper.vm.close();
-
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="keyDelete-card"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="Remove-btn"]').exists()).toEqual(true);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the keys and the focus of
-  // the test is dialog rendering. The action is private.
-  ///////
-
-  describe('Dialog opened', () => {
-    beforeEach(() => {
-      const action = 'private';
-
-      wrapper = mount(KeyDelete, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { fingerprint, action },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.fingerprint).toEqual(fingerprint);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.isOwner).toEqual(isOwner);
-    });
-    it('Process data in methods', () => {
-      wrapper.vm.close();
-
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="keyDelete-card"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="Remove-btn"]').exists()).toEqual(true);
     });
   });
 });

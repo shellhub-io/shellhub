@@ -2,6 +2,7 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
+import { actions, authorizer } from '../../../../../src/authorizer';
 
 describe('NamespaceDelete', () => {
   const localVue = createLocalVue();
@@ -12,14 +13,15 @@ describe('NamespaceDelete', () => {
 
   let wrapper;
 
-  const tenant = 'xxxxxx';
-  const owner = true;
+  const nsTenant = 'xxxxxx';
 
-  const namespace = {
-    name: 'namespace3',
-    owner: 'user1',
-    member_names: ['user6', 'user7', 'user8'],
-    tenant_id: 'a736a52b-5777-4f92-b0b8-e359bf484715',
+  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+
+  const hasAuthorization = {
+    owner: true,
+    administrator: true,
+    operator: false,
+    observer: false,
   };
 
   const inactiveBilling = {
@@ -38,271 +40,203 @@ describe('NamespaceDelete', () => {
     payment_method_id: 'pm_123',
   };
 
-  const text = `This action cannot be undone. This will permanently delete the
-           ${namespace.name} and its related data.`;
+  const namespaceObject = {
+    name: 'namespace3',
+    owner: 'user1',
+    member_names: ['user1', 'user7', 'user8'],
+    tenant_id: 'xxxxxxxx',
+  };
 
-  const mockCallWithout = jest.fn();
-  const mockCallWith = jest.fn();
+  const getter = {
+    billingActive: [
+      inactiveBilling,
+      activeBilling,
+    ],
+  };
 
-  const storeOwnerWithoutSubscription = new Vuex.Store({
+  const tests = [
+    {
+      description: 'Button',
+      props: {
+        nsTenant,
+      },
+      data: {
+        name: namespaceObject.name,
+        dialog: false,
+      },
+      computed: {
+        tenant: nsTenant,
+        active: getter.billingActive[0].active,
+        billing: getter.billingActive[0],
+      },
+      namespace: namespaceObject,
+      env: {
+        billingEnable: false,
+      },
+      template: {
+        'delete-btn': true,
+        'namespaceDelete-dialog': false,
+        'contentSubscription-p': false,
+        'close-btn': false,
+        'remove-btn': false,
+      },
+    },
+    {
+      description: 'Dialog without subscription',
+      props: {
+        nsTenant,
+      },
+      data: {
+        name: namespaceObject.name,
+        dialog: true,
+      },
+      computed: {
+        tenant: nsTenant,
+        active: getter.billingActive[0].active,
+        billing: getter.billingActive[0],
+      },
+      namespace: namespaceObject,
+      env: {
+        billingEnable: false,
+      },
+      template: {
+        'delete-btn': true,
+        'namespaceDelete-dialog': true,
+        'contentSubscription-p': false,
+        'close-btn': true,
+        'remove-btn': true,
+      },
+    },
+    {
+      description: 'Dialog with subscription',
+      props: {
+        nsTenant,
+      },
+      data: {
+        name: namespaceObject.name,
+        dialog: true,
+      },
+      computed: {
+        tenant: nsTenant,
+        active: getter.billingActive[1].active,
+        billing: getter.billingActive[1],
+      },
+      namespace: namespaceObject,
+      env: {
+        billingEnable: true,
+      },
+      template: {
+        'delete-btn': true,
+        'namespaceDelete-dialog': true,
+        'contentSubscription-p': true,
+        'close-btn': true,
+        'remove-btn': true,
+      },
+    },
+  ];
+
+  const storeVuex = (active, billing, currentAccessType, namespace) => new Vuex.Store({
     namespaced: true,
     state: {
+      active,
+      billing,
+      currentAccessType,
       namespace,
-      stateBilling: inactiveBilling.active,
-      billing: inactiveBilling,
-      owner,
     },
     getters: {
-      'namespaces/get': (state) => state.namespace,
-      'billing/active': (state) => state.stateBilling,
+      'billing/active': (state) => state.active,
       'billing/get': (state) => state.billing,
-      'namespaces/owner': (state) => state.owner,
+      'auth/accessType': (state) => state.currentAccessType,
+      'namespaces/get': (state) => state.namespace,
     },
     actions: {
       'namespaces/remove': () => {},
       'auth/logout': () => {},
-      'billing/getSubscription': mockCallWithout,
-      'snackbar/showSnackbarErrorLoading': () => {},
+      'billing/getSubscription': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
       'snackbar/showSnackbarErrorDefault': () => {},
     },
   });
 
-  const storeOwnerWithSubscription = new Vuex.Store({
-    namespaced: true,
-    state: {
-      namespace,
-      stateBilling: activeBilling.active,
-      billing: activeBilling,
-      owner,
-    },
-    getters: {
-      'namespaces/get': (state) => state.namespace,
-      'billing/active': (state) => state.stateBilling,
-      'billing/get': (state) => state.billing,
-      'namespaces/owner': (state) => state.owner,
-    },
-    actions: {
-      'namespaces/remove': () => {},
-      'auth/logout': () => {},
-      'billing/getSubscription': mockCallWith,
-      'snackbar/showSnackbarErrorLoading': () => {},
-      'snackbar/showSnackbarSuccessAction': () => {},
-      'snackbar/showSnackbarErrorDefault': () => {},
-    },
-  });
+  tests.forEach((test) => {
+    accessType.forEach((currentAccessType) => {
+      describe(`${test.description} ${currentAccessType}`, () => {
+        beforeEach(() => {
+          wrapper = mount(NamespaceDelete, {
+            store: storeVuex(
+              test.computed.active,
+              test.computed.billing,
+              currentAccessType,
+              test.namespace,
+            ),
+            localVue,
+            stubs: ['fragment'],
+            propsData: { nsTenant: test.props.nsTenant },
+            vuetify,
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+              $env: {
+                billingEnable: test.env.billingEnable,
+              },
+              $stripe: {
+                elements: () => ({
+                  create: () => ({
+                    mount: () => null,
+                  }),
+                }),
+              },
+            },
+          });
 
-  ///////
-  // In this case, the rendering of the dialog is checked. In which
-  // case with the input data it cannot take place.
-  ///////
+          wrapper.setData({ dialog: test.data.dialog });
 
-  describe('Button', () => {
-    beforeEach(() => {
-      wrapper = mount(NamespaceDelete, {
-        store: storeOwnerWithoutSubscription,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { nsTenant: tenant },
-        vuetify,
-        mocks: {
-          $env: {
-            billingEnable: false,
-          },
-          $stripe: {
-            elements: () => ({
-              create: () => ({
-                mount: () => null,
-              }),
-            }),
-          },
-        },
+          if (test.env.billingEnable) wrapper.setData({ amountDue: 100 });
+        });
+
+        ///////
+        // Component Rendering
+        //////
+
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
+        });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
+
+        ///////
+        // Data and Props checking
+        //////
+
+        it('Receive data in props', () => {
+          Object.keys(test.props).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.props[item]);
+          });
+        });
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
+          });
+        });
+        it('Process data in the computed', () => {
+          Object.keys(test.computed).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.computed[item]);
+          });
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+        });
+
+        //////
+        // HTML validation
+        //////
+
+        it('Renders the template with data', async () => {
+          Object.keys(test.template).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+          });
+        });
       });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receives data in props', () => {
-      expect(wrapper.vm.nsTenant).toEqual(tenant);
-    });
-    it('Compare data with the default', () => {
-      expect(wrapper.vm.name).toEqual(namespace.name);
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', async () => {
-      expect(wrapper.find('[data-test="delete-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="namespaceDelete-dialog"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="contentSubscription-p"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="remove-btn"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the keys and the focus of
-  // the test is dialog rendering.
-  ///////
-
-  describe('Dialog without subscription', () => {
-    beforeEach(() => {
-      wrapper = mount(NamespaceDelete, {
-        store: storeOwnerWithoutSubscription,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { nsTenant: tenant },
-        vuetify,
-        mocks: {
-          $env: {
-            billingEnable: false,
-          },
-          $stripe: {
-            elements: () => ({
-              create: () => ({
-                mount: () => null,
-              }),
-            }),
-          },
-        },
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receives data in props', () => {
-      expect(wrapper.vm.nsTenant).toEqual(tenant);
-    });
-    it('Compare data with the default', () => {
-      expect(wrapper.vm.name).toEqual(namespace.name);
-      expect(wrapper.vm.dialog).toEqual(true);
-    });
-
-    //////
-    // Call actions
-    //////
-
-    it('Call actions', () => {
-      expect(mockCallWithout).not.toHaveBeenCalled();
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="delete-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="namespaceDelete-dialog"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="contentSubscription-p"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="remove-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="content-text"]').text()).toEqual(text);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the keys and the focus of
-  // the test is dialog rendering.
-  ///////
-
-  describe('Dialog with subscription', () => {
-    beforeEach(() => {
-      wrapper = mount(NamespaceDelete, {
-        store: storeOwnerWithSubscription,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { nsTenant: tenant },
-        vuetify,
-        mocks: {
-          $env: {
-            billingEnable: true,
-          },
-          $stripe: {
-            elements: () => ({
-              create: () => ({
-                mount: () => null,
-              }),
-            }),
-          },
-        },
-      });
-
-      wrapper.setData({ dialog: true, amountDue: 5 });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receives data in props', () => {
-      expect(wrapper.vm.nsTenant).toEqual(tenant);
-    });
-    it('Compare data with the default', () => {
-      expect(wrapper.vm.name).toEqual(namespace.name);
-      expect(wrapper.vm.dialog).toEqual(true);
-    });
-
-    //////
-    // Call actions
-    //////
-
-    it('Call actions', () => {
-      expect(mockCallWith).toHaveBeenCalled();
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="delete-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="namespaceDelete-dialog"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="contentSubscription-p"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="remove-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="content-text"]').text()).toEqual(text);
     });
   });
 });

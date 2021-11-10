@@ -1,12 +1,54 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FirewallRuleDelete Dialog opened Renders the component 1`] = `
+exports[`FirewallRuleDelete Dialog administrator Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
-exports[`FirewallRuleDelete Icon Renders the component 1`] = `
+exports[`FirewallRuleDelete Dialog observer Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleDelete Dialog operator Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleDelete Dialog owner Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleDelete Icon administrator Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleDelete Icon observer Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleDelete Icon operator Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleDelete Icon owner Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
     <!---->

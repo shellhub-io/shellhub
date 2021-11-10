@@ -9,17 +9,17 @@ exports[`DeviceDetails Offline Renders the component 1`] = `
   </div>
   <v-card-stub loaderheight="4" tag="div" class="mt-2">
     <v-toolbar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="">
-      <v-toolbar-title-stub>
-        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" fixed="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active a year ago</span></v-tooltip-stub>
+      <v-toolbar-title-stub tag="div">
+        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active 2 years ago</span></v-tooltip-stub>
         39-5e-2a
       </v-toolbar-title-stub>
       <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
-      <v-spacer-stub></v-spacer-stub>
+      <v-spacer-stub tag="div"></v-spacer-stub>
       <!---->
       <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
-    <v-card-text-stub>
+    <v-card-text-stub tag="div">
       <div class="mt-2">
         <div class="overline">
           UID
@@ -58,14 +58,14 @@ exports[`DeviceDetails Offline Renders the component 1`] = `
   <div class="text-center">
     <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="none" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
-        <v-card-title-stub primarytitle="" primary-title="" class="headline grey lighten-2">
+        <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
           Device ID error
         </v-card-title-stub>
-        <v-card-text-stub class="mt-4 mb-3 pb-1">
+        <v-card-text-stub tag="div" class="mt-4 mb-3 pb-1">
           You tried to access a non-existing device ID.
         </v-card-text-stub>
-        <v-card-actions-stub>
-          <v-spacer-stub></v-spacer-stub>
+        <v-card-actions-stub tag="div">
+          <v-spacer-stub tag="div"></v-spacer-stub>
           <v-btn-stub color="primary" tag="button" activeclass="" text="true" type="button">
             Go back to devices
           </v-btn-stub>
@@ -85,19 +85,19 @@ exports[`DeviceDetails Online Renders the component 1`] = `
   </div>
   <v-card-stub loaderheight="4" tag="div" class="mt-2">
     <v-toolbar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="">
-      <v-toolbar-title-stub>
+      <v-toolbar-title-stub tag="div">
         <v-icon-stub color="success">
           check_circle
         </v-icon-stub>
         39-5e-2a
       </v-toolbar-title-stub>
       <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
-      <v-spacer-stub></v-spacer-stub>
+      <v-spacer-stub tag="div"></v-spacer-stub>
       <terminaldialog-stub uid="a582b47a" data-test="terminalDialog-component"></terminaldialog-stub>
       <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
-    <v-card-text-stub>
+    <v-card-text-stub tag="div">
       <div class="mt-2">
         <div class="overline">
           UID
@@ -136,14 +136,14 @@ exports[`DeviceDetails Online Renders the component 1`] = `
   <div class="text-center">
     <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="none" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
-        <v-card-title-stub primarytitle="" primary-title="" class="headline grey lighten-2">
+        <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
           Device ID error
         </v-card-title-stub>
-        <v-card-text-stub class="mt-4 mb-3 pb-1">
+        <v-card-text-stub tag="div" class="mt-4 mb-3 pb-1">
           You tried to access a non-existing device ID.
         </v-card-text-stub>
-        <v-card-actions-stub>
-          <v-spacer-stub></v-spacer-stub>
+        <v-card-actions-stub tag="div">
+          <v-spacer-stub tag="div"></v-spacer-stub>
           <v-btn-stub color="primary" tag="button" activeclass="" text="true" type="button">
             Go back to devices
           </v-btn-stub>

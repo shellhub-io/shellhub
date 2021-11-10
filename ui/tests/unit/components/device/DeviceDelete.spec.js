@@ -2,25 +2,90 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import DeviceDelete from '@/components/device/DeviceDelete';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('DeviceDelete', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
   localVue.use(Vuex);
 
+  document.body.setAttribute('data-app', true);
+
   let wrapper;
 
-  const isOwner = true;
-  const uid = 'a582b47a42d';
-  const redirect = true;
+  const accessType = ['owner', 'administrator', 'operator', 'observer'];
 
-  const store = new Vuex.Store({
+  const hasAuthorization = {
+    owner: true,
+    administrator: true,
+    operator: false,
+    observer: false,
+  };
+
+  const tests = [
+    {
+      description: 'Icon',
+      variables: {
+        dialog: false,
+      },
+      props: {
+        uid: 'a582b47a42d',
+        redirect: false,
+      },
+      data: {
+        dialog: false,
+      },
+      template: {
+        'deviceDelete-card': false,
+        'close-btn': false,
+        'remove-btn': false,
+      },
+    },
+    {
+      description: 'Dialog without redirect',
+      variables: {
+        dialog: true,
+      },
+      props: {
+        uid: 'a582b47a42d',
+        redirect: false,
+      },
+      data: {
+        dialog: true,
+      },
+      template: {
+        'deviceDelete-card': true,
+        'close-btn': true,
+        'remove-btn': true,
+      },
+    },
+    {
+      description: 'Dialog with redirect',
+      variables: {
+        dialog: true,
+      },
+      props: {
+        uid: 'a582b47a42d',
+        redirect: true,
+      },
+      data: {
+        dialog: true,
+      },
+      template: {
+        'deviceDelete-card': true,
+        'close-btn': true,
+        'remove-btn': true,
+      },
+    },
+  ];
+
+  const storeVuex = (currentAccessType) => new Vuex.Store({
     namespaced: true,
     state: {
-      isOwner,
+      currentAccessType,
     },
     getters: {
-      'namespaces/owner': (state) => state.isOwner,
+      'auth/accessType': (state) => state.currentAccessType,
     },
     actions: {
       'devices/remove': () => {},
@@ -29,124 +94,81 @@ describe('DeviceDelete', () => {
     },
   });
 
-  ///////
-  // in this case, when the user owns the namespace and the focus of
-  // the test is icon rendering.
-  ///////
+  tests.forEach((test) => {
+    accessType.forEach((currentAccessType) => {
+      describe(`${test.description} ${currentAccessType}`, () => {
+        beforeEach(() => {
+          wrapper = mount(DeviceDelete, {
+            store: storeVuex(currentAccessType),
+            localVue,
+            stubs: ['fragment'],
+            propsData: { uid: test.props.uid, redirect: test.props.redirect },
+            vuetify,
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+            },
+          });
 
-  describe('Icon', () => {
-    beforeEach(() => {
-      wrapper = mount(DeviceDelete, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { uid, redirect },
-        vuetify,
+          wrapper.setData({ dialog: test.variables.dialog });
+        });
+
+        ///////
+        // Component Rendering
+        //////
+
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
+        });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
+
+        ///////
+        // Data checking
+        //////
+
+        it('Receive data in props', () => {
+          Object.keys(test.props).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.props[item]);
+          });
+        });
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
+          });
+        });
+        it('Process data in the computed', () => {
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+        });
+
+        //////
+        // HTML validation
+        //////
+
+        it('Renders the template with data', () => {
+          Object.keys(test.template).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+          });
+        });
+
+        if (!test.data.dialog) {
+          if (hasAuthorization[currentAccessType]) {
+            it('Show message tooltip user has permission', async (done) => {
+              const icons = wrapper.findAll('.v-icon');
+              const helpIcon = icons.at(0);
+              helpIcon.trigger('mouseenter');
+              await wrapper.vm.$nextTick();
+
+              expect(icons.length).toBe(1);
+              requestAnimationFrame(() => {
+                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Remove');
+                done();
+              });
+            });
+          }
+        }
       });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      document.body.setAttribute('data-app', true);
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(uid);
-      expect(wrapper.vm.redirect).toEqual(redirect);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.isOwner).toEqual(isOwner);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show message tooltip to user owner', async (done) => {
-      const icons = wrapper.findAll('.v-icon');
-      const helpIcon = icons.at(0);
-      helpIcon.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(icons.length).toBe(1);
-      expect(helpIcon.text()).toEqual('delete');
-      requestAnimationFrame(() => {
-        expect(wrapper.find('[data-test="tooltipOwner-text"]').text()).toEqual('Remove');
-        done();
-      });
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="deviceDelete-dialog"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the namespace and the focus of
-  // the test is dialog rendering.
-  ///////
-
-  describe('Dialog', () => {
-    beforeEach(() => {
-      wrapper = mount(DeviceDelete, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { uid, redirect },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      document.body.setAttribute('data-app', true);
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(uid);
-      expect(wrapper.vm.redirect).toEqual(redirect);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.isOwner).toEqual(isOwner);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="deviceDelete-dialog"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="remove-btn"]').exists()).toEqual(true);
     });
   });
 });

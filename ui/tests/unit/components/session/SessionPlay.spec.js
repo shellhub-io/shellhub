@@ -1,14 +1,9 @@
 import Vuex from 'vuex';
-import { mount, createLocalVue, config } from '@vue/test-utils';
+import { mount, createLocalVue } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
 import SessionPlay from '@/components/session/SessionPlay';
-
-config.mocks = {
-  $env: {
-    isEnterprise: true,
-  },
-};
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('SessionPlay', () => {
   const localVue = createLocalVue();
@@ -19,12 +14,16 @@ describe('SessionPlay', () => {
 
   let wrapper;
 
-  const isOwner = true;
-  const recorded = true;
-  const speedList = [0.5, 1, 1.5, 2, 4];
-  const sessionUid = '1a0536ab';
+  const accessType = ['owner', 'administrator', 'operator', 'observer'];
 
-  const session = [
+  const hasAuthorization = {
+    owner: true,
+    administrator: true,
+    operator: false,
+    observer: false,
+  };
+
+  const sessionGlobal = [
     {
       uid: '1a0536ab',
       message: '\u001b]0;shellhub@shellhub: ~\u0007shellhub@shellhub:~$ ',
@@ -35,240 +34,269 @@ describe('SessionPlay', () => {
     },
   ];
 
-  const store = new Vuex.Store({
+  const tests = [
+    {
+      description: 'Icon without record',
+      variables: {
+        session: [],
+        recorded: false,
+        paused: false,
+        dialog: false,
+      },
+      props: {
+        uid: '8c354a00',
+        recorded: false,
+      },
+      data: {
+        dialog: false,
+        currentTime: 0,
+        totalLength: 0,
+        endTimerDisplay: 0,
+        getTimerNow: 0,
+        paused: false,
+        previousPause: false,
+        sliderChange: false,
+        speedList: [0.5, 1, 1.5, 2, 4],
+        logs: [],
+        frames: [],
+        defaultSpeed: 1,
+        transition: false,
+      },
+      computed: {
+        length: 0,
+        nowTimerDisplay: 0,
+      },
+      template: {
+        'sessionPlay-card': false,
+        'close-btn': false,
+        'pause-icon': false,
+        'play-icon': false,
+        'time-slider': false,
+        'speed-select': false,
+      },
+    },
+    {
+      description: 'Icon with record',
+      variables: {
+        session: sessionGlobal,
+        recorded: true,
+        paused: false,
+        dialog: false,
+      },
+      props: {
+        uid: '8c354a00',
+        recorded: true,
+      },
+      data: {
+        dialog: false,
+        currentTime: 0,
+        totalLength: 0,
+        endTimerDisplay: 0,
+        getTimerNow: 0,
+        paused: false,
+        previousPause: false,
+        sliderChange: false,
+        speedList: [0.5, 1, 1.5, 2, 4],
+        logs: sessionGlobal,
+        frames: [],
+        defaultSpeed: 1,
+        transition: false,
+      },
+      computed: {
+        length: 1,
+        nowTimerDisplay: 0,
+      },
+      template: {
+        'sessionPlay-card': false,
+        'close-btn': false,
+        'pause-icon': false,
+        'play-icon': false,
+        'time-slider': false,
+        'speed-select': false,
+      },
+    },
+    {
+      description: 'Dialog play paused',
+      variables: {
+        session: sessionGlobal,
+        recorded: true,
+        paused: false,
+        dialog: true,
+      },
+      props: {
+        uid: '8c354a00',
+        recorded: true,
+      },
+      data: {
+        dialog: true,
+        currentTime: 0,
+        totalLength: 0,
+        endTimerDisplay: 0,
+        getTimerNow: '00:00',
+        paused: false,
+        previousPause: false,
+        sliderChange: false,
+        speedList: [0.5, 1, 1.5, 2, 4],
+        logs: sessionGlobal,
+        frames: [],
+        defaultSpeed: 1,
+        transition: false,
+      },
+      computed: {
+        length: 1,
+        nowTimerDisplay: '00:00',
+      },
+      template: {
+        'sessionPlay-card': true,
+        'close-btn': true,
+        'pause-icon': true,
+        'play-icon': false,
+        'time-slider': true,
+        'speed-select': true,
+      },
+    },
+    {
+      description: 'Dialog play not paused',
+      variables: {
+        session: sessionGlobal,
+        recorded: true,
+        paused: true,
+        dialog: true,
+      },
+      props: {
+        uid: '8c354a00',
+        recorded: true,
+      },
+      data: {
+        dialog: true,
+        currentTime: 0,
+        totalLength: 0,
+        endTimerDisplay: 0,
+        getTimerNow: '00:00',
+        paused: true,
+        previousPause: false,
+        sliderChange: false,
+        speedList: [0.5, 1, 1.5, 2, 4],
+        logs: sessionGlobal,
+        frames: [],
+        defaultSpeed: 1,
+        transition: false,
+      },
+      computed: {
+        length: 1,
+        nowTimerDisplay: '00:00',
+      },
+      template: {
+        'sessionPlay-card': true,
+        'close-btn': true,
+        'pause-icon': false,
+        'play-icon': true,
+        'time-slider': true,
+        'speed-select': true,
+      },
+    },
+  ];
+
+  const storeVuex = (session, currentAccessType) => new Vuex.Store({
     namespaced: true,
     state: {
-      isOwner,
       session,
+      currentAccessType,
     },
     getters: {
-      'namespaces/owner': (state) => state.isOwner,
       'sessions/get': (state) => state.session,
+      'auth/accessType': (state) => state.currentAccessType,
     },
     actions: {
       'sessions/getLogSession': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
-  ///////
-  // in this case, when the user owns the namespace and the focus of
-  // the test is icon rendering.
-  ///////
+  tests.forEach((test) => {
+    accessType.forEach((currentAccessType) => {
+      describe(`${test.description} ${currentAccessType}`, () => {
+        beforeEach(async () => {
+          wrapper = mount(SessionPlay, {
+            store: storeVuex(test.variables.session, currentAccessType),
+            localVue,
+            stubs: ['fragment'],
+            propsData: { uid: test.props.uid, recorded: test.props.recorded },
+            vuetify,
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+              $env: {
+                isEnterprise: true,
+              },
+            },
+          });
+          wrapper.setData({ logs: test.variables.session });
+          wrapper.setData({ paused: test.variables.paused });
+          wrapper.setData({ dialog: test.variables.dialog });
 
-  describe('Icon', () => {
-    beforeEach(() => {
-      wrapper = mount(SessionPlay, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { uid: sessionUid, recorded },
-        mocks: ['$env'],
-        vuetify,
+          await flushPromises();
+        });
+
+        ///////
+        // Component Rendering
+        //////
+
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
+        });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
+
+        ///////
+        // Data checking
+        //////
+
+        it('Receive data in props', () => {
+          Object.keys(test.props).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.props[item]);
+          });
+        });
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
+          });
+        });
+        it('Process data in the computed', () => {
+          Object.keys(test.computed).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.computed[item]);
+          });
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+        });
+
+        //////
+        // HTML validation
+        //////
+
+        it('Renders the template with data', () => {
+          Object.keys(test.template).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+          });
+        });
+
+        if (!test.variables.dialog && test.variables.recorded !== false) {
+          if (hasAuthorization[currentAccessType]) {
+            it('Show message tooltip user has permission', async (done) => {
+              const icons = wrapper.findAll('.v-icon');
+              const helpIcon = icons.at(0);
+              helpIcon.trigger('mouseenter');
+              await wrapper.vm.$nextTick();
+
+              expect(icons.length).toBe(1);
+              requestAnimationFrame(() => {
+                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Play');
+                done();
+              });
+            });
+          }
+        }
       });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(sessionUid);
-      expect(wrapper.vm.recorded).toEqual(recorded);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-      expect(wrapper.vm.currentTime).toEqual(0);
-      expect(wrapper.vm.totalLength).toEqual(0);
-      expect(wrapper.vm.endTimerDisplay).toEqual(0);
-      expect(wrapper.vm.getTimerNow).toEqual(0);
-      expect(wrapper.vm.paused).toEqual(false);
-      expect(wrapper.vm.previousPause).toEqual(false);
-      expect(wrapper.vm.sliderChange).toEqual(false);
-      expect(wrapper.vm.speedList).toEqual(speedList);
-      expect(wrapper.vm.logs).toEqual([]);
-      expect(wrapper.vm.frames).toEqual([]);
-      expect(wrapper.vm.defaultSpeed).toEqual(1);
-      expect(wrapper.vm.transition).toEqual(false);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.length).toEqual(0);
-      expect(wrapper.vm.nowTimerDisplay).toEqual(0);
-      expect(wrapper.vm.isOwner).toEqual(true);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show message tooltip to user owner', async (done) => {
-      const icons = wrapper.findAll('.v-icon');
-      const helpIcon = icons.at(0);
-      helpIcon.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(icons.length).toBe(1);
-      requestAnimationFrame(() => {
-        expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Play');
-        done();
-      });
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="render-fragment"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="sessionPlay-card"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, you are testing the rendering of the dialog.
-  ///////
-
-  describe('Dialog opened', () => {
-    beforeEach(async () => {
-      wrapper = mount(SessionPlay, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { uid: sessionUid, recorded },
-        mocks: ['$env'],
-        vuetify,
-      });
-
-      wrapper.setData({ logs: session });
-
-      wrapper.setData({ dialog: true });
-      await flushPromises();
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(sessionUid);
-      expect(wrapper.vm.recorded).toEqual(recorded);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-      expect(wrapper.vm.currentTime).toEqual(0);
-      expect(wrapper.vm.totalLength).toEqual(0);
-      expect(wrapper.vm.endTimerDisplay).toEqual(0);
-      expect(wrapper.vm.getTimerNow).toEqual('00:00');
-      expect(wrapper.vm.paused).toEqual(false);
-      expect(wrapper.vm.previousPause).toEqual(false);
-      expect(wrapper.vm.sliderChange).toEqual(false);
-      expect(wrapper.vm.speedList).toEqual(speedList);
-      expect(wrapper.vm.logs).toEqual(session);
-      expect(wrapper.vm.frames).toEqual([]);
-      expect(wrapper.vm.defaultSpeed).toEqual(1);
-      expect(wrapper.vm.transition).toEqual(false);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.length).toEqual(1);
-      expect(wrapper.vm.nowTimerDisplay).toEqual('00:00');
-      expect(wrapper.vm.isOwner).toEqual(true);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="render-fragment"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="sessionPlay-card"]').exists()).toEqual(true);
-    });
-  });
-
-  ///////
-  // In this case, you are testing the rendering when the owner is
-  // not the owner.
-  ///////
-
-  describe('Dialog opened is not owner', () => {
-    beforeEach(() => {
-      wrapper = mount(SessionPlay, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { uid: sessionUid, recorded },
-        mocks: {
-          $env: {
-            isEnterprise: false,
-          },
-        },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(sessionUid);
-      expect(wrapper.vm.recorded).toEqual(recorded);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-      expect(wrapper.vm.currentTime).toEqual(0);
-      expect(wrapper.vm.totalLength).toEqual(0);
-      expect(wrapper.vm.endTimerDisplay).toEqual(0);
-      expect(wrapper.vm.getTimerNow).toEqual(0);
-      expect(wrapper.vm.paused).toEqual(false);
-      expect(wrapper.vm.previousPause).toEqual(false);
-      expect(wrapper.vm.sliderChange).toEqual(false);
-      expect(wrapper.vm.speedList).toEqual(speedList);
-      expect(wrapper.vm.logs).toEqual([]);
-      expect(wrapper.vm.frames).toEqual([]);
-      expect(wrapper.vm.defaultSpeed).toEqual(1);
-      expect(wrapper.vm.transition).toEqual(false);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.length).toEqual(0);
-      expect(wrapper.vm.nowTimerDisplay).toEqual(0);
-      expect(wrapper.vm.isOwner).toEqual(true);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="render-fragment"]').exists()).toEqual(false);
     });
   });
 });

@@ -1,12 +1,13 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
-import FirewallRuleFormDialog from '@/components/firewall_rule/FirewallRuleFormDialog';
-import { actions, authorizer } from '../../../../src/authorizer';
+import NamespaceMemberFormDialog from '@/components/app_bar/namespace/NamespaceMemberFormDialog';
+import { actions, authorizer } from '../../../../../src/authorizer';
 import '@/vee-validate';
 
-describe('FirewallRuleFormDialog', () => {
+describe('NamespaceMemberFormDialog', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
   localVue.use(Vuex);
@@ -26,142 +27,160 @@ describe('FirewallRuleFormDialog', () => {
     observer: false,
   };
 
-  const stateRuleFirewall = [
+  const members = [
     {
-      id: 'allow',
-      name: 'allow',
+      id: 'xxxxxxxx',
+      type: 'owner',
+      username: 'user1',
     },
     {
-      id: 'deny',
-      name: 'deny',
+      id: 'xxxxxxxy',
+      type: 'observer',
+      username: 'user2',
     },
   ];
 
-  const ruleFirewallLocal = {
-    action: '',
-    active: true,
-    hostname: '',
-    priority: '',
-    source_ip: '',
+  const memberLocal = {
+    id: '',
+    selectedAccessType: '',
     username: '',
   };
 
-  const firewallRule = {
-    id: '5f1996c8',
+  const memberLocalEdit = {
+    id: 'xxxxxxxy',
+    type: 'observer',
+    selectedAccessType: 'observer',
+    username: 'user2',
+  };
+
+  const namespaceGlobal = {
+    name: 'namespace',
+    owner: 'user1',
+    members,
     tenant_id: 'xxxxxxxx',
-    priority: 4,
-    action: 'allow',
-    active: true,
-    source_ip: '00.00.00',
-    username: 'shellhub',
-    hostname: 'shellhub',
+    devices_count: 0,
+    max_devices: 0,
   };
 
   const tests = [
     {
-      description: 'Button add firewall rule',
+      description: 'Icon add user',
       variables: {
         dialog: false,
+        namespaceGlobal,
       },
       props: {
-        firewallRule: {},
-        createRule: true,
+        member: {},
+        addUser: true,
       },
       data: {
-        ruleFirewallLocal,
-        state: stateRuleFirewall,
         dialog: false,
+        username: '',
+        selectedAccessType: '',
+        memberLocal,
+        items: ['administrator', 'operator', 'observer'],
       },
       template: {
         'add-btn': true,
-        'firewallRuleForm-card': false,
-        'cancel-btn': false,
-        'create-btn': false,
         'edit-btn': false,
+        'namespaceNewMember-dialog': false,
+        'dialogClose-btn': false,
+        'dialogAdd-btn': false,
+        'dialogEdit-btn': false,
       },
     },
     {
-      description: 'Button edit firewall rule',
+      description: 'Icon edit user',
       variables: {
+        namespaceGlobal,
         dialog: false,
-        createRule: false,
       },
       props: {
-        firewallRule: {},
-        createRule: false,
+        member: members[1],
+        addUser: false,
       },
       data: {
-        ruleFirewallLocal: {},
-        state: stateRuleFirewall,
         dialog: false,
+        username: '',
+        selectedAccessType: '',
+        memberLocal: memberLocalEdit,
+        items: ['administrator', 'operator', 'observer'],
       },
       template: {
         'add-btn': false,
-        'firewallRuleForm-card': false,
-        'cancel-btn': false,
-        'create-btn': false,
-        'edit-btn': false,
-      },
-    },
-    {
-      description: 'Dialog creating firewall rule',
-      variables: {
-        dialog: true,
-        createRule: true,
-      },
-      props: {
-        firewallRule: {},
-        createRule: true,
-      },
-      data: {
-        ruleFirewallLocal,
-        state: stateRuleFirewall,
-        dialog: true,
-      },
-      template: {
-        'add-btn': true,
-        'firewallRuleForm-card': true,
-        'cancel-btn': true,
-        'create-btn': true,
-        'edit-btn': false,
-      },
-    },
-    {
-      description: 'Dialog editing firewall rule',
-      variables: {
-        dialog: true,
-        createRule: false,
-      },
-      props: {
-        firewallRule,
-        createRule: false,
-      },
-      data: {
-        ruleFirewallLocal: firewallRule,
-        state: stateRuleFirewall,
-        dialog: true,
-      },
-      template: {
-        'add-btn': false,
-        'firewallRuleForm-card': true,
-        'cancel-btn': true,
-        'create-btn': false,
         'edit-btn': true,
+        'namespaceNewMember-dialog': false,
+        'dialogClose-btn': false,
+        'dialogAdd-btn': false,
+        'dialogEdit-btn': false,
+      },
+    },
+    {
+      description: 'Dialog create user',
+      variables: {
+        dialog: true,
+        namespaceGlobal,
+      },
+      props: {
+        member: {},
+        addUser: true,
+      },
+      data: {
+        dialog: true,
+        username: '',
+        selectedAccessType: '',
+        memberLocal,
+        items: ['administrator', 'operator', 'observer'],
+      },
+      template: {
+        'add-btn': true,
+        'edit-btn': false,
+        'namespaceNewMember-dialog': true,
+        'dialogClose-btn': true,
+        'dialogAdd-btn': true,
+        'dialogEdit-btn': false,
+      },
+    },
+    {
+      description: 'Dialog edit user',
+      variables: {
+        namespaceGlobal,
+        dialog: true,
+      },
+      props: {
+        member: members[1],
+        addUser: false,
+      },
+      data: {
+        dialog: true,
+        username: '',
+        selectedAccessType: '',
+        memberLocal: memberLocalEdit,
+        items: ['administrator', 'operator', 'observer'],
+      },
+      template: {
+        'add-btn': false,
+        'edit-btn': true,
+        'namespaceNewMember-dialog': true,
+        'dialogClose-btn': true,
+        'dialogAdd-btn': false,
+        'dialogEdit-btn': true,
       },
     },
   ];
 
-  const storeVuex = (currentAccessType) => new Vuex.Store({
+  const storeVuex = (namespace, currentAccessType) => new Vuex.Store({
     namespaced: true,
     state: {
+      namespace,
       currentAccessType,
     },
     getters: {
+      'namespaces/get': (state) => state.namespace,
       'auth/accessType': (state) => state.currentAccessType,
     },
     actions: {
-      'firewallrules/post': () => {},
-      'firewallrules/put': () => {},
+      'namespaces/adduser': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
       'snackbar/showSnackbarErrorAction': () => {},
     },
@@ -170,15 +189,12 @@ describe('FirewallRuleFormDialog', () => {
   tests.forEach((test) => {
     accessType.forEach((currentAccessType) => {
       describe(`${test.description} ${currentAccessType}`, () => {
-        beforeEach(async () => {
-          wrapper = mount(FirewallRuleFormDialog, {
-            store: storeVuex(currentAccessType),
+        beforeEach(() => {
+          wrapper = mount(NamespaceMemberFormDialog, {
+            store: storeVuex(test.variables.namespaceGlobal, currentAccessType),
             localVue,
             stubs: ['fragment'],
-            propsData: {
-              firewallRule: test.props.firewallRule,
-              createRule: test.props.createRule,
-            },
+            propsData: { member: test.props.member, addUser: test.props.addUser },
             vuetify,
             mocks: {
               $authorizer: authorizer,
@@ -228,19 +244,16 @@ describe('FirewallRuleFormDialog', () => {
           });
         });
 
-        if (!test.variables.dialog && test.variables.create === false) {
-          if (hasAuthorization[currentAccessType]) {
-            it('Show message tooltip to user owner', async (done) => {
-              const icons = wrapper.findAll('.v-icon');
-              const helpIcon = icons.at(0);
-              helpIcon.trigger('mouseenter');
-              await wrapper.vm.$nextTick();
+        if (test.data.dialog) {
+          if (hasAuthorization[currentAccessType] && !test.props.addUser) {
+            it('Show validation messages', async () => {
+              wrapper.setData({ memberLocal: { username: '' } });
+              await flushPromises();
 
-              expect(icons.length).toBe(1);
-              requestAnimationFrame(() => {
-                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Edit');
-                done();
-              });
+              const validator = wrapper.vm.$refs.providerUsername;
+
+              await validator.validate();
+              expect(validator.errors[0]).toBe('This field is required');
             });
           }
         }

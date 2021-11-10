@@ -6,7 +6,7 @@
       <template #activator="{ on }">
         <span v-on="on">
           <v-icon
-            :disabled="!isOwner"
+            :disabled="!hasAuthorization"
             v-on="on"
             @click="dialog = !dialog"
           >
@@ -17,8 +17,8 @@
 
       <div>
         <span
-          v-if="isOwner"
-          data-test="tooltipOwner-text"
+          v-if="hasAuthorization"
+          data-test="text-tooltip"
         >
           Remove
         </span>
@@ -26,7 +26,7 @@
         <span
           v-else
         >
-          You are not the owner of this namespace
+          You don't have this kind of authorization.
         </span>
       </div>
     </v-tooltip>
@@ -35,7 +35,7 @@
       v-model="dialog"
       max-width="400"
     >
-      <v-card data-test="deviceDelete-dialog">
+      <v-card data-test="deviceDelete-card">
         <v-card-title class="headline grey lighten-2 text-center">
           Are you sure?
         </v-card-title>
@@ -71,8 +71,12 @@
 
 <script>
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'DeviceDeleteComponent',
+
+  filters: { hasPermission },
 
   props: {
     uid: {
@@ -92,8 +96,16 @@ export default {
   },
 
   computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.device.remove,
+        );
+      }
+
+      return false;
     },
   },
 

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FirewallRuleFormDialog Button add firewall rule Renders the component 1`] = `
+exports[`FirewallRuleFormDialog Button add firewall rule administrator Renders the component 1`] = `
 <fragment-stub>
   <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="add-btn"><span class="v-btn__content">
           Add Rule
@@ -11,7 +11,72 @@ exports[`FirewallRuleFormDialog Button add firewall rule Renders the component 1
 </fragment-stub>
 `;
 
-exports[`FirewallRuleFormDialog Dialog creating firewall rule Renders the component 1`] = `
+exports[`FirewallRuleFormDialog Button add firewall rule observer Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Rule
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Button add firewall rule operator Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Rule
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Button add firewall rule owner Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="add-btn"><span class="v-btn__content">
+          Add Rule
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Button edit firewall rule administrator Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Button edit firewall rule observer Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Button edit firewall rule operator Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Button edit firewall rule owner Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Dialog creating firewall rule administrator Renders the component 1`] = `
 <fragment-stub>
   <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="add-btn"><span class="v-btn__content">
           Add Rule
@@ -20,16 +85,53 @@ exports[`FirewallRuleFormDialog Dialog creating firewall rule Renders the compon
 </fragment-stub>
 `;
 
-exports[`FirewallRuleFormDialog Dialog editing firewall rule Renders the component 1`] = `
+exports[`FirewallRuleFormDialog Dialog creating firewall rule observer Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Rule
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Dialog creating firewall rule operator Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+          Add Rule
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Dialog creating firewall rule owner Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="add-btn"><span class="v-btn__content">
+          Add Rule
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Dialog editing firewall rule administrator Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
-exports[`FirewallRuleFormDialog Icon editing firewall rule Renders the component 1`] = `
+exports[`FirewallRuleFormDialog Dialog editing firewall rule observer Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Dialog editing firewall rule operator Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Dialog editing firewall rule owner Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
+  <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;

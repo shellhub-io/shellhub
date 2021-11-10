@@ -1,15 +1,26 @@
 <template>
   <fragment>
-    <v-tooltip bottom>
+    <v-tooltip
+      bottom
+      :disabled="hasAuthorization"
+    >
       <template #activator="{ on }">
         <span v-on="on">
-          <v-icon
+          <v-btn
             :disabled="!hasAuthorization"
-            v-on="on"
+            class="mr-2"
+            outlined
+            data-test="removeMember-btn"
             @click="dialog = !dialog"
           >
-            delete
-          </v-icon>
+            <v-icon
+              outlined
+              :disabled="!hasAuthorization"
+              v-on="on"
+            >
+              delete
+            </v-icon>
+          </v-btn>
         </span>
       </template>
 
@@ -21,7 +32,9 @@
           Remove
         </span>
 
-        <span v-else>
+        <span
+          v-else
+        >
           You don't have this kind of authorization.
         </span>
       </div>
@@ -31,13 +44,13 @@
       v-model="dialog"
       max-width="400"
     >
-      <v-card data-test="firewallRuleDelete-card">
+      <v-card data-test="namespaceMemberDelete-dialog">
         <v-card-title class="headline grey lighten-2 text-center">
           Are you sure?
         </v-card-title>
 
         <v-card-text class="mt-4 mb-3 pb-1">
-          You are about to remove this firewall rule.
+          You are about to remove this user from the namespace.
         </v-card-text>
 
         <v-card-actions>
@@ -70,13 +83,13 @@
 import hasPermission from '@/components/filter/permission';
 
 export default {
-  name: 'FirewallRuleDeleteComponent',
+  name: 'NamespaceNewMemberComponent',
 
   filters: { hasPermission },
 
   props: {
-    id: {
-      type: String,
+    member: {
+      type: Object,
       required: true,
     },
   },
@@ -89,11 +102,20 @@ export default {
 
   computed: {
     hasAuthorization() {
+      const ownerID = this.$store.getters['namespaces/get'].owner;
+      if (this.member.id === ownerID) {
+        return false;
+      }
+
       const accessType = this.$store.getters['auth/accessType'];
       if (accessType !== '') {
+        let action = '';
+        if (this.addUser) action = 'addMember';
+        else action = 'removeMember';
+
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.firewall.remove,
+          this.$actions.namespace[action],
         );
       }
 
@@ -104,11 +126,16 @@ export default {
   methods: {
     async remove() {
       try {
-        await this.$store.dispatch('firewallrules/remove', this.id);
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.firewallRuleDeleting);
+        const tenant = this.$store.getters['auth/tenant'];
+        await this.$store.dispatch('namespaces/removeUser', {
+          user_id: this.member.id,
+          tenant_id: tenant,
+        });
+
         this.update();
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceRemoveUser);
       } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.firewallRuleDeleting);
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceRemoveUser);
       }
     },
 
@@ -118,8 +145,9 @@ export default {
     },
 
     close() {
-      this.dialog = !this.dialog;
+      this.dialog = false;
     },
   },
 };
+
 </script>

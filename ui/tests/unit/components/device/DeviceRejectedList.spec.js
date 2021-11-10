@@ -2,6 +2,7 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import DeviceRejectedList from '@/components/device/DeviceRejectedList';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('DeviceRejectedList', () => {
   const localVue = createLocalVue();
@@ -96,6 +97,10 @@ describe('DeviceRejectedList', () => {
       localVue,
       stubs: ['fragment', 'router-link'],
       vuetify,
+      mocks: {
+        $authorizer: authorizer,
+        $actions: actions,
+      },
     });
   });
 

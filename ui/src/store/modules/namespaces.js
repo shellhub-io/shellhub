@@ -94,11 +94,12 @@ export default {
       await apiNamespace.addUserToNamespace(data);
     },
 
+    editUser: async (context, data) => {
+      await apiNamespace.editUserToNamespace(data);
+    },
+
     removeUser: async (context, data) => {
-      const res = await apiNamespace.removeUserFromNamespace(data);
-      if (res.status === 200) {
-        context.commit('removeMember', data.username);
-      }
+      await apiNamespace.removeUserFromNamespace(data);
     },
 
     clearNamespaceList: (context) => {
@@ -106,10 +107,13 @@ export default {
     },
 
     switchNamespace: async (context, data) => {
+      localStorage.removeItem('accessType');
+
       const res = await apiNamespace.tenantSwitch(data);
       if (res.status === 200) {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('tenant', data.tenant_id);
+        localStorage.setItem('accessType', res.data.type);
       }
     },
 

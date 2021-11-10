@@ -2,6 +2,7 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import SessionClose from '@/components/session/SessionClose';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('SessionClose', () => {
   const localVue = createLocalVue();
@@ -12,17 +13,70 @@ describe('SessionClose', () => {
 
   let wrapper;
 
-  const owner = true;
-  const uid = '8c354a00';
-  const device = 'a582b47a';
+  const accessType = ['owner', 'administrator', 'operator', 'observer'];
 
-  const store = new Vuex.Store({
+  const hasAuthorization = {
+    owner: true,
+    administrator: true,
+    operator: false,
+    observer: false,
+  };
+
+  const session = {
+    uid: '8c354a00',
+    device_uid: 'a582b47a',
+  };
+
+  const tests = [
+    {
+      description: 'Icon',
+      variables: {
+        session,
+        dialog: false,
+      },
+      props: {
+        uid: session.uid,
+        device: session.device_uid,
+      },
+      data: {
+        session,
+        dialog: false,
+      },
+      template: {
+        'sessionClose-card': false,
+        'cancel-btn': false,
+        'close-btn': false,
+      },
+    },
+    {
+      description: 'Dialog',
+      variables: {
+        session,
+        dialog: true,
+      },
+      props: {
+        uid: session.uid,
+        device: session.device_uid,
+      },
+      data: {
+        session,
+        dialog: true,
+      },
+      template: {
+        'sessionClose-card': true,
+        'cancel-btn': true,
+        'close-btn': true,
+      },
+    },
+  ];
+
+  const storeVuex = (currentAccessType) => new Vuex.Store({
     namespaced: true,
     state: {
-      owner,
+      currentAccessType,
     },
     getters: {
-      'namespaces/owner': (state) => state.owner,
+      'auth/accessType': (state) => state.currentAccessType,
     },
     actions: {
       'sessions/close': () => {},
@@ -31,116 +85,81 @@ describe('SessionClose', () => {
     },
   });
 
-  ///////
-  // in this case, when the user owns the namespace and the focus of
-  // the test is icon rendering.
-  ///////
+  tests.forEach((test) => {
+    accessType.forEach((currentAccessType) => {
+      describe(`${test.description} ${currentAccessType}`, () => {
+        beforeEach(() => {
+          wrapper = mount(SessionClose, {
+            store: storeVuex(currentAccessType),
+            localVue,
+            stubs: ['fragment'],
+            propsData: { uid: test.props.uid, device: test.props.device },
+            vuetify,
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+            },
+          });
 
-  describe('Icon', () => {
-    beforeEach(() => {
-      wrapper = mount(SessionClose, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { uid, device },
-        vuetify,
+          wrapper.setData({ dialog: test.variables.dialog });
+        });
+
+        ///////
+        // Component Rendering
+        //////
+
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
+        });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
+
+        ///////
+        // Data checking
+        //////
+
+        it('Receive data in props', () => {
+          Object.keys(test.props).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.props[item]);
+          });
+        });
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
+          });
+        });
+        it('Process data in the computed', () => {
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+        });
+
+        //////
+        // HTML validation
+        //////
+
+        it('Renders the template with data', () => {
+          Object.keys(test.template).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+          });
+        });
+
+        if (!test.data.dialog) {
+          if (hasAuthorization[currentAccessType]) {
+            it('Show message tooltip user has permission', async (done) => {
+              const icons = wrapper.findAll('.v-icon');
+              const helpIcon = icons.at(0);
+              helpIcon.trigger('mouseenter');
+              await wrapper.vm.$nextTick();
+
+              expect(icons.length).toBe(1);
+              requestAnimationFrame(() => {
+                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Close');
+                done();
+              });
+            });
+          }
+        }
       });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(uid);
-      expect(wrapper.vm.device).toEqual(device);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-      expect(wrapper.vm.session).toEqual({ uid, device_uid: device });
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show message tooltip to user owner', async (done) => {
-      const icons = wrapper.findAll('.v-icon');
-      const helpIcon = icons.at(0);
-      helpIcon.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(icons.length).toBe(1);
-      requestAnimationFrame(() => {
-        expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Close');
-        done();
-      });
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="sessionClose-card"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the namespace and the focus of
-  // the test is dialog rendering.
-  ///////
-
-  describe('Dialog opened', () => {
-    beforeEach(() => {
-      wrapper = mount(SessionClose, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { uid, device },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(uid);
-      expect(wrapper.vm.device).toEqual(device);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-      expect(wrapper.vm.session).toEqual({ uid, device_uid: device });
-    });
-
-    //////
-    // HTML validation
-    //////
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="sessionClose-card"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
     });
   });
 });

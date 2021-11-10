@@ -1,12 +1,54 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SessionDeleteRecord Dialog opened Renders the component 1`] = `
+exports[`SessionDeleteRecord Dialog administrator Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-playlist-remove theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
-exports[`SessionDeleteRecord Icon Renders the component 1`] = `
+exports[`SessionDeleteRecord Dialog observer Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-playlist-remove theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`SessionDeleteRecord Dialog operator Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-playlist-remove theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`SessionDeleteRecord Dialog owner Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-playlist-remove theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`SessionDeleteRecord Icon administrator Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-playlist-remove theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`SessionDeleteRecord Icon observer Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-playlist-remove theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`SessionDeleteRecord Icon operator Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-playlist-remove theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`SessionDeleteRecord Icon owner Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-playlist-remove theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
     <!---->

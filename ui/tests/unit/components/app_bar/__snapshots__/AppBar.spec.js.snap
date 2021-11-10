@@ -10,7 +10,7 @@ exports[`AppBar Renders the component 1`] = `
     </router-link-stub> <span class="overline mt-3 d-sm-flex hidden-sm-and-down">
       BETA
     </span>
-    <v-spacer-stub></v-spacer-stub>
+    <v-spacer-stub tag="div"></v-spacer-stub>
     <namespacemenu-stub inanamespace="true" data-test="namespaceMenu-component"></namespacemenu-stub>
     <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete">
       <v-icon-stub size="24" class="ml-1 mr-1">
@@ -24,7 +24,7 @@ exports[`AppBar Renders the component 1`] = `
           <v-icon-stub left="">
             mdi-cog
           </v-icon-stub>
-          <v-list-item-title-stub>
+          <v-list-item-title-stub tag="div">
             Settings
           </v-list-item-title-stub>
         </v-list-item-stub>
@@ -32,7 +32,7 @@ exports[`AppBar Renders the component 1`] = `
           <v-icon-stub left="">
             mdi-logout
           </v-icon-stub>
-          <v-list-item-title-stub>
+          <v-list-item-title-stub tag="div">
             Logout
           </v-list-item-title-stub>
         </v-list-item-stub>

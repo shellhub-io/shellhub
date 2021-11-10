@@ -36,7 +36,7 @@ exports[`DevicePendingList Renders the component 1`] = `
               </td>
               <td class="text-center">
                 <fragment-stub data-test="DeviceActionButtonAccept-component">
-                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
+                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
             accept
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
                   <div role="dialog" class="v-dialog__container">
@@ -44,7 +44,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   </div>
                 </fragment-stub>
                 <fragment-stub data-test="deviceActionButtonReject-component">
-                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
+                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
             reject
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
                   <div role="dialog" class="v-dialog__container">
@@ -68,7 +68,7 @@ exports[`DevicePendingList Renders the component 1`] = `
               </td>
               <td class="text-center">
                 <fragment-stub data-test="DeviceActionButtonAccept-component">
-                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
+                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
             accept
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
                   <div role="dialog" class="v-dialog__container">
@@ -76,7 +76,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   </div>
                 </fragment-stub>
                 <fragment-stub data-test="deviceActionButtonReject-component">
-                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
+                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
             reject
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
                   <div role="dialog" class="v-dialog__container">
@@ -100,7 +100,7 @@ exports[`DevicePendingList Renders the component 1`] = `
               </td>
               <td class="text-center">
                 <fragment-stub data-test="DeviceActionButtonAccept-component">
-                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
+                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
             accept
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
                   <div role="dialog" class="v-dialog__container">
@@ -108,7 +108,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   </div>
                 </fragment-stub>
                 <fragment-stub data-test="deviceActionButtonReject-component">
-                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
+                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
             reject
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
                   <div role="dialog" class="v-dialog__container">
@@ -132,7 +132,7 @@ exports[`DevicePendingList Renders the component 1`] = `
               </td>
               <td class="text-center">
                 <fragment-stub data-test="DeviceActionButtonAccept-component">
-                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
+                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
             accept
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
                   <div role="dialog" class="v-dialog__container">
@@ -140,7 +140,7 @@ exports[`DevicePendingList Renders the component 1`] = `
                   </div>
                 </fragment-stub>
                 <fragment-stub data-test="deviceActionButtonReject-component">
-                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltipNotOwner-text"><span class="v-btn__content">
+                  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
             reject
           </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
                   <div role="dialog" class="v-dialog__container">
