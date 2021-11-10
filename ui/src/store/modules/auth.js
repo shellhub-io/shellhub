@@ -12,6 +12,7 @@ export default {
     tenant: localStorage.getItem('tenant') || '',
     email: localStorage.getItem('email') || '',
     id: localStorage.getItem('id') || '',
+    accessType: localStorage.getItem('accessType') || '',
   },
 
   getters: {
@@ -22,6 +23,7 @@ export default {
     tenant: (state) => state.tenant,
     email: (state) => state.email,
     id: (state) => state.id,
+    accessType: (state) => state.accessType,
   },
 
   mutations: {
@@ -37,6 +39,7 @@ export default {
       Vue.set(state, 'tenant', data.tenant);
       Vue.set(state, 'email', data.email);
       Vue.set(state, 'id', data.id);
+      Vue.set(state, 'accessType', data.type);
     },
 
     authError(state) {
@@ -50,6 +53,7 @@ export default {
       Vue.set(state, 'user', '');
       Vue.set(state, 'tenant', '');
       Vue.set(state, 'email', '');
+      Vue.set(state, 'accessType', '');
     },
 
     changeData(state, data) {
@@ -73,6 +77,7 @@ export default {
         localStorage.setItem('email', resp.data.email);
         localStorage.setItem('id', resp.data.id);
         localStorage.setItem('namespacesWelcome', JSON.stringify({}));
+        localStorage.setItem('accessType', resp.data.type);
 
         context.commit('authSuccess', resp.data);
       } catch (error) {
@@ -95,6 +100,7 @@ export default {
         localStorage.setItem('id', resp.data.id);
         localStorage.setItem('email', resp.data.email);
         localStorage.setItem('namespacesWelcome', JSON.stringify({}));
+        localStorage.setItem('accessType', resp.data.type);
 
         context.commit('authSuccess', resp.data);
       } catch (error) {
@@ -113,6 +119,7 @@ export default {
       localStorage.removeItem('email');
       localStorage.removeItem('id');
       localStorage.removeItem('name');
+      localStorage.removeItem('accessType');
     },
 
     changeUserData(context, data) {

@@ -1,23 +1,17 @@
 import Vuex from 'vuex';
-import { config, mount, createLocalVue } from '@vue/test-utils';
+import { mount, createLocalVue } from '@vue/test-utils';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import Vuetify from 'vuetify';
-import DeviceAdd from '@/components/device/DeviceAdd';
-import { actions, authorizer } from '../../../../src/authorizer';
+import NamespaceMemberDelete from '@/components/app_bar/namespace/NamespaceMemberDelete';
+import { actions, authorizer } from '../../../../../src/authorizer';
+import '@/vee-validate';
 
-// mocks global vars and clipboard function
-config.mocks = {
-  $copy: {
-    command: 'Command',
-    deviceSSHID: 'Device SSHID',
-    tenantId: 'Tenant ID',
-  },
-  $clipboard: () => {},
-};
-
-describe('DeviceAdd', () => {
+describe('NamespaceMemberDelete', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
   localVue.use(Vuex);
+  localVue.component('ValidationProvider', ValidationProvider);
+  localVue.component('ValidationObserver', ValidationObserver);
 
   document.body.setAttribute('data-app', true);
 
@@ -25,10 +19,32 @@ describe('DeviceAdd', () => {
 
   const accessType = ['owner', 'administrator', 'operator', 'observer'];
 
+  const members = [
+    {
+      id: 'xxxxxxxx',
+      type: 'owner',
+      username: 'user1',
+    },
+    {
+      id: 'xxxxxxxy',
+      type: 'observer',
+      username: 'user2',
+    },
+  ];
+
+  const namespaceGlobal = {
+    name: 'namespace',
+    owner: 'user1',
+    members,
+    tenant_id: 'xxxxxxxx',
+    devices_count: 0,
+    max_devices: 0,
+  };
+
   const hasAuthorization = {
     owner: true,
     administrator: true,
-    operator: true,
+    operator: false,
     observer: false,
   };
 
@@ -36,74 +52,59 @@ describe('DeviceAdd', () => {
     {
       description: 'Button',
       variables: {
-        addDevice: false,
-        tenant: 'xxxxxxxx',
+        namespace: namespaceGlobal,
         dialog: false,
       },
       props: {
-        smallButton: false,
+        member: members[0],
       },
       data: {
-        hostname: 'localhost',
-        port: '',
         dialog: false,
       },
-      computed: {
-        tenant: 'xxxxxxxx',
-      },
-      method: {
-        command: 'curl -sSf "http://localhost/install.sh?tenant_id=xxxxxxxx" | sh',
-      },
       template: {
-        'add-btn': true,
-        'deviceAdd-dialog': false,
+        'removeMember-btn': true,
+        'namespaceMemberDelete-dialog': false,
         'close-btn': false,
+        'remove-btn': false,
       },
     },
     {
       description: 'Dialog',
       variables: {
-        addDevice: true,
-        tenant: 'xxxxxxxx',
+        namespace: namespaceGlobal,
         dialog: true,
       },
       props: {
-        smallButton: true,
+        member: members[0],
       },
       data: {
-        hostname: 'localhost',
-        port: '',
         dialog: true,
       },
-      computed: {
-        tenant: 'xxxxxxxx',
-      },
-      method: {
-        command: 'curl -sSf "http://localhost/install.sh?tenant_id=xxxxxxxx" | sh',
-      },
       template: {
-        'add-btn': true,
-        'deviceAdd-dialog': true,
+        'removeMember-btn': true,
+        'namespaceMemberDelete-dialog': true,
         'close-btn': true,
+        'remove-btn': true,
       },
     },
   ];
 
-  const storeVuex = (addDevice, tenant, currentAccessType) => new Vuex.Store({
+  const storeVuex = (namespace, currentAccessType, tenant) => new Vuex.Store({
     namespaced: true,
     state: {
-      tenant,
-      addDevice,
+      namespace,
       currentAccessType,
+      tenant,
     },
     getters: {
-      'auth/tenant': (state) => state.tenant,
-      'modals/addDevice': (state) => state.addDevice,
+      'namespaces/get': (state) => state.namespace,
       'auth/accessType': (state) => state.currentAccessType,
+      'auth/tenant': (state) => state.tenant,
     },
     actions: {
-      'modals/showAddDevice': () => {},
-      'snackbar/showSnackbarCopy': () => {},
+      'namespaces/removeUser': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
     },
   });
 
@@ -111,21 +112,19 @@ describe('DeviceAdd', () => {
     accessType.forEach((currentAccessType) => {
       describe(`${test.description} ${currentAccessType}`, () => {
         beforeEach(() => {
-          wrapper = mount(DeviceAdd, {
-            store: storeVuex(test.variables.addDevice, test.variables.tenant, currentAccessType),
+          wrapper = mount(NamespaceMemberDelete, {
+            store: storeVuex(
+              test.variables.namespace,
+              currentAccessType,
+              test.variables.namespace.tenant_id,
+            ),
             localVue,
             stubs: ['fragment'],
-            propsData: { smallButton: test.props.smallButton },
+            propsData: { member: test.props.member },
             vuetify,
             mocks: {
               $authorizer: authorizer,
               $actions: actions,
-              $copy: {
-                command: 'Command',
-                deviceSSHID: 'Device SSHID',
-                tenantId: 'Tenant ID',
-              },
-              $clipboard: () => {},
             },
           });
 
@@ -158,17 +157,7 @@ describe('DeviceAdd', () => {
           });
         });
         it('Process data in the computed', () => {
-          Object.keys(test.computed).forEach((item) => {
-            expect(wrapper.vm[item]).toEqual(test.computed[item]);
-          });
           expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
-        });
-        it('Process data in methods', () => {
-          jest.spyOn(wrapper.vm, 'copyCommand');
-          wrapper.vm.copyCommand();
-
-          expect(wrapper.vm.command()).toBe(test.method.command);
-          expect(wrapper.vm.copyCommand).toHaveBeenCalled();
         });
 
         //////

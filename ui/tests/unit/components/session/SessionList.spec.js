@@ -3,6 +3,7 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import timezoneMock from 'timezone-mock';
 import SessionList from '@/components/session/SessionList';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('SessionList', () => {
   const localVue = createLocalVue();
@@ -141,10 +142,12 @@ describe('SessionList', () => {
       store,
       localVue,
       stubs: ['fragment', 'router-link'],
+      vuetify,
       mocks: {
+        $authorizer: authorizer,
+        $actions: actions,
         $env: (isEnterprise) => isEnterprise,
       },
-      vuetify,
     });
   });
 

@@ -1,10 +1,22 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import SettingBilling from '@/components/setting/SettingBilling';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('SettingBilling', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
+
+  let wrapper;
+
+  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+
+  const hasAuthorization = {
+    owner: true,
+    administrator: true,
+    operator: false,
+    observer: false,
+  };
 
   const stripeData = {
     latest_invoice: { amount_due: 0, amount_paid: 0 },
@@ -15,200 +27,202 @@ describe('SettingBilling', () => {
     },
   };
 
-  describe('Renders component according to billing instance', () => {
-    const tests = [
-      {
-        description: 'User not owner',
-        templates: {
-          'settingOwnerInfo-component': true,
-          'content-div': false,
-        },
-        computed: {
-          active: false,
-          isOwner: false,
-        },
-        dataAndProps: {
-          renderData: false,
-        },
-        owner: false,
-        instance: {
-          active: false,
-          state: 'inactive',
-          current_period_end: 0,
-          customer_id: '',
-          subscription_id: '',
-          payment_method_id: '',
-        },
-      },
-      {
-        description: 'Create subscription',
-        templates: {
-          'subscriptionPaymentMethod-component': true,
-          'freePlan-div': true,
-          'premiumPlan-div': false,
-          'subscriptionActive-div': false,
-          'updatePaymentMethod-component': false,
-          'billingIcon-component': false,
-          'cancel-div': false,
-        },
-        computed: {
-          active: false,
-          isOwner: true,
-          state: 'inactive',
-        },
-        dataAndProps: {
-          renderData: false,
-        },
-        owner: true,
-        instance: {
-          active: false,
-          state: 'inactive',
-          current_period_end: 0,
-          customer_id: '',
-          subscription_id: '',
-          payment_method_id: '',
-        },
-      },
-      {
-        description: 'Pending request',
-        templates: {
-          'subscriptionPaymentMethod-component': false,
-          'pendingRetrial-div': true,
-          'freePlan-div': false,
-          'premiumPlan-div': false,
-          'subscriptionActive-div': false,
-          'updatePaymentMethod-component': false,
-          'billingIcon-component': false,
-          'cancel-div': false,
-          'activeLoading-div': false,
-        },
-        owner: true,
-        computed: {
-          active: true,
-          isOwner: true,
-          state: 'pending',
-        },
-        dataAndProps: {
-          renderData: true,
-        },
-        instance: {
-          active: true,
-          state: 'pending',
-          current_period_end: 0,
-          customer_id: 'cus_123',
-          subscription_id: 'sub_123',
-          payment_method_id: 'pm_123',
-        },
-      },
-      {
-        description: 'Premium usage',
-        templates: {
-          'subscriptionPaymentMethod-component': false,
-          'freePlan-div': false,
-          'premiumPlan-div': true,
-          'subscriptionActive-div': true,
-          'updatePaymentMethod-component': true,
-          'billingIcon-component': true,
-          'cancel-div': true,
-          'activeLoading-div': false,
-        },
-        computed: {
-          active: true,
-          isOwner: true,
-          state: 'processed',
-        },
-        dataAndProps: {
-          renderData: true,
-        },
-        owner: true,
-        instance: {
-          active: true,
-          state: 'processed',
-          current_period_end: 0,
-          customer_id: 'cus_123',
-          subscription_id: 'sub_123',
-          payment_method_id: 'pm_123',
-        },
-      },
-    ];
+  const info2 = {
+    periodEnd: '2021-12-24T18:16:21Z',
+    description: 'Shellhub',
+    latestPaymentDue: 0,
+    latestPaymentPaid: 0,
+    nextPaymentDue: 0,
+    nextPaymenPaid: 0,
+  };
 
-    const storeVuex = (billing, owner) => new Vuex.Store({
-      namespaced: true,
-      state: {
-        billing,
-        owner,
+  const card2 = {
+    brand: 'visa',
+    expYear: 2024,
+    default: true,
+    expMonth: 4,
+    last4: '4042',
+    id: 'pm_123',
+  };
+
+  // describe('Renders component according to billing instance', () => {
+  const tests = [
+    // {
+    //   description: 'Create subscription',
+    //   computed: {
+    //     active: false,
+    //     state: 'inactive',
+    //   },
+    //   data: {
+    //     renderData: false,
+    //   },
+    //   instance: {
+    //     active: false,
+    //     state: 'inactive',
+    //     current_period_end: 0,
+    //     customer_id: '',
+    //     subscription_id: '',
+    //     payment_method_id: '',
+    //   },
+    //   template: {
+    //     'subscriptionPaymentMethod-component': true,
+    //     'freePlan-div': true,
+    //     'premiumPlan-div': false,
+    //     'subscriptionActive-div': false,
+    //     'updatePaymentMethod-component': false,
+    //     'billingIcon-component': false,
+    //     'cancel-div': false,
+    //   },
+    // },
+    // {
+    //   description: 'Pending request',
+    //   owner: true,
+    //   computed: {
+    //     active: true,
+    //     state: 'pending',
+    //   },
+    //   data: {
+    //     renderData: true,
+    //   },
+    //   instance: {
+    //     active: true,
+    //     state: 'pending',
+    //     current_period_end: 0,
+    //     customer_id: 'cus_123',
+    //     subscription_id: 'sub_123',
+    //     payment_method_id: 'pm_123',
+    //   },
+    //   template: {
+    //     'subscriptionPaymentMethod-component': false,
+    //     'pendingRetrial-div': true,
+    //     'freePlan-div': false,
+    //     'premiumPlan-div': false,
+    //     'subscriptionActive-div': false,
+    //     'updatePaymentMethod-component': false,
+    //     'billingIcon-component': false,
+    //     'cancel-div': false,
+    //     'activeLoading-div': false,
+    //   },
+    // },
+    {
+      description: 'Premium usage',
+      computed: {
+        active: true,
+        state: 'processed',
       },
-      getters: {
-        'billing/active': (state) => state.billing.active || false,
-        'billing/status': (state) => state.billing.state || 'inactive',
-        'billing/get': (state) => state.billing,
-        'namespaces/owner': (state) => state.owner,
+      data: {
+        renderData: true,
       },
-      actions: {
-        'billing/getSubscription': () => stripeData,
-        'namespaces/get': () => {},
-        'snackbar/showSnackbarSuccessAction': () => {},
-        'snackbar/showSnackbarErrorAction': () => {},
-        'snackbar/showSnackbarErrorDefault': () => {},
+      instance: {
+        active: true,
+        state: 'processed',
+        current_period_end: 0,
+        customer_id: 'cus_123',
+        subscription_id: 'sub_123',
+        payment_method_id: 'pm_123',
+        info: info2,
+        card: card2,
       },
-    });
-
-    const WrapperArray = tests.map((el) => shallowMount(SettingBilling, {
-      store: storeVuex(el.instance, el.owner),
-      localVue,
-      stubs: ['fragment'],
-      mocks: {
-        $stripe: {
-          elements: () => ({
-            create: () => ({
-              mount: () => null,
-            }),
-          }),
-        },
+      template: {
+        'subscriptionPaymentMethod-component': false,
+        'freePlan-div': false,
+        // 'premiumPlan-div': true,
+        // 'subscriptionActive-div': true,
+        // 'updatePaymentMethod-component': true,
+        // 'billingIcon-component': true,
+        // 'cancel-div': true,
+        // 'activeLoading-div': false,
       },
-    }));
+    },
+  ];
 
-    WrapperArray.forEach((el, i) => {
-      ///////
-      // Component Rendering
-      //////
+  const storeVuex = (billing, currentAccessType) => new Vuex.Store({
+    namespaced: true,
+    state: {
+      billing,
+      currentAccessType,
+    },
+    getters: {
+      'billing/active': (state) => state.billing.active || false,
+      'billing/status': (state) => state.billing.state || 'inactive',
+      'billing/get': (state) => state.billing,
+      'auth/accessType': (state) => state.currentAccessType,
+    },
+    actions: {
+      'billing/getSubscription': () => stripeData,
+      'namespaces/get': () => {},
+      'snackbar/showSnackbarSuccessAction': () => {},
+      'snackbar/showSnackbarErrorAction': () => {},
+      'snackbar/showSnackbarErrorDefault': () => {},
+    },
+  });
 
-      it(`Is a Vue instance - ${tests[i].description}`, () => {
-        expect(el).toBeTruthy();
-      });
-      it(`Renders the component - ${tests[i].description}`, () => {
-        expect(el.html()).toMatchSnapshot();
-      });
+  tests.forEach((test) => {
+    accessType.forEach((currentAccessType) => {
+      describe(`${test.description} ${currentAccessType}`, () => {
+        beforeEach(() => {
+          wrapper = shallowMount(SettingBilling, {
+            store: storeVuex(test.instance, currentAccessType),
+            localVue,
+            stubs: ['fragment'],
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+              $stripe: {
+                elements: () => ({
+                  create: () => ({
+                    mount: () => null,
+                  }),
+                }),
+              },
+            },
+          });
 
-      const { templates, computed, dataAndProps } = tests[i];
-
-      //////
-      // HTML validation
-      //////
-
-      it(`Renders template - ${tests[i].description}`, () => {
-        Reflect.ownKeys(templates).forEach((k) => {
-          expect(el.find(`[data-test="${k}"]`).exists()).toBe(templates[k]);
+          wrapper.setData({ renderData: test.data.renderData });
+          wrapper.setData({ billingData: { info: { nextPaymentDue: 0 }, card: { brand: 'cc-visa' } } });
         });
-      });
 
-      ///////
-      // Computed properties checking
-      //////
+        ///////
+        // Component Rendering
+        //////
 
-      it(`Process data in the computed - ${tests[i].description}`, () => {
-        Reflect.ownKeys(computed).forEach((k) => {
-          expect(el.vm[k]).toBe(computed[k]);
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
         });
-      });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
 
-      ///////
-      // Data and Props checking
-      //////
+        ///////
+        // Data checking
+        //////
 
-      it(`Compare data with the dafault value - ${tests[i].description}`, () => {
-        Reflect.ownKeys(dataAndProps).forEach((k) => {
-          expect(el.vm[k]).toBe(dataAndProps[k]);
+        it('Compare data with default value', () => {
+          if (hasAuthorization[currentAccessType]) {
+            Object.keys(test.data).forEach((item) => {
+              expect(wrapper.vm[item]).toEqual(test.data[item]);
+            });
+          }
+        });
+        it('Process data in the computed', () => {
+          Object.keys(test.computed).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.computed[item]);
+          });
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+        });
+
+        //////
+        // HTML validation
+        //////
+
+        it('Renders the template with data', () => {
+          Object.keys(test.template).forEach((item) => {
+            if (hasAuthorization[currentAccessType] || (test.computed.state === 'processed' && hasAuthorization[currentAccessType])) {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            } else {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(false);
+            }
+          });
         });
       });
     });

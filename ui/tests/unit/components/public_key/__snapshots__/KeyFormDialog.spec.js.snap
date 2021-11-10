@@ -1,55 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`KeyFormDialog Dialog opened Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
-          Add public Key
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`KeyFormDialog Dialog opened Renders the component 2`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`KeyFormDialog Dialog opened Renders the component 3`] = `
-<fragment-stub>
-  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
-          Add private Key
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`KeyFormDialog Dialog opened Renders the component 4`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`KeyFormDialog Icon Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
-          Add public Key
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`KeyFormDialog Icon Renders the component 2`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`KeyFormDialog Icon Renders the component 3`] = `
+exports[`KeyFormDialog Button create privateKey administrator Renders the component 1`] = `
 <fragment-stub>
   <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
           Add private Key
@@ -60,7 +11,188 @@ exports[`KeyFormDialog Icon Renders the component 3`] = `
 </fragment-stub>
 `;
 
-exports[`KeyFormDialog Icon Renders the component 4`] = `
+exports[`KeyFormDialog Button create privateKey observer Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
+          Add private Key
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Button create privateKey operator Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
+          Add private Key
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Button create privateKey owner Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
+          Add private Key
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Button create publicKey administrator Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
+          Add public Key
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Button create publicKey observer Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="createKey-btn"><span class="v-btn__content">
+          Add public Key
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Button create publicKey operator Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="createKey-btn"><span class="v-btn__content">
+          Add public Key
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Button create publicKey owner Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
+          Add public Key
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Dialog edit privateKey administrator Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Dialog edit privateKey observer Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Dialog edit privateKey operator Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Dialog edit privateKey owner Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Dialog edit publicKey administrator Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Dialog edit publicKey observer Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Dialog edit publicKey operator Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Dialog edit publicKey owner Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Icon edit privateKey administrator Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Icon edit privateKey observer Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Icon edit privateKey operator Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Icon edit privateKey owner Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Icon edit publicKey administrator Renders the component 1`] = `
+<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Icon edit publicKey observer Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Icon edit publicKey operator Renders the component 1`] = `
+<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`KeyFormDialog Icon edit publicKey owner Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">edit</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
     <!---->

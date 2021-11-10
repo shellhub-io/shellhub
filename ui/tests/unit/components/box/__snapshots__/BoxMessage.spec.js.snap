@@ -3,29 +3,29 @@
 exports[`BoxMessage Renders the component 1`] = `
 <fragment-stub>
   <v-card-stub loaderheight="4" tag="div" outlined="true" class="mx-auto py-6">
-    <v-card-title-stub class="justify-center">
+    <v-card-title-stub tag="div" class="justify-center">
       <div>
         <v-icon-stub xlarge="" datatest="boxMessage-icon" x-large="" data-test="boxMessage-icon">
           history
         </v-icon-stub>
       </div>
     </v-card-title-stub>
-    <v-card-title-stub class="justify-center">
+    <v-card-title-stub tag="div" class="justify-center">
       <div data-test="boxMessage-title" class="headline">
         Looks like you don't have any Session
       </div>
     </v-card-title-stub>
     <v-list-item-stub activeclass="" tag="div" class="text-center listText">
-      <v-list-item-content-stub datatest="0-boxMessage-text" data-test="0-boxMessage-text" class="justify-center py-0">An SSH session is created when a connection is made to any registered device.</v-list-item-content-stub>
+      <v-list-item-content-stub tag="div" data-test="0-boxMessage-text" class="justify-center py-0">An SSH session is created when a connection is made to any registered device.</v-list-item-content-stub>
     </v-list-item-stub>
     <v-list-item-stub activeclass="" tag="div" class="text-center listText">
-      <v-list-item-content-stub datatest="1-boxMessage-text" data-test="1-boxMessage-text" class="justify-center py-2">
+      <v-list-item-content-stub tag="div" data-test="1-boxMessage-text" class="justify-center py-2">
         <p>Please follow our guide on how to connect to your devices
           <a target="_blank" href="https://docs.shellhub.io/getting-started/connecting-device/">See More</a>.
         </p>
       </v-list-item-content-stub>
     </v-list-item-stub>
-    <v-card-actions-stub class="justify-center pt-8 pb-0">
+    <v-card-actions-stub tag="div" class="justify-center pt-8 pb-0">
       <!---->
       <!---->
     </v-card-actions-stub>

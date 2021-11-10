@@ -24,6 +24,7 @@ export default {
       profilePassword: 'updating password',
       namespaceCreating: 'creating namespace',
       namespaceNewMember: 'adding new member',
+      namespaceEditMember: 'editing member',
       namespaceDelete: 'deleting namespace',
       namespaceEdit: 'editing namespace',
       namespaceRemoveUser: 'removing member',

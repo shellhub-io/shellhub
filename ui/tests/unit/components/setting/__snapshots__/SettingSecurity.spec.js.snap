@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SettingSecurity Renders the component 1`] = `
+exports[`SettingSecurity SettingSecurity administrator Renders the component 1`] = `
 <v-form-stub>
   <v-row-stub tag="div">
     <v-col-stub tag="div" class="mb-6">
@@ -8,7 +8,64 @@ exports[`SettingSecurity Renders the component 1`] = `
         Security
       </h3>
       <div class="ml-3">
-        <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" backgroundcolor="" label="Enable session record" ripple="true" valuecomparator="[Function]" inputvalue="true" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
+        <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" backgroundcolor="" label="Enable session record" ripple="true" valuecomparator="[Function]" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
+        <p>
+          Session record is a feature that allows you to check logged activity when
+          connecting to a device.
+        </p>
+      </div>
+    </v-col-stub>
+  </v-row-stub>
+</v-form-stub>
+`;
+
+exports[`SettingSecurity SettingSecurity observer Renders the component 1`] = `
+<v-form-stub>
+  <v-row-stub tag="div">
+    <v-col-stub tag="div" class="mb-6">
+      <h3 class="mb-5">
+        Security
+      </h3>
+      <div class="ml-3">
+        <v-checkbox-stub disabled="true" errorcount="1" errormessages="" messages="" rules="" successmessages="" backgroundcolor="" label="Enable session record" ripple="true" valuecomparator="[Function]" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
+        <p>
+          Session record is a feature that allows you to check logged activity when
+          connecting to a device.
+        </p>
+      </div>
+    </v-col-stub>
+  </v-row-stub>
+</v-form-stub>
+`;
+
+exports[`SettingSecurity SettingSecurity operator Renders the component 1`] = `
+<v-form-stub>
+  <v-row-stub tag="div">
+    <v-col-stub tag="div" class="mb-6">
+      <h3 class="mb-5">
+        Security
+      </h3>
+      <div class="ml-3">
+        <v-checkbox-stub disabled="true" errorcount="1" errormessages="" messages="" rules="" successmessages="" backgroundcolor="" label="Enable session record" ripple="true" valuecomparator="[Function]" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
+        <p>
+          Session record is a feature that allows you to check logged activity when
+          connecting to a device.
+        </p>
+      </div>
+    </v-col-stub>
+  </v-row-stub>
+</v-form-stub>
+`;
+
+exports[`SettingSecurity SettingSecurity owner Renders the component 1`] = `
+<v-form-stub>
+  <v-row-stub tag="div">
+    <v-col-stub tag="div" class="mb-6">
+      <h3 class="mb-5">
+        Security
+      </h3>
+      <div class="ml-3">
+        <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" backgroundcolor="" label="Enable session record" ripple="true" valuecomparator="[Function]" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
         <p>
           Session record is a feature that allows you to check logged activity when
           connecting to a device.

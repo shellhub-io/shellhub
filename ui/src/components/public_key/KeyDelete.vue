@@ -6,7 +6,7 @@
       <template #activator="{ on }">
         <span v-on="on">
           <v-icon
-            :disabled="!isOwner && action == 'public'"
+            :disabled="!hasAuthorization && action == 'public'"
             v-on="on"
             @click="dialog = !dialog"
           >
@@ -17,14 +17,14 @@
 
       <div>
         <span
-          v-if="isOwner || action == 'private'"
+          v-if="hasAuthorization || action == 'private'"
           data-test="text-tooltip"
         >
           Remove
         </span>
 
         <span v-else>
-          You are not the owner of this namespace
+          You don't have this kind of authorization.
         </span>
       </div>
     </v-tooltip>
@@ -56,7 +56,7 @@
           <v-btn
             color="red darken-1"
             text
-            data-test="Remove-btn"
+            data-test="remove-btn"
             @click="remove();"
           >
             Remove
@@ -69,8 +69,12 @@
 
 <script>
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'KeyDeleteComponent',
+
+  filters: { hasPermission },
 
   props: {
     fingerprint: {
@@ -93,8 +97,16 @@ export default {
   },
 
   computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.publicKey.remove,
+        );
+      }
+
+      return false;
     },
   },
 

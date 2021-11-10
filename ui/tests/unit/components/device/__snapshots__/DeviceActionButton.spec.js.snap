@@ -1,10 +1,211 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DeviceActionButton Renders the component 1`] = `
+exports[`DeviceActionButton Create button in the list administrator Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            accept
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Create button in the list observer Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            accept
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Create button in the list operator Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            accept
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Create button in the list owner Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            accept
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Create button in the notification administrator Renders the component 1`] = `
 <fragment-stub>
   <fragment-stub><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--x-small primary" data-test="notification-btn"><span class="v-btn__content">
       Accept
     </span></button></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Create button in the notification observer Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--x-small primary" data-test="notification-btn"><span class="v-btn__content">
+      Accept
+    </span></button></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Create button in the notification operator Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--x-small primary" data-test="notification-btn"><span class="v-btn__content">
+      Accept
+    </span></button></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Create button in the notification owner Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--x-small primary" data-test="notification-btn"><span class="v-btn__content">
+      Accept
+    </span></button></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Dialog administrator Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            accept
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Dialog observer Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            accept
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Dialog operator Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            accept
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Dialog owner Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            accept
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Reject button in the list administrator Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            reject
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Reject button in the list observer Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            reject
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Reject button in the list operator Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            reject
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Reject button in the list owner Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            reject
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Remove button in the list administrator Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            remove
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Remove button in the list observer Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            remove
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Remove button in the list operator Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            remove
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`DeviceActionButton Remove button in the list owner Renders the component 1`] = `
+<fragment-stub>
+  <fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--small" data-test="tooltip-text"><span class="v-btn__content">
+            remove
+          </span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span></fragment-stub>
   <div role="dialog" class="v-dialog__container">
     <!---->
   </div>

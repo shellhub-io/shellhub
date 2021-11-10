@@ -7,11 +7,10 @@
         class="mt-4"
       >
         <v-col sm="8">
-          <SettingOwnerInfo
-            :is-owner="isOwner"
-            data-test="settingOwnerInfo-component"
-          />
-          <div class="mt-6">
+          <div
+            class="mt-6"
+            data-test="tenant-div"
+          >
             <v-row class="mb-2">
               <v-col md="auto">
                 <v-card
@@ -32,9 +31,10 @@
                   :elevation="0"
                 >
                   <v-chip>
-                    <span data-test="tenant-span">
+                    <span>
                       {{ tenant }}
                     </span>
+
                     <v-icon
                       v-clipboard="tenant"
                       v-clipboard:success="() => {
@@ -54,7 +54,6 @@
           </div>
 
           <div
-            v-if="isOwner"
             class="mt-6"
             data-test="editOperation-div"
           >
@@ -75,12 +74,26 @@
                   md="auto"
                   class="ml-auto"
                 >
-                  <v-btn
-                    outlined
-                    @click="passes(editNamespace)"
+                  <v-tooltip
+                    bottom
+                    :disabled="hasAuthorizationRenameNamespace"
                   >
-                    Rename Namespace
-                  </v-btn>
+                    <template #activator="{ on }">
+                      <div v-on="on">
+                        <v-btn
+                          :disabled="!hasAuthorizationRenameNamespace"
+                          outlined
+                          @click="passes(editNamespace)"
+                        >
+                          Rename Namespace
+                        </v-btn>
+                      </div>
+                    </template>
+
+                    <span>
+                      You don't have this kind of authorization.
+                    </span>
+                  </v-tooltip>
                 </v-col>
               </v-row>
 
@@ -109,9 +122,8 @@
           </div>
 
           <div
-            v-if="isOwner"
-            data-test="userOperation-div"
             class="mt-6"
+            data-test="userOperation-div"
           >
             <v-row>
               <v-col>
@@ -122,16 +134,14 @@
 
               <v-spacer />
 
-              <div
-                v-if="isEnterpriseOwner"
-                data-test="newMember-div"
-              >
+              <div>
                 <v-col
                   md="auto"
                   class="ml-auto"
                 >
-                  <NamespaceNewMember
-                    :ns-tenant="tenant"
+                  <NamespaceMemberFormDialog
+                    :add-user="true"
+                    data-test="namespaceMemberFormDialogAdd-component"
                     @update="refresh"
                   />
                 </v-col>
@@ -156,59 +166,38 @@
 
                     <v-col>
                       <v-list-item-title :data-test="item.name+'-list'">
-                        {{ item.name }}
+                        {{ item.username }}
+                      </v-list-item-title>
+                    </v-col>
+
+                    <v-col
+                      md="auto"
+                      class="ml-auto"
+                    >
+                      <v-list-item-title :data-test="item.type+'-list'">
+                        {{ item.type }}
                       </v-list-item-title>
                     </v-col>
 
                     <v-spacer />
 
-                    <div
-                      v-if="isEnterpriseOwner"
-                    >
+                    <div>
                       <v-col
                         md="auto"
                         class="ml-auto"
                       >
-                        <v-btn
-                          v-if="item.id!==owner"
-                          outlined
-                          data-test="removeMember-btn"
-                          @click="remove(item.name)"
-                        >
-                          <v-tooltip
-                            bottom
-                          >
-                            <template #activator="{ on }">
-                              <v-icon v-on="on">
-                                delete
-                              </v-icon>
-                            </template>
-                            <span>
-                              Remove user
-                            </span>
-                          </v-tooltip>
-                        </v-btn>
+                        <NamespaceMemberFormDialog
+                          :add-user="false"
+                          :member="item"
+                          data-test="NamespaceMemberFormDialogEdit-component"
+                          @update="refresh"
+                        />
 
-                        <p
-                          v-else
-                          data-test="owner-p"
-                          class="mr-3"
-                        >
-                          Owner
-                        </p>
-                      </v-col>
-                    </div>
-                    <div
-                      v-else
-                      data-test="role-div"
-                    >
-                      <v-col
-                        md="auto"
-                        class="ml-auto"
-                      >
-                        <p data-test="role-text">
-                          {{ item.id === owner ? 'Owner' : 'Member' }}
-                        </p>
+                        <NamespaceMemberDelete
+                          :member="item"
+                          data-test="namespaceMemberDelete-component"
+                          @update="refresh"
+                        />
                       </v-col>
                     </div>
                   </v-row>
@@ -221,7 +210,7 @@
           </div>
 
           <div
-            v-if="isEnterpriseOwner"
+            v-if="isEnterprise"
             class="mt-6"
             data-test="securityOperation-div"
           >
@@ -232,7 +221,6 @@
           </div>
 
           <div
-            v-if="isOwner"
             class="mt-6"
             data-test="deleteOperation-div"
           >
@@ -256,7 +244,10 @@
                 md="auto"
                 class="ml-auto mb-4"
               >
-                <NamespaceDelete :ns-tenant="tenant" />
+                <NamespaceDelete
+                  :ns-tenant="tenant"
+                  data-test="namespaceDelete-component"
+                />
               </v-col>
             </v-row>
           </div>
@@ -274,20 +265,24 @@ import {
 } from 'vee-validate';
 
 import SettingSecurity from '@/components/setting/SettingSecurity';
-import NamespaceNewMember from '@/components/app_bar/namespace/NamespaceNewMember';
+import NamespaceMemberFormDialog from '@/components/app_bar/namespace/NamespaceMemberFormDialog';
+import NamespaceMemberDelete from '@/components/app_bar/namespace/NamespaceMemberDelete';
 import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
-import SettingOwnerInfo from '@/components/setting/SettingOwnerInfo';
+
+import hasPermission from '@/components/filter/permission';
 
 export default {
   name: 'SettingNamespaceComponent',
 
+  filters: { hasPermission },
+
   components: {
     ValidationProvider,
     ValidationObserver,
-    NamespaceNewMember,
+    NamespaceMemberFormDialog,
+    NamespaceMemberDelete,
     NamespaceDelete,
     SettingSecurity,
-    SettingOwnerInfo,
   },
 
   data() {
@@ -297,14 +292,6 @@ export default {
   },
 
   computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
-    },
-
-    owner() {
-      return this.$store.getters['namespaces/get'].owner;
-    },
-
     namespace() {
       return this.$store.getters['namespaces/get'];
     },
@@ -313,12 +300,44 @@ export default {
       return this.$store.getters['auth/tenant'];
     },
 
-    isEnterpriseOwner() {
-      return this.$env.isEnterprise && this.isOwner;
-    },
-
     isEnterprise() {
       return this.$env.isEnterprise;
+    },
+
+    hasAuthorizationRenameNamespace() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.namespace.rename,
+        );
+      }
+
+      return false;
+    },
+
+    hasAuthorizationRemoveUser() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.namespace.removeMember,
+        );
+      }
+
+      return false;
+    },
+
+    hasAuthorizationDeleteNamespace() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.namespace.remove,
+        );
+      }
+
+      return false;
     },
   },
 
@@ -366,14 +385,13 @@ export default {
       }
     },
 
-    async remove(username) {
+    async remove(userId) {
       try {
         await this.$store.dispatch('namespaces/removeUser', {
-          username,
+          user_id: userId,
           tenant_id: this.tenant,
         });
-        this.dialog = false;
-        this.username = '';
+        this.refresh();
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceRemoveUser);
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceRemoveUser);

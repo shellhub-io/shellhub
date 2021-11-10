@@ -1,19 +1,33 @@
 <template>
   <fragment>
-    <v-btn
-      color="red darken-1"
-      outlined
-      data-test="cancel-btn"
-      @click="dialog = !dialog"
+    <v-tooltip
+      bottom
+      :disabled="hasAuthorization"
     >
-      Cancel
-    </v-btn>
+      <template #activator="{ on }">
+        <div v-on="on">
+          <v-btn
+            :disabled="!hasAuthorization"
+            color="red darken-1"
+            outlined
+            data-test="delete-btn"
+            @click="dialog = !dialog"
+          >
+            Delete namespace
+          </v-btn>
+        </div>
+      </template>
+
+      <span>
+        You don't have this kind of authorization.
+      </span>
+    </v-tooltip>
 
     <v-dialog
       v-model="dialog"
       max-width="510"
     >
-      <v-card data-test="billingWarning-dialog">
+      <v-card data-test="billingCancel-dialog">
         <v-card-title class="headline grey lighten-2 text-center">
           Are you sure?
         </v-card-title>
@@ -50,11 +64,15 @@
 <script>
 
 import formatCurrency from '@/components/filter/currency';
+import hasPermission from '@/components/filter/permission';
 
 export default {
   name: 'BillingCancelComponent',
 
-  filters: { formatCurrency },
+  filters: {
+    formatCurrency,
+    hasPermission,
+  },
 
   props: {
     nextPaymentDue: {
@@ -67,6 +85,20 @@ export default {
     return {
       dialog: false,
     };
+  },
+
+  computed: {
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.billing.unsubscribe,
+        );
+      }
+
+      return false;
+    },
   },
 
   methods: {

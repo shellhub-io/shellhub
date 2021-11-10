@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SettingBilling Renders component according to billing instance Renders the component - Create subscription 1`] = `
+exports[`SettingBilling Premium usage administrator Renders the component 1`] = `
 <v-container-stub tag="div">
   <v-row-stub tag="div" align="center" justify="center" class="mt-4">
     <v-col-stub sm="8" tag="div">
@@ -12,71 +12,7 @@ exports[`SettingBilling Renders component according to billing instance Renders 
               Subscription info
             </h3>
           </v-col-stub>
-          <v-spacer-stub></v-spacer-stub>
-          <v-col-stub md="auto" tag="div" class="ml-auto">
-            <paymentmethod-stub typeoperation="subscription" data-test="subscriptionPaymentMethod-component"></paymentmethod-stub>
-          </v-col-stub>
-        </v-row-stub>
-        <div class="mt-6 pl-4 pr-4">
-          <div>
-            <div data-test="freePlan-div">
-              <p>
-                Plan: <b> Free </b></p>
-              <p>
-                Description: You can add up to 3 devices while using the 'Free' plan.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!---->
-    </v-col-stub>
-  </v-row-stub>
-</v-container-stub>
-`;
-
-exports[`SettingBilling Renders component according to billing instance Renders the component - Pending request 1`] = `
-<v-container-stub tag="div">
-  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
-    <v-col-stub sm="8" tag="div">
-      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
-      <div data-test="content-div">
-        <v-row-stub tag="div">
-          <v-col-stub tag="div">
-            <h3>
-              Subscription info
-            </h3>
-          </v-col-stub>
-          <v-spacer-stub></v-spacer-stub>
-          <!---->
-        </v-row-stub>
-        <div class="mt-6 pl-4 pr-4">
-          <div data-test="pendingRetrial-div">
-            <p class="ma-4">
-              You have a pending request, please wait a while ...
-            </p>
-          </div>
-        </div>
-      </div>
-      <!---->
-    </v-col-stub>
-  </v-row-stub>
-</v-container-stub>
-`;
-
-exports[`SettingBilling Renders component according to billing instance Renders the component - Premium usage 1`] = `
-<v-container-stub tag="div">
-  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
-    <v-col-stub sm="8" tag="div">
-      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
-      <div data-test="content-div">
-        <v-row-stub tag="div">
-          <v-col-stub tag="div">
-            <h3>
-              Subscription info
-            </h3>
-          </v-col-stub>
-          <v-spacer-stub></v-spacer-stub>
+          <v-spacer-stub tag="div"></v-spacer-stub>
           <!---->
         </v-row-stub>
         <div class="mt-6 pl-4 pr-4">
@@ -123,16 +59,16 @@ exports[`SettingBilling Renders component according to billing instance Renders 
                 Payment method details
               </h3>
             </v-col-stub>
-            <v-spacer-stub></v-spacer-stub>
+            <v-spacer-stub tag="div"></v-spacer-stub>
             <v-col-stub md="auto" tag="div" class="ml-auto">
               <paymentmethod-stub typeoperation="update" data-test="updatePaymentMethod-component"></paymentmethod-stub>
             </v-col-stub>
           </v-row-stub>
           <div class="mt-5 pl-4 pr-4">
             <p>
-              <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
-              4/2024 -
-              4242
+              <billingicon-stub iconname="cc-visa" data-test="billingIcon-component"></billingicon-stub>
+              / -
+
             </p>
           </div>
         </div>
@@ -153,7 +89,7 @@ exports[`SettingBilling Renders component according to billing instance Renders 
                   When canceling subscription, you may lose access to devices.
                 </p>
               </v-col-stub>
-              <v-spacer-stub></v-spacer-stub>
+              <v-spacer-stub tag="div"></v-spacer-stub>
               <v-col-stub md="auto" tag="div" class="ml-auto">
                 <billingcancel-stub nextpaymentdue="0"></billingcancel-stub>
               </v-col-stub>
@@ -166,13 +102,147 @@ exports[`SettingBilling Renders component according to billing instance Renders 
 </v-container-stub>
 `;
 
-exports[`SettingBilling Renders component according to billing instance Renders the component - User not owner 1`] = `
+exports[`SettingBilling Premium usage observer Renders the component 1`] = `
 <v-container-stub tag="div">
   <v-row-stub tag="div" align="center" justify="center" class="mt-4">
     <v-col-stub sm="8" tag="div">
       <settingownerinfo-stub data-test="settingOwnerInfo-component"></settingownerinfo-stub>
       <!---->
+      <div>
+        <div data-test="activeLoading-div">
+          <v-divider-stub></v-divider-stub>
+          <v-divider-stub></v-divider-stub>
+          <div class="mt-6 mb-2">
+            <p>
+              Loading data
+            </p>
+          </div>
+        </div>
+      </div>
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Premium usage operator Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub data-test="settingOwnerInfo-component"></settingownerinfo-stub>
       <!---->
+      <div>
+        <div data-test="activeLoading-div">
+          <v-divider-stub></v-divider-stub>
+          <v-divider-stub></v-divider-stub>
+          <div class="mt-6 mb-2">
+            <p>
+              Loading data
+            </p>
+          </div>
+        </div>
+      </div>
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Premium usage owner Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <div data-test="content-div">
+        <v-row-stub tag="div">
+          <v-col-stub tag="div">
+            <h3>
+              Subscription info
+            </h3>
+          </v-col-stub>
+          <v-spacer-stub tag="div"></v-spacer-stub>
+          <!---->
+        </v-row-stub>
+        <div class="mt-6 pl-4 pr-4">
+          <div>
+            <div data-test="premiumPlan-div">
+              <p>
+                Plan: <b> Premium usage </b></p>
+              <p>
+                Description: In this plan, the amount is charged according to the number of
+                devices used.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-test="subscriptionActive-div" class="mt-4 mb-4">
+        <v-divider-stub></v-divider-stub>
+        <v-divider-stub></v-divider-stub>
+        <div class="mt-6">
+          <v-row-stub tag="div">
+            <v-col-stub tag="div">
+              <h3>
+                Next bill
+              </h3>
+            </v-col-stub>
+          </v-row-stub>
+          <div class="mt-6 pl-4 pr-4">
+            <p>
+              Date: <b> </b></p>
+            <p>
+              Estimated total:
+              <b>
+                $0.00
+              </b>
+            </p>
+          </div>
+        </div>
+        <v-divider-stub></v-divider-stub>
+        <v-divider-stub></v-divider-stub>
+        <div class="mt-6">
+          <v-row-stub tag="div">
+            <v-col-stub tag="div">
+              <h3>
+                Payment method details
+              </h3>
+            </v-col-stub>
+            <v-spacer-stub tag="div"></v-spacer-stub>
+            <v-col-stub md="auto" tag="div" class="ml-auto">
+              <paymentmethod-stub typeoperation="update" data-test="updatePaymentMethod-component"></paymentmethod-stub>
+            </v-col-stub>
+          </v-row-stub>
+          <div class="mt-5 pl-4 pr-4">
+            <p>
+              <billingicon-stub iconname="cc-visa" data-test="billingIcon-component"></billingicon-stub>
+              / -
+
+            </p>
+          </div>
+        </div>
+        <v-divider-stub></v-divider-stub>
+        <v-divider-stub></v-divider-stub>
+        <div data-test="cancel-div" class="mt-6">
+          <v-row-stub tag="div">
+            <v-col-stub tag="div">
+              <h3>
+                Cancel Subscription
+              </h3>
+            </v-col-stub>
+          </v-row-stub>
+          <div class="mt-2 pl-4">
+            <v-row-stub tag="div">
+              <v-col-stub tag="div">
+                <p>
+                  When canceling subscription, you may lose access to devices.
+                </p>
+              </v-col-stub>
+              <v-spacer-stub tag="div"></v-spacer-stub>
+              <v-col-stub md="auto" tag="div" class="ml-auto">
+                <billingcancel-stub nextpaymentdue="0"></billingcancel-stub>
+              </v-col-stub>
+            </v-row-stub>
+          </div>
+        </div>
+      </div>
     </v-col-stub>
   </v-row-stub>
 </v-container-stub>

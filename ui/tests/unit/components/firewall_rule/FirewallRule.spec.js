@@ -3,6 +3,7 @@ import { mount, createLocalVue, config } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import Router from 'vue-router';
 import FirewallRule from '@/components/firewall_rule/FirewallRule';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 config.mocks = {
   $env: {
@@ -67,6 +68,10 @@ describe('FirewallRule', () => {
         stubs: ['fragment'],
         router,
         vuetify,
+        mocks: {
+          $authorizer: authorizer,
+          $actions: actions,
+        },
       });
     });
 
@@ -117,6 +122,10 @@ describe('FirewallRule', () => {
         stubs: ['fragment'],
         router,
         vuetify,
+        mocks: {
+          $authorizer: authorizer,
+          $actions: actions,
+        },
       });
     });
 

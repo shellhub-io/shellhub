@@ -11,6 +11,7 @@
         >
           <v-checkbox
             v-model="sessionRecord"
+            :disabled="!hasAuthorization"
             label="Enable session record"
           />
 
@@ -26,8 +27,12 @@
 
 <script>
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'SettingSecurityComponent',
+
+  filters: { hasPermission },
 
   props: {
     hasTenant: {
@@ -53,6 +58,18 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarErrorDefault');
         }
       },
+    },
+
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.namespace.enableSessionRecord,
+        );
+      }
+
+      return false;
     },
   },
 

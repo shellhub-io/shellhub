@@ -4,7 +4,7 @@
       <template #activator="{ on }">
         <span v-on="on">
           <v-icon
-            :disabled="!isOwner"
+            :disabled="!hasAuthorization"
             v-on="on"
             @click="dialog = !dialog"
           >
@@ -15,14 +15,14 @@
 
       <div>
         <span
-          v-if="isOwner"
-          data-test="tooltipOwner-text"
+          v-if="hasAuthorization"
+          data-test="text-tooltip"
         >
           Edit
         </span>
 
         <span v-else>
-          You are not the owner of this namespace
+          You don't have this kind of authorization.
         </span>
       </div>
     </v-tooltip>
@@ -32,7 +32,7 @@
       max-width="450"
       @click:outside="cancel"
     >
-      <v-card data-test="deviceRename-dialog">
+      <v-card data-test="deviceRename-card">
         <v-card-title class="headline grey lighten-2 text-center">
           Rename Device
         </v-card-title>
@@ -57,6 +57,7 @@
               />
             </ValidationProvider>
           </v-card-text>
+
           <v-card-actions>
             <v-spacer />
             <v-btn
@@ -66,6 +67,7 @@
             >
               Close
             </v-btn>
+
             <v-btn
               color="primary"
               text
@@ -88,8 +90,12 @@ import {
   ValidationProvider,
 } from 'vee-validate';
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'DeviceRenameComponent',
+
+  filters: { hasPermission },
 
   components: {
     ValidationProvider,
@@ -126,8 +132,16 @@ export default {
       },
     },
 
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.device.rename,
+        );
+      }
+
+      return false;
     },
   },
 

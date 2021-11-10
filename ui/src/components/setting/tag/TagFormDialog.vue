@@ -23,7 +23,7 @@
         </span>
 
         <span v-else>
-          You are not the owner of this namespace
+          You don't have this kind of authorization.
         </span>
       </div>
     </v-tooltip>
@@ -53,7 +53,7 @@
         </span>
 
         <span v-else>
-          You are not the owner of this namespace
+          You don't have this kind of authorization.
         </span>
       </div>
     </v-tooltip>

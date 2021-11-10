@@ -2,6 +2,7 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import DeviceList from '@/components/device/DeviceList';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('DeviceList', () => {
   const localVue = createLocalVue();
@@ -152,6 +153,10 @@ describe('DeviceList', () => {
         localVue,
         stubs: ['fragment', 'router-link'],
         vuetify,
+        mocks: {
+          $authorizer: authorizer,
+          $actions: actions,
+        },
       });
     });
 
@@ -215,6 +220,10 @@ describe('DeviceList', () => {
         localVue,
         stubs: ['fragment', 'router-link'],
         vuetify,
+        mocks: {
+          $authorizer: authorizer,
+          $actions: actions,
+        },
       });
     });
 

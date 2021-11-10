@@ -4,7 +4,7 @@
       <template #activator="{ on }">
         <span v-on="on">
           <v-icon
-            :disabled="!isOwner"
+            :disabled="!hasAuthorization"
             v-on="on"
             @click="dialog = !dialog"
           >
@@ -15,13 +15,13 @@
 
       <div>
         <span
-          v-if="isOwner"
+          v-if="hasAuthorization"
           data-test="text-tooltip"
         >
           Delete session record
         </span>
         <span v-else>
-          You are not the owner of this namespace
+          You don't have this kind of authorization.
         </span>
       </div>
     </v-tooltip>
@@ -65,8 +65,12 @@
 
 <script>
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'SessionDeleteRecordComponent',
+
+  filters: { hasPermission },
 
   props: {
     uid: {
@@ -82,8 +86,16 @@ export default {
   },
 
   computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.session.removeRecord,
+        );
+      }
+
+      return false;
     },
   },
 

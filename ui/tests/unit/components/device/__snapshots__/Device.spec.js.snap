@@ -4,9 +4,9 @@ exports[`Device Device Renders the component 1`] = `
 <fragment-stub>
   <div class="d-flex pa-0 align-center">
     <h1>Devices</h1>
-    <v-spacer-stub></v-spacer-stub>
+    <v-spacer-stub tag="div"></v-spacer-stub>
     <v-text-field-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="" appendicon="mdi-magnify" backgroundcolor="" hidedetails="true" label="Search by hostname" loaderheight="2" clearicon="$clear" singleline="true" type="text" data-test="search-text" class="mx-6"></v-text-field-stub>
-    <v-spacer-stub></v-spacer-stub>
+    <v-spacer-stub tag="div"></v-spacer-stub>
     <deviceadd-stub></deviceadd-stub>
   </div>
   <v-card-stub loaderheight="4" tag="div" class="mt-2">

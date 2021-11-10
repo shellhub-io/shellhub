@@ -2,6 +2,7 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import SessionDeleteRecord from '@/components/session/SessionDeleteRecord';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('SessionDeleteRecord', () => {
   const localVue = createLocalVue();
@@ -12,16 +13,59 @@ describe('SessionDeleteRecord', () => {
 
   let wrapper;
 
-  const owner = true;
-  const uid = '8c354a00';
+  const accessType = ['owner', 'administrator', 'operator', 'observer'];
 
-  const store = new Vuex.Store({
+  const hasAuthorization = {
+    owner: true,
+    administrator: true,
+    operator: false,
+    observer: false,
+  };
+
+  const tests = [
+    {
+      description: 'Icon',
+      variables: {
+        dialog: false,
+      },
+      props: {
+        uid: '8c354a00',
+      },
+      data: {
+        dialog: false,
+      },
+      template: {
+        'sessionDeleteRecord-card': false,
+        'cancel-btn': false,
+        'delete-btn': false,
+      },
+    },
+    {
+      description: 'Dialog',
+      variables: {
+        dialog: true,
+      },
+      props: {
+        uid: '8c354a00',
+      },
+      data: {
+        dialog: true,
+      },
+      template: {
+        'sessionDeleteRecord-card': true,
+        'cancel-btn': true,
+        'delete-btn': true,
+      },
+    },
+  ];
+
+  const storeVuex = (currentAccessType) => new Vuex.Store({
     namespaced: true,
     state: {
-      owner,
+      currentAccessType,
     },
     getters: {
-      'namespaces/owner': (state) => state.owner,
+      'auth/accessType': (state) => state.currentAccessType,
     },
     actions: {
       'sessions/deleteSessionLogs': () => {},
@@ -30,113 +74,81 @@ describe('SessionDeleteRecord', () => {
     },
   });
 
-  ///////
-  // in this case, when the user owns the namespace and the focus of
-  // the test is icon rendering.
-  ///////
+  tests.forEach((test) => {
+    accessType.forEach((currentAccessType) => {
+      describe(`${test.description} ${currentAccessType}`, () => {
+        beforeEach(() => {
+          wrapper = mount(SessionDeleteRecord, {
+            store: storeVuex(currentAccessType),
+            localVue,
+            stubs: ['fragment'],
+            propsData: { uid: test.props.uid },
+            vuetify,
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+            },
+          });
 
-  describe('Icon', () => {
-    beforeEach(() => {
-      wrapper = mount(SessionDeleteRecord, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { uid },
-        vuetify,
+          wrapper.setData({ dialog: test.variables.dialog });
+        });
+
+        ///////
+        // Component Rendering
+        //////
+
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
+        });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
+
+        ///////
+        // Data checking
+        //////
+
+        it('Receive data in props', () => {
+          Object.keys(test.props).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.props[item]);
+          });
+        });
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
+          });
+        });
+        it('Process data in the computed', () => {
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+        });
+
+        //////
+        // HTML validation
+        //////
+
+        it('Renders the template with data', () => {
+          Object.keys(test.template).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+          });
+        });
+
+        if (!test.data.dialog) {
+          if (hasAuthorization[currentAccessType]) {
+            it('Show message tooltip user has permission', async (done) => {
+              const icons = wrapper.findAll('.v-icon');
+              const helpIcon = icons.at(0);
+              helpIcon.trigger('mouseenter');
+              await wrapper.vm.$nextTick();
+
+              expect(icons.length).toBe(1);
+              requestAnimationFrame(() => {
+                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Delete session record');
+                done();
+              });
+            });
+          }
+        }
       });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(uid);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show message tooltip to user owner', async (done) => {
-      const icons = wrapper.findAll('.v-icon');
-      const helpIcon = icons.at(0);
-      helpIcon.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(icons.length).toBe(1);
-      requestAnimationFrame(() => {
-        expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Delete session record');
-        done();
-      });
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="sessionDeleteRecord-card"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // in this case, when the user owns the namespace and the focus of
-  // the test is dialog rendering.
-  ///////
-
-  describe('Dialog opened', () => {
-    beforeEach(() => {
-      wrapper = mount(SessionDeleteRecord, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { uid },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.uid).toEqual(uid);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="sessionDeleteRecord-card"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="delete-btn"]').exists()).toEqual(true);
     });
   });
 });

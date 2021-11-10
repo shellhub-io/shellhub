@@ -3,12 +3,12 @@
     <v-tooltip
       v-if="createRule"
       bottom
-      :disabled="isOwner"
+      :disabled="hasAuthorization"
     >
       <template #activator="{ on }">
         <div v-on="on">
           <v-btn
-            :disabled="!isOwner"
+            :disabled="!hasAuthorization"
             class="v-btn--active"
             text
             color="primary"
@@ -21,7 +21,7 @@
       </template>
 
       <span>
-        You are not the owner of this namespace
+        You don't have this kind of authorization.
       </span>
     </v-tooltip>
 
@@ -32,7 +32,7 @@
       <template #activator="{ on }">
         <span v-on="on">
           <v-icon
-            :disabled="!isOwner"
+            :disabled="!hasAuthorization"
             v-on="on"
             @click="dialog = !dialog"
           >
@@ -43,14 +43,14 @@
 
       <div>
         <span
-          v-if="isOwner"
+          v-if="hasAuthorization"
           data-test="text-tooltip"
         >
           Edit
         </span>
 
         <span v-else>
-          You are not the owner of this namespace
+          You don't have this kind of authorization.
         </span>
       </div>
     </v-tooltip>
@@ -215,8 +215,12 @@ import {
   ValidationProvider,
 } from 'vee-validate';
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'FirewallRuleFormDialogComponent',
+
+  filters: { hasPermission },
 
   components: {
     ValidationProvider,
@@ -251,8 +255,20 @@ export default {
   },
 
   computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        let action = '';
+        if (this.createRule) action = 'create';
+        else action = 'edit';
+
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.firewall[action],
+        );
+      }
+
+      return false;
     },
   },
 

@@ -11,16 +11,16 @@ exports[`ValidationAccount Failed to verify account Renders the component 1`] = 
       </v-layout-stub>
     </v-container-stub>
     <v-card-stub loaderheight="4" tag="div" color="transparent" data-test="accountCreated-card" class="elevation-0">
-      <v-card-title-stub class="justify-center">
+      <v-card-title-stub tag="div" class="justify-center">
         Verification Account
       </v-card-title-stub>
       <!---->
       <!---->
-      <v-card-text-stub datatest="failed-cardText" data-test="failed-cardText" class="d-flex align-center justify-center">
+      <v-card-text-stub tag="div" data-test="failed-cardText" class="d-flex align-center justify-center">
         There was a problem activating your account. Go to the login page, login to receive
         another email with the activation link.
       </v-card-text-stub>
-      <v-card-subtitle-stub datatest="isCloud-card" data-test="isCloud-card" class="d-flex align-center justify-center pa-4 mx-auto pt-2">
+      <v-card-subtitle-stub tag="div" data-test="isCloud-card" class="d-flex align-center justify-center pa-4 mx-auto pt-2">
         Back to
         <router-link-stub to="[object Object]" tag="a" ariacurrentvalue="page" event="click" class="ml-1">
           Login
@@ -42,15 +42,15 @@ exports[`ValidationAccount Success to verify account Renders the component 1`] =
       </v-layout-stub>
     </v-container-stub>
     <v-card-stub loaderheight="4" tag="div" color="transparent" data-test="accountCreated-card" class="elevation-0">
-      <v-card-title-stub class="justify-center">
+      <v-card-title-stub tag="div" class="justify-center">
         Verification Account
       </v-card-title-stub>
       <!---->
-      <v-card-text-stub datatest="success-cardText" data-test="success-cardText" class="d-flex align-center justify-center">
+      <v-card-text-stub tag="div" data-test="success-cardText" class="d-flex align-center justify-center">
         Congrats and welcome to ShellHub.
       </v-card-text-stub>
       <!---->
-      <v-card-subtitle-stub datatest="isCloud-card" data-test="isCloud-card" class="d-flex align-center justify-center pa-4 mx-auto pt-2">
+      <v-card-subtitle-stub tag="div" data-test="isCloud-card" class="d-flex align-center justify-center pa-4 mx-auto pt-2">
         Back to
         <router-link-stub to="[object Object]" tag="a" ariacurrentvalue="page" event="click" class="ml-1">
           Login
