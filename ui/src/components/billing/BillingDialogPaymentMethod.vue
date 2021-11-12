@@ -110,6 +110,14 @@ export default {
     },
   },
 
+  watch: {
+    dialog(status) {
+      if (!status) {
+        this.elementError.textContent = '';
+      }
+    },
+  },
+
   methods: {
     typeTitle(type) {
       switch (type) {
@@ -137,6 +145,10 @@ export default {
       }
     },
 
+    showError(e) {
+      this.elementError.textContent = e.response.data;
+    },
+
     actionButton(type) {
       if (type === 'subscription') {
         return 'subscribe';
@@ -154,7 +166,6 @@ export default {
         break;
       case 'update':
         await this.updatePaymentMethod();
-        this.dialog = false;
         break;
       default:
         this.lockButton = false;
@@ -185,8 +196,13 @@ export default {
             payment_method_id: result.paymentMethod.id,
           });
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.subscription);
-        } catch {
+        } catch (error) {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.subscription);
+
+          const { status } = error.response;
+          if (status === 400 || status === 423) {
+            this.showError(error);
+          }
         }
       }
 
@@ -208,8 +224,13 @@ export default {
           });
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.updateSubscription);
           this.$emit('update');
-        } catch {
+        } catch (error) {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.updateSubscription);
+
+          const { status } = error.response;
+          if (status === 400 || status === 423) {
+            this.showError(error);
+          }
         }
       }
 
