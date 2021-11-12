@@ -44,13 +44,13 @@ paths:
   /api/stats:
     $ref: spec/resources/devices/stats.yaml
   /api/namespaces:
-    $ref: spec/resources/namespace/namespaces.yaml
-  '/api/namespace/{id}':
-    $ref: spec/resources/namespace/id.yaml
-  '/api/namespace/{id}/add':
-    $ref: spec/resources/namespace/id_add.yaml
-  '/api/namespace/{id}/del':
-    $ref: spec/resources/namespace/id_del.yaml
+    $ref: spec/resources/namespaces/namespaces.yaml
+  '/api/namespaces/{id}':
+    $ref: spec/resources/namespaces/id.yaml
+  '/api/namespaces/{id}/members':
+    $ref: spec/resources/namespaces/id_members.yaml
+  '/api/namespaces/{id}/members/{uid}':
+    $ref: spec/resources/namespaces/id_members_uid.yaml
   '/api/devices/{uid}/tags':
     $ref: spec/resources/devices/uid_tags.yaml
   '/api/devices/{uid}/tags/{name}':

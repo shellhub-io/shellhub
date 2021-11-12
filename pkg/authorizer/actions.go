@@ -26,7 +26,7 @@ type publicKeyActions struct {
 }
 
 type namespaceActions struct {
-	Create, Rename, AddMember, RemoveMember, EnableSessionRecord, Delete int
+	Create, Rename, AddMember, RemoveMember, EditMember, EnableSessionRecord, Delete int
 }
 
 // Actions has all available and allowed actions.
@@ -60,6 +60,7 @@ var Actions = actions{
 		Rename:              NamespaceRename,
 		AddMember:           NamespaceAddMember,
 		RemoveMember:        NamespaceRemoveMember,
+		EditMember:          NamespaceEditMember,
 		EnableSessionRecord: NamespaceEnableSessionRecord,
 		Delete:              NamespaceDelete,
 	},

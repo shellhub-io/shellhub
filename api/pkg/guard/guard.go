@@ -31,93 +31,26 @@ func getTypeByID(ctx context.Context, s store.Store, tenantID, id string) (strin
 	return userType, true
 }
 
-func getTypeUsername(ctx context.Context, s store.Store, tenantID, username string) (string, bool) {
-	user, err := s.UserGetByUsername(ctx, username)
-	if err != nil || err == store.ErrNoDocuments {
-		return "", false
-	}
-
-	namespaceUserActive, err := s.NamespaceGet(ctx, tenantID)
-	if err != nil || err == store.ErrNoDocuments {
-		return "", false
-	}
-
-	var userType string
-	for _, member := range namespaceUserActive.Members {
-		if member.ID == user.ID {
-			userType = member.Type
-		}
-	}
-	if userType == "" {
-		return "", false
-	}
-
-	return userType, true
-}
-
-func EvaluateSubjectWithUsername(ctx context.Context, s store.Store, tenantID, activeID, passiveUsername string) bool {
-	typeActive, ok := getTypeByID(ctx, s, tenantID, activeID)
-	if !ok {
-		return false
-	}
-	typePassive, _ := getTypeUsername(ctx, s, tenantID, passiveUsername)
-	if !ok {
-		return false
-	}
-
-	userTypeCode := authorizer.GetTypeCode(typeActive)
-	passiveTypeCode := authorizer.GetTypeCode(typePassive)
-	if userTypeCode == -1 || passiveTypeCode == -1 {
-		return false
-	}
-
-	if userTypeCode < passiveTypeCode {
-		return false
-	}
-
-	return true
-}
-
-func EvaluateSubjectType(ctx context.Context, s store.Store, tenantID, activeID, typePassive string) bool {
+// EvaluateSubject checks if the user's type, active one, may act over another, passive one.
+func EvaluateSubject(ctx context.Context, s store.Store, tenantID, activeID, typePassive string) bool {
 	typeActive, ok := getTypeByID(ctx, s, tenantID, activeID)
 	if !ok {
 		return false
 	}
 
-	userTypeCode := authorizer.GetTypeCode(typeActive)
-	passiveTypeCode := authorizer.GetTypeCode(typePassive)
-	if userTypeCode == -1 || passiveTypeCode == -1 {
+	if typeActive == typePassive {
 		return false
 	}
 
-	if userTypeCode <= passiveTypeCode {
-		return false
-	}
-
-	return true
+	return authorizer.EvaluateType(typeActive, typePassive)
 }
 
 // EvaluatePermission checks if a namespace's member has the type what allow an action.
 func EvaluatePermission(ctx context.Context, s store.Store, tenantID, userID string, action int) bool {
-	user, _, err := s.UserGetByID(ctx, userID, false)
-	if err != nil || err == store.ErrNoDocuments {
+	userType, ok := getTypeByID(ctx, s, tenantID, userID)
+	if !ok {
 		return false
 	}
 
-	namespace, err := s.NamespaceGet(ctx, tenantID)
-	if err != nil || err == store.ErrNoDocuments {
-		return false
-	}
-
-	var userType string
-	for _, member := range namespace.Members {
-		if member.ID == user.ID {
-			userType = member.Type
-		}
-	}
-	if userType == "" {
-		return false
-	}
-
-	return authorizer.Evaluate(action, userType)
+	return authorizer.EvaluatePermission(action, userType)
 }
