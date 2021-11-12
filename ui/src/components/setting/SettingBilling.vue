@@ -64,7 +64,7 @@
                 </p>
 
                 <p>
-                  Description: you can only add 3 devices.
+                  Description: You can add up to 3 devices while using the 'Free' plan.
                 </p>
               </div>
             </div>
