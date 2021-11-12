@@ -185,8 +185,9 @@ func startServer() error {
 	publicAPI.POST(routes.CreateNamespaceURL, apicontext.Handler(handler.CreateNamespace))
 	publicAPI.DELETE(routes.DeleteNamespaceURL, apicontext.Handler(handler.DeleteNamespace))
 	publicAPI.PUT(routes.EditNamespaceURL, apicontext.Handler(handler.EditNamespace))
-	publicAPI.PATCH(routes.AddNamespaceUserURL, apicontext.Handler(handler.AddNamespaceUser))
-	publicAPI.PATCH(routes.RemoveNamespaceUserURL, apicontext.Handler(handler.RemoveNamespaceUser))
+	publicAPI.POST(routes.AddNamespaceUserURL, apicontext.Handler(handler.AddNamespaceUser))
+	publicAPI.DELETE(routes.RemoveNamespaceUserURL, apicontext.Handler(handler.RemoveNamespaceUser))
+	publicAPI.PATCH(routes.EditNamespaceUserURL, apicontext.Handler(handler.EditNamespaceUser))
 
 	e.Logger.Fatal(e.Start(":8080"))
 

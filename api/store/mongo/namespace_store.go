@@ -246,9 +246,22 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memb
 	return s.NamespaceGet(ctx, tenantID)
 }
 
+func (s *Store) NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewType string) error {
+	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID, "members.id": memberID}, bson.M{"$set": bson.M{"members.$.type": memberNewType}})
+	if err != nil {
+		return fromMongoError(err)
+	}
+
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
+		logrus.Error(err)
+	}
+
+	return nil
+}
+
 func (s *Store) NamespaceGetFirst(ctx context.Context, id string) (*models.Namespace, error) {
 	ns := new(models.Namespace)
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": id}).Decode(&ns); err != nil {
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": bson.M{"$elemMatch": bson.M{"id": id}}}).Decode(&ns); err != nil {
 		return nil, fromMongoError(err)
 	}
 

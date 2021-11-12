@@ -374,6 +374,20 @@ func (_m *Service) DeleteTag(ctx context.Context, uid models.UID, name string) e
 	return r0
 }
 
+// DeviceHeartbeat provides a mock function with given fields: ctx, uid
+func (_m *Service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
+	ret := _m.Called(ctx, uid)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
+		r0 = rf(ctx, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // EditNamespace provides a mock function with given fields: ctx, tenantID, name
 func (_m *Service) EditNamespace(ctx context.Context, tenantID string, name string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, tenantID, name)
@@ -395,6 +409,20 @@ func (_m *Service) EditNamespace(ctx context.Context, tenantID string, name stri
 	}
 
 	return r0, r1
+}
+
+// EditNamespaceUser provides a mock function with given fields: ctx, tenantID, userID, memberID, memberNewType
+func (_m *Service) EditNamespaceUser(ctx context.Context, tenantID string, userID string, memberID string, memberNewType string) error {
+	ret := _m.Called(ctx, tenantID, userID, memberID, memberNewType)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
+		r0 = rf(ctx, tenantID, userID, memberID, memberNewType)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // EditSessionRecordStatus provides a mock function with given fields: ctx, sessionRecord, tenantID
@@ -859,13 +887,13 @@ func (_m *Service) PublicKey() *rsa.PublicKey {
 	return r0
 }
 
-// RemoveNamespaceUser provides a mock function with given fields: ctx, tenantID, memberUsername, userID
-func (_m *Service) RemoveNamespaceUser(ctx context.Context, tenantID string, memberUsername string, userID string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID, memberUsername, userID)
+// RemoveNamespaceUser provides a mock function with given fields: ctx, tenantID, memberID, userID
+func (_m *Service) RemoveNamespaceUser(ctx context.Context, tenantID string, memberID string, userID string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenantID, memberID, userID)
 
 	var r0 *models.Namespace
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, memberUsername, userID)
+		r0 = rf(ctx, tenantID, memberID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -874,7 +902,7 @@ func (_m *Service) RemoveNamespaceUser(ctx context.Context, tenantID string, mem
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenantID, memberUsername, userID)
+		r1 = rf(ctx, tenantID, memberID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

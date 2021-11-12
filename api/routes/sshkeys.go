@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -60,20 +60,29 @@ func (h *Handler) CreatePublicKey(c apicontext.Context) error {
 		return err
 	}
 
-	tenant := c.Tenant()
-	if tenant != nil {
-		key.TenantID = tenant.ID
+	userID := ""
+	tenantID := ""
+	if c.ID() != nil && c.Tenant() != nil {
+		userID = c.ID().ID
+		tenantID = c.Tenant().ID
 	}
 
-	if err := h.service.CreatePublicKey(c.Ctx(), &key, tenant.ID); err != nil {
-		if err == services.ErrInvalidFormat {
-			return c.NoContent(http.StatusUnprocessableEntity)
-		}
-		if err == services.ErrDuplicateFingerprint {
-			return echo.NewHTTPError(http.StatusConflict, err.Error())
-		}
+	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.PublicKey.Create, func() error {
+		err := h.service.CreatePublicKey(c.Ctx(), &key, tenantID)
 
 		return err
+	})
+	if err != nil {
+		switch err {
+		case services.ErrInvalidFormat:
+			return c.NoContent(http.StatusUnprocessableEntity)
+		case services.ErrDuplicateFingerprint:
+			return c.NoContent(http.StatusConflict)
+		case services.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
+		default:
+			return err
+		}
 	}
 
 	return c.JSON(http.StatusOK, key)
@@ -85,27 +94,52 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 		return err
 	}
 
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
+	userID := ""
+	tenantID := ""
+	if c.ID() != nil && c.Tenant() != nil {
+		userID = c.ID().ID
+		tenantID = c.Tenant().ID
 	}
 
-	key, err := h.service.UpdatePublicKey(c.Ctx(), c.Param("fingerprint"), tenant, &params)
-	if err != nil {
+	var key *models.PublicKey
+	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.PublicKey.Edit, func() error {
+		var err error
+		key, err = h.service.UpdatePublicKey(c.Ctx(), c.Param("fingerprint"), tenantID, &params)
+
 		return err
+	})
+	if err != nil {
+		switch err {
+		case services.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
+		default:
+			return err
+		}
 	}
 
 	return c.JSON(http.StatusOK, key)
 }
 
 func (h *Handler) DeletePublicKey(c apicontext.Context) error {
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
+	userID := ""
+	tenantID := ""
+	if c.ID() != nil && c.Tenant() != nil {
+		userID = c.ID().ID
+		tenantID = c.Tenant().ID
 	}
 
-	if err := h.service.DeletePublicKey(c.Ctx(), c.Param("fingerprint"), tenant); err != nil {
+	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.PublicKey.Remove, func() error {
+		err := h.service.DeletePublicKey(c.Ctx(), c.Param("fingerprint"), tenantID)
+
 		return err
+	})
+	if err != nil {
+		switch err {
+		case services.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
+		default:
+			return err
+		}
 	}
 
 	return c.NoContent(http.StatusOK)

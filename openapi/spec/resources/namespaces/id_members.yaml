@@ -1,6 +1,6 @@
-patch:
-  summary: Delete a user from a namespace
-  description: Delete a user from a namespace
+post:
+  summary: Add a user to a namespace
+  description: Add a user to a namespace
   tags:
     - namespace
   security:
@@ -20,9 +20,15 @@ patch:
             username:
               description: User name
               type: string
+            type:
+              description: User type
+              enum:
+                - observer
+                - operator
+                - admin
   responses:
     '200':
-      description: Success delete user from namespace
+      description: Success add namespace to user
       content:
         application/json:
           schema:
@@ -33,8 +39,6 @@ patch:
       $ref: ../../shared/responses/UnauthorizedResponse.yaml
     '403':
       $ref: ../../shared/responses/ForbiddenResponse.yaml
-    '404':
-      $ref: ../../shared/responses/NotFoundResponse.yaml
     '409':
       $ref: ../../shared/responses/ConflictResponse.yaml
     '500':

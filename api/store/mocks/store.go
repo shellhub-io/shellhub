@@ -754,6 +754,20 @@ func (_m *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	return r0
 }
 
+// NamespaceEditMember provides a mock function with given fields: ctx, tenantID, memberID, memberNewType
+func (_m *Store) NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewType string) error {
+	ret := _m.Called(ctx, tenantID, memberID, memberNewType)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenantID, memberID, memberNewType)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NamespaceGet provides a mock function with given fields: ctx, tenantID
 func (_m *Store) NamespaceGet(ctx context.Context, tenantID string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, tenantID)

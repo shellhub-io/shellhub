@@ -25,7 +25,8 @@ type NamespaceService interface {
 	DeleteNamespace(ctx context.Context, tenantID string) error
 	EditNamespace(ctx context.Context, tenantID, name string) (*models.Namespace, error)
 	AddNamespaceUser(ctx context.Context, memberUsername, memberType, tenantID, userID string) (*models.Namespace, error)
-	RemoveNamespaceUser(ctx context.Context, tenantID, memberUsername, userID string) (*models.Namespace, error)
+	RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error)
+	EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewType string) error
 	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
 	GetSessionRecord(ctx context.Context, tenantID string) (bool, error)
@@ -219,11 +220,25 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*mo
 }
 
 func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberType, tenantID, userID string) (*models.Namespace, error) {
+	findMemberNamespace := func(member *models.User, namespace *models.Namespace) (*models.Member, bool) {
+		var memberFound models.Member
+		for _, memberSearch := range namespace.Members {
+			if memberSearch.ID == member.ID {
+				memberFound = memberSearch
+			}
+		}
+		if memberFound.ID == "" || memberFound.Type == "" {
+			return nil, false
+		}
+
+		return &memberFound, true
+	}
+
 	if _, err := validator.ValidateStruct(models.Member{Username: memberUsername, Type: memberType}); err != nil {
 		return nil, ErrInvalidFormat
 	}
 
-	if !guard.EvaluateSubjectType(ctx, s.store, tenantID, userID, memberType) {
+	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberType) {
 		return nil, ErrForbidden
 	}
 
@@ -236,19 +251,39 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberTy
 		return nil, err
 	}
 
+	namespace, err := s.store.NamespaceGet(ctx, tenantID)
+	if err != nil {
+		if err == store.ErrNoDocuments {
+			return nil, ErrNamespaceNotFound
+		}
+
+		return nil, err
+	}
+
+	_, ok := findMemberNamespace(member, namespace)
+	if ok {
+		return nil, ErrNamespaceDuplicatedMember
+	}
+
 	return s.store.NamespaceAddMember(ctx, tenantID, member.ID, memberType)
 }
 
-func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberUsername, userID string) (*models.Namespace, error) {
-	if _, err := validator.ValidateVar(memberUsername, "min=3,max=30,alphanum,ascii"); err != nil { // TODO Remove this static tag string.
-		return nil, ErrInvalidFormat
+func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error) {
+	findMemberNamespace := func(member *models.User, namespace *models.Namespace) (*models.Member, bool) {
+		var memberFound models.Member
+		for _, memberSearch := range namespace.Members {
+			if memberSearch.ID == member.ID {
+				memberFound = memberSearch
+			}
+		}
+		if memberFound.ID == "" || memberFound.Type == "" {
+			return nil, false
+		}
+
+		return &memberFound, true
 	}
 
-	if !guard.EvaluateSubjectWithUsername(ctx, s.store, tenantID, userID, memberUsername) {
-		return nil, ErrForbidden
-	}
-
-	user, err := s.store.UserGetByUsername(ctx, memberUsername)
+	memberPassive, _, err := s.store.UserGetByID(ctx, memberID, false)
 	if err != nil {
 		if err == store.ErrNoDocuments {
 			return nil, ErrUserNotFound
@@ -257,19 +292,87 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberUsern
 		return nil, err
 	}
 
-	namespace, err := s.GetNamespace(ctx, tenantID)
+	namespace, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
-		return nil, ErrNamespaceNotFound
-	}
-
-	// You cannot remove the owner from the namespace.
-	for _, member := range namespace.Members {
-		if member.ID == user.ID && member.Type == authorizer.MemberTypeOwner {
-			return nil, ErrForbidden
+		if err == store.ErrNoDocuments {
+			return nil, ErrNamespaceNotFound
 		}
+
+		return nil, err
 	}
 
-	return s.store.NamespaceRemoveMember(ctx, tenantID, user.ID)
+	memberFound, ok := findMemberNamespace(memberPassive, namespace)
+	if !ok {
+		return nil, ErrNamespaceMemberNotFound
+	}
+
+	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberFound.Type) {
+		return nil, ErrForbidden
+	}
+
+	return s.store.NamespaceRemoveMember(ctx, tenantID, memberPassive.ID)
+}
+
+func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewType string) error {
+	findMemberNamespace := func(member *models.User, namespace *models.Namespace) (*models.Member, bool) {
+		var memberFound models.Member
+		for _, memberSearch := range namespace.Members {
+			if memberSearch.ID == member.ID {
+				memberFound = memberSearch
+			}
+		}
+		if memberFound.ID == "" || memberFound.Type == "" {
+			return nil, false
+		}
+
+		return &memberFound, true
+	}
+
+	memberPassive, _, err := s.store.UserGetByID(ctx, memberID, false)
+	if err != nil {
+		if err == store.ErrNoDocuments {
+			return ErrUserNotFound
+		}
+
+		return err
+	}
+
+	memberActive, _, err := s.store.UserGetByID(ctx, userID, false)
+	if err != nil {
+		if err == store.ErrNoDocuments {
+			return ErrUserNotFound
+		}
+
+		return err
+	}
+
+	namespace, err := s.store.NamespaceGet(ctx, tenantID)
+	if err != nil {
+		if err == store.ErrNoDocuments {
+			return ErrNamespaceNotFound
+		}
+
+		return err
+	}
+
+	passiveMemberFound, ok := findMemberNamespace(memberPassive, namespace)
+	if !ok {
+		return ErrNamespaceMemberNotFound
+	}
+	activeMemberFound, ok := findMemberNamespace(memberActive, namespace)
+	if !ok {
+		return ErrNamespaceMemberNotFound
+	}
+
+	if activeMemberFound.Type == passiveMemberFound.Type {
+		return ErrForbidden
+	}
+
+	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberNewType) {
+		return ErrForbidden
+	}
+
+	return s.store.NamespaceEditMember(ctx, tenantID, memberPassive.ID, memberNewType)
 }
 
 func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {

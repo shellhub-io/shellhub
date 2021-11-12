@@ -16,8 +16,9 @@ const (
 	GetNamespaceURL            = "/namespaces/:id"
 	DeleteNamespaceURL         = "/namespaces/:id"
 	EditNamespaceURL           = "/namespaces/:id"
-	AddNamespaceUserURL        = "/namespaces/:id/add"
-	RemoveNamespaceUserURL     = "/namespaces/:id/del"
+	AddNamespaceUserURL        = "/namespaces/:id/members"
+	RemoveNamespaceUserURL     = "/namespaces/:id/members/:uid"
+	EditNamespaceUserURL       = "/namespaces/:id/members/:uid"
 	GetSessionRecordURL        = "/users/security"
 	EditSessionRecordStatusURL = "/users/security/:id"
 )
@@ -161,16 +162,16 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 	})
 	if err != nil {
 		switch err {
+		case services.ErrInvalidFormat:
+			return c.NoContent(http.StatusBadRequest)
 		case services.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrUserNotFound:
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
-		case services.ErrDuplicateID:
+		case services.ErrNamespaceDuplicatedMember:
 			return c.NoContent(http.StatusConflict)
-		case services.ErrInvalidFormat:
-			return c.NoContent(http.StatusBadRequest)
 		default:
 			return err
 		}
@@ -180,23 +181,15 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 }
 
 func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
-	var member struct {
-		Username string `json:"username"`
-	}
-
 	userID := ""
 	if c.ID() != nil {
 		userID = c.ID().ID
 	}
 
-	if err := c.Bind(&member); err != nil {
-		return err
-	}
-
 	var namespace *models.Namespace
 	err := h.service.CheckPermission(c.Ctx(), c.Param("id"), userID, authorizer.Actions.Namespace.RemoveMember, func() error {
 		var err error
-		namespace, err = h.service.RemoveNamespaceUser(c.Ctx(), c.Param("id"), member.Username, userID)
+		namespace, err = h.service.RemoveNamespaceUser(c.Ctx(), c.Param("id"), c.Param("uid"), userID)
 
 		return err
 	})
@@ -204,20 +197,55 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 		switch err {
 		case services.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
-		case services.ErrNamespaceNotFound:
-			return c.NoContent(http.StatusNotFound)
 		case services.ErrUserNotFound:
 			return c.NoContent(http.StatusNotFound)
-		case services.ErrDuplicateID:
-			return c.NoContent(http.StatusConflict)
-		case services.ErrInvalidFormat:
-			return c.NoContent(http.StatusBadRequest)
+		case services.ErrNamespaceNotFound:
+			return c.NoContent(http.StatusNotFound)
+		case services.ErrNamespaceMemberNotFound:
+			return c.NoContent(http.StatusNotFound)
 		default:
 			return err
 		}
 	}
 
 	return c.JSON(http.StatusOK, namespace)
+}
+
+func (h *Handler) EditNamespaceUser(c apicontext.Context) error {
+	var member struct {
+		Type string `json:"type"`
+	}
+
+	if err := c.Bind(&member); err != nil {
+		return err
+	}
+
+	userID := ""
+	if c.ID() != nil {
+		userID = c.ID().ID
+	}
+
+	err := h.service.CheckPermission(c.Ctx(), c.Param("id"), userID, authorizer.Actions.Namespace.EditMember, func() error {
+		err := h.service.EditNamespaceUser(c.Ctx(), c.Param("id"), userID, c.Param("uid"), member.Type)
+
+		return err
+	})
+	if err != nil {
+		switch err {
+		case services.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
+		case services.ErrUserNotFound:
+			return c.NoContent(http.StatusNotFound)
+		case services.ErrNamespaceNotFound:
+			return c.NoContent(http.StatusNotFound)
+		case services.ErrNamespaceMemberNotFound:
+			return c.NoContent(http.StatusNotFound)
+		default:
+			return err
+		}
+	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
