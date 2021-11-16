@@ -1,7 +1,7 @@
 // This method was created because the API returns the base Int64 value.
 // Example: Return 3224 value, and the price is $ 32.24.
 
-const formatCurrency = (value) => {
+export default (value) => {
   const valueFormated = value / 100;
 
   const fmt = Intl.NumberFormat('en-US', {
@@ -10,5 +10,3 @@ const formatCurrency = (value) => {
   });
   return fmt.format(valueFormated);
 };
-
-export { formatCurrency as default };

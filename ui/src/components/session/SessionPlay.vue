@@ -352,10 +352,14 @@ export default {
       const frame = this.searchClosestFrame(givenTime, this.frames);
       this.clear();
       this.xterm.write(frame.message); // write frame on xterm
-      this.iterativeTimer = setTimeout(this.timer.bind(null),
-        1);
-      this.iterativePrinting = setTimeout(this.print.bind(null, frame.index + 1, this.logs),
-        frame.waitForPrint * (1 / this.defaultSpeed));
+      this.iterativeTimer = setTimeout(
+        this.timer.bind(null),
+        1,
+      );
+      this.iterativePrinting = setTimeout(
+        this.print.bind(null, frame.index + 1, this.logs),
+        frame.waitForPrint * (1 / this.defaultSpeed),
+      );
     },
 
     searchClosestFrame(givenTime, frames) { // applies a binary search to find nearest frame
@@ -389,8 +393,10 @@ export default {
         const nowTimerDisplay = new Date(logsArray[i].time);
         const future = new Date(logsArray[i + 1].time);
         const interval = future - nowTimerDisplay;
-        this.iterativePrinting = setTimeout(this.print.bind(null, i + 1, logsArray),
-          interval * (1 / this.defaultSpeed));
+        this.iterativePrinting = setTimeout(
+          this.print.bind(null, i + 1, logsArray),
+          interval * (1 / this.defaultSpeed),
+        );
       }
     },
 
