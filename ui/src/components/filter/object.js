@@ -1,4 +1,4 @@
-const formatDeviceSort = (field, isDesc) => {
+export default (field, isDesc) => {
   let formatedField = null;
   let formatedStatus = false;
   let ascOrDesc = 'asc';
@@ -21,5 +21,3 @@ const formatDeviceSort = (field, isDesc) => {
     statusString: ascOrDesc,
   };
 };
-
-export { formatDeviceSort as default };

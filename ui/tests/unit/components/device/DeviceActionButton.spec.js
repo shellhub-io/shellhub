@@ -86,144 +86,156 @@ describe('DeviceActionButton', () => {
     expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(true);
   });
 
-  it(`Renders the template with data - 
+  it(
+    `Renders the template with data - 
       notification is false,
       action is accept,
       dialog is false`,
-  () => {
-    notificationStatus = false;
+    () => {
+      notificationStatus = false;
 
-    wrapper = mount(DeviceActionButton, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { uid, notificationStatus, action },
-      vuetify,
-    });
+      wrapper = mount(DeviceActionButton, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { uid, notificationStatus, action },
+        vuetify,
+      });
 
-    expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="tooltipNotOwner-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="tooltipNotOwner-text"]').text()).toBe('accept');
-  });
-  it(`Renders the template with data - 
+      expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="tooltipNotOwner-text"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="tooltipNotOwner-text"]').text()).toBe('accept');
+    },
+  );
+  it(
+    `Renders the template with data - 
       notification is false,
       action is reject,
       dialog is false`,
-  () => {
-    notificationStatus = false;
-    action = 'reject';
+    () => {
+      notificationStatus = false;
+      action = 'reject';
 
-    wrapper = mount(DeviceActionButton, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { uid, notificationStatus, action },
-      vuetify,
-    });
+      wrapper = mount(DeviceActionButton, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { uid, notificationStatus, action },
+        vuetify,
+      });
 
-    expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="tooltipNotOwner-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="tooltipNotOwner-text"]').text()).toBe('reject');
-  });
-  it(`Renders the template with data - 
+      expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="tooltipNotOwner-text"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="tooltipNotOwner-text"]').text()).toBe('reject');
+    },
+  );
+  it(
+    `Renders the template with data - 
       notification is false,
       action is remove,
       dialog is false`,
-  () => {
-    notificationStatus = false;
-    action = 'remove';
+    () => {
+      notificationStatus = false;
+      action = 'remove';
 
-    wrapper = mount(DeviceActionButton, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { uid, notificationStatus, action },
-      vuetify,
-    });
+      wrapper = mount(DeviceActionButton, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { uid, notificationStatus, action },
+        vuetify,
+      });
 
-    expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="tooltipNotOwner-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="tooltipNotOwner-text"]').text()).toBe('remove');
-  });
-  it(`Renders the template with data -
+      expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="tooltipNotOwner-text"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="tooltipNotOwner-text"]').text()).toBe('remove');
+    },
+  );
+  it(
+    `Renders the template with data -
     notification is false,
     action is accept,
     dialog is true`,
-  async () => {
-    notificationStatus = false;
-    action = 'accept';
+    async () => {
+      notificationStatus = false;
+      action = 'accept';
 
-    wrapper = mount(DeviceActionButton, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { uid, notificationStatus, action },
-      vuetify,
-    });
+      wrapper = mount(DeviceActionButton, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { uid, notificationStatus, action },
+        vuetify,
+      });
 
-    wrapper.setData({ dialog: true });
-    await flushPromises();
+      wrapper.setData({ dialog: true });
+      await flushPromises();
 
-    const text = `You are about to ${action} this device.`;
+      const text = `You are about to ${action} this device.`;
 
-    expect(wrapper.find('[data-test="deviceActionButton-card"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
-    expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
-    expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
-  });
-  it(`Renders the template with data -
+      expect(wrapper.find('[data-test="deviceActionButton-card"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
+      expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
+      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
+    },
+  );
+  it(
+    `Renders the template with data -
     notification is false,
     action is accept,
     dialog is true`,
-  async () => {
-    notificationStatus = false;
-    action = 'reject';
+    async () => {
+      notificationStatus = false;
+      action = 'reject';
 
-    wrapper = mount(DeviceActionButton, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { uid, notificationStatus, action },
-      vuetify,
-    });
+      wrapper = mount(DeviceActionButton, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { uid, notificationStatus, action },
+        vuetify,
+      });
 
-    wrapper.setData({ dialog: true });
-    await flushPromises();
+      wrapper.setData({ dialog: true });
+      await flushPromises();
 
-    const text = `You are about to ${action} this device.`;
+      const text = `You are about to ${action} this device.`;
 
-    expect(wrapper.find('[data-test="deviceActionButton-card"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
-    expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
-    expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
-  });
-  it(`Renders the template with data -
+      expect(wrapper.find('[data-test="deviceActionButton-card"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
+      expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
+      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
+    },
+  );
+  it(
+    `Renders the template with data -
     notification is false,
     action is accept,
     dialog is true`,
-  async () => {
-    notificationStatus = false;
-    action = 'remove';
+    async () => {
+      notificationStatus = false;
+      action = 'remove';
 
-    wrapper = mount(DeviceActionButton, {
-      store,
-      localVue,
-      stubs: ['fragment'],
-      propsData: { uid, notificationStatus, action },
-      vuetify,
-    });
+      wrapper = mount(DeviceActionButton, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { uid, notificationStatus, action },
+        vuetify,
+      });
 
-    wrapper.setData({ dialog: true });
-    await flushPromises();
+      wrapper.setData({ dialog: true });
+      await flushPromises();
 
-    const text = `You are about to ${action} this device.`;
+      const text = `You are about to ${action} this device.`;
 
-    expect(wrapper.find('[data-test="deviceActionButton-card"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
-    expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
-    expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
-  });
+      expect(wrapper.find('[data-test="deviceActionButton-card"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
+      expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
+      expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
+    },
+  );
 });
