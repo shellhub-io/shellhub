@@ -13,36 +13,6 @@ func GetAllMemberTypes() []string {
 	return []string{MemberTypeObserver, MemberTypeOperator, MemberTypeAdministrator, MemberTypeOwner}
 }
 
-const (
-	DeviceAccept = iota
-	DeviceReject
-	DeviceRemove
-	DeviceConnect
-	DeviceRename
-	DeviceDetails
-
-	SessionPlay
-	SessionClose
-	SessionRemove
-	SessionDetails
-
-	FirewallCreate
-	FirewallEdit
-	FirewallRemove
-
-	PublicKeyCreate
-	PublicKeyEdit
-	PublicKeyRemove
-
-	NamespaceCreate
-	NamespaceRename
-	NamespaceAddMember
-	NamespaceRemoveMember
-	NamespaceEditMember
-	NamespaceEnableSessionRecord
-	NamespaceDelete
-)
-
 func checkPermission(action int, permissions permissions) bool {
 	for _, permission := range permissions {
 		if permission == action {

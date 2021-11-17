@@ -1,5 +1,42 @@
 package authorizer
 
+const (
+	DeviceAccept = iota
+	DeviceReject
+	DeviceRemove
+	DeviceConnect
+	DeviceRename
+	DeviceDetails
+
+	SessionPlay
+	SessionClose
+	SessionRemove
+	SessionDetails
+
+	FirewallCreate
+	FirewallEdit
+	FirewallRemove
+
+	PublicKeyCreate
+	PublicKeyEdit
+	PublicKeyRemove
+
+	NamespaceCreate
+	NamespaceRename
+	NamespaceAddMember
+	NamespaceRemoveMember
+	NamespaceEditMember
+	NamespaceEnableSessionRecord
+	NamespaceDelete
+
+	BillingChooseDevices
+	BillingAttachPaymentMethod
+	BillingCancelSubscription
+	BillingCreateSubscription
+	BillingGetPaymentMethod
+	BillingGetSubscription
+)
+
 type permissions []int
 
 var observerPermissions = permissions{
@@ -79,4 +116,11 @@ var ownerPermissions = permissions{
 	NamespaceEditMember,
 	NamespaceEnableSessionRecord,
 	NamespaceDelete,
+
+	BillingChooseDevices,
+	BillingAttachPaymentMethod,
+	BillingCancelSubscription,
+	BillingCreateSubscription,
+	BillingGetPaymentMethod,
+	BillingGetSubscription,
 }
