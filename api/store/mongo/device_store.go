@@ -232,6 +232,18 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 	return nil
 }
 
+func (s *Store) DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error {
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"online": online}})
+
+	return fromMongoError(err)
+}
+
+func (s *Store) DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error {
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"last_seen": ts}})
+
+	return fromMongoError(err)
+}
+
 func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status string) error {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {

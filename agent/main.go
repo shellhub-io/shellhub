@@ -208,7 +208,8 @@ func main() {
 		}()
 	}
 
-	ticker := time.NewTicker(time.Duration(opts.KeepAliveInterval) * time.Second)
+	// This hard coded interval will be removed in a follow up change to make use of JWT token expire time.
+	ticker := time.NewTicker(10 * time.Minute)
 
 	for range ticker.C {
 		sessions := make([]string, 0, len(sshserver.Sessions))

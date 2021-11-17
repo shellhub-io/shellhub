@@ -90,6 +90,20 @@ func (_m *Client) DeviceLookup(lookup map[string]string) (*models.Device, []erro
 	return r0, r1
 }
 
+// DevicesHeartbeat provides a mock function with given fields: id
+func (_m *Client) DevicesHeartbeat(id string) error {
+	ret := _m.Called(id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DevicesOffline provides a mock function with given fields: id
 func (_m *Client) DevicesOffline(id string) error {
 	ret := _m.Called(id)

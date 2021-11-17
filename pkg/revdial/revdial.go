@@ -49,11 +49,12 @@ type Dialer struct {
 	uniqID     string
 	pickupPath string // path + uniqID: "/revdial?revdial.dialer="+uniqID
 
-	incomingConn chan net.Conn
-	pickupFailed chan error
-	connReady    chan bool
-	donec        chan struct{}
-	closeOnce    sync.Once
+	incomingConn  chan net.Conn
+	pickupFailed  chan error
+	connReady     chan bool
+	donec         chan struct{}
+	keepAliveChan chan bool
+	closeOnce     sync.Once
 }
 
 var (
@@ -69,13 +70,14 @@ var (
 // mounted.
 func NewDialer(c net.Conn, connPath string) *Dialer {
 	d := &Dialer{
-		path:         connPath,
-		uniqID:       newUniqID(),
-		conn:         c,
-		donec:        make(chan struct{}),
-		connReady:    make(chan bool),
-		incomingConn: make(chan net.Conn),
-		pickupFailed: make(chan error),
+		path:          connPath,
+		uniqID:        newUniqID(),
+		conn:          c,
+		donec:         make(chan struct{}),
+		keepAliveChan: make(chan bool),
+		connReady:     make(chan bool),
+		incomingConn:  make(chan net.Conn),
+		pickupFailed:  make(chan error),
 	}
 
 	join := "?"
@@ -112,6 +114,10 @@ func (d *Dialer) unregister() {
 // this process on purpose, by a local error, or close or error from
 // the peer).
 func (d *Dialer) Done() <-chan struct{} { return d.donec }
+
+// KeepAlives returns a channel that receives a value when the
+// dialer receives a keep alive message.
+func (d *Dialer) KeepAlives() <-chan bool { return d.keepAliveChan }
 
 // Close closes the Dialer.
 func (d *Dialer) Close() error {
@@ -176,13 +182,18 @@ func (d *Dialer) serve() error {
 				return
 			}
 
-			if msg.Command == "pickup-failed" {
+			switch msg.Command {
+			case "pickup-failed":
 				err := fmt.Errorf("revdial listener failed to pick up connection: %v", msg.Err)
 				select {
 				case d.pickupFailed <- err:
 				case <-d.donec:
 					return
 				}
+			case "keep-alive":
+				d.keepAliveChan <- true
+			default:
+				// Ignore unknown messages
 			}
 		}
 	}()
@@ -290,27 +301,43 @@ func (ln *Listener) run() {
 		}
 	}()
 
-	// Read loop
-	br := bufio.NewReader(ln.sc)
-	for {
-		line, err := br.ReadSlice('\n')
-		if err != nil {
-			return
-		}
-		var msg controlMsg
-		if err := json.Unmarshal(line, &msg); err != nil {
-			log.Printf("revdial.Listener read invalid JSON: %q: %v", line, err)
+	go func() {
+		// Read loop
+		br := bufio.NewReader(ln.sc)
+		for {
+			line, err := br.ReadSlice('\n')
+			if err != nil {
+				return
+			}
+			var msg controlMsg
+			if err := json.Unmarshal(line, &msg); err != nil {
+				log.Printf("revdial.Listener read invalid JSON: %q: %v", line, err)
 
-			return
-		}
-		switch msg.Command {
-		case "keep-alive":
+				return
+			}
+			switch msg.Command {
+			case "keep-alive":
 			// Occasional no-op message from server to keep
 			// us alive through NAT timeouts.
-		case "conn-ready":
-			go ln.grabConn(msg.ConnPath)
-		default:
-			// Ignore unknown messages
+			case "conn-ready":
+				go ln.grabConn(msg.ConnPath)
+			default:
+				// Ignore unknown messages
+			}
+		}
+	}()
+
+	for {
+		ln.sendMessage(controlMsg{Command: "keep-alive"})
+
+		t := time.NewTimer(3 * time.Second)
+		select {
+		case <-t.C:
+			continue
+		case <-ln.donec:
+			t.Stop()
+
+			return
 		}
 	}
 }

@@ -27,6 +27,7 @@ type internalAPI interface {
 	CreatePrivateKey() (*models.PrivateKey, error)
 	EvaluateKey(fingerprint string, dev *models.Device, username string) (bool, error)
 	DevicesOffline(id string) error
+	DevicesHeartbeat(id string) error
 	FirewallEvaluate(lookup map[string]string) error
 	PatchSessions(uid string) []error
 	FinishSession(uid string) []error
@@ -119,6 +120,15 @@ func (c *client) CreatePrivateKey() (*models.PrivateKey, error) {
 
 func (c *client) DevicesOffline(id string) error {
 	_, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/devices/%s/offline", id))).End()
+	if len(errs) > 0 {
+		return errs[0]
+	}
+
+	return nil
+}
+
+func (c *client) DevicesHeartbeat(id string) error {
+	_, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/devices/%s/heartbeat", id))).End()
 	if len(errs) > 0 {
 		return errs[0]
 	}
