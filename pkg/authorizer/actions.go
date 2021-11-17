@@ -7,6 +7,7 @@ type actions struct {
 	Firewall  firewallActions
 	PublicKey publicKeyActions
 	Namespace namespaceActions
+	Billing   billingActions
 }
 
 type deviceActions struct {
@@ -27,6 +28,10 @@ type publicKeyActions struct {
 
 type namespaceActions struct {
 	Create, Rename, AddMember, RemoveMember, EditMember, EnableSessionRecord, Delete int
+}
+
+type billingActions struct {
+	ChooseDevices, AttachPaymentMethod, CancelSubscription, CreateSubscription, GetPaymentMethod, GetSubscription int
 }
 
 // Actions has all available and allowed actions.
@@ -63,5 +68,13 @@ var Actions = actions{
 		EditMember:          NamespaceEditMember,
 		EnableSessionRecord: NamespaceEnableSessionRecord,
 		Delete:              NamespaceDelete,
+	},
+	Billing: billingActions{
+		ChooseDevices:       BillingChooseDevices,
+		AttachPaymentMethod: BillingAttachPaymentMethod,
+		CancelSubscription:  BillingCancelSubscription,
+		CreateSubscription:  BillingCreateSubscription,
+		GetPaymentMethod:    BillingGetPaymentMethod,
+		GetSubscription:     BillingGetSubscription,
 	},
 }
