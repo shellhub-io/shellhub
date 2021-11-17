@@ -35,6 +35,11 @@ func main() {
 			logrus.Error(err)
 		}
 	}
+	tunnel.KeepAliveHandler = func(id string) {
+		if err := client.NewClient().DevicesHeartbeat(id); err != nil {
+			logrus.Error(err)
+		}
+	}
 
 	router, ok := tunnel.Router().(*mux.Router)
 	if !ok {

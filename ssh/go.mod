@@ -12,7 +12,7 @@ require (
 	github.com/shellhub-io/shellhub v0.7.1
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 )
 
 replace github.com/shellhub-io/shellhub => ../

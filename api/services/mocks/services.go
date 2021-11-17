@@ -360,6 +360,20 @@ func (_m *Service) DeleteTag(ctx context.Context, uid models.UID, name string) e
 	return r0
 }
 
+// DeviceHeartbeat provides a mock function with given fields: ctx, uid
+func (_m *Service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
+	ret := _m.Called(ctx, uid)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
+		r0 = rf(ctx, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // EditNamespace provides a mock function with given fields: ctx, tenantID, name, ownerUsername
 func (_m *Service) EditNamespace(ctx context.Context, tenantID string, name string, ownerUsername string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, tenantID, name, ownerUsername)
@@ -924,13 +938,13 @@ func (_m *Service) SetSessionAuthenticated(ctx context.Context, uid models.UID, 
 	return r0
 }
 
-// UpdateDataUser provides a mock function with given fields: ctx, data, id
-func (_m *Service) UpdateDataUser(ctx context.Context, data *models.User, id string) ([]string, error) {
-	ret := _m.Called(ctx, data, id)
+// UpdateDataUser provides a mock function with given fields: ctx, user, id
+func (_m *Service) UpdateDataUser(ctx context.Context, user *models.User, id string) ([]string, error) {
+	ret := _m.Called(ctx, user, id)
 
 	var r0 []string
 	if rf, ok := ret.Get(0).(func(context.Context, *models.User, string) []string); ok {
-		r0 = rf(ctx, data, id)
+		r0 = rf(ctx, user, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
@@ -939,7 +953,7 @@ func (_m *Service) UpdateDataUser(ctx context.Context, data *models.User, id str
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *models.User, string) error); ok {
-		r1 = rf(ctx, data, id)
+		r1 = rf(ctx, user, id)
 	} else {
 		r1 = ret.Error(1)
 	}

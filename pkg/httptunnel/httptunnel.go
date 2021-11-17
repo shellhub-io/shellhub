@@ -33,6 +33,7 @@ type Tunnel struct {
 	DialerPath        string
 	ConnectionHandler func(*http.Request) (string, error)
 	CloseHandler      func(string)
+	KeepAliveHandler  func(string)
 	connman           *connman.ConnectionManager
 	id                chan string
 	online            chan bool
@@ -47,6 +48,8 @@ func NewTunnel(connectionPath, dialerPath string) *Tunnel {
 		},
 		CloseHandler: func(string) {
 		},
+		KeepAliveHandler: func(string) {
+		},
 		connman: connman.New(),
 		id:      make(chan string),
 		online:  make(chan bool),
@@ -54,6 +57,10 @@ func NewTunnel(connectionPath, dialerPath string) *Tunnel {
 
 	tunnel.connman.DialerDoneCallback = func(id string, _ *revdial.Dialer) {
 		tunnel.CloseHandler(id)
+	}
+
+	tunnel.connman.DialerKeepAliveCallback = func(id string, _ *revdial.Dialer) {
+		tunnel.KeepAliveHandler(id)
 	}
 
 	return tunnel

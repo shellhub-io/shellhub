@@ -1,0 +1,19 @@
+post:
+  summary: Register a new heartbeat for the device
+  tags:
+    - device
+  security:
+    - Auth: []
+  parameters:
+    - name: uid
+      schema:
+        description: Device UID
+        type: string
+      in: path
+  responses:
+    '200':
+      $ref: ../../../shared/responses/OkResponse.yaml
+    '401':
+      $ref: ../../../shared/responses/UnauthorizedResponse.yaml
+    '500':
+      $ref: ../../../shared/responses/AnyInternalErrorResponse.yaml

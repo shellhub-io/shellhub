@@ -146,6 +146,7 @@ func startServer() error {
 	publicAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(handler.DeleteDevice))
 	publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(handler.RenameDevice))
 	internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(handler.OfflineDevice))
+	internalAPI.POST(routes.HeartbeatDeviceURL, apicontext.Handler(handler.HeartbeatDevice))
 	internalAPI.GET(routes.LookupDeviceURL, apicontext.Handler(handler.LookupDevice))
 	publicAPI.PATCH(routes.UpdateStatusURL, apicontext.Handler(handler.UpdatePendingStatus))
 

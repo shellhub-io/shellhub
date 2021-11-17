@@ -3,6 +3,7 @@ package mongo
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
@@ -115,6 +116,36 @@ func TestDeviceSetOnline(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = mongostore.DeviceSetOnline(data.Context, models.UID(data.Device.UID), true)
+	assert.NoError(t, err)
+}
+
+func TestDeviceUpdateOnline(t *testing.T) {
+	data := initData()
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	err := mongostore.DeviceCreate(data.Context, data.Device, "hostname")
+	assert.NoError(t, err)
+
+	err = mongostore.DeviceUpdateOnline(data.Context, models.UID(data.Device.UID), true)
+	assert.NoError(t, err)
+}
+
+func TestDeviceUpdateLastSeen(t *testing.T) {
+	data := initData()
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	err := mongostore.DeviceCreate(data.Context, data.Device, "hostname")
+	assert.NoError(t, err)
+
+	err = mongostore.DeviceUpdateLastSeen(data.Context, models.UID(data.Device.UID), time.Now())
 	assert.NoError(t, err)
 }
 

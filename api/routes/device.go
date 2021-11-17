@@ -11,20 +11,21 @@ import (
 )
 
 const (
-	GetDeviceListURL = "/devices"
-	GetDeviceURL     = "/devices/:uid"
-	DeleteDeviceURL  = "/devices/:uid"
-	RenameDeviceURL  = "/devices/:uid"
-	OfflineDeviceURL = "/devices/:uid/offline"
-	LookupDeviceURL  = "/lookup"
-	UpdateStatusURL  = "/devices/:uid/:status"
-	CreateTagURL     = "/devices/:uid/tags"
-	DeleteTagURL     = "/devices/:uid/tags/:name"
-	RenameTagURL     = "/devices/tags/:name"
-	ListTagURL       = "/devices/tags"
-	UpdateTagURL     = "/devices/:uid/tags"
-	GetTagsURL       = "/devices/tags"
-	DeleteAllTagsURL = "/devices/tags/:name"
+	GetDeviceListURL   = "/devices"
+	GetDeviceURL       = "/devices/:uid"
+	DeleteDeviceURL    = "/devices/:uid"
+	RenameDeviceURL    = "/devices/:uid"
+	OfflineDeviceURL   = "/devices/:uid/offline"
+	HeartbeatDeviceURL = "/devices/:uid/heartbeat"
+	LookupDeviceURL    = "/lookup"
+	UpdateStatusURL    = "/devices/:uid/:status"
+	CreateTagURL       = "/devices/:uid/tags"
+	DeleteTagURL       = "/devices/:uid/tags/:name"
+	RenameTagURL       = "/devices/tags/:name"
+	ListTagURL         = "/devices/tags"
+	UpdateTagURL       = "/devices/:uid/tags"
+	GetTagsURL         = "/devices/tags"
+	DeleteAllTagsURL   = "/devices/tags/:name"
 )
 
 const TenantIDHeader = "X-Tenant-ID"
@@ -185,6 +186,10 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) HeartbeatDevice(c apicontext.Context) error {
+	return h.service.DeviceHeartbeat(c.Ctx(), models.UID(c.Param("uid")))
 }
 
 func (h *Handler) CreateTag(c apicontext.Context) error {

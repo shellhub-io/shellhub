@@ -891,3 +891,21 @@ func TestSetDevicePosition(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
+
+func TestDeviceHeartbeat(t *testing.T) {
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
+	ctx := context.TODO()
+	uid := models.UID("uid")
+
+	clockMock.On("Now").Return(now).Once()
+
+	mock.On("DeviceUpdateLastSeen", ctx, uid, now).Return(nil).Once()
+	mock.On("DeviceUpdateOnline", ctx, uid, true).Return(nil).Once()
+
+	err := s.DeviceHeartbeat(ctx, uid)
+	assert.NoError(t, err)
+
+	mock.AssertExpectations(t)
+}

@@ -12,9 +12,10 @@ import (
 var ErrNoConnection = errors.New("no connection")
 
 type ConnectionManager struct {
-	dialers            map[string]*revdial.Dialer
-	lock               sync.RWMutex
-	DialerDoneCallback func(string, *revdial.Dialer)
+	dialers                 map[string]*revdial.Dialer
+	lock                    sync.RWMutex
+	DialerDoneCallback      func(string, *revdial.Dialer)
+	DialerKeepAliveCallback func(string, *revdial.Dialer)
 }
 
 func New() *ConnectionManager {
@@ -32,8 +33,18 @@ func (m *ConnectionManager) Set(key string, conn net.Conn) {
 	m.lock.Unlock()
 
 	go func() {
-		<-dialer.Done()
-		m.DialerDoneCallback(key, dialer)
+		for {
+			select {
+			case <-dialer.KeepAlives():
+				m.DialerKeepAliveCallback(key, dialer)
+
+				continue
+			case <-dialer.Done():
+				m.DialerDoneCallback(key, dialer)
+
+				return
+			}
+		}
 	}()
 }
 

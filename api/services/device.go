@@ -30,6 +30,7 @@ type DeviceService interface {
 	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant, ownerID string) error
 	HandleReportUsage(ns *models.Namespace, ui models.UID, inc bool, device *models.Device) error
 	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
+	DeviceHeartbeat(ctx context.Context, uid models.UID) error
 }
 
 func (s *service) HandleReportUsage(ns *models.Namespace, uid models.UID, inc bool, device *models.Device) error {
@@ -246,4 +247,12 @@ func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip stri
 	}).Debug("Success to set device's position")
 
 	return nil
+}
+
+func (s *service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
+	if err := s.store.DeviceUpdateLastSeen(ctx, uid, clock.Now()); err != nil {
+		return err
+	}
+
+	return s.store.DeviceUpdateOnline(ctx, uid, true)
 }
