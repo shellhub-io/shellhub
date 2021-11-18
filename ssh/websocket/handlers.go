@@ -89,7 +89,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 		config.Auth = []ssh.AuthMethod{ssh.Password(passwd)}
 	}
 
-	SSHDialClient, err := ssh.Dial("tcp", "localhost:2222", config)
+	dial, err := ssh.Dial("tcp", "localhost:2222", config)
 	if err != nil {
 		util.Closes(ws)
 
@@ -102,23 +102,23 @@ func HandlerWebsocket(ws *websocket.Conn) {
 		ssh.TTY_OP_OSPEED: 14400,
 	}
 
-	SSHsessionClose := func(s *ssh.Session) {
+	closeSession := func(s *ssh.Session) {
 		err := s.Close()
 		if err != nil {
 			logrus.WithError(err).Error("could not close the SSH session")
 		}
 	}
 
-	session, err := SSHDialClient.NewSession()
+	session, err := dial.NewSession()
 	if err != nil {
-		SSHsessionClose(session)
+		closeSession(session)
 		util.Closes(ws)
 
 		return
 	}
 
 	if err = session.Setenv("IP_ADDRESS", GetFromHeader(ws, "X-Real-Ip")); err != nil {
-		SSHsessionClose(session)
+		closeSession(session)
 		util.Closes(ws)
 
 		return
@@ -126,7 +126,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 
 	sshOut, err := session.StdoutPipe()
 	if err != nil {
-		SSHsessionClose(session)
+		closeSession(session)
 		util.Closes(ws)
 
 		return
@@ -134,21 +134,21 @@ func HandlerWebsocket(ws *websocket.Conn) {
 
 	sshIn, err := session.StdinPipe()
 	if err != nil {
-		SSHsessionClose(session)
+		closeSession(session)
 		util.Closes(ws)
 
 		return
 	}
 
 	if err := session.RequestPty("xterm", rows, cols, modes); err != nil {
-		SSHsessionClose(session)
+		closeSession(session)
 		util.Closes(ws)
 
 		return
 	}
 
 	if err := session.Shell(); err != nil {
-		SSHsessionClose(session)
+		closeSession(session)
 		util.Closes(ws)
 
 		return
@@ -177,7 +177,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 
 	<-doneCh
 
-	err = SSHDialClient.Close()
+	err = dial.Close()
 	if err != nil {
 		logrus.WithError(err).Error("could not closes the ssh dial internalclient")
 	}

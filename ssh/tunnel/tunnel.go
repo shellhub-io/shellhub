@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/sirupsen/logrus"
 )
@@ -16,15 +16,10 @@ import (
 func CreateTunnel(fromPath string, dialerPath string) *httptunnel.Tunnel {
 	tunnel := httptunnel.NewTunnel(fromPath, dialerPath)
 	tunnel.ConnectionHandler = func(r *http.Request) (string, error) {
-		return r.Header.Get(client.DeviceUIDHeader), nil
+		return r.Header.Get(internalclient.DeviceUIDHeader), nil
 	}
 	tunnel.CloseHandler = func(id string) {
-		if err := client.NewClient().DevicesOffline(id); err != nil {
-			logrus.Error(err)
-		}
-	}
-	tunnel.KeepAliveHandler = func(id string) {
-		if err := client.NewClient().DevicesHeartbeat(id); err != nil {
+		if err := internalclient.NewClient().DevicesOffline(id); err != nil {
 			logrus.Error(err)
 		}
 	}

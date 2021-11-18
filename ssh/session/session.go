@@ -41,39 +41,62 @@ type ConfigOptions struct {
 	RecordURL string `envconfig:"record_url"`
 }
 
-func NewSession(target string, session sshserver.Session) (*Session, error) {
-	parts := strings.SplitN(target, "@", 2)
-	if len(parts) != 2 {
+// NewSession creates a new session's instance.
+// session here is a reference for the session's structure inside Shellhub SSH's service.
+func NewSession(fullTarget string, sshSession sshserver.Session) (*Session, error) {
+	loadEnv := func(env []string) map[string]string {
+		m := make(map[string]string, cap(env))
+		for _, s := range env {
+			sp := strings.Split(s, "=")
+			if len(sp) == 2 {
+				k := sp[0]
+				v := sp[1]
+				m[k] = v
+			}
+		}
+
+		return m
+	}
+
+	usernameAtTarget := strings.SplitN(fullTarget, "@", 2)
+	if len(usernameAtTarget) != 2 {
 		return nil, ErrInvalidSessionTarget
 	}
+	// username is the device's username.
+	// Example: root.
+	username := usernameAtTarget[0]
 
-	s := &Session{
-		session: session,
-		UID:     session.Context().Value(sshserver.ContextKeySessionID).(string),
-		User:    parts[0],
-		Target:  parts[1],
-	}
+	// target is the device's UID.
+	target := usernameAtTarget[1]
 
-	host, _, err := net.SplitHostPort(session.RemoteAddr().String())
+	// address is the device's IP
+	address := ""
+
+	// host is the device's address.
+	host, _, err := net.SplitHostPort(sshSession.RemoteAddr().String())
 	if err != nil {
 		return nil, err
 	}
 
+	// if the device is local, set the device address to the env environmental variable.
 	if host == "127.0.0.1" || host == "::1" {
-		env := loadEnv(session.Environ())
+		// gets the IP address from an environmental variable.
+		env := loadEnv(sshSession.Environ())
 		if value, ok := env["IP_ADDRESS"]; ok {
-			s.IPAddress = value
+			address = value
 		}
 	} else {
-		s.IPAddress = host
+		// set to the device's address the host when the IP address is not local.
+		address = host
 	}
 
+	// lookup in the device.
 	var lookup map[string]string
 
 	c := client.NewClient()
 
-	if !strings.Contains(s.Target, ".") {
-		device, err := c.GetDevice(s.Target)
+	if !strings.Contains(target, ".") {
+		device, err := c.GetDevice(target)
 		if err != nil {
 			return nil, ErrInvalidSessionTarget
 		}
@@ -81,20 +104,22 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 		lookup = map[string]string{
 			"domain":     device.Namespace,
 			"name":       device.Name,
-			"username":   s.User,
-			"ip_address": s.IPAddress,
+			"username":   username,
+			"ip_address": address,
 		}
 	} else {
-		parts = strings.SplitN(parts[1], ".", 2)
-		if len(parts) < 2 {
+		device := strings.SplitN(target, ".", 2)
+		if len(device) < 2 {
 			return nil, ErrInvalidSessionTarget
 		}
+		deviceNamespace := strings.ToLower(device[0])
+		deviceName := strings.ToLower(device[1])
 
 		lookup = map[string]string{
-			"domain":     strings.ToLower(parts[0]),
-			"name":       strings.ToLower(parts[1]),
-			"username":   s.User,
-			"ip_address": s.IPAddress,
+			"domain":     deviceNamespace,
+			"name":       deviceName,
+			"username":   username, // device's username.
+			"ip_address": address,  // device's address.
 		}
 	}
 
@@ -103,36 +128,38 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 		return nil, ErrInvalidSessionTarget
 	}
 
-	s.Target = uid
-	s.Lookup = lookup
+	session := &Session{
+		session: sshSession,
+		UID:     sshSession.Context().Value(sshserver.ContextKeySessionID).(string),
+		User:    username,
+		Target:  uid,
+		Lookup:  lookup,
+	}
 
+	// evaluates firewall only when is either an enterprise or cloud instance.
 	if envs.IsEnterprise() || envs.IsCloud() { // avoid firewall evaluation in community instance
 		if err := c.FirewallEvaluate(lookup); err != nil {
 			return nil, ErrInvalidSessionTarget
 		}
 	}
 
+	// if it is a cloud instance, check billing.
 	if envs.IsCloud() && envs.HasBilling() {
-		device, err := c.GetDevice(s.Target)
+		device, err := c.GetDevice(target)
 		if err != nil {
 			return nil, ErrInvalidSessionTarget
 		}
 
 		_, status, _ := c.BillingEvaluate(device.TenantID)
-
-		if status == 200 || status == 402 {
-			goto end
+		if status != 200 && status != 402 {
+			return nil, ErrBillingBlock
 		}
-
-		return nil, ErrBillingBlock
-
-	end:
 	}
 
-	_, _, isPty := s.session.Pty()
-	s.Pty = isPty
+	_, _, isPty := session.session.Pty()
+	session.Pty = isPty
 
-	return s, nil
+	return session, nil
 }
 
 func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
@@ -157,7 +184,7 @@ func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientCon
 }
 
 func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn, c client.Client, opts ConfigOptions) error {
-	config := &ssh.ClientConfig{
+	sshConfig := &ssh.ClientConfig{
 		User: s.User,
 		Auth: []ssh.AuthMethod{},
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
@@ -171,16 +198,16 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			return err
 		}
 
-		config.Auth = []ssh.AuthMethod{
+		sshConfig.Auth = []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		}
 	} else {
-		config.Auth = []ssh.AuthMethod{
+		sshConfig.Auth = []ssh.AuthMethod{
 			ssh.Password(passwd),
 		}
 	}
 
-	sshConn, err := NewClientConnWithDeadline(conn, "tcp", config)
+	sshConnection, err := NewClientConnWithDeadline(conn, "tcp", sshConfig)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"session": s.UID,
@@ -190,7 +217,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		return err
 	}
 
-	SSHclientSession, err := sshConn.NewSession()
+	sshSession, err := sshConnection.NewSession()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"session": s.UID,
@@ -201,14 +228,14 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.
 	pty, winCh, isPty := s.session.Pty()
 
 	if isPty { //nolint:nestif
-		err = SSHclientSession.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, ssh.TerminalModes{})
+		err = sshSession.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, ssh.TerminalModes{})
 		if err != nil {
 			return err
 		}
 
 		go func() {
 			for win := range winCh {
-				if err = SSHclientSession.WindowChange(win.Height, win.Width); err != nil {
+				if err = sshSession.WindowChange(win.Height, win.Width); err != nil {
 					logrus.WithFields(logrus.Fields{
 						"session": s.UID,
 						"err":     err,
@@ -217,11 +244,11 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			}
 		}()
 
-		stdin, err := SSHclientSession.StdinPipe()
+		stdin, err := sshSession.StdinPipe()
 		if err != nil {
 			return err
 		}
-		stdout, err := SSHclientSession.StdoutPipe()
+		stdout, err := sshSession.StdoutPipe()
 		if err != nil {
 			return err
 		}
@@ -276,7 +303,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			}
 		}()
 
-		if err = SSHclientSession.Shell(); err != nil {
+		if err = sshSession.Shell(); err != nil {
 			return err
 		}
 
@@ -301,7 +328,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		}()
 
 		go func() {
-			SSHclientSession.Wait() // nolint:errcheck
+			sshSession.Wait() // nolint:errcheck
 			disconnected <- true
 		}()
 
@@ -315,8 +342,8 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			return errs[0]
 		}
 
-		stdin, _ := SSHclientSession.StdinPipe()
-		stdout, _ := SSHclientSession.StdoutPipe()
+		stdin, _ := sshSession.StdinPipe()
+		stdout, _ := sshSession.StdoutPipe()
 
 		done := make(chan bool)
 
@@ -342,7 +369,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			done <- true
 		}()
 
-		err = SSHclientSession.Start(s.session.RawCommand())
+		err = sshSession.Start(s.session.RawCommand())
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"session": s.UID,
@@ -356,6 +383,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session sshserver.
 	return nil
 }
 
+// Register registers a session.
 func (s *Session) Register(_ sshserver.Session) error {
 	if _, _, errs := gorequest.New().Post("http://api:8080/internal/sessions").Send(*s).End(); len(errs) > 0 {
 		return errs[0]
@@ -364,6 +392,7 @@ func (s *Session) Register(_ sshserver.Session) error {
 	return nil
 }
 
+// Finish finishes a session.
 func (s *Session) Finish(conn net.Conn) error {
 	if conn != nil {
 		req, _ := http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", s.UID), nil)
@@ -380,19 +409,4 @@ func (s *Session) Finish(conn net.Conn) error {
 	}
 
 	return nil
-}
-
-func loadEnv(env []string) map[string]string {
-	m := make(map[string]string, cap(env))
-
-	for _, s := range env {
-		sp := strings.Split(s, "=")
-		if len(sp) == 2 {
-			k := sp[0]
-			v := sp[1]
-			m[k] = v
-		}
-	}
-
-	return m
 }
