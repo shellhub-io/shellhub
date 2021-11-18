@@ -13,6 +13,7 @@ describe('DeviceChooser', () => {
   const dialog = false;
   const deviceChooserStatus = false;
   const devicesSelected = [];
+  const isOwner = true;
 
   const hostname = 'localhost';
   const url = `http://${hostname}/settings/billing`;
@@ -76,12 +77,42 @@ describe('DeviceChooser', () => {
       devicesSelected,
       filter,
       devices,
+      isOwner,
     },
     getters: {
       'devices/getDeviceChooserStatus': (state) => state.deviceChooserStatus,
       'devices/getDevicesSelected': (state) => state.devicesSelected,
       'devices/getFilter': (state) => state.filter,
       'devices/list': (state) => state.devices,
+      'namespaces/owner': (state) => state.isOwner,
+    },
+    actions: {
+      'stats/get': () => {},
+      'devices/getDevicesMostUsed': () => {},
+      'devices/postDevicesChooser': () => {},
+      'devices/setDevicesForUserToChoose': () => {},
+      'devices/setDeviceChooserStatus': () => {},
+      'snackbar/showSnackbarDeviceChooser': () => {},
+      'snackbar/showSnackbarErrorAssociation': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
+    },
+  });
+
+  const storeNotOwner = new Vuex.Store({
+    namespaced: true,
+    state: {
+      deviceChooserStatus,
+      devicesSelected,
+      filter,
+      devices,
+      isOwner,
+    },
+    getters: {
+      'devices/getDeviceChooserStatus': (state) => state.deviceChooserStatus,
+      'devices/getDevicesSelected': (state) => state.devicesSelected,
+      'devices/getFilter': (state) => state.filter,
+      'devices/list': (state) => state.devices,
+      'namespaces/owner': (state) => !state.isOwner,
     },
     actions: {
       'stats/get': () => {},
@@ -147,6 +178,50 @@ describe('DeviceChooser', () => {
       expect(wrapper.find('[data-test="r-component"]').exists()).toEqual(false);
     });
     it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="deviceChooserStatus-dialog"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(false);
+      expect(wrapper.find('[data-test="accept-btn"]').exists()).toEqual(false);
+    });
+  });
+
+  ///////
+  // In this case, the test dialog does not open for user not owner
+  ///////
+
+  describe('Avoid opening for user not owner', () => {
+    beforeEach(() => {
+      wrapper = mount(DeviceChooser, {
+        localVue,
+        store: storeNotOwner,
+        stubs: ['fragment'],
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    ///////
+
+    it('Compare data with default value', () => {
+      expect(wrapper.vm.dialog).toEqual(false);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with data', async () => {
       expect(wrapper.find('[data-test="deviceChooserStatus-dialog"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(false);
       expect(wrapper.find('[data-test="accept-btn"]').exists()).toEqual(false);
