@@ -1,5 +1,6 @@
 <template>
   <v-dialog
+    v-if="isOwner"
     v-model="show"
     max-width="900"
   >
@@ -116,6 +117,10 @@ export default {
   },
 
   computed: {
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
+    },
+
     show: {
       get() {
         return this.$store.getters['devices/getDeviceChooserStatus'];

@@ -1,5 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`BillingWarning Avoid opening for user not owner Renders the component 1`] = `
+<fragment-stub>
+  <!---->
+</fragment-stub>
+`;
+
 exports[`BillingWarning Dialog is closes when has less than 3 devices Renders the component 1`] = `
 <fragment-stub>
   <div role="dialog" class="v-dialog__container">

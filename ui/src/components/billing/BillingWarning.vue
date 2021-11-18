@@ -1,6 +1,7 @@
 <template>
   <fragment>
     <v-dialog
+      v-if="isOwner"
       v-model="dialog"
       max-width="510"
     >
@@ -57,6 +58,10 @@ export default {
   },
 
   computed: {
+    isOwner() {
+      return this.$store.getters['namespaces/owner'];
+    },
+
     active() {
       return this.$store.getters['billing/active'];
     },
