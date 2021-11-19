@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/kelseyhightower/envconfig"
 	storecache "github.com/shellhub-io/shellhub/api/cache"
@@ -26,7 +25,7 @@ func main() {
 		log.Error(err.Error())
 	}
 
-	client, err := mgo.Connect(context.TODO(), options.Client().ApplyURI(cfg.MongoURI))
+	client, err := mgo.Connect(context.Background(), options.Client().ApplyURI(cfg.MongoURI))
 	if err != nil {
 		log.Error(err)
 	}
@@ -42,7 +41,7 @@ func main() {
 		cache = storecache.NewNullCache()
 	}
 
-	svc := NewService(mongo.NewStore(client.Database("main"), cache))
+	services := NewService(mongo.NewStore(client.Database("main"), cache))
 
 	rootCmd := &cobra.Command{Use: "cli"}
 	rootCmd.AddCommand(&cobra.Command{
@@ -50,117 +49,29 @@ func main() {
 		Short: "Usage: <username> <password> <email>",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			username, err := svc.UserCreate(Arguments{
-				Username: args[0],
-				Password: args[1],
-				Email:    args[2],
-			})
+			user, err := services.UserCreate(args[0], args[1], args[2])
 			if err != nil {
 				return err
 			}
-
-			fmt.Println("User added:", username) //nolint:forbidigo
+			rootCmd.Println("User added!")
+			rootCmd.Println("name:", user.Name)
+			rootCmd.Println("username:", user.Username)
+			rootCmd.Println("email:", user.Email)
 
 			return nil
 		},
 	},
 
 		&cobra.Command{
-			Use:   "add-namespace",
-			Short: "Usage: <namespace> <owner>",
-			Args:  cobra.RangeArgs(2, 3),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				// Avoid panic when TenantID isn't provided.
-				if len(args) == 2 {
-					args = append(args, "")
-				}
-
-				ns, err := svc.NamespaceCreate(Arguments{
-					Namespace: args[0],
-					Username:  args[1],
-					TenantID:  args[2],
-				})
-				if err != nil {
-					return err
-				}
-
-				fmt.Println("Namespace added:", ns.Name) //nolint:forbidigo
-				fmt.Println("Owner:", ns.Owner)          //nolint:forbidigo
-				fmt.Println("Tenant ID:", ns.TenantID)   //nolint:forbidigo
-
-				return nil
-			},
-		},
-
-		&cobra.Command{
-			Use:   "add-user-namespace",
-			Short: "Usage: <username> <namespace>",
-			Args:  cobra.ExactArgs(2),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				ns, err := svc.NamespaceAddMember(Arguments{
-					Username:  args[0],
-					Namespace: args[1],
-				})
-				if err != nil {
-					return err
-				}
-
-				fmt.Println("User:", ns.Owner)              //nolint:forbidigo
-				fmt.Println("added to namespace:", ns.Name) //nolint:forbidigo
-
-				return nil
-			},
-		},
-
-		&cobra.Command{
-			Use:   "del-namespace",
-			Short: "Usage: <namespace>",
-			Args:  cobra.ExactArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := svc.NamespaceDelete(Arguments{
-					Namespace: args[0],
-				}); err != nil {
-					return err
-				}
-
-				fmt.Println("Namespace deleted") //nolint:forbidigo
-
-				return nil
-			},
-		},
-
-		&cobra.Command{
 			Use:   "del-user",
 			Short: "Usage: <username>",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := svc.UserDelete(Arguments{
-					Username: args[0],
-				}); err != nil {
+				if err := services.UserDelete(args[0]); err != nil {
 					return err
 				}
 
-				fmt.Println("User deleted") //nolint:forbidigo
-
-				return nil
-			},
-		},
-
-		&cobra.Command{
-			Use:   "del-user-namespace",
-			Short: "Usage <username> <namespace>",
-			Args:  cobra.ExactArgs(2),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				ns, err := svc.NamespaceRemoveMember(Arguments{
-					Username:  args[0],
-					Namespace: args[1],
-				})
-				if err != nil {
-					return err
-				}
-
-				fmt.Println("User:", ns.Owner)                  //nolint:forbidigo
-				fmt.Println("removed from namespace:", ns.Name) //nolint:forbidigo
+				rootCmd.Println("User deleted")
 
 				return nil
 			},
@@ -171,14 +82,82 @@ func main() {
 			Short: "Usage: <username> <password>",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := svc.UserUpdate(Arguments{
-					Username: args[0],
-					Password: args[1],
-				}); err != nil {
+				if err := services.UserUpdate(args[0], args[1]); err != nil {
 					return err
 				}
 
-				fmt.Println("Password changed") //nolint:forbidigo
+				rootCmd.Println("Password changed")
+
+				return nil
+			},
+		},
+		&cobra.Command{
+			Use:   "add-namespace",
+			Short: "Usage: <namespace> <owner>",
+			Args:  cobra.RangeArgs(2, 3),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				// Avoid panic when TenantID isn't provided.
+				if len(args) == 2 {
+					args = append(args, "")
+				}
+
+				namespace, err := services.NamespaceCreate(args[0], args[1], args[2])
+				if err != nil {
+					return err
+				}
+
+				rootCmd.Println("Namespace added:", namespace.Name)
+				rootCmd.Println("Owner:", namespace.Owner)
+				rootCmd.Println("Tenant ID:", namespace.TenantID)
+
+				return nil
+			},
+		},
+
+		&cobra.Command{
+			Use:   "add-user-namespace",
+			Short: "Usage: <username> <namespace>",
+			Args:  cobra.ExactArgs(2),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				ns, err := services.NamespaceAddMember(args[0], args[1])
+				if err != nil {
+					return err
+				}
+
+				rootCmd.Println("User:", ns.Owner)
+				rootCmd.Println("added to namespace:", ns.Name)
+
+				return nil
+			},
+		},
+
+		&cobra.Command{
+			Use:   "del-user-namespace",
+			Short: "Usage <username> <namespace>",
+			Args:  cobra.ExactArgs(2),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				ns, err := services.NamespaceRemoveMember(args[0], args[1])
+				if err != nil {
+					return err
+				}
+
+				rootCmd.Println("User:", ns.Owner)
+				rootCmd.Println("removed from namespace:", ns.Name)
+
+				return nil
+			},
+		},
+
+		&cobra.Command{
+			Use:   "del-namespace",
+			Short: "Usage: <namespace>",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				if err := services.NamespaceDelete(args[0]); err != nil {
+					return err
+				}
+
+				rootCmd.Println("Namespace deleted")
 
 				return nil
 			},

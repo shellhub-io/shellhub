@@ -2,34 +2,24 @@ package main
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
-	"strings"
+
+	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
-type Arguments struct {
-	Username  string `validate:"required,min=3,max=30,alphanum,ascii"`
-	Namespace string `validate:"required,min=3,max=30,alphanum,ascii"`
-	Password  string `validate:"required,min=5,max=30"`
-	Email     string `validate:"required,email"`
-	TenantID  string
-}
-
 type Service interface {
-	UserCreate(Arguments) (string, error)
-	NamespaceCreate(Arguments) (*models.Namespace, error)
-	NamespaceAddMember(Arguments) (*models.Namespace, error)
-	NamespaceDelete(Arguments) error
-	UserDelete(Arguments) error
-	NamespaceRemoveMember(Arguments) (*models.Namespace, error)
-	UserUpdate(Arguments) error
+	UserCreate(username, password, email string) (*models.User, error)
+	UserDelete(username string) error
+	UserUpdate(username string, password string) error
+	NamespaceCreate(namespace, username, tenantID string) (*models.Namespace, error)
+	NamespaceAddMember(username string, namespace string) (*models.Namespace, error)
+	NamespaceRemoveMember(username string, namespace string) (*models.Namespace, error)
+	NamespaceDelete(namespace string) error
 }
 
 type service struct {
@@ -40,77 +30,165 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) UserCreate(data Arguments) (string, error) {
-	if err := validateParameters(data); err != nil {
-		return "", ErrCreateNewUser
-	}
+func (s *service) UserCreate(username, password, email string) (*models.User, error) {
+	// When UserCreate, a store function, return ErrDuplicated, checks which already exists in the database.
+	findConflict := func() (*models.User, error) {
+		userList, _, err := s.store.UserList(context.Background(), paginator.Query{Page: -1, PerPage: -1}, nil)
+		if err != nil {
+			return nil, err
+		}
 
-	password := data.Password
-
-	if err := s.store.UserCreate(context.TODO(), &models.User{
-		UserData: models.UserData{
-			Name:     strings.ToLower(data.Username),
-			Username: data.Username,
-			Email:    strings.ToLower(data.Email),
-		},
-		UserPassword: models.UserPassword{
-			Password: hashPassword(password),
-		},
-		Confirmed: true,
-		CreatedAt: clock.Now(),
-	}); err != nil && err.Error() == "duplicate" {
-		var errStrings []string
-
-		usrList, _, _ := s.store.UserList(context.TODO(), paginator.Query{Page: -1, PerPage: -1}, nil)
-
-		for _, usr := range usrList {
-			if usr.Username == data.Username {
-				errStrings = append(errStrings, "user already exists")
+		var errs [2]error
+		for _, userItem := range userList {
+			if userItem.Username == username {
+				errs[0] = ErrUserNameExists
 			}
 
-			if usr.Email == data.Email {
-				errStrings = append(errStrings, "email address is already in use")
+			if userItem.Email == email {
+				errs[1] = ErrUserEmailExists
+			}
+		}
+		if errs == [2]error{ErrUserNameExists, ErrUserEmailExists} {
+			return nil, ErrUserNameAndEmailExists
+		}
+
+		for _, err := range errs {
+			if err != nil {
+				return nil, err
 			}
 		}
 
-		for _, err := range errStrings {
-			fmt.Println(err) //nolint:forbidigo
-		}
-
-		return "", ErrCreateNewUser
+		return nil, err
 	}
 
-	return strings.ToLower(data.Username), nil
+	username = normalizeString(username)
+	email = normalizeString(email)
+
+	userData := models.UserData{
+		Name:     username,
+		Email:    email,
+		Username: username,
+	}
+	_, err := validator.ValidateStruct(userData)
+	if err != nil {
+		return nil, ErrUserDataInvalid
+	}
+
+	userPassword := models.UserPassword{
+		Password: password,
+	}
+	_, err = validator.ValidateStruct(userPassword)
+	if err != nil {
+		return nil, ErrUserPasswordInvalid
+	}
+
+	userPassword.Password = hashPassword(userPassword.Password)
+
+	user := &models.User{
+		UserData:     userData,
+		UserPassword: userPassword,
+		Confirmed:    true,
+		CreatedAt:    clock.Now(),
+	}
+
+	err = s.store.UserCreate(context.Background(), user)
+	if err != nil {
+		if err == store.ErrDuplicate {
+			return findConflict()
+		}
+
+		return nil, ErrCreateNewUser
+	}
+
+	return user, nil
 }
 
-func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
-	if err := validateParameters(data); err != nil {
-		return nil, ErrCreateNewNamespace
+func (s *service) UserDelete(username string) error {
+	user, err := s.store.UserGetByUsername(context.Background(), username)
+	if err != nil {
+		return ErrUserNotFound
 	}
 
-	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
+	namespaces, err := s.store.UserDetachInfo(context.Background(), user.ID)
+	if err != nil {
+		return ErrNamespaceNotFound
+	}
+
+	// It is all namespaces what the user is owner.
+	ownedNamespaces := namespaces["owner"]
+	// It is all namespaces what the user is member.
+	memberNamespaces := namespaces["member"]
+
+	// Delete all namespaces that the user is owner.
+	for _, ownedNamespace := range ownedNamespaces {
+		if err := s.store.NamespaceDelete(context.Background(), ownedNamespace.TenantID); err != nil {
+			return err
+		}
+	}
+
+	// Remove user from all namespaces it is a member.
+	for _, memberNamespace := range memberNamespaces {
+		if _, err := s.store.NamespaceRemoveMember(context.Background(), memberNamespace.TenantID, user.ID); err != nil {
+			return err
+		}
+	}
+
+	if err := s.store.UserDelete(context.Background(), user.ID); err != nil {
+		return ErrFailedDeleteUser
+	}
+
+	return nil
+}
+
+func (s *service) UserUpdate(username string, password string) error {
+	passwordData := models.UserPassword{
+		Password: password,
+	}
+	_, err := validator.ValidateStruct(passwordData)
+	if err != nil {
+		return ErrPasswordInvalid
+	}
+
+	passwordData.Password = hashPassword(password)
+
+	user, err := s.store.UserGetByUsername(context.TODO(), username)
+	if err != nil {
+		return ErrUserNotFound
+	}
+
+	if err := s.store.UserUpdatePassword(context.TODO(), passwordData.Password, user.ID); err != nil {
+		return ErrFailedUpdateUser
+	}
+
+	return nil
+}
+
+func (s *service) NamespaceCreate(namespace, username, tenantID string) (*models.Namespace, error) {
+	// tenantID is optional.
+	if tenantID == "" {
+		tenantID = uuid.Generate()
+	}
+
+	user, err := s.store.UserGetByUsername(context.Background(), username)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
-
-	var tenantID string
-
-	if data.TenantID == "" {
-		tenantID = uuid.Generate()
-	} else {
-		tenantID = data.TenantID
-	}
-
-	ns, err := s.store.NamespaceCreate(context.TODO(), &models.Namespace{
-		Name:     data.Namespace,
-		Owner:    usr.ID,
+	ns := &models.Namespace{
+		Name:     namespace,
+		Owner:    user.ID,
 		TenantID: tenantID,
-		Members:  []interface{}{usr.ID},
+		Members:  []interface{}{user.ID},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
 		CreatedAt: clock.Now(),
-	})
+	}
+	_, err = validator.ValidateStruct(ns)
+	if err != nil {
+		return nil, ErrNamespaceInvalid
+	}
+
+	ns, err = s.store.NamespaceCreate(context.Background(), ns)
 	if err != nil {
 		return nil, ErrDuplicateNamespace
 	}
@@ -118,27 +196,46 @@ func (s *service) NamespaceCreate(data Arguments) (*models.Namespace, error) {
 	return ns, nil
 }
 
-func (s *service) NamespaceAddMember(data Arguments) (*models.Namespace, error) {
-	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
+func (s *service) NamespaceAddMember(username string, namespace string) (*models.Namespace, error) {
+	user, err := s.store.UserGetByUsername(context.Background(), username)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
 
-	ns, err := s.store.NamespaceGetByName(context.TODO(), data.Namespace)
+	ns, err := s.store.NamespaceGetByName(context.Background(), namespace)
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
 
-	ns, err = s.store.NamespaceAddMember(context.TODO(), ns.TenantID, usr.ID)
+	ns, err = s.store.NamespaceAddMember(context.Background(), ns.TenantID, user.ID)
 	if err != nil {
-		return nil, err
+		return nil, ErrFailedNamespaceAddMember
 	}
 
 	return ns, nil
 }
 
-func (s *service) NamespaceDelete(data Arguments) error {
-	ns, err := s.store.NamespaceGetByName(context.TODO(), data.Namespace)
+func (s *service) NamespaceRemoveMember(username string, namespace string) (*models.Namespace, error) {
+	usr, err := s.store.UserGetByUsername(context.TODO(), username)
+	if err != nil {
+		return nil, ErrUserNotFound
+	}
+
+	ns, err := s.store.NamespaceGetByName(context.TODO(), namespace)
+	if err != nil {
+		return nil, ErrNamespaceNotFound
+	}
+
+	ns, err = s.store.NamespaceRemoveMember(context.TODO(), ns.TenantID, usr.ID)
+	if err != nil {
+		return nil, ErrFailedNamespaceRemoveMember
+	}
+
+	return ns, nil
+}
+
+func (s *service) NamespaceDelete(namespace string) error {
+	ns, err := s.store.NamespaceGetByName(context.Background(), namespace)
 	if err != nil {
 		return ErrNamespaceNotFound
 	}
@@ -148,79 +245,4 @@ func (s *service) NamespaceDelete(data Arguments) error {
 	}
 
 	return nil
-}
-
-func (s *service) UserDelete(data Arguments) error {
-	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
-	if err != nil {
-		return ErrUserNotFound
-	}
-
-	info, err := s.store.UserDetachInfo(context.TODO(), usr.ID)
-	if err != nil {
-		return ErrNamespaceNotFound
-	}
-
-	ownedNamespaces := info["owner"]
-	memberNamespaces := info["member"]
-
-	for _, on := range ownedNamespaces {
-		if err := s.store.NamespaceDelete(context.TODO(), on.TenantID); err != nil {
-			return err
-		}
-	}
-
-	for _, mn := range memberNamespaces {
-		if _, err := s.store.NamespaceRemoveMember(context.TODO(), mn.TenantID, usr.ID); err != nil {
-			return err
-		}
-	}
-
-	if err := s.store.UserDelete(context.TODO(), usr.ID); err != nil {
-		return ErrFailedDeleteUser
-	}
-
-	return nil
-}
-
-func (s *service) NamespaceRemoveMember(data Arguments) (*models.Namespace, error) {
-	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
-	if err != nil {
-		return nil, ErrUserNotFound
-	}
-
-	ns, err := s.store.NamespaceGetByName(context.TODO(), data.Namespace)
-	if err != nil {
-		return nil, ErrNamespaceNotFound
-	}
-
-	ns, err = s.store.NamespaceRemoveMember(context.TODO(), ns.TenantID, usr.ID)
-	if err != nil {
-		return nil, ErrFailedRemoveMember
-	}
-
-	return ns, nil
-}
-
-func (s *service) UserUpdate(data Arguments) error {
-	if err := validateParameters(data); err != nil {
-		return ErrChangePassword
-	}
-
-	usr, err := s.store.UserGetByUsername(context.TODO(), data.Username)
-	if err != nil {
-		return ErrUserNotFound
-	}
-
-	if err := s.store.UserUpdatePassword(context.TODO(), hashPassword(data.Password), usr.ID); err != nil {
-		return ErrFailedUpdateUser
-	}
-
-	return nil
-}
-
-func hashPassword(password string) string {
-	hash := sha256.Sum256([]byte(password))
-
-	return hex.EncodeToString(hash[:])
 }
