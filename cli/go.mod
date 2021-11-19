@@ -10,7 +10,6 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	go.mongodb.org/mongo-driver v1.7.4
-	gopkg.in/go-playground/validator.v9 v9.31.0
 )
 
 replace github.com/shellhub-io/shellhub => ../
