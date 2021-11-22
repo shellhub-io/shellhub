@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@fortawesome/free-brands-svg-icons": "^5.15.4",
-    "@vue-stripe/vue-stripe": "^4.2.8",
+    "@vue-stripe/vue-stripe": "^4.2.9",
     "axios": "^0.24.0",
     "browserify": "^17.0.0",
     "core-js": "^3.19.1",
