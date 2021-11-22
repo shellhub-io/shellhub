@@ -19,9 +19,9 @@ get:
           schema:
             $ref: model/device.yaml
     '401':
-      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+      $ref: ../../shared/responses/unauthorized.yaml
     '500':
-      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+      $ref: ../../shared/responses/any_internal_error.yaml
 delete:
   summary: Delete a device
   description: Delete a device from its `UID`.
@@ -31,13 +31,13 @@ delete:
     - Auth: []
   responses:
     '200':
-      $ref: ../../shared/responses/OkResponse.yaml
+      $ref: ../../shared/responses/ok.yaml
     '401':
-      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+      $ref: ../../shared/responses/unauthorized.yaml
     '403':
-      $ref: ../../shared/responses/ForbiddenResponse.yaml
+      $ref: ../../shared/responses/forbidden.yaml
     '500':
-      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+      $ref: ../../shared/responses/any_internal_error.yaml
 patch:
   summary: Update device name
   description: Update a device name from its `UID` to `name` in request body.
@@ -56,12 +56,12 @@ patch:
               type: string
   responses:
     '200':
-      $ref: ../../shared/responses/OkResponse.yaml
+      $ref: ../../shared/responses/ok.yaml
     '401':
-      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+      $ref: ../../shared/responses/unauthorized.yaml
     '403':
-      $ref: ../../shared/responses/ForbiddenResponse.yaml
+      $ref: ../../shared/responses/forbidden.yaml
     '409':
-      $ref: ../../shared/responses/ConflictResponse.yaml
+      $ref: ../../shared/responses/conflict.yaml
     '500':
-      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+      $ref: ../../shared/responses/any_internal_error.yaml

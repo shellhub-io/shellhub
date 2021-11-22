@@ -51,6 +51,6 @@ get:
             items:
               $ref: model/device.yaml
     '401':
-      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+      $ref: ../../shared/responses/unauthorized.yaml
     '500':
-      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+      $ref: ../../shared/responses/any_internal_error.yaml

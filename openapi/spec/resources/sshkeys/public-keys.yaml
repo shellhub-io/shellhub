@@ -15,7 +15,7 @@ get:
     content:
       application/json:
         schema:
-          $ref: ../../shared/models/QueryModel.yaml
+          $ref: ../../shared/models/query.yaml
   responses:
     '200':
       description: Success get public key
@@ -26,9 +26,9 @@ get:
             items:
               $ref: model/public_key.yaml
     '401':
-      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+      $ref: ../../shared/responses/unauthorized.yaml
     '500':
-      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+      $ref: ../../shared/responses/any_internal_error.yaml
 post:
   summary: Create public key
   description: Create a new public key.
@@ -49,10 +49,10 @@ post:
           schema:
             $ref: model/public_key.yaml
     '401':
-      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+      $ref: ../../shared/responses/unauthorized.yaml
     '409':
 #      // TODO This response is not correct, because it returns directly a `echo.NewHTTPError` and the documentation says it returns a null body
-      $ref: ../../shared/responses/ConflictResponse.yaml
+      $ref: ../../shared/responses/conflict.yaml
     '422':
       description: UnprocessableEntity
       content:
@@ -61,4 +61,4 @@ post:
             description: Invalid format
             type: null
     '500':
-      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+      $ref: ../../shared/responses/any_internal_error.yaml
