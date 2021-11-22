@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import * as apiBilling from '@/store/api/billing';
 import ns from '@/store/modules/namespaces';
+import infoExtract from '@/helpers/billInfoExtract';
 
 export default {
   namespaced: true,
@@ -11,6 +12,7 @@ export default {
     get: (state) => state.billing,
     active: (state) => state.billing.active || false,
     status: (state) => state.billing.state || 'inactive',
+    getBillInfoData: (state) => state.billInfoData,
   },
 
   mutations: {
@@ -25,11 +27,40 @@ export default {
       });
     },
 
+    setGetSubscription: (state, data) => {
+      Vue.set(state, 'billInfoData', data);
+    },
+
     setPaymentMethod: (state, data) => {
       Vue.set(state, 'billing', {
         ...state.billing,
         state: 'processed',
         payment_method_id: data.pm,
+      });
+    },
+
+    setDeletePaymentMethod: (state, id) => {
+      const { cards } = state.billInfoData;
+      const newCards = cards.filter((c) => c.id !== id);
+
+      Vue.set(state, 'billInfoData', {
+        ...state.billInfoData,
+        cards: newCards,
+      });
+    },
+
+    setUpdatePaymentMethod: (state, id) => {
+      const { defaultCard, cards } = state.billInfoData;
+
+      const index = cards.findIndex((c) => c.id === id);
+      const prevDefault = cards.find((c) => c.id === defaultCard.id);
+      cards[index].default = true;
+      prevDefault.default = false;
+
+      Vue.set(state, 'billInfoData', {
+        ...state.billInfoData,
+        cards,
+        defaultCard: cards[index],
       });
     },
 
@@ -53,18 +84,34 @@ export default {
       }
     },
 
-    getSubscription: async () => {
+    getSubscription: async (context) => {
       const res = await apiBilling.getSubscriptionInfo();
       if (res.status === 200) {
-        return res.data;
+        const { billing } = context.state;
+        const data = infoExtract(res.data, billing.current_period_end);
+        context.commit('setGetSubscription', data);
       }
       return new Error('failed to get subscrition');
     },
 
-    updatePaymentMethod: async (context, data) => {
-      const res = await apiBilling.updatePaymentMethod(data);
+    updatePaymentMethod: async (context, id) => {
+      const res = await apiBilling.updatePaymentMethod(id);
+      if (res.status === 200) {
+        context.commit('setUpdatePaymentMethod', id);
+      }
+    },
+
+    addPaymentMethod: async (context, data) => {
+      const res = await apiBilling.addPaymentMethod(data);
       if (res.status === 200) {
         context.commit('setPaymentMethod', data);
+      }
+    },
+
+    removePaymentMethod: async (context, id) => {
+      const res = await apiBilling.removePaymentMethod(id);
+      if (res.status === 200) {
+        context.commit('setDeletePaymentMethod', id);
       }
     },
 

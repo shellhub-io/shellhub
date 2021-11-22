@@ -2,6 +2,7 @@
   <fragment>
     <font-awesome-icon
       v-if="isDefaultIcon()"
+      class="ml-2"
       icon="credit-card"
       size="lg"
       data-test="default-icon"
@@ -9,6 +10,7 @@
 
     <font-awesome-icon
       v-if="!isDefaultIcon()"
+      class="ml-2"
       :icon="[ 'fab', icon() ]"
       size="lg"
       data-test="type-icon"

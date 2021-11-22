@@ -118,15 +118,13 @@
           <v-divider />
           <v-divider />
 
-          <div class="mt-6">
+          <div class="mt-6 mb-2">
             <v-row>
               <v-col>
                 <h3>
-                  Payment method details
+                  Payment methods
                 </h3>
               </v-col>
-
-              <v-spacer />
 
               <v-col
                 md="auto"
@@ -140,16 +138,110 @@
               </v-col>
             </v-row>
 
-            <div class="mt-5 pl-4 pr-4">
-              <p>
-                <BillingIcon
-                  v-if="renderData"
-                  :icon-name="cardBillingData.brand"
-                  data-test="billingIcon-component"
-                />
-                {{ cardBillingData.expMonth }}/{{ cardBillingData.expYear }} -
-                {{ cardBillingData.last4 }}
-              </p>
+            <div
+              data-test="paymentMethods-div"
+              class="mt-5 pl-4 pr-4 pb-5"
+            >
+              <v-row class="mb-2">
+                <v-col>
+                  <b>Brand</b>
+                </v-col>
+                <v-col>
+                  <b>Expiration date</b>
+                </v-col>
+                <v-col>
+                  <b>Ends with</b>
+                </v-col>
+                <v-col
+                  class="pm-actionsText"
+                  cols="3"
+                >
+                  <b>Actions</b>
+                </v-col>
+              </v-row>
+              <v-row
+                v-for="item in cardBillingData"
+                :key="item.id"
+              >
+                <v-col>
+                  <BillingIcon
+                    v-if="renderData"
+                    :icon-name="item.brand"
+                    data-test="billingIcon-component"
+                  />
+                </v-col>
+                <v-col class="pm-data">
+                  <p>
+                    {{ item.expMonth }}/{{ item.expYear }}
+                  </p>
+                </v-col>
+                <v-col class="pm-data">
+                  <p>
+                    {{ item.last4 }}
+                  </p>
+                </v-col>
+                <v-col
+                  cols="3"
+                >
+                  <div
+                    v-if="item.default"
+                    class="pm-text"
+                  >
+                    <p>
+                      Default
+                    </p>
+                  </div>
+                  <div
+                    v-else
+                    class="pm-actions"
+                  >
+                    <v-btn
+                      class="ml-4"
+                      outlined
+                      @click="updatePaymentMethod(item.id)"
+                    >
+                      <div>
+                        <v-tooltip bottom>
+                          <template #activator="{ on }">
+                            <span v-on="on">
+                              <v-icon
+                                v-on="on"
+                              >
+                                mdi-pencil
+                              </v-icon>
+                            </span>
+                          </template>
+                          <span>
+                            Make default
+                          </span>
+                        </v-tooltip>
+                      </div>
+                    </v-btn>
+                    <v-btn
+                      class="ml-4"
+                      outlined
+                      @click="deletePaymentMethod(item.id)"
+                    >
+                      <div>
+                        <v-tooltip bottom>
+                          <template #activator="{ on }">
+                            <span v-on="on">
+                              <v-icon
+                                v-on="on"
+                              >
+                                delete
+                              </v-icon>
+                            </span>
+                          </template>
+                          <span>
+                            Remove
+                          </span>
+                        </v-tooltip>
+                      </div>
+                    </v-btn>
+                  </div>
+                </v-col>
+              </v-row>
             </div>
           </div>
 
@@ -241,10 +333,10 @@ export default {
   data() {
     return {
       card: null,
+      cards: null,
       pollMax: 4,
       retrials: 0,
       elements: null,
-      billingData: { info: Object, card: Object },
       renderData: false,
     };
   },
@@ -256,6 +348,10 @@ export default {
 
     active() {
       return this.$store.getters['billing/active'];
+    },
+
+    billingData() {
+      return this.$store.getters['billing/getBillInfoData'];
     },
 
     billing() {
@@ -275,7 +371,11 @@ export default {
     },
 
     cardBillingData() {
-      return this.billingData.card;
+      return this.billingData.cards;
+    },
+
+    cardBillingDefault() {
+      return this.billingData.defaultCard;
     },
 
     hasAuthorization() {
@@ -355,39 +455,44 @@ export default {
       this.card = this.elements.create('card');
     },
 
-    formatSubscriptionData(data) {
-      const latestInvoice = data.latest_invoice;
-      const upcomingInvoice = data.upcoming_invoice;
-      const productDescription = data.product_description;
-      const { card } = data;
-
-      this.billingData.info = {
-        periodEnd: this.billing.current_period_end,
-        description: productDescription,
-        latestPaymentDue: latestInvoice.amount_due,
-        latestPaymentPaid: latestInvoice.amount_paid,
-        nextPaymentDue: upcomingInvoice.amount_due,
-        nextPaymentPaid: upcomingInvoice.amount_paid,
-      };
-
-      this.billingData.card = {
-        brand: card.brand,
-        expYear: card.exp_year,
-        expMonth: card.exp_month,
-        last4: card.last4,
-      };
-    },
-
     async getSubscriptionInfo() {
       if (this.active) {
         try {
-          const data = await this.$store.dispatch('billing/getSubscription');
-          await this.formatSubscriptionData(data);
-
+          await this.$store.dispatch('billing/getSubscription');
           this.renderData = true;
         } catch {
           this.renderData = false;
           this.$store.dispatch('snackbar/showSnackbarErrorDefault');
+        }
+      }
+    },
+
+    async updatePaymentMethod(paymentMethodId) {
+      try {
+        await this.$store.dispatch('billing/updatePaymentMethod', paymentMethodId);
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.updateSubscription);
+        this.$emit('update');
+      } catch (error) {
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.updateSubscription);
+
+        const { status } = error.response;
+        if (status === 400 || status === 423) {
+          this.showError(error);
+        }
+      }
+    },
+
+    async deletePaymentMethod(paymentMethodId) {
+      try {
+        await this.$store.dispatch('billing/removePaymentMethod', paymentMethodId);
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.updateSubscription);
+        this.$emit('update');
+      } catch (error) {
+        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deletePaymentMethod);
+
+        const { status } = error.response;
+        if (status === 400 || status === 423) {
+          this.showError(error);
         }
       }
     },
@@ -403,3 +508,20 @@ export default {
 };
 
 </script>
+
+<style>
+
+.pm-data {
+  text-align: center;
+  margin-right: 2rem;
+}
+
+.pm-actionsText {
+  text-align: center;
+}
+
+.pm-text {
+  text-align: center;
+}
+
+</style>

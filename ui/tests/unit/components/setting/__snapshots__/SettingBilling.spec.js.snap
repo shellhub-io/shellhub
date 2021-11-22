@@ -1,5 +1,181 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`SettingBilling Create subscription administrator Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <div data-test="content-div">
+        <v-row-stub tag="div">
+          <v-col-stub tag="div">
+            <h3>
+              Subscription info
+            </h3>
+          </v-col-stub>
+          <v-spacer-stub tag="div"></v-spacer-stub>
+          <v-col-stub md="auto" tag="div" class="ml-auto">
+            <paymentmethod-stub typeoperation="subscription" data-test="subscriptionPaymentMethod-component"></paymentmethod-stub>
+          </v-col-stub>
+        </v-row-stub>
+        <div class="mt-6 pl-4 pr-4">
+          <div>
+            <div data-test="freePlan-div">
+              <p>
+                Plan: <b> Free </b></p>
+              <p>
+                Description: You can add up to 3 devices while using the 'Free' plan.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!---->
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Create subscription observer Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <!---->
+      <!---->
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Create subscription operator Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <!---->
+      <!---->
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Create subscription owner Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <div data-test="content-div">
+        <v-row-stub tag="div">
+          <v-col-stub tag="div">
+            <h3>
+              Subscription info
+            </h3>
+          </v-col-stub>
+          <v-spacer-stub tag="div"></v-spacer-stub>
+          <v-col-stub md="auto" tag="div" class="ml-auto">
+            <paymentmethod-stub typeoperation="subscription" data-test="subscriptionPaymentMethod-component"></paymentmethod-stub>
+          </v-col-stub>
+        </v-row-stub>
+        <div class="mt-6 pl-4 pr-4">
+          <div>
+            <div data-test="freePlan-div">
+              <p>
+                Plan: <b> Free </b></p>
+              <p>
+                Description: You can add up to 3 devices while using the 'Free' plan.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!---->
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Pending request administrator Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <div data-test="content-div">
+        <v-row-stub tag="div">
+          <v-col-stub tag="div">
+            <h3>
+              Subscription info
+            </h3>
+          </v-col-stub>
+          <v-spacer-stub tag="div"></v-spacer-stub>
+          <!---->
+        </v-row-stub>
+        <div class="mt-6 pl-4 pr-4">
+          <div data-test="pendingRetrial-div">
+            <p class="ma-4">
+              You have a pending request, please wait a while ...
+            </p>
+          </div>
+        </div>
+      </div>
+      <!---->
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Pending request observer Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <!---->
+      <!---->
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Pending request operator Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <!---->
+      <!---->
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Pending request owner Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <div data-test="content-div">
+        <v-row-stub tag="div">
+          <v-col-stub tag="div">
+            <h3>
+              Subscription info
+            </h3>
+          </v-col-stub>
+          <v-spacer-stub tag="div"></v-spacer-stub>
+          <!---->
+        </v-row-stub>
+        <div class="mt-6 pl-4 pr-4">
+          <div data-test="pendingRetrial-div">
+            <p class="ma-4">
+              You have a pending request, please wait a while ...
+            </p>
+          </div>
+        </div>
+      </div>
+      <!---->
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
 exports[`SettingBilling Premium usage administrator Renders the component 1`] = `
 <v-container-stub tag="div">
   <v-row-stub tag="div" align="center" justify="center" class="mt-4">
@@ -41,7 +217,7 @@ exports[`SettingBilling Premium usage administrator Renders the component 1`] = 
           </v-row-stub>
           <div class="mt-6 pl-4 pr-4">
             <p>
-              Date: <b> </b></p>
+              Date: <b> December 24th 2021 </b></p>
             <p>
               Estimated total:
               <b>
@@ -52,24 +228,112 @@ exports[`SettingBilling Premium usage administrator Renders the component 1`] = 
         </div>
         <v-divider-stub></v-divider-stub>
         <v-divider-stub></v-divider-stub>
-        <div class="mt-6">
+        <div class="mt-6 mb-2">
           <v-row-stub tag="div">
             <v-col-stub tag="div">
               <h3>
-                Payment method details
+                Payment methods
               </h3>
             </v-col-stub>
-            <v-spacer-stub tag="div"></v-spacer-stub>
             <v-col-stub md="auto" tag="div" class="ml-auto">
               <paymentmethod-stub typeoperation="update" data-test="updatePaymentMethod-component"></paymentmethod-stub>
             </v-col-stub>
           </v-row-stub>
-          <div class="mt-5 pl-4 pr-4">
-            <p>
-              <billingicon-stub iconname="cc-visa" data-test="billingIcon-component"></billingicon-stub>
-              / -
-
-            </p>
+          <div data-test="paymentMethods-div" class="mt-5 pl-4 pr-4 pb-5">
+            <v-row-stub tag="div" class="mb-2">
+              <v-col-stub tag="div"><b>Brand</b></v-col-stub>
+              <v-col-stub tag="div"><b>Expiration date</b></v-col-stub>
+              <v-col-stub tag="div"><b>Ends with</b></v-col-stub>
+              <v-col-stub cols="3" tag="div" class="pm-actionsText"><b>Actions</b></v-col-stub>
+            </v-row-stub>
+            <v-row-stub tag="div">
+              <v-col-stub tag="div">
+                <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4/2024
+                </p>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4042
+                </p>
+              </v-col-stub>
+              <v-col-stub cols="3" tag="div">
+                <div class="pm-text">
+                  <p>
+                    Default
+                  </p>
+                </div>
+              </v-col-stub>
+            </v-row-stub>
+            <v-row-stub tag="div">
+              <v-col-stub tag="div">
+                <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4/2028
+                </p>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4042
+                </p>
+              </v-col-stub>
+              <v-col-stub cols="3" tag="div">
+                <div class="pm-actions">
+                  <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
+                    <div>
+                      <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                          Make default
+                        </span></v-tooltip-stub>
+                    </div>
+                  </v-btn-stub>
+                  <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
+                    <div>
+                      <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                          Remove
+                        </span></v-tooltip-stub>
+                    </div>
+                  </v-btn-stub>
+                </div>
+              </v-col-stub>
+            </v-row-stub>
+            <v-row-stub tag="div">
+              <v-col-stub tag="div">
+                <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4/2029
+                </p>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4042
+                </p>
+              </v-col-stub>
+              <v-col-stub cols="3" tag="div">
+                <div class="pm-actions">
+                  <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
+                    <div>
+                      <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                          Make default
+                        </span></v-tooltip-stub>
+                    </div>
+                  </v-btn-stub>
+                  <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
+                    <div>
+                      <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                          Remove
+                        </span></v-tooltip-stub>
+                    </div>
+                  </v-btn-stub>
+                </div>
+              </v-col-stub>
+            </v-row-stub>
           </div>
         </div>
         <v-divider-stub></v-divider-stub>
@@ -187,7 +451,7 @@ exports[`SettingBilling Premium usage owner Renders the component 1`] = `
           </v-row-stub>
           <div class="mt-6 pl-4 pr-4">
             <p>
-              Date: <b> </b></p>
+              Date: <b> December 24th 2021 </b></p>
             <p>
               Estimated total:
               <b>
@@ -198,24 +462,112 @@ exports[`SettingBilling Premium usage owner Renders the component 1`] = `
         </div>
         <v-divider-stub></v-divider-stub>
         <v-divider-stub></v-divider-stub>
-        <div class="mt-6">
+        <div class="mt-6 mb-2">
           <v-row-stub tag="div">
             <v-col-stub tag="div">
               <h3>
-                Payment method details
+                Payment methods
               </h3>
             </v-col-stub>
-            <v-spacer-stub tag="div"></v-spacer-stub>
             <v-col-stub md="auto" tag="div" class="ml-auto">
               <paymentmethod-stub typeoperation="update" data-test="updatePaymentMethod-component"></paymentmethod-stub>
             </v-col-stub>
           </v-row-stub>
-          <div class="mt-5 pl-4 pr-4">
-            <p>
-              <billingicon-stub iconname="cc-visa" data-test="billingIcon-component"></billingicon-stub>
-              / -
-
-            </p>
+          <div data-test="paymentMethods-div" class="mt-5 pl-4 pr-4 pb-5">
+            <v-row-stub tag="div" class="mb-2">
+              <v-col-stub tag="div"><b>Brand</b></v-col-stub>
+              <v-col-stub tag="div"><b>Expiration date</b></v-col-stub>
+              <v-col-stub tag="div"><b>Ends with</b></v-col-stub>
+              <v-col-stub cols="3" tag="div" class="pm-actionsText"><b>Actions</b></v-col-stub>
+            </v-row-stub>
+            <v-row-stub tag="div">
+              <v-col-stub tag="div">
+                <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4/2024
+                </p>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4042
+                </p>
+              </v-col-stub>
+              <v-col-stub cols="3" tag="div">
+                <div class="pm-text">
+                  <p>
+                    Default
+                  </p>
+                </div>
+              </v-col-stub>
+            </v-row-stub>
+            <v-row-stub tag="div">
+              <v-col-stub tag="div">
+                <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4/2028
+                </p>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4042
+                </p>
+              </v-col-stub>
+              <v-col-stub cols="3" tag="div">
+                <div class="pm-actions">
+                  <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
+                    <div>
+                      <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                          Make default
+                        </span></v-tooltip-stub>
+                    </div>
+                  </v-btn-stub>
+                  <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
+                    <div>
+                      <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                          Remove
+                        </span></v-tooltip-stub>
+                    </div>
+                  </v-btn-stub>
+                </div>
+              </v-col-stub>
+            </v-row-stub>
+            <v-row-stub tag="div">
+              <v-col-stub tag="div">
+                <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4/2029
+                </p>
+              </v-col-stub>
+              <v-col-stub tag="div" class="pm-data">
+                <p>
+                  4042
+                </p>
+              </v-col-stub>
+              <v-col-stub cols="3" tag="div">
+                <div class="pm-actions">
+                  <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
+                    <div>
+                      <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                          Make default
+                        </span></v-tooltip-stub>
+                    </div>
+                  </v-btn-stub>
+                  <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
+                    <div>
+                      <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                          Remove
+                        </span></v-tooltip-stub>
+                    </div>
+                  </v-btn-stub>
+                </div>
+              </v-col-stub>
+            </v-row-stub>
           </div>
         </div>
         <v-divider-stub></v-divider-stub>
