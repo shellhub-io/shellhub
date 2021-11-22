@@ -34,11 +34,11 @@
 
         <v-card-text class="mt-4 mb-3 pb-1">
           <p
-            v-if="active && amountDue !== null"
+            v-if="active && billInfo.amountDue !== null"
             data-test="contentSubscription-p"
           >
             Deleting the namespace will generate an invoice,
-            estimated <b> {{ amountDue | formatCurrency }} </b> for the time of use.
+            estimated <b> {{ billInfo.nextPaymentDue | formatCurrency }} </b> for the time of use.
           </p>
 
           <p data-test="content-text">
@@ -127,6 +127,10 @@ export default {
 
       return false;
     },
+
+    billInfo() {
+      return this.$store.getters['billing/getBillInfoData'].info;
+    },
   },
 
   async created() {
@@ -170,8 +174,7 @@ export default {
     async getSubscriptionInfo() {
       if (this.active) {
         try {
-          const data = await this.$store.dispatch('billing/getSubscription');
-          this.amountDue = this.getDueAmount(data);
+          await this.$store.dispatch('billing/getSubscription');
         } catch {
           this.$store.dispatch('snackbar/showSnackbarErrorDefault');
         }

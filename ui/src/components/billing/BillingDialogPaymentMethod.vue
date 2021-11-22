@@ -124,7 +124,7 @@ export default {
       case 'subscription':
         return 'Create subscription';
       case 'update':
-        return 'Update payment method';
+        return 'Add payment method';
       default:
         return 'Operation not found';
       }
@@ -152,6 +152,10 @@ export default {
     actionButton(type) {
       if (type === 'subscription') {
         return 'subscribe';
+      }
+
+      if (type === 'update') {
+        return 'add card';
       }
 
       return type;
@@ -219,13 +223,12 @@ export default {
         this.displayError(result.error);
       } else {
         try {
-          await this.$store.dispatch('billing/updatePaymentMethod', {
-            payment_id: result.paymentMethod.id,
-          });
+          await this.$store.dispatch('billing/addPaymentMethod', result.paymentMethod.id);
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.updateSubscription);
           this.$emit('update');
+          this.dialog = false;
         } catch (error) {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.updateSubscription);
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.updatePaymentMethod);
 
           const { status } = error.response;
           if (status === 400 || status === 423) {

@@ -22,9 +22,52 @@ describe('SettingBilling', () => {
     latest_invoice: { amount_due: 0, amount_paid: 0 },
     upcoming_invoice: { amount_due: 0, amount_paid: 0 },
     product_description: 'Premium usage',
-    card: {
-      brand: 'visa', exp_year: 2024, exp_month: 4, last4: '4242',
+  };
+
+  const infoData = {
+    info: {
+      periodEnd: '2021-12-24T18:16:21Z',
+      description: 'Shellhub',
+      latestPaymentDue: 0,
+      latestPaymentPaid: 0,
+      nextPaymentDue: 0,
+      nextPaymenPaid: 0,
     },
+
+    card: {
+      brand: 'visa',
+      expYear: 2024,
+      default: true,
+      expMonth: 4,
+      last4: '4042',
+      id: 'pm_1JzQ80KJsksFHO6pREJA5TrK',
+    },
+    cards: [
+      {
+        brand: 'visa',
+        expYear: 2024,
+        default: true,
+        expMonth: 4,
+        last4: '4042',
+        id: 'pm_1JzQ80KJsksFHO6pREJA5TrK',
+      },
+      {
+        brand: 'visa',
+        expYear: 2028,
+        default: false,
+        expMonth: 4,
+        last4: '4042',
+        id: 'pm_1JzQ80KJsksFHO6pREJA5TrG',
+      },
+      {
+        brand: 'visa',
+        expYear: 2029,
+        default: false,
+        expMonth: 4,
+        last4: '4042',
+        id: 'pm_1JzQ80KJsksFHO6pREJA5TrF',
+      },
+    ],
   };
 
   const info2 = {
@@ -47,63 +90,63 @@ describe('SettingBilling', () => {
 
   // describe('Renders component according to billing instance', () => {
   const tests = [
-    // {
-    //   description: 'Create subscription',
-    //   computed: {
-    //     active: false,
-    //     state: 'inactive',
-    //   },
-    //   data: {
-    //     renderData: false,
-    //   },
-    //   instance: {
-    //     active: false,
-    //     state: 'inactive',
-    //     current_period_end: 0,
-    //     customer_id: '',
-    //     subscription_id: '',
-    //     payment_method_id: '',
-    //   },
-    //   template: {
-    //     'subscriptionPaymentMethod-component': true,
-    //     'freePlan-div': true,
-    //     'premiumPlan-div': false,
-    //     'subscriptionActive-div': false,
-    //     'updatePaymentMethod-component': false,
-    //     'billingIcon-component': false,
-    //     'cancel-div': false,
-    //   },
-    // },
-    // {
-    //   description: 'Pending request',
-    //   owner: true,
-    //   computed: {
-    //     active: true,
-    //     state: 'pending',
-    //   },
-    //   data: {
-    //     renderData: true,
-    //   },
-    //   instance: {
-    //     active: true,
-    //     state: 'pending',
-    //     current_period_end: 0,
-    //     customer_id: 'cus_123',
-    //     subscription_id: 'sub_123',
-    //     payment_method_id: 'pm_123',
-    //   },
-    //   template: {
-    //     'subscriptionPaymentMethod-component': false,
-    //     'pendingRetrial-div': true,
-    //     'freePlan-div': false,
-    //     'premiumPlan-div': false,
-    //     'subscriptionActive-div': false,
-    //     'updatePaymentMethod-component': false,
-    //     'billingIcon-component': false,
-    //     'cancel-div': false,
-    //     'activeLoading-div': false,
-    //   },
-    // },
+    {
+      description: 'Create subscription',
+      computed: {
+        active: false,
+        state: 'inactive',
+      },
+      data: {
+        renderData: false,
+      },
+      instance: {
+        active: false,
+        state: 'inactive',
+        current_period_end: 0,
+        customer_id: '',
+        subscription_id: '',
+        payment_method_id: '',
+      },
+      template: {
+        'subscriptionPaymentMethod-component': true,
+        'freePlan-div': true,
+        'premiumPlan-div': false,
+        'subscriptionActive-div': false,
+        'updatePaymentMethod-component': false,
+        'billingIcon-component': false,
+        'cancel-div': false,
+      },
+    },
+    {
+      description: 'Pending request',
+      owner: true,
+      computed: {
+        active: true,
+        state: 'pending',
+      },
+      data: {
+        renderData: true,
+      },
+      instance: {
+        active: true,
+        state: 'pending',
+        current_period_end: 0,
+        customer_id: 'cus_123',
+        subscription_id: 'sub_123',
+        payment_method_id: 'pm_123',
+      },
+      template: {
+        'subscriptionPaymentMethod-component': false,
+        'pendingRetrial-div': true,
+        'freePlan-div': false,
+        'premiumPlan-div': false,
+        'subscriptionActive-div': false,
+        'updatePaymentMethod-component': false,
+        'billingIcon-component': false,
+        'cancel-div': false,
+        'activeLoading-div': false,
+      },
+    },
     {
       description: 'Premium usage',
       computed: {
@@ -126,12 +169,12 @@ describe('SettingBilling', () => {
       template: {
         'subscriptionPaymentMethod-component': false,
         'freePlan-div': false,
-        // 'premiumPlan-div': true,
-        // 'subscriptionActive-div': true,
-        // 'updatePaymentMethod-component': true,
-        // 'billingIcon-component': true,
-        // 'cancel-div': true,
-        // 'activeLoading-div': false,
+        'premiumPlan-div': true,
+        'subscriptionActive-div': true,
+        'updatePaymentMethod-component': true,
+        'billingIcon-component': true,
+        'cancel-div': true,
+        'activeLoading-div': false,
       },
     },
   ];
@@ -141,12 +184,14 @@ describe('SettingBilling', () => {
     state: {
       billing,
       currentAccessType,
+      info: infoData,
     },
     getters: {
       'billing/active': (state) => state.billing.active || false,
       'billing/status': (state) => state.billing.state || 'inactive',
       'billing/get': (state) => state.billing,
       'auth/accessType': (state) => state.currentAccessType,
+      'billing/getBillInfoData': (state) => state.info,
     },
     actions: {
       'billing/getSubscription': () => stripeData,
@@ -193,6 +238,19 @@ describe('SettingBilling', () => {
           expect(wrapper.html()).toMatchSnapshot();
         });
 
+        //////
+        // HTML validation
+        //////
+
+        if (currentAccessType === 'owner') {
+          describe(`Template rendering - ${test.description}`, () => {
+            Reflect.ownKeys(test.template).forEach((k) => {
+              it(`${test.template[k] ? 'Renders' : 'Does not render'} template ${k} for `, () => {
+                expect(wrapper.find(`[data-test="${k}"]`).exists()).toBe(test.template[k]);
+              });
+            });
+          });
+        }
         ///////
         // Data checking
         //////
@@ -209,20 +267,6 @@ describe('SettingBilling', () => {
             expect(wrapper.vm[item]).toEqual(test.computed[item]);
           });
           expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
-        });
-
-        //////
-        // HTML validation
-        //////
-
-        it('Renders the template with data', () => {
-          Object.keys(test.template).forEach((item) => {
-            if (hasAuthorization[currentAccessType] || (test.computed.state === 'processed' && hasAuthorization[currentAccessType])) {
-              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-            } else {
-              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(false);
-            }
-          });
         });
       });
     });

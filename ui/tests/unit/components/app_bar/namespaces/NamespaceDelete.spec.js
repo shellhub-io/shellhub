@@ -9,6 +9,51 @@ describe('NamespaceDelete', () => {
   const vuetify = new Vuetify();
   localVue.use(Vuex);
 
+  const infoData = {
+    info: {
+      periodEnd: '2021-12-24T18:16:21Z',
+      description: 'Shellhub',
+      latestPaymentDue: 0,
+      latestPaymentPaid: 0,
+      nextPaymentDue: 0,
+      nextPaymenPaid: 0,
+    },
+    card: {
+      brand: 'visa',
+      expYear: 2024,
+      default: true,
+      expMonth: 4,
+      last4: '4042',
+      id: 'pm_1JzQ80KJsksFHO6pREJA5TrK',
+    },
+    cards: [
+      {
+        brand: 'visa',
+        expYear: 2024,
+        default: true,
+        expMonth: 4,
+        last4: '4042',
+        id: 'pm_1JzQ80KJsksFHO6pREJA5TrK',
+      },
+      {
+        brand: 'visa',
+        expYear: 2028,
+        default: false,
+        expMonth: 4,
+        last4: '4042',
+        id: 'pm_1JzQ80KJsksFHO6pREJA5TrG',
+      },
+      {
+        brand: 'visa',
+        expYear: 2029,
+        default: false,
+        expMonth: 4,
+        last4: '4042',
+        id: 'pm_1JzQ80KJsksFHO6pREJA5TrF',
+      },
+    ],
+  };
+
   document.body.setAttribute('data-app', true);
 
   let wrapper;
@@ -142,12 +187,14 @@ describe('NamespaceDelete', () => {
       billing,
       currentAccessType,
       namespace,
+      info: infoData,
     },
     getters: {
       'billing/active': (state) => state.active,
       'billing/get': (state) => state.billing,
       'auth/accessType': (state) => state.currentAccessType,
       'namespaces/get': (state) => state.namespace,
+      'billing/getBillInfoData': (state) => state.info,
     },
     actions: {
       'namespaces/remove': () => {},

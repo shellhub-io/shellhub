@@ -193,7 +193,7 @@ describe('BillingDialogPaymentMethod', () => {
       expect(wrapper.find('[data-test="BillingDialogPaymentMethod-dialog"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="confirm-btn"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="text-cardTitle"]').text()).toEqual('Update payment method');
+      expect(wrapper.find('[data-test="text-cardTitle"]').text()).toEqual('Add payment method');
     });
   });
 });

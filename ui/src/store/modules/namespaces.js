@@ -6,6 +6,7 @@ export default {
 
   state: {
     namespace: {},
+    billInfoData: {},
     billing: {},
     namespaces: [],
     numberNamespaces: 0,

@@ -54,7 +54,8 @@ export default {
         validationAccount: 'validation account',
         updatingAccount: 'updating account',
         subscription: 'subscription',
-        updateSubscription: 'updating subscription',
+        updatePaymentMethod: 'updating payment method',
+        deletePaymentMethod: 'removing payment method',
         cancelSubscription: 'cancelling subscription',
       },
       form: {
