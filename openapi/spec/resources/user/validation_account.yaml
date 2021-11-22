@@ -19,10 +19,10 @@ get:
               type: string
   responses:
     '200':
-      $ref: ../../shared/responses/OkResponse.yaml
+      $ref: ../../shared/responses/ok.yaml
     '401':
-      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+      $ref: ../../shared/responses/unauthorized.yaml
     '403':
-      $ref: ../../shared/responses/ForbiddenResponse.yaml
+      $ref: ../../shared/responses/forbidden.yaml
     '500':
-      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+      $ref: ../../shared/responses/any_internal_error.yaml

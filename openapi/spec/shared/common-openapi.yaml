@@ -1,13 +1,6 @@
 info:
   title: ShellHub
-  description: >
-    Shellhub description
-
-
-    Note:
-
-    `/public` routes are accessible through API gateway and `/internal` routes
-    only by other services in the local container network.
+  description: Shellhub's API
   contact:
     email: contato@ossystems.com.br
   license:

@@ -2,9 +2,9 @@ openapi: 3.0.2
 $ref: spec/shared/common-openapi.yaml
 paths:
   /api/login:
-    $ref: spec/resources/user/login.yaml
+    $ref: spec/resources/users/login.yaml
   /api/auth/user:
-    $ref: spec/resources/user/login.yaml
+    $ref: spec/resources/users/login.yaml
   /api/devices/auth:
     $ref: spec/resources/devices/auth.yaml
   /api/auth/device:
@@ -12,29 +12,25 @@ paths:
   /api/auth/ssh:
     $ref: spec/resources/auth/ssh.yaml
   '/api/token/{tenant}':
-    $ref: spec/resources/user/token_tenant.yaml
+    $ref: spec/resources/users/token_tenant.yaml
   '/api/devices/{uid}/accept':
     $ref: spec/resources/devices/uid_accept.yaml
   '/api/users/{id}/data':
-    $ref: spec/resources/user/id_data.yaml
+    $ref: spec/resources/users/id_data.yaml
   '/api/users/{id}/password':
-    $ref: spec/resources/user/id_password.yaml
+    $ref: spec/resources/users/id_password.yaml
   '/api/users/security/{id}':
-    $ref: spec/resources/user/security_id.yaml
+    $ref: spec/resources/users/security_id.yaml
   /api/users/security:
-    $ref: spec/resources/user/security.yaml
+    $ref: spec/resources/users/security.yaml
   /api/devices:
     $ref: spec/resources/devices/devices.yaml
   '/api/devices/{uid}':
     $ref: spec/resources/devices/uid.yaml
-  '/internal/devices/{uid}/offline':
-    $ref: spec/resources/devices/internal/offline.yaml
   '/api/devices/{uid}/{status}':
     $ref: spec/resources/devices/uid_status.yaml
   /api/sessions:
     $ref: spec/resources/sessions/sessions.yaml
-  /internal/session:
-    $ref: spec/resources/sessions/internal/open.yaml
   '/api/sessions/{uid}':
     $ref: spec/resources/sessions/uid.yaml
   /api/sshkeys/public-keys:

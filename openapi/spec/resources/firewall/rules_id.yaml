@@ -19,9 +19,9 @@ get:
           schema:
             $ref: model/firewall_rules.yaml
     '401':
-      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+      $ref: ../../shared/responses/unauthorized.yaml
     '500':
-      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+      $ref: ../../shared/responses/any_internal_error.yaml
 put:
   summary: Update Firewall rule
   description: Update Firewall rule.
@@ -42,11 +42,11 @@ put:
           schema:
             $ref: model/firewall_rules.yaml
     '401':
-      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+      $ref: ../../shared/responses/unauthorized.yaml
     '403':
-      $ref: ../../shared/responses/ForbiddenResponse.yaml
+      $ref: ../../shared/responses/forbidden.yaml
     '500':
-      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+      $ref: ../../shared/responses/any_internal_error.yaml
 delete:
   summary: Delete firewall rule
   description: ''
@@ -58,8 +58,8 @@ delete:
     '200':
       description: Success delete firewall rule
     '401':
-      $ref: ../../shared/responses/UnauthorizedResponse.yaml
+      $ref: ../../shared/responses/unauthorized.yaml
     '403':
-      $ref: ../../shared/responses/ForbiddenResponse.yaml
+      $ref: ../../shared/responses/forbidden.yaml
     '500':
-      $ref: ../../shared/responses/AnyInternalErrorResponse.yaml
+      $ref: ../../shared/responses/any_internal_error.yaml
