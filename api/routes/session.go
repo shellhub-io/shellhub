@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/contexts"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -19,7 +19,7 @@ const (
 	PlaySessionURL             = "/sessions/:uid/play"
 )
 
-func (h *Handler) GetSessionList(c apicontext.Context) error {
+func (h *Handler) GetSessionList(c contexts.EchoContext) error {
 	query := paginator.NewQuery()
 	if err := c.Bind(query); err != nil {
 		return err
@@ -38,7 +38,7 @@ func (h *Handler) GetSessionList(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, sessions)
 }
 
-func (h *Handler) GetSession(c apicontext.Context) error {
+func (h *Handler) GetSession(c contexts.EchoContext) error {
 	session, err := h.service.GetSession(c.Ctx(), models.UID(c.Param("uid")))
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func (h *Handler) GetSession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, session)
 }
 
-func (h *Handler) SetSessionAuthenticated(c apicontext.Context) error {
+func (h *Handler) SetSessionAuthenticated(c contexts.EchoContext) error {
 	var req struct {
 		Authenticated bool `json:"authenticated"`
 	}
@@ -59,7 +59,7 @@ func (h *Handler) SetSessionAuthenticated(c apicontext.Context) error {
 	return h.service.SetSessionAuthenticated(c.Ctx(), models.UID(c.Param("uid")), req.Authenticated)
 }
 
-func (h *Handler) CreateSession(c apicontext.Context) error {
+func (h *Handler) CreateSession(c contexts.EchoContext) error {
 	session := new(models.Session)
 
 	if err := c.Bind(&session); err != nil {
@@ -80,18 +80,18 @@ func (h *Handler) CreateSession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, session)
 }
 
-func (h *Handler) FinishSession(c apicontext.Context) error {
+func (h *Handler) FinishSession(c contexts.EchoContext) error {
 	return h.service.DeactivateSession(c.Ctx(), models.UID(c.Param("uid")))
 }
 
-func (h *Handler) RecordSession(c apicontext.Context) error {
+func (h *Handler) RecordSession(c contexts.EchoContext) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) PlaySession(c apicontext.Context) error {
+func (h *Handler) PlaySession(c contexts.EchoContext) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) DeleteRecordedSession(c apicontext.Context) error {
+func (h *Handler) DeleteRecordedSession(c contexts.EchoContext) error {
 	return c.NoContent(http.StatusOK)
 }

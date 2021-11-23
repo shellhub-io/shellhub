@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/contexts"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -38,7 +38,7 @@ type filterQuery struct {
 	OrderBy string `query:"order_by"`
 }
 
-func (h *Handler) GetDeviceList(c apicontext.Context) error {
+func (h *Handler) GetDeviceList(c contexts.EchoContext) error {
 	query := filterQuery{}
 	if err := c.Bind(&query); err != nil {
 		return err
@@ -56,7 +56,7 @@ func (h *Handler) GetDeviceList(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, devices)
 }
 
-func (h *Handler) GetDevice(c apicontext.Context) error {
+func (h *Handler) GetDevice(c contexts.EchoContext) error {
 	device, err := h.service.GetDevice(c.Ctx(), models.UID(c.Param("uid")))
 	if err != nil {
 		return err
@@ -65,7 +65,7 @@ func (h *Handler) GetDevice(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, device)
 }
 
-func (h *Handler) DeleteDevice(c apicontext.Context) error {
+func (h *Handler) DeleteDevice(c contexts.EchoContext) error {
 	tenant := ""
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID
@@ -87,7 +87,7 @@ func (h *Handler) DeleteDevice(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) RenameDevice(c apicontext.Context) error {
+func (h *Handler) RenameDevice(c contexts.EchoContext) error {
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -122,7 +122,7 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) OfflineDevice(c apicontext.Context) error {
+func (h *Handler) OfflineDevice(c contexts.EchoContext) error {
 	if err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(c.Param("uid")), false); err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (h *Handler) OfflineDevice(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) LookupDevice(c apicontext.Context) error {
+func (h *Handler) LookupDevice(c contexts.EchoContext) error {
 	var query struct {
 		Domain    string `query:"domain"`
 		Name      string `query:"name"`
@@ -152,7 +152,7 @@ func (h *Handler) LookupDevice(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, device)
 }
 
-func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
+func (h *Handler) UpdatePendingStatus(c contexts.EchoContext) error {
 	tenant := ""
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID
@@ -188,11 +188,11 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) HeartbeatDevice(c apicontext.Context) error {
+func (h *Handler) HeartbeatDevice(c contexts.EchoContext) error {
 	return h.service.DeviceHeartbeat(c.Ctx(), models.UID(c.Param("uid")))
 }
 
-func (h *Handler) CreateTag(c apicontext.Context) error {
+func (h *Handler) CreateTag(c contexts.EchoContext) error {
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -219,7 +219,7 @@ func (h *Handler) CreateTag(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) DeleteTag(c apicontext.Context) error {
+func (h *Handler) DeleteTag(c contexts.EchoContext) error {
 	if err := h.service.DeleteTag(c.Ctx(), models.UID(c.Param("uid")), c.Param("name")); err != nil {
 		switch err {
 		case services.ErrUnauthorized:
@@ -234,7 +234,7 @@ func (h *Handler) DeleteTag(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) RenameTag(c apicontext.Context) error {
+func (h *Handler) RenameTag(c contexts.EchoContext) error {
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -264,7 +264,7 @@ func (h *Handler) RenameTag(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) ListTag(c apicontext.Context) error {
+func (h *Handler) ListTag(c contexts.EchoContext) error {
 	tags, count, err := h.service.ListTag(c.Ctx())
 	if err != nil {
 		return err
@@ -275,7 +275,7 @@ func (h *Handler) ListTag(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, tags)
 }
 
-func (h *Handler) UpdateTag(c apicontext.Context) error {
+func (h *Handler) UpdateTag(c contexts.EchoContext) error {
 	var req struct {
 		Tags []string `json:"tags"`
 	}
@@ -302,7 +302,7 @@ func (h *Handler) UpdateTag(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) GetTags(c apicontext.Context) error {
+func (h *Handler) GetTags(c contexts.EchoContext) error {
 	tenant := ""
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID
@@ -320,7 +320,7 @@ func (h *Handler) GetTags(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, tags)
 }
 
-func (h *Handler) DeleteAllTags(c apicontext.Context) error {
+func (h *Handler) DeleteAllTags(c contexts.EchoContext) error {
 	tenant := ""
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID

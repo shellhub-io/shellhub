@@ -5,7 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/contexts"
+
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -60,7 +61,7 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 	}
 
 	// Only match for the respective tenant if requested
-	if id := apicontext.IDFromContext(ctx); id != nil {
+	if id := contexts.IDFromContext(ctx); id != nil {
 		user, _, err := s.UserGetByID(ctx, id.ID, false)
 		if err != nil {
 			return nil, 0, err

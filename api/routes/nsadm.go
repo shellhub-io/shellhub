@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/contexts"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -21,7 +21,7 @@ const (
 	EditSessionRecordStatusURL = "/users/security/:id"
 )
 
-func (h *Handler) GetNamespaceList(c apicontext.Context) error {
+func (h *Handler) GetNamespaceList(c contexts.EchoContext) error {
 	query := filterQuery{}
 	if err := c.Bind(&query); err != nil {
 		return err
@@ -50,7 +50,7 @@ func (h *Handler) GetNamespaceList(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespaces)
 }
 
-func (h *Handler) CreateNamespace(c apicontext.Context) error {
+func (h *Handler) CreateNamespace(c contexts.EchoContext) error {
 	var req models.Namespace
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -78,7 +78,7 @@ func (h *Handler) CreateNamespace(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) GetNamespace(c apicontext.Context) error {
+func (h *Handler) GetNamespace(c contexts.EchoContext) error {
 	namespace, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
 	if err != nil {
 		return err
@@ -98,7 +98,7 @@ func (h *Handler) GetNamespace(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) DeleteNamespace(c apicontext.Context) error {
+func (h *Handler) DeleteNamespace(c contexts.EchoContext) error {
 	id := ""
 	if v := c.ID(); v != nil {
 		id = v.ID
@@ -119,7 +119,7 @@ func (h *Handler) DeleteNamespace(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) EditNamespace(c apicontext.Context) error {
+func (h *Handler) EditNamespace(c contexts.EchoContext) error {
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -150,7 +150,7 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
+func (h *Handler) AddNamespaceUser(c contexts.EchoContext) error {
 	var req struct {
 		Username string `json:"username"`
 	}
@@ -183,7 +183,7 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
+func (h *Handler) RemoveNamespaceUser(c contexts.EchoContext) error {
 	var req struct {
 		Username string `json:"username"`
 	}
@@ -215,7 +215,7 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
+func (h *Handler) EditSessionRecordStatus(c contexts.EchoContext) error {
 	var req struct {
 		SessionRecord bool `json:"session_record"`
 	}
@@ -238,7 +238,7 @@ func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) GetSessionRecord(c apicontext.Context) error {
+func (h *Handler) GetSessionRecord(c contexts.EchoContext) error {
 	tenant := ""
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID

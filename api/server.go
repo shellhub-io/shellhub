@@ -4,18 +4,14 @@ import (
 	"context"
 	"os"
 
+	"github.com/shellhub-io/shellhub/api/routers"
+
 	"github.com/kelseyhightower/envconfig"
-	"github.com/labstack/echo/v4"
-	echoMiddleware "github.com/labstack/echo/v4/middleware"
-	"github.com/shellhub-io/shellhub/api/apicontext"
 	storecache "github.com/shellhub-io/shellhub/api/cache"
-	"github.com/shellhub-io/shellhub/api/routes"
-	apiMiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
-	"github.com/shellhub-io/shellhub/pkg/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
@@ -43,15 +39,19 @@ type config struct {
 }
 
 func startServer() error {
+	loadCharacteristic := func(condition bool, successReturn func() interface{}, errorReturn interface{}) interface{} {
+		if condition {
+			return successReturn()
+		} else {
+			return errorReturn
+		}
+	}
+
 	if os.Getenv("SHELLHUB_ENV") == "development" {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
 	logrus.Info("Starting API server")
-
-	e := echo.New()
-	e.Use(middleware.Log)
-	e.Use(echoMiddleware.RequestID())
 
 	// Populates configuration based on environment variables prefixed with 'API_'
 	var cfg config
@@ -62,7 +62,7 @@ func startServer() error {
 	logrus.Info("Connecting to MongoDB")
 
 	clientOptions := options.Client().ApplyURI(cfg.MongoURI)
-	client, err := mongodriver.Connect(context.TODO(), clientOptions)
+	client, err := mongodriver.Connect(context.Background(), clientOptions)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to connect to MongoDB")
 	}
@@ -77,118 +77,37 @@ func startServer() error {
 		logrus.WithError(err).Fatal("Failed to apply mongo migrations")
 	}
 
-	var cache storecache.Cache
-	if cfg.StoreCache {
-		logrus.Info("Using redis as store cache backend")
-
-		cache, err = storecache.NewRedisCache(cfg.RedisURI)
-		if err != nil {
-			logrus.WithError(err).Error("Failed to configure redis store cache")
-		}
-	} else {
-		logrus.Info("Store cache disabled")
-		cache = storecache.NewNullCache()
-	}
-
 	requestClient := requests.NewClient()
+
+	cache := loadCharacteristic(cfg.StoreCache, func() interface{} {
+		cache, err := storecache.NewRedisCache(cfg.RedisURI)
+		if err != nil {
+			logrus.WithError(err).Fatal("Could not init cache")
+		}
+
+		return cache
+	}, storecache.NewNullCache()).(storecache.Cache)
 
 	// apply dependency injection through project layers
 	store := mongo.NewStore(client.Database("main"), cache)
 
-	var locator geoip.Locator
-	if cfg.GeoIP {
-		logrus.Info("Using GeoIp for geolocation")
-		locator, err = geoip.NewGeoLite2()
+	locator := loadCharacteristic(cfg.GeoIP, func() interface{} {
+		locator, err := geoip.NewGeoLite2()
 		if err != nil {
-			logrus.WithError(err).Fatalln("Failed to init GeoIp")
+			logrus.WithError(err).Fatal("Could not init geoip")
 		}
-	} else {
-		logrus.Info("GeoIp is disabled")
-		locator = geoip.NewNullGeoLite()
-	}
+
+		return locator
+	}, geoip.NewNullGeoLite()).(geoip.Locator)
 
 	service := services.NewService(store, nil, nil, cache, requestClient, locator)
-	handler := routes.NewHandler(service)
 
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			apicontext := apicontext.NewContext(service, c)
+	var r routers.Router
+	r = routers.NewEchoRouter()
+	r.LoadMiddleware(service)
+	r.LoadRoutes(service)
 
-			return next(apicontext)
-		}
-	})
-
-	// Public routes for external access through API gateway
-	publicAPI := e.Group("/api")
-
-	// Internal routes only accessible by other services in the local container network
-	internalAPI := e.Group("/internal")
-
-	internalAPI.GET(routes.AuthRequestURL, apicontext.Handler(handler.AuthRequest), apicontext.Middleware(routes.AuthMiddleware))
-	publicAPI.POST(routes.AuthDeviceURL, apicontext.Handler(handler.AuthDevice))
-	publicAPI.POST(routes.AuthDeviceURLV2, apicontext.Handler(handler.AuthDevice))
-	publicAPI.POST(routes.AuthUserURL, apicontext.Handler(handler.AuthUser))
-	publicAPI.POST(routes.AuthUserURLV2, apicontext.Handler(handler.AuthUser))
-	publicAPI.GET(routes.AuthUserURLV2, apicontext.Handler(handler.AuthUserInfo))
-	internalAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(handler.AuthGetToken))
-	publicAPI.POST(routes.AuthPublicKeyURL, apicontext.Handler(handler.AuthPublicKey))
-	publicAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(handler.AuthSwapToken))
-
-	publicAPI.PATCH(routes.UpdateUserDataURL, apicontext.Handler(handler.UpdateUserData))
-	publicAPI.PATCH(routes.UpdateUserPasswordURL, apicontext.Handler(handler.UpdateUserPassword))
-	publicAPI.PUT(routes.EditSessionRecordStatusURL, apicontext.Handler(handler.EditSessionRecordStatus))
-	publicAPI.GET(routes.GetSessionRecordURL, apicontext.Handler(handler.GetSessionRecord))
-
-	publicAPI.GET(routes.GetDeviceListURL,
-		apiMiddleware.Authorize(apicontext.Handler(handler.GetDeviceList)))
-	publicAPI.GET(routes.GetDeviceURL,
-		apiMiddleware.Authorize(apicontext.Handler(handler.GetDevice)))
-	publicAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(handler.DeleteDevice))
-	publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(handler.RenameDevice))
-	internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(handler.OfflineDevice))
-	internalAPI.POST(routes.HeartbeatDeviceURL, apicontext.Handler(handler.HeartbeatDevice))
-	internalAPI.GET(routes.LookupDeviceURL, apicontext.Handler(handler.LookupDevice))
-	publicAPI.PATCH(routes.UpdateStatusURL, apicontext.Handler(handler.UpdatePendingStatus))
-
-	publicAPI.POST(routes.CreateTagURL, apicontext.Handler(handler.CreateTag))
-	publicAPI.DELETE(routes.DeleteTagURL, apicontext.Handler(handler.DeleteTag))
-	publicAPI.PUT(routes.RenameTagURL, apicontext.Handler(handler.RenameTag))
-	publicAPI.GET(routes.ListTagURL, apicontext.Handler(handler.ListTag))
-	publicAPI.PUT(routes.UpdateTagURL, apicontext.Handler(handler.UpdateTag))
-	publicAPI.GET(routes.GetTagsURL, apicontext.Handler(handler.GetTags))
-	publicAPI.DELETE(routes.DeleteAllTagsURL, apicontext.Handler(handler.DeleteAllTags))
-
-	publicAPI.GET(routes.GetSessionsURL,
-		apiMiddleware.Authorize(apicontext.Handler(handler.GetSessionList)))
-	publicAPI.GET(routes.GetSessionURL,
-		apiMiddleware.Authorize(apicontext.Handler(handler.GetSession)))
-	internalAPI.PATCH(routes.SetSessionAuthenticatedURL, apicontext.Handler(handler.SetSessionAuthenticated))
-	internalAPI.POST(routes.CreateSessionURL, apicontext.Handler(handler.CreateSession))
-	internalAPI.POST(routes.FinishSessionURL, apicontext.Handler(handler.FinishSession))
-	internalAPI.POST(routes.RecordSessionURL, apicontext.Handler(handler.RecordSession))
-	publicAPI.GET(routes.PlaySessionURL, apicontext.Handler(handler.PlaySession))
-	publicAPI.DELETE(routes.RecordSessionURL, apicontext.Handler(handler.DeleteRecordedSession))
-
-	publicAPI.GET(routes.GetStatsURL,
-		apiMiddleware.Authorize(apicontext.Handler(handler.GetStats)))
-
-	publicAPI.GET(routes.GetPublicKeysURL, apicontext.Handler(handler.GetPublicKeys))
-	publicAPI.POST(routes.CreatePublicKeyURL, apicontext.Handler(handler.CreatePublicKey))
-	publicAPI.PUT(routes.UpdatePublicKeyURL, apicontext.Handler(handler.UpdatePublicKey))
-	publicAPI.DELETE(routes.DeletePublicKeyURL, apicontext.Handler(handler.DeletePublicKey))
-	internalAPI.GET(routes.GetPublicKeyURL, apicontext.Handler(handler.GetPublicKey))
-	internalAPI.POST(routes.CreatePrivateKeyURL, apicontext.Handler(handler.CreatePrivateKey))
-	internalAPI.POST(routes.EvaluateKeyURL, apicontext.Handler(handler.EvaluateKey))
-
-	publicAPI.GET(routes.ListNamespaceURL, apicontext.Handler(handler.GetNamespaceList))
-	publicAPI.GET(routes.GetNamespaceURL, apicontext.Handler(handler.GetNamespace))
-	publicAPI.POST(routes.CreateNamespaceURL, apicontext.Handler(handler.CreateNamespace))
-	publicAPI.DELETE(routes.DeleteNamespaceURL, apicontext.Handler(handler.DeleteNamespace))
-	publicAPI.PUT(routes.EditNamespaceURL, apicontext.Handler(handler.EditNamespace))
-	publicAPI.PATCH(routes.AddNamespaceUserURL, apicontext.Handler(handler.AddNamespaceUser))
-	publicAPI.PATCH(routes.RemoveNamespaceUserURL, apicontext.Handler(handler.RemoveNamespaceUser))
-
-	e.Logger.Fatal(e.Start(":8080"))
+	r.ListenAndServe(":8080")
 
 	return nil
 }

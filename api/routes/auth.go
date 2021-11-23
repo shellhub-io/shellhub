@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/mitchellh/mapstructure"
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/contexts"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -23,7 +23,7 @@ const (
 	AuthPublicKeyURL = "/auth/ssh"
 )
 
-func (h *Handler) AuthRequest(c apicontext.Context) error {
+func (h *Handler) AuthRequest(c contexts.EchoContext) error {
 	token, ok := c.Get("user").(*jwt.Token)
 	if !ok {
 		return svc.ErrTypeAssertion
@@ -64,7 +64,7 @@ func (h *Handler) AuthRequest(c apicontext.Context) error {
 	return echo.ErrUnauthorized
 }
 
-func (h *Handler) AuthDevice(c apicontext.Context) error {
+func (h *Handler) AuthDevice(c contexts.EchoContext) error {
 	var req models.DeviceAuthRequest
 
 	if err := c.Bind(&req); err != nil {
@@ -85,7 +85,7 @@ func (h *Handler) AuthDevice(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) AuthUser(c apicontext.Context) error {
+func (h *Handler) AuthUser(c contexts.EchoContext) error {
 	var req models.UserAuthRequest
 
 	if err := c.Bind(&req); err != nil {
@@ -105,7 +105,7 @@ func (h *Handler) AuthUser(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) AuthUserInfo(c apicontext.Context) error {
+func (h *Handler) AuthUserInfo(c contexts.EchoContext) error {
 	username := c.Request().Header.Get("X-Username")
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 	token := c.Request().Header.Get(echo.HeaderAuthorization)
@@ -123,7 +123,7 @@ func (h *Handler) AuthUserInfo(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) AuthGetToken(c apicontext.Context) error {
+func (h *Handler) AuthGetToken(c contexts.EchoContext) error {
 	res, err := h.service.AuthGetToken(c.Ctx(), c.Param("tenant"))
 	if err != nil {
 		return echo.ErrUnauthorized
@@ -132,7 +132,7 @@ func (h *Handler) AuthGetToken(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) AuthSwapToken(c apicontext.Context) error {
+func (h *Handler) AuthSwapToken(c contexts.EchoContext) error {
 	id := ""
 	if v := c.ID(); v != nil {
 		id = v.ID
@@ -146,7 +146,7 @@ func (h *Handler) AuthSwapToken(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) AuthPublicKey(c apicontext.Context) error {
+func (h *Handler) AuthPublicKey(c contexts.EchoContext) error {
 	var req models.PublicKeyAuthRequest
 
 	if err := c.Bind(&req); err != nil {
@@ -163,7 +163,7 @@ func (h *Handler) AuthPublicKey(c apicontext.Context) error {
 
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		ctx, ok := c.Get("ctx").(*apicontext.Context)
+		ctx, ok := c.Get("ctx").(*contexts.EchoContext)
 		if !ok {
 			return svc.ErrTypeAssertion
 		}

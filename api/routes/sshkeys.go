@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/contexts"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -22,7 +22,7 @@ const (
 	EvaluateKeyURL      = "/sshkeys/public-keys/evaluate/:fingerprint/:username"
 )
 
-func (h *Handler) GetPublicKeys(c apicontext.Context) error {
+func (h *Handler) GetPublicKeys(c contexts.EchoContext) error {
 	query := paginator.NewQuery()
 	if err := c.Bind(query); err != nil {
 		return err
@@ -41,7 +41,7 @@ func (h *Handler) GetPublicKeys(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
-func (h *Handler) GetPublicKey(c apicontext.Context) error {
+func (h *Handler) GetPublicKey(c contexts.EchoContext) error {
 	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param("fingerprint"), c.Param("tenant"))
 	if err != nil {
 		if err == store.ErrNoDocuments {
@@ -54,7 +54,7 @@ func (h *Handler) GetPublicKey(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, pubKey)
 }
 
-func (h *Handler) CreatePublicKey(c apicontext.Context) error {
+func (h *Handler) CreatePublicKey(c contexts.EchoContext) error {
 	var key models.PublicKey
 	if err := c.Bind(&key); err != nil {
 		return err
@@ -79,7 +79,7 @@ func (h *Handler) CreatePublicKey(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, key)
 }
 
-func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
+func (h *Handler) UpdatePublicKey(c contexts.EchoContext) error {
 	var params models.PublicKeyUpdate
 	if err := c.Bind(&params); err != nil {
 		return err
@@ -98,7 +98,7 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, key)
 }
 
-func (h *Handler) DeletePublicKey(c apicontext.Context) error {
+func (h *Handler) DeletePublicKey(c contexts.EchoContext) error {
 	tenant := ""
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID
@@ -111,7 +111,7 @@ func (h *Handler) DeletePublicKey(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) CreatePrivateKey(c apicontext.Context) error {
+func (h *Handler) CreatePrivateKey(c contexts.EchoContext) error {
 	privKey, err := h.service.CreatePrivateKey(c.Ctx())
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (h *Handler) CreatePrivateKey(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, privKey)
 }
 
-func (h *Handler) EvaluateKey(c apicontext.Context) error {
+func (h *Handler) EvaluateKey(c contexts.EchoContext) error {
 	username := c.Param("username")
 	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param("fingerprint"), c.Param("tenant"))
 	if err != nil {

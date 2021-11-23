@@ -3,7 +3,7 @@ package mongo
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/contexts"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -14,7 +14,7 @@ import (
 func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
 	query := []bson.M{}
 
-	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
+	if tenant := contexts.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
