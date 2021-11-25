@@ -20,6 +20,12 @@ func (c *Context) Service() interface{} {
 	return c.service
 }
 
+// Type returns the user's type/member's type from the current namespace.
+// It can be empty if the user has no namespaces.
+func (c *Context) Type() string {
+	return c.Request().Header.Get("X-Type")
+}
+
 func (c *Context) Tenant() *models.Tenant {
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 	if tenant != "" {

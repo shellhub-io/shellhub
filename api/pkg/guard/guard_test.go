@@ -224,76 +224,16 @@ func TestEvaluateSubject(t *testing.T) {
 func TestEvaluatePermission(t *testing.T) {
 	mock := &mocks.Store{}
 
-	ctx := context.TODO()
-
-	userOwner := &models.User{
-		ID: "userOwnerID",
-		UserData: models.UserData{
-			Name:     "userOwner",
-			Email:    "userOwner@userOwner.com",
-			Username: "usernameOwner",
-		},
-	}
-	userObserver := &models.User{
-		ID: "userObserverID",
-		UserData: models.UserData{
-			Name:     "userObserver",
-			Email:    "userObserver@userObserver.com",
-			Username: "usernameObserver",
-		},
-	}
-	userOperator := &models.User{
-		ID: "userOperatorID",
-		UserData: models.UserData{
-			Name:     "userOperator",
-			Email:    "userOperator@userOperator.com",
-			Username: "usernameOperator",
-		},
-	}
-	userAdministrator := &models.User{
-		ID: "userAdministratorID",
-		UserData: models.UserData{
-			Name:     "userAdministrator",
-			Email:    "userAdministrator@userAdministrator.com",
-			Username: "usernameAdministrator",
-		},
-	}
-	namespace := &models.Namespace{
-		Name:     "namespace",
-		Owner:    userOwner.ID,
-		TenantID: "tenantID",
-		Members: []models.Member{
-			{
-				ID:   userOwner.ID,
-				Type: authorizer.MemberTypeOwner,
-			},
-			{
-				ID:   userObserver.ID,
-				Type: authorizer.MemberTypeObserver,
-			},
-			{
-				ID:   userOperator.ID,
-				Type: authorizer.MemberTypeOperator,
-			},
-			{
-				ID:   userAdministrator.ID,
-				Type: authorizer.MemberTypeAdministrator,
-			},
-		},
-	}
-
 	cases := []struct {
 		description   string
-		tenantID      string
-		userID        string
+		userType      string
 		actions       []int
 		requiredMocks func()
 		expected      bool
 	}{
 		{
 			description: "EvaluatePermission success when user is the observer",
-			tenantID:    namespace.TenantID,
-			userID:      userObserver.ID,
+			userType:    authorizer.MemberTypeObserver,
 			actions: []int{
 				authorizer.Actions.Device.Connect,
 
@@ -302,15 +242,12 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Namespace.Create,
 			},
 			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userObserver.ID, false).Return(userObserver, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
 			},
 			expected: true,
 		},
 		{
 			description: "EvaluatePermission success when user is the operator",
-			tenantID:    namespace.TenantID,
-			userID:      userOperator.ID,
+			userType:    authorizer.MemberTypeOperator,
 			actions: []int{
 				authorizer.Actions.Device.Accept,
 				authorizer.Actions.Device.Reject,
@@ -322,15 +259,12 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Namespace.Create,
 			},
 			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userOperator.ID, false).Return(userOperator, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
 			},
 			expected: true,
 		},
 		{
 			description: "EvaluatePermission success when user is the administrator",
-			tenantID:    namespace.TenantID,
-			userID:      userAdministrator.ID,
+			userType:    authorizer.MemberTypeAdministrator,
 			actions: []int{
 				authorizer.Actions.Device.Accept,
 				authorizer.Actions.Device.Reject,
@@ -360,15 +294,12 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Namespace.Delete,
 			},
 			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userAdministrator.ID, false).Return(userAdministrator, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
 			},
 			expected: true,
 		},
 		{
 			description: "EvaluatePermission success when user is the owner",
-			tenantID:    namespace.TenantID,
-			userID:      userOwner.ID,
+			userType:    authorizer.MemberTypeOwner,
 			actions: []int{
 				authorizer.Actions.Device.Accept,
 				authorizer.Actions.Device.Reject,
@@ -405,8 +336,6 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Billing.GetSubscription,
 			},
 			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userOwner.ID, false).Return(userOwner, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
 			},
 			expected: true,
 		},
@@ -416,7 +345,7 @@ func TestEvaluatePermission(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 			for _, action := range tc.actions {
-				assert.True(t, EvaluatePermission(ctx, store.Store(mock), tc.tenantID, tc.userID, action))
+				assert.True(t, EvaluatePermission(tc.userType, action))
 			}
 		})
 	}

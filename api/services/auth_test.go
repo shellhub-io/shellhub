@@ -215,21 +215,13 @@ func TestAuthUserInfo(t *testing.T) {
 
 	ctx := context.TODO()
 
-	authRes1 := &models.UserAuthResponse{
-		Name:   "user",
-		Token:  "---------------token----------------",
-		User:   "user",
-		Tenant: "",
-		ID:     "id",
-		Email:  "email@email.com",
-	}
-
 	authRes2 := &models.UserAuthResponse{
 		Name:   "user",
 		Token:  "---------------token----------------",
 		User:   "user",
 		Tenant: "xxxxxx",
 		ID:     "id",
+		Type:   "owner",
 		Email:  "email@email.com",
 	}
 
@@ -246,6 +238,12 @@ func TestAuthUserInfo(t *testing.T) {
 		Name:     "namespace",
 		Owner:    "id",
 		TenantID: "xxxxxx",
+		Members: []models.Member{
+			{
+				ID:   "id",
+				Type: "owner",
+			},
+		},
 	}
 
 	Err := errors.New("error")
@@ -281,16 +279,6 @@ func TestAuthUserInfo(t *testing.T) {
 			expected: Expected{nil, Err},
 		},
 		{
-			description: "Fails empty tenant return login auth",
-			username:    "user",
-			tenantID:    "",
-			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
-				mock.On("NamespaceGet", ctx, "").Return(nil, store.ErrNoDocuments).Once()
-			},
-			expected: Expected{authRes1, nil},
-		},
-		{
 			description: "Successful auth login",
 			username:    "user",
 			tenantID:    namespace.TenantID,
@@ -302,11 +290,13 @@ func TestAuthUserInfo(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
-		t.Log("PASS:  ", tc.description)
-		tc.requiredMocks()
-		authRes, err := s.AuthUserInfo(ctx, tc.username, tc.tenantID, "---------------token----------------")
-		assert.Equal(t, tc.expected, Expected{authRes, err})
+	for _, test := range tests {
+		tc := test
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+			authRes, err := s.AuthUserInfo(ctx, tc.username, tc.tenantID, "---------------token----------------")
+			assert.Equal(t, tc.expected, Expected{authRes, err})
+		})
 	}
 
 	mock.AssertExpectations(t)

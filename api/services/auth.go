@@ -130,13 +130,17 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 	}
 
 	namespace, err := s.store.NamespaceGetFirst(ctx, user.ID)
-	if err != nil && err != store.ErrNoDocuments {
-		return nil, err
-	}
 
+	userType := ""
 	tenant := ""
 	if namespace != nil {
 		tenant = namespace.TenantID
+
+		for _, member := range namespace.Members {
+			if member.ID == user.ID {
+				userType = member.Type
+			}
+		}
 	}
 
 	password := sha256.Sum256([]byte(req.Password))
@@ -145,6 +149,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			Username: user.Username,
 			Admin:    true,
 			Tenant:   tenant,
+			Type:     userType,
 			ID:       user.ID,
 			AuthClaims: models.AuthClaims{
 				Claims: "user",
@@ -171,6 +176,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			ID:     user.ID,
 			User:   user.Username,
 			Tenant: tenant,
+			Type:   userType,
 			Email:  user.Email,
 		}, nil
 	}
@@ -194,10 +200,18 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 		tenant = namespace.TenantID
 	}
 
+	var userType string
+	for _, member := range namespace.Members {
+		if member.ID == user.ID {
+			userType = member.Type
+		}
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 		Username: user.Username,
 		Admin:    true,
 		Tenant:   tenant,
+		Type:     userType,
 		ID:       user.ID,
 		AuthClaims: models.AuthClaims{
 			Claims: "user",
@@ -218,6 +232,7 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 		ID:     user.ID,
 		User:   user.Username,
 		Tenant: tenant,
+		Type:   userType,
 		Email:  user.Email,
 	}, nil
 }
@@ -260,12 +275,20 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 		return nil, err
 	}
 
+	var userType string
+	for _, member := range namespace.Members {
+		if member.ID == user.ID {
+			userType = member.Type
+		}
+	}
+
 	for _, i := range namespace.Members {
 		if user.ID == i.ID {
 			token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 				Username: user.Username,
 				Admin:    true,
 				Tenant:   namespace.TenantID,
+				Type:     userType,
 				ID:       user.ID,
 				AuthClaims: models.AuthClaims{
 					Claims: "user",
@@ -285,6 +308,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				Name:   user.Name,
 				ID:     user.ID,
 				User:   user.Username,
+				Type:   userType,
 				Tenant: namespace.TenantID,
 				Email:  user.Email,
 			}, nil
@@ -304,7 +328,8 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 		return nil, err
 	}
 
-	if _, err = s.store.NamespaceGet(ctx, tenant); err != nil && tenant != "" {
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil && tenant != "" {
 		if err == store.ErrNoDocuments {
 			return nil, ErrUnauthorized
 		}
@@ -312,11 +337,19 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 		return nil, err
 	}
 
+	var userType string
+	for _, member := range namespace.Members {
+		if member.ID == user.ID {
+			userType = member.Type
+		}
+	}
+
 	return &models.UserAuthResponse{
 		Token:  token,
 		Name:   user.Name,
 		User:   user.Username,
 		Tenant: tenant,
+		Type:   userType,
 		ID:     user.ID,
 		Email:  user.Email,
 	}, nil

@@ -1,18 +1,16 @@
 package services
 
 import (
-	"context"
-
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 )
 
 type MiddlewareService interface {
-	CheckPermission(context context.Context, tenantID, userID string, action int, service func() error) error
+	CheckPermission(userType string, action int, service func() error) error
 }
 
-// CheckPermission checks if an user, through userID, has the permission, according to its type/role on namespace, to execute an action.
-func (s *service) CheckPermission(context context.Context, tenantID, userID string, action int, service func() error) error {
-	if !guard.EvaluatePermission(context, s.store, tenantID, userID, action) {
+// CheckPermission checks if an user, through user's type, has permission, according to its type/role on namespace, to execute an action.
+func (s *service) CheckPermission(userType string, action int, service func() error) error {
+	if !guard.EvaluatePermission(userType, action) {
 		return ErrForbidden
 	}
 

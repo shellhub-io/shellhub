@@ -37,6 +37,7 @@ type UserAuthResponse struct {
 	Name   string `json:"name"`
 	ID     string `json:"id"`
 	Tenant string `json:"tenant"`
+	Type   string `json:"type"`
 	Email  string `json:"email"`
 }
 
@@ -45,6 +46,7 @@ type UserAuthClaims struct {
 	Admin    bool   `json:"admin"`
 	Tenant   string `json:"tenant"`
 	ID       string `json:"id"`
+	Type     string `json:"type"`
 
 	AuthClaims         `mapstruct:",squash"`
 	jwt.StandardClaims `mapstruct:",squash"`
