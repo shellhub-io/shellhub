@@ -14,24 +14,28 @@ func TestEvaluateType(t *testing.T) {
 		{
 			name: "Fail when the first type is not great than the second one",
 			exec: func(t *testing.T) {
+				t.Helper()
 				assert.False(t, EvaluateType(MemberTypeAdministrator, MemberTypeOwner))
 			},
 		},
 		{
 			name: "Fail when a type is not valid",
 			exec: func(t *testing.T) {
+				t.Helper()
 				assert.False(t, EvaluateType("invalidType", MemberTypeOperator))
 			},
 		},
 		{
 			name: "Fail when both types are equals",
 			exec: func(t *testing.T) {
+				t.Helper()
 				assert.False(t, EvaluateType(MemberTypeOperator, MemberTypeOperator))
 			},
 		},
 		{
 			name: "Success when the first type is great than the second one",
 			exec: func(t *testing.T) {
+				t.Helper()
 				assert.True(t, EvaluateType(MemberTypeAdministrator, MemberTypeOperator))
 			},
 		},
@@ -50,6 +54,7 @@ func TestCheckPermission(t *testing.T) {
 		{
 			name: "Fail when action is not allowed",
 			exec: func(t *testing.T) {
+				t.Helper()
 				action := Actions.Firewall.Create
 				assert.False(t, checkPermission(action, observerPermissions))
 			},
@@ -57,6 +62,7 @@ func TestCheckPermission(t *testing.T) {
 		{
 			name: "Success action is allowed",
 			exec: func(t *testing.T) {
+				t.Helper()
 				action := Actions.Device.Connect
 				assert.True(t, checkPermission(action, observerPermissions))
 			},
@@ -76,17 +82,19 @@ func TestEvaluatePermission(t *testing.T) {
 		{
 			name: "Fails when member's type has no permission",
 			exec: func(t *testing.T) {
+				t.Helper()
 				ty := "observer"
 				action := Actions.Firewall.Create
-				assert.False(t, EvaluatePermission(action, ty))
+				assert.False(t, EvaluatePermission(ty, action))
 			},
 		},
 		{
 			name: "Success when member's type has permission",
 			exec: func(t *testing.T) {
+				t.Helper()
 				ty := "owner"
 				action := Actions.Firewall.Create
-				assert.True(t, EvaluatePermission(action, ty))
+				assert.True(t, EvaluatePermission(ty, action))
 			},
 		},
 	}

@@ -129,7 +129,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		return nil, ErrForbidden
 	}
 
-	namespace, err := s.store.NamespaceGetFirst(ctx, user.ID)
+	namespace, _ := s.store.NamespaceGetFirst(ctx, user.ID)
 
 	userType := ""
 	tenant := ""
