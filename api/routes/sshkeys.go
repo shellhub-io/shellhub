@@ -60,14 +60,12 @@ func (h *Handler) CreatePublicKey(c apicontext.Context) error {
 		return err
 	}
 
-	userID := ""
 	tenantID := ""
-	if c.ID() != nil && c.Tenant() != nil {
-		userID = c.ID().ID
+	if c.Tenant() != nil {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.PublicKey.Create, func() error {
+	err := h.service.CheckPermission(c.Type(), authorizer.Actions.PublicKey.Create, func() error {
 		err := h.service.CreatePublicKey(c.Ctx(), &key, tenantID)
 
 		return err
@@ -94,15 +92,13 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 		return err
 	}
 
-	userID := ""
 	tenantID := ""
-	if c.ID() != nil && c.Tenant() != nil {
-		userID = c.ID().ID
+	if c.Tenant() != nil {
 		tenantID = c.Tenant().ID
 	}
 
 	var key *models.PublicKey
-	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.PublicKey.Edit, func() error {
+	err := h.service.CheckPermission(c.Type(), authorizer.Actions.PublicKey.Edit, func() error {
 		var err error
 		key, err = h.service.UpdatePublicKey(c.Ctx(), c.Param("fingerprint"), tenantID, &params)
 
@@ -121,14 +117,12 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 }
 
 func (h *Handler) DeletePublicKey(c apicontext.Context) error {
-	userID := ""
 	tenantID := ""
-	if c.ID() != nil && c.Tenant() != nil {
-		userID = c.ID().ID
+	if c.Tenant() != nil {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.PublicKey.Remove, func() error {
+	err := h.service.CheckPermission(c.Type(), authorizer.Actions.PublicKey.Remove, func() error {
 		err := h.service.DeletePublicKey(c.Ctx(), c.Param("fingerprint"), tenantID)
 
 		return err

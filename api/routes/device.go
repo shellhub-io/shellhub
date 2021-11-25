@@ -68,14 +68,12 @@ func (h *Handler) GetDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) DeleteDevice(c apicontext.Context) error {
-	userID := ""
 	tenantID := ""
-	if c.ID() != nil && c.Tenant() != nil {
-		userID = c.ID().ID
+	if c.Tenant() != nil {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.Device.Remove, func() error {
+	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Device.Remove, func() error {
 		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenantID)
 
 		return err
@@ -101,14 +99,12 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 		return err
 	}
 
-	userID := ""
 	tenantID := ""
-	if c.ID() != nil && c.Tenant() != nil {
-		userID = c.ID().ID
+	if c.Tenant() != nil {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.Device.Rename, func() error {
+	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Device.Rename, func() error {
 		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenantID)
 
 		return err
@@ -160,10 +156,8 @@ func (h *Handler) LookupDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
-	userID := ""
 	tenantID := ""
-	if c.ID() != nil && c.Tenant() != nil {
-		userID = c.ID().ID
+	if c.Tenant() != nil {
 		tenantID = c.Tenant().ID
 	}
 
@@ -173,7 +167,7 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 		"pending": "pending",
 		"unused":  "unused",
 	}
-	err := h.service.CheckPermission(c.Ctx(), tenantID, userID, authorizer.Actions.Device.Accept, func() error {
+	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Device.Accept, func() error {
 		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenantID)
 
 		return err

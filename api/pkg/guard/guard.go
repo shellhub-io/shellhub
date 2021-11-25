@@ -45,10 +45,9 @@ func EvaluateSubject(ctx context.Context, s store.Store, tenantID, activeID, typ
 	return authorizer.EvaluateType(typeActive, typePassive)
 }
 
-// EvaluatePermission checks if a namespace's member has the type what allow an action.
-func EvaluatePermission(ctx context.Context, s store.Store, tenantID, userID string, action int) bool {
-	userType, ok := getTypeByID(ctx, s, tenantID, userID)
-	if !ok {
+// EvaluatePermission checks if a namespace's member has the type that allows an action.
+func EvaluatePermission(userType string, action int) bool {
+	if userType == "" {
 		return false
 	}
 

@@ -179,13 +179,13 @@ func (_m *Service) AuthUserInfo(ctx context.Context, username string, tenant str
 	return r0, r1
 }
 
-// CheckPermission provides a mock function with given fields: _a0, tenantID, userID, action, service
-func (_m *Service) CheckPermission(_a0 context.Context, tenantID string, userID string, action int, service func() error) error {
-	ret := _m.Called(_a0, tenantID, userID, action, service)
+// CheckPermission provides a mock function with given fields: userType, action, service
+func (_m *Service) CheckPermission(userType string, action int, service func() error) error {
+	ret := _m.Called(userType, action, service)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, int, func() error) error); ok {
-		r0 = rf(_a0, tenantID, userID, action, service)
+	if rf, ok := ret.Get(0).(func(string, int, func() error) error); ok {
+		r0 = rf(userType, action, service)
 	} else {
 		r0 = ret.Error(0)
 	}
