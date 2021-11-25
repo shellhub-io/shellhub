@@ -2,10 +2,13 @@ package guard
 
 import (
 	"context"
+	"errors"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
 )
+
+var ErrForbidden = errors.New("forbidden")
 
 func getTypeByID(ctx context.Context, s store.Store, tenantID, id string) (string, bool) {
 	user, _, err := s.UserGetByID(ctx, id, false)
@@ -46,10 +49,10 @@ func EvaluateSubject(ctx context.Context, s store.Store, tenantID, activeID, typ
 }
 
 // EvaluatePermission checks if a namespace's member has the type that allows an action.
-func EvaluatePermission(userType string, action int) bool {
-	if userType == "" {
-		return false
+func EvaluatePermission(userType string, action int, service func() error) error {
+	if !authorizer.EvaluatePermission(userType, action) {
+		return ErrForbidden
 	}
 
-	return authorizer.EvaluatePermission(action, userType)
+	return service()
 }

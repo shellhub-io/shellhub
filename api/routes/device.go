@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
+
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
@@ -73,14 +75,14 @@ func (h *Handler) DeleteDevice(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Device.Remove, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Device.Remove, func() error {
 		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenantID)
 
 		return err
 	})
 	if err != nil {
 		switch err {
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		default:
 			return err
@@ -104,14 +106,14 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Device.Rename, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Device.Rename, func() error {
 		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenantID)
 
 		return err
 	})
 	if err != nil {
 		switch err {
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrDuplicatedDeviceName:
 			return c.NoContent(http.StatusConflict)
@@ -167,14 +169,14 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 		"pending": "pending",
 		"unused":  "unused",
 	}
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Device.Accept, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Device.Accept, func() error {
 		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenantID)
 
 		return err
 	})
 	if err != nil {
 		switch err {
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrBadRequest:
 			return c.NoContent(http.StatusBadRequest)

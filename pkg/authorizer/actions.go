@@ -1,5 +1,7 @@
 package authorizer
 
+type Action int
+
 // actions is a struct to act like an Enum and facilitate to indicate the action used in the service.
 type actions struct {
 	Device    deviceActions

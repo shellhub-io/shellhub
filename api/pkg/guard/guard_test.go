@@ -345,7 +345,9 @@ func TestEvaluatePermission(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 			for _, action := range tc.actions {
-				assert.True(t, EvaluatePermission(tc.userType, action))
+				assert.NoError(t, EvaluatePermission(tc.userType, action, func() error {
+					return nil
+				}))
 			}
 		})
 	}

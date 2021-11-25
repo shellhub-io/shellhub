@@ -36,7 +36,7 @@ func GetTypeCode(memberType string) int {
 	return -1
 }
 
-// EvaluateType checks if the first type has a great value than the second.
+// EvaluateType checks if the first type has a great value than second.
 func EvaluateType(firstType, secondType string) bool {
 	firstTypeCode := GetTypeCode(firstType)
 	secondTypeCode := GetTypeCode(secondType)
@@ -49,7 +49,7 @@ func EvaluateType(firstType, secondType string) bool {
 }
 
 // EvaluatePermission checks if the user's type has the permission to execute an action.
-func EvaluatePermission(action int, userType string) bool {
+func EvaluatePermission(userType string, action int) bool {
 	switch userType {
 	case MemberTypeObserver:
 		return checkPermission(action, observerPermissions)

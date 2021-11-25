@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
+
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
@@ -53,7 +55,7 @@ func (h *Handler) CreateNamespace(c apicontext.Context) error {
 	namespace, err := h.service.CreateNamespace(c.Ctx(), &req, userID)
 	if err != nil {
 		switch err {
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrConflictName:
 			return c.NoContent(http.StatusConflict)
@@ -77,14 +79,14 @@ func (h *Handler) GetNamespace(c apicontext.Context) error {
 }
 
 func (h *Handler) DeleteNamespace(c apicontext.Context) error {
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Namespace.Delete, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.Delete, func() error {
 		err := h.service.DeleteNamespace(c.Ctx(), c.Param("id"))
 
 		return err
 	})
 	if err != nil {
 		switch err {
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
@@ -106,7 +108,7 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 	}
 
 	var namespace *models.Namespace
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Namespace.Rename, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.Rename, func() error {
 		var err error
 		namespace, err = h.service.EditNamespace(c.Ctx(), c.Param("id"), req.Name)
 
@@ -114,7 +116,7 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 	})
 	if err != nil {
 		switch err {
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrInvalidFormat:
 			return c.NoContent(http.StatusBadRequest)
@@ -144,7 +146,7 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 	}
 
 	var namespace *models.Namespace
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Namespace.AddMember, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.AddMember, func() error {
 		var err error
 		namespace, err = h.service.AddNamespaceUser(c.Ctx(), member.Username, member.Type, c.Param("id"), userID)
 
@@ -154,7 +156,7 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 		switch err {
 		case services.ErrInvalidFormat:
 			return c.NoContent(http.StatusBadRequest)
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrUserNotFound:
 			return c.NoContent(http.StatusNotFound)
@@ -177,7 +179,7 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 	}
 
 	var namespace *models.Namespace
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Namespace.RemoveMember, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.RemoveMember, func() error {
 		var err error
 		namespace, err = h.service.RemoveNamespaceUser(c.Ctx(), c.Param("id"), c.Param("uid"), userID)
 
@@ -185,7 +187,7 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 	})
 	if err != nil {
 		switch err {
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrUserNotFound:
 			return c.NoContent(http.StatusNotFound)
@@ -215,14 +217,14 @@ func (h *Handler) EditNamespaceUser(c apicontext.Context) error {
 		userID = c.ID().ID
 	}
 
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Namespace.EditMember, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.EditMember, func() error {
 		err := h.service.EditNamespaceUser(c.Ctx(), c.Param("id"), userID, c.Param("uid"), member.Type)
 
 		return err
 	})
 	if err != nil {
 		switch err {
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		case services.ErrUserNotFound:
 			return c.NoContent(http.StatusNotFound)
@@ -248,7 +250,7 @@ func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
 
 	tenant := c.Param("id")
 
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.Namespace.EnableSessionRecord, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.EnableSessionRecord, func() error {
 		err := h.service.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, tenant)
 
 		return err

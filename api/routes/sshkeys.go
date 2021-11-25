@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
+
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -65,7 +67,7 @@ func (h *Handler) CreatePublicKey(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.PublicKey.Create, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.PublicKey.Create, func() error {
 		err := h.service.CreatePublicKey(c.Ctx(), &key, tenantID)
 
 		return err
@@ -76,7 +78,7 @@ func (h *Handler) CreatePublicKey(c apicontext.Context) error {
 			return c.NoContent(http.StatusUnprocessableEntity)
 		case services.ErrDuplicateFingerprint:
 			return c.NoContent(http.StatusConflict)
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		default:
 			return err
@@ -98,7 +100,7 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 	}
 
 	var key *models.PublicKey
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.PublicKey.Edit, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.PublicKey.Edit, func() error {
 		var err error
 		key, err = h.service.UpdatePublicKey(c.Ctx(), c.Param("fingerprint"), tenantID, &params)
 
@@ -106,7 +108,7 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 	})
 	if err != nil {
 		switch err {
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		default:
 			return err
@@ -122,14 +124,14 @@ func (h *Handler) DeletePublicKey(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.CheckPermission(c.Type(), authorizer.Actions.PublicKey.Remove, func() error {
+	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.PublicKey.Remove, func() error {
 		err := h.service.DeletePublicKey(c.Ctx(), c.Param("fingerprint"), tenantID)
 
 		return err
 	})
 	if err != nil {
 		switch err {
-		case services.ErrForbidden:
+		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
 		default:
 			return err
