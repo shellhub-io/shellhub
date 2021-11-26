@@ -79,7 +79,7 @@ func (h *Handler) GetNamespace(c apicontext.Context) error {
 }
 
 func (h *Handler) DeleteNamespace(c apicontext.Context) error {
-	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.Delete, func() error {
+	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Namespace.Delete, func() error {
 		err := h.service.DeleteNamespace(c.Ctx(), c.Param("id"))
 
 		return err
@@ -108,7 +108,7 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 	}
 
 	var namespace *models.Namespace
-	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.Rename, func() error {
+	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Namespace.Rename, func() error {
 		var err error
 		namespace, err = h.service.EditNamespace(c.Ctx(), c.Param("id"), req.Name)
 
@@ -146,7 +146,7 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 	}
 
 	var namespace *models.Namespace
-	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.AddMember, func() error {
+	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Namespace.AddMember, func() error {
 		var err error
 		namespace, err = h.service.AddNamespaceUser(c.Ctx(), member.Username, member.Type, c.Param("id"), userID)
 
@@ -179,7 +179,7 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 	}
 
 	var namespace *models.Namespace
-	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.RemoveMember, func() error {
+	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Namespace.RemoveMember, func() error {
 		var err error
 		namespace, err = h.service.RemoveNamespaceUser(c.Ctx(), c.Param("id"), c.Param("uid"), userID)
 
@@ -217,7 +217,7 @@ func (h *Handler) EditNamespaceUser(c apicontext.Context) error {
 		userID = c.ID().ID
 	}
 
-	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.EditMember, func() error {
+	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Namespace.EditMember, func() error {
 		err := h.service.EditNamespaceUser(c.Ctx(), c.Param("id"), userID, c.Param("uid"), member.Type)
 
 		return err
@@ -250,7 +250,7 @@ func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
 
 	tenant := c.Param("id")
 
-	err := guard.EvaluatePermission(c.Type(), authorizer.Actions.Namespace.EnableSessionRecord, func() error {
+	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Namespace.EnableSessionRecord, func() error {
 		err := h.service.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, tenant)
 
 		return err

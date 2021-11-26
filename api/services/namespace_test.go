@@ -837,7 +837,7 @@ func TestAddNamespaceUser(t *testing.T) {
 			},
 		},
 		{
-			Name:     "AddNamespaceUser fails when Type is not valid",
+			Name:     "AddNamespaceUser fails when UserType is not valid",
 			Username: user2.Username,
 			Type:     "invalid",
 			ID:       user1.ID,

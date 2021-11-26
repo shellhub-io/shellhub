@@ -192,22 +192,19 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 		return nil, err
 	}
 
-	namespace, err := s.store.NamespaceGetFirst(ctx, user.ID)
-	if err != nil && err != store.ErrNoDocuments {
-		return nil, err
-	}
+	namespace, _ := s.store.NamespaceGetFirst(ctx, user.ID)
 
+	userType := ""
 	tenant := ""
 	if namespace != nil {
 		tenant = namespace.TenantID
-	}
 
-	var userType string
-	for _, member := range namespace.Members {
-		if member.ID == user.ID {
-			userType = member.Type
+		for _, member := range namespace.Members {
+			if member.ID == user.ID {
+				userType = member.Type
 
-			break
+				break
+			}
 		}
 	}
 
