@@ -17,26 +17,7 @@ get:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              token:
-                description: User  token
-                type: string
-              user:
-                description: User
-                type: string
-              name:
-                description: User  name
-                type: string
-              id:
-                description: User  ID
-                type: string
-              tenant:
-                description: User  tenant
-                type: string
-              email:
-                description: User  e-mail
-                type: string
+            $ref: model/user_auth_response.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '500':
