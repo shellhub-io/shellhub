@@ -139,6 +139,8 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		for _, member := range namespace.Members {
 			if member.ID == user.ID {
 				userType = member.Type
+
+				break
 			}
 		}
 	}
@@ -204,6 +206,8 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 	for _, member := range namespace.Members {
 		if member.ID == user.ID {
 			userType = member.Type
+
+			break
 		}
 	}
 
@@ -279,6 +283,8 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 	for _, member := range namespace.Members {
 		if member.ID == user.ID {
 			userType = member.Type
+
+			break
 		}
 	}
 
@@ -341,6 +347,8 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 	for _, member := range namespace.Members {
 		if member.ID == user.ID {
 			userType = member.Type
+
+			break
 		}
 	}
 
