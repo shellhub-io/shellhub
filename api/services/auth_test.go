@@ -269,16 +269,6 @@ func TestAuthUserInfo(t *testing.T) {
 			expected: Expected{nil, Err},
 		},
 		{
-			description: "Fails to find the namespace",
-			username:    "user",
-			tenantID:    "xxxxx",
-			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
-				mock.On("NamespaceGet", ctx, "xxxxx").Return(nil, Err).Once()
-			},
-			expected: Expected{nil, Err},
-		},
-		{
 			description: "Successful auth login",
 			username:    "user",
 			tenantID:    namespace.TenantID,
