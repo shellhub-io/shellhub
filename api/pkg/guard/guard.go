@@ -10,7 +10,7 @@ import (
 
 var ErrForbidden = errors.New("forbidden")
 
-func getTypeByID(ctx context.Context, s store.Store, tenantID, id string) (string, bool) {
+func getUserTypeByID(ctx context.Context, s store.Store, tenantID, id string) (string, bool) {
 	user, _, err := s.UserGetByID(ctx, id, false)
 	if err != nil || err == store.ErrNoDocuments {
 		return "", false
@@ -22,23 +22,22 @@ func getTypeByID(ctx context.Context, s store.Store, tenantID, id string) (strin
 	}
 
 	var userType string
+	var userFound bool
 	for _, member := range namespaceUserActive.Members {
 		if member.ID == user.ID {
+			userFound = true
 			userType = member.Type
 
 			break
 		}
 	}
-	if userType == "" {
-		return "", false
-	}
 
-	return userType, true
+	return userType, userFound
 }
 
 // EvaluateSubject checks if the user's type, active one, may act over another, passive one.
 func EvaluateSubject(ctx context.Context, s store.Store, tenantID, activeID, typePassive string) bool {
-	typeActive, ok := getTypeByID(ctx, s, tenantID, activeID)
+	typeActive, ok := getUserTypeByID(ctx, s, tenantID, activeID)
 	if !ok {
 		return false
 	}
