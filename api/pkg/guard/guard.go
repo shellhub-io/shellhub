@@ -25,6 +25,8 @@ func getTypeByID(ctx context.Context, s store.Store, tenantID, id string) (strin
 	for _, member := range namespaceUserActive.Members {
 		if member.ID == user.ID {
 			userType = member.Type
+
+			break
 		}
 	}
 	if userType == "" {
