@@ -331,21 +331,16 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 		return nil, err
 	}
 
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
-	if err != nil && tenant != "" {
-		if err == store.ErrNoDocuments {
-			return nil, ErrUnauthorized
-		}
+	namespace, _ := s.store.NamespaceGet(ctx, tenant)
 
-		return nil, err
-	}
+	userType := ""
+	if namespace != nil {
+		for _, member := range namespace.Members {
+			if member.ID == user.ID {
+				userType = member.Type
 
-	var userType string
-	for _, member := range namespace.Members {
-		if member.ID == user.ID {
-			userType = member.Type
-
-			break
+				break
+			}
 		}
 	}
 
