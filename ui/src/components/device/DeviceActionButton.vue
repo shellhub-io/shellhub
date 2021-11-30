@@ -44,6 +44,7 @@
     <v-dialog
       v-model="dialog"
       max-width="400"
+      @click:outside="closeDialog()"
     >
       <v-card data-test="deviceActionButton-card">
         <v-card-title class="headline grey lighten-2 text-center">
@@ -55,6 +56,28 @@
             You are about to {{ action }} this device.
           </div>
         </v-card-text>
+        <v-card-text>
+          <div
+            v-if="warnShow"
+          >
+            <p
+              data-test="billing-warning"
+            >
+              Reached the device limit, please subscribe to our
+              <a
+                @click="closeDialog()"
+              >
+                <b>
+                  <router-link
+                    :to="{ name: 'billingSettings' }"
+                  >
+                    plan
+                  </router-link>
+                </b>
+              </a>
+            </p>
+          </div>
+        </v-card-text>
 
         <v-card-actions>
           <v-spacer />
@@ -62,7 +85,7 @@
           <v-btn
             text
             data-test="cancel-btn"
-            @click="dialog=!dialog"
+            @click="closeDialog()"
           >
             Cancel
           </v-btn>
@@ -107,6 +130,7 @@ export default {
   data() {
     return {
       dialog: false,
+      warnShow: false,
     };
   },
 
@@ -132,13 +156,24 @@ export default {
       }
     },
 
+    closeDialog() {
+      this.dialog = false;
+      this.warnShow = false;
+    },
+
     async acceptDevice() {
       try {
         await this.$store.dispatch('devices/accept', this.uid);
         this.refreshStats();
         this.refreshDevices();
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceAccepting);
+      } catch (error) {
+        const { status } = error.response;
+
+        if (status === 402) {
+          this.warnShow = true;
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceAccepting);
+        }
       }
     },
 

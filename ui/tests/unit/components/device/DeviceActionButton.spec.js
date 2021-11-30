@@ -17,27 +17,31 @@ describe('DeviceActionButton', () => {
   let notificationStatus = true;
   let action = 'accept';
 
+  const successActions = {
+    'devices/refresh': () => {},
+    'devices/accept': () => {},
+    'devices/reject': () => {},
+    'devices/remove': () => {},
+    'notifications/fetch': () => {},
+    'stats/get': () => {},
+    'snackbar/showSnackbarErrorDefault': () => {},
+    'snackbar/showSnackbarErrorAction': () => {},
+    'snackbar/showSnackbarErrorLoading': () => {},
+  };
+
+  const getters = {
+    'namespaces/owner': (state) => state.isOwner,
+    isActive: (state) => state.isActive,
+  };
+
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       isOwner,
       isActive,
     },
-    getters: {
-      'namespaces/owner': (state) => state.isOwner,
-      isActive: (state) => state.isActive,
-    },
-    actions: {
-      'devices/refresh': () => {},
-      'devices/accept': () => {},
-      'devices/reject': () => {},
-      'devices/remove': () => {},
-      'notifications/fetch': () => {},
-      'stats/get': () => {},
-      'snackbar/showSnackbarErrorDefault': () => {},
-      'snackbar/showSnackbarErrorAction': () => {},
-      'snackbar/showSnackbarErrorLoading': () => {},
-    },
+    getters,
+    actions: successActions,
   });
 
   beforeEach(() => {
@@ -206,6 +210,7 @@ describe('DeviceActionButton', () => {
       expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
       expect(wrapper.find('[data-test="dialog-text"]').text()).toBe(text);
       expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="dialog-btn"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
     },
   );
@@ -238,4 +243,24 @@ describe('DeviceActionButton', () => {
       expect(wrapper.find('[data-test="dialog-btn"]').text()).toBe(action);
     },
   );
+  it('Renders message when the warning is set', async () => {
+    notificationStatus = false;
+    action = 'accept';
+
+    wrapper = mount(DeviceActionButton, {
+      store,
+      localVue,
+      stubs: ['fragment', 'router-link'],
+      propsData: { uid, notificationStatus, action },
+      vuetify,
+    });
+
+    const text = 'Reached the device limit, please subscribe to our';
+    wrapper.setData({ dialog: true, warnShow: true });
+    await flushPromises();
+
+    expect(wrapper.find('[data-test="dialog-btn"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-warning"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-warning"]').text()).toContain(text);
+  });
 });
