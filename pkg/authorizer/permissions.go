@@ -30,7 +30,9 @@ const (
 	NamespaceDelete
 
 	BillingChooseDevices
-	BillingAttachPaymentMethod
+	BillingAddPaymentMethod
+	BillingUpdatePaymentMethod
+	BillingRemovePaymentMethod
 	BillingCancelSubscription
 	BillingCreateSubscription
 	BillingGetPaymentMethod
@@ -118,9 +120,10 @@ var ownerPermissions = permissions{
 	NamespaceDelete,
 
 	BillingChooseDevices,
-	BillingAttachPaymentMethod,
+	BillingAddPaymentMethod,
+	BillingUpdatePaymentMethod,
+	BillingRemovePaymentMethod,
 	BillingCancelSubscription,
 	BillingCreateSubscription,
-	BillingGetPaymentMethod,
 	BillingGetSubscription,
 }

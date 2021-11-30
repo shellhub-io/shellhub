@@ -328,11 +328,12 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Namespace.EnableSessionRecord,
 				authorizer.Actions.Namespace.Delete,
 
-				authorizer.Actions.Billing.AttachPaymentMethod,
+				authorizer.Actions.Billing.AddPaymentMethod,
+				authorizer.Actions.Billing.UpdatePaymentMethod,
+				authorizer.Actions.Billing.RemovePaymentMethod,
 				authorizer.Actions.Billing.ChooseDevices,
 				authorizer.Actions.Billing.CancelSubscription,
 				authorizer.Actions.Billing.CreateSubscription,
-				authorizer.Actions.Billing.GetPaymentMethod,
 				authorizer.Actions.Billing.GetSubscription,
 			},
 			requiredMocks: func() {
