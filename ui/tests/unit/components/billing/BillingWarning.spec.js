@@ -15,6 +15,7 @@ describe('BillingWarning', () => {
   const isOwner = true;
   let stateBilling = false;
   const statusUpdateAccountDialog = true;
+  const statusUpdateAccountDialogByDeviceAction = false;
 
   const stats = {
     registered_devices: 0,
@@ -31,12 +32,14 @@ describe('BillingWarning', () => {
       stats,
       isOwner,
       statusUpdateAccountDialog,
+      statusUpdateAccountDialogByDeviceAction,
     },
     getters: {
       'billing/active': (state) => state.stateBilling,
       'stats/stats': (state) => state.stats,
       'namespaces/owner': (state) => state.isOwner,
       'users/statusUpdateAccountDialog': (state) => state.statusUpdateAccountDialog,
+      'users/statusUpdateAccountDialogByDeviceAction': (state) => state.statusUpdateAccountDialogByDeviceAction,
     },
     actions: {
       'users/setStatusUpdateAccountDialog': () => {},
@@ -50,12 +53,15 @@ describe('BillingWarning', () => {
       isOwner,
       stats: { ...stats, registered_devices: 3 },
       statusUpdateAccountDialog,
+      statusUpdateAccountDialogByDeviceAction,
     },
     getters: {
       'billing/active': (state) => state.stateBilling,
       'stats/stats': (state) => state.stats,
       'namespaces/owner': (state) => state.isOwner,
       'users/statusUpdateAccountDialog': (state) => state.statusUpdateAccountDialog,
+      'users/statusUpdateAccountDialogByDeviceAction': (state) => state.statusUpdateAccountDialogByDeviceAction,
+
     },
     actions: {
       'users/setStatusUpdateAccountDialog': () => {},
@@ -69,12 +75,14 @@ describe('BillingWarning', () => {
       isOwner,
       stats: { ...stats, registered_devices: 3 },
       statusUpdateAccountDialog,
+      statusUpdateAccountDialogByDeviceAction,
     },
     getters: {
       'billing/active': (state) => state.stateBilling,
       'stats/stats': (state) => state.stats,
       'namespaces/owner': (state) => state.isOwner,
       'users/statusUpdateAccountDialog': (state) => state.statusUpdateAccountDialog,
+      'users/statusUpdateAccountDialogByDeviceAction': (state) => state.statusUpdateAccountDialogByDeviceAction,
     },
     actions: {
       'users/setStatusUpdateAccountDialog': () => {},
@@ -88,12 +96,14 @@ describe('BillingWarning', () => {
       isOwner,
       stats: { ...stats, registered_devices: 3 },
       statusUpdateAccountDialog,
+      statusUpdateAccountDialogByDeviceAction,
     },
     getters: {
       'billing/active': (state) => state.stateBilling,
       'stats/stats': (state) => state.stats,
       'namespaces/owner': (state) => !state.isOwner,
       'users/statusUpdateAccountDialog': (state) => state.statusUpdateAccountDialog,
+      'users/statusUpdateAccountDialogByDeviceAction': (state) => state.statusUpdateAccountDialogByDeviceAction,
     },
     actions: {
       'users/setStatusUpdateAccountDialog': () => {},

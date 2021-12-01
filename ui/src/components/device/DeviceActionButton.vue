@@ -149,7 +149,11 @@ export default {
         await this.$store.dispatch('devices/accept', this.uid);
         this.refreshStats();
         this.refreshDevices();
-      } catch {
+      } catch (error) {
+        if (error.response.status === 402) {
+          this.$store.dispatch('users/setStatusUpdateAccountDialogByDeviceAction', true);
+        }
+
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceAccepting);
       }
     },

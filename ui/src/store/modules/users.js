@@ -6,15 +6,23 @@ export default {
 
   state: {
     statusUpdateAccountDialog: false,
+    statusUpdateAccountDialogByDeviceAction: false,
   },
 
   getters: {
     statusUpdateAccountDialog: (state) => state.statusUpdateAccountDialog,
+    statusUpdateAccountDialogByDeviceAction(state) {
+      return state.statusUpdateAccountDialogByDeviceAction;
+    },
   },
 
   mutations: {
     updateStatusUpdateAccountDialog(state, status) {
       Vue.set(state, 'statusUpdateAccountDialog', status);
+    },
+
+    updateStatusUpdateAccountDialogByDeviceAction(state, status) {
+      Vue.set(state, 'statusUpdateAccountDialogByDeviceAction', status);
     },
   },
 
@@ -49,6 +57,10 @@ export default {
 
     setStatusUpdateAccountDialog(context, status) {
       context.commit('updateStatusUpdateAccountDialog', status);
+    },
+
+    setStatusUpdateAccountDialogByDeviceAction(context, status) {
+      context.commit('updateStatusUpdateAccountDialogByDeviceAction', status);
     },
   },
 };
