@@ -142,6 +142,10 @@ export default {
     },
   },
 
+  created() {
+    this.$store.dispatch('users/setStatusUpdateAccountDialog', true);
+  },
+
   mounted() {
     this.flag = localStorage.getItem('flag');
     localStorage.removeItem('flag');

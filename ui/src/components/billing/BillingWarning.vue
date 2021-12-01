@@ -2,7 +2,7 @@
   <fragment>
     <v-dialog
       v-if="isOwner"
-      v-model="dialog"
+      v-model="showMessage"
       max-width="510"
     >
       <v-card data-test="billingWarning-dialog">
@@ -27,7 +27,7 @@
           <v-btn
             text
             data-test="close-btn"
-            @click="dialog=!dialog"
+            @click="close()"
           >
             Close
           </v-btn>
@@ -36,7 +36,7 @@
             to="/settings/billing"
             text
             data-test="goToBilling-btn"
-            @click="dialog=!dialog"
+            @click="close()"
           >
             Go to Billing
           </v-btn>
@@ -51,28 +51,28 @@
 export default {
   name: 'BillingWarningComponent',
 
-  data() {
-    return {
-      dialog: true,
-    };
-  },
-
   computed: {
     isOwner() {
       return this.$store.getters['namespaces/owner'];
     },
 
-    active() {
-      return this.$store.getters['billing/active'];
-    },
+    showMessage: {
+      get() {
+        return this.$store.getters['users/statusUpdateAccountDialog']
+          && this.$store.getters['stats/stats'].registered_devices === 3
+          && !this.$store.getters['billing/active'];
+      },
 
-    stats() {
-      return this.$store.getters['stats/stats'];
+      set() {
+        this.$store.dispatch('users/setStatusUpdateAccountDialog', false);
+      },
     },
   },
 
-  created() {
-    this.dialog = this.stats.registered_devices === 3 && !this.active;
+  methods: {
+    close() {
+      this.$store.dispatch('users/setStatusUpdateAccountDialog', false);
+    },
   },
 };
 

@@ -1,15 +1,21 @@
+import Vue from 'vue';
 import * as apiUser from '@/store/api/users';
 
 export default {
   namespaced: true,
 
   state: {
+    statusUpdateAccountDialog: false,
   },
 
   getters: {
+    statusUpdateAccountDialog: (state) => state.statusUpdateAccountDialog,
   },
 
   mutations: {
+    updateStatusUpdateAccountDialog(state, status) {
+      Vue.set(state, 'statusUpdateAccountDialog', status);
+    },
   },
 
   actions: {
@@ -39,6 +45,10 @@ export default {
 
     async updatePassword(context, data) {
       await apiUser.postUpdatePassword(data);
+    },
+
+    setStatusUpdateAccountDialog(context, status) {
+      context.commit('updateStatusUpdateAccountDialog', status);
     },
   },
 };

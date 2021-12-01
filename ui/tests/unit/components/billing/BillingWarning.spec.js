@@ -14,6 +14,7 @@ describe('BillingWarning', () => {
   let wrapper;
   const isOwner = true;
   let stateBilling = false;
+  const statusUpdateAccountDialog = true;
 
   const stats = {
     registered_devices: 0,
@@ -29,13 +30,16 @@ describe('BillingWarning', () => {
       stateBilling,
       stats,
       isOwner,
+      statusUpdateAccountDialog,
     },
     getters: {
       'billing/active': (state) => state.stateBilling,
       'stats/stats': (state) => state.stats,
       'namespaces/owner': (state) => state.isOwner,
+      'users/statusUpdateAccountDialog': (state) => state.statusUpdateAccountDialog,
     },
     actions: {
+      'users/setStatusUpdateAccountDialog': () => {},
     },
   });
 
@@ -45,13 +49,16 @@ describe('BillingWarning', () => {
       stateBilling,
       isOwner,
       stats: { ...stats, registered_devices: 3 },
+      statusUpdateAccountDialog,
     },
     getters: {
       'billing/active': (state) => state.stateBilling,
       'stats/stats': (state) => state.stats,
       'namespaces/owner': (state) => state.isOwner,
+      'users/statusUpdateAccountDialog': (state) => state.statusUpdateAccountDialog,
     },
     actions: {
+      'users/setStatusUpdateAccountDialog': () => {},
     },
   });
 
@@ -61,13 +68,16 @@ describe('BillingWarning', () => {
       stateBilling: true,
       isOwner,
       stats: { ...stats, registered_devices: 3 },
+      statusUpdateAccountDialog,
     },
     getters: {
       'billing/active': (state) => state.stateBilling,
       'stats/stats': (state) => state.stats,
       'namespaces/owner': (state) => state.isOwner,
+      'users/statusUpdateAccountDialog': (state) => state.statusUpdateAccountDialog,
     },
     actions: {
+      'users/setStatusUpdateAccountDialog': () => {},
     },
   });
 
@@ -77,13 +87,16 @@ describe('BillingWarning', () => {
       stateBilling: true,
       isOwner,
       stats: { ...stats, registered_devices: 3 },
+      statusUpdateAccountDialog,
     },
     getters: {
       'billing/active': (state) => state.stateBilling,
       'stats/stats': (state) => state.stats,
       'namespaces/owner': (state) => !state.isOwner,
+      'users/statusUpdateAccountDialog': (state) => state.statusUpdateAccountDialog,
     },
     actions: {
+      'users/setStatusUpdateAccountDialog': () => {},
     },
   });
 
@@ -118,8 +131,8 @@ describe('BillingWarning', () => {
     // Data and Props checking
     ///////
 
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.showMessage).toEqual(false);
     });
 
     //////
@@ -164,8 +177,8 @@ describe('BillingWarning', () => {
     // Data and Props checking
     ///////
 
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.showMessage).toEqual(false);
     });
 
     //////
@@ -212,8 +225,8 @@ describe('BillingWarning', () => {
     // Data and Props checking
     ///////
 
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.showMessage).toEqual(true);
     });
 
     //////
@@ -259,8 +272,8 @@ describe('BillingWarning', () => {
     // Data and Props checking
     ///////
 
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.showMessage).toEqual(false);
     });
 
     //////
