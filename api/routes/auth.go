@@ -62,7 +62,7 @@ func (h *Handler) AuthRequest(c apicontext.Context) error {
 
 		return c.NoContent(http.StatusOK)
 
-	case "apiToken":
+	case "token":
 		var claims models.APITokenAuthClaims
 
 		if err := DecodeMap(rawClaims, &claims); err != nil {

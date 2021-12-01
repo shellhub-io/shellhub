@@ -27,4 +27,7 @@ var (
 	ErrTagNameNotFound           = errors.New("tag Name not found")
 	ErrNoTags                    = errors.New("no tags has found")
 	ErrTypeAssertion             = errors.New("type assertion failed")
+	ErrHashGeneration            = errors.New("")
+	ErrHashWrite                 = errors.New("")
+	ErrAPITokenSign              = errors.New("")
 )

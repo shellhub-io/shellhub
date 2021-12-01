@@ -360,30 +360,30 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 func (s *service) AuthAPIToken(ctx context.Context, req *models.APITokenAuthRequest) (*models.APITokenAuthResponse, error) {
 	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
 	if err != nil {
-		return nil, err
+		return nil, ErrNamespaceNotFound
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(namespace.Name), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return nil, ErrHashGeneration
 	}
 
 	hasher := sha256.New()
 	if _, err := hasher.Write(hash); err != nil {
-		return nil, err
+		return nil, ErrHashWrite
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.APITokenAuthClaims{
 		ID:       hex.EncodeToString(hasher.Sum(nil)),
 		TenantID: req.TenantID,
 		AuthClaims: models.AuthClaims{
-			Claims: "apiToken",
+			Claims: "token",
 		},
 	})
 
 	tokenStr, err := token.SignedString(s.privKey)
 	if err != nil {
-		return nil, err
+		return nil, ErrAPITokenSign
 	}
 
 	return &models.APITokenAuthResponse{
