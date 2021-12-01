@@ -10,10 +10,10 @@
             :disabled="!hasAuthorization"
             color="red darken-1"
             outlined
-            data-test="delete-btn"
+            data-test="cancel-btn"
             @click="dialog = !dialog"
           >
-            Delete namespace
+            Cancel
           </v-btn>
         </div>
       </template>
@@ -50,7 +50,7 @@
 
           <v-btn
             text
-            data-test="cancel-btn"
+            data-test="cancelDialog-btn"
             @click="cancelSubscription()"
           >
             Cancel
