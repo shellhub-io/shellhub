@@ -149,6 +149,7 @@ describe('DeviceActionButton', () => {
     actions: {
       'devices/refresh': () => {},
       'devices/accept': () => {},
+      'users/setStatusUpdateAccountDialog': () => {},
       'devices/reject': () => {},
       'devices/remove': () => {},
       'notifications/fetch': () => {},

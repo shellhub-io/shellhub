@@ -58,20 +58,25 @@ export default {
 
     showMessage: {
       get() {
-        return this.$store.getters['users/statusUpdateAccountDialog']
+        return (this.$store.getters['users/statusUpdateAccountDialog']
           && this.$store.getters['stats/stats'].registered_devices === 3
-          && !this.$store.getters['billing/active'];
+          && !this.$store.getters['billing/active'])
+          || this.$store.getters['users/statusUpdateAccountDialogByDeviceAction'];
       },
 
       set() {
-        this.$store.dispatch('users/setStatusUpdateAccountDialog', false);
+        this.close();
       },
     },
   },
 
   methods: {
     close() {
-      this.$store.dispatch('users/setStatusUpdateAccountDialog', false);
+      if (this.$store.getters['users/statusUpdateAccountDialog']) {
+        this.$store.dispatch('users/setStatusUpdateAccountDialog', false);
+      } else if (this.$store.getters['users/statusUpdateAccountDialogByDeviceAction']) {
+        this.$store.dispatch('users/setStatusUpdateAccountDialogByDeviceAction', false);
+      }
     },
   },
 };
