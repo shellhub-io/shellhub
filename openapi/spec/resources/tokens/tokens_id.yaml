@@ -1,54 +1,4 @@
 get:
-  summary: Get api token list
-  description: Get a list of all api tokens from a namespace.
-  tags:
-    - token
-  security:
-    - Auth: []
-  requestBody:
-    content:
-      application/json:
-        schema:
-          $ref: ../../shared/models/query.yaml
-  responses:
-    '200':
-      description: Success get token list
-      content:
-        application/json:
-          schema:
-            $ref: model/token.yaml
-    '401':
-      $ref: ../../shared/responses/unauthorized.yaml
-    '500':
-      $ref: ../../shared/responses/any_internal_error.yaml
-
-post:
-  summary: Create token
-  description: Create a api token.
-  tags:
-    - token
-  security:
-    - Auth: []
-  requestBody:
-    content:
-      application/json:
-        schema:
-          $ref: model/api_token_auth_request.yaml
-  responses:
-    '200':
-      description: Success create a api token
-      content:
-        application/json:
-          schema:
-            $ref: model/token.yaml
-    '400':
-      $ref: ../../shared/responses/bad_request.yaml
-    '401':
-      $ref: ../../shared/responses/unauthorized.yaml
-    '500':
-      $ref: ../../shared/responses/any_internal_error.yaml
-
-get:
   summary: Get api token
   description: Get a specific api token.
   tags:
@@ -149,7 +99,7 @@ patch:
             $ref: model/token.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
-    '403':
-      $ref: ../../shared/responses/forbidden.yaml
+    '404':
+      $ref: ../../shared/responses/not_found.yaml
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml

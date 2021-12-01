@@ -55,3 +55,7 @@ paths:
     $ref: spec/resources/devices/uid_tags_name.yaml
   '/api/devices/tags':
     $ref: spec/resources/devices/tags.yaml
+  '/api/tokens':
+    $ref: spec/resources/tokens/tokens.yaml
+  '/api/tokens/{id}':
+    $ref: spec/resources/tokens/tokens_id.yaml
