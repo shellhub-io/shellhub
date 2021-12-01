@@ -153,6 +153,7 @@ export default {
         if (error.response.status === 402) {
           this.$store.dispatch('users/setStatusUpdateAccountDialogByDeviceAction', true);
         }
+        this.close();
 
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceAccepting);
       }
@@ -164,6 +165,8 @@ export default {
         this.refreshStats();
         this.refreshDevices();
       } catch {
+        this.close();
+
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceRejecting);
       }
     },
@@ -173,6 +176,8 @@ export default {
         await this.$store.dispatch('devices/remove', this.uid);
         this.refreshDevices();
       } catch {
+        this.close();
+
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceDelete);
       }
     },
@@ -185,7 +190,7 @@ export default {
           this.$store.dispatch('notifications/fetch');
         }
 
-        this.dialog = !this.dialog;
+        this.close();
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.deviceList);
       }
@@ -197,6 +202,10 @@ export default {
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorDefault');
       }
+    },
+
+    close() {
+      this.dialog = !this.dialog;
     },
   },
 };
