@@ -142,7 +142,7 @@
               data-test="paymentMethods-div"
               class="mt-5 pl-4 pr-4 pb-5"
             >
-              <v-row class="mb-2">
+              <v-row class="text-row mb-2">
                 <v-col>
                   <b>Brand</b>
                 </v-col>
@@ -162,6 +162,7 @@
               <v-row
                 v-for="item in cardBillingData"
                 :key="item.id"
+                class="pm-rowItem"
               >
                 <v-col>
                   <BillingIcon
@@ -181,7 +182,8 @@
                   </p>
                 </v-col>
                 <v-col
-                  cols="3"
+                  class="actions-column"
+                  cols="4"
                 >
                   <div
                     v-if="item.default"

@@ -35,10 +35,13 @@ describe('BillingCancel', () => {
         dialog: false,
       },
       template: {
-        'delete-btn': true,
+        'cancel-btn': true,
         'billingCancel-dialog': false,
         'close-btn': false,
-        'cancel-btn': false,
+        'cancelDialog-btn': false,
+      },
+      templateText: {
+        'cancel-btn': 'Cancel',
       },
     },
     {
@@ -53,10 +56,13 @@ describe('BillingCancel', () => {
         dialog: true,
       },
       template: {
-        'delete-btn': true,
+        'cancel-btn': true,
         'billingCancel-dialog': true,
         'close-btn': true,
-        'cancel-btn': true,
+        'cancelDialog-btn': true,
+      },
+      templateText: {
+        'cancel-btn': 'Cancel',
       },
     },
   ];
@@ -129,9 +135,14 @@ describe('BillingCancel', () => {
         // HTML validation
         //////
 
-        it('Renders the template with data', () => {
-          Object.keys(test.template).forEach((item) => {
+        Object.keys(test.template).forEach((item) => {
+          it(`Renders the template ${item} with data`, () => {
             expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+          });
+        });
+        it('Renders template with expected text', () => {
+          Object.keys(test.templateText).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).text()).toContain(test.templateText[item]);
           });
         });
       });
