@@ -4,13 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
-
-	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -70,13 +68,8 @@ func (h *Handler) GetDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) DeleteDevice(c apicontext.Context) error {
-	tenantID := ""
-	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
-	}
-
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Device.Remove, func() error {
-		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenantID)
+	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.Device.Remove, func() error {
+		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), c.Value(apicontext.HeaderTenant))
 
 		return err
 	})
@@ -101,13 +94,8 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 		return err
 	}
 
-	tenantID := ""
-	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
-	}
-
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Device.Rename, func() error {
-		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenantID)
+	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.Device.Rename, func() error {
+		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, c.Value(apicontext.HeaderTenant))
 
 		return err
 	})
@@ -158,19 +146,14 @@ func (h *Handler) LookupDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
-	tenantID := ""
-	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
-	}
-
 	status := map[string]string{
 		"accept":  "accepted",
 		"reject":  "rejected",
 		"pending": "pending",
 		"unused":  "unused",
 	}
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Device.Accept, func() error {
-		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenantID)
+	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.Device.Accept, func() error {
+		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], c.Value(apicontext.HeaderTenant))
 
 		return err
 	})
@@ -241,16 +224,11 @@ func (h *Handler) RenameTag(c apicontext.Context) error {
 		Name string `json:"name"`
 	}
 
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
-
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	if err := h.service.RenameTag(c.Ctx(), tenant, c.Param("name"), req.Name); err != nil {
+	if err := h.service.RenameTag(c.Ctx(), c.Value(apicontext.HeaderTenant), c.Param("name"), req.Name); err != nil {
 		switch err {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
@@ -305,12 +283,7 @@ func (h *Handler) UpdateTag(c apicontext.Context) error {
 }
 
 func (h *Handler) GetTags(c apicontext.Context) error {
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
-
-	tags, count, err := h.service.GetTags(c.Ctx(), tenant)
+	tags, count, err := h.service.GetTags(c.Ctx(), c.Value(apicontext.HeaderTenant))
 	if err == services.ErrUnauthorized {
 		return c.NoContent(http.StatusForbidden)
 	} else if err != nil {
@@ -323,12 +296,7 @@ func (h *Handler) GetTags(c apicontext.Context) error {
 }
 
 func (h *Handler) DeleteAllTags(c apicontext.Context) error {
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
-
-	if err := h.service.DeleteAllTags(c.Ctx(), tenant, c.Param("name")); err == services.ErrUnauthorized {
+	if err := h.service.DeleteAllTags(c.Ctx(), c.Value(apicontext.HeaderTenant), c.Param("name")); err == services.ErrUnauthorized {
 		return c.NoContent(http.StatusForbidden)
 	} else if err != nil {
 		return err

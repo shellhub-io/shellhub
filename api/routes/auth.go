@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/mitchellh/mapstructure"
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -134,12 +134,7 @@ func (h *Handler) AuthGetToken(c apicontext.Context) error {
 }
 
 func (h *Handler) AuthSwapToken(c apicontext.Context) error {
-	id := ""
-	if v := c.ID(); v != nil {
-		id = v.ID
-	}
-
-	res, err := h.service.AuthSwapToken(c.Ctx(), id, c.Param("tenant"))
+	res, err := h.service.AuthSwapToken(c.Ctx(), c.Value(apicontext.HeaderUserID), c.Param("tenant"))
 	if err != nil {
 		return echo.ErrUnauthorized
 	}

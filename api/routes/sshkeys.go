@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-
-	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -62,13 +61,8 @@ func (h *Handler) CreatePublicKey(c apicontext.Context) error {
 		return err
 	}
 
-	tenantID := ""
-	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
-	}
-
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.PublicKey.Create, func() error {
-		err := h.service.CreatePublicKey(c.Ctx(), &key, tenantID)
+	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.PublicKey.Create, func() error {
+		err := h.service.CreatePublicKey(c.Ctx(), &key, c.Value(apicontext.HeaderTenant))
 
 		return err
 	})
@@ -94,15 +88,10 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 		return err
 	}
 
-	tenantID := ""
-	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
-	}
-
 	var key *models.PublicKey
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.PublicKey.Edit, func() error {
+	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.PublicKey.Edit, func() error {
 		var err error
-		key, err = h.service.UpdatePublicKey(c.Ctx(), c.Param("fingerprint"), tenantID, &params)
+		key, err = h.service.UpdatePublicKey(c.Ctx(), c.Param("fingerprint"), c.Value(apicontext.HeaderTenant), &params)
 
 		return err
 	})
@@ -119,13 +108,8 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 }
 
 func (h *Handler) DeletePublicKey(c apicontext.Context) error {
-	tenantID := ""
-	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
-	}
-
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.PublicKey.Remove, func() error {
-		err := h.service.DeletePublicKey(c.Ctx(), c.Param("fingerprint"), tenantID)
+	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.PublicKey.Remove, func() error {
+		err := h.service.DeletePublicKey(c.Ctx(), c.Param("fingerprint"), c.Value(apicontext.HeaderTenant))
 
 		return err
 	})
