@@ -1,19 +1,21 @@
 get:
-  summary: Get token
-  description: Get a token from its tenant.
+  summary: Get a new namespace's token
+  description: |
+    This route works like a login's one; returns a JWT token and extra information about namespace.
+    You can use this route to swap between namespaces.
   tags:
-    - user
+    - namespace
   security:
     - Auth: []
   parameters:
     - name: tenant
-      description: Tenant
+      description: Namespace Tenant
       schema:
         type: string
       in: path
   responses:
     '200':
-      description: Success get token
+      description: Success to get namespace's token
       content:
         application/json:
           schema:
