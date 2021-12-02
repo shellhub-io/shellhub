@@ -14,7 +14,7 @@ post:
       content:
         application/json:
           schema:
-            $ref: response/login.yaml
+            $ref: ../../shared/models/user_auth.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':

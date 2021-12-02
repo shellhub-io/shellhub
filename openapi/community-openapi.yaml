@@ -11,6 +11,8 @@ paths:
     $ref: spec/resources/auth/device.yaml
   /api/auth/ssh:
     $ref: spec/resources/auth/ssh.yaml
+  '/api/auth/token/{tenant}':
+    $ref: spec/resources/auth/token.yaml
   '/api/token/{tenant}':
     $ref: spec/resources/users/token_tenant.yaml
   '/api/devices/{uid}/accept':
