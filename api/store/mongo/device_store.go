@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
