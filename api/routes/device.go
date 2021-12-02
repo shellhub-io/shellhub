@@ -59,7 +59,9 @@ func (h *Handler) GetDeviceList(c apicontext.Context) error {
 }
 
 func (h *Handler) GetDevice(c apicontext.Context) error {
-	device, err := h.service.GetDevice(c.Ctx(), models.UID(c.Param("uid")))
+	const DeviceUID = "uid"
+
+	device, err := h.service.GetDevice(c.Ctx(), models.UID(c.Param(DeviceUID)))
 	if err != nil {
 		return err
 	}
@@ -68,8 +70,10 @@ func (h *Handler) GetDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) DeleteDevice(c apicontext.Context) error {
+	const DeviceUID = "uid"
+
 	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.Device.Remove, func() error {
-		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), c.Value(apicontext.HeaderTenant))
+		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param(DeviceUID)), c.Value(apicontext.HeaderTenant))
 
 		return err
 	})
@@ -86,6 +90,8 @@ func (h *Handler) DeleteDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) RenameDevice(c apicontext.Context) error {
+	const DeviceUID = "uid"
+
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -95,7 +101,7 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.Device.Rename, func() error {
-		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, c.Value(apicontext.HeaderTenant))
+		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param(DeviceUID)), req.Name, c.Value(apicontext.HeaderTenant))
 
 		return err
 	})
@@ -116,7 +122,9 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) OfflineDevice(c apicontext.Context) error {
-	if err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(c.Param("uid")), false); err != nil {
+	const DeviceUID = "uid"
+
+	if err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(c.Param(DeviceUID)), false); err != nil {
 		return err
 	}
 
@@ -146,6 +154,9 @@ func (h *Handler) LookupDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
+	const DeviceUID = "uid"
+	const DeviceStatus = "status"
+
 	status := map[string]string{
 		"accept":  "accepted",
 		"reject":  "rejected",
@@ -153,7 +164,7 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 		"unused":  "unused",
 	}
 	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.Device.Accept, func() error {
-		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], c.Value(apicontext.HeaderTenant))
+		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param(DeviceUID)), status[c.Param(DeviceStatus)], c.Value(apicontext.HeaderTenant))
 
 		return err
 	})
@@ -174,10 +185,14 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 }
 
 func (h *Handler) HeartbeatDevice(c apicontext.Context) error {
-	return h.service.DeviceHeartbeat(c.Ctx(), models.UID(c.Param("uid")))
+	const DeviceUID = "uid"
+
+	return h.service.DeviceHeartbeat(c.Ctx(), models.UID(c.Param(DeviceUID)))
 }
 
 func (h *Handler) CreateTag(c apicontext.Context) error {
+	const DeviceUID = "uid"
+
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -186,7 +201,7 @@ func (h *Handler) CreateTag(c apicontext.Context) error {
 		return err
 	}
 
-	if err := h.service.CreateTag(c.Ctx(), models.UID(c.Param("uid")), req.Name); err != nil {
+	if err := h.service.CreateTag(c.Ctx(), models.UID(c.Param(DeviceUID)), req.Name); err != nil {
 		switch err {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
@@ -205,7 +220,10 @@ func (h *Handler) CreateTag(c apicontext.Context) error {
 }
 
 func (h *Handler) DeleteTag(c apicontext.Context) error {
-	if err := h.service.DeleteTag(c.Ctx(), models.UID(c.Param("uid")), c.Param("name")); err != nil {
+	const DeviceUID = "uid"
+	const TagName = "name"
+
+	if err := h.service.DeleteTag(c.Ctx(), models.UID(c.Param(DeviceUID)), c.Param(TagName)); err != nil {
 		switch err {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
@@ -220,6 +238,8 @@ func (h *Handler) DeleteTag(c apicontext.Context) error {
 }
 
 func (h *Handler) RenameTag(c apicontext.Context) error {
+	const TagName = "name"
+
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -228,7 +248,7 @@ func (h *Handler) RenameTag(c apicontext.Context) error {
 		return err
 	}
 
-	if err := h.service.RenameTag(c.Ctx(), c.Value(apicontext.HeaderTenant), c.Param("name"), req.Name); err != nil {
+	if err := h.service.RenameTag(c.Ctx(), c.Value(apicontext.HeaderTenant), c.Param(TagName), req.Name); err != nil {
 		switch err {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
@@ -256,6 +276,8 @@ func (h *Handler) ListTag(c apicontext.Context) error {
 }
 
 func (h *Handler) UpdateTag(c apicontext.Context) error {
+	const DeviceUID = "uid"
+
 	var req struct {
 		Tags []string `json:"tags"`
 	}
@@ -264,7 +286,7 @@ func (h *Handler) UpdateTag(c apicontext.Context) error {
 		return err
 	}
 
-	if err := h.service.UpdateTag(c.Ctx(), models.UID(c.Param("uid")), req.Tags); err != nil {
+	if err := h.service.UpdateTag(c.Ctx(), models.UID(c.Param(DeviceUID)), req.Tags); err != nil {
 		switch err {
 		case services.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
@@ -296,7 +318,9 @@ func (h *Handler) GetTags(c apicontext.Context) error {
 }
 
 func (h *Handler) DeleteAllTags(c apicontext.Context) error {
-	if err := h.service.DeleteAllTags(c.Ctx(), c.Value(apicontext.HeaderTenant), c.Param("name")); err == services.ErrUnauthorized {
+	const TagName = "name"
+
+	if err := h.service.DeleteAllTags(c.Ctx(), c.Value(apicontext.HeaderTenant), c.Param(TagName)); err == services.ErrUnauthorized {
 		return c.NoContent(http.StatusForbidden)
 	} else if err != nil {
 		return err

@@ -43,7 +43,10 @@ func (h *Handler) GetPublicKeys(c apicontext.Context) error {
 }
 
 func (h *Handler) GetPublicKey(c apicontext.Context) error {
-	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param("fingerprint"), c.Param("tenant"))
+	const NamespaceTenant = "tenant"
+	const NamespaceFingerprint = "fingerprint"
+
+	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param(NamespaceFingerprint), c.Param(NamespaceTenant))
 	if err != nil {
 		if err == store.ErrNoDocuments {
 			return c.NoContent(http.StatusNotFound)
@@ -83,6 +86,8 @@ func (h *Handler) CreatePublicKey(c apicontext.Context) error {
 }
 
 func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
+	const NamespaceFingerprint = "fingerprint"
+
 	var params models.PublicKeyUpdate
 	if err := c.Bind(&params); err != nil {
 		return err
@@ -91,7 +96,7 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 	var key *models.PublicKey
 	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.PublicKey.Edit, func() error {
 		var err error
-		key, err = h.service.UpdatePublicKey(c.Ctx(), c.Param("fingerprint"), c.Value(apicontext.HeaderTenant), &params)
+		key, err = h.service.UpdatePublicKey(c.Ctx(), c.Param(NamespaceFingerprint), c.Value(apicontext.HeaderTenant), &params)
 
 		return err
 	})
@@ -108,8 +113,10 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 }
 
 func (h *Handler) DeletePublicKey(c apicontext.Context) error {
+	const NamespaceFingerprint = "fingerprint"
+
 	err := guard.EvaluatePermission(c.Value(apicontext.HeaderUserType), authorizer.Actions.PublicKey.Remove, func() error {
-		err := h.service.DeletePublicKey(c.Ctx(), c.Param("fingerprint"), c.Value(apicontext.HeaderTenant))
+		err := h.service.DeletePublicKey(c.Ctx(), c.Param(NamespaceFingerprint), c.Value(apicontext.HeaderTenant))
 
 		return err
 	})
@@ -135,8 +142,11 @@ func (h *Handler) CreatePrivateKey(c apicontext.Context) error {
 }
 
 func (h *Handler) EvaluateKey(c apicontext.Context) error {
-	username := c.Param("username")
-	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param("fingerprint"), c.Param("tenant"))
+	const NamespaceTenant = "tenant"
+	const NamespaceFingerprint = "fingerprint"
+	const UserName = "username"
+
+	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param(NamespaceFingerprint), c.Param(NamespaceTenant))
 	if err != nil {
 		return c.JSON(http.StatusForbidden, err)
 	}
@@ -146,7 +156,7 @@ func (h *Handler) EvaluateKey(c apicontext.Context) error {
 		return c.JSON(http.StatusForbidden, err)
 	}
 
-	usernameOk, err := h.service.EvaluateKeyUsername(c.Ctx(), pubKey, username)
+	usernameOk, err := h.service.EvaluateKeyUsername(c.Ctx(), pubKey, c.Param(UserName))
 	if err != nil {
 		return err
 	}

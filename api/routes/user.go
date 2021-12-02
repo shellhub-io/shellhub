@@ -14,15 +14,14 @@ const (
 )
 
 func (h *Handler) UpdateUserData(c apicontext.Context) error {
-	var user models.User
+	const UserID = "id"
 
+	var user models.User
 	if err := c.Bind(&user); err != nil {
 		return err
 	}
 
-	ID := c.Param("id")
-
-	if fields, err := h.service.UpdateDataUser(c.Ctx(), &user, ID); err != nil {
+	if fields, err := h.service.UpdateDataUser(c.Ctx(), &user, c.Param(UserID)); err != nil {
 		switch {
 		case err == services.ErrBadRequest:
 			return c.JSON(http.StatusBadRequest, fields)
@@ -37,6 +36,8 @@ func (h *Handler) UpdateUserData(c apicontext.Context) error {
 }
 
 func (h *Handler) UpdateUserPassword(c apicontext.Context) error {
+	const UserID = "id"
+
 	var req struct {
 		CurrentPassword string `json:"current_password"`
 		NewPassword     string `json:"new_password"`
@@ -45,7 +46,7 @@ func (h *Handler) UpdateUserPassword(c apicontext.Context) error {
 		return err
 	}
 
-	if err := h.service.UpdatePasswordUser(c.Ctx(), req.CurrentPassword, req.NewPassword, c.Param("id")); err != nil {
+	if err := h.service.UpdatePasswordUser(c.Ctx(), req.CurrentPassword, req.NewPassword, c.Param(UserID)); err != nil {
 		switch {
 		case err == services.ErrBadRequest:
 			return c.NoContent(http.StatusBadRequest)

@@ -125,7 +125,9 @@ func (h *Handler) AuthUserInfo(c apicontext.Context) error {
 }
 
 func (h *Handler) AuthGetToken(c apicontext.Context) error {
-	res, err := h.service.AuthGetToken(c.Ctx(), c.Param("tenant"))
+	const NamespaceTenant = "tenant"
+
+	res, err := h.service.AuthGetToken(c.Ctx(), c.Param(NamespaceTenant))
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
@@ -134,7 +136,9 @@ func (h *Handler) AuthGetToken(c apicontext.Context) error {
 }
 
 func (h *Handler) AuthSwapToken(c apicontext.Context) error {
-	res, err := h.service.AuthSwapToken(c.Ctx(), c.Value(apicontext.HeaderUserID), c.Param("tenant"))
+	const NamespaceTenant = "tenant"
+
+	res, err := h.service.AuthSwapToken(c.Ctx(), c.Value(apicontext.HeaderUserID), c.Param(NamespaceTenant))
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
