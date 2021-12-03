@@ -240,20 +240,13 @@ func TestDeviceListByUsage(t *testing.T) {
 	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	devices := make([]models.Device, 0)
 	sessions := make([]models.Session, 0)
 
 	quantities := []int{10, 5, 3, 1, 1, 0, 0, 0}
 
 	for i, q := range quantities {
-		devices = append(devices, models.Device{
-			UID:      fmt.Sprintf("%s%d", "uid", i+1),
-			TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-			Status:   "accepted",
-		})
 		for j := 0; j < q; j++ {
 			sessions = append(sessions, models.Session{
-				UID:       fmt.Sprintf("%s%d", "uid", j),
 				TenantID:  "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 				DeviceUID: models.UID(fmt.Sprintf("%s%d", "uid", i+1)),
 			})
@@ -261,28 +254,21 @@ func TestDeviceListByUsage(t *testing.T) {
 	}
 
 	sessionsInterfaces := make([]interface{}, len(sessions))
-	devicesInterfaces := make([]interface{}, len(devices))
 
 	for i, v := range sessions {
 		sessionsInterfaces[i] = v
 	}
+	_, err = db.Client().Database("test").Collection("sessions").InsertMany(data.Context, sessionsInterfaces)
+	assert.NoError(t, err)
 
-	for i, v := range devices {
-		devicesInterfaces[i] = v
-	}
-
-	_, _ = db.Client().Database("test").Collection("sessions").InsertMany(data.Context, sessionsInterfaces)
-	_, _ = db.Client().Database("test").Collection("devices").InsertMany(data.Context, devicesInterfaces)
-
-	devices, err = mongostore.DeviceListByUsage(data.Context, data.Namespace.TenantID)
-	expectedUIDs := []string{"uid1", "uid2", "uid3"}
+	devices, err := mongostore.DeviceListByUsage(data.Context, data.Namespace.TenantID)
+	expectedUIDs := []models.UID{"uid1", "uid2", "uid3"}
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(expectedUIDs), len(devices))
 
 	for i, device := range devices {
-		assert.Equal(t, expectedUIDs[i], device.UID)
-		assert.Equal(t, "namespace", device.Namespace)
+		assert.Equal(t, expectedUIDs[i], device)
 	}
 }
 

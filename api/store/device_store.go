@@ -23,6 +23,6 @@ type DeviceStore interface {
 	DeviceGetByName(ctx context.Context, name string, tenantID string) (*models.Device, error)
 	DeviceGetByUID(ctx context.Context, uid models.UID, tenantID string) (*models.Device, error)
 	DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error
-	DeviceListByUsage(ctx context.Context, tenantID string) ([]models.Device, error)
+	DeviceListByUsage(ctx context.Context, tenantID string) ([]models.UID, error)
 	DeviceChooser(ctx context.Context, tenantID string, chosen []string) error
 }

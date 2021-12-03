@@ -490,6 +490,29 @@ func (_m *Service) GetDevice(ctx context.Context, uid models.UID) (*models.Devic
 	return r0, r1
 }
 
+// GetDeviceMostUsed provides a mock function with given fields: ctx, tenant
+func (_m *Service) GetDeviceMostUsed(ctx context.Context, tenant string) ([]models.UID, error) {
+	ret := _m.Called(ctx, tenant)
+
+	var r0 []models.UID
+	if rf, ok := ret.Get(0).(func(context.Context, string) []models.UID); ok {
+		r0 = rf(ctx, tenant)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.UID)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenant)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetNamespace provides a mock function with given fields: ctx, tenantID
 func (_m *Service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, tenantID)
