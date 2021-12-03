@@ -2,6 +2,7 @@
   <v-dialog
     v-if="isOwner"
     v-model="show"
+    persistent
     max-width="900"
   >
     <v-card data-test="deviceChooser-dialog">
