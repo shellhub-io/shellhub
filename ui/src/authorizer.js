@@ -19,6 +19,7 @@ const {
   deviceRemove,
   deviceConnect,
   deviceRename,
+  deviceChooser,
   deviceDetails,
   // Session
   sessionPlay,
@@ -55,6 +56,7 @@ export const actions = {
     remove: deviceRemove,
     connect: deviceConnect,
     rename: deviceRename,
+    chooser: deviceChooser,
     details: deviceDetails,
   },
   session: {
@@ -100,6 +102,7 @@ export const authorizer = {
       actions.device.remove,
       actions.device.connect,
       actions.device.rename,
+      actions.device.chooser,
       actions.device.details,
       // Session
       actions.session.play,

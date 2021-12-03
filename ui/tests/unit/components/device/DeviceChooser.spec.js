@@ -2,6 +2,7 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import DeviceChooser from '@/components/device/DeviceChooser';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('DeviceChooser', () => {
   const localVue = createLocalVue();
@@ -10,81 +11,78 @@ describe('DeviceChooser', () => {
 
   let wrapper;
 
-  const dialog = false;
-  const deviceChooserStatus = false;
-  const devicesSelected = [];
-  const isOwner = true;
+  document.body.setAttribute('data-app', true);
 
-  const hostname = 'localhost';
-  const url = `http://${hostname}/settings/billing`;
+  const accessType = ['owner', 'administrator', 'operator', 'observer'];
 
-  const filter = [];
+  const hasAuthorization = {
+    owner: true,
+    administrator: false,
+    operator: false,
+    observer: false,
+  };
 
-  const items = [
+  const tests = [
     {
-      title: 'Suggested Devices',
-      action: 'suggestedDevices',
-    },
-    {
-      title: 'All devices',
-      action: 'allDevices',
-    },
-  ];
-
-  const devices = [
-    {
-      uid: 'a582b47a42d',
-      name: '39-5e-2a',
-      identity: {
-        mac: '00:00:00:00:00:00',
+      description: 'Dialog is closes',
+      variables: {
+        deviceChooserStatus: false,
+        devicesSelected: [],
+        filter: [],
+        devices: [],
+        dialog: false,
       },
-      info: {
-        id: 'linuxmint',
-        pretty_name: 'Linux Mint 19.3',
-        version: '',
+      data: {
+        hostname: 'localhost',
+        action: 'suggestedDevices',
+        dialog: false,
+        items: [
+          {
+            title: 'Suggested Devices',
+            action: 'suggestedDevices',
+          },
+          {
+            title: 'All devices',
+            action: 'allDevices',
+          },
+        ],
       },
-      public_key: '----- PUBLIC KEY -----',
-      tenant_id: '00000000',
-      last_seen: '2020-05-20T18:58:53.276Z',
-      online: false,
-      namespace: 'user',
-      status: 'accepted',
-    },
-    {
-      uid: 'a582b47a42e',
-      name: '39-5e-2b',
-      identity: {
-        mac: '00:00:00:00:00:00',
+      computed: {
+        disableTooltipOrButton: false,
+        equalThreeDevices: false,
       },
-      info: {
-        id: 'linuxmint',
-        pretty_name: 'Linux Mint 19.3',
-        version: '',
+      components: {
+        'deviceChooserStatus-dialog': false,
       },
-      public_key: '----- PUBLIC KEY -----',
-      tenant_id: '00000001',
-      last_seen: '2020-05-20T19:58:53.276Z',
-      online: true,
-      namespace: 'user',
-      status: 'accepted',
+      template: {
+        'deviceChooserStatus-dialog': false,
+        'close-btn': false,
+        'accept-btn': false,
+      },
     },
   ];
 
-  const store = new Vuex.Store({
+  const storeVuex = (
+    deviceChooserStatus,
+    devicesSelected,
+    filter,
+    devices,
+    currentAccessType,
+  ) => new Vuex.Store({
     namespaced: true,
     state: {
       deviceChooserStatus,
       devicesSelected,
       filter,
       devices,
-      isOwner,
+      currentAccessType,
     },
     getters: {
       'devices/getDeviceChooserStatus': (state) => state.deviceChooserStatus,
       'devices/getDevicesSelected': (state) => state.devicesSelected,
       'devices/getFilter': (state) => state.filter,
       'devices/list': (state) => state.devices,
-      'namespaces/owner': (state) => state.isOwner,
+      'auth/accessType': (state) => state.currentAccessType,
     },
     actions: {
       'stats/get': () => {},
@@ -98,133 +96,72 @@ describe('DeviceChooser', () => {
     },
   });
 
-  const storeNotOwner = new Vuex.Store({
-    namespaced: true,
-    state: {
-      deviceChooserStatus,
-      devicesSelected,
-      filter,
-      devices,
-      isOwner,
-    },
-    getters: {
-      'devices/getDeviceChooserStatus': (state) => state.deviceChooserStatus,
-      'devices/getDevicesSelected': (state) => state.devicesSelected,
-      'devices/getFilter': (state) => state.filter,
-      'devices/list': (state) => state.devices,
-      'namespaces/owner': (state) => !state.isOwner,
-    },
-    actions: {
-      'stats/get': () => {},
-      'devices/getDevicesMostUsed': () => {},
-      'devices/postDevicesChooser': () => {},
-      'devices/setDevicesForUserToChoose': () => {},
-      'devices/setDeviceChooserStatus': () => {},
-      'snackbar/showSnackbarDeviceChooser': () => {},
-      'snackbar/showSnackbarErrorAssociation': () => {},
-      'snackbar/showSnackbarErrorLoading': () => {},
-    },
-  });
+  tests.forEach((test) => {
+    accessType.forEach((currentAccessType) => {
+      describe(`${test.description} ${currentAccessType}`, () => {
+        beforeEach(() => {
+          wrapper = mount(DeviceChooser, {
+            store: storeVuex(
+              test.variables.deviceChooserStatus,
+              test.variables.devicesSelected,
+              test.variables.filter,
+              test.variables.devices,
+              currentAccessType,
+            ),
+            localVue,
+            stubs: ['fragment'],
+            vuetify,
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+            },
+          });
 
-  describe('Dialog is closes', () => {
-    beforeEach(() => {
-      wrapper = mount(DeviceChooser, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        vuetify,
+          wrapper.setData({ dialog: test.variables.dialog });
+        });
+
+        ///////
+        // Component Rendering
+        //////
+
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
+        });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
+
+        ///////
+        // Data checking
+        //////
+
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
+          });
+        });
+        it('Process data in the computed', () => {
+          Object.keys(test.computed).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.computed[item]);
+          });
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+        });
+
+        //////
+        // HTML validation
+        //////
+
+        it('Renders the template with components', () => {
+          Object.keys(test.components).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.components[item]);
+          });
+        });
+        it('Renders the template with data', () => {
+          Object.keys(test.template).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+          });
+        });
       });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      document.body.setAttribute('data-app', true);
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.hostname).toEqual(hostname);
-      expect(wrapper.vm.action).toEqual(items[0].action);
-      expect(wrapper.vm.items).toEqual(items);
-      expect(wrapper.vm.dialog).toEqual(dialog);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.show).toEqual(false);
-      expect(wrapper.vm.disableTooltipOrButton).toEqual(false);
-      expect(wrapper.vm.equalThreeDevices).toEqual(false);
-    });
-    it('Process data in methods', () => {
-      expect(wrapper.vm.url()).toEqual(url);
-
-      wrapper.vm.close();
-      expect(wrapper.vm.show).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with components', async () => {
-      expect(wrapper.find('[data-test="r-component"]').exists()).toEqual(false);
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="deviceChooserStatus-dialog"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="accept-btn"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, the test dialog does not open for user not owner
-  ///////
-
-  describe('Avoid opening for user not owner', () => {
-    beforeEach(() => {
-      wrapper = mount(DeviceChooser, {
-        localVue,
-        store: storeNotOwner,
-        stubs: ['fragment'],
-        vuetify,
-      });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    ///////
-
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', async () => {
-      expect(wrapper.find('[data-test="deviceChooserStatus-dialog"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="accept-btn"]').exists()).toEqual(false);
     });
   });
 });

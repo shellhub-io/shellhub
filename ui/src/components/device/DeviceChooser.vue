@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    v-if="isOwner"
+    v-if="hasAuthorization"
     v-model="show"
     persistent
     max-width="900"
@@ -69,8 +69,8 @@
               <v-btn
                 text
                 v-bind="attrs"
-                data-test="accept-btn"
                 :disabled="disableTooltipOrButton"
+                data-test="accept-btn"
                 v-on="on"
                 @click="accept()"
               >
@@ -92,8 +92,12 @@
 
 import DeviceListChooser from '@/components/device/DeviceListChooser';
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'DeviceChooserComponent',
+
+  filters: { hasPermission },
 
   components: {
     DeviceListChooser,
@@ -118,10 +122,6 @@ export default {
   },
 
   computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
-    },
-
     show: {
       get() {
         return this.$store.getters['devices/getDeviceChooserStatus'];
@@ -140,6 +140,18 @@ export default {
 
     equalThreeDevices() {
       return this.$store.getters['devices/getDevicesSelected'].length === 3;
+    },
+
+    hasAuthorization() {
+      const accessType = this.$store.getters['auth/accessType'];
+      if (accessType !== '') {
+        return hasPermission(
+          this.$authorizer.accessType[accessType],
+          this.$actions.device.chooser,
+        );
+      }
+
+      return false;
     },
   },
 
