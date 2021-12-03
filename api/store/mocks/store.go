@@ -343,15 +343,15 @@ func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, fil
 }
 
 // DeviceListByUsage provides a mock function with given fields: ctx, tenantID
-func (_m *Store) DeviceListByUsage(ctx context.Context, tenantID string) ([]models.Device, error) {
+func (_m *Store) DeviceListByUsage(ctx context.Context, tenantID string) ([]models.UID, error) {
 	ret := _m.Called(ctx, tenantID)
 
-	var r0 []models.Device
-	if rf, ok := ret.Get(0).(func(context.Context, string) []models.Device); ok {
+	var r0 []models.UID
+	if rf, ok := ret.Get(0).(func(context.Context, string) []models.UID); ok {
 		r0 = rf(ctx, tenantID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.Device)
+			r0 = ret.Get(0).([]models.UID)
 		}
 	}
 

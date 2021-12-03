@@ -259,54 +259,24 @@ func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status s
 	return nil
 }
 
-func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.Device, error) {
+func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.UID, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
-				"status":    "accepted",
 				"tenant_id": tenant,
 			},
 		},
 		{
-			"$lookup": bson.M{
-				"from":         "sessions",
-				"localField":   "uid",
-				"foreignField": "device_uid",
-				"as":           "sessions",
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"sessionsCount": bson.M{
-					"$size": "$sessions",
+			"$group": bson.M{
+				"_id": "$device_uid",
+				"count": bson.M{
+					"$sum": 1,
 				},
 			},
 		},
 		{
 			"$sort": bson.M{
-				"sessionsCount": -1,
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "namespaces",
-				"localField":   "tenant_id",
-				"foreignField": "tenant_id",
-				"as":           "namespace",
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"namespace": "$namespace.name",
-			},
-		},
-		{
-			"$unwind": "$namespace",
-		},
-		{
-			"$project": bson.M{
-				"sessions":      0,
-				"sessionsCount": 0,
+				"count": -1,
 			},
 		},
 		{
@@ -314,23 +284,25 @@ func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.
 		},
 	}
 
-	devices := make([]models.Device, 0)
-	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
+	uids := make([]models.UID, 0)
+
+	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
 	if err != nil {
-		return devices, fromMongoError(err)
+		return uids, fromMongoError(err)
 	}
 
 	for cursor.Next(ctx) {
-		device := new(models.Device)
-		err = cursor.Decode(&device)
+		var dev map[string]interface{}
+
+		err = cursor.Decode(&dev)
 		if err != nil {
-			return devices, err
+			return uids, err
 		}
 
-		devices = append(devices, *device)
+		uids = append(uids, models.UID(dev["_id"].(string)))
 	}
 
-	return devices, nil
+	return uids, nil
 }
 
 func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status string) (*models.Device, error) {
