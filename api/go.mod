@@ -11,7 +11,7 @@ require (
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo/v4 v4.6.1
-	github.com/mitchellh/mapstructure v1.4.2
+	github.com/mitchellh/mapstructure v1.4.3
 	github.com/pkg/errors v0.9.1
 	github.com/shellhub-io/shellhub v0.5.2
 	github.com/sirupsen/logrus v1.8.1
