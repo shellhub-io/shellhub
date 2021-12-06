@@ -24,7 +24,7 @@ import (
 
 var (
 	ErrInvalidSessionTarget = errors.New("invalid session target")
-	ErrBillingBlock         = errors.New("reached the device limit, update to premium or choose up to 3 devices")
+	ErrBillingBlock         = errors.New("you reached the free device limit, please upgrade to the premium plan or choose up to 3 devices")
 )
 
 type Session struct {
