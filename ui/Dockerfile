@@ -1,4 +1,4 @@
-FROM node:15.14.0-alpine3.13 as base
+FROM node:17.2.0-alpine3.13 as base
 
 ARG YARN_REGISTRY
 
@@ -33,7 +33,7 @@ COPY ui/. .
 
 COPY --from=base /app/node_modules ./node_modules
 
-RUN yarn run build
+RUN NODE_OPTIONS=--openssl-legacy-provider yarn run build
 
 FROM nginx:1.21.4-alpine as production
 
