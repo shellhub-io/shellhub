@@ -55,7 +55,7 @@
     "eslint-import-resolver-webpack": "^0.13.2",
     "eslint-plugin-vue": "^8.1.1",
     "font-logos": "^0.18.0",
-    "mock-local-storage": "^1.1.18",
+    "mock-local-storage": "^1.1.19",
     "node-sass": "^6.0.1",
     "sass": "^1.32.12",
     "sass-loader": "~10.2.0",
