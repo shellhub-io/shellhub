@@ -1,19 +1,19 @@
 FROM node:15.14.0-alpine3.13 as base
 
-ARG NPM_CONFIG_REGISTRY
+ARG YARN_REGISTRY
 
 RUN apk add --update build-base python3
 
 WORKDIR /app
 
-COPY ui/package*.json ./
+COPY ui/package.json ui/yarn.lock ./
 
-RUN npm install
+RUN yarn install
 
 FROM base as development
 
-ARG NPM_CONFIG_REGISTRY
-ENV NPM_CONFIG_REGISTRY ${NPM_CONFIG_REGISTRY}
+ARG YARN_REGISTRY
+ENV YARN_REGISTRY ${YARN_REGISTRY}
 
 WORKDIR /src
 
@@ -25,7 +25,7 @@ CMD ["/scripts/entrypoint-dev.sh"]
 
 FROM base as builder
 
-ARG NPM_CONFIG_REGISTRY
+ARG YARN_REGISTRY
 
 WORKDIR /app
 
@@ -33,7 +33,7 @@ COPY ui/. .
 
 COPY --from=base /app/node_modules ./node_modules
 
-RUN npm run build
+RUN yarn run build
 
 FROM nginx:1.21.4-alpine as production
 

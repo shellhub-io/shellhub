@@ -43,7 +43,7 @@ services:
       target: development
       network: host
       args:
-        - NPM_CONFIG_REGISTRY=${SHELLHUB_NPM_REGISTRY}
+        - YARN_REGISTRY=${SHELLHUB_NPM_REGISTRY}
     volumes:
       - ./ui:/src
     environment:

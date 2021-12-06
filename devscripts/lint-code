@@ -65,7 +65,7 @@ vue() {
     # Run linter on a running container
     docker-compose \
         -f docker-compose.yml -f docker-compose.dev.yml \
-        exec ui npm run lint$EXTRA_ARGS
+        exec ui yarn run lint$EXTRA_ARGS
 }
 
 mode=$1

@@ -126,14 +126,14 @@ jobs:
       - name: Install Node Dependencies [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
-        run: npm install
+        run: yarn install
 
       - name: Unit test [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
-        run: npm run test:unit -- -u
+        run: yarn run test:unit -- -u
 
       - name: Save Code Linting Report JSON [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
-        run: npm run lint:no-fix
+        run: yarn run lint:no-fix

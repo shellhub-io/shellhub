@@ -36,7 +36,7 @@ npm_test() {
 
     docker-compose \
         -f docker-compose.yml -f docker-compose.dev.yml \
-        exec $container npm run test:unit ${@:2}
+        exec $container yarn run test:unit ${@:2}
 }
 
 [ -z "$1" ] && usage
