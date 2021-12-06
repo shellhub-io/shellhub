@@ -54,6 +54,7 @@ export default {
         };
         try {
           await this.$store.dispatch('security/set', data);
+          this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceEdit);
         } catch {
           this.$store.dispatch('snackbar/showSnackbarErrorDefault');
         }

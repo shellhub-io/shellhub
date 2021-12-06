@@ -1,0 +1,99 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NamespaceMemberList Renders the component 1`] = `
+<fragment-stub>
+  <div class="mt-5">
+    <v-row-stub tag="div" class="text-center mb-2">
+      <v-col-stub tag="div"><b data-test="Username-title">
+          Username
+        </b></v-col-stub>
+      <v-col-stub tag="div"><b data-test="Role-title">
+          Role
+        </b></v-col-stub>
+      <v-col-stub tag="div"><b data-test="Actions-title">
+          Actions
+        </b></v-col-stub>
+    </v-row-stub>
+    <v-list-stub tag="div" class="mb-2">
+      <v-list-item-stub activeclass="" tag="div">
+        <v-row-stub tag="div">
+          <v-col-stub cols="1" tag="div">
+            <v-icon-stub>
+              mdi-account
+            </v-icon-stub>
+          </v-col-stub>
+          <v-col-stub tag="div" class="text-start">
+            <v-list-item-title-stub tag="div" data-test="user1-list">
+              user1
+            </v-list-item-title-stub>
+          </v-col-stub>
+          <v-col-stub cols="3" tag="div" class="text-end">
+            <v-list-item-title-stub tag="div" data-test="owner-list">
+              owner
+            </v-list-item-title-stub>
+          </v-col-stub>
+          <v-spacer-stub tag="div"></v-spacer-stub>
+          <div data-test="user1-actions-list">
+            <v-col-stub tag="div">
+              <namespacememberformdialog-stub member="[object Object]" data-test="NamespaceMemberFormDialogEdit-component"></namespacememberformdialog-stub>
+              <namespacememberdelete-stub member="[object Object]" data-test="namespaceMemberDelete-component"></namespacememberdelete-stub>
+            </v-col-stub>
+          </div>
+        </v-row-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" tag="div">
+        <v-row-stub tag="div">
+          <v-col-stub cols="1" tag="div">
+            <v-icon-stub>
+              mdi-account
+            </v-icon-stub>
+          </v-col-stub>
+          <v-col-stub tag="div" class="text-start">
+            <v-list-item-title-stub tag="div" data-test="user2-list">
+              user2
+            </v-list-item-title-stub>
+          </v-col-stub>
+          <v-col-stub cols="3" tag="div" class="text-end">
+            <v-list-item-title-stub tag="div" data-test="administrator-list">
+              administrator
+            </v-list-item-title-stub>
+          </v-col-stub>
+          <v-spacer-stub tag="div"></v-spacer-stub>
+          <div data-test="user2-actions-list">
+            <v-col-stub tag="div">
+              <namespacememberformdialog-stub member="[object Object]" data-test="NamespaceMemberFormDialogEdit-component"></namespacememberformdialog-stub>
+              <namespacememberdelete-stub member="[object Object]" data-test="namespaceMemberDelete-component"></namespacememberdelete-stub>
+            </v-col-stub>
+          </div>
+        </v-row-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" tag="div">
+        <v-row-stub tag="div">
+          <v-col-stub cols="1" tag="div">
+            <v-icon-stub>
+              mdi-account
+            </v-icon-stub>
+          </v-col-stub>
+          <v-col-stub tag="div" class="text-start">
+            <v-list-item-title-stub tag="div" data-test="user3-list">
+              user3
+            </v-list-item-title-stub>
+          </v-col-stub>
+          <v-col-stub cols="3" tag="div" class="text-end">
+            <v-list-item-title-stub tag="div" data-test="observer-list">
+              observer
+            </v-list-item-title-stub>
+          </v-col-stub>
+          <v-spacer-stub tag="div"></v-spacer-stub>
+          <div data-test="user3-actions-list">
+            <v-col-stub tag="div">
+              <namespacememberformdialog-stub member="[object Object]" data-test="NamespaceMemberFormDialogEdit-component"></namespacememberformdialog-stub>
+              <namespacememberdelete-stub member="[object Object]" data-test="namespaceMemberDelete-component"></namespacememberdelete-stub>
+            </v-col-stub>
+          </div>
+        </v-row-stub>
+      </v-list-item-stub>
+    </v-list-stub>
+  </div>
+</fragment-stub>
+`;
