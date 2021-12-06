@@ -10,8 +10,8 @@ type Namespace struct {
 	TenantID     string             `json:"tenant_id" bson:"tenant_id,omitempty"`
 	Members      []Member           `json:"members" bson:"members"`
 	Settings     *NamespaceSettings `json:"settings"`
-	Devices      int                `json:"devices" bson:",omitempty"`
-	Sessions     int                `json:"sessions" bson:",omitempty"`
+	Devices      int                `json:"-" bson:"devices,omitempty"`
+	Sessions     int                `json:"-" bson:"sessions,omitempty"`
 	MaxDevices   int                `json:"max_devices" bson:"max_devices"`
 	DevicesCount int                `json:"devices_count" bson:"devices_count,omitempty"`
 	CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
