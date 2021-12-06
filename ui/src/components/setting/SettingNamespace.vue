@@ -148,63 +148,9 @@
               </div>
             </v-row>
 
-            <div class="mt-5">
-              <v-list>
-                <v-list-item
-                  v-for="item in namespace.members"
-                  :key="item.id"
-                >
-                  <v-row>
-                    <v-col
-                      md="auto"
-                      class="ml-auto"
-                    >
-                      <v-icon>
-                        mdi-account
-                      </v-icon>
-                    </v-col>
-
-                    <v-col>
-                      <v-list-item-title :data-test="item.name+'-list'">
-                        {{ item.username }}
-                      </v-list-item-title>
-                    </v-col>
-
-                    <v-col
-                      md="auto"
-                      class="ml-auto"
-                    >
-                      <v-list-item-title :data-test="item.type+'-list'">
-                        {{ item.type }}
-                      </v-list-item-title>
-                    </v-col>
-
-                    <v-spacer />
-
-                    <div>
-                      <v-col
-                        md="auto"
-                        class="ml-auto"
-                      >
-                        <NamespaceMemberFormDialog
-                          :add-user="false"
-                          :member="item"
-                          data-test="NamespaceMemberFormDialogEdit-component"
-                          @update="refresh"
-                        />
-
-                        <NamespaceMemberDelete
-                          :member="item"
-                          data-test="namespaceMemberDelete-component"
-                          @update="refresh"
-                        />
-                      </v-col>
-                    </div>
-                  </v-row>
-                </v-list-item>
-              </v-list>
-            </div>
-
+            <NamespaceMemberList
+              :namespace.sync="namespace"
+            />
             <v-divider />
             <v-divider />
           </div>
@@ -265,8 +211,8 @@ import {
 } from 'vee-validate';
 
 import SettingSecurity from '@/components/setting/SettingSecurity';
+import NamespaceMemberList from '@/components/app_bar/namespace/NamespaceMemberList';
 import NamespaceMemberFormDialog from '@/components/app_bar/namespace/NamespaceMemberFormDialog';
-import NamespaceMemberDelete from '@/components/app_bar/namespace/NamespaceMemberDelete';
 import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
 
 import hasPermission from '@/components/filter/permission';
@@ -279,9 +225,9 @@ export default {
   components: {
     ValidationProvider,
     ValidationObserver,
-    NamespaceMemberFormDialog,
-    NamespaceMemberDelete,
     NamespaceDelete,
+    NamespaceMemberList,
+    NamespaceMemberFormDialog,
     SettingSecurity,
   },
 

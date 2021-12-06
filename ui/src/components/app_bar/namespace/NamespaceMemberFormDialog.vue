@@ -72,7 +72,7 @@
     >
       <v-card data-test="namespaceNewMember-dialog">
         <v-card-title class="headline grey lighten-2 text-center">
-          Add member to Namespace
+          {{ addUser ? 'Add member to namespace' : 'Update member role' }}
         </v-card-title>
 
         <ValidationObserver
