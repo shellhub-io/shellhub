@@ -16,6 +16,7 @@ func HashPassword(password string) string {
 
 // FormatUser apply some formation rules to a models.User and encrypt the password.
 func FormatUser(user *models.User) {
+	user.ID = ""
 	user.Username = strings.ToLower(user.Username)
 	user.Email = strings.ToLower(user.Email)
 	if user.Password != "" {
