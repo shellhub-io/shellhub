@@ -70,7 +70,7 @@ exports[`SessionDetails Recorded is false and device is offline Renders the comp
     </v-card-text-stub>
   </v-card-stub>
   <div class="text-center">
-    <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="none" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+    <v-dialog-stub opendelay="0" closedelay="0" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
         <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
           Session ID error
@@ -162,7 +162,7 @@ exports[`SessionDetails Recorded is false and device is online Renders the compo
     </v-card-text-stub>
   </v-card-stub>
   <div class="text-center">
-    <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="none" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+    <v-dialog-stub opendelay="0" closedelay="0" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
         <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
           Session ID error
@@ -254,7 +254,7 @@ exports[`SessionDetails Recorded is true and device is online Renders the compon
     </v-card-text-stub>
   </v-card-stub>
   <div class="text-center">
-    <v-dialog-stub opendelay="0" closedelay="0" contentclass="" maxwidth="none" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+    <v-dialog-stub opendelay="0" closedelay="0" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
         <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
           Session ID error

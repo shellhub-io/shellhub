@@ -240,13 +240,13 @@ exports[`SettingBilling Premium usage administrator Renders the component 1`] = 
             </v-col-stub>
           </v-row-stub>
           <div data-test="paymentMethods-div" class="mt-5 pl-4 pr-4 pb-5">
-            <v-row-stub tag="div" class="mb-2">
+            <v-row-stub tag="div" class="text-row mb-2">
               <v-col-stub tag="div"><b>Brand</b></v-col-stub>
               <v-col-stub tag="div"><b>Expiration date</b></v-col-stub>
               <v-col-stub tag="div"><b>Ends with</b></v-col-stub>
               <v-col-stub cols="3" tag="div" class="pm-actionsText"><b>Actions</b></v-col-stub>
             </v-row-stub>
-            <v-row-stub tag="div">
+            <v-row-stub tag="div" class="pm-rowItem">
               <v-col-stub tag="div">
                 <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
               </v-col-stub>
@@ -260,7 +260,7 @@ exports[`SettingBilling Premium usage administrator Renders the component 1`] = 
                   4042
                 </p>
               </v-col-stub>
-              <v-col-stub cols="3" tag="div">
+              <v-col-stub cols="4" tag="div" class="actions-column">
                 <div class="pm-text">
                   <p>
                     Default
@@ -268,7 +268,7 @@ exports[`SettingBilling Premium usage administrator Renders the component 1`] = 
                 </div>
               </v-col-stub>
             </v-row-stub>
-            <v-row-stub tag="div">
+            <v-row-stub tag="div" class="pm-rowItem">
               <v-col-stub tag="div">
                 <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
               </v-col-stub>
@@ -282,7 +282,7 @@ exports[`SettingBilling Premium usage administrator Renders the component 1`] = 
                   4042
                 </p>
               </v-col-stub>
-              <v-col-stub cols="3" tag="div">
+              <v-col-stub cols="4" tag="div" class="actions-column">
                 <div class="pm-actions">
                   <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
                     <div>
@@ -301,7 +301,7 @@ exports[`SettingBilling Premium usage administrator Renders the component 1`] = 
                 </div>
               </v-col-stub>
             </v-row-stub>
-            <v-row-stub tag="div">
+            <v-row-stub tag="div" class="pm-rowItem">
               <v-col-stub tag="div">
                 <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
               </v-col-stub>
@@ -315,7 +315,7 @@ exports[`SettingBilling Premium usage administrator Renders the component 1`] = 
                   4042
                 </p>
               </v-col-stub>
-              <v-col-stub cols="3" tag="div">
+              <v-col-stub cols="4" tag="div" class="actions-column">
                 <div class="pm-actions">
                   <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
                     <div>
@@ -474,13 +474,13 @@ exports[`SettingBilling Premium usage owner Renders the component 1`] = `
             </v-col-stub>
           </v-row-stub>
           <div data-test="paymentMethods-div" class="mt-5 pl-4 pr-4 pb-5">
-            <v-row-stub tag="div" class="mb-2">
+            <v-row-stub tag="div" class="text-row mb-2">
               <v-col-stub tag="div"><b>Brand</b></v-col-stub>
               <v-col-stub tag="div"><b>Expiration date</b></v-col-stub>
               <v-col-stub tag="div"><b>Ends with</b></v-col-stub>
               <v-col-stub cols="3" tag="div" class="pm-actionsText"><b>Actions</b></v-col-stub>
             </v-row-stub>
-            <v-row-stub tag="div">
+            <v-row-stub tag="div" class="pm-rowItem">
               <v-col-stub tag="div">
                 <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
               </v-col-stub>
@@ -494,7 +494,7 @@ exports[`SettingBilling Premium usage owner Renders the component 1`] = `
                   4042
                 </p>
               </v-col-stub>
-              <v-col-stub cols="3" tag="div">
+              <v-col-stub cols="4" tag="div" class="actions-column">
                 <div class="pm-text">
                   <p>
                     Default
@@ -502,7 +502,7 @@ exports[`SettingBilling Premium usage owner Renders the component 1`] = `
                 </div>
               </v-col-stub>
             </v-row-stub>
-            <v-row-stub tag="div">
+            <v-row-stub tag="div" class="pm-rowItem">
               <v-col-stub tag="div">
                 <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
               </v-col-stub>
@@ -516,7 +516,7 @@ exports[`SettingBilling Premium usage owner Renders the component 1`] = `
                   4042
                 </p>
               </v-col-stub>
-              <v-col-stub cols="3" tag="div">
+              <v-col-stub cols="4" tag="div" class="actions-column">
                 <div class="pm-actions">
                   <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
                     <div>
@@ -535,7 +535,7 @@ exports[`SettingBilling Premium usage owner Renders the component 1`] = `
                 </div>
               </v-col-stub>
             </v-row-stub>
-            <v-row-stub tag="div">
+            <v-row-stub tag="div" class="pm-rowItem">
               <v-col-stub tag="div">
                 <billingicon-stub iconname="visa" data-test="billingIcon-component"></billingicon-stub>
               </v-col-stub>
@@ -549,7 +549,7 @@ exports[`SettingBilling Premium usage owner Renders the component 1`] = `
                   4042
                 </p>
               </v-col-stub>
-              <v-col-stub cols="3" tag="div">
+              <v-col-stub cols="4" tag="div" class="actions-column">
                 <div class="pm-actions">
                   <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="ml-4">
                     <div>
