@@ -66,7 +66,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
 		}).Error(err)
 
-		if _, err = io.WriteString(session, fmt.Sprintf("%s\n", ErrorExternal(err))); err != nil {
+		if _, err = io.WriteString(session, fmt.Sprintf("%s\n", getExternalError(err))); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"session": session.Context().Value(sshserver.ContextKeySessionID),
 			}).Error(err)
