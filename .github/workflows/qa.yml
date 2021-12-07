@@ -114,7 +114,7 @@ jobs:
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         uses: actions/setup-node@v1
         with:
-          node-version: "15.14"
+          node-version: "16.13.1"
 
       - name: Cache node modules [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
