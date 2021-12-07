@@ -6,7 +6,7 @@ exports[`Notification With notifications administrator Renders the component 1`]
     <v-subheader-stub>Pending Devices</v-subheader-stub>
     <v-divider-stub></v-divider-stub>
     <v-list-stub tag="div" class="pa-0">
-      <v-list-item-group-stub activeclass="v-item--active" tag="div" v-model="1">
+      <v-list-item-group-stub valuecomparator="[Function]" activeclass="v-item--active" tag="div" v-model="1">
         <v-list-item-stub activeclass="" tag="div">
           <v-list-item-content-stub tag="div">
             <v-list-item-title-stub tag="div">
@@ -47,7 +47,7 @@ exports[`Notification With notifications observer Renders the component 1`] = `
     <v-subheader-stub>Pending Devices</v-subheader-stub>
     <v-divider-stub></v-divider-stub>
     <v-list-stub tag="div" class="pa-0">
-      <v-list-item-group-stub activeclass="v-item--active" tag="div" v-model="1">
+      <v-list-item-group-stub valuecomparator="[Function]" activeclass="v-item--active" tag="div" v-model="1">
         <v-list-item-stub activeclass="" tag="div">
           <v-list-item-content-stub tag="div">
             <v-list-item-title-stub tag="div">
@@ -88,7 +88,7 @@ exports[`Notification With notifications operator Renders the component 1`] = `
     <v-subheader-stub>Pending Devices</v-subheader-stub>
     <v-divider-stub></v-divider-stub>
     <v-list-stub tag="div" class="pa-0">
-      <v-list-item-group-stub activeclass="v-item--active" tag="div" v-model="1">
+      <v-list-item-group-stub valuecomparator="[Function]" activeclass="v-item--active" tag="div" v-model="1">
         <v-list-item-stub activeclass="" tag="div">
           <v-list-item-content-stub tag="div">
             <v-list-item-title-stub tag="div">
@@ -129,7 +129,7 @@ exports[`Notification With notifications owner Renders the component 1`] = `
     <v-subheader-stub>Pending Devices</v-subheader-stub>
     <v-divider-stub></v-divider-stub>
     <v-list-stub tag="div" class="pa-0">
-      <v-list-item-group-stub activeclass="v-item--active" tag="div" v-model="1">
+      <v-list-item-group-stub valuecomparator="[Function]" activeclass="v-item--active" tag="div" v-model="1">
         <v-list-item-stub activeclass="" tag="div">
           <v-list-item-content-stub tag="div">
             <v-list-item-title-stub tag="div">
