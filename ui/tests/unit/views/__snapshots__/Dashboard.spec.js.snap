@@ -2,9 +2,7 @@
 
 exports[`Dashboard Renders the component 1`] = `
 <fragment-stub>
-  <v-alert-stub color="#bd4147" outlined="true" tag="div" value="true" closelabel="$vuetify.close" dismissible="true" closeicon="$cancel" icon="" text="true">
-    Sorry, we couldn't find the page you were looking for
-  </v-alert-stub>
+  <!---->
   <v-row-stub tag="div" class="mt-4">
     <v-col-stub cols="12" md="4" tag="div" class="pt-0">
       <v-card-stub loaderheight="4" tag="div" elevation="1" outlined="true">

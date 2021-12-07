@@ -2,7 +2,7 @@
 
 exports[`NamespaceInstructions  Renders the component 1`] = `
 <v-card-stub loaderheight="4" tag="div">
-  <v-dialog-stub opendelay="0" closedelay="0" value="true" contentclass="" maxwidth="650px" origin="center center" persistent="true" transition="dialog-transition" width="auto">
+  <v-dialog-stub opendelay="0" closedelay="0" value="true" contentclass="" maxwidth="650px" origin="center center" persistent="true" transition="dialog-transition">
     <v-card-stub loaderheight="4" tag="div" data-test="namespaceInstructions-card">
       <v-card-title-stub tag="div" class="headline grey lighten-2">
         There are no namespaces associated with your account
@@ -31,7 +31,7 @@ exports[`NamespaceInstructions  Renders the component 1`] = `
 
 exports[`NamespaceInstructions  Renders the component 2`] = `
 <v-card-stub loaderheight="4" tag="div">
-  <v-dialog-stub opendelay="0" closedelay="0" value="true" contentclass="" maxwidth="650px" origin="center center" persistent="true" transition="dialog-transition" width="auto">
+  <v-dialog-stub opendelay="0" closedelay="0" value="true" contentclass="" maxwidth="650px" origin="center center" persistent="true" transition="dialog-transition">
     <v-card-stub loaderheight="4" tag="div" data-test="namespaceInstructions-card">
       <v-card-title-stub tag="div" class="headline grey lighten-2">
         There are no namespaces associated with your account
