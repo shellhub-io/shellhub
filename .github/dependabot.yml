@@ -46,8 +46,15 @@ updates:
   ignore:
     - dependency-name: "vue-fragment"
     - dependency-name: "sass-loader"
+      update-types: ["version-update:semver-major","version-update:semver-minor"]
     - dependency-name: "sass"
+      update-types: ["version-update:semver-major"]
     - dependency-name: "stylus-loader"
+      update-types: ["version-update:semver-major"]
+    - dependency-name: "eslint"
+      update-types: ["version-update:semver-major"]
+    - dependency-name: "webpack"
+      update-types: ["version-update:semver-major"]
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
