@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import Vuetify from 'vuetify/lib';
+import Vuetify from 'vuetify/lib/framework';
 import '@mdi/font/css/materialdesignicons.css';
 import 'font-logos/assets/font-logos.css';
 import { library } from '@fortawesome/fontawesome-svg-core';
