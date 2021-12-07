@@ -131,7 +131,7 @@ jobs:
       - name: Unit test [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
-        run: npm run test:unit -- -u
+        run: npm run test:unit
 
       - name: Save Code Linting Report JSON [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
