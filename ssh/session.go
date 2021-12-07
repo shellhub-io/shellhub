@@ -22,11 +22,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var (
-	ErrInvalidSessionTarget = errors.New("invalid session target")
-	ErrBillingBlock         = errors.New("you reached the free device limit, please upgrade to the premium plan or choose up to 3 devices")
-)
-
 type Session struct {
 	session       sshserver.Session
 	User          string `json:"username"`
@@ -43,18 +38,24 @@ type ConfigOptions struct {
 }
 
 func NewSession(target string, session sshserver.Session) (*Session, error) {
+	// Splits the target into a user, 0, and  the true target, 1.
+	// Example: username@shellhub.00-00-00-00-00-00@localhost.
+	// 'username' is the user on the device.
+	// 'shellhub' is the user's namespace in ShellHub.
+	// '00-00-00-00-00' is the device's hostname in ShellHub.
 	parts := strings.SplitN(target, "@", 2)
 	if len(parts) != 2 {
-		return nil, ErrInvalidSessionTarget
+		return nil, ErrInvalidSessionTarget // Cloud not split user and the target to connect.
 	}
 
 	s := &Session{
 		session: session,
 		UID:     session.Context().Value(sshserver.ContextKeySessionID).(string),
-		User:    parts[0],
-		Target:  parts[1],
+		User:    parts[0], // username.
+		Target:  parts[1], // shellhub.00-00-00-00-00-00@localhost.
 	}
 
+	// Splits a string "localhost:port" into localhost and port.
 	host, _, err := net.SplitHostPort(session.RemoteAddr().String())
 	if err != nil {
 		return nil, err
@@ -74,9 +75,9 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	c := client.NewClient()
 
 	if !strings.Contains(s.Target, ".") {
-		device, err := c.GetDevice(s.Target)
+		device, err := c.GetDevice(s.Target) // `s.Target` is the device's UID.
 		if err != nil {
-			return nil, ErrInvalidSessionTarget
+			return nil, ErrFindDevice // Could find device.
 		}
 
 		lookup = map[string]string{
@@ -86,14 +87,16 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 			"ip_address": s.IPAddress,
 		}
 	} else {
+		// parts[1]: shellhub.00-00-00-00-00-00@localhost.
+		// Splits the target into domain, namespace, and name, username.
 		parts = strings.SplitN(parts[1], ".", 2)
 		if len(parts) < 2 {
-			return nil, ErrInvalidSessionTarget
+			return nil, ErrInvalidSessionTarget // Could not split the target into namespace and username.
 		}
 
 		lookup = map[string]string{
-			"domain":     strings.ToLower(parts[0]),
-			"name":       strings.ToLower(parts[1]),
+			"domain":     strings.ToLower(parts[0]), // namespace's name; 'shellhub'.
+			"name":       strings.ToLower(parts[1]), // device's hostname; '00-00-00-00-00-00'.
 			"username":   s.User,
 			"ip_address": s.IPAddress,
 		}
@@ -101,22 +104,22 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 
 	uid, errs := c.Lookup(lookup)
 	if len(errs) > 0 || uid == "" {
-		return nil, ErrInvalidSessionTarget
+		return nil, ErrLookupDevice // Cloud not lookup for device's data.
 	}
 
 	s.Target = uid
 	s.Lookup = lookup
 
-	if envs.IsEnterprise() || envs.IsCloud() { // avoid firewall evaluation in community instance
+	if envs.IsEnterprise() || envs.IsCloud() { // Avoid firewall evaluation in community instance.
 		if err := c.FirewallEvaluate(lookup); err != nil {
-			return nil, ErrInvalidSessionTarget
+			return nil, ErrFirewallBlock // A firewall rule block this action.
 		}
 	}
 
 	if envs.IsCloud() && envs.HasBilling() {
 		device, err := c.GetDevice(s.Target)
 		if err != nil {
-			return nil, ErrInvalidSessionTarget
+			return nil, ErrFindDevice
 		}
 
 		_, status, _ := c.BillingEvaluate(device.TenantID)
@@ -125,7 +128,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 			goto end
 		}
 
-		return nil, ErrBillingBlock
+		return nil, ErrBillingBlock // A billing rule blocks this action.
 
 	end:
 	}
