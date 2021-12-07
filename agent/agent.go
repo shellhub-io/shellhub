@@ -92,6 +92,16 @@ func (a *Agent) readPublicKey() error {
 
 // generateDeviceIdentity generates device identity.
 func (a *Agent) generateDeviceIdentity() error {
+	// priorize identity from env
+	if id := a.opts.PreferredIdentity; id != "" {
+		a.Identity = &models.DeviceIdentity{
+			MAC: id,
+		}
+
+		return nil
+	}
+
+	// get identity from network interface
 	iface, err := sysinfo.PrimaryInterface()
 	if err != nil {
 		return err
