@@ -26,12 +26,6 @@
         />
       </router-link>
 
-      <span
-        class="overline mt-3 d-sm-flex hidden-sm-and-down"
-      >
-        BETA
-      </span>
-
       <v-spacer />
 
       <NamespaceMenu

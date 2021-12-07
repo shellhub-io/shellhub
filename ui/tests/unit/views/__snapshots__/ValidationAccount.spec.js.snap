@@ -6,7 +6,7 @@ exports[`ValidationAccount Failed to verify account Renders the component 1`] = 
     <v-container-stub tag="div">
       <v-layout-stub tag="div" align-center="" justify-center="" column="">
         <v-flex-stub tag="div" class="text-center primary--text">
-          <v-img-stub options="[object Object]" position="center center" src="@/assets/logo.png" transition="fade-transition"></v-img-stub> <span class="overline">BETA</span>
+          <v-img-stub options="[object Object]" position="center center" src="@/assets/logo.png" transition="fade-transition"></v-img-stub>
         </v-flex-stub>
       </v-layout-stub>
     </v-container-stub>
@@ -37,7 +37,7 @@ exports[`ValidationAccount Success to verify account Renders the component 1`] =
     <v-container-stub tag="div">
       <v-layout-stub tag="div" align-center="" justify-center="" column="">
         <v-flex-stub tag="div" class="text-center primary--text">
-          <v-img-stub options="[object Object]" position="center center" src="@/assets/logo.png" transition="fade-transition"></v-img-stub> <span class="overline">BETA</span>
+          <v-img-stub options="[object Object]" position="center center" src="@/assets/logo.png" transition="fade-transition"></v-img-stub>
         </v-flex-stub>
       </v-layout-stub>
     </v-container-stub>

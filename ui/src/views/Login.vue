@@ -17,7 +17,6 @@
         >
           <v-flex class="text-center primary--text">
             <v-img src="@/assets/logo.png" />
-            <span class="overline">BETA</span>
           </v-flex>
         </v-layout>
       </v-container>

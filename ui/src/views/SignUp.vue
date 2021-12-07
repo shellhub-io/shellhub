@@ -28,7 +28,6 @@
             <v-img
               src="@/assets/logo.png"
             />
-            <span class="overline">BETA</span>
           </v-flex>
         </v-layout>
       </v-container>

@@ -7,9 +7,7 @@ exports[`AppBar Renders the component 1`] = `
     <router-link-stub to="/" tag="a" ariacurrentvalue="page" event="click">
       <v-img-stub maxwidth="160" options="[object Object]" position="center center" src="@/assets/logo-inverted.png" transition="fade-transition" class="d-sm-flex hidden-sm-and-down"></v-img-stub>
       <v-img-stub maxwidth="46" options="[object Object]" position="center center" src="@/assets/logo-inverted-only-cloud.png" transition="fade-transition" class="hidden-sm-and-up"></v-img-stub>
-    </router-link-stub> <span class="overline mt-3 d-sm-flex hidden-sm-and-down">
-      BETA
-    </span>
+    </router-link-stub>
     <v-spacer-stub tag="div"></v-spacer-stub>
     <namespacemenu-stub inanamespace="true" data-test="namespaceMenu-component"></namespacemenu-stub>
     <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete">
