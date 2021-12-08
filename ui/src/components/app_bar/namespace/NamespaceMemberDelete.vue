@@ -97,6 +97,7 @@ export default {
   data() {
     return {
       dialog: false,
+      action: 'removeMember',
     };
   },
 
@@ -109,13 +110,9 @@ export default {
 
       const accessType = this.$store.getters['auth/accessType'];
       if (accessType !== '') {
-        let action = '';
-        if (this.addUser) action = 'addMember';
-        else action = 'removeMember';
-
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.namespace[action],
+          this.$actions.namespace[this.action],
         );
       }
 

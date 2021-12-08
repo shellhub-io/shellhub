@@ -9,13 +9,11 @@ describe('Notification', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const statsWithoutNotification = {
@@ -81,6 +79,7 @@ describe('Notification', () => {
         shown: false,
         inANamespace: false,
         defaultSize: 24,
+        action: 'view',
       },
       computed: {
         getListNotifications: [],
@@ -109,6 +108,7 @@ describe('Notification', () => {
         shown: false,
         inANamespace: false,
         defaultSize: 24,
+        action: 'view',
       },
       computed: {
         getListNotifications: notificationsGlobal,

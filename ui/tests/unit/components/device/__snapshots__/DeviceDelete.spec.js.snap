@@ -1,17 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DeviceDelete Dialog with redirect administrator Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`DeviceDelete Dialog with redirect observer Renders the component 1`] = `
-<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
 exports[`DeviceDelete Dialog with redirect operator Renders the component 1`] = `
 <fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
@@ -20,18 +8,6 @@ exports[`DeviceDelete Dialog with redirect operator Renders the component 1`] = 
 
 exports[`DeviceDelete Dialog with redirect owner Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`DeviceDelete Dialog without redirect administrator Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`DeviceDelete Dialog without redirect observer Renders the component 1`] = `
-<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
@@ -45,22 +21,6 @@ exports[`DeviceDelete Dialog without redirect operator Renders the component 1`]
 exports[`DeviceDelete Dialog without redirect owner Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`DeviceDelete Icon administrator Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`DeviceDelete Icon observer Renders the component 1`] = `
-<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link material-icons theme--light">delete</button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
 </fragment-stub>
 `;
 

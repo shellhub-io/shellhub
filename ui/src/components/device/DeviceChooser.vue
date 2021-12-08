@@ -118,6 +118,7 @@ export default {
           action: 'allDevices',
         },
       ],
+      permissionAction: 'chooser',
     };
   },
 
@@ -147,7 +148,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.device.chooser,
+          this.$actions.device[this.permissionAction],
         );
       }
 

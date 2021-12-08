@@ -84,6 +84,7 @@ export default {
   data() {
     return {
       dialog: false,
+      action: 'unsubscribe',
     };
   },
 
@@ -93,7 +94,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.billing.unsubscribe,
+          this.$actions.billing[this.action],
         );
       }
 

@@ -119,6 +119,7 @@ export default {
       invalid: false,
       editName: '',
       messages: 'Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)',
+      action: 'rename',
     };
   },
 
@@ -137,7 +138,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.device.rename,
+          this.$actions.device[this.action],
         );
       }
 

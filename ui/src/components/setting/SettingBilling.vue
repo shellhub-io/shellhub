@@ -340,6 +340,7 @@ export default {
       retrials: 0,
       elements: null,
       renderData: false,
+      action: 'subscribe',
     };
   },
 
@@ -385,7 +386,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.billing.subscribe,
+          this.$actions.billing[this.action],
         );
       }
 

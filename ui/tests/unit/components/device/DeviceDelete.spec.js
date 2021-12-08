@@ -13,13 +13,11 @@ describe('DeviceDelete', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const tests = [
@@ -34,6 +32,7 @@ describe('DeviceDelete', () => {
       },
       data: {
         dialog: false,
+        action: 'remove',
       },
       template: {
         'deviceDelete-card': false,
@@ -52,6 +51,7 @@ describe('DeviceDelete', () => {
       },
       data: {
         dialog: true,
+        action: 'remove',
       },
       template: {
         'deviceDelete-card': true,
@@ -70,6 +70,7 @@ describe('DeviceDelete', () => {
       },
       data: {
         dialog: true,
+        action: 'remove',
       },
       template: {
         'deviceDelete-card': true,

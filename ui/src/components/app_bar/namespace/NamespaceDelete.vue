@@ -100,6 +100,7 @@ export default {
       elements: null,
       amountDue: null,
       cardItems: {},
+      action: 'remove',
     };
   },
 
@@ -121,7 +122,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.namespace.remove,
+          this.$actions.namespace[this.action],
         );
       }
 

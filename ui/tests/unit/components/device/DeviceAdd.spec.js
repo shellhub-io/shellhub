@@ -23,12 +23,10 @@ describe('DeviceAdd', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'observer'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
-    operator: true,
     observer: false,
   };
 
@@ -47,6 +45,7 @@ describe('DeviceAdd', () => {
         hostname: 'localhost',
         port: '',
         dialog: false,
+        action: 'add',
       },
       computed: {
         tenant: 'xxxxxxxx',
@@ -74,6 +73,7 @@ describe('DeviceAdd', () => {
         hostname: 'localhost',
         port: '',
         dialog: true,
+        action: 'add',
       },
       computed: {
         tenant: 'xxxxxxxx',

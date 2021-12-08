@@ -1,27 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BillingCancel Button administrator Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="cancel-btn"><span class="v-btn__content">
-          Cancel
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`BillingCancel Button observer Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="cancel-btn"><span class="v-btn__content">
-          Cancel
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
 exports[`BillingCancel Button operator Renders the component 1`] = `
 <fragment-stub>
   <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="cancel-btn"><span class="v-btn__content">
@@ -41,24 +19,6 @@ exports[`BillingCancel Button owner Renders the component 1`] = `
   <div role="dialog" class="v-dialog__container">
     <!---->
   </div>
-</fragment-stub>
-`;
-
-exports[`BillingCancel Dialog administrator Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="cancel-btn"><span class="v-btn__content">
-          Cancel
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`BillingCancel Dialog observer Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="cancel-btn"><span class="v-btn__content">
-          Cancel
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 

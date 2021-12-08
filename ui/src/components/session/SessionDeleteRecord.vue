@@ -82,6 +82,7 @@ export default {
   data() {
     return {
       dialog: false,
+      action: 'removeRecord',
     };
   },
 
@@ -91,7 +92,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.session.removeRecord,
+          this.$actions.session[this.action],
         );
       }
 

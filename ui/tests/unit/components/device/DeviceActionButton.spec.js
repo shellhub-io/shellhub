@@ -14,12 +14,10 @@ describe('DeviceActionButton', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'observer'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
-    operator: true,
     observer: false,
   };
 

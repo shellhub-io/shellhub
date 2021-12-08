@@ -13,13 +13,11 @@ describe('DeviceChooser', () => {
 
   document.body.setAttribute('data-app', true);
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'administrator'];
 
   const hasAuthorization = {
     owner: true,
     administrator: false,
-    operator: false,
-    observer: false,
   };
 
   const tests = [
@@ -46,6 +44,7 @@ describe('DeviceChooser', () => {
             action: 'allDevices',
           },
         ],
+        permissionAction: 'chooser',
       },
       computed: {
         disableTooltipOrButton: false,
