@@ -43,6 +43,7 @@ updates:
     interval: weekly
   commit-message:
     prefix: "ui"
+  versioning-strategy: increase-if-necessary
   ignore:
     - dependency-name: "vue-fragment"
     - dependency-name: "sass-loader"
