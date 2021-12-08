@@ -113,6 +113,7 @@ export default {
       shown: false,
       inANamespace: false,
       defaultSize: 24,
+      action: 'view',
     };
   },
 
@@ -150,7 +151,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.notification.view,
+          this.$actions.notification[this.action],
         );
       }
 

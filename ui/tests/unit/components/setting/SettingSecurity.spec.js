@@ -9,13 +9,11 @@ describe('SettingSecurity', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const tests = [
@@ -26,6 +24,9 @@ describe('SettingSecurity', () => {
       },
       props: {
         hasTenant: true,
+      },
+      data: {
+        action: 'enableSessionRecord',
       },
     },
   ];
@@ -81,6 +82,11 @@ describe('SettingSecurity', () => {
         it('Receive data in props', () => {
           Object.keys(test.props).forEach((item) => {
             expect(wrapper.vm[item]).toEqual(test.props[item]);
+          });
+        });
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
           });
         });
         it('Process data in the computed', () => {

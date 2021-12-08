@@ -1,21 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NamespaceMemberDelete Button administrator Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`NamespaceMemberDelete Button observer Renders the component 1`] = `
-<fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
 exports[`NamespaceMemberDelete Button operator Renders the component 1`] = `
 <fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -29,18 +13,6 @@ exports[`NamespaceMemberDelete Button owner Renders the component 1`] = `
   <div role="dialog" class="v-dialog__container">
     <!---->
   </div>
-</fragment-stub>
-`;
-
-exports[`NamespaceMemberDelete Dialog administrator Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`NamespaceMemberDelete Dialog observer Renders the component 1`] = `
-<fragment-stub><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="removeMember-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">delete</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 

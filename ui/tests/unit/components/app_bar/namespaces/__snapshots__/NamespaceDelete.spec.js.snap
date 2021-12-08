@@ -1,27 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NamespaceDelete Button administrator Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
-          Delete namespace
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`NamespaceDelete Button observer Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
-          Delete namespace
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
 exports[`NamespaceDelete Button operator Renders the component 1`] = `
 <fragment-stub>
   <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
@@ -44,24 +22,6 @@ exports[`NamespaceDelete Button owner Renders the component 1`] = `
 </fragment-stub>
 `;
 
-exports[`NamespaceDelete Dialog with subscription administrator Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
-          Delete namespace
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`NamespaceDelete Dialog with subscription observer Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
-          Delete namespace
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
 exports[`NamespaceDelete Dialog with subscription operator Renders the component 1`] = `
 <fragment-stub>
   <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
@@ -74,24 +34,6 @@ exports[`NamespaceDelete Dialog with subscription operator Renders the component
 exports[`NamespaceDelete Dialog with subscription owner Renders the component 1`] = `
 <fragment-stub>
   <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
-          Delete namespace
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`NamespaceDelete Dialog without subscription administrator Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
-          Delete namespace
-        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`NamespaceDelete Dialog without subscription observer Renders the component 1`] = `
-<fragment-stub>
-  <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
           Delete namespace
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>

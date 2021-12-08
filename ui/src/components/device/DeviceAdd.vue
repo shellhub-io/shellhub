@@ -110,6 +110,7 @@ export default {
       hostname: window.location.hostname,
       port: window.location.port,
       dialog: false,
+      action: 'add',
     };
   },
 
@@ -133,7 +134,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.device.add,
+          this.$actions.device[this.action],
         );
       }
 

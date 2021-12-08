@@ -14,13 +14,11 @@ describe('SessionPlay', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const sessionGlobal = [
@@ -61,6 +59,7 @@ describe('SessionPlay', () => {
         frames: [],
         defaultSpeed: 1,
         transition: false,
+        action: 'play',
       },
       computed: {
         length: 0,
@@ -101,6 +100,7 @@ describe('SessionPlay', () => {
         frames: [],
         defaultSpeed: 1,
         transition: false,
+        action: 'play',
       },
       computed: {
         length: 1,
@@ -141,6 +141,7 @@ describe('SessionPlay', () => {
         frames: [],
         defaultSpeed: 1,
         transition: false,
+        action: 'play',
       },
       computed: {
         length: 1,
@@ -181,6 +182,7 @@ describe('SessionPlay', () => {
         frames: [],
         defaultSpeed: 1,
         transition: false,
+        action: 'play',
       },
       computed: {
         length: 1,

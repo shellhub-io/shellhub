@@ -17,7 +17,12 @@ describe('NamespaceMemberDelete', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
+
+  const hasAuthorization = {
+    owner: true,
+    operator: false,
+  };
 
   const members = [
     {
@@ -41,13 +46,6 @@ describe('NamespaceMemberDelete', () => {
     max_devices: 0,
   };
 
-  const hasAuthorization = {
-    owner: true,
-    administrator: true,
-    operator: false,
-    observer: false,
-  };
-
   const tests = [
     {
       description: 'Button',
@@ -60,6 +58,7 @@ describe('NamespaceMemberDelete', () => {
       },
       data: {
         dialog: false,
+        action: 'removeMember',
       },
       template: {
         'removeMember-btn': true,
@@ -79,6 +78,7 @@ describe('NamespaceMemberDelete', () => {
       },
       data: {
         dialog: true,
+        action: 'removeMember',
       },
       template: {
         'removeMember-btn': true,

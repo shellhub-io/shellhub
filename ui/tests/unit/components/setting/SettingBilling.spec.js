@@ -9,13 +9,11 @@ describe('SettingBilling', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const stripeData = {
@@ -98,6 +96,7 @@ describe('SettingBilling', () => {
       },
       data: {
         renderData: false,
+        action: 'subscribe',
       },
       instance: {
         active: false,
@@ -126,6 +125,7 @@ describe('SettingBilling', () => {
       },
       data: {
         renderData: true,
+        action: 'subscribe',
       },
       instance: {
         active: true,
@@ -155,6 +155,7 @@ describe('SettingBilling', () => {
       },
       data: {
         renderData: true,
+        action: 'subscribe',
       },
       instance: {
         active: true,

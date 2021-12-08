@@ -60,13 +60,11 @@ describe('NamespaceDelete', () => {
 
   const nsTenant = 'xxxxxx';
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const inactiveBilling = {
@@ -108,6 +106,7 @@ describe('NamespaceDelete', () => {
       data: {
         name: namespaceObject.name,
         dialog: false,
+        action: 'remove',
       },
       computed: {
         tenant: nsTenant,
@@ -134,6 +133,7 @@ describe('NamespaceDelete', () => {
       data: {
         name: namespaceObject.name,
         dialog: true,
+        action: 'remove',
       },
       computed: {
         tenant: nsTenant,
@@ -160,6 +160,7 @@ describe('NamespaceDelete', () => {
       data: {
         name: namespaceObject.name,
         dialog: true,
+        action: 'remove',
       },
       computed: {
         tenant: nsTenant,

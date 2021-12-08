@@ -13,13 +13,11 @@ describe('BillingCancel', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const tests = [
@@ -33,6 +31,7 @@ describe('BillingCancel', () => {
       },
       data: {
         dialog: false,
+        action: 'unsubscribe',
       },
       template: {
         'cancel-btn': true,
@@ -54,6 +53,7 @@ describe('BillingCancel', () => {
       },
       data: {
         dialog: true,
+        action: 'unsubscribe',
       },
       template: {
         'cancel-btn': true,

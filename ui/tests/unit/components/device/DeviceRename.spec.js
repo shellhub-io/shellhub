@@ -18,13 +18,11 @@ describe('DeviceRename', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: true,
-    observer: false,
   };
 
   const name = '39-5e-2a';
@@ -54,6 +52,7 @@ describe('DeviceRename', () => {
         invalid: false,
         editName: name,
         messages: 'Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)',
+        action: 'rename',
       },
       computed: {
         device: {
@@ -81,6 +80,7 @@ describe('DeviceRename', () => {
         invalid: false,
         editName: name,
         messages: 'Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)',
+        action: 'rename',
       },
       computed: {
         device: {

@@ -89,6 +89,7 @@ export default {
     return {
       dialog: false,
       session: {},
+      action: 'close',
     };
   },
 
@@ -98,7 +99,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.session.close,
+          this.$actions.session[this.action],
         );
       }
 

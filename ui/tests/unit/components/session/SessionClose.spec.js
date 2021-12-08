@@ -13,13 +13,11 @@ describe('SessionClose', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const session = {
@@ -41,6 +39,7 @@ describe('SessionClose', () => {
       data: {
         session,
         dialog: false,
+        action: 'close',
       },
       template: {
         'sessionClose-card': false,
@@ -61,6 +60,7 @@ describe('SessionClose', () => {
       data: {
         session,
         dialog: true,
+        action: 'close',
       },
       template: {
         'sessionClose-card': true,

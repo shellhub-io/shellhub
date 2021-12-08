@@ -193,6 +193,7 @@ export default {
       frames: [],
       defaultSpeed: 1,
       transition: false,
+      action: 'play',
     };
   },
 
@@ -210,7 +211,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.session.play,
+          this.$actions.session[this.action],
         );
       }
 

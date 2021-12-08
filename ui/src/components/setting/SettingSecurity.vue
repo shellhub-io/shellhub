@@ -41,6 +41,12 @@ export default {
     },
   },
 
+  data() {
+    return {
+      action: 'enableSessionRecord',
+    };
+  },
+
   computed: {
     sessionRecord: {
       get() {
@@ -66,7 +72,7 @@ export default {
       if (accessType !== '') {
         return hasPermission(
           this.$authorizer.accessType[accessType],
-          this.$actions.namespace.enableSessionRecord,
+          this.$actions.namespace[this.action],
         );
       }
 

@@ -13,13 +13,11 @@ describe('FirewallRuleDelete', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const tests = [
@@ -33,6 +31,7 @@ describe('FirewallRuleDelete', () => {
       },
       data: {
         dialog: false,
+        action: 'remove',
       },
       template: {
         'firewallRuleDelete-dialog': false,
@@ -50,6 +49,7 @@ describe('FirewallRuleDelete', () => {
       },
       data: {
         dialog: true,
+        action: 'remove',
       },
       template: {
         'firewallRuleDelete-card': true,

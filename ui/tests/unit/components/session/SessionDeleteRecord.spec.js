@@ -13,13 +13,11 @@ describe('SessionDeleteRecord', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const accessType = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const tests = [
@@ -33,6 +31,7 @@ describe('SessionDeleteRecord', () => {
       },
       data: {
         dialog: false,
+        action: 'removeRecord',
       },
       template: {
         'sessionDeleteRecord-card': false,
@@ -47,6 +46,7 @@ describe('SessionDeleteRecord', () => {
       },
       props: {
         uid: '8c354a00',
+        action: 'removeRecord',
       },
       data: {
         dialog: true,

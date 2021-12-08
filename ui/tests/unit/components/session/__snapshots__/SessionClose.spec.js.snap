@@ -1,17 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SessionClose Dialog administrator Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-close-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`SessionClose Dialog observer Renders the component 1`] = `
-<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-close-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
 exports[`SessionClose Dialog operator Renders the component 1`] = `
 <fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-close-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
@@ -21,22 +9,6 @@ exports[`SessionClose Dialog operator Renders the component 1`] = `
 exports[`SessionClose Dialog owner Renders the component 1`] = `
 <fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-close-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`SessionClose Icon administrator Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-close-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`SessionClose Icon observer Renders the component 1`] = `
-<fragment-stub><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-close-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
 </fragment-stub>
 `;
 
