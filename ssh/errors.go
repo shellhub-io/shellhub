@@ -15,7 +15,10 @@ func getExternalError(err error) error {
 	// External errors are intended to be returned for the end user.
 	switch err {
 	case ErrBillingBlock:
-		return errors.New("reached the device limit, update to premium or choose up to 3 devices")
+		// revive:disable:error-strings
+		//nolint:stylecheck,golint
+		return errors.New("You cannot connect to this device because the namespace is not eligible for the free plan.\nPlease contact the namespace owner's to upgrade the plan.\nSee our pricing plans on https://www.shellhub.io/pricing to estimate the cost of your use cases on ShellHub Cloud or go to https://cloud.shellhub.io/settings/billing to upgrade the plan.")
+		// revive:enable:error-strings
 	default:
 		return err
 	}
