@@ -166,10 +166,10 @@ const router = new Router({
       path: '*',
       name: 'NotFound',
       component: Dashboard,
-      redirect: () => {
-        localStorage.setItem('flag', true);
-        return '/';
+      props: {
+        notFound: true,
       },
+      redirect: () => '/',
     },
   ],
 });

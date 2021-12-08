@@ -1,7 +1,7 @@
 <template>
   <fragment>
     <v-alert
-      v-if="flag"
+      v-if="notFound"
       text
       color="#bd4147"
       outlined
@@ -85,9 +85,16 @@ export default {
     DeviceAdd,
   },
 
+  props: {
+    notFound: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+  },
+
   data() {
     return {
-      flag: false,
       items: [
         {
           title: 'Registered Devices',
