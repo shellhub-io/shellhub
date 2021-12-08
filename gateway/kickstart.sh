@@ -58,4 +58,7 @@ $SUDO docker run -d \
        {% if preferred_hostname ~= '' and preferred_hostname ~= nil then %}
        -e SHELLHUB_PREFERRED_HOSTNAME={{preferred_hostname}} \
        {% end %}
+       {% if preferred_identity ~= '' and preferred_identity ~= nil then %}
+       -e SHELLHUB_PREFERRED_IDENTITY={{preferred_identity}} \
+       {% end %}
        shellhubio/agent:{{version}}
