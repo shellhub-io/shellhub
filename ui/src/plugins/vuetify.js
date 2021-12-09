@@ -17,7 +17,6 @@ const options = {
   pk: Vue.env.stripePublishableKey,
 };
 
-// import 'vuetify/dist/vuetify.min.css'
 // import '../styles/variables.scss'
 
 Vue.component('FontAwesomeIcon', FontAwesomeIcon); // Register component globally
@@ -34,15 +33,27 @@ if (Vue.env.billingEnable) {
 export default new Vuetify({
   iconfont: 'md',
   theme: {
-    dark: false,
+    dark: true,
+
     themes: {
+      dark: {
+        primary: '#667acc',
+        secondary: '#1E2127',
+        background: '#18191B',
+        tabs: '#1E1E1E',
+        foreground: '#1E1E1E',
+      },
       light: {
-        primary: '#364576',
-        secondary: '#b0bec5',
-        accent: '#8c9eff',
-        error: '#b71c1c',
+        primary: '#667acc',
+        secondary: '#c4c4c4',
+        background: '#FFFFFF',
+        tabs: '#FFFFFF',
+        foreground: '#FFFFFF',
       },
     },
+  },
+  options: {
+    customProperties: true,
   },
   breakpoint: {
     mobileBreakpoint: 'xs',

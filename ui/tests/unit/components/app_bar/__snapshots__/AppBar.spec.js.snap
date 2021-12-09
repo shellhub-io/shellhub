@@ -2,20 +2,10 @@
 
 exports[`AppBar Renders the component 1`] = `
 <fragment-stub>
-  <v-app-bar-stub color="primary" dark="true" tag="header" extensionheight="48" src="" value="true" app="true" clippedleft="true">
+  <v-app-bar-stub tag="header" extensionheight="48" flat="true" src="" value="true" app="true">
     <v-app-bar-nav-icon-stub class="hidden-lg-and-up"></v-app-bar-nav-icon-stub>
-    <router-link-stub to="/" tag="a" ariacurrentvalue="page" event="click">
-      <v-img-stub maxwidth="160" options="[object Object]" position="center center" src="@/assets/logo-inverted.png" transition="fade-transition" class="d-sm-flex hidden-sm-and-down"></v-img-stub>
-      <v-img-stub maxwidth="46" options="[object Object]" position="center center" src="@/assets/logo-inverted-only-cloud.png" transition="fade-transition" class="hidden-sm-and-up"></v-img-stub>
-    </router-link-stub>
+    <router-link-stub to="/" tag="a" ariacurrentvalue="page" event="click"></router-link-stub>
     <v-spacer-stub tag="div"></v-spacer-stub>
-    <namespacemenu-stub inanamespace="true" data-test="namespaceMenu-component"></namespacemenu-stub>
-    <v-chip-stub activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete">
-      <v-icon-stub size="24" class="ml-1 mr-1">
-        help
-      </v-icon-stub>
-    </v-chip-stub>
-    <notification-stub data-test="notification-component"></notification-stub>
     <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
       <v-card-stub loaderheight="4" tag="div">
         <v-list-item-stub activeclass="" tag="div" router="" data-test="Settings">

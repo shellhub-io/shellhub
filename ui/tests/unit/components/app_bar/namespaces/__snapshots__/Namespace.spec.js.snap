@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Namespace Enterprise version Renders the component 1`] = `
+<fragment-stub>
+  <v-list-stub tag="div">
+    <v-list-group-stub color="primary" activeclass="" appendicon="$expand" ripple="true">
+      <v-icon-stub color="primary">
+        mdi-chevron-down
+      </v-icon-stub>
+      <v-list-item-stub activeclass="" link="true" tag="div">
+        <v-list-item-content-stub tag="div">
+          <v-list-item-title-stub tag="div" data-test="namespace1-namespace">namespace1</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" link="true" tag="div">
+        <v-list-item-content-stub tag="div">
+          <v-list-item-title-stub tag="div" data-test="namespace2-namespace">namespace2</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" tag="div">
+        <namespaceadd-stub data-test="namespaceAdd-component"></namespaceadd-stub>
+      </v-list-item-stub>
+    </v-list-group-stub>
+  </v-list-stub>
+</fragment-stub>
+`;
+
+exports[`Namespace Open version Renders the component 1`] = `
+<fragment-stub>
+  <v-list-stub tag="div">
+    <v-list-group-stub color="primary" activeclass="" appendicon="$expand" ripple="true">
+      <v-icon-stub color="primary">
+        mdi-chevron-down
+      </v-icon-stub>
+      <v-list-item-stub activeclass="" link="true" tag="div">
+        <v-list-item-content-stub tag="div">
+          <v-list-item-title-stub tag="div" data-test="namespace1-namespace">namespace1</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" link="true" tag="div">
+        <v-list-item-content-stub tag="div">
+          <v-list-item-title-stub tag="div" data-test="namespace2-namespace">namespace2</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
+      <!---->
+    </v-list-group-stub>
+  </v-list-stub>
+</fragment-stub>
+`;

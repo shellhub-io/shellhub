@@ -23,7 +23,7 @@ exports[`SettingNamespace Hosted version operator Renders the component 1`] = `
         </div>
         <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
                   Namespace
-                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default"><span class="v-btn__content">
                         Rename Namespace
                       </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
       </div>
@@ -43,7 +43,7 @@ exports[`SettingNamespace Hosted version operator Renders the component 1`] = `
       <div>
         <div class="ml-auto col-md-auto col">
           <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
-            <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+            <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
             <div role="dialog" class="v-dialog__container">
@@ -193,7 +193,7 @@ exports[`SettingNamespace Hosted version owner Renders the component 1`] = `
         </div>
         <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
                   Namespace
-                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary"><span class="v-btn__content">
                         Rename Namespace
                       </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
       </div>
@@ -213,7 +213,7 @@ exports[`SettingNamespace Hosted version owner Renders the component 1`] = `
       <div>
         <div class="ml-auto col-md-auto col">
           <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
-            <div><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+            <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
             <div role="dialog" class="v-dialog__container">
@@ -363,7 +363,7 @@ exports[`SettingNamespace Open version operator Renders the component 1`] = `
         </div>
         <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
                   Namespace
-                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default"><span class="v-btn__content">
                         Rename Namespace
                       </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
       </div>
@@ -383,7 +383,7 @@ exports[`SettingNamespace Open version operator Renders the component 1`] = `
       <div>
         <div class="ml-auto col-md-auto col">
           <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
-            <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+            <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
             <div role="dialog" class="v-dialog__container">
@@ -503,7 +503,7 @@ exports[`SettingNamespace Open version owner Renders the component 1`] = `
         </div>
         <div data-test="editOperation-div" class="mt-6"><span><div class="row"><div class="col"><h3>
                   Namespace
-                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+                </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary"><span class="v-btn__content">
                         Rename Namespace
                       </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
       </div>
@@ -523,7 +523,7 @@ exports[`SettingNamespace Open version owner Renders the component 1`] = `
       <div>
         <div class="ml-auto col-md-auto col">
           <fragment-stub data-test="namespaceMemberFormDialogAdd-component">
-            <div><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+            <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
             <div role="dialog" class="v-dialog__container">

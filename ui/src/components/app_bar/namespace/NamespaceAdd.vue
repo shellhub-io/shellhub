@@ -1,13 +1,23 @@
 <template>
   <fragment>
+    <v-btn
+      v-if="!firstNamespace"
+      block
+      small
+      color="primary"
+      @click="dialog= !dialog"
+    >
+      Add Namespace
+    </v-btn>
+
     <v-list-item-title>
       <v-dialog
-        v-model="showAddNamespace"
+        v-model="showDialog"
         max-width="450"
         @click:outside="update"
       >
         <v-card data-test="namespaceAdd-card">
-          <v-card-title class="headline grey lighten-2 text-center">
+          <v-card-title class="headline primary text-center">
             Enter Namespace
           </v-card-title>
 
@@ -82,7 +92,7 @@ export default {
 
     show: {
       type: Boolean,
-      required: true,
+      default: false,
     },
   },
 
@@ -94,14 +104,8 @@ export default {
   },
 
   computed: {
-    showAddNamespace: {
-      get() {
-        return this.show;
-      },
-
-      set(value) {
-        this.$emit('show', value);
-      },
+    showDialog() {
+      return this.show || this.dialog;
     },
   },
 

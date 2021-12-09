@@ -76,7 +76,7 @@ exports[`SessionDetails Recorded is false and device is offline Renders the comp
   <div class="text-center">
     <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
-        <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
+        <v-card-title-stub tag="div" primary-title="" class="headline primary">
           Session ID error
         </v-card-title-stub>
         <v-card-text-stub tag="div" class="mt-4 mb-3 pb-1">
@@ -174,7 +174,7 @@ exports[`SessionDetails Recorded is false and device is online Renders the compo
   <div class="text-center">
     <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
-        <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
+        <v-card-title-stub tag="div" primary-title="" class="headline primary">
           Session ID error
         </v-card-title-stub>
         <v-card-text-stub tag="div" class="mt-4 mb-3 pb-1">
@@ -276,7 +276,7 @@ exports[`SessionDetails Recorded is true and device is online Renders the compon
   <div class="text-center">
     <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
-        <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
+        <v-card-title-stub tag="div" primary-title="" class="headline primary">
           Session ID error
         </v-card-title-stub>
         <v-card-text-stub tag="div" class="mt-4 mb-3 pb-1">

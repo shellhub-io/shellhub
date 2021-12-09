@@ -1,6 +1,5 @@
 <template>
   <v-layout
-    class="grey lighten-4"
     align-center
     justify-center
   >
@@ -8,23 +7,10 @@
       xs12
       sm8
       md4
+      lg2
     >
-      <v-container>
-        <v-layout
-          align-center
-          justify-center
-          column
-        >
-          <v-flex class="text-center primary--text">
-            <v-img src="@/assets/logo.png" />
-          </v-flex>
-        </v-layout>
-      </v-container>
-
       <v-card
         v-if="showMessage && !$env.isCloud"
-        color="transparent"
-        class="elevation-0"
         data-test="unknownReason-card"
       >
         <v-card-text>
@@ -40,9 +26,23 @@
 
       <v-card
         v-if="!showMessage"
-        color="transparent"
-        class="elevation-0"
+        class="pa-6"
       >
+        <v-container>
+          <v-layout
+            align-center
+            justify-center
+            column
+          >
+            <v-flex class="text-center primary--text">
+              <v-img
+                src="@/assets/logo-inverted.png"
+                max-width="220"
+              />
+            </v-flex>
+          </v-layout>
+        </v-container>
+
         <v-form
           @submit.prevent="login()"
         >
@@ -74,6 +74,7 @@
               type="submit"
               color="primary"
               data-test="login-btn"
+              block
             >
               LOGIN
             </v-btn>

@@ -6,7 +6,7 @@
       max-width="510"
     >
       <v-card data-test="billingWarning-dialog">
-        <v-card-title class="headline grey lighten-2 text-center">
+        <v-card-title class="headline primary text-center">
           Update account
         </v-card-title>
 

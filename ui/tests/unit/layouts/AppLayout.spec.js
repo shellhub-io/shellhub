@@ -4,9 +4,18 @@ import Vuetify from 'vuetify';
 import Router from 'vue-router';
 import AppLayout from '@/layouts/AppLayout';
 
+const router = new Router({
+  routes: [
+    {
+      path: '',
+      name: 'dashboard',
+      component: () => import(/* webpackChunkName: "dashboard" */ '@/views/Dashboard'),
+    },
+  ],
+});
+
 describe('AppLayout', () => {
   const localVue = createLocalVue();
-  const router = new Router();
   localVue.use(Vuex);
   localVue.use(Router);
   const vuetify = new Vuetify();
@@ -16,8 +25,7 @@ describe('AppLayout', () => {
   const tenant = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
   const isLoggedIn = true;
   const isMobile = false;
-  const numberNamespacesEqualZero = 0;
-  const numberNamespacesGreaterThanZero = 1;
+  const numberNamespaces = 0;
   const hasSpinner = false;
   const isEnterprise = false;
 
@@ -53,6 +61,11 @@ describe('AppLayout', () => {
       title: 'Public Keys',
       path: '/sshkeys/public-keys',
     },
+    {
+      icon: 'mdi-cog',
+      title: 'Settings',
+      path: '/settings/namespace-manager',
+    },
   ];
 
   const itemsIsNotEnterprise = JSON.parse(JSON.stringify(items));
@@ -61,33 +74,12 @@ describe('AppLayout', () => {
   const itemsIsEnterprise = JSON.parse(JSON.stringify(items));
   itemsIsEnterprise[3].hidden = isEnterprise;
 
-  const storeWithoutNamespace = new Vuex.Store({
+  const store = new Vuex.Store({
     namespaced: true,
     state: {
       tenant,
       isLoggedIn,
-      numberNamespaces: numberNamespacesEqualZero,
-      isMobile,
-      hasSpinner,
-    },
-    getters: {
-      'auth/isLoggedIn': (state) => state.isLoggedIn,
-      'namespaces/getNumberNamespaces': (state) => state.numberNamespaces,
-      'mobile/isMobile': (state) => state.isMobile,
-      'spinner/getStatus': (state) => state.hasSpinner,
-    },
-    actions: {
-      'privatekeys/fetch': () => {},
-      'mobile/setIsMobileStatus': () => {},
-    },
-  });
-
-  const storeWithNamespace = new Vuex.Store({
-    namespaced: true,
-    state: {
-      tenant,
-      isLoggedIn,
-      numberNamespaces: numberNamespacesGreaterThanZero,
+      numberNamespaces,
       isMobile,
       hasSpinner,
     },
@@ -104,14 +96,13 @@ describe('AppLayout', () => {
   });
 
   ///////
-  // In this case, when shellhub is not enterprice and user has
-  // not namespace.
+  // In this case, when shellhub is not enterprice
   ///////
 
-  describe('Is not enterprise and not has namespace', () => {
+  describe('Is not enterprise', () => {
     beforeEach(() => {
       wrapper = shallowMount(AppLayout, {
-        store: storeWithoutNamespace,
+        store,
         localVue,
         stubs: ['fragment'],
         mocks: {
@@ -140,17 +131,13 @@ describe('AppLayout', () => {
     //////
 
     it('Compare data with default value', () => {
-      expect(wrapper.vm.drawer).toEqual(false);
-      expect(wrapper.vm.clipped).toEqual(false);
       expect(wrapper.vm.items).toEqual(items);
       expect(wrapper.vm.admins).toEqual(admins);
     });
     it('Process data in the computed', () => {
-      expect(wrapper.vm.isLoggedIn).toEqual(true);
       expect(wrapper.vm.visibleItems).toEqual(itemsIsNotEnterprise);
       expect(wrapper.vm.hasNamespaces).toEqual(false);
       expect(wrapper.vm.hasSpinner).toEqual(false);
-      expect(wrapper.vm.showNavigationDrawer).toEqual(true);
     });
 
     //////
@@ -158,78 +145,17 @@ describe('AppLayout', () => {
     //////
 
     it('Renders the template with components', async () => {
+      expect(wrapper.find('[data-test="namespace-component"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="userWarning-component"]').exists()).toEqual(true);
     });
-    it('Renders the template with data', async () => {
-      items.forEach(async (item) => {
-        expect(wrapper.find(`[data-test="${item.icon}-listItem"]`).exists()).toEqual(false);
+    items.forEach(async (item) => {
+      it(`Renders the template with data - icon ${item.icon}`, async () => {
+        if (item.icon !== 'security') {
+          expect(wrapper.find(`[data-test="${item.icon}-listItem"]`).exists()).toEqual(true);
+        } else {
+          expect(wrapper.find(`[data-test="${item.icon}-listItem"]`).exists()).toEqual(false);
+        }
       });
-    });
-  });
-
-  ///////
-  // In this case, when shellhub is not enterprice and user has
-  // namespace.
-  ///////
-
-  describe('Is not enterprise and has namespace', () => {
-    beforeEach(() => {
-      wrapper = shallowMount(AppLayout, {
-        store: storeWithNamespace,
-        localVue,
-        stubs: ['fragment'],
-        mocks: {
-          $env: {
-            isEnterprise,
-          },
-        },
-        router,
-        vuetify,
-      });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.drawer).toEqual(false);
-      expect(wrapper.vm.clipped).toEqual(false);
-      expect(wrapper.vm.items).toEqual(items);
-      expect(wrapper.vm.admins).toEqual(admins);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.isLoggedIn).toEqual(true);
-      expect(wrapper.vm.visibleItems).toEqual(itemsIsNotEnterprise);
-      expect(wrapper.vm.hasNamespaces).toEqual(true);
-      expect(wrapper.vm.hasSpinner).toEqual(false);
-      expect(wrapper.vm.showNavigationDrawer).toEqual(true);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with components', async () => {
-      expect(wrapper.find('[data-test="userWarning-component"]').exists()).toEqual(true);
-    });
-    it('Renders the template with data', async () => {
-      itemsIsNotEnterprise.forEach(async (item) => {
-        expect(wrapper.find(`[data-test="${item.icon}-listItem"]`).exists()).toEqual(true);
-      });
-
-      expect(wrapper.find('[data-test="dashboard-security"]').exists()).toEqual(false);
     });
   });
 
@@ -241,7 +167,7 @@ describe('AppLayout', () => {
   describe('Is enterprise and has namespace', () => {
     beforeEach(() => {
       wrapper = shallowMount(AppLayout, {
-        store: storeWithNamespace,
+        store,
         localVue,
         stubs: ['fragment'],
         mocks: {
@@ -270,17 +196,13 @@ describe('AppLayout', () => {
     //////
 
     it('Compare data with default value', () => {
-      expect(wrapper.vm.drawer).toEqual(false);
-      expect(wrapper.vm.clipped).toEqual(false);
       expect(wrapper.vm.items).toEqual(itemsIsEnterprise);
       expect(wrapper.vm.admins).toEqual(admins);
     });
     it('Process data in the computed', () => {
-      expect(wrapper.vm.isLoggedIn).toEqual(true);
       expect(wrapper.vm.visibleItems).toEqual(itemsIsEnterprise);
-      expect(wrapper.vm.hasNamespaces).toEqual(true);
+      expect(wrapper.vm.hasNamespaces).toEqual(false);
       expect(wrapper.vm.hasSpinner).toEqual(false);
-      expect(wrapper.vm.showNavigationDrawer).toEqual(true);
     });
 
     //////
@@ -288,10 +210,11 @@ describe('AppLayout', () => {
     //////
 
     it('Renders the template with components', async () => {
+      expect(wrapper.find('[data-test="namespace-component"]').exists()).toEqual(true);
       expect(wrapper.find('[data-test="userWarning-component"]').exists()).toEqual(true);
     });
-    it('Renders the template with data', async () => {
-      items.forEach(async (item) => {
+    items.forEach(async (item) => {
+      it(`Renders the template with data - icon ${item.icon}`, async () => {
         expect(wrapper.find(`[data-test="${item.icon}-listItem"]`).exists()).toEqual(true);
       });
     });

@@ -5,7 +5,7 @@ exports[`FirewallRule With firewall rules Renders the component 1`] = `
   <div class="d-flex pa-0 align-center">
     <h1>Firewall Rules</h1> <button type="button" class="ml-2 v-btn v-btn--icon v-btn--round theme--light v-size--x-small"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-help-circle theme--light"></i></span></button>
     <div class="spacer"></div>
-    <div class="spacer"></div> <span><fragment-stub data-test="firewallRuleCreate-component"><div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+    <div class="spacer"></div> <span><fragment-stub data-test="firewallRuleCreate-component"><div><button type="button" disabled="disabled" class="v-btn--active primary v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Rule
         </span></button>
   </div><span class="v-tooltip v-tooltip--bottom"><!----></span>
@@ -23,7 +23,7 @@ exports[`FirewallRule Without firewall rules Renders the component 1`] = `
   <div class="d-flex pa-0 align-center">
     <h1>Firewall Rules</h1> <button type="button" class="ml-2 v-btn v-btn--icon v-btn--round theme--light v-size--x-small"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-help-circle theme--light"></i></span></button>
     <div class="spacer"></div>
-    <div class="spacer"></div> <span><fragment-stub data-test="firewallRuleCreate-component"><div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+    <div class="spacer"></div> <span><fragment-stub data-test="firewallRuleCreate-component"><div><button type="button" disabled="disabled" class="v-btn--active primary v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Rule
         </span></button>
   </div><span class="v-tooltip v-tooltip--bottom"><!----></span>
@@ -53,7 +53,7 @@ exports[`FirewallRule Without firewall rules Renders the component 1`] = `
           IP address to a specific or a group of devices using a given username.</div>
       </div>
       <div class="v-card__actions justify-center pt-8 pb-0">
-        <!----> <span><fragment-stub><span class="v-tooltip v-tooltip--bottom"><!----><div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+        <!----> <span><fragment-stub><span class="v-tooltip v-tooltip--bottom"><!----><div><button type="button" disabled="disabled" class="v-btn--active primary v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Rule
         </span></button>
       </div></span>

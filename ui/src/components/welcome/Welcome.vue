@@ -44,7 +44,6 @@
           <v-stepper-content step="1">
             <v-card
               class="mb-12"
-              color="grey lighten-4"
               height="250px"
             >
               <WelcomeFirstScreen />
@@ -70,7 +69,6 @@
           <v-stepper-content step="2">
             <v-card
               class="mb-12"
-              color="grey lighten-4"
               height="250px"
             >
               <WelcomeSecondScreen
@@ -111,7 +109,6 @@
           <v-stepper-content step="3">
             <v-card
               class="mb-12"
-              color="grey lighten-4"
               height="250px"
             >
               <WelcomeThirdScreen
@@ -144,7 +141,6 @@
           <v-stepper-content step="4">
             <v-card
               class="mb-12"
-              color="grey lighten-4"
               height="250px"
             >
               <WelcomeFourthScreen />

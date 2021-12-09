@@ -1,18 +1,35 @@
 <template>
   <fragment>
-    <v-navigation-drawer
-      v-if="isLoggedIn && hasNamespaces"
-      v-model="showNavigationDrawer"
-      app
-      clipped
-      dark
-    >
+    <v-navigation-drawer app>
+      <v-list-item>
+        <v-list-item-content>
+          <v-list-item-title>
+            <router-link to="/">
+              <v-img
+                class="d-sm-flex hidden-sm-and-down"
+                src="@/assets/logo-inverted.png"
+                max-width="140"
+              />
+            </router-link>
+          </v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+
+      <v-divider class="ma-2" />
+
+      <div class="pr-2 pl-2">
+        <Namespace data-test="namespace-component" />
+      </div>
+
+      <v-divider class="ma-2" />
+
       <v-list>
         <v-list-item
           v-for="item in visibleItems"
           :key="item.title"
           :to="item.path"
           two-line
+          :disabled="disableItem(item.icon)"
         >
           <v-list-item-action>
             <v-icon v-text="item.icon" />
@@ -28,13 +45,11 @@
       </v-list>
     </v-navigation-drawer>
 
-    <AppBar
-      :drawer.sync="drawer"
-    />
+    <AppBar />
 
-    <v-main class="grey lighten-4">
+    <v-main>
       <v-container
-        class="pa-8"
+        class="pl-8 pr-8"
         fluid
       >
         <router-view :key="$route.fullPath" />
@@ -56,6 +71,7 @@
 
 import AppBar from '@/components/app_bar/AppBar';
 import UserWarning from '@/components/user/UserWarning';
+import Namespace from '@/components/app_bar/namespace/Namespace';
 
 export default {
   name: 'AppLayoutComponent',
@@ -63,12 +79,11 @@ export default {
   components: {
     AppBar,
     UserWarning,
+    Namespace,
   },
 
   data() {
     return {
-      drawer: false,
-      clipped: false,
       items: [
         {
           icon: 'dashboard',
@@ -96,6 +111,11 @@ export default {
           title: 'Public Keys',
           path: '/sshkeys/public-keys',
         },
+        {
+          icon: 'mdi-cog',
+          title: 'Settings',
+          path: '/settings/namespace-manager',
+        },
       ],
       admins: [
         ['Management', 'people_outline'],
@@ -105,10 +125,6 @@ export default {
   },
 
   computed: {
-    isLoggedIn() {
-      return this.$store.getters['auth/isLoggedIn'];
-    },
-
     visibleItems() {
       return this.items.filter((item) => !item.hidden);
     },
@@ -119,16 +135,6 @@ export default {
 
     hasSpinner() {
       return this.$store.getters['spinner/getStatus'];
-    },
-
-    showNavigationDrawer: {
-      get() {
-        return !this.$store.getters['mobile/isMobile'] || this.drawer;
-      },
-
-      set(status) {
-        this.drawer = status;
-      },
     },
   },
 
@@ -162,6 +168,10 @@ export default {
     onResize() {
       const isMobile = this.$vuetify.breakpoint.mobile;
       this.$store.dispatch('mobile/setIsMobileStatus', isMobile);
+    },
+
+    disableItem(item) {
+      return !this.hasNamespaces && item !== 'dashboard';
     },
   },
 };

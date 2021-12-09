@@ -2,7 +2,21 @@
 
 exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
 <fragment-stub>
-  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" dark="true" clipped="true" height="100vh" minivariantwidth="56" src="" tag="nav" width="256" value="true">
+  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" height="100vh" minivariantwidth="56" src="" tag="nav" width="256">
+    <v-list-item-stub activeclass="" tag="div">
+      <v-list-item-content-stub tag="div">
+        <v-list-item-title-stub tag="div">
+          <router-link-stub to="/" tag="a" ariacurrentvalue="page" event="click">
+            <v-img-stub maxwidth="140" options="[object Object]" position="center center" src="@/assets/logo-inverted.png" transition="fade-transition" class="d-sm-flex hidden-sm-and-down"></v-img-stub>
+          </router-link-stub>
+        </v-list-item-title-stub>
+      </v-list-item-content-stub>
+    </v-list-item-stub>
+    <v-divider-stub class="ma-2"></v-divider-stub>
+    <div class="pr-2 pl-2">
+      <namespace-stub data-test="namespace-component"></namespace-stub>
+    </div>
+    <v-divider-stub class="ma-2"></v-divider-stub>
     <v-list-stub tag="div">
       <v-list-item-stub activeclass="" to="/" tag="div" twoline="true">
         <v-list-item-action-stub>
@@ -12,7 +26,7 @@ exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
           <v-list-item-title-stub tag="div" data-test="dashboard-listItem">Dashboard</v-list-item-title-stub>
         </v-list-item-content-stub>
       </v-list-item-stub>
-      <v-list-item-stub activeclass="" to="/devices" tag="div" twoline="true">
+      <v-list-item-stub activeclass="" disabled="true" to="/devices" tag="div" twoline="true">
         <v-list-item-action-stub>
           <v-icon-stub>devices</v-icon-stub>
         </v-list-item-action-stub>
@@ -20,7 +34,7 @@ exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
           <v-list-item-title-stub tag="div" data-test="devices-listItem">Devices</v-list-item-title-stub>
         </v-list-item-content-stub>
       </v-list-item-stub>
-      <v-list-item-stub activeclass="" to="/sessions" tag="div" twoline="true">
+      <v-list-item-stub activeclass="" disabled="true" to="/sessions" tag="div" twoline="true">
         <v-list-item-action-stub>
           <v-icon-stub>history</v-icon-stub>
         </v-list-item-action-stub>
@@ -28,7 +42,7 @@ exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
           <v-list-item-title-stub tag="div" data-test="history-listItem">Sessions</v-list-item-title-stub>
         </v-list-item-content-stub>
       </v-list-item-stub>
-      <v-list-item-stub activeclass="" to="/firewall/rules" tag="div" twoline="true">
+      <v-list-item-stub activeclass="" disabled="true" to="/firewall/rules" tag="div" twoline="true">
         <v-list-item-action-stub>
           <v-icon-stub>security</v-icon-stub>
         </v-list-item-action-stub>
@@ -36,7 +50,7 @@ exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
           <v-list-item-title-stub tag="div" data-test="security-listItem">Firewall Rules</v-list-item-title-stub>
         </v-list-item-content-stub>
       </v-list-item-stub>
-      <v-list-item-stub activeclass="" to="/sshkeys/public-keys" tag="div" twoline="true">
+      <v-list-item-stub activeclass="" disabled="true" to="/sshkeys/public-keys" tag="div" twoline="true">
         <v-list-item-action-stub>
           <v-icon-stub>vpn_key</v-icon-stub>
         </v-list-item-action-stub>
@@ -44,11 +58,19 @@ exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
           <v-list-item-title-stub tag="div" data-test="vpn_key-listItem">Public Keys</v-list-item-title-stub>
         </v-list-item-content-stub>
       </v-list-item-stub>
+      <v-list-item-stub activeclass="" disabled="true" to="/settings/namespace-manager" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>mdi-cog</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub tag="div">
+          <v-list-item-title-stub tag="div" data-test="mdi-cog-listItem">Settings</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
     </v-list-stub>
   </v-navigation-drawer-stub>
   <appbar-stub></appbar-stub>
-  <v-main-stub tag="main" class="grey lighten-4">
-    <v-container-stub tag="div" fluid="true" class="pa-8">
+  <v-main-stub tag="main">
+    <v-container-stub tag="div" fluid="true" class="pl-8 pr-8">
       <router-view-stub name="default"></router-view-stub>
     </v-container-stub>
   </v-main-stub>
@@ -59,9 +81,23 @@ exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
 </fragment-stub>
 `;
 
-exports[`AppLayout Is not enterprise and has namespace Renders the component 1`] = `
+exports[`AppLayout Is not enterprise Renders the component 1`] = `
 <fragment-stub>
-  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" dark="true" clipped="true" height="100vh" minivariantwidth="56" src="" tag="nav" width="256" value="true">
+  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" height="100vh" minivariantwidth="56" src="" tag="nav" width="256">
+    <v-list-item-stub activeclass="" tag="div">
+      <v-list-item-content-stub tag="div">
+        <v-list-item-title-stub tag="div">
+          <router-link-stub to="/" tag="a" ariacurrentvalue="page" event="click">
+            <v-img-stub maxwidth="140" options="[object Object]" position="center center" src="@/assets/logo-inverted.png" transition="fade-transition" class="d-sm-flex hidden-sm-and-down"></v-img-stub>
+          </router-link-stub>
+        </v-list-item-title-stub>
+      </v-list-item-content-stub>
+    </v-list-item-stub>
+    <v-divider-stub class="ma-2"></v-divider-stub>
+    <div class="pr-2 pl-2">
+      <namespace-stub data-test="namespace-component"></namespace-stub>
+    </div>
+    <v-divider-stub class="ma-2"></v-divider-stub>
     <v-list-stub tag="div">
       <v-list-item-stub activeclass="" to="/" tag="div" twoline="true">
         <v-list-item-action-stub>
@@ -71,7 +107,7 @@ exports[`AppLayout Is not enterprise and has namespace Renders the component 1`]
           <v-list-item-title-stub tag="div" data-test="dashboard-listItem">Dashboard</v-list-item-title-stub>
         </v-list-item-content-stub>
       </v-list-item-stub>
-      <v-list-item-stub activeclass="" to="/devices" tag="div" twoline="true">
+      <v-list-item-stub activeclass="" disabled="true" to="/devices" tag="div" twoline="true">
         <v-list-item-action-stub>
           <v-icon-stub>devices</v-icon-stub>
         </v-list-item-action-stub>
@@ -79,7 +115,7 @@ exports[`AppLayout Is not enterprise and has namespace Renders the component 1`]
           <v-list-item-title-stub tag="div" data-test="devices-listItem">Devices</v-list-item-title-stub>
         </v-list-item-content-stub>
       </v-list-item-stub>
-      <v-list-item-stub activeclass="" to="/sessions" tag="div" twoline="true">
+      <v-list-item-stub activeclass="" disabled="true" to="/sessions" tag="div" twoline="true">
         <v-list-item-action-stub>
           <v-icon-stub>history</v-icon-stub>
         </v-list-item-action-stub>
@@ -87,7 +123,7 @@ exports[`AppLayout Is not enterprise and has namespace Renders the component 1`]
           <v-list-item-title-stub tag="div" data-test="history-listItem">Sessions</v-list-item-title-stub>
         </v-list-item-content-stub>
       </v-list-item-stub>
-      <v-list-item-stub activeclass="" to="/sshkeys/public-keys" tag="div" twoline="true">
+      <v-list-item-stub activeclass="" disabled="true" to="/sshkeys/public-keys" tag="div" twoline="true">
         <v-list-item-action-stub>
           <v-icon-stub>vpn_key</v-icon-stub>
         </v-list-item-action-stub>
@@ -95,27 +131,19 @@ exports[`AppLayout Is not enterprise and has namespace Renders the component 1`]
           <v-list-item-title-stub tag="div" data-test="vpn_key-listItem">Public Keys</v-list-item-title-stub>
         </v-list-item-content-stub>
       </v-list-item-stub>
+      <v-list-item-stub activeclass="" disabled="true" to="/settings/namespace-manager" tag="div" twoline="true">
+        <v-list-item-action-stub>
+          <v-icon-stub>mdi-cog</v-icon-stub>
+        </v-list-item-action-stub>
+        <v-list-item-content-stub tag="div">
+          <v-list-item-title-stub tag="div" data-test="mdi-cog-listItem">Settings</v-list-item-title-stub>
+        </v-list-item-content-stub>
+      </v-list-item-stub>
     </v-list-stub>
   </v-navigation-drawer-stub>
   <appbar-stub></appbar-stub>
-  <v-main-stub tag="main" class="grey lighten-4">
-    <v-container-stub tag="div" fluid="true" class="pa-8">
-      <router-view-stub name="default"></router-view-stub>
-    </v-container-stub>
-  </v-main-stub>
-  <v-overlay-stub color="#212121" dark="true" opacity="0.46" zindex="5">
-    <v-progress-circular-stub indeterminate="true" rotate="0" size="64" width="4" value="0"></v-progress-circular-stub>
-  </v-overlay-stub>
-  <userwarning-stub data-test="userWarning-component"></userwarning-stub>
-</fragment-stub>
-`;
-
-exports[`AppLayout Is not enterprise and not has namespace Renders the component 1`] = `
-<fragment-stub>
-  <!---->
-  <appbar-stub></appbar-stub>
-  <v-main-stub tag="main" class="grey lighten-4">
-    <v-container-stub tag="div" fluid="true" class="pa-8">
+  <v-main-stub tag="main">
+    <v-container-stub tag="div" fluid="true" class="pl-8 pr-8">
       <router-view-stub name="default"></router-view-stub>
     </v-container-stub>
   </v-main-stub>

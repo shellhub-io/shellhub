@@ -1,7 +1,7 @@
 <template>
   <fragment>
     <v-btn
-      outlined
+      class="primary"
       data-test="show-btn"
       @click="show"
     >
@@ -15,7 +15,7 @@
     >
       <v-card data-test="BillingDialogPaymentMethod-dialog">
         <v-card-title
-          class="headline grey lighten-2 text-center"
+          class="headline primary text-center"
           data-test="text-cardTitle"
         >
           {{ typeTitle(typeOperation) }}

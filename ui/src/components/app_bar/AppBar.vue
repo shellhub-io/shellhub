@@ -3,53 +3,23 @@
     <v-app-bar
       v-if="isLoggedIn"
       app
-      clipped-left
-      dark
-      color="primary"
+      flat
     >
-      <v-app-bar-nav-icon
-        class="hidden-lg-and-up"
-        @click.stop="updateDrawer()"
-      />
+      <v-app-bar-nav-icon class="hidden-lg-and-up" />
 
-      <router-link to="/">
-        <v-img
-          class="d-sm-flex hidden-sm-and-down"
-          src="@/assets/logo-inverted.png"
-          max-width="160"
-        />
-
-        <v-img
-          class="hidden-sm-and-up"
-          src="@/assets/logo-inverted-only-cloud.png"
-          max-width="46"
-        />
-      </router-link>
+      <router-link to="/" />
 
       <v-spacer />
-
-      <NamespaceMenu
-        :in-a-namespace="hasNamespaces"
-        data-test="namespaceMenu-component"
-      />
-
-      <v-chip>
-        <v-icon
-          :size="defaultSize"
-          class="ml-1 mr-1"
-          @click="toggleChat()"
-        >
-          help
-        </v-icon>
-      </v-chip>
-
-      <Notification data-test="notification-component" />
 
       <v-menu
         offset-y
       >
         <template #activator="{ on }">
-          <v-chip v-on="on">
+          <v-btn
+            color="primary"
+            text
+            v-on="on"
+          >
             <v-icon
               :size="defaultSize"
               class="ml-1"
@@ -70,7 +40,7 @@
             >
               mdi-chevron-down
             </v-icon>
-          </v-chip>
+          </v-btn>
         </template>
 
         <v-card>
@@ -102,23 +72,9 @@
 <script>
 
 import GitterSidecar from 'gitter-sidecar';
-import NamespaceMenu from '@/components/app_bar/namespace/NamespaceMenu';
-import Notification from '@/components/app_bar/notification/Notification';
 
 export default {
   name: 'AppBarComponent',
-
-  components: {
-    NamespaceMenu,
-    Notification,
-  },
-
-  props: {
-    drawer: {
-      type: Boolean,
-      required: true,
-    },
-  },
 
   data() {
     return {
@@ -193,10 +149,6 @@ export default {
 
     toggleChat() {
       this.chat.toggleChat(!this.chatOpen);
-    },
-
-    updateDrawer() {
-      this.$emit('update:drawer', !this.drawer);
     },
   },
 };

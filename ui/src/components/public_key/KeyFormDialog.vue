@@ -9,9 +9,8 @@
         <div v-on="on">
           <v-btn
             :disabled="!hasAuthorization && action == 'public'"
-            class="v-btn--active"
+            class="v-btn--active primary"
             text
-            color="primary"
             data-test="createKey-btn"
           >
             Add {{ action }} Key
@@ -68,13 +67,13 @@
         >
           <v-card-title
             v-if="createKey"
-            class="headline grey lighten-2 text-center"
+            class="headline primary text-center"
           >
             New {{ action }} key
           </v-card-title>
           <v-card-title
             v-else
-            class="headline grey lighten-2 text-center"
+            class="headline primary text-center"
           >
             Edit {{ action }} key
           </v-card-title>

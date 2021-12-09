@@ -10,7 +10,7 @@
           <v-btn
             :disabled="!hasAuthorization"
             class="mr-2"
-            outlined
+            color="primary"
             data-test="add-btn"
             @click="setShowDialog()"
           >
@@ -59,7 +59,7 @@
       @click:outside="close"
     >
       <v-card data-test="namespaceNewMember-dialog">
-        <v-card-title class="headline grey lighten-2 text-center">
+        <v-card-title class="headline primary text-center">
           {{ addUser ? 'Add member to namespace' : 'Update member role' }}
         </v-card-title>
 

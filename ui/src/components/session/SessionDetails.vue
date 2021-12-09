@@ -201,7 +201,7 @@
       >
         <v-card>
           <v-card-title
-            class="headline grey lighten-2"
+            class="headline primary"
             primary-title
           >
             Session ID error
