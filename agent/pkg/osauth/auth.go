@@ -35,6 +35,12 @@ func VerifyPasswordHash(hashPassword, passwd string) bool {
 		return false
 	}
 
+	if ok := crypt.IsHashSupported(hashPassword); !ok {
+		logrus.Error("The crypto algorithm is not supported")
+
+		return false
+	}
+
 	crypt := crypt.NewFromHash(hashPassword)
 	if crypt == nil {
 		logrus.Error("Could not detect password crypto algorithm from shadow entry")
