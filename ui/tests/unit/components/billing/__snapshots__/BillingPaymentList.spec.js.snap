@@ -1,0 +1,118 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BillingPaymentList Renders the component 1`] = `
+<fragment-stub>
+  <div class="mt-5">
+    <v-row-stub tag="div" class="text-center mb-2">
+      <v-col-stub tag="div" data-test="brand-div"><b>
+          Brand
+        </b></v-col-stub>
+      <v-col-stub tag="div" data-test="expdate-div"><b>
+          Exp. Date
+        </b></v-col-stub>
+      <v-col-stub tag="div" data-test="last4-div"><b>
+          Ends with
+        </b></v-col-stub>
+      <v-col-stub cols="4" tag="div" data-test="actions-div"><b>
+          Actions
+        </b></v-col-stub>
+    </v-row-stub>
+    <v-list-stub tag="div" class="mb-2">
+      <v-list-item-stub activeclass="" tag="div" class="mb-1">
+        <v-row-stub tag="div" class="text-center">
+          <v-col-stub tag="div">
+            <billingicon-stub iconname="visa" data-test="icon-pm_1JzQ80KJsksFHO6pREJA5TrK-component"></billingicon-stub>
+          </v-col-stub>
+          <v-col-stub tag="div" data-test="exp-date-pm_1JzQ80KJsksFHO6pREJA5TrK-col" class="pm-data">
+            <p>
+              4/2024
+            </p>
+          </v-col-stub>
+          <v-col-stub tag="div" data-test="last4-pm_1JzQ80KJsksFHO6pREJA5TrK-col" class="pm-data">
+            <p>
+              4042
+            </p>
+          </v-col-stub>
+          <v-col-stub cols="4" tag="div" class="actions-column">
+            <div data-test="default-pm_1JzQ80KJsksFHO6pREJA5TrK-div" class="ml-4 pm-text">
+              <p>
+                Default
+              </p>
+            </div>
+          </v-col-stub>
+        </v-row-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" tag="div" class="mb-1">
+        <v-row-stub tag="div" class="text-center">
+          <v-col-stub tag="div">
+            <billingicon-stub iconname="visa" data-test="icon-pm_1JzQ80KJsksFHO6pREJA5TrG-component"></billingicon-stub>
+          </v-col-stub>
+          <v-col-stub tag="div" data-test="exp-date-pm_1JzQ80KJsksFHO6pREJA5TrG-col" class="pm-data">
+            <p>
+              4/2028
+            </p>
+          </v-col-stub>
+          <v-col-stub tag="div" data-test="last4-pm_1JzQ80KJsksFHO6pREJA5TrG-col" class="pm-data">
+            <p>
+              4042
+            </p>
+          </v-col-stub>
+          <v-col-stub cols="4" tag="div" class="actions-column">
+            <div data-test="actions-pm_1JzQ80KJsksFHO6pREJA5TrG-div" class="ml-2">
+              <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="mr-2">
+                <div>
+                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                      Make default
+                    </span></v-tooltip-stub>
+                </div>
+              </v-btn-stub>
+              <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="mr-2">
+                <div>
+                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                      Remove
+                    </span></v-tooltip-stub>
+                </div>
+              </v-btn-stub>
+            </div>
+          </v-col-stub>
+        </v-row-stub>
+      </v-list-item-stub>
+      <v-list-item-stub activeclass="" tag="div" class="mb-1">
+        <v-row-stub tag="div" class="text-center">
+          <v-col-stub tag="div">
+            <billingicon-stub iconname="visa" data-test="icon-pm_1JzQ80KJsksFHO6pREJA5TrF-component"></billingicon-stub>
+          </v-col-stub>
+          <v-col-stub tag="div" data-test="exp-date-pm_1JzQ80KJsksFHO6pREJA5TrF-col" class="pm-data">
+            <p>
+              4/2029
+            </p>
+          </v-col-stub>
+          <v-col-stub tag="div" data-test="last4-pm_1JzQ80KJsksFHO6pREJA5TrF-col" class="pm-data">
+            <p>
+              4042
+            </p>
+          </v-col-stub>
+          <v-col-stub cols="4" tag="div" class="actions-column">
+            <div data-test="actions-pm_1JzQ80KJsksFHO6pREJA5TrF-div" class="ml-2">
+              <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="mr-2">
+                <div>
+                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                      Make default
+                    </span></v-tooltip-stub>
+                </div>
+              </v-btn-stub>
+              <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="mr-2">
+                <div>
+                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                      Remove
+                    </span></v-tooltip-stub>
+                </div>
+              </v-btn-stub>
+            </div>
+          </v-col-stub>
+        </v-row-stub>
+      </v-list-item-stub>
+    </v-list-stub>
+  </div>
+</fragment-stub>
+`;

@@ -2,7 +2,7 @@
 
 exports[`BillingIcon Renders the component 1`] = `
 <fragment-stub>
-  <font-awesome-icon-stub icon="credit-card" size="lg" data-test="default-icon" class="ml-2"></font-awesome-icon-stub>
+  <font-awesome-icon-stub icon="credit-card" size="lg" data-test="default-icon" class="mr-4"></font-awesome-icon-stub>
   <!---->
 </fragment-stub>
 `;
