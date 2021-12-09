@@ -137,115 +137,12 @@
                 />
               </v-col>
             </v-row>
-
-            <div
-              data-test="paymentMethods-div"
-              class="mt-5 pl-4 pr-4 pb-5"
-            >
-              <v-row class="text-row mb-2">
-                <v-col>
-                  <b>Brand</b>
-                </v-col>
-                <v-col>
-                  <b>Expiration date</b>
-                </v-col>
-                <v-col>
-                  <b>Ends with</b>
-                </v-col>
-                <v-col
-                  class="pm-actionsText"
-                  cols="3"
-                >
-                  <b>Actions</b>
-                </v-col>
-              </v-row>
-              <v-row
-                v-for="item in cardBillingData"
-                :key="item.id"
-                class="pm-rowItem"
-              >
-                <v-col>
-                  <BillingIcon
-                    v-if="renderData"
-                    :icon-name="item.brand"
-                    data-test="billingIcon-component"
-                  />
-                </v-col>
-                <v-col class="pm-data">
-                  <p>
-                    {{ item.expMonth }}/{{ item.expYear }}
-                  </p>
-                </v-col>
-                <v-col class="pm-data">
-                  <p>
-                    {{ item.last4 }}
-                  </p>
-                </v-col>
-                <v-col
-                  class="actions-column"
-                  cols="4"
-                >
-                  <div
-                    v-if="item.default"
-                    class="pm-text"
-                  >
-                    <p>
-                      Default
-                    </p>
-                  </div>
-                  <div
-                    v-else
-                    class="pm-actions"
-                  >
-                    <v-btn
-                      class="ml-4"
-                      outlined
-                      @click="updatePaymentMethod(item.id)"
-                    >
-                      <div>
-                        <v-tooltip bottom>
-                          <template #activator="{ on }">
-                            <span v-on="on">
-                              <v-icon
-                                v-on="on"
-                              >
-                                mdi-pencil
-                              </v-icon>
-                            </span>
-                          </template>
-                          <span>
-                            Make default
-                          </span>
-                        </v-tooltip>
-                      </div>
-                    </v-btn>
-                    <v-btn
-                      class="ml-4"
-                      outlined
-                      @click="deletePaymentMethod(item.id)"
-                    >
-                      <div>
-                        <v-tooltip bottom>
-                          <template #activator="{ on }">
-                            <span v-on="on">
-                              <v-icon
-                                v-on="on"
-                              >
-                                delete
-                              </v-icon>
-                            </span>
-                          </template>
-                          <span>
-                            Remove
-                          </span>
-                        </v-tooltip>
-                      </div>
-                    </v-btn>
-                  </div>
-                </v-col>
-              </v-row>
-            </div>
           </div>
+
+          <BillingPaymentList
+            data-test="paymentMethods-component"
+            :cards.sync="cardBillingData"
+          />
 
           <v-divider />
           <v-divider />
@@ -310,8 +207,7 @@
 import SettingOwnerInfo from '@/components/setting/SettingOwnerInfo';
 import BillingCancel from '@/components/billing/BillingCancel';
 import PaymentMethod from '@/components/billing/BillingDialogPaymentMethod';
-import BillingIcon from '@/components/billing/BillingIcon';
-
+import BillingPaymentList from '@/components/billing/BillingPaymentList';
 import { formatDateWithoutDayAndHours } from '@/components/filter/date';
 import formatCurrency from '@/components/filter/currency';
 import hasPermission from '@/components/filter/permission';
@@ -322,8 +218,8 @@ export default {
   components: {
     SettingOwnerInfo,
     BillingCancel,
+    BillingPaymentList,
     PaymentMethod,
-    BillingIcon,
   },
 
   filters: {
@@ -470,36 +366,6 @@ export default {
       }
     },
 
-    async updatePaymentMethod(paymentMethodId) {
-      try {
-        await this.$store.dispatch('billing/updatePaymentMethod', paymentMethodId);
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.updateSubscription);
-        this.$emit('update');
-      } catch (error) {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.updateSubscription);
-
-        const { status } = error.response;
-        if (status === 400 || status === 423) {
-          this.showError(error);
-        }
-      }
-    },
-
-    async deletePaymentMethod(paymentMethodId) {
-      try {
-        await this.$store.dispatch('billing/removePaymentMethod', paymentMethodId);
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.updateSubscription);
-        this.$emit('update');
-      } catch (error) {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deletePaymentMethod);
-
-        const { status } = error.response;
-        if (status === 400 || status === 423) {
-          this.showError(error);
-        }
-      }
-    },
-
     async updateNamespace() {
       try {
         await this.$store.dispatch('namespaces/get', localStorage.getItem('tenant'));
@@ -511,20 +377,3 @@ export default {
 };
 
 </script>
-
-<style>
-
-.pm-data {
-  text-align: center;
-  margin-right: 2rem;
-}
-
-.pm-actionsText {
-  text-align: center;
-}
-
-.pm-text {
-  text-align: center;
-}
-
-</style>
