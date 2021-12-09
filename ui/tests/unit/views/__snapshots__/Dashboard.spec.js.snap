@@ -53,7 +53,7 @@ exports[`Dashboard Renders the component 1`] = `
         </v-list-item-stub>
         <v-card-actions-stub tag="div" class="ma-2">
           <div>
-            <v-btn-stub color="primary" tag="button" activeclass="" to="[object Object]" small="true" text="true" type="button" data-test="viewDevices-btn" class="v-btn--active">
+            <v-btn-stub color="primary" tag="button" activeclass="" to="[object Object]" small="true" type="button" data-test="viewDevices-btn">
               View all Devices
             </v-btn-stub>
           </div>
@@ -82,7 +82,7 @@ exports[`Dashboard Renders the component 1`] = `
         </v-list-item-stub>
         <v-card-actions-stub tag="div" class="ma-2">
           <div>
-            <v-btn-stub color="primary" tag="button" activeclass="" to="[object Object]" small="true" text="true" type="button" data-test="viewSessions-btn" class="v-btn--active">
+            <v-btn-stub color="primary" tag="button" activeclass="" to="[object Object]" small="true" type="button" data-test="viewSessions-btn">
               View all Sessions
             </v-btn-stub>
           </div>

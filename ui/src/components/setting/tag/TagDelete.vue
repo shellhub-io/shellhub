@@ -34,7 +34,7 @@
       max-width="400"
     >
       <v-card data-test="tagDelete-card">
-        <v-card-title class="headline grey lighten-2 text-center">
+        <v-card-title class="headline primary text-center">
           Are you sure?
         </v-card-title>
 

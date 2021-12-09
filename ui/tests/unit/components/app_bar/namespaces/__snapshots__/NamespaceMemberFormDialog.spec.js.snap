@@ -2,7 +2,7 @@
 
 exports[`NamespaceMemberFormDialog Dialog create user administrator Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
@@ -11,7 +11,7 @@ exports[`NamespaceMemberFormDialog Dialog create user administrator Renders the 
 
 exports[`NamespaceMemberFormDialog Dialog create user observer Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -22,7 +22,7 @@ exports[`NamespaceMemberFormDialog Dialog create user observer Renders the compo
 
 exports[`NamespaceMemberFormDialog Dialog create user operator Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -33,7 +33,7 @@ exports[`NamespaceMemberFormDialog Dialog create user operator Renders the compo
 
 exports[`NamespaceMemberFormDialog Dialog create user owner Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
@@ -78,7 +78,7 @@ exports[`NamespaceMemberFormDialog Dialog edit user owner Renders the component 
 
 exports[`NamespaceMemberFormDialog Icon add user administrator Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -89,7 +89,7 @@ exports[`NamespaceMemberFormDialog Icon add user administrator Renders the compo
 
 exports[`NamespaceMemberFormDialog Icon add user observer Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -100,7 +100,7 @@ exports[`NamespaceMemberFormDialog Icon add user observer Renders the component 
 
 exports[`NamespaceMemberFormDialog Icon add user operator Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -111,7 +111,7 @@ exports[`NamespaceMemberFormDialog Icon add user operator Renders the component 
 
 exports[`NamespaceMemberFormDialog Icon add user owner Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">

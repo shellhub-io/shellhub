@@ -2,7 +2,7 @@
 
 exports[`KeyFormDialog Button create privateKey operator Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
+  <div><button type="button" class="v-btn--active primary v-btn v-btn--text theme--light v-size--default" data-test="createKey-btn"><span class="v-btn__content">
           Add private Key
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -13,7 +13,7 @@ exports[`KeyFormDialog Button create privateKey operator Renders the component 1
 
 exports[`KeyFormDialog Button create privateKey owner Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
+  <div><button type="button" class="v-btn--active primary v-btn v-btn--text theme--light v-size--default" data-test="createKey-btn"><span class="v-btn__content">
           Add private Key
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -24,7 +24,7 @@ exports[`KeyFormDialog Button create privateKey owner Renders the component 1`] 
 
 exports[`KeyFormDialog Button create publicKey operator Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" disabled="disabled" class="v-btn--active v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="createKey-btn"><span class="v-btn__content">
+  <div><button type="button" disabled="disabled" class="v-btn--active primary v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="createKey-btn"><span class="v-btn__content">
           Add public Key
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -35,7 +35,7 @@ exports[`KeyFormDialog Button create publicKey operator Renders the component 1`
 
 exports[`KeyFormDialog Button create publicKey owner Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" class="v-btn--active v-btn v-btn--text theme--light v-size--default primary--text" data-test="createKey-btn"><span class="v-btn__content">
+  <div><button type="button" class="v-btn--active primary v-btn v-btn--text theme--light v-size--default" data-test="createKey-btn"><span class="v-btn__content">
           Add public Key
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">

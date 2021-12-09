@@ -96,7 +96,7 @@
       width="500"
     >
       <v-card>
-        <v-card-title class="headline grey lighten-2">
+        <v-card-title class="headline primary">
           Privacy Policy
         </v-card-title>
 

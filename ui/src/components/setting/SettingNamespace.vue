@@ -82,7 +82,7 @@
                       <div v-on="on">
                         <v-btn
                           :disabled="!hasAuthorizationRenameNamespace"
-                          outlined
+                          color="primary"
                           @click="passes(editNamespace)"
                         >
                           Rename Namespace

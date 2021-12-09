@@ -9,9 +9,8 @@
         <div v-on="on">
           <v-btn
             :disabled="!hasAuthorization"
-            class="v-btn--active"
+            class="v-btn--active primary"
             text
-            color="primary"
             data-test="add-btn"
           >
             Add Rule
@@ -68,13 +67,13 @@
         >
           <v-card-title
             v-if="createRule"
-            class="headline grey lighten-2 text-center"
+            class="headline primary text-center"
           >
             New Rule
           </v-card-title>
           <v-card-title
             v-else
-            class="headline grey lighten-2 text-center"
+            class="headline primary text-center"
           >
             Edit Rule
           </v-card-title>

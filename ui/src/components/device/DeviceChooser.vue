@@ -6,7 +6,7 @@
     max-width="900"
   >
     <v-card data-test="deviceChooser-dialog">
-      <v-card-title class="headline grey lighten-2 text-center">
+      <v-card-title class="headline primary text-center">
         Update account or select three devices
       </v-card-title>
 

@@ -66,7 +66,7 @@ exports[`DeviceDetails Offline Renders the component 1`] = `
   <div class="text-center">
     <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
-        <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
+        <v-card-title-stub tag="div" primary-title="" class="headline primary">
           Device ID error
         </v-card-title-stub>
         <v-card-text-stub tag="div" class="mt-4 mb-3 pb-1">
@@ -154,7 +154,7 @@ exports[`DeviceDetails Online Renders the component 1`] = `
   <div class="text-center">
     <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
-        <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
+        <v-card-title-stub tag="div" primary-title="" class="headline primary">
           Device ID error
         </v-card-title-stub>
         <v-card-text-stub tag="div" class="mt-4 mb-3 pb-1">

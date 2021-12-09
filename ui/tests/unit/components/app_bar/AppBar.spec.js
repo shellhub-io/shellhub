@@ -14,7 +14,6 @@ describe('AppBar', () => {
   const tenant = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
   const isLoggedIn = true;
   const numberNamespaces = 1;
-  const drawer = true;
   const isMobile = false;
 
   const menu = [
@@ -60,7 +59,6 @@ describe('AppBar', () => {
       store,
       localVue,
       stubs: ['fragment'],
-      propsData: { drawer },
       router,
     });
   });
@@ -80,9 +78,6 @@ describe('AppBar', () => {
   // Data and Props checking
   //////
 
-  it('Receive data in props', () => {
-    expect(wrapper.vm.drawer).toEqual(drawer);
-  });
   it('Compare data with default value', () => {
     expect(wrapper.vm.clipped).toEqual(false);
     expect(wrapper.vm.chatOpen).toEqual(false);
@@ -99,10 +94,6 @@ describe('AppBar', () => {
   // HTML validation
   //////
 
-  it('Renders the template with components', () => {
-    expect(wrapper.find('[data-test="namespaceMenu-component"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="notification-component"]').exists()).toBe(true);
-  });
   it('Renders the template with data', async () => {
     expect(wrapper.find('[data-test="Settings"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="Logout"]').exists()).toEqual(true);

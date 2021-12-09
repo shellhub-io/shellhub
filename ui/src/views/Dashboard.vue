@@ -20,9 +20,9 @@
         class="pt-0"
       >
         <v-card
+          :disabled="!currentInANamespace"
           outlined
           elevation="1"
-          :disabled="!currentInANamespace"
         >
           <v-list-item three-line>
             <v-list-item-content>
@@ -57,9 +57,7 @@
 
             <div v-else>
               <v-btn
-                class="v-btn--active"
                 :to="{ name: item.pathName }"
-                text
                 color="primary"
                 small
                 :data-test="item.nameUseTest"

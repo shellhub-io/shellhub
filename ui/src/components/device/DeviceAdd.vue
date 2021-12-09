@@ -8,8 +8,7 @@
         <div v-on="on">
           <v-btn
             :disabled="!hasAuthorization"
-            class="v-btn--active mr-2"
-            text
+            class="mr-2"
             color="primary"
             :small="smallButton"
             data-test="add-btn"
@@ -32,8 +31,7 @@
     >
       <v-card data-test="deviceAdd-dialog">
         <v-card-title
-          class="headline grey lighten-2 text-center"
-          primary-title
+          class="headline primary text-center"
         >
           Registering a device
         </v-card-title>

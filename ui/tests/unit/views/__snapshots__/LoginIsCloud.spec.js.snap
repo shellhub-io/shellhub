@@ -1,22 +1,22 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Login Account has been activated Renders the component 1`] = `
-<div class="layout grey lighten-4 align-center justify-center">
-  <div class="flex xs12 sm8 md4">
-    <div class="container">
-      <div class="layout align-center justify-center column">
-        <div class="flex text-center primary--text">
-          <div class="v-image v-responsive theme--light">
-            <transition-stub name="fade-transition" mode="in-out">
-              <div class="v-image__image v-image__image--preload v-image__image--cover" style="background-position: center center;"></div>
-            </transition-stub>
-            <div class="v-responsive__content"></div>
+<div class="layout align-center justify-center">
+  <div class="flex xs12 sm8 md4 lg2">
+    <!---->
+    <div class="pa-6 v-card v-sheet theme--light">
+      <div class="container">
+        <div class="layout align-center justify-center column">
+          <div class="flex text-center primary--text">
+            <div class="v-image v-responsive theme--light" style="max-width: 220px;">
+              <transition-stub name="fade-transition" mode="in-out">
+                <div class="v-image__image v-image__image--preload v-image__image--cover" style="background-position: center center;"></div>
+              </transition-stub>
+              <div class="v-responsive__content"></div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <!---->
-    <div class="elevation-0 v-card v-sheet theme--light transparent">
       <form novalidate="novalidate" class="v-form">
         <div class="v-card__text pb-0">
           <div class="v-input theme--light v-text-field">
@@ -53,7 +53,7 @@ exports[`Login Account has been activated Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <div class="v-card__actions justify-center"><button type="submit" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="login-btn"><span class="v-btn__content">
+        <div class="v-card__actions justify-center"><button type="submit" class="v-btn v-btn--block v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="login-btn"><span class="v-btn__content">
             LOGIN
           </span></button></div>
         <div data-test="forgotPassword-card" class="v-card__subtitle d-flex align-center justify-center pa-4 mx-auto pt-8 pb-0">
@@ -79,20 +79,8 @@ exports[`Login Account has been activated Renders the component 1`] = `
 `;
 
 exports[`Login Account has not been activated Renders the component 1`] = `
-<div class="layout grey lighten-4 align-center justify-center">
-  <div class="flex xs12 sm8 md4">
-    <div class="container">
-      <div class="layout align-center justify-center column">
-        <div class="flex text-center primary--text">
-          <div class="v-image v-responsive theme--light">
-            <transition-stub name="fade-transition" mode="in-out">
-              <div class="v-image__image v-image__image--preload v-image__image--cover" style="background-position: center center;"></div>
-            </transition-stub>
-            <div class="v-responsive__content"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="layout align-center justify-center">
+  <div class="flex xs12 sm8 md4 lg2">
     <!---->
     <!---->
     <fragment-stub data-test="accountCreated-component">

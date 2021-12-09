@@ -2,7 +2,7 @@
 
 exports[`DeviceAdd Button observer Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" disabled="disabled" class="v-btn--active mr-2 v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Device
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -13,7 +13,7 @@ exports[`DeviceAdd Button observer Renders the component 1`] = `
 
 exports[`DeviceAdd Button owner Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" class="v-btn--active mr-2 v-btn v-btn--text theme--light v-size--default primary--text" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Device
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container">
@@ -24,7 +24,7 @@ exports[`DeviceAdd Button owner Renders the component 1`] = `
 
 exports[`DeviceAdd Dialog observer Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" disabled="disabled" class="v-btn--active mr-2 v-btn v-btn--disabled v-btn--text theme--light v-size--small" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--small" data-test="add-btn"><span class="v-btn__content">
           Add Device
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>
@@ -33,7 +33,7 @@ exports[`DeviceAdd Dialog observer Renders the component 1`] = `
 
 exports[`DeviceAdd Dialog owner Renders the component 1`] = `
 <fragment-stub>
-  <div><button type="button" class="v-btn--active mr-2 v-btn v-btn--text theme--light v-size--small primary--text" data-test="add-btn"><span class="v-btn__content">
+  <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--small primary" data-test="add-btn"><span class="v-btn__content">
           Add Device
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
   <div role="dialog" class="v-dialog__container"></div>

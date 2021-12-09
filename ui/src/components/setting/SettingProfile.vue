@@ -28,7 +28,7 @@
               >
                 <v-btn
                   v-if="!editDataStatus"
-                  outlined
+                  color="primary"
                   @click="editDataStatus = !editDataStatus"
                 >
                   Change Data
@@ -39,14 +39,14 @@
                 >
                   <v-btn
                     class="mr-2"
-                    outlined
+                    color="primary"
                     @click="cancel('data')"
                   >
                     Cancel
                   </v-btn>
 
                   <v-btn
-                    outlined
+                    color="primary"
                     @click="passes(updateData)"
                   >
                     Save
@@ -134,7 +134,7 @@
               >
                 <v-btn
                   v-if="!editPasswordStatus"
-                  outlined
+                  color="primary"
                   @click="editPasswordStatus = !editPasswordStatus"
                 >
                   Change Password
@@ -145,14 +145,14 @@
                 >
                   <v-btn
                     class="mr-2"
-                    outlined
+                    color="primary"
                     @click="cancel('password')"
                   >
                     Cancel
                   </v-btn>
 
                   <v-btn
-                    outlined
+                    color="primary"
                     @click="passes(updatePassword)"
                   >
                     Save

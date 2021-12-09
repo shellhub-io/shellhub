@@ -6,7 +6,7 @@ exports[`SettingProfile Renders the component 1`] = `
     <div class="row mt-4 align-center justify-center">
       <div class="col-sm-8 col"><span><div class="row"><div class="col"><h3>
                 Account
-              </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+              </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary"><span class="v-btn__content">
                 Change Data
               </span></button>
         <!---->
@@ -16,7 +16,7 @@ exports[`SettingProfile Renders the component 1`] = `
     <hr role="separator" aria-orientation="horizontal" class="mt-6 v-divider theme--light">
     <hr role="separator" aria-orientation="horizontal" class="mb-6 v-divider theme--light"> <span><div class="row"><div class="col"><h3>
                 Password
-              </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default"><span class="v-btn__content">
+              </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary"><span class="v-btn__content">
                 Change Password
               </span></button>
     <!---->

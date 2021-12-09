@@ -85,7 +85,7 @@ describe('NamespaceAdd', () => {
       expect(wrapper.vm.namespaceName).toEqual('');
     });
     it('Process data in the computed', () => {
-      expect(wrapper.vm.showAddNamespace).toEqual(false);
+      expect(wrapper.vm.showDialog).toEqual(false);
     });
 
     //////
@@ -140,7 +140,7 @@ describe('NamespaceAdd', () => {
       expect(wrapper.vm.namespaceName).toEqual('');
     });
     it('Process data in the computed', () => {
-      expect(wrapper.vm.showAddNamespace).toEqual(true);
+      expect(wrapper.vm.showDialog).toEqual(true);
     });
 
     //////
