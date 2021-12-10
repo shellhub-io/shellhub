@@ -65,6 +65,7 @@ func (h *Handler) CreatePublicKey(c apicontext.Context) error {
 	tenantID := ""
 	if c.Tenant() != nil {
 		tenantID = c.Tenant().ID
+		key.TenantID = tenantID
 	}
 
 	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.PublicKey.Create, func() error {
