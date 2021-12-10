@@ -8,25 +8,31 @@ describe('NamespaceMemberList', () => {
   const vuetify = new Vuetify();
   localVue.use(Vuex);
 
-  const heading = [
-    {
-      id: 'name',
-      title: 'Username',
-    },
-    {
-      id: 'role',
-      title: 'Role',
-    },
-    {
-      id: 'actions',
-      title: 'Actions',
-    },
-  ];
-
   const namespace = {
     name: 'nsxxx',
     members: [{ username: 'user1', type: 'owner' }, { username: 'user2', type: 'administrator' }, { username: 'user3', type: 'observer' }],
   };
+
+  const headers = [
+    {
+      text: 'Username',
+      value: 'username',
+      align: 'start',
+      sortable: false,
+    },
+    {
+      text: 'Role',
+      value: 'type',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      text: 'Actions',
+      value: 'actions',
+      align: 'end',
+      sortable: false,
+    },
+  ];
 
   const store = new Vuex.Store({
     namespaced: true,
@@ -72,7 +78,7 @@ describe('NamespaceMemberList', () => {
   });
 
   it('Compares data with default value', () => {
-    expect(wrapper.vm.heading).toEqual(heading);
+    expect(wrapper.vm.headers).toEqual(headers);
   });
 
   it('Proccess data in the computed', () => {
@@ -84,14 +90,9 @@ describe('NamespaceMemberList', () => {
   ///////
 
   it('Renders the template with data', () => {
-    const { members } = namespace;
-    members.forEach((m, i) => {
-      expect(wrapper.find(`[data-test="${m.username}-list"]`).text()).toBe(members[i].username);
-      expect(wrapper.find(`[data-test="${m.type}-list"]`).text()).toBe(members[i].type);
-      expect(wrapper.find(`[data-test="${m.username}-actions-list"]`).exists()).toBe(true);
-    });
-    heading.forEach((col) => {
-      expect(wrapper.find(`[data-test="${col.title}-title"]`).text()).toBe(col.title);
-    });
+    const dt = wrapper.find('[data-test="dataTable-field"]');
+    const dataTableProps = dt.vm.$options.propsData;
+
+    expect(dataTableProps.items).toHaveLength(namespace.members.length);
   });
 });
