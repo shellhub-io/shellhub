@@ -13,7 +13,7 @@ describe('DeviceChooser', () => {
 
   document.body.setAttribute('data-app', true);
 
-  const accessType = ['owner', 'administrator'];
+  const role = ['owner', 'administrator'];
 
   const hasAuthorization = {
     owner: true,
@@ -66,7 +66,7 @@ describe('DeviceChooser', () => {
     devicesSelected,
     filter,
     devices,
-    currentAccessType,
+    currentrole,
   ) => new Vuex.Store({
     namespaced: true,
     state: {
@@ -74,14 +74,14 @@ describe('DeviceChooser', () => {
       devicesSelected,
       filter,
       devices,
-      currentAccessType,
+      currentrole,
     },
     getters: {
       'devices/getDeviceChooserStatus': (state) => state.deviceChooserStatus,
       'devices/getDevicesSelected': (state) => state.devicesSelected,
       'devices/getFilter': (state) => state.filter,
       'devices/list': (state) => state.devices,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'stats/get': () => {},
@@ -96,8 +96,8 @@ describe('DeviceChooser', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = mount(DeviceChooser, {
             store: storeVuex(
@@ -105,7 +105,7 @@ describe('DeviceChooser', () => {
               test.variables.devicesSelected,
               test.variables.filter,
               test.variables.devices,
-              currentAccessType,
+              currentrole,
             ),
             localVue,
             stubs: ['fragment'],
@@ -143,7 +143,7 @@ describe('DeviceChooser', () => {
           Object.keys(test.computed).forEach((item) => {
             expect(wrapper.vm[item]).toEqual(test.computed[item]);
           });
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         //////

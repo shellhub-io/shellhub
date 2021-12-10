@@ -13,7 +13,7 @@ describe('KeyDelete', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const role = ['owner', 'administrator', 'operator', 'observer'];
 
   const hasAuthorization = {
     owner: true,
@@ -97,13 +97,13 @@ describe('KeyDelete', () => {
     },
   ];
 
-  const storeVuex = (currentAccessType) => new Vuex.Store({
+  const storeVuex = (currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
-      currentAccessType,
+      currentrole,
     },
     getters: {
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'publickeys/remove': () => {},
@@ -113,11 +113,11 @@ describe('KeyDelete', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = mount(KeyDelete, {
-            store: storeVuex(currentAccessType),
+            store: storeVuex(currentrole),
             localVue,
             stubs: ['fragment'],
             propsData: {
@@ -160,7 +160,7 @@ describe('KeyDelete', () => {
           });
         });
         it('Process data in the computed', () => {
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         // //////
@@ -174,7 +174,7 @@ describe('KeyDelete', () => {
         });
 
         if (!test.data.dialog) {
-          if (hasAuthorization[currentAccessType]) {
+          if (hasAuthorization[currentrole]) {
             it('Show message tooltip user has permission', async (done) => {
               const icons = wrapper.findAll('.v-icon');
               const helpIcon = icons.at(0);

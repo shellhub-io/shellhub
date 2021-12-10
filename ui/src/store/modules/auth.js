@@ -12,7 +12,7 @@ export default {
     tenant: localStorage.getItem('tenant') || '',
     email: localStorage.getItem('email') || '',
     id: localStorage.getItem('id') || '',
-    accessType: localStorage.getItem('accessType') || '',
+    role: localStorage.getItem('role') || '',
   },
 
   getters: {
@@ -23,7 +23,7 @@ export default {
     tenant: (state) => state.tenant,
     email: (state) => state.email,
     id: (state) => state.id,
-    accessType: (state) => state.accessType,
+    role: (state) => state.role,
   },
 
   mutations: {
@@ -39,7 +39,7 @@ export default {
       Vue.set(state, 'tenant', data.tenant);
       Vue.set(state, 'email', data.email);
       Vue.set(state, 'id', data.id);
-      Vue.set(state, 'accessType', data.type);
+      Vue.set(state, 'role', data.role);
     },
 
     authError(state) {
@@ -53,7 +53,7 @@ export default {
       Vue.set(state, 'user', '');
       Vue.set(state, 'tenant', '');
       Vue.set(state, 'email', '');
-      Vue.set(state, 'accessType', '');
+      Vue.set(state, 'role', '');
     },
 
     changeData(state, data) {
@@ -77,7 +77,7 @@ export default {
         localStorage.setItem('email', resp.data.email);
         localStorage.setItem('id', resp.data.id);
         localStorage.setItem('namespacesWelcome', JSON.stringify({}));
-        localStorage.setItem('accessType', resp.data.type);
+        localStorage.setItem('role', resp.data.role);
 
         context.commit('authSuccess', resp.data);
       } catch (error) {
@@ -100,7 +100,7 @@ export default {
         localStorage.setItem('id', resp.data.id);
         localStorage.setItem('email', resp.data.email);
         localStorage.setItem('namespacesWelcome', JSON.stringify({}));
-        localStorage.setItem('accessType', resp.data.type);
+        localStorage.setItem('role', resp.data.role);
 
         context.commit('authSuccess', resp.data);
       } catch (error) {
@@ -119,7 +119,7 @@ export default {
       localStorage.removeItem('email');
       localStorage.removeItem('id');
       localStorage.removeItem('name');
-      localStorage.removeItem('accessType');
+      localStorage.removeItem('role');
     },
 
     changeUserData(context, data) {

@@ -9,7 +9,7 @@ describe('SettingBilling', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'operator'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
@@ -180,18 +180,18 @@ describe('SettingBilling', () => {
     },
   ];
 
-  const storeVuex = (billing, currentAccessType) => new Vuex.Store({
+  const storeVuex = (billing, currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
       billing,
-      currentAccessType,
+      currentrole,
       info: infoData,
     },
     getters: {
       'billing/active': (state) => state.billing.active || false,
       'billing/status': (state) => state.billing.state || 'inactive',
       'billing/get': (state) => state.billing,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
       'billing/getBillInfoData': (state) => state.info,
     },
     actions: {
@@ -204,11 +204,11 @@ describe('SettingBilling', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = shallowMount(SettingBilling, {
-            store: storeVuex(test.instance, currentAccessType),
+            store: storeVuex(test.instance, currentrole),
             localVue,
             stubs: ['fragment'],
             mocks: {
@@ -243,7 +243,7 @@ describe('SettingBilling', () => {
         // HTML validation
         //////
 
-        if (currentAccessType === 'owner') {
+        if (currentrole === 'owner') {
           describe(`Template rendering - ${test.description}`, () => {
             Reflect.ownKeys(test.template).forEach((k) => {
               it(`${test.template[k] ? 'Renders' : 'Does not render'} template ${k} for `, () => {
@@ -257,7 +257,7 @@ describe('SettingBilling', () => {
         //////
 
         it('Compare data with default value', () => {
-          if (hasAuthorization[currentAccessType]) {
+          if (hasAuthorization[currentrole]) {
             Object.keys(test.data).forEach((item) => {
               expect(wrapper.vm[item]).toEqual(test.data[item]);
             });
@@ -267,7 +267,7 @@ describe('SettingBilling', () => {
           Object.keys(test.computed).forEach((item) => {
             expect(wrapper.vm[item]).toEqual(test.computed[item]);
           });
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
       });
     });

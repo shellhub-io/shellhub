@@ -17,7 +17,7 @@ describe('FirewallRuleFormDialog', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'operator'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
@@ -149,13 +149,13 @@ describe('FirewallRuleFormDialog', () => {
     },
   ];
 
-  const storeVuex = (currentAccessType) => new Vuex.Store({
+  const storeVuex = (currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
-      currentAccessType,
+      currentrole,
     },
     getters: {
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'firewallrules/post': () => {},
@@ -166,11 +166,11 @@ describe('FirewallRuleFormDialog', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(async () => {
           wrapper = mount(FirewallRuleFormDialog, {
-            store: storeVuex(currentAccessType),
+            store: storeVuex(currentrole),
             localVue,
             stubs: ['fragment'],
             propsData: {
@@ -213,7 +213,7 @@ describe('FirewallRuleFormDialog', () => {
           });
         });
         it('Process data in the computed', () => {
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         //////
@@ -227,7 +227,7 @@ describe('FirewallRuleFormDialog', () => {
         });
 
         if (!test.variables.dialog && test.variables.create === false) {
-          if (hasAuthorization[currentAccessType]) {
+          if (hasAuthorization[currentrole]) {
             it('Show message tooltip to user owner', async (done) => {
               const icons = wrapper.findAll('.v-icon');
               const helpIcon = icons.at(0);

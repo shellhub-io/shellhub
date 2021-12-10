@@ -256,14 +256,14 @@ export default {
 
   computed: {
     hasAuthorization() {
-      const accessType = this.$store.getters['auth/accessType'];
-      if (accessType !== '') {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
         let action = '';
         if (this.createRule) action = 'create';
         else action = 'edit';
 
         return hasPermission(
-          this.$authorizer.accessType[accessType],
+          this.$authorizer.role[role],
           this.$actions.firewall[action],
         );
       }

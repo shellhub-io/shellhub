@@ -16,11 +16,11 @@ export const putNamespace = async (data) => http().put(`/namespaces/${data.id}`,
 
 export const addUserToNamespace = async (data) => http().post(`/namespaces/${data.tenant_id}/members`, {
   username: data.username,
-  type: data.access_type,
+  role: data.role,
 });
 
 export const editUserToNamespace = async (data) => http().patch(`/namespaces/${data.tenant_id}/members/${data.user_id}`, {
-  type: data.access_type,
+  role: data.role,
 });
 
 export const removeUserFromNamespace = async (data) => http().delete(`/namespaces/${data.tenant_id}/members/${data.user_id}`);
