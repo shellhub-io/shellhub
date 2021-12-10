@@ -162,7 +162,7 @@ func initData() Data {
 			Members: []models.Member{
 				{
 					ID:   "owner",
-					Type: authorizer.MemberTypeOwner,
+					Role: authorizer.MemberRoleOwner,
 				},
 			},
 			MaxDevices: -1,

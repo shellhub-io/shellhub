@@ -43,7 +43,7 @@ func TestDelUser(t *testing.T) {
 			Name:     "namespace1",
 			Owner:    user.ID,
 			TenantID: "tenantID1",
-			Members:  []models.Member{{ID: user.ID, Type: "owner"}},
+			Members:  []models.Member{{ID: user.ID, Role: "owner"}},
 			Settings: &models.NamespaceSettings{
 				SessionRecord: true,
 			},
@@ -53,7 +53,7 @@ func TestDelUser(t *testing.T) {
 			Name:     "namespace2",
 			Owner:    user.ID,
 			TenantID: "tenantID2",
-			Members:  []models.Member{{ID: user.ID, Type: "owner"}},
+			Members:  []models.Member{{ID: user.ID, Role: "owner"}},
 			Settings: &models.NamespaceSettings{
 				SessionRecord: true,
 			},
@@ -65,7 +65,7 @@ func TestDelUser(t *testing.T) {
 			Name:     "namespace3",
 			Owner:    "ownerID",
 			TenantID: "tenantID3",
-			Members:  []models.Member{{ID: "ownerID", Type: authorizer.MemberTypeObserver}, {ID: user.ID, Type: authorizer.MemberTypeObserver}},
+			Members:  []models.Member{{ID: "ownerID", Role: authorizer.MemberRoleObserver}, {ID: user.ID, Role: authorizer.MemberRoleObserver}},
 			Settings: &models.NamespaceSettings{
 				SessionRecord: true,
 			},
@@ -75,7 +75,7 @@ func TestDelUser(t *testing.T) {
 			Name:     "namespace1",
 			Owner:    "ownerID",
 			TenantID: "tenantID1",
-			Members:  []models.Member{{ID: "ownerID", Type: authorizer.MemberTypeObserver}, {ID: user.ID, Type: authorizer.MemberTypeObserver}},
+			Members:  []models.Member{{ID: "ownerID", Role: authorizer.MemberRoleObserver}, {ID: user.ID, Role: authorizer.MemberRoleObserver}},
 			Settings: &models.NamespaceSettings{
 				SessionRecord: true,
 			},
@@ -262,7 +262,7 @@ func TestNamespaceCreate(t *testing.T) {
 		Name:     "namespace",
 		Owner:    user.ID,
 		TenantID: "tenantID",
-		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
+		Members:  []models.Member{{ID: user.ID, Role: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -369,7 +369,7 @@ func TestAddUserNamespace(t *testing.T) {
 		Name:     "namespace",
 		Owner:    user.ID,
 		TenantID: "tenantID",
-		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
+		Members:  []models.Member{{ID: user.ID, Role: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -380,7 +380,7 @@ func TestAddUserNamespace(t *testing.T) {
 		Name:     "namespaceNotFound",
 		Owner:    user.ID,
 		TenantID: "tenantIDNotFound",
-		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
+		Members:  []models.Member{{ID: user.ID, Role: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -395,7 +395,7 @@ func TestAddUserNamespace(t *testing.T) {
 		description   string
 		username      string
 		namespace     string
-		accessType    string
+		role          string
 		requiredMocks func()
 		expected      Expected
 	}{
@@ -403,7 +403,7 @@ func TestAddUserNamespace(t *testing.T) {
 			description: "Fails to find the user",
 			username:    userNotFound.Username,
 			namespace:   namespace.Name,
-			accessType:  authorizer.MemberTypeObserver,
+			role:        authorizer.MemberRoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, userNotFound.Username).Return(nil, Err).Once()
 			},
@@ -413,7 +413,7 @@ func TestAddUserNamespace(t *testing.T) {
 			description: "Fails to find the namespace",
 			username:    user.Username,
 			namespace:   namespaceNotFound.Name,
-			accessType:  authorizer.MemberTypeObserver,
+			role:        authorizer.MemberRoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 				mock.On("NamespaceGetByName", ctx, namespaceNotFound.Name).Return(nil, Err).Once()
@@ -424,11 +424,11 @@ func TestAddUserNamespace(t *testing.T) {
 			description: "Successfully add user to the Namespace",
 			username:    user.Username,
 			namespace:   namespace.Name,
-			accessType:  authorizer.MemberTypeObserver,
+			role:        authorizer.MemberRoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 				mock.On("NamespaceGetByName", ctx, namespace.Name).Return(namespace, nil).Once()
-				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user.ID, authorizer.MemberTypeObserver).Return(namespace, nil).Once()
+				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user.ID, authorizer.MemberRoleObserver).Return(namespace, nil).Once()
 			},
 			expected: Expected{namespace, nil},
 		},
@@ -438,7 +438,7 @@ func TestAddUserNamespace(t *testing.T) {
 		test := ts
 		t.Run(test.description, func(t *testing.T) {
 			test.requiredMocks()
-			ns, err := s.NamespaceAddMember(test.username, test.namespace, test.accessType)
+			ns, err := s.NamespaceAddMember(test.username, test.namespace, test.role)
 			assert.Equal(t, test.expected, Expected{ns, err})
 		})
 	}
@@ -473,7 +473,7 @@ func TestDelUserNamespace(t *testing.T) {
 		Name:     "namespace",
 		Owner:    user.ID,
 		TenantID: "tenantID",
-		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
+		Members:  []models.Member{{ID: user.ID, Role: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -483,7 +483,7 @@ func TestDelUserNamespace(t *testing.T) {
 		Name:     "namespaceNotFound",
 		Owner:    user.ID,
 		TenantID: "tenantIDNotFound",
-		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
+		Members:  []models.Member{{ID: user.ID, Role: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -575,7 +575,7 @@ func TestDelNamespace(t *testing.T) {
 		Name:     "namespace",
 		Owner:    user.ID,
 		TenantID: "tenantID",
-		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
+		Members:  []models.Member{{ID: user.ID, Role: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
@@ -585,7 +585,7 @@ func TestDelNamespace(t *testing.T) {
 		Name:     "namespaceNotFound",
 		Owner:    user.ID,
 		TenantID: "tenantIDNotFound",
-		Members:  []models.Member{{ID: user.ID, Type: "owner"}},
+		Members:  []models.Member{{ID: user.ID, Role: "owner"}},
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},

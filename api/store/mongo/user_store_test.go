@@ -407,7 +407,7 @@ func TestUserDetachInfo(t *testing.T) {
 			Members: []models.Member{
 				{
 					ID:   user.ID,
-					Type: authorizer.MemberTypeOwner,
+					Role: authorizer.MemberRoleOwner,
 				},
 			},
 		},
@@ -417,7 +417,7 @@ func TestUserDetachInfo(t *testing.T) {
 			Members: []models.Member{
 				{
 					ID:   user.ID,
-					Type: authorizer.MemberTypeOwner,
+					Role: authorizer.MemberRoleOwner,
 				},
 			},
 		},
@@ -430,7 +430,7 @@ func TestUserDetachInfo(t *testing.T) {
 			Members: []models.Member{
 				{
 					ID:   user.ID,
-					Type: authorizer.MemberTypeObserver,
+					Role: authorizer.MemberRoleObserver,
 				},
 			},
 		},
@@ -440,7 +440,7 @@ func TestUserDetachInfo(t *testing.T) {
 			Members: []models.Member{
 				{
 					ID:   user.ID,
-					Type: authorizer.MemberTypeObserver,
+					Role: authorizer.MemberRoleObserver,
 				},
 			},
 		},
@@ -450,7 +450,7 @@ func TestUserDetachInfo(t *testing.T) {
 			Members: []models.Member{
 				{
 					ID:   user.ID,
-					Type: authorizer.MemberTypeObserver,
+					Role: authorizer.MemberRoleObserver,
 				},
 			},
 		},

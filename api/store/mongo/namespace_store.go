@@ -25,7 +25,6 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 
 	if export {
 		query = []bson.M{
-
 			{
 				"$lookup": bson.M{
 					"from":         "devices",
@@ -212,13 +211,13 @@ func (s *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace 
 	return nil
 }
 
-func (s *Store) NamespaceAddMember(ctx context.Context, tenantID string, memberID string, memberType string) (*models.Namespace, error) {
+func (s *Store) NamespaceAddMember(ctx context.Context, tenantID string, memberID string, memberRole string) (*models.Namespace, error) {
 	result := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenantID, "members": bson.M{"$elemMatch": bson.M{"id": memberID}}})
 	if result.Err() == nil {
 		return nil, ErrNamespaceDuplicatedMember
 	}
 
-	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": bson.M{"id": memberID, "type": memberType}}})
+	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": bson.M{"id": memberID, "role": memberRole}}})
 	if err != nil {
 		return nil, fromMongoError(err)
 	}
@@ -246,8 +245,8 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memb
 	return s.NamespaceGet(ctx, tenantID)
 }
 
-func (s *Store) NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewType string) error {
-	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID, "members.id": memberID}, bson.M{"$set": bson.M{"members.$.type": memberNewType}})
+func (s *Store) NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewRole string) error {
+	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID, "members.id": memberID}, bson.M{"$set": bson.M{"members.$.role": memberNewRole}})
 	if err != nil {
 		return fromMongoError(err)
 	}

@@ -15,7 +15,7 @@ import (
 
 var migration37 = migrate.Migration{
 	Version:     37,
-	Description: "Change member's type from array of ID to a list of members' object",
+	Description: "Change member's role from array of ID to a list of members' object",
 	Up: func(db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
@@ -60,14 +60,14 @@ var migration37 = migrate.Migration{
 				if owner != member {
 					m := models.Member{
 						ID:   member.(string),
-						Type: authorizer.MemberTypeObserver,
+						Role: authorizer.MemberRoleObserver,
 					}
 
 					memberList = append(memberList, m)
 				} else if owner == member {
 					m := models.Member{
 						ID:   member.(string),
-						Type: authorizer.MemberTypeOwner,
+						Role: authorizer.MemberRoleOwner,
 					}
 
 					memberList = append(memberList, m)

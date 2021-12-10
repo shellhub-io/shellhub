@@ -221,7 +221,7 @@ func TestAuthUserInfo(t *testing.T) {
 		User:   "user",
 		Tenant: "xxxxxx",
 		ID:     "id",
-		Type:   "owner",
+		Role:   "owner",
 		Email:  "email@email.com",
 	}
 
@@ -241,7 +241,7 @@ func TestAuthUserInfo(t *testing.T) {
 		Members: []models.Member{
 			{
 				ID:   "id",
-				Type: "owner",
+				Role: "owner",
 			},
 		},
 	}

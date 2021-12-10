@@ -67,7 +67,7 @@ func (h *Handler) CreatePublicKey(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.PublicKey.Create, func() error {
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.Create, func() error {
 		err := h.service.CreatePublicKey(c.Ctx(), &key, tenantID)
 
 		return err
@@ -100,7 +100,7 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 	}
 
 	var key *models.PublicKey
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.PublicKey.Edit, func() error {
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.Edit, func() error {
 		var err error
 		key, err = h.service.UpdatePublicKey(c.Ctx(), c.Param("fingerprint"), tenantID, &params)
 
@@ -124,7 +124,7 @@ func (h *Handler) DeletePublicKey(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.PublicKey.Remove, func() error {
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.Remove, func() error {
 		err := h.service.DeletePublicKey(c.Ctx(), c.Param("fingerprint"), tenantID)
 
 		return err

@@ -27,8 +27,8 @@ func TestUpdatePendingStatus(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		req, _ := http.NewRequest(http.MethodPatch, "/devices/:uid/:status", bytes.NewBuffer([]byte{}))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Type", authorizer.MemberTypeOwner)
+		req.Header.Set("Content-Role", "application/json")
+		req.Header.Set("X-Role", authorizer.MemberRoleOwner)
 		echoContext := e.NewContext(req, rec)
 		echoContext.SetParamNames("uid", "status")
 		echoContext.SetParamValues("123", "pending")

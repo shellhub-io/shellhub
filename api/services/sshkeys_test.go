@@ -129,7 +129,6 @@ func TestGetPublicKeys(t *testing.T) {
 			expected: Expected{nil, Err},
 		},
 		{
-
 			description: InvalidFingerprintStr,
 			ctx:         ctx,
 			key:         nil,
@@ -141,7 +140,6 @@ func TestGetPublicKeys(t *testing.T) {
 			expected: Expected{nil, Err},
 		},
 		{
-
 			description: InvalidFingerTenantStr,
 			ctx:         ctx,
 			key:         nil,
@@ -226,7 +224,6 @@ func TestUpdatePublicKeys(t *testing.T) {
 			expected: Expected{nil, Err},
 		},
 		{
-
 			description: InvalidFingerprintStr,
 			ctx:         ctx,
 			key:         nil,
@@ -239,7 +236,6 @@ func TestUpdatePublicKeys(t *testing.T) {
 			expected: Expected{nil, Err},
 		},
 		{
-
 			description: InvalidFingerTenantStr,
 			ctx:         ctx,
 			key:         nil,
@@ -314,7 +310,6 @@ func TestDeletePublicKeys(t *testing.T) {
 			expected: Expected{Err},
 		},
 		{
-
 			description: InvalidFingerprintStr,
 			ctx:         ctx,
 			fingerprint: InvalidFingerprint,
@@ -325,7 +320,6 @@ func TestDeletePublicKeys(t *testing.T) {
 			expected: Expected{Err},
 		},
 		{
-
 			description: InvalidFingerTenantStr,
 			ctx:         ctx,
 			fingerprint: InvalidFingerprint,

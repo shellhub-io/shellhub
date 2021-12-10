@@ -46,7 +46,7 @@ func (h *Handler) AuthRequest(c apicontext.Context) error {
 		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
 		c.Response().Header().Set("X-Username", claims.Username)
 		c.Response().Header().Set("X-ID", claims.ID)
-		c.Response().Header().Set("X-Type", claims.Type)
+		c.Response().Header().Set("X-Role", claims.Role)
 
 		return c.NoContent(http.StatusOK)
 	case "device":
