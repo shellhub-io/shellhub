@@ -379,6 +379,9 @@ func (s *service) AuthAPIToken(ctx context.Context, req *models.APITokenAuthRequ
 		AuthClaims: models.AuthClaims{
 			Claims: "token",
 		},
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: clock.Now().Add(time.Hour * 72).Unix(),
+		},
 	})
 
 	tokenStr, err := token.SignedString(s.privKey)

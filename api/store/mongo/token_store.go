@@ -68,18 +68,7 @@ func (s *Store) TokenGetAPIToken(ctx context.Context, tenantID string, id string
 }
 
 func (s *Store) TokenDeleteAPIToken(ctx context.Context, tenantID string, id string) error {
-	tokens, err := s.TokenListAPIToken(ctx, tenantID)
-	if err != nil {
-		return err
-	}
-
-	for i, token := range tokens {
-		if token.ID == id {
-			tokens = append(tokens[:i], tokens[i+1:]...)
-		}
-	}
-
-	_, err = s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"api_tokens": tokens}})
+	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"api_tokens": bson.M{"id": bson.M{"$eq": id}}}})
 	if err != nil {
 		return err
 	}
@@ -92,18 +81,7 @@ func (s *Store) TokenDeleteAPIToken(ctx context.Context, tenantID string, id str
 }
 
 func (s *Store) TokenUpdateAPIToken(ctx context.Context, tenantID string, id string, request *models.APITokenUpdate) error {
-	tokens, err := s.TokenListAPIToken(ctx, tenantID)
-	if err != nil {
-		return nil
-	}
-
-	for i, token := range tokens {
-		if token.ID == id {
-			tokens[i].ReadOnly = request.TokenFields.ReadOnly
-		}
-	}
-
-	_, err = s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"api_tokens": tokens}})
+	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID, "api_tokens.id": id}, bson.M{"$set": bson.M{"api_tokens.$.read_only": request.TokenFields.ReadOnly}})
 	if err != nil {
 		return err
 	}
