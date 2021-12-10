@@ -60,7 +60,7 @@ describe('NamespaceDelete', () => {
 
   const nsTenant = 'xxxxxx';
 
-  const accessType = ['owner', 'operator'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
@@ -181,19 +181,19 @@ describe('NamespaceDelete', () => {
     },
   ];
 
-  const storeVuex = (active, billing, currentAccessType, namespace) => new Vuex.Store({
+  const storeVuex = (active, billing, currentrole, namespace) => new Vuex.Store({
     namespaced: true,
     state: {
       active,
       billing,
-      currentAccessType,
+      currentrole,
       namespace,
       info: infoData,
     },
     getters: {
       'billing/active': (state) => state.active,
       'billing/get': (state) => state.billing,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
       'namespaces/get': (state) => state.namespace,
       'billing/getBillInfoData': (state) => state.info,
     },
@@ -208,14 +208,14 @@ describe('NamespaceDelete', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = mount(NamespaceDelete, {
             store: storeVuex(
               test.computed.active,
               test.computed.billing,
-              currentAccessType,
+              currentrole,
               test.namespace,
             ),
             localVue,
@@ -272,7 +272,7 @@ describe('NamespaceDelete', () => {
           Object.keys(test.computed).forEach((item) => {
             expect(wrapper.vm[item]).toEqual(test.computed[item]);
           });
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         //////

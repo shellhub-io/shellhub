@@ -18,7 +18,7 @@ describe('SettingNamespace', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const role = ['owner', 'administrator', 'operator', 'observer'];
 
   const hasAuthorizationRenameNamespace = {
     owner: true,
@@ -141,19 +141,19 @@ describe('SettingNamespace', () => {
     },
   ];
 
-  const storeVuex = (namespace, authID, tenant, currentAccessType) => new Vuex.Store({
+  const storeVuex = (namespace, authID, tenant, currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
       namespace,
       authID,
       tenant,
-      currentAccessType,
+      currentrole,
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
       'auth/id': (state) => state.id,
       'auth/tenant': (state) => state.tenant,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'namespaces/put': () => {},
@@ -167,8 +167,8 @@ describe('SettingNamespace', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(async () => {
           jest.spyOn(Storage.prototype, 'getItem').mockReturnValue('e359bf484715');
 
@@ -177,7 +177,7 @@ describe('SettingNamespace', () => {
               test.variables.namespace,
               test.variables.authID,
               test.variables.tenant,
-              currentAccessType,
+              currentrole,
             ),
             localVue,
             stubs: ['fragment'],
@@ -224,11 +224,11 @@ describe('SettingNamespace', () => {
             expect(wrapper.vm[item]).toEqual(test.computed[item]);
           });
           expect(wrapper.vm.hasAuthorizationRenameNamespace)
-            .toEqual(hasAuthorizationRenameNamespace[currentAccessType]);
+            .toEqual(hasAuthorizationRenameNamespace[currentrole]);
           expect(wrapper.vm.hasAuthorizationRemoveUser)
-            .toEqual(hasAuthorizationRemoveUser[currentAccessType]);
+            .toEqual(hasAuthorizationRemoveUser[currentrole]);
           expect(wrapper.vm.hasAuthorizationDeleteNamespace)
-            .toEqual(hasAuthorizationDeleteNamespace[currentAccessType]);
+            .toEqual(hasAuthorizationDeleteNamespace[currentrole]);
         });
         it('Process data in methods', () => {
           let percent = 0;

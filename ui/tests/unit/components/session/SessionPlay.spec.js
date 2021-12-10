@@ -14,7 +14,7 @@ describe('SessionPlay', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'operator'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
@@ -199,15 +199,15 @@ describe('SessionPlay', () => {
     },
   ];
 
-  const storeVuex = (session, currentAccessType) => new Vuex.Store({
+  const storeVuex = (session, currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
       session,
-      currentAccessType,
+      currentrole,
     },
     getters: {
       'sessions/get': (state) => state.session,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'sessions/getLogSession': () => {},
@@ -216,11 +216,11 @@ describe('SessionPlay', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(async () => {
           wrapper = mount(SessionPlay, {
-            store: storeVuex(test.variables.session, currentAccessType),
+            store: storeVuex(test.variables.session, currentrole),
             localVue,
             stubs: ['fragment'],
             propsData: { uid: test.props.uid, recorded: test.props.recorded },
@@ -269,7 +269,7 @@ describe('SessionPlay', () => {
           Object.keys(test.computed).forEach((item) => {
             expect(wrapper.vm[item]).toEqual(test.computed[item]);
           });
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         //////
@@ -283,7 +283,7 @@ describe('SessionPlay', () => {
         });
 
         if (!test.variables.dialog && test.variables.recorded !== false) {
-          if (hasAuthorization[currentAccessType]) {
+          if (hasAuthorization[currentrole]) {
             it('Show message tooltip user has permission', async (done) => {
               const icons = wrapper.findAll('.v-icon');
               const helpIcon = icons.at(0);

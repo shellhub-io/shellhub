@@ -92,6 +92,7 @@ export default {
     },
 
     addUser: async (context, data) => {
+      console.log(data);
       await apiNamespace.addUserToNamespace(data);
     },
 
@@ -108,13 +109,13 @@ export default {
     },
 
     switchNamespace: async (context, data) => {
-      localStorage.removeItem('accessType');
+      localStorage.removeItem('role');
 
       const res = await apiNamespace.tenantSwitch(data);
       if (res.status === 200) {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('tenant', data.tenant_id);
-        localStorage.setItem('accessType', res.data.type);
+        localStorage.setItem('role', res.data.type);
       }
     },
 

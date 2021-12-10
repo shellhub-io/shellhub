@@ -18,7 +18,7 @@ describe('DeviceRename', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'operator'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
@@ -96,13 +96,13 @@ describe('DeviceRename', () => {
     },
   ];
 
-  const storeVuex = (currentAccessType) => new Vuex.Store({
+  const storeVuex = (currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
-      currentAccessType,
+      currentrole,
     },
     getters: {
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'devices/rename': () => {},
@@ -112,11 +112,11 @@ describe('DeviceRename', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = mount(DeviceRename, {
-            store: storeVuex(currentAccessType),
+            store: storeVuex(currentrole),
             localVue,
             stubs: ['fragment'],
             propsData: { name: test.props.name, uid: test.props.uid },
@@ -159,7 +159,7 @@ describe('DeviceRename', () => {
           Object.keys(test.computed).forEach((item) => {
             expect(wrapper.vm[item]).toEqual(test.computed[item]);
           });
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         //////
@@ -178,7 +178,7 @@ describe('DeviceRename', () => {
         /// ///
 
         if (!test.data.dialog) {
-          if (hasAuthorization[currentAccessType]) {
+          if (hasAuthorization[currentrole]) {
             it('Show message tooltip user has permission', async (done) => {
               const icons = wrapper.findAll('.v-icon');
               const helpIcon = icons.at(0);
@@ -192,7 +192,7 @@ describe('DeviceRename', () => {
               });
             });
           }
-        } else if (hasAuthorization[currentAccessType]) {
+        } else if (hasAuthorization[currentrole]) {
           //////
           // In this case, the empty fields are validated.
           //////

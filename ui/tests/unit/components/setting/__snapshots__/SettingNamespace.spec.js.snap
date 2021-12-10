@@ -75,9 +75,7 @@ exports[`SettingNamespace Hosted version administrator Renders the component 1`]
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user1
                   </td>
-                  <td class="text-center">
-                    owner
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -95,9 +93,7 @@ exports[`SettingNamespace Hosted version administrator Renders the component 1`]
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user2
                   </td>
-                  <td class="text-center">
-                    observer
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -259,9 +255,7 @@ exports[`SettingNamespace Hosted version observer Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user1
                   </td>
-                  <td class="text-center">
-                    owner
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -279,9 +273,7 @@ exports[`SettingNamespace Hosted version observer Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user2
                   </td>
-                  <td class="text-center">
-                    observer
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -443,9 +435,7 @@ exports[`SettingNamespace Hosted version operator Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user1
                   </td>
-                  <td class="text-center">
-                    owner
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -463,9 +453,7 @@ exports[`SettingNamespace Hosted version operator Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user2
                   </td>
-                  <td class="text-center">
-                    observer
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -627,9 +615,7 @@ exports[`SettingNamespace Hosted version owner Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user1
                   </td>
-                  <td class="text-center">
-                    owner
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -647,9 +633,7 @@ exports[`SettingNamespace Hosted version owner Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user2
                   </td>
-                  <td class="text-center">
-                    observer
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -811,9 +795,7 @@ exports[`SettingNamespace Open version administrator Renders the component 1`] =
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user1
                   </td>
-                  <td class="text-center">
-                    owner
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -831,9 +813,7 @@ exports[`SettingNamespace Open version administrator Renders the component 1`] =
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user2
                   </td>
-                  <td class="text-center">
-                    observer
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -965,9 +945,7 @@ exports[`SettingNamespace Open version observer Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user1
                   </td>
-                  <td class="text-center">
-                    owner
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -985,9 +963,7 @@ exports[`SettingNamespace Open version observer Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user2
                   </td>
-                  <td class="text-center">
-                    observer
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -1119,9 +1095,7 @@ exports[`SettingNamespace Open version operator Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user1
                   </td>
-                  <td class="text-center">
-                    owner
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -1139,9 +1113,7 @@ exports[`SettingNamespace Open version operator Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user2
                   </td>
-                  <td class="text-center">
-                    observer
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate v-icon--disabled material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -1273,9 +1245,7 @@ exports[`SettingNamespace Open version owner Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user1
                   </td>
-                  <td class="text-center">
-                    owner
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">
@@ -1293,9 +1263,7 @@ exports[`SettingNamespace Open version owner Renders the component 1`] = `
                   <td class="text-start"><i aria-hidden="true" class="v-icon notranslate mdi mdi-account theme--light"></i>
                     user2
                   </td>
-                  <td class="text-center">
-                    observer
-                  </td>
+                  <td class="text-center"></td>
                   <td class="text-end">
                     <fragment-stub data-test="NamespaceMemberFormDialogEdit-component"><span><button type="button" class="mr-2 v-btn v-btn--outlined theme--light v-size--default" data-test="edit-btn"><span class="v-btn__content"><i aria-hidden="true" outlined="" class="v-icon notranslate material-icons theme--light">edit</i></span></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
                       <div role="dialog" class="v-dialog__container">

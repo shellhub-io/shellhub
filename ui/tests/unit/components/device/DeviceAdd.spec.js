@@ -23,7 +23,7 @@ describe('DeviceAdd', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'observer'];
+  const role = ['owner', 'observer'];
 
   const hasAuthorization = {
     owner: true,
@@ -89,17 +89,17 @@ describe('DeviceAdd', () => {
     },
   ];
 
-  const storeVuex = (addDevice, tenant, currentAccessType) => new Vuex.Store({
+  const storeVuex = (addDevice, tenant, currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
       tenant,
       addDevice,
-      currentAccessType,
+      currentrole,
     },
     getters: {
       'auth/tenant': (state) => state.tenant,
       'modals/addDevice': (state) => state.addDevice,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'modals/showAddDevice': () => {},
@@ -108,11 +108,11 @@ describe('DeviceAdd', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = mount(DeviceAdd, {
-            store: storeVuex(test.variables.addDevice, test.variables.tenant, currentAccessType),
+            store: storeVuex(test.variables.addDevice, test.variables.tenant, currentrole),
             localVue,
             stubs: ['fragment'],
             propsData: { smallButton: test.props.smallButton },
@@ -161,7 +161,7 @@ describe('DeviceAdd', () => {
           Object.keys(test.computed).forEach((item) => {
             expect(wrapper.vm[item]).toEqual(test.computed[item]);
           });
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
         it('Process data in methods', () => {
           jest.spyOn(wrapper.vm, 'copyCommand');

@@ -1,8 +1,8 @@
 import { authorizer } from '../../authorizer';
 
-export default (accessType, action) => {
-  const hasPermission = !!authorizer.permissions[accessType]
-    && authorizer.permissions[accessType].includes(action);
+export default (role, action) => {
+  const hasPermission = !!authorizer.permissions[role]
+    && authorizer.permissions[role].includes(action);
 
   return hasPermission;
 };

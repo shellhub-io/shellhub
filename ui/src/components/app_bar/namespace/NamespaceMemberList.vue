@@ -69,7 +69,7 @@ export default {
         },
         {
           text: 'Role',
-          value: 'type',
+          value: 'role',
           align: 'center',
           sortable: false,
         },

@@ -9,7 +9,7 @@ describe('Notification', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'operator'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
@@ -130,20 +130,20 @@ describe('Notification', () => {
     notifications,
     numberNotifications,
     stats,
-    currentAccessType,
+    currentrole,
   ) => new Vuex.Store({
     namespaced: true,
     state: {
       notifications,
       numberNotifications,
       stats,
-      currentAccessType,
+      currentrole,
     },
     getters: {
       'notifications/list': (state) => state.notifications,
       'notifications/getNumberNotifications': (state) => state.numberNotifications,
       'stats/stats': (state) => state.stats,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'notifications/fetch': () => {},
@@ -154,15 +154,15 @@ describe('Notification', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = shallowMount(Notification, {
             store: storeVuex(
               test.variables.listNotifications,
               test.variables.numberNotifications,
               test.variables.stats,
-              currentAccessType,
+              currentrole,
             ),
             localVue,
             stubs: ['fragment', 'router-link'],
@@ -197,7 +197,7 @@ describe('Notification', () => {
           Object.keys(test.computed).forEach((item) => {
             expect(wrapper.vm[item]).toEqual(test.computed[item]);
           });
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         //////

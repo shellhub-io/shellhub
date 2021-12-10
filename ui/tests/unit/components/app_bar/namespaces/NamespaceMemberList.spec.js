@@ -10,7 +10,7 @@ describe('NamespaceMemberList', () => {
 
   const namespace = {
     name: 'nsxxx',
-    members: [{ username: 'user1', type: 'owner' }, { username: 'user2', type: 'administrator' }, { username: 'user3', type: 'observer' }],
+    members: [{ username: 'user1', role: 'owner' }, { username: 'user2', role: 'administrator' }, { username: 'user3', role: 'observer' }],
   };
 
   const headers = [
@@ -22,7 +22,7 @@ describe('NamespaceMemberList', () => {
     },
     {
       text: 'Role',
-      value: 'type',
+      value: 'role',
       align: 'center',
       sortable: false,
     },

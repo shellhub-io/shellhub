@@ -17,7 +17,7 @@ describe('NamespaceMemberDelete', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'operator'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
@@ -89,16 +89,16 @@ describe('NamespaceMemberDelete', () => {
     },
   ];
 
-  const storeVuex = (namespace, currentAccessType, tenant) => new Vuex.Store({
+  const storeVuex = (namespace, currentrole, tenant) => new Vuex.Store({
     namespaced: true,
     state: {
       namespace,
-      currentAccessType,
+      currentrole,
       tenant,
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
       'auth/tenant': (state) => state.tenant,
     },
     actions: {
@@ -109,13 +109,13 @@ describe('NamespaceMemberDelete', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = mount(NamespaceMemberDelete, {
             store: storeVuex(
               test.variables.namespace,
-              currentAccessType,
+              currentrole,
               test.variables.namespace.tenant_id,
             ),
             localVue,
@@ -157,7 +157,7 @@ describe('NamespaceMemberDelete', () => {
           });
         });
         it('Process data in the computed', () => {
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         //////

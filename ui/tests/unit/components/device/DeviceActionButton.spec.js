@@ -14,7 +14,7 @@ describe('DeviceActionButton', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'observer'];
+  const role = ['owner', 'observer'];
 
   const hasAuthorization = {
     owner: true,
@@ -134,15 +134,15 @@ describe('DeviceActionButton', () => {
     },
   ];
 
-  const storeVuex = (isActive, currentAccessType) => new Vuex.Store({
+  const storeVuex = (isActive, currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
       isActive,
-      currentAccessType,
+      currentrole,
     },
     getters: {
       isActive: (state) => state.isActive,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'devices/refresh': () => {},
@@ -159,11 +159,11 @@ describe('DeviceActionButton', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = mount(DeviceActionButton, {
-            store: storeVuex(test.variables.isActive, currentAccessType),
+            store: storeVuex(test.variables.isActive, currentrole),
             localVue,
             stubs: ['fragment'],
             propsData: {
@@ -207,8 +207,8 @@ describe('DeviceActionButton', () => {
           });
         });
         it('Process data in the computed', () => {
-          if (!(test.props.action === 'remove' && currentAccessType === 'operator')) {
-            expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          if (!(test.props.action === 'remove' && currentrole === 'operator')) {
+            expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
           } else {
             expect(wrapper.vm.hasAuthorization).toEqual(false);
           }

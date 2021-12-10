@@ -101,20 +101,20 @@
           <v-card-text class="caption mb-0 pt-0">
             <ValidationProvider
               v-slot="{ errors }"
-              ref="providerAccessType"
-              vid="accessType"
-              name="accessType"
+              ref="providerRole"
+              vid="role"
+              name="role"
               rules="required"
             >
               <v-row align="center">
                 <v-col cols="12">
                   <v-select
-                    v-model="memberLocal.selectedAccessType"
+                    v-model="memberLocal.selectedRole"
                     :items="items"
-                    label="Accesstype"
+                    label="Role"
                     :error-messages="errors"
                     require
-                    data-test="accessType-select"
+                    data-test="role-select"
                   />
                 </v-col>
               </v-row>
@@ -193,7 +193,7 @@ export default {
     return {
       dialog: false,
       username: '',
-      selectedAccessType: '',
+      selectedRole: '',
       memberLocal: [],
       items: ['administrator', 'operator', 'observer'],
     };
@@ -206,14 +206,14 @@ export default {
         return false;
       }
 
-      const accessType = this.$store.getters['auth/accessType'];
-      if (accessType !== '') {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
         let action = '';
         if (this.addUser) action = 'addMember';
         else action = 'removeMember';
 
         return hasPermission(
-          this.$authorizer.accessType[accessType],
+          this.$authorizer.role[role],
           this.$actions.namespace[action],
         );
       }
@@ -236,10 +236,10 @@ export default {
         this.memberLocal = {
           id: '',
           username: '',
-          selectedAccessType: '',
+          selectedRole: '',
         };
       } else {
-        this.memberLocal = { ...this.member, selectedAccessType: this.member.type };
+        this.memberLocal = { ...this.member, selectedRole: this.member.role };
       }
     },
 
@@ -248,7 +248,7 @@ export default {
         await this.$store.dispatch('namespaces/addUser', {
           username: this.memberLocal.username,
           tenant_id: this.$store.getters['auth/tenant'],
-          access_type: this.memberLocal.selectedAccessType,
+          role: this.memberLocal.selectedRole,
         });
 
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceNewMember);
@@ -273,7 +273,7 @@ export default {
         await this.$store.dispatch('namespaces/editUser', {
           user_id: this.memberLocal.id,
           tenant_id: this.$store.getters['auth/tenant'],
-          access_type: this.memberLocal.selectedAccessType,
+          role: this.memberLocal.selectedRole,
         });
 
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceEditMember);
@@ -285,7 +285,7 @@ export default {
           });
         } else if (error.response.status === 403) {
           this.$refs.obs.setErrors({
-            accessType: 'You don\'t have permission to assign a role to the user.',
+            role: 'You don\'t have permission to assign a role to the user.',
           });
         } else if (error.response.status === 404) {
           this.$refs.obs.setErrors({

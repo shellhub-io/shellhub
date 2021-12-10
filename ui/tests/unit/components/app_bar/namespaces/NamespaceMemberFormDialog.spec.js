@@ -18,7 +18,7 @@ describe('NamespaceMemberFormDialog', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const role = ['owner', 'administrator', 'operator', 'observer'];
 
   const hasAuthorization = {
     owner: true,
@@ -30,26 +30,26 @@ describe('NamespaceMemberFormDialog', () => {
   const members = [
     {
       id: 'xxxxxxxx',
-      type: 'owner',
+      role: 'owner',
       username: 'user1',
     },
     {
       id: 'xxxxxxxy',
-      type: 'observer',
+      role: 'observer',
       username: 'user2',
     },
   ];
 
   const memberLocal = {
     id: '',
-    selectedAccessType: '',
+    selectedRole: '',
     username: '',
   };
 
   const memberLocalEdit = {
     id: 'xxxxxxxy',
-    type: 'observer',
-    selectedAccessType: 'observer',
+    role: 'observer',
+    selectedRole: 'observer',
     username: 'user2',
   };
 
@@ -76,7 +76,7 @@ describe('NamespaceMemberFormDialog', () => {
       data: {
         dialog: false,
         username: '',
-        selectedAccessType: '',
+        selectedRole: '',
         memberLocal,
         items: ['administrator', 'operator', 'observer'],
       },
@@ -102,7 +102,7 @@ describe('NamespaceMemberFormDialog', () => {
       data: {
         dialog: false,
         username: '',
-        selectedAccessType: '',
+        selectedRole: '',
         memberLocal: memberLocalEdit,
         items: ['administrator', 'operator', 'observer'],
       },
@@ -128,7 +128,7 @@ describe('NamespaceMemberFormDialog', () => {
       data: {
         dialog: true,
         username: '',
-        selectedAccessType: '',
+        selectedRole: '',
         memberLocal,
         items: ['administrator', 'operator', 'observer'],
       },
@@ -154,7 +154,7 @@ describe('NamespaceMemberFormDialog', () => {
       data: {
         dialog: true,
         username: '',
-        selectedAccessType: '',
+        selectedRole: '',
         memberLocal: memberLocalEdit,
         items: ['administrator', 'operator', 'observer'],
       },
@@ -169,15 +169,15 @@ describe('NamespaceMemberFormDialog', () => {
     },
   ];
 
-  const storeVuex = (namespace, currentAccessType) => new Vuex.Store({
+  const storeVuex = (namespace, currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
       namespace,
-      currentAccessType,
+      currentrole,
     },
     getters: {
       'namespaces/get': (state) => state.namespace,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'namespaces/adduser': () => {},
@@ -187,11 +187,11 @@ describe('NamespaceMemberFormDialog', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = mount(NamespaceMemberFormDialog, {
-            store: storeVuex(test.variables.namespaceGlobal, currentAccessType),
+            store: storeVuex(test.variables.namespaceGlobal, currentrole),
             localVue,
             stubs: ['fragment'],
             propsData: { member: test.props.member, addUser: test.props.addUser },
@@ -231,7 +231,7 @@ describe('NamespaceMemberFormDialog', () => {
           });
         });
         it('Process data in the computed', () => {
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         //////
@@ -245,7 +245,7 @@ describe('NamespaceMemberFormDialog', () => {
         });
 
         if (test.data.dialog) {
-          if (hasAuthorization[currentAccessType] && !test.props.addUser) {
+          if (hasAuthorization[currentrole] && !test.props.addUser) {
             it('Show validation messages', async () => {
               wrapper.setData({ memberLocal: { username: '' } });
               await flushPromises();

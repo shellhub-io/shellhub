@@ -9,7 +9,7 @@ describe('SettingSecurity', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'operator'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
@@ -31,15 +31,15 @@ describe('SettingSecurity', () => {
     },
   ];
 
-  const storeVuex = (sessionRecord, currentAccessType) => new Vuex.Store({
+  const storeVuex = (sessionRecord, currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
       sessionRecord,
-      currentAccessType,
+      currentrole,
     },
     getters: {
       'security/get': (state) => state.sessionRecord,
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'security/set': () => {},
@@ -49,11 +49,11 @@ describe('SettingSecurity', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = shallowMount(SettingSecurity, {
-            store: storeVuex(test.variables.sessionRecord, currentAccessType),
+            store: storeVuex(test.variables.sessionRecord, currentrole),
             localVue,
             stubs: ['fragment'],
             propsData: { hasTenant: test.props.hasTenant },
@@ -90,7 +90,7 @@ describe('SettingSecurity', () => {
           });
         });
         it('Process data in the computed', () => {
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
       });
     });

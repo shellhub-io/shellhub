@@ -18,7 +18,7 @@ describe('KeyFormDialog', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'administrator', 'operator', 'observer'];
+  const role = ['owner', 'administrator', 'operator', 'observer'];
 
   const hasAuthorization = {
     owner: true,
@@ -208,13 +208,13 @@ describe('KeyFormDialog', () => {
     },
   ];
 
-  const storeVuex = (currentAccessType) => new Vuex.Store({
+  const storeVuex = (currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
-      currentAccessType,
+      currentrole,
     },
     getters: {
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'publickeys/post': () => {},
@@ -229,11 +229,11 @@ describe('KeyFormDialog', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = mount(KeyFormDialog, {
-            store: storeVuex(currentAccessType),
+            store: storeVuex(currentrole),
             localVue,
             stubs: ['fragment'],
             propsData: {
@@ -277,7 +277,7 @@ describe('KeyFormDialog', () => {
           });
         });
         it('Process data in the computed', () => {
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         //////
@@ -291,7 +291,7 @@ describe('KeyFormDialog', () => {
         });
 
         if (!test.data.dialog) {
-          if (hasAuthorization[currentAccessType] && !test.variables.createKey) {
+          if (hasAuthorization[currentrole] && !test.variables.createKey) {
             it('Show message tooltip to user owner', async (done) => {
               const icons = wrapper.findAll('.v-icon');
               const helpIcon = icons.at(0);

@@ -13,7 +13,7 @@ describe('BillingCancel', () => {
 
   let wrapper;
 
-  const accessType = ['owner', 'operator'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
@@ -67,13 +67,13 @@ describe('BillingCancel', () => {
     },
   ];
 
-  const storeVuex = (currentAccessType) => new Vuex.Store({
+  const storeVuex = (currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
-      currentAccessType,
+      currentrole,
     },
     getters: {
-      'auth/accessType': (state) => state.currentAccessType,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'billing/cancelSubscription': () => {},
@@ -84,11 +84,11 @@ describe('BillingCancel', () => {
   });
 
   tests.forEach((test) => {
-    accessType.forEach((currentAccessType) => {
-      describe(`${test.description} ${currentAccessType}`, () => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = mount(BillingCancel, {
-            store: storeVuex(currentAccessType),
+            store: storeVuex(currentrole),
             localVue,
             stubs: ['fragment', 'router-link'],
             propsData: { nextPaymentDue: test.props.nextPaymentDue },
@@ -128,7 +128,7 @@ describe('BillingCancel', () => {
           });
         });
         it('Process data in the computed', () => {
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentAccessType]);
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
 
         //////

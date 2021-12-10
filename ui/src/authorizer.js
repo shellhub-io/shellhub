@@ -196,7 +196,7 @@ export const authorizer = {
       // Notification
     ],
   },
-  accessType: {
+  role: {
     owner: 'owner',
     administrator: 'administrator',
     operator: 'operator',
