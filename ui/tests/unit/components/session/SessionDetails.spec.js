@@ -128,6 +128,8 @@ describe('SessionDetails', () => {
       expect(wrapper.vm.uid).toEqual(session.uid);
       expect(wrapper.vm.session).toEqual(session);
       expect(wrapper.vm.dialog).toEqual(false);
+      expect(wrapper.vm.sessionPlayDialog).toEqual(false);
+      expect(wrapper.vm.sessionCloseDialog).toEqual(false);
       expect(wrapper.vm.hide).toEqual(true);
     });
 
@@ -192,6 +194,8 @@ describe('SessionDetails', () => {
       expect(wrapper.vm.uid).toEqual(session.uid);
       expect(wrapper.vm.session).toEqual({ ...session, recorded: false });
       expect(wrapper.vm.dialog).toEqual(false);
+      expect(wrapper.vm.sessionPlayDialog).toEqual(false);
+      expect(wrapper.vm.sessionCloseDialog).toEqual(false);
       expect(wrapper.vm.hide).toEqual(true);
     });
 
@@ -261,6 +265,8 @@ describe('SessionDetails', () => {
         ...session, device: { online: false }, active: false, recorded: false,
       });
       expect(wrapper.vm.dialog).toEqual(false);
+      expect(wrapper.vm.sessionPlayDialog).toEqual(false);
+      expect(wrapper.vm.sessionCloseDialog).toEqual(false);
       expect(wrapper.vm.hide).toEqual(true);
     });
 

@@ -1,46 +1,38 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SessionPlay Dialog play not paused operator Renders the component 1`] = `
-<fragment-stub data-test="render-fragment"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-play-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+<fragment-stub data-test="render-fragment"><span><div data-test="play-item" class="v-list-item__title">
+          Play
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-play-circle theme--light"></i></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
 exports[`SessionPlay Dialog play not paused owner Renders the component 1`] = `
-<fragment-stub data-test="render-fragment"><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-play-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+<fragment-stub data-test="render-fragment"><span><div data-test="play-item" class="v-list-item__title">
+          Play
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--left mdi mdi-play-circle theme--light"></i></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
 exports[`SessionPlay Dialog play paused operator Renders the component 1`] = `
-<fragment-stub data-test="render-fragment"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-play-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+<fragment-stub data-test="render-fragment"><span><div data-test="play-item" class="v-list-item__title">
+          Play
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-play-circle theme--light"></i></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
 exports[`SessionPlay Dialog play paused owner Renders the component 1`] = `
-<fragment-stub data-test="render-fragment"><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-play-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+<fragment-stub data-test="render-fragment"><span><div data-test="play-item" class="v-list-item__title">
+          Play
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--left mdi mdi-play-circle theme--light"></i></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
-exports[`SessionPlay Icon with record operator Renders the component 1`] = `
-<fragment-stub data-test="render-fragment"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-play-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`SessionPlay Icon with record owner Renders the component 1`] = `
-<fragment-stub data-test="render-fragment"><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-play-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`SessionPlay Icon without record operator Renders the component 1`] = `
+exports[`SessionPlay Icon operator Renders the component 1`] = `
 <fragment-stub data-test="render-fragment">
   <!---->
   <div role="dialog" class="v-dialog__container">
@@ -49,7 +41,7 @@ exports[`SessionPlay Icon without record operator Renders the component 1`] = `
 </fragment-stub>
 `;
 
-exports[`SessionPlay Icon without record owner Renders the component 1`] = `
+exports[`SessionPlay Icon owner Renders the component 1`] = `
 <fragment-stub data-test="render-fragment">
   <!---->
   <div role="dialog" class="v-dialog__container">

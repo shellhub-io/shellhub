@@ -5,38 +5,38 @@
   >
     <v-tooltip
       v-if="recorded"
+      :disabled="hasAuthorization"
       bottom
     >
       <template #activator="{ on }">
         <span v-on="on">
+          <v-list-item-title data-test="play-item">
+            Play
+          </v-list-item-title>
+        </span>
+
+        <span v-on="on">
           <v-icon
             :disabled="!hasAuthorization"
+            left
+            data-test="play-icon"
             v-on="on"
-            @click="displayDialog"
           >
             mdi-play-circle
           </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="hasAuthorization"
-          data-test="text-tooltip"
-        >
-          Play
-        </span>
-
-        <span v-else>
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span v-if="!hasAuthorization">
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
       v-model="dialog"
       :max-width="1024"
       :transition="false"
+      @click:outside="close"
     >
       <v-card
         :elevation="0"
@@ -50,7 +50,7 @@
             icon
             dark
             data-test="close-btn"
-            @click="dialog = !dialog"
+            @click="close"
           >
             <v-icon>close</v-icon>
           </v-btn>
@@ -176,6 +176,11 @@ export default {
       type: Boolean,
       required: true,
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
@@ -220,15 +225,18 @@ export default {
   },
 
   watch: {
-    dialog(value) {
+    show(value) {
       if (!value) {
         this.close();
+        this.dialog = false;
+      } else if (this.hasAuthorization) {
+        this.displayDialog();
       }
     },
   },
 
   updated() {
-    if (this.dialog) {
+    if (this.show) {
       this.setSliderDiplayTime(this.currentTime);
     }
   },
@@ -365,6 +373,8 @@ export default {
       this.currentTime = 0;
       this.paused = false;
       this.defaultSpeed = 1;
+
+      this.$emit('update:show', false);
     },
 
     clear() { // Ensure to clear functions for syncronism

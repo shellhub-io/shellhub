@@ -47,13 +47,10 @@ exports[`SessionList Renders the component 1`] = `
               <td class="text-center">
                 Monday, May 18th 2020, 12:30:30 pm
               </td>
-              <td class="text-center"><button type="button" class="v-icon notranslate icons v-icon--link material-icons theme--light">info</button><span class="v-tooltip v-tooltip--bottom"><!----></span>
-                <fragment-stub data-test="close-field"><span><button disabled="disabled" type="button" class="v-icon notranslate v-icon--disabled v-icon--link mdi mdi-close-circle theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-                  <div role="dialog" class="v-dialog__container">
-                    <!---->
-                  </div>
-                </fragment-stub>
-                <!---->
+              <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
+                <div class="v-menu">
+                  <!---->
+                </div>
               </td>
             </tr>
             <tr class="">
@@ -74,9 +71,10 @@ exports[`SessionList Renders the component 1`] = `
               <td class="text-center">
                 Monday, May 18th 2020, 12:30:30 pm
               </td>
-              <td class="text-center"><button type="button" class="v-icon notranslate icons v-icon--link material-icons theme--light">info</button><span class="v-tooltip v-tooltip--bottom"><!----></span>
-                <!---->
-                <!---->
+              <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
+                <div class="v-menu">
+                  <!---->
+                </div>
               </td>
             </tr>
           </tbody>
@@ -85,10 +83,10 @@ exports[`SessionList Renders the component 1`] = `
       <div class="v-data-footer">
         <div class="v-data-footer__select">Rows per page:<div class="v-input v-input--hide-details v-input--is-label-active v-input--is-dirty theme--light v-text-field v-select">
             <div class="v-input__control">
-              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-70" class="v-input__slot">
+              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-60" class="v-input__slot">
                 <div class="v-select__slot">
                   <div class="v-select__selections">
-                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-70" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
+                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-60" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
                   </div>
                   <div class="v-input__append-inner">
                     <div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div>
