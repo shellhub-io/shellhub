@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -56,7 +57,7 @@ func TestListPublicKeys(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "Fails when the querry is invalid",
+			description: "Fails when the query is invalid",
 			ctx:         ctx,
 			keys:        keys,
 			query:       invalidQuery,
@@ -129,7 +130,6 @@ func TestGetPublicKeys(t *testing.T) {
 			expected: Expected{nil, Err},
 		},
 		{
-
 			description: InvalidFingerprintStr,
 			ctx:         ctx,
 			key:         nil,
@@ -141,7 +141,6 @@ func TestGetPublicKeys(t *testing.T) {
 			expected: Expected{nil, Err},
 		},
 		{
-
 			description: InvalidFingerTenantStr,
 			ctx:         ctx,
 			key:         nil,
@@ -226,7 +225,6 @@ func TestUpdatePublicKeys(t *testing.T) {
 			expected: Expected{nil, Err},
 		},
 		{
-
 			description: InvalidFingerprintStr,
 			ctx:         ctx,
 			key:         nil,
@@ -239,7 +237,6 @@ func TestUpdatePublicKeys(t *testing.T) {
 			expected: Expected{nil, Err},
 		},
 		{
-
 			description: InvalidFingerTenantStr,
 			ctx:         ctx,
 			key:         nil,
@@ -314,7 +311,6 @@ func TestDeletePublicKeys(t *testing.T) {
 			expected: Expected{Err},
 		},
 		{
-
 			description: InvalidFingerprintStr,
 			ctx:         ctx,
 			fingerprint: InvalidFingerprint,
@@ -325,7 +321,6 @@ func TestDeletePublicKeys(t *testing.T) {
 			expected: Expected{Err},
 		},
 		{
-
 			description: InvalidFingerTenantStr,
 			ctx:         ctx,
 			fingerprint: InvalidFingerprint,
@@ -352,6 +347,99 @@ func TestDeletePublicKeys(t *testing.T) {
 			tc.requiredMocks()
 			err := s.DeletePublicKey(ctx, tc.fingerprint, tc.tenantID)
 			assert.Equal(t, tc.expected, Expected{err})
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
+
+func TestCreatePublicKeys(t *testing.T) {
+	mock := &mocks.Store{}
+
+	clockMock.On("Now").Return(now)
+
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
+	Err := errors.New("")
+
+	ctx := context.TODO()
+
+	ns := models.Namespace{
+		Name:     "namespace",
+		Owner:    "user",
+		TenantID: "tenant",
+	}
+
+	pubKey, _ := ssh.NewPublicKey(publicKey)
+	data := ssh.MarshalAuthorizedKey(pubKey)
+	fingerprint := ssh.FingerprintLegacyMD5(pubKey)
+	key := &models.PublicKey{
+		Data: data, Fingerprint: fingerprint, CreatedAt: clock.Now(), TenantID: ns.TenantID, PublicKeyFields: models.PublicKeyFields{Name: "test"},
+	}
+	keyInvalid := &models.PublicKey{
+		Data: nil, Fingerprint: fingerprint, CreatedAt: clock.Now(), TenantID: ns.TenantID, PublicKeyFields: models.PublicKeyFields{Name: "test"},
+	}
+
+	cases := []struct {
+		description   string
+		tenantID      string
+		key           *models.PublicKey
+		requiredMocks func()
+		expected      error
+	}{
+		{
+			description: "Fail when key data is invalid",
+			tenantID:    ns.TenantID,
+			key:         keyInvalid,
+			requiredMocks: func() {
+			},
+			expected: ErrInvalidFormat,
+		},
+		{
+			description: "Fail when can not get the public key",
+			tenantID:    ns.TenantID,
+			key:         key,
+			requiredMocks: func() {
+				mock.On("PublicKeyGet", ctx, key.Fingerprint, ns.TenantID).Return(nil, Err).Once()
+			},
+			expected: Err,
+		},
+		{
+			description: "Fail when public key is duplicated",
+			tenantID:    ns.TenantID,
+			key:         key,
+			requiredMocks: func() {
+				mock.On("PublicKeyGet", ctx, key.Fingerprint, ns.TenantID).Return(key, nil).Once()
+			},
+			expected: ErrDuplicateFingerprint,
+		},
+		{
+			description: "Fail when can not create the public key",
+			tenantID:    ns.TenantID,
+			key:         key,
+			requiredMocks: func() {
+				mock.On("PublicKeyGet", ctx, key.Fingerprint, ns.TenantID).Return(nil, nil).Once()
+				mock.On("PublicKeyCreate", ctx, key).Return(Err).Once()
+			},
+			expected: Err,
+		},
+		{
+			description: "Success create a public key",
+			tenantID:    ns.TenantID,
+			key:         key,
+			requiredMocks: func() {
+				mock.On("PublicKeyGet", ctx, key.Fingerprint, ns.TenantID).Return(nil, nil).Once()
+				mock.On("PublicKeyCreate", ctx, key).Return(nil).Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+			err := s.CreatePublicKey(ctx, tc.key, tc.tenantID)
+			assert.Equal(t, tc.expected, err)
 		})
 	}
 
