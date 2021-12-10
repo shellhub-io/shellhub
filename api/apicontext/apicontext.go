@@ -20,10 +20,10 @@ func (c *Context) Service() interface{} {
 	return c.service
 }
 
-// UserType returns the user's type/member's type from the current namespace.
+// Role returns the user's role from the current namespace.
 // It can be empty if the user has no namespaces.
-func (c *Context) UserType() string {
-	return c.Request().Header.Get("X-Type")
+func (c *Context) Role() string {
+	return c.Request().Header.Get("X-Role")
 }
 
 func (c *Context) Tenant() *models.Tenant {

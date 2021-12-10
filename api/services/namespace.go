@@ -24,9 +24,9 @@ type NamespaceService interface {
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
 	EditNamespace(ctx context.Context, tenantID, name string) (*models.Namespace, error)
-	AddNamespaceUser(ctx context.Context, memberUsername, memberType, tenantID, userID string) (*models.Namespace, error)
+	AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error)
-	EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewType string) error
+	EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error
 	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
 	GetSessionRecord(ctx context.Context, tenantID string) (bool, error)
@@ -92,7 +92,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		Members: []models.Member{
 			{
 				ID:   user.ID,
-				Type: authorizer.MemberTypeOwner,
+				Role: authorizer.MemberRoleOwner,
 			},
 		},
 		Settings: &models.NamespaceSettings{SessionRecord: true},
@@ -149,7 +149,7 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 			return nil, err
 		}
 
-		member := models.Member{ID: user.ID, Username: user.Username, Type: member.Type}
+		member := models.Member{ID: user.ID, Username: user.Username, Role: member.Role}
 		members = append(members, member)
 	}
 
@@ -192,7 +192,7 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 			return nil, err
 		}
 
-		member := models.Member{ID: user.ID, Username: user.Username, Type: member.Type}
+		member := models.Member{ID: user.ID, Username: user.Username, Role: member.Role}
 		members = append(members, member)
 	}
 
@@ -219,7 +219,7 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*mo
 	return s.store.NamespaceRename(ctx, ns.TenantID, lowerName)
 }
 
-func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberType, tenantID, userID string) (*models.Namespace, error) {
+func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error) {
 	findMemberNamespace := func(member *models.User, namespace *models.Namespace) (*models.Member, bool) {
 		var memberFound models.Member
 		for _, memberSearch := range namespace.Members {
@@ -227,18 +227,18 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberTy
 				memberFound = memberSearch
 			}
 		}
-		if memberFound.ID == "" || memberFound.Type == "" {
+		if memberFound.ID == "" || memberFound.Role == "" {
 			return nil, false
 		}
 
 		return &memberFound, true
 	}
 
-	if _, err := validator.ValidateStruct(models.Member{Username: memberUsername, Type: memberType}); err != nil {
+	if _, err := validator.ValidateStruct(models.Member{Username: memberUsername, Role: memberRole}); err != nil {
 		return nil, ErrInvalidFormat
 	}
 
-	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberType) {
+	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberRole) {
 		return nil, ErrForbidden
 	}
 
@@ -265,7 +265,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberTy
 		return nil, ErrNamespaceDuplicatedMember
 	}
 
-	return s.store.NamespaceAddMember(ctx, tenantID, member.ID, memberType)
+	return s.store.NamespaceAddMember(ctx, tenantID, member.ID, memberRole)
 }
 
 func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error) {
@@ -276,7 +276,7 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 				memberFound = memberSearch
 			}
 		}
-		if memberFound.ID == "" || memberFound.Type == "" {
+		if memberFound.ID == "" || memberFound.Role == "" {
 			return nil, false
 		}
 
@@ -306,14 +306,14 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 		return nil, ErrNamespaceMemberNotFound
 	}
 
-	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberFound.Type) {
+	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberFound.Role) {
 		return nil, ErrForbidden
 	}
 
 	return s.store.NamespaceRemoveMember(ctx, tenantID, memberPassive.ID)
 }
 
-func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewType string) error {
+func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error {
 	findMemberNamespace := func(member *models.User, namespace *models.Namespace) (*models.Member, bool) {
 		var memberFound models.Member
 		for _, memberSearch := range namespace.Members {
@@ -321,7 +321,7 @@ func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, membe
 				memberFound = memberSearch
 			}
 		}
-		if memberFound.ID == "" || memberFound.Type == "" {
+		if memberFound.ID == "" || memberFound.Role == "" {
 			return nil, false
 		}
 
@@ -364,15 +364,15 @@ func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, membe
 		return ErrNamespaceMemberNotFound
 	}
 
-	if activeMemberFound.Type == passiveMemberFound.Type {
+	if activeMemberFound.Role == passiveMemberFound.Role {
 		return ErrForbidden
 	}
 
-	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberNewType) {
+	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberNewRole) {
 		return ErrForbidden
 	}
 
-	return s.store.NamespaceEditMember(ctx, tenantID, memberPassive.ID, memberNewType)
+	return s.store.NamespaceEditMember(ctx, tenantID, memberPassive.ID, memberNewRole)
 }
 
 func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {

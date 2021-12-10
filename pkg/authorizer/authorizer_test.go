@@ -6,37 +6,37 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEvaluateType(t *testing.T) {
+func TestEvaluateRole(t *testing.T) {
 	cases := []struct {
 		name string
 		exec func(t *testing.T)
 	}{
 		{
-			name: "Fail when the first type is not great than the second one",
+			name: "Fail when the first role is not great than the second one",
 			exec: func(t *testing.T) {
 				t.Helper()
-				assert.False(t, EvaluateType(MemberTypeAdministrator, MemberTypeOwner))
+				assert.False(t, EvaluateRole(MemberRoleAdministrator, MemberRoleOwner))
 			},
 		},
 		{
-			name: "Fail when a type is not valid",
+			name: "Fail when a role is not valid",
 			exec: func(t *testing.T) {
 				t.Helper()
-				assert.False(t, EvaluateType("invalidType", MemberTypeOperator))
+				assert.False(t, EvaluateRole("invalidRole", MemberRoleOperator))
 			},
 		},
 		{
-			name: "Fail when both types are equals",
+			name: "Fail when both roles are equals",
 			exec: func(t *testing.T) {
 				t.Helper()
-				assert.False(t, EvaluateType(MemberTypeOperator, MemberTypeOperator))
+				assert.False(t, EvaluateRole(MemberRoleOperator, MemberRoleOperator))
 			},
 		},
 		{
-			name: "Success when the first type is great than the second one",
+			name: "Success when the first role is great than the second one",
 			exec: func(t *testing.T) {
 				t.Helper()
-				assert.True(t, EvaluateType(MemberTypeAdministrator, MemberTypeOperator))
+				assert.True(t, EvaluateRole(MemberRoleAdministrator, MemberRoleOperator))
 			},
 		},
 	}
@@ -80,7 +80,7 @@ func TestEvaluatePermission(t *testing.T) {
 		exec func(t *testing.T)
 	}{
 		{
-			name: "Fails when member's type has no permission",
+			name: "Fails when member's role has no permission",
 			exec: func(t *testing.T) {
 				t.Helper()
 				ty := "observer"
@@ -89,7 +89,7 @@ func TestEvaluatePermission(t *testing.T) {
 			},
 		},
 		{
-			name: "Success when member's type has permission",
+			name: "Success when member's role has permission",
 			exec: func(t *testing.T) {
 				t.Helper()
 				ty := "owner"

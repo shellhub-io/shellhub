@@ -131,14 +131,14 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 
 	namespace, _ := s.store.NamespaceGetFirst(ctx, user.ID)
 
-	userType := ""
+	role := ""
 	tenant := ""
 	if namespace != nil {
 		tenant = namespace.TenantID
 
 		for _, member := range namespace.Members {
 			if member.ID == user.ID {
-				userType = member.Type
+				role = member.Role
 
 				break
 			}
@@ -151,7 +151,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			Username: user.Username,
 			Admin:    true,
 			Tenant:   tenant,
-			Type:     userType,
+			Role:     role,
 			ID:       user.ID,
 			AuthClaims: models.AuthClaims{
 				Claims: "user",
@@ -178,7 +178,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			ID:     user.ID,
 			User:   user.Username,
 			Tenant: tenant,
-			Type:   userType,
+			Role:   role,
 			Email:  user.Email,
 		}, nil
 	}
@@ -194,14 +194,14 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 
 	namespace, _ := s.store.NamespaceGetFirst(ctx, user.ID)
 
-	userType := ""
+	role := ""
 	tenant := ""
 	if namespace != nil {
 		tenant = namespace.TenantID
 
 		for _, member := range namespace.Members {
 			if member.ID == user.ID {
-				userType = member.Type
+				role = member.Role
 
 				break
 			}
@@ -212,7 +212,7 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 		Username: user.Username,
 		Admin:    true,
 		Tenant:   tenant,
-		Type:     userType,
+		Role:     role,
 		ID:       user.ID,
 		AuthClaims: models.AuthClaims{
 			Claims: "user",
@@ -233,7 +233,7 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 		ID:     user.ID,
 		User:   user.Username,
 		Tenant: tenant,
-		Type:   userType,
+		Role:   role,
 		Email:  user.Email,
 	}, nil
 }
@@ -276,10 +276,10 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 		return nil, err
 	}
 
-	var userType string
+	var role string
 	for _, member := range namespace.Members {
 		if member.ID == user.ID {
-			userType = member.Type
+			role = member.Role
 
 			break
 		}
@@ -291,7 +291,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				Username: user.Username,
 				Admin:    true,
 				Tenant:   namespace.TenantID,
-				Type:     userType,
+				Role:     role,
 				ID:       user.ID,
 				AuthClaims: models.AuthClaims{
 					Claims: "user",
@@ -311,7 +311,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				Name:   user.Name,
 				ID:     user.ID,
 				User:   user.Username,
-				Type:   userType,
+				Role:   role,
 				Tenant: namespace.TenantID,
 				Email:  user.Email,
 			}, nil
@@ -333,11 +333,11 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 
 	namespace, _ := s.store.NamespaceGet(ctx, tenant)
 
-	userType := ""
+	role := ""
 	if namespace != nil {
 		for _, member := range namespace.Members {
 			if member.ID == user.ID {
-				userType = member.Type
+				role = member.Role
 
 				break
 			}
@@ -349,7 +349,7 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 		Name:   user.Name,
 		User:   user.Username,
 		Tenant: tenant,
-		Type:   userType,
+		Role:   role,
 		ID:     user.ID,
 		Email:  user.Email,
 	}, nil

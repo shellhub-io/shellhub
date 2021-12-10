@@ -10,7 +10,7 @@ import (
 
 var ErrForbidden = errors.New("forbidden")
 
-func getUserTypeByID(ctx context.Context, s store.Store, tenantID, id string) (string, bool) {
+func getUserRoleByID(ctx context.Context, s store.Store, tenantID, id string) (string, bool) {
 	user, _, err := s.UserGetByID(ctx, id, false)
 	if err != nil || err == store.ErrNoDocuments {
 		return "", false
@@ -21,37 +21,37 @@ func getUserTypeByID(ctx context.Context, s store.Store, tenantID, id string) (s
 		return "", false
 	}
 
-	var userType string
+	var role string
 	var userFound bool
 	for _, member := range namespaceUserActive.Members {
 		if member.ID == user.ID {
 			userFound = true
-			userType = member.Type
+			role = member.Role
 
 			break
 		}
 	}
 
-	return userType, userFound
+	return role, userFound
 }
 
-// EvaluateSubject checks if the user's type, active one, may act over another, passive one.
-func EvaluateSubject(ctx context.Context, s store.Store, tenantID, activeID, typePassive string) bool {
-	typeActive, ok := getUserTypeByID(ctx, s, tenantID, activeID)
+// EvaluateSubject checks if the user's role, active one, may act over another, passive one.
+func EvaluateSubject(ctx context.Context, s store.Store, tenantID, activeID, rolePassive string) bool {
+	roleActive, ok := getUserRoleByID(ctx, s, tenantID, activeID)
 	if !ok {
 		return false
 	}
 
-	if typeActive == typePassive {
+	if roleActive == rolePassive {
 		return false
 	}
 
-	return authorizer.EvaluateType(typeActive, typePassive)
+	return authorizer.EvaluateRole(roleActive, rolePassive)
 }
 
-// EvaluatePermission checks if a namespace's member has the type that allows an action.
-func EvaluatePermission(userType string, action int, service func() error) error {
-	if !authorizer.EvaluatePermission(userType, action) {
+// EvaluatePermission checks if a namespace's member has the role that allows an action.
+func EvaluatePermission(role string, action int, service func() error) error {
+	if !authorizer.EvaluatePermission(role, action) {
 		return ErrForbidden
 	}
 

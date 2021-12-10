@@ -61,13 +61,13 @@ func TestMigration37(t *testing.T) {
 	migratedNamespace := &models.Namespace{}
 	err = db.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.D{{"tenant_id", "tenant"}}).Decode(migratedNamespace)
 	assert.NoError(t, err)
-	assert.Equal(t, []models.Member{{ID: user.ID, Type: authorizer.MemberTypeOwner}}, migratedNamespace.Members)
+	assert.Equal(t, []models.Member{{ID: user.ID, Role: authorizer.MemberRoleOwner}}, migratedNamespace.Members)
 
 	namespace := models.Namespace{
 		Name:     "userspace",
 		Owner:    user.ID,
 		TenantID: "tenant",
-		Members:  []models.Member{{ID: user.ID, Type: authorizer.MemberTypeOwner}},
+		Members:  []models.Member{{ID: user.ID, Role: authorizer.MemberRoleOwner}},
 		Devices:  -1,
 	}
 

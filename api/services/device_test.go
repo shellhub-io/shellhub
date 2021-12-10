@@ -178,7 +178,7 @@ func TestDeleteDevice(t *testing.T) {
 	ctx := context.TODO()
 
 	user := &models.User{UserData: models.UserData{Name: "name", Email: "", Username: "username"}, ID: "id"}
-	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Type: authorizer.MemberTypeOwner}, {ID: "id2", Type: authorizer.MemberTypeObserver}}}
+	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Role: authorizer.MemberRoleOwner}, {ID: "id2", Role: authorizer.MemberRoleObserver}}}
 	device := &models.Device{UID: "uid", TenantID: "tenant", CreatedAt: time.Time{}}
 
 	Err := errors.New("error")
@@ -265,7 +265,7 @@ func TestDeleteDevice(t *testing.T) {
 			requiredMocks: func() {
 				namespaceBilling := &models.Namespace{
 					Name:    "namespace1",
-					Members: []models.Member{{ID: "id", Type: authorizer.MemberTypeOwner}, {ID: "id2", Type: authorizer.MemberTypeObserver}},
+					Members: []models.Member{{ID: "id", Role: authorizer.MemberRoleOwner}, {ID: "id2", Role: authorizer.MemberRoleObserver}},
 					Billing: &models.Billing{
 						Active: true,
 					},
@@ -307,7 +307,7 @@ func TestRenameDevice(t *testing.T) {
 	ctx := context.TODO()
 
 	user := &models.User{UserData: models.UserData{Name: "name", Email: "email", Username: "username"}, ID: "id"}
-	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Type: authorizer.MemberTypeOwner}, {ID: "id2", Type: authorizer.MemberTypeObserver}}}
+	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Role: authorizer.MemberRoleOwner}, {ID: "id2", Role: authorizer.MemberRoleObserver}}}
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant"}
 	device2 := &models.Device{UID: "uid2", Name: "newname", TenantID: "tenant2"}
 	Err := errors.New("error")
@@ -550,7 +550,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	user := &models.User{UserData: models.UserData{Name: "name", Username: "username"}, ID: "id"}
-	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", MaxDevices: -1, Members: []models.Member{{ID: "id", Type: authorizer.MemberTypeOwner}, {ID: "id2", Type: authorizer.MemberTypeObserver}}}
+	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", MaxDevices: -1, Members: []models.Member{{ID: "id", Role: authorizer.MemberRoleOwner}, {ID: "id2", Role: authorizer.MemberRoleObserver}}}
 	identity := &models.DeviceIdentity{MAC: "mac"}
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: identity, CreatedAt: time.Time{}}
 
@@ -617,7 +617,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			tenant: "tenant_max",
 			id:     user.ID,
 			requiredMocks: func() {
-				namespaceExceedLimit := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: 3, DevicesCount: 3, Members: []models.Member{{ID: "id", Type: authorizer.MemberTypeOwner}, {ID: "id2", Type: authorizer.MemberTypeObserver}}}
+				namespaceExceedLimit := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: 3, DevicesCount: 3, Members: []models.Member{{ID: "id", Role: authorizer.MemberRoleOwner}, {ID: "id2", Role: authorizer.MemberRoleObserver}}}
 				deviceExceed := &models.Device{UID: "uid_limit", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
 				mock.On("NamespaceGet", ctx, deviceExceed.TenantID).
 					Return(namespaceExceedLimit, nil).Once()
@@ -658,7 +658,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			tenant: "tenant_max",
 			id:     user.ID,
 			requiredMocks: func() {
-				namespaceBilling := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: -1, DevicesCount: 10, Billing: &models.Billing{Active: true}, Members: []models.Member{{ID: "id", Type: authorizer.MemberTypeOwner}, {ID: "id2", Type: authorizer.MemberTypeObserver}}}
+				namespaceBilling := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: -1, DevicesCount: 10, Billing: &models.Billing{Active: true}, Members: []models.Member{{ID: "id", Role: authorizer.MemberRoleOwner}, {ID: "id2", Role: authorizer.MemberRoleObserver}}}
 				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespaceBilling, nil).Once()
@@ -686,7 +686,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			tenant: "tenant_max",
 			id:     user.ID,
 			requiredMocks: func() {
-				namespaceBilling := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: -1, DevicesCount: 10, Billing: &models.Billing{Active: true}, Members: []models.Member{{ID: "id", Type: authorizer.MemberTypeOwner}, {ID: "id2", Type: authorizer.MemberTypeObserver}}}
+				namespaceBilling := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: -1, DevicesCount: 10, Billing: &models.Billing{Active: true}, Members: []models.Member{{ID: "id", Role: authorizer.MemberRoleOwner}, {ID: "id2", Role: authorizer.MemberRoleObserver}}}
 				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespaceBilling, nil).Once()

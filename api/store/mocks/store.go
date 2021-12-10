@@ -694,13 +694,13 @@ func (_m *Store) LicenseSave(ctx context.Context, license *models.License) error
 	return r0
 }
 
-// NamespaceAddMember provides a mock function with given fields: ctx, tenantID, memberID, memberType
-func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, memberID string, memberType string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID, memberID, memberType)
+// NamespaceAddMember provides a mock function with given fields: ctx, tenantID, memberID, memberRole
+func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, memberID string, memberRole string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenantID, memberID, memberRole)
 
 	var r0 *models.Namespace
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, memberID, memberType)
+		r0 = rf(ctx, tenantID, memberID, memberRole)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
@@ -709,7 +709,7 @@ func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, member
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenantID, memberID, memberType)
+		r1 = rf(ctx, tenantID, memberID, memberRole)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -754,13 +754,13 @@ func (_m *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	return r0
 }
 
-// NamespaceEditMember provides a mock function with given fields: ctx, tenantID, memberID, memberNewType
-func (_m *Store) NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewType string) error {
-	ret := _m.Called(ctx, tenantID, memberID, memberNewType)
+// NamespaceEditMember provides a mock function with given fields: ctx, tenantID, memberID, memberNewRole
+func (_m *Store) NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewRole string) error {
+	ret := _m.Called(ctx, tenantID, memberID, memberNewRole)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, tenantID, memberID, memberNewType)
+		r0 = rf(ctx, tenantID, memberID, memberNewRole)
 	} else {
 		r0 = ret.Error(0)
 	}

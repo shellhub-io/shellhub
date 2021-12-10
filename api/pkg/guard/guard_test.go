@@ -58,40 +58,40 @@ func TestEvaluateSubject(t *testing.T) {
 		Members: []models.Member{
 			{
 				ID:   userOwner.ID,
-				Type: authorizer.MemberTypeOwner,
+				Role: authorizer.MemberRoleOwner,
 			},
 			{
 				ID:   userObserver.ID,
-				Type: authorizer.MemberTypeObserver,
+				Role: authorizer.MemberRoleObserver,
 			},
 			{
 				ID:   userOperator.ID,
-				Type: authorizer.MemberTypeOperator,
+				Role: authorizer.MemberRoleOperator,
 			},
 			{
 				ID:   userAdministrator.ID,
-				Type: authorizer.MemberTypeAdministrator,
+				Role: authorizer.MemberRoleAdministrator,
 			},
 		},
 	}
-	passiveTypeOperator := authorizer.MemberTypeOperator
-	passiveTypeObserver := authorizer.MemberTypeObserver
-	passiveTypeAdministrator := authorizer.MemberTypeAdministrator
-	passiveTypeOwner := authorizer.MemberTypeOwner
+	passiveRoleOperator := authorizer.MemberRoleOperator
+	passiveRoleObserver := authorizer.MemberRoleObserver
+	passiveRoleAdministrator := authorizer.MemberRoleAdministrator
+	passiveRoleOwner := authorizer.MemberRoleOwner
 
 	cases := []struct {
 		description   string
 		tenantID      string
 		activeID      string
-		passiveType   string
+		passiveRole   string
 		requiredMocks func()
 		expected      bool
 	}{
 		{
-			description: "EvaluateSubject successes when active user is a operator and passive type is observer",
+			description: "EvaluateSubject successes when active user is a operator and passive role is observer",
 			tenantID:    namespace.TenantID,
 			activeID:    userOperator.ID,
-			passiveType: passiveTypeObserver,
+			passiveRole: passiveRoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, userOperator.ID, false).Return(userOperator, 0, nil)
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
@@ -99,10 +99,10 @@ func TestEvaluateSubject(t *testing.T) {
 			expected: true,
 		},
 		{
-			description: "EvaluateSubject fails when active user is a operator and passive type is operator",
+			description: "EvaluateSubject fails when active user is a operator and passive role is operator",
 			tenantID:    namespace.TenantID,
 			activeID:    userOperator.ID,
-			passiveType: passiveTypeOperator,
+			passiveRole: passiveRoleOperator,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, userOperator.ID, false).Return(userOperator, 0, nil)
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
@@ -110,10 +110,10 @@ func TestEvaluateSubject(t *testing.T) {
 			expected: false,
 		},
 		{
-			description: "EvaluateSubject fails when active user is a operator and passive type is administrator",
+			description: "EvaluateSubject fails when active user is a operator and passive role is administrator",
 			tenantID:    namespace.TenantID,
 			activeID:    userOperator.ID,
-			passiveType: passiveTypeAdministrator,
+			passiveRole: passiveRoleAdministrator,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, userOperator.ID, false).Return(userOperator, 0, nil)
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
@@ -121,10 +121,10 @@ func TestEvaluateSubject(t *testing.T) {
 			expected: false,
 		},
 		{
-			description: "EvaluateSubject successes when active user is a administrator and passive type is observer",
+			description: "EvaluateSubject successes when active user is a administrator and passive role is observer",
 			tenantID:    namespace.TenantID,
 			activeID:    userAdministrator.ID,
-			passiveType: passiveTypeObserver,
+			passiveRole: passiveRoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, userAdministrator.ID, false).Return(userAdministrator, 0, nil)
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
@@ -132,10 +132,10 @@ func TestEvaluateSubject(t *testing.T) {
 			expected: true,
 		},
 		{
-			description: "EvaluateSubject success when active user is a administrator and passive type is operator",
+			description: "EvaluateSubject success when active user is a administrator and passive role is operator",
 			tenantID:    namespace.TenantID,
 			activeID:    userAdministrator.ID,
-			passiveType: passiveTypeOperator,
+			passiveRole: passiveRoleOperator,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, userAdministrator.ID, false).Return(userAdministrator, 0, nil)
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
@@ -143,21 +143,10 @@ func TestEvaluateSubject(t *testing.T) {
 			expected: true,
 		},
 		{
-			description: "EvaluateSubject fails when active user is a administrator and passive type is administrator",
+			description: "EvaluateSubject fails when active user is a administrator and passive role is administrator",
 			tenantID:    namespace.TenantID,
 			activeID:    userAdministrator.ID,
-			passiveType: passiveTypeAdministrator,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userAdministrator.ID, false).Return(userAdministrator, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: false,
-		},
-		{
-			description: "EvaluateSubject fails when active user is a administrator and passive type is owner",
-			tenantID:    namespace.TenantID,
-			activeID:    userAdministrator.ID,
-			passiveType: passiveTypeOwner,
+			passiveRole: passiveRoleAdministrator,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, userAdministrator.ID, false).Return(userAdministrator, 0, nil)
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
@@ -165,10 +154,21 @@ func TestEvaluateSubject(t *testing.T) {
 			expected: false,
 		},
 		{
-			description: "EvaluateSubject fails when active user is a owner and passive type is observer",
+			description: "EvaluateSubject fails when active user is a administrator and passive role is owner",
+			tenantID:    namespace.TenantID,
+			activeID:    userAdministrator.ID,
+			passiveRole: passiveRoleOwner,
+			requiredMocks: func() {
+				mock.On("UserGetByID", ctx, userAdministrator.ID, false).Return(userAdministrator, 0, nil)
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
+			},
+			expected: false,
+		},
+		{
+			description: "EvaluateSubject fails when active user is a owner and passive role is observer",
 			tenantID:    namespace.TenantID,
 			activeID:    userOwner.ID,
-			passiveType: passiveTypeObserver,
+			passiveRole: passiveRoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, userOwner.ID, false).Return(userOwner, 0, nil)
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
@@ -176,10 +176,10 @@ func TestEvaluateSubject(t *testing.T) {
 			expected: true,
 		},
 		{
-			description: "EvaluateSubject fails when active user is a owner and passive type is operator",
+			description: "EvaluateSubject fails when active user is a owner and passive role is operator",
 			tenantID:    namespace.TenantID,
 			activeID:    userOwner.ID,
-			passiveType: passiveTypeObserver,
+			passiveRole: passiveRoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, userOwner.ID, false).Return(userOwner, 0, nil)
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
@@ -187,10 +187,10 @@ func TestEvaluateSubject(t *testing.T) {
 			expected: true,
 		},
 		{
-			description: "EvaluateSubject fails when active user is a owner and passive type is administrator",
+			description: "EvaluateSubject fails when active user is a owner and passive role is administrator",
 			tenantID:    namespace.TenantID,
 			activeID:    userOwner.ID,
-			passiveType: passiveTypeAdministrator,
+			passiveRole: passiveRoleAdministrator,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, userOwner.ID, false).Return(userOwner, 0, nil)
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
@@ -198,10 +198,10 @@ func TestEvaluateSubject(t *testing.T) {
 			expected: true,
 		},
 		{
-			description: "EvaluateSubject fails when active user is a owner and passive type is owner",
+			description: "EvaluateSubject fails when active user is a owner and passive role is owner",
 			tenantID:    namespace.TenantID,
 			activeID:    userOwner.ID,
-			passiveType: passiveTypeOwner,
+			passiveRole: passiveRoleOwner,
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, userOwner.ID, false).Return(userOwner, 0, nil)
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
@@ -213,7 +213,7 @@ func TestEvaluateSubject(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
-			ok := EvaluateSubject(ctx, store.Store(mock), tc.tenantID, tc.activeID, tc.passiveType)
+			ok := EvaluateSubject(ctx, store.Store(mock), tc.tenantID, tc.activeID, tc.passiveRole)
 			assert.Equal(t, tc.expected, ok)
 		})
 	}
@@ -226,14 +226,14 @@ func TestEvaluatePermission(t *testing.T) {
 
 	cases := []struct {
 		description   string
-		userType      string
+		role          string
 		actions       []int
 		requiredMocks func()
 		expected      bool
 	}{
 		{
 			description: "EvaluatePermission success when user is the observer",
-			userType:    authorizer.MemberTypeObserver,
+			role:        authorizer.MemberRoleObserver,
 			actions: []int{
 				authorizer.Actions.Device.Connect,
 
@@ -247,7 +247,7 @@ func TestEvaluatePermission(t *testing.T) {
 		},
 		{
 			description: "EvaluatePermission success when user is the operator",
-			userType:    authorizer.MemberTypeOperator,
+			role:        authorizer.MemberRoleOperator,
 			actions: []int{
 				authorizer.Actions.Device.Accept,
 				authorizer.Actions.Device.Reject,
@@ -264,7 +264,7 @@ func TestEvaluatePermission(t *testing.T) {
 		},
 		{
 			description: "EvaluatePermission success when user is the administrator",
-			userType:    authorizer.MemberTypeAdministrator,
+			role:        authorizer.MemberRoleAdministrator,
 			actions: []int{
 				authorizer.Actions.Device.Accept,
 				authorizer.Actions.Device.Reject,
@@ -299,7 +299,7 @@ func TestEvaluatePermission(t *testing.T) {
 		},
 		{
 			description: "EvaluatePermission success when user is the owner",
-			userType:    authorizer.MemberTypeOwner,
+			role:        authorizer.MemberRoleOwner,
 			actions: []int{
 				authorizer.Actions.Device.Accept,
 				authorizer.Actions.Device.Reject,
@@ -346,7 +346,7 @@ func TestEvaluatePermission(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 			for _, action := range tc.actions {
-				assert.NoError(t, EvaluatePermission(tc.userType, action, func() error {
+				assert.NoError(t, EvaluatePermission(tc.role, action, func() error {
 					return nil
 				}))
 			}

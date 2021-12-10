@@ -152,7 +152,7 @@ func TestNamespaceAddMember(t *testing.T) {
 	u, err := mongostore.UserGetByUsername(data.Context, "username")
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID, authorizer.MemberTypeObserver)
+	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID, authorizer.MemberRoleObserver)
 	assert.NoError(t, err)
 }
 

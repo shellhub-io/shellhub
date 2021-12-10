@@ -17,7 +17,7 @@ type Service interface {
 	UserDelete(username string) error
 	UserUpdate(username string, password string) error
 	NamespaceCreate(namespace, username, tenantID string) (*models.Namespace, error)
-	NamespaceAddMember(username string, namespace string, accessType string) (*models.Namespace, error)
+	NamespaceAddMember(username string, namespace string, role string) (*models.Namespace, error)
 	NamespaceRemoveMember(username string, namespace string) (*models.Namespace, error)
 	NamespaceDelete(namespace string) error
 }
@@ -180,7 +180,7 @@ func (s *service) NamespaceCreate(namespace, username, tenantID string) (*models
 		Members: []models.Member{
 			{
 				ID:   user.ID,
-				Type: authorizer.MemberTypeOwner,
+				Role: authorizer.MemberRoleOwner,
 			},
 		},
 		Settings: &models.NamespaceSettings{
@@ -201,8 +201,8 @@ func (s *service) NamespaceCreate(namespace, username, tenantID string) (*models
 	return ns, nil
 }
 
-func (s *service) NamespaceAddMember(username string, namespace string, accessType string) (*models.Namespace, error) {
-	if _, err := validator.ValidateStruct(models.Member{Username: username, Type: accessType}); err != nil {
+func (s *service) NamespaceAddMember(username string, namespace string, role string) (*models.Namespace, error) {
+	if _, err := validator.ValidateStruct(models.Member{Username: username, Role: role}); err != nil {
 		return nil, ErrInvalidFormat
 	}
 
@@ -216,7 +216,7 @@ func (s *service) NamespaceAddMember(username string, namespace string, accessTy
 		return nil, ErrNamespaceNotFound
 	}
 
-	ns, err = s.store.NamespaceAddMember(context.Background(), ns.TenantID, user.ID, accessType)
+	ns, err = s.store.NamespaceAddMember(context.Background(), ns.TenantID, user.ID, role)
 	if err != nil {
 		return nil, ErrFailedNamespaceAddMember
 	}

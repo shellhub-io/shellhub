@@ -1,16 +1,16 @@
 package authorizer
 
 const (
-	MemberTypeObserver      = "observer"
-	MemberTypeOperator      = "operator"
-	MemberTypeAdministrator = "administrator"
-	MemberTypeOwner         = "owner"
+	MemberRoleObserver      = "observer"
+	MemberRoleOperator      = "operator"
+	MemberRoleAdministrator = "administrator"
+	MemberRoleOwner         = "owner"
 )
 
-// GetAllMemberTypes return a list with all member types.
-// What out, when you add a new type, you need to add it to this return list.
-func GetAllMemberTypes() []string {
-	return []string{MemberTypeObserver, MemberTypeOperator, MemberTypeAdministrator, MemberTypeOwner}
+// GetAllMemberRoles return a list with all member roles.
+// What out, when you add a new role, you need to add it to this return list.
+func GetAllMemberRoles() []string {
+	return []string{MemberRoleObserver, MemberRoleOperator, MemberRoleAdministrator, MemberRoleOwner}
 }
 
 func checkPermission(action int, permissions permissions) bool {
@@ -23,41 +23,41 @@ func checkPermission(action int, permissions permissions) bool {
 	return false
 }
 
-// GetTypeCode converts a member's type to an int.
-func GetTypeCode(memberType string) int {
-	memberTypes := GetAllMemberTypes()
-	for code, memberTypeSearch := range memberTypes {
-		if memberType == memberTypeSearch {
+// GetRoleCode converts a member's role to an int.
+func GetRoleCode(role string) int {
+	roles := GetAllMemberRoles()
+	for code, roleSearch := range roles {
+		if role == roleSearch {
 			return code
 		}
 	}
 
-	// return -1 when member type is not valid.
+	// return -1 when member role is not valid.
 	return -1
 }
 
-// EvaluateType checks if the first type has a great value than second.
-func EvaluateType(firstType, secondType string) bool {
-	firstTypeCode := GetTypeCode(firstType)
-	secondTypeCode := GetTypeCode(secondType)
+// EvaluateRole checks if the first role has a great value than second.
+func EvaluateRole(firstRole, secondRole string) bool {
+	firstRoleCode := GetRoleCode(firstRole)
+	secondRoleCode := GetRoleCode(secondRole)
 
-	if firstTypeCode == -1 || secondTypeCode == -1 {
+	if firstRoleCode == -1 || secondRoleCode == -1 {
 		return false
 	}
 
-	return firstTypeCode > secondTypeCode
+	return firstRoleCode > secondRoleCode
 }
 
-// EvaluatePermission checks if the user's type has the permission to execute an action.
-func EvaluatePermission(userType string, action int) bool {
-	switch userType {
-	case MemberTypeObserver:
+// EvaluatePermission checks if the user's role has the permission to execute an action.
+func EvaluatePermission(userRole string, action int) bool {
+	switch userRole {
+	case MemberRoleObserver:
 		return checkPermission(action, observerPermissions)
-	case MemberTypeOperator:
+	case MemberRoleOperator:
 		return checkPermission(action, operatorPermissions)
-	case MemberTypeAdministrator:
+	case MemberRoleAdministrator:
 		return checkPermission(action, adminPermissions)
-	case MemberTypeOwner:
+	case MemberRoleOwner:
 		return checkPermission(action, ownerPermissions)
 	}
 

@@ -33,14 +33,14 @@ func TestListNamespaces(t *testing.T) {
 				{
 					ID:       user.ID,
 					Username: user.Username,
-					Type:     authorizer.MemberTypeOwner,
+					Role:     authorizer.MemberRoleOwner,
 				},
 			},
 		},
 		{Name: "group2", Owner: "ID2", TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4", Members: []models.Member{{
 			ID:       user.ID,
 			Username: user.Username,
-			Type:     authorizer.MemberTypeObserver,
+			Role:     authorizer.MemberRoleObserver,
 		}}},
 	}
 
@@ -101,7 +101,7 @@ func TestListNamespaces(t *testing.T) {
 						{
 							ID:       user.ID,
 							Username: user.Username,
-							Type:     authorizer.MemberTypeOwner,
+							Role:     authorizer.MemberRoleOwner,
 						},
 					},
 				}
@@ -127,7 +127,7 @@ func TestListNamespaces(t *testing.T) {
 						{
 							ID:       user.ID,
 							Username: user.Username,
-							Type:     authorizer.MemberTypeOwner,
+							Role:     authorizer.MemberRoleOwner,
 						},
 					},
 				}
@@ -136,7 +136,7 @@ func TestListNamespaces(t *testing.T) {
 						{
 							ID:       user.ID,
 							Username: user.Username,
-							Type:     authorizer.MemberTypeObserver,
+							Role:     authorizer.MemberRoleObserver,
 						},
 					},
 				}
@@ -172,7 +172,7 @@ func TestGetNamespace(t *testing.T) {
 	ctx := context.TODO()
 
 	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user.ID, Username: user.Username, Type: authorizer.MemberTypeOwner}}}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user.ID, Username: user.Username, Role: authorizer.MemberRoleOwner}}}
 
 	Err := errors.New("error")
 
@@ -246,8 +246,8 @@ func TestListMembers(t *testing.T) {
 		Name:  strings.ToLower("namespace"),
 		Owner: user.ID,
 		Members: []models.Member{
-			{ID: user.ID, Type: authorizer.MemberTypeOwner},
-			{ID: user2.ID, Type: authorizer.MemberTypeObserver},
+			{ID: user.ID, Role: authorizer.MemberRoleOwner},
+			{ID: user2.ID, Role: authorizer.MemberRoleObserver},
 		},
 		Settings: &models.NamespaceSettings{SessionRecord: true},
 		TenantID: "xxxxx",
@@ -325,8 +325,8 @@ func TestListMembers(t *testing.T) {
 			},
 			expected: Expected{
 				[]models.Member{
-					{ID: user.ID, Username: user.Username, Type: authorizer.MemberTypeOwner},
-					{ID: user2.ID, Username: user2.Username, Type: authorizer.MemberTypeObserver},
+					{ID: user.ID, Username: user.Username, Role: authorizer.MemberRoleOwner},
+					{ID: user2.ID, Username: user2.Username, Role: authorizer.MemberRoleObserver},
 				},
 				nil,
 			},
@@ -363,7 +363,7 @@ func TestCreateNamespace(t *testing.T) {
 		Name:  strings.ToLower("namespace"),
 		Owner: user.ID,
 		Members: []models.Member{
-			{ID: user.ID, Type: authorizer.MemberTypeOwner},
+			{ID: user.ID, Role: authorizer.MemberRoleOwner},
 		},
 		Settings: &models.NamespaceSettings{SessionRecord: true},
 		TenantID: "xxxxx",
@@ -454,7 +454,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: user.ID,
 					Members: []models.Member{
-						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+						{ID: user.ID, Role: authorizer.MemberRoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
@@ -476,7 +476,7 @@ func TestCreateNamespace(t *testing.T) {
 				Name:  strings.ToLower("namespace"),
 				Owner: user.ID,
 				Members: []models.Member{
-					{ID: user.ID, Type: authorizer.MemberTypeOwner},
+					{ID: user.ID, Role: authorizer.MemberRoleOwner},
 				},
 				Settings:   &models.NamespaceSettings{SessionRecord: true},
 				TenantID:   "",
@@ -488,7 +488,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: user.ID,
 					Members: []models.Member{
-						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+						{ID: user.ID, Role: authorizer.MemberRoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "random_uuid",
@@ -505,7 +505,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: user.ID,
 					Members: []models.Member{
-						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+						{ID: user.ID, Role: authorizer.MemberRoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "random_uuid",
@@ -523,7 +523,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: user.ID,
 					Members: []models.Member{
-						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+						{ID: user.ID, Role: authorizer.MemberRoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
@@ -539,7 +539,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower(namespace.Name),
 					Owner: user.ID,
 					Members: []models.Member{
-						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+						{ID: user.ID, Role: authorizer.MemberRoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   namespace.TenantID,
@@ -557,7 +557,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: user.ID,
 					Members: []models.Member{
-						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+						{ID: user.ID, Role: authorizer.MemberRoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
@@ -573,7 +573,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower(namespace.Name),
 					Owner: user.ID,
 					Members: []models.Member{
-						{ID: user.ID, Type: authorizer.MemberTypeOwner},
+						{ID: user.ID, Role: authorizer.MemberRoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   namespace.TenantID,
@@ -606,7 +606,7 @@ func TestEditNamespace(t *testing.T) {
 		Name:  "oldname",
 		Owner: user.ID,
 		Members: []models.Member{
-			{ID: user.ID, Type: authorizer.MemberTypeOwner},
+			{ID: user.ID, Role: authorizer.MemberRoleOwner},
 		},
 		TenantID: "xxxxx",
 	}
@@ -710,7 +710,7 @@ func TestDeleteNamespace(t *testing.T) {
 	ctx := context.TODO()
 
 	user1 := &models.User{UserData: models.UserData{Name: "user1", Username: "user1", Email: "user1@email.com"}, ID: "ID1"}
-	namespace := &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user1.ID, Type: authorizer.MemberTypeOwner}}}
+	namespace := &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user1.ID, Role: authorizer.MemberRoleOwner}}}
 
 	cases := []struct {
 		name          string
@@ -748,7 +748,7 @@ func TestDeleteNamespace(t *testing.T) {
 					TenantID: namespace.TenantID,
 					Owner:    user1.ID,
 					Members: []models.Member{
-						{ID: user1.ID, Type: authorizer.MemberTypeOwner},
+						{ID: user1.ID, Role: authorizer.MemberRoleOwner},
 					},
 					Billing: &models.Billing{
 						Active: true,
@@ -770,7 +770,7 @@ func TestDeleteNamespace(t *testing.T) {
 					TenantID: namespace.TenantID,
 					Owner:    user1.ID,
 					Members: []models.Member{
-						{ID: user1.ID, Type: authorizer.MemberTypeOwner},
+						{ID: user1.ID, Role: authorizer.MemberRoleOwner},
 					},
 					Billing: &models.Billing{
 						Active: true,
@@ -804,8 +804,8 @@ func TestAddNamespaceUser(t *testing.T) {
 
 	user1 := &models.User{UserData: models.UserData{Name: "user1", Username: "user1", Email: "user1@email.com"}, ID: "ID1"}
 	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "user2", Email: "user2@email.com"}, ID: "ID2"}
-	namespace := &models.Namespace{Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user1.ID, Type: authorizer.MemberTypeOwner}}}
-	namespaceTwoMembers := &models.Namespace{Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714", Members: []models.Member{{ID: user1.ID, Type: authorizer.MemberTypeOwner}, {ID: user2.ID, Type: authorizer.MemberTypeObserver}}}
+	namespace := &models.Namespace{Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user1.ID, Role: authorizer.MemberRoleOwner}}}
+	namespaceTwoMembers := &models.Namespace{Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714", Members: []models.Member{{ID: user1.ID, Role: authorizer.MemberRoleOwner}, {ID: user2.ID, Role: authorizer.MemberRoleObserver}}}
 
 	Err := errors.New("error")
 
@@ -818,7 +818,7 @@ func TestAddNamespaceUser(t *testing.T) {
 		Name          string
 		TenantID      string
 		Username      string
-		Type          string
+		Role          string
 		ID            string
 		RequiredMocks func()
 		Expected      Expected
@@ -826,7 +826,7 @@ func TestAddNamespaceUser(t *testing.T) {
 		{
 			Name:     "AddNamespaceUser fails when MemberID is not valid",
 			Username: "invalid_username",
-			Type:     authorizer.MemberTypeObserver,
+			Role:     authorizer.MemberRoleObserver,
 			ID:       user1.ID,
 			TenantID: namespace.TenantID,
 			RequiredMocks: func() {
@@ -837,9 +837,9 @@ func TestAddNamespaceUser(t *testing.T) {
 			},
 		},
 		{
-			Name:     "AddNamespaceUser fails when UserType is not valid",
+			Name:     "AddNamespaceUser fails when Role is not valid",
 			Username: user2.Username,
-			Type:     "invalid",
+			Role:     "invalid",
 			ID:       user1.ID,
 			TenantID: namespace.TenantID,
 			RequiredMocks: func() {
@@ -852,7 +852,7 @@ func TestAddNamespaceUser(t *testing.T) {
 		{
 			Name:     "AddNamespaceUser fails when the MemberID was not found",
 			Username: "usernameNotFound",
-			Type:     authorizer.MemberTypeObserver,
+			Role:     authorizer.MemberRoleObserver,
 			ID:       user1.ID,
 			TenantID: namespace.TenantID,
 			RequiredMocks: func() {
@@ -869,7 +869,7 @@ func TestAddNamespaceUser(t *testing.T) {
 		{
 			Name:     "AddNamespaceUser fails when the namespace was not found",
 			Username: user2.Username,
-			Type:     authorizer.MemberTypeObserver,
+			Role:     authorizer.MemberRoleObserver,
 			ID:       user1.ID,
 			TenantID: "tenantIDNotFound",
 			RequiredMocks: func() {
@@ -884,7 +884,7 @@ func TestAddNamespaceUser(t *testing.T) {
 		{
 			Name:     "AddNamespaceUser fails when the namespace already have this member",
 			Username: user2.Username,
-			Type:     authorizer.MemberTypeObserver,
+			Role:     authorizer.MemberRoleObserver,
 			ID:       user1.ID,
 			TenantID: namespace.TenantID,
 			RequiredMocks: func() {
@@ -893,7 +893,7 @@ func TestAddNamespaceUser(t *testing.T) {
 
 				mock.On("UserGetByUsername", ctx, user2.Username).Return(user2, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user2.ID, authorizer.MemberTypeObserver).Return(nil, Err).Once()
+				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user2.ID, authorizer.MemberRoleObserver).Return(nil, Err).Once()
 			},
 			Expected: Expected{
 				namespace: nil,
@@ -903,7 +903,7 @@ func TestAddNamespaceUser(t *testing.T) {
 		{
 			Name:     "AddNamespaceUser succeeds",
 			Username: user2.Username,
-			Type:     authorizer.MemberTypeObserver,
+			Role:     authorizer.MemberRoleObserver,
 			ID:       user1.ID,
 			TenantID: namespace.TenantID,
 			RequiredMocks: func() {
@@ -912,7 +912,7 @@ func TestAddNamespaceUser(t *testing.T) {
 
 				mock.On("UserGetByUsername", ctx, user2.Username).Return(user2, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user2.ID, authorizer.MemberTypeObserver).Return(namespaceTwoMembers, nil).Once()
+				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user2.ID, authorizer.MemberRoleObserver).Return(namespaceTwoMembers, nil).Once()
 			},
 			Expected: Expected{
 				namespace: namespaceTwoMembers,
@@ -924,7 +924,7 @@ func TestAddNamespaceUser(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			tc.RequiredMocks()
-			ns, err := s.AddNamespaceUser(ctx, tc.Username, tc.Type, tc.TenantID, tc.ID)
+			ns, err := s.AddNamespaceUser(ctx, tc.Username, tc.Role, tc.TenantID, tc.ID)
 			assert.Equal(t, tc.Expected, Expected{ns, err})
 		})
 	}
@@ -939,9 +939,9 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	user := &models.User{UserData: models.UserData{Name: "user1", Username: "username1"}, ID: "hash1"}
 	user2 := &models.User{UserData: models.UserData{Name: "user2", Username: "username2"}, ID: "hash2"}
 	user3 := &models.User{UserData: models.UserData{Name: "user3", Username: "username3"}, ID: "hash3"}
-	namespace := &models.Namespace{Name: "group1", Owner: user.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user.ID, Type: authorizer.MemberTypeOwner}}}
-	namespaceTwoMembers := &models.Namespace{Name: "group2", Owner: user.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714", Members: []models.Member{{ID: user.ID, Type: authorizer.MemberTypeOwner}, {ID: user2.ID, Type: authorizer.MemberTypeObserver}}}
-	namespaceThreeMembers := &models.Namespace{Name: "group2", Owner: user.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714", Members: []models.Member{{ID: user.ID, Type: authorizer.MemberTypeOwner}, {ID: user2.ID, Type: authorizer.MemberTypeAdministrator}, {ID: user3.ID, Type: authorizer.MemberTypeAdministrator}}}
+	namespace := &models.Namespace{Name: "group1", Owner: user.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: user.ID, Role: authorizer.MemberRoleOwner}}}
+	namespaceTwoMembers := &models.Namespace{Name: "group2", Owner: user.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714", Members: []models.Member{{ID: user.ID, Role: authorizer.MemberRoleOwner}, {ID: user2.ID, Role: authorizer.MemberRoleObserver}}}
+	namespaceThreeMembers := &models.Namespace{Name: "group2", Owner: user.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714", Members: []models.Member{{ID: user.ID, Role: authorizer.MemberRoleOwner}, {ID: user2.ID, Role: authorizer.MemberRoleAdministrator}, {ID: user3.ID, Role: authorizer.MemberRoleAdministrator}}}
 	Err := errors.New("error")
 
 	type Expected struct {
@@ -999,7 +999,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 			},
 		},
 		{
-			Name: "RemoveNamespaceUser fails when user can not act over the type",
+			Name: "RemoveNamespaceUser fails when user can not act over the role",
 			RequiredMocks: func() {
 				mock.On("UserGetByID", ctx, user3.ID, false).Return(user3, 0, nil).Once()
 				mock.On("NamespaceGet", ctx, namespaceThreeMembers.TenantID).Return(namespaceThreeMembers, nil).Once()
@@ -1074,18 +1074,18 @@ func TestEditNamespaceUser(t *testing.T) {
 
 	activeMember := &models.User{UserData: models.UserData{Name: "activeMemberName", Username: "activeMemberUsername"}, ID: "activeMemberID"}
 	passiveMember := &models.User{UserData: models.UserData{Name: "passiveMemberName", Username: "passiveMemberUsername"}, ID: "passiveMemberID"}
-	namespaceActiveOwner := &models.Namespace{Name: "group1", Owner: activeMember.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: activeMember.ID, Type: authorizer.MemberTypeOwner}}}
-	namespacePassiveObserver := &models.Namespace{Name: "group1", Owner: activeMember.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714", Members: []models.Member{{ID: "memberID", Type: authorizer.MemberTypeOwner}, {ID: passiveMember.ID, Type: authorizer.MemberTypeObserver}}}
-	namespaceActivePassiveSame := &models.Namespace{Name: "group1", Owner: activeMember.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484715", Members: []models.Member{{ID: "ownerID", Type: authorizer.MemberTypeOwner}, {ID: activeMember.ID, Type: authorizer.MemberTypeAdministrator}, {ID: passiveMember.ID, Type: authorizer.MemberTypeAdministrator}}}
-	namespaceActiveHasNoPermission := &models.Namespace{Name: "group1", Owner: activeMember.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484716", Members: []models.Member{{ID: "ownerID", Type: authorizer.MemberTypeOwner}, {ID: activeMember.ID, Type: authorizer.MemberTypeOperator}, {ID: passiveMember.ID, Type: authorizer.MemberTypeObserver}}}
-	namespaceActivePassive := &models.Namespace{Name: "group1", Owner: activeMember.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484717", Members: []models.Member{{ID: "ownerID", Type: authorizer.MemberTypeOwner}, {ID: activeMember.ID, Type: authorizer.MemberTypeAdministrator}, {ID: passiveMember.ID, Type: authorizer.MemberTypeObserver}}}
+	namespaceActiveOwner := &models.Namespace{Name: "group1", Owner: activeMember.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: activeMember.ID, Role: authorizer.MemberRoleOwner}}}
+	namespacePassiveObserver := &models.Namespace{Name: "group1", Owner: activeMember.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714", Members: []models.Member{{ID: "memberID", Role: authorizer.MemberRoleOwner}, {ID: passiveMember.ID, Role: authorizer.MemberRoleObserver}}}
+	namespaceActivePassiveSame := &models.Namespace{Name: "group1", Owner: activeMember.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484715", Members: []models.Member{{ID: "ownerID", Role: authorizer.MemberRoleOwner}, {ID: activeMember.ID, Role: authorizer.MemberRoleAdministrator}, {ID: passiveMember.ID, Role: authorizer.MemberRoleAdministrator}}}
+	namespaceActiveHasNoPermission := &models.Namespace{Name: "group1", Owner: activeMember.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484716", Members: []models.Member{{ID: "ownerID", Role: authorizer.MemberRoleOwner}, {ID: activeMember.ID, Role: authorizer.MemberRoleOperator}, {ID: passiveMember.ID, Role: authorizer.MemberRoleObserver}}}
+	namespaceActivePassive := &models.Namespace{Name: "group1", Owner: activeMember.ID, TenantID: "a736a52b-5777-4f92-b0b8-e359bf484717", Members: []models.Member{{ID: "ownerID", Role: authorizer.MemberRoleOwner}, {ID: activeMember.ID, Role: authorizer.MemberRoleAdministrator}, {ID: passiveMember.ID, Role: authorizer.MemberRoleObserver}}}
 
 	cases := []struct {
 		Name          string
 		TenantID      string
 		UserID        string
 		MemberID      string
-		MemberNewType string
+		MemberNewRole string
 		RequiredMocks func()
 		Expected      error
 	}{
@@ -1094,7 +1094,7 @@ func TestEditNamespaceUser(t *testing.T) {
 			TenantID:      namespaceActiveOwner.TenantID,
 			UserID:        activeMember.ID,
 			MemberID:      "invalidMemberPassiveID",
-			MemberNewType: authorizer.MemberTypeObserver,
+			MemberNewRole: authorizer.MemberRoleObserver,
 			RequiredMocks: func() {
 				mock.On("UserGetByID", ctx, "invalidMemberPassiveID", false).Return(nil, 0, ErrUserNotFound).Once()
 			},
@@ -1105,7 +1105,7 @@ func TestEditNamespaceUser(t *testing.T) {
 			TenantID:      namespaceActiveOwner.TenantID,
 			UserID:        "invalidMemberActiveID",
 			MemberID:      passiveMember.ID,
-			MemberNewType: authorizer.MemberTypeObserver,
+			MemberNewRole: authorizer.MemberRoleObserver,
 			RequiredMocks: func() {
 				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
 				mock.On("UserGetByID", ctx, "invalidMemberActiveID", false).Return(nil, 0, ErrUserNotFound).Once()
@@ -1117,7 +1117,7 @@ func TestEditNamespaceUser(t *testing.T) {
 			TenantID:      "tenantIDNotFound",
 			UserID:        activeMember.ID,
 			MemberID:      passiveMember.ID,
-			MemberNewType: authorizer.MemberTypeObserver,
+			MemberNewRole: authorizer.MemberRoleObserver,
 			RequiredMocks: func() {
 				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
@@ -1131,7 +1131,7 @@ func TestEditNamespaceUser(t *testing.T) {
 			TenantID:      namespaceActiveOwner.TenantID,
 			UserID:        activeMember.ID,
 			MemberID:      passiveMember.ID,
-			MemberNewType: authorizer.MemberTypeObserver,
+			MemberNewRole: authorizer.MemberRoleObserver,
 			RequiredMocks: func() {
 				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
@@ -1145,7 +1145,7 @@ func TestEditNamespaceUser(t *testing.T) {
 			TenantID:      namespacePassiveObserver.TenantID,
 			UserID:        activeMember.ID,
 			MemberID:      passiveMember.ID,
-			MemberNewType: authorizer.MemberTypeOperator,
+			MemberNewRole: authorizer.MemberRoleOperator,
 			RequiredMocks: func() {
 				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
@@ -1155,11 +1155,11 @@ func TestEditNamespaceUser(t *testing.T) {
 			Expected: ErrNamespaceMemberNotFound,
 		},
 		{
-			Name:          "EditNamespaceUser fails when active and passive types are the same",
+			Name:          "EditNamespaceUser fails when active and passive roles are the same",
 			TenantID:      namespaceActivePassiveSame.TenantID,
 			UserID:        activeMember.ID,
 			MemberID:      passiveMember.ID,
-			MemberNewType: authorizer.MemberTypeOperator,
+			MemberNewRole: authorizer.MemberRoleOperator,
 			RequiredMocks: func() {
 				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
@@ -1169,11 +1169,11 @@ func TestEditNamespaceUser(t *testing.T) {
 			Expected: ErrForbidden,
 		},
 		{
-			Name:          "EditNamespaceUser fails when user can not act over the type",
+			Name:          "EditNamespaceUser fails when user can not act over the role",
 			TenantID:      namespaceActiveHasNoPermission.TenantID,
 			UserID:        activeMember.ID,
 			MemberID:      passiveMember.ID,
-			MemberNewType: authorizer.MemberTypeAdministrator,
+			MemberNewRole: authorizer.MemberRoleAdministrator,
 			RequiredMocks: func() {
 				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
@@ -1190,7 +1190,7 @@ func TestEditNamespaceUser(t *testing.T) {
 			TenantID:      namespaceActivePassive.TenantID,
 			UserID:        activeMember.ID,
 			MemberID:      passiveMember.ID,
-			MemberNewType: authorizer.MemberTypeOperator,
+			MemberNewRole: authorizer.MemberRoleOperator,
 			RequiredMocks: func() {
 				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
@@ -1200,7 +1200,7 @@ func TestEditNamespaceUser(t *testing.T) {
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
 				mock.On("NamespaceGet", ctx, namespaceActivePassive.TenantID).Return(namespaceActivePassive, nil).Once()
 
-				mock.On("NamespaceEditMember", ctx, namespaceActivePassive.TenantID, passiveMember.ID, authorizer.MemberTypeOperator).Return(Err).Once()
+				mock.On("NamespaceEditMember", ctx, namespaceActivePassive.TenantID, passiveMember.ID, authorizer.MemberRoleOperator).Return(Err).Once()
 			},
 			Expected: Err,
 		},
@@ -1209,7 +1209,7 @@ func TestEditNamespaceUser(t *testing.T) {
 			TenantID:      namespaceActivePassive.TenantID,
 			UserID:        activeMember.ID,
 			MemberID:      passiveMember.ID,
-			MemberNewType: authorizer.MemberTypeOperator,
+			MemberNewRole: authorizer.MemberRoleOperator,
 			RequiredMocks: func() {
 				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
@@ -1219,7 +1219,7 @@ func TestEditNamespaceUser(t *testing.T) {
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
 				mock.On("NamespaceGet", ctx, namespaceActivePassive.TenantID).Return(namespaceActivePassive, nil).Once()
 
-				mock.On("NamespaceEditMember", ctx, namespaceActivePassive.TenantID, passiveMember.ID, authorizer.MemberTypeOperator).Return(nil).Once()
+				mock.On("NamespaceEditMember", ctx, namespaceActivePassive.TenantID, passiveMember.ID, authorizer.MemberRoleOperator).Return(nil).Once()
 			},
 			Expected: nil,
 		},
@@ -1228,7 +1228,7 @@ func TestEditNamespaceUser(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			tc.RequiredMocks()
-			err := s.EditNamespaceUser(ctx, tc.TenantID, tc.UserID, tc.MemberID, tc.MemberNewType)
+			err := s.EditNamespaceUser(ctx, tc.TenantID, tc.UserID, tc.MemberID, tc.MemberNewRole)
 			assert.Equal(t, tc.Expected, err)
 		})
 	}
@@ -1322,11 +1322,11 @@ func TestEditSessionRecord(t *testing.T) {
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "xxxx", Settings: &models.NamespaceSettings{SessionRecord: true}, Members: []models.Member{
 		{
 			ID:   user.ID,
-			Type: authorizer.MemberTypeOwner,
+			Role: authorizer.MemberRoleOwner,
 		},
 		{
 			ID:   user2.ID,
-			Type: authorizer.MemberTypeObserver,
+			Role: authorizer.MemberRoleObserver,
 		},
 	}}
 

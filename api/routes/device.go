@@ -75,7 +75,7 @@ func (h *Handler) DeleteDevice(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Device.Remove, func() error {
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.Remove, func() error {
 		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenantID)
 
 		return err
@@ -106,7 +106,7 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Device.Rename, func() error {
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.Rename, func() error {
 		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenantID)
 
 		return err
@@ -169,7 +169,7 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 		"pending": "pending",
 		"unused":  "unused",
 	}
-	err := guard.EvaluatePermission(c.UserType(), authorizer.Actions.Device.Accept, func() error {
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.Accept, func() error {
 		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenantID)
 
 		return err
