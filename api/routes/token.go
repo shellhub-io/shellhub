@@ -51,7 +51,7 @@ func (h *Handler) CreateToken(c apicontext.Context) error {
 		}
 	}
 
-	token, err := h.service.AuthAPIToken(c.Ctx(), &models.APITokenAuthRequest{
+	token, err := h.service.AuthAPIToken(c.Ctx(), &models.TokenAuthRequest{
 		TenantID: tenantID,
 	})
 	if err != nil {
@@ -111,12 +111,20 @@ func (h *Handler) DeleteToken(c apicontext.Context) error {
 }
 
 func (h *Handler) UpdateToken(c apicontext.Context) error {
+	var req struct {
+		ReadOnly bool `json:"read_only"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
 	var tenantID string
 	if c.Tenant() != nil {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.UpdateToken(c.Ctx(), tenantID, c.Param("id"), &models.APITokenUpdate{})
+	err := h.service.UpdateToken(c.Ctx(), tenantID, c.Param("id"), req.ReadOnly)
 	if err != nil {
 		switch err {
 		case services.ErrNotFound:

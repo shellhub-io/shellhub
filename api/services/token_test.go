@@ -28,9 +28,9 @@ func TestCreateToken(t *testing.T) {
 		ReadOnly: true,
 	}
 
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", APITokens: []models.Token{}}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Tokens: []models.Token{}}
 
-	mock.On("TokenCreateAPIToken", ctx, namespace.TenantID).Return(&token, nil).Once()
+	mock.On("TokenCreate", ctx, namespace.TenantID).Return(&token, nil).Once()
 	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
 
 	_, err := svc.CreateToken(ctx, namespace.TenantID)
@@ -54,9 +54,9 @@ func TestListToken(t *testing.T) {
 		ReadOnly: true,
 	}
 
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", APITokens: []models.Token{}}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Tokens: []models.Token{}}
 
-	mock.On("TokenCreateAPIToken", ctx, namespace.TenantID).Return(&token, nil).Once()
+	mock.On("TokenCreate", ctx, namespace.TenantID).Return(&token, nil).Once()
 	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
 
 	createdToken, err := svc.CreateToken(ctx, namespace.TenantID)
@@ -80,7 +80,7 @@ func TestListToken(t *testing.T) {
 			description: "Fails the namespace not found",
 			args:        namespace,
 			requiredMocks: func() {
-				mock.On("TokenListAPIToken", ctx, namespace.TenantID).Return(nil, Err).Once()
+				mock.On("TokenList", ctx, namespace.TenantID).Return(nil, Err).Once()
 			},
 			expected: Expected{nil, Err},
 		},
@@ -88,7 +88,7 @@ func TestListToken(t *testing.T) {
 			description: "Fails no API Token stored",
 			args:        namespace,
 			requiredMocks: func() {
-				mock.On("TokenListAPIToken", ctx, namespace.TenantID).Return(nil, Err).Once()
+				mock.On("TokenList", ctx, namespace.TenantID).Return(nil, Err).Once()
 			},
 			expected: Expected{nil, Err},
 		},
@@ -96,7 +96,7 @@ func TestListToken(t *testing.T) {
 			description: "Successful list the tokens",
 			args:        namespace,
 			requiredMocks: func() {
-				mock.On("TokenListAPIToken", ctx, namespace.TenantID).Return(tokenList, nil).Once()
+				mock.On("TokenList", ctx, namespace.TenantID).Return(tokenList, nil).Once()
 			},
 			expected: Expected{tokenList, nil},
 		},
@@ -129,9 +129,9 @@ func TestGetToken(t *testing.T) {
 		ReadOnly: true,
 	}
 
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", APITokens: []models.Token{}}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Tokens: []models.Token{}}
 
-	mock.On("TokenCreateAPIToken", ctx, namespace.TenantID).Return(&token, nil).Once()
+	mock.On("TokenCreate", ctx, namespace.TenantID).Return(&token, nil).Once()
 	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
 
 	createdToken, err := svc.CreateToken(ctx, namespace.TenantID)
@@ -152,7 +152,7 @@ func TestGetToken(t *testing.T) {
 			description: "Fails the namespace not found",
 			args:        namespace,
 			requiredMocks: func() {
-				mock.On("TokenGetAPIToken", ctx, namespace.TenantID, createdToken.ID).Return(nil, Err).Once()
+				mock.On("TokenGet", ctx, namespace.TenantID, createdToken.ID).Return(nil, Err).Once()
 			},
 			expected: Expected{nil, Err},
 		},
@@ -160,7 +160,7 @@ func TestGetToken(t *testing.T) {
 			description: "Fails API Token ID invalid",
 			args:        namespace,
 			requiredMocks: func() {
-				mock.On("TokenGetAPIToken", ctx, namespace.TenantID, createdToken.ID).Return(nil, Err).Once()
+				mock.On("TokenGet", ctx, namespace.TenantID, createdToken.ID).Return(nil, Err).Once()
 			},
 			expected: Expected{nil, Err},
 		},
@@ -168,7 +168,7 @@ func TestGetToken(t *testing.T) {
 			description: "Successful get the API token",
 			args:        namespace,
 			requiredMocks: func() {
-				mock.On("TokenGetAPIToken", ctx, namespace.TenantID, createdToken.ID).Return(createdToken, nil).Once()
+				mock.On("TokenGet", ctx, namespace.TenantID, createdToken.ID).Return(createdToken, nil).Once()
 			},
 			expected: Expected{createdToken, nil},
 		},
@@ -201,12 +201,12 @@ func TestDeleteToken(t *testing.T) {
 	//	ReadOnly: true,
 	//}
 	//
-	//namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", APITokens: []models.Token{}}
+	//namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Tokens: []models.Token{}}
 	//
-	////mock.On("TokenCreateAPIToken", ctx, namespace.TenantID).Return(&token, nil).Once()
+	////mock.On("TokenCreate", ctx, namespace.TenantID).Return(&token, nil).Once()
 	//mock.On("GetToken", ctx, namespace.TenantID, "hash1").Return(token, nil)
 	//mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-	//mock.On("TokenGetAPIToken").Return(token, nil)
+	//mock.On("TokenGet").Return(token, nil)
 	//
 	////createdToken, err := svc.CreateToken(ctx, namespace.TenantID)
 	////assert.NoError(t, err)
@@ -223,7 +223,7 @@ func TestDeleteToken(t *testing.T) {
 	//		namespace:   namespace,
 	//		token:       &token,
 	//		requiredMocks: func() {
-	//			mock.On("TokenDeleteAPIToken", ctx, namespace.TenantID, token.ID).Return(Err).Once()
+	//			mock.On("TokenDelete", ctx, namespace.TenantID, token.ID).Return(Err).Once()
 	//		},
 	//		expected: Err,
 	//	},
@@ -232,7 +232,7 @@ func TestDeleteToken(t *testing.T) {
 	//		namespace:   namespace,
 	//		token:       &token,
 	//		requiredMocks: func() {
-	//			mock.On("TokenDeleteAPIToken", ctx, namespace.TenantID, token.ID).Return(Err).Once()
+	//			mock.On("TokenDelete", ctx, namespace.TenantID, token.ID).Return(Err).Once()
 	//		},
 	//		expected: Err,
 	//	},
@@ -241,7 +241,7 @@ func TestDeleteToken(t *testing.T) {
 	//		namespace:   namespace,
 	//		token:       &token,
 	//		requiredMocks: func() {
-	//			mock.On("TokenDeleteAPIToken", ctx, namespace.TenantID, token.ID).Return(nil).Once()
+	//			mock.On("TokenDelete", ctx, namespace.TenantID, token.ID).Return(nil).Once()
 	//		},
 	//		expected: nil,
 	//	},
@@ -274,14 +274,14 @@ func TestUpdateToken(t *testing.T) {
 	//	ReadOnly: true,
 	//}
 	//
-	//namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", APITokens: []models.Token{}}
+	//namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Tokens: []models.Token{}}
 	//
-	//mock.On("TokenCreateAPIToken", ctx, namespace.TenantID).Return(&token, nil).Once()
+	//mock.On("TokenCreate", ctx, namespace.TenantID).Return(&token, nil).Once()
 	//
 	//createdToken, err := svc.CreateToken(ctx, namespace.TenantID)
 	//assert.NoError(t, err)
 	//
-	//req := &models.APITokenUpdate{
+	//req := &models.TokenUpdate{
 	//	TokenFields: models.TokenFields{ReadOnly: false},
 	//}
 	//
@@ -297,8 +297,8 @@ func TestUpdateToken(t *testing.T) {
 	//		namespace:   namespace,
 	//		token:       createdToken,
 	//		requiredMocks: func() {
-	//			mock.On("TokenUpdateAPIToken", ctx, namespace.TenantID, createdToken.ID, req).Return(Err).Once()
-	//			mock.On("TokenGetAPIToken", ctx, namespace.TenantID, createdToken.ID).Return(nil, Err).Once()
+	//			mock.On("TokenUpdate", ctx, namespace.TenantID, createdToken.ID, req).Return(Err).Once()
+	//			mock.On("TokenGet", ctx, namespace.TenantID, createdToken.ID).Return(nil, Err).Once()
 	//		},
 	//		expected: Err,
 	//	},
@@ -307,8 +307,8 @@ func TestUpdateToken(t *testing.T) {
 	//		namespace:   namespace,
 	//		token:       createdToken,
 	//		requiredMocks: func() {
-	//			mock.On("TokenUpdateAPIToken", ctx, namespace.TenantID, createdToken.ID, req).Return(Err).Once()
-	//			mock.On("TokenGetAPIToken", ctx, namespace.TenantID, createdToken.ID).Return(nil, Err).Once()
+	//			mock.On("TokenUpdate", ctx, namespace.TenantID, createdToken.ID, req).Return(Err).Once()
+	//			mock.On("TokenGet", ctx, namespace.TenantID, createdToken.ID).Return(nil, Err).Once()
 	//		},
 	//		expected: Err,
 	//	},
@@ -317,8 +317,8 @@ func TestUpdateToken(t *testing.T) {
 	//		namespace:   namespace,
 	//		token:       createdToken,
 	//		requiredMocks: func() {
-	//			mock.On("TokenUpdateAPIToken", ctx, namespace.TenantID, createdToken.ID, req).Return(nil).Once()
-	//			mock.On("TokenGetAPIToken", ctx, namespace.TenantID, createdToken.ID).Return(createdToken, nil).Once()
+	//			mock.On("TokenUpdate", ctx, namespace.TenantID, createdToken.ID, req).Return(nil).Once()
+	//			mock.On("TokenGet", ctx, namespace.TenantID, createdToken.ID).Return(createdToken, nil).Once()
 	//		},
 	//		expected: nil,
 	//	},

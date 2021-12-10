@@ -19,7 +19,7 @@ var migration39 = migrate.Migration{
 			"version":   39,
 			"action":    "Up",
 		}).Info("Applying migration")
-		_, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"api_tokens": []models.Token{}}})
+		_, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"tokens": []models.Token{}}})
 
 		return err
 	},

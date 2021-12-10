@@ -9,7 +9,7 @@ import (
 type Namespace struct {
 	Name         string             `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
 	Owner        string             `json:"owner"`
-	APITokens    []Token            `json:"api_tokens" bson:"api_tokens"`
+	Tokens       []Token            `json:"tokens" bson:"tokens"`
 	TenantID     string             `json:"tenant_id" bson:"tenant_id,omitempty"`
 	Members      []Member           `json:"members" bson:"members"`
 	Settings     *NamespaceSettings `json:"settings"`
@@ -37,7 +37,7 @@ type Token struct {
 	ReadOnly bool   `json:"read_only" bson:"read_only"`
 }
 
-type APITokenAuthClaims struct {
+type TokenAuthClaims struct {
 	ID       string `json:"id"`
 	TenantID string `json:"tenant_id"`
 	ReadOnly bool   `json:"read_only"`
@@ -46,11 +46,11 @@ type APITokenAuthClaims struct {
 	jwt.StandardClaims `mapstruct:",squash"`
 }
 
-type APITokenAuthRequest struct {
+type TokenAuthRequest struct {
 	TenantID string `json:"tenant_id"`
 }
 
-type APITokenAuthResponse struct {
+type TokenAuthResponse struct {
 	ID       string `json:"id"`
 	APIToken string `json:"api_token"`
 	TenantID string `json:"tenant_id"`
@@ -61,6 +61,6 @@ type TokenFields struct {
 	ReadOnly bool `json:"read_only"`
 }
 
-type APITokenUpdate struct {
+type TokenUpdate struct {
 	TokenFields `bson:",inline"`
 }

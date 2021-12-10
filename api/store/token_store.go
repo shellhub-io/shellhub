@@ -7,9 +7,9 @@ import (
 )
 
 type TokenStore interface {
-	TokenListAPIToken(ctx context.Context, tenantID string) ([]models.Token, error)
-	TokenCreateAPIToken(ctx context.Context, tenantID string) (*models.Token, error)
-	TokenGetAPIToken(ctx context.Context, tenantID string, id string) (*models.Token, error)
-	TokenDeleteAPIToken(ctx context.Context, tenantID string, id string) error
-	TokenUpdateAPIToken(ctx context.Context, tenantID string, id string, token *models.APITokenUpdate) error
+	TokenList(ctx context.Context, tenantID string) ([]models.Token, error)
+	TokenCreate(ctx context.Context, tenantID string) (*models.Token, error)
+	TokenGet(ctx context.Context, tenantID string, id string) (*models.Token, error)
+	TokenDelete(ctx context.Context, tenantID string, id string) error
+	TokenUpdate(ctx context.Context, tenantID string, id string, readOnly bool) error
 }

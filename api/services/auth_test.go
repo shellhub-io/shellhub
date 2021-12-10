@@ -302,11 +302,11 @@ func TestAuthAPIToken(t *testing.T) {
 
 	ctx := context.TODO()
 
-	authReq := &models.APITokenAuthRequest{
+	authReq := &models.TokenAuthRequest{
 		TenantID: "tenant",
 	}
 
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant", APITokens: []models.Token{}}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant", Tokens: []models.Token{}}
 	mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 
 	authRes, err := s.AuthAPIToken(ctx, authReq)

@@ -1307,8 +1307,8 @@ func (_m *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, 
 	return r0
 }
 
-// TokenCreateAPIToken provides a mock function with given fields: ctx, tenantID
-func (_m *Store) TokenCreateAPIToken(ctx context.Context, tenantID string) (*models.Token, error) {
+// TokenCreate provides a mock function with given fields: ctx, tenantID
+func (_m *Store) TokenCreate(ctx context.Context, tenantID string) (*models.Token, error) {
 	ret := _m.Called(ctx, tenantID)
 
 	var r0 *models.Token
@@ -1330,8 +1330,8 @@ func (_m *Store) TokenCreateAPIToken(ctx context.Context, tenantID string) (*mod
 	return r0, r1
 }
 
-// TokenDeleteAPIToken provides a mock function with given fields: ctx, tenantID, id
-func (_m *Store) TokenDeleteAPIToken(ctx context.Context, tenantID string, id string) error {
+// TokenDelete provides a mock function with given fields: ctx, tenantID, id
+func (_m *Store) TokenDelete(ctx context.Context, tenantID string, id string) error {
 	ret := _m.Called(ctx, tenantID, id)
 
 	var r0 error
@@ -1344,8 +1344,8 @@ func (_m *Store) TokenDeleteAPIToken(ctx context.Context, tenantID string, id st
 	return r0
 }
 
-// TokenGetAPIToken provides a mock function with given fields: ctx, tenantID, id
-func (_m *Store) TokenGetAPIToken(ctx context.Context, tenantID string, id string) (*models.Token, error) {
+// TokenGet provides a mock function with given fields: ctx, tenantID, id
+func (_m *Store) TokenGet(ctx context.Context, tenantID string, id string) (*models.Token, error) {
 	ret := _m.Called(ctx, tenantID, id)
 
 	var r0 *models.Token
@@ -1367,8 +1367,8 @@ func (_m *Store) TokenGetAPIToken(ctx context.Context, tenantID string, id strin
 	return r0, r1
 }
 
-// TokenListAPIToken provides a mock function with given fields: ctx, tenantID
-func (_m *Store) TokenListAPIToken(ctx context.Context, tenantID string) ([]models.Token, error) {
+// TokenList provides a mock function with given fields: ctx, tenantID
+func (_m *Store) TokenList(ctx context.Context, tenantID string) ([]models.Token, error) {
 	ret := _m.Called(ctx, tenantID)
 
 	var r0 []models.Token
@@ -1390,13 +1390,13 @@ func (_m *Store) TokenListAPIToken(ctx context.Context, tenantID string) ([]mode
 	return r0, r1
 }
 
-// TokenUpdateAPIToken provides a mock function with given fields: ctx, tenantID, id, token
-func (_m *Store) TokenUpdateAPIToken(ctx context.Context, tenantID string, id string, token *models.APITokenUpdate) error {
-	ret := _m.Called(ctx, tenantID, id, token)
+// TokenUpdate provides a mock function with given fields: ctx, tenantID, id, readOnly
+func (_m *Store) TokenUpdate(ctx context.Context, tenantID string, id string, readOnly bool) error {
+	ret := _m.Called(ctx, tenantID, id, readOnly)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.APITokenUpdate) error); ok {
-		r0 = rf(ctx, tenantID, id, token)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, bool) error); ok {
+		r0 = rf(ctx, tenantID, id, readOnly)
 	} else {
 		r0 = ret.Error(0)
 	}

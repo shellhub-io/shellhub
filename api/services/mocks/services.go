@@ -42,20 +42,20 @@ func (_m *Service) AddNamespaceUser(ctx context.Context, memberUsername string, 
 }
 
 // AuthAPIToken provides a mock function with given fields: ctx, req
-func (_m *Service) AuthAPIToken(ctx context.Context, req *models.APITokenAuthRequest) (*models.APITokenAuthResponse, error) {
+func (_m *Service) AuthAPIToken(ctx context.Context, req *models.TokenAuthRequest) (*models.TokenAuthResponse, error) {
 	ret := _m.Called(ctx, req)
 
-	var r0 *models.APITokenAuthResponse
-	if rf, ok := ret.Get(0).(func(context.Context, *models.APITokenAuthRequest) *models.APITokenAuthResponse); ok {
+	var r0 *models.TokenAuthResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *models.TokenAuthRequest) *models.TokenAuthResponse); ok {
 		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.APITokenAuthResponse)
+			r0 = ret.Get(0).(*models.TokenAuthResponse)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *models.APITokenAuthRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *models.TokenAuthRequest) error); ok {
 		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
@@ -1174,13 +1174,13 @@ func (_m *Service) UpdateTag(ctx context.Context, uid models.UID, tags []string)
 	return r0
 }
 
-// UpdateToken provides a mock function with given fields: ctx, tenantID, ID, token
-func (_m *Service) UpdateToken(ctx context.Context, tenantID string, ID string, token *models.APITokenUpdate) error {
-	ret := _m.Called(ctx, tenantID, ID, token)
+// UpdateToken provides a mock function with given fields: ctx, tenantID, ID, readOnly
+func (_m *Service) UpdateToken(ctx context.Context, tenantID string, ID string, readOnly bool) error {
+	ret := _m.Called(ctx, tenantID, ID, readOnly)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.APITokenUpdate) error); ok {
-		r0 = rf(ctx, tenantID, ID, token)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, bool) error); ok {
+		r0 = rf(ctx, tenantID, ID, readOnly)
 	} else {
 		r0 = ret.Error(0)
 	}

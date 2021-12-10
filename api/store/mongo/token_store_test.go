@@ -18,18 +18,18 @@ func TestListAPIToken(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", APITokens: []models.Token{}}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", Tokens: []models.Token{}}
 
 	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	createdToken1, err := mongostore.TokenCreateAPIToken(ctx, namespace.TenantID)
+	createdToken1, err := mongostore.TokenCreate(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 
-	createdToken2, err := mongostore.TokenCreateAPIToken(ctx, namespace.TenantID)
+	createdToken2, err := mongostore.TokenCreate(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 
-	tokens, err := mongostore.TokenListAPIToken(ctx, namespace.TenantID)
+	tokens, err := mongostore.TokenList(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 
 	assert.Equal(t, *createdToken1, tokens[0])
@@ -44,12 +44,12 @@ func TestCreateAPIToken(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", APITokens: []models.Token{}}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", Tokens: []models.Token{}}
 
 	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	_, err = mongostore.TokenCreateAPIToken(ctx, namespace.TenantID)
+	_, err = mongostore.TokenCreate(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 }
 
@@ -61,15 +61,15 @@ func TestGetAPIToken(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", APITokens: []models.Token{}}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", Tokens: []models.Token{}}
 
 	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	createdToken, err := mongostore.TokenCreateAPIToken(ctx, namespace.TenantID)
+	createdToken, err := mongostore.TokenCreate(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 
-	returnedToken, err := mongostore.TokenGetAPIToken(ctx, namespace.TenantID, createdToken.ID)
+	returnedToken, err := mongostore.TokenGet(ctx, namespace.TenantID, createdToken.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, createdToken, returnedToken)
 }
@@ -82,21 +82,21 @@ func TestDeleteAPIToken(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", APITokens: []models.Token{}}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", Tokens: []models.Token{}}
 
 	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	createdToken1, err := mongostore.TokenCreateAPIToken(ctx, namespace.TenantID)
+	createdToken1, err := mongostore.TokenCreate(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 
-	_, err = mongostore.TokenCreateAPIToken(ctx, namespace.TenantID)
+	_, err = mongostore.TokenCreate(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 
-	err = mongostore.TokenDeleteAPIToken(ctx, namespace.TenantID, createdToken1.ID)
+	err = mongostore.TokenDelete(ctx, namespace.TenantID, createdToken1.ID)
 	assert.NoError(t, err)
 
-	tokens, err := mongostore.TokenListAPIToken(ctx, namespace.TenantID)
+	tokens, err := mongostore.TokenList(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 	assert.Equal(t, len(tokens), 1)
 }
@@ -109,20 +109,18 @@ func TestUpdateAPIToken(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", APITokens: []models.Token{}}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", Tokens: []models.Token{}}
 
 	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	createdToken, err := mongostore.TokenCreateAPIToken(ctx, namespace.TenantID)
+	createdToken, err := mongostore.TokenCreate(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 
-	err = mongostore.TokenUpdateAPIToken(ctx, namespace.TenantID, createdToken.ID, &models.APITokenUpdate{
-		TokenFields: models.TokenFields{ReadOnly: false},
-	})
+	err = mongostore.TokenUpdate(ctx, namespace.TenantID, createdToken.ID, false)
 	assert.NoError(t, err)
 
-	tokens, err := mongostore.TokenListAPIToken(ctx, namespace.TenantID)
+	tokens, err := mongostore.TokenList(ctx, namespace.TenantID)
 	assert.NoError(t, err)
 	assert.Equal(t, tokens[0].ReadOnly, false)
 }

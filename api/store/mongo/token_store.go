@@ -12,7 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *Store) TokenListAPIToken(ctx context.Context, tenantID string) ([]models.Token, error) {
+func (s *Store) TokenList(ctx context.Context, tenantID string) ([]models.Token, error) {
 	ns := new(models.Namespace)
 
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenantID}).Decode(&ns); err != nil {
@@ -23,10 +23,10 @@ func (s *Store) TokenListAPIToken(ctx context.Context, tenantID string) ([]model
 		return nil, err
 	}
 
-	return ns.APITokens, nil
+	return ns.Tokens, nil
 }
 
-func (s *Store) TokenCreateAPIToken(ctx context.Context, tenantID string) (*models.Token, error) {
+func (s *Store) TokenCreate(ctx context.Context, tenantID string) (*models.Token, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(tenantID), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (s *Store) TokenCreateAPIToken(ctx context.Context, tenantID string) (*mode
 		ReadOnly: true,
 	}
 
-	_, err = s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$push": bson.M{"api_tokens": token}})
+	_, err = s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$push": bson.M{"tokens": token}})
 	if err != nil {
 		return nil, err
 	}
@@ -52,42 +52,44 @@ func (s *Store) TokenCreateAPIToken(ctx context.Context, tenantID string) (*mode
 	return token, nil
 }
 
-func (s *Store) TokenGetAPIToken(ctx context.Context, tenantID string, id string) (*models.Token, error) {
-	tokens, err := s.TokenListAPIToken(ctx, tenantID)
+func (s *Store) TokenGet(ctx context.Context, tenantID string, id string) (*models.Token, error) {
+	tokens, err := s.TokenList(ctx, tenantID)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, token := range tokens {
-		if token.ID == id {
-			return &token, nil
+	var token *models.Token
+	for _, t := range tokens {
+		if t.ID == id {
+			*token = t
+			break
 		}
 	}
 
-	return nil, store.ErrNoDocuments
+	return token, nil
 }
 
-func (s *Store) TokenDeleteAPIToken(ctx context.Context, tenantID string, id string) error {
-	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"api_tokens": bson.M{"id": bson.M{"$eq": id}}}})
+func (s *Store) TokenDelete(ctx context.Context, tenantID string, id string) error {
+	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"tokens": bson.M{"id": bson.M{"$eq": id}}}})
 	if err != nil {
-		return err
-	}
+		if err == mongo.ErrNoDocuments {
+			return err
+		}
 
-	if err == mongo.ErrNoDocuments {
-		return store.ErrNoDocuments
+		return err
 	}
 
 	return nil
 }
 
-func (s *Store) TokenUpdateAPIToken(ctx context.Context, tenantID string, id string, request *models.APITokenUpdate) error {
-	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID, "api_tokens.id": id}, bson.M{"$set": bson.M{"api_tokens.$.read_only": request.TokenFields.ReadOnly}})
+func (s *Store) TokenUpdate(ctx context.Context, tenantID string, id string, readOnly bool) error {
+	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID, "tokens.id": id}, bson.M{"$set": bson.M{"tokens.$.read_only": readOnly}})
 	if err != nil {
-		return err
-	}
+		if err == mongo.ErrNoDocuments {
+			return err
+		}
 
-	if err == mongo.ErrNoDocuments {
-		return store.ErrNoDocuments
+		return err
 	}
 
 	return nil

@@ -30,7 +30,7 @@ type AuthService interface {
 	AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
 	AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error)
-	AuthAPIToken(ctx context.Context, req *models.APITokenAuthRequest) (*models.APITokenAuthResponse, error)
+	AuthAPIToken(ctx context.Context, req *models.TokenAuthRequest) (*models.TokenAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }
 
@@ -357,7 +357,7 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 	}, nil
 }
 
-func (s *service) AuthAPIToken(ctx context.Context, req *models.APITokenAuthRequest) (*models.APITokenAuthResponse, error) {
+func (s *service) AuthAPIToken(ctx context.Context, req *models.TokenAuthRequest) (*models.TokenAuthResponse, error) {
 	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
 	if err != nil {
 		return nil, ErrNamespaceNotFound
@@ -373,7 +373,7 @@ func (s *service) AuthAPIToken(ctx context.Context, req *models.APITokenAuthRequ
 		return nil, ErrHashWrite
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.APITokenAuthClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.TokenAuthClaims{
 		ID:       hex.EncodeToString(hasher.Sum(nil)),
 		TenantID: req.TenantID,
 		AuthClaims: models.AuthClaims{
@@ -389,7 +389,7 @@ func (s *service) AuthAPIToken(ctx context.Context, req *models.APITokenAuthRequ
 		return nil, ErrAPITokenSign
 	}
 
-	return &models.APITokenAuthResponse{
+	return &models.TokenAuthResponse{
 		ID:       hex.EncodeToString(hasher.Sum(nil)),
 		APIToken: tokenStr,
 		TenantID: req.TenantID,
