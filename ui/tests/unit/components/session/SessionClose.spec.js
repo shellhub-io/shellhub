@@ -30,15 +30,14 @@ describe('SessionClose', () => {
       description: 'Icon',
       variables: {
         session,
-        dialog: false,
       },
       props: {
         uid: session.uid,
         device: session.device_uid,
+        show: false,
       },
       data: {
         session,
-        dialog: false,
         action: 'close',
       },
       template: {
@@ -51,15 +50,14 @@ describe('SessionClose', () => {
       description: 'Dialog',
       variables: {
         session,
-        dialog: true,
       },
       props: {
         uid: session.uid,
         device: session.device_uid,
+        show: true,
       },
       data: {
         session,
-        dialog: true,
         action: 'close',
       },
       template: {
@@ -93,15 +91,17 @@ describe('SessionClose', () => {
             store: storeVuex(currentrole),
             localVue,
             stubs: ['fragment'],
-            propsData: { uid: test.props.uid, device: test.props.device },
+            propsData: {
+              uid: test.props.uid,
+              device: test.props.device,
+              show: test.props.show,
+            },
             vuetify,
             mocks: {
               $authorizer: authorizer,
               $actions: actions,
             },
           });
-
-          wrapper.setData({ dialog: test.variables.dialog });
         });
 
         ///////
@@ -138,27 +138,16 @@ describe('SessionClose', () => {
         //////
 
         it('Renders the template with data', () => {
-          Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-          });
-        });
-
-        if (!test.data.dialog) {
           if (hasAuthorization[currentrole]) {
-            it('Show message tooltip user has permission', async (done) => {
-              const icons = wrapper.findAll('.v-icon');
-              const helpIcon = icons.at(0);
-              helpIcon.trigger('mouseenter');
-              await wrapper.vm.$nextTick();
-
-              expect(icons.length).toBe(1);
-              requestAnimationFrame(() => {
-                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Close');
-                done();
-              });
+            Object.keys(test.template).forEach((item) => {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            });
+          } else if (!test.props.show) {
+            Object.keys(test.template).forEach((item) => {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
             });
           }
-        }
+        });
       });
     });
   });

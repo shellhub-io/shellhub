@@ -98,29 +98,63 @@
         </template>
 
         <template #[`item.actions`]="{ item }">
-          <v-tooltip bottom>
-            <template #activator="{ on }">
-              <v-icon
-                class="icons"
+          <v-menu
+            :ref="'menu'+getListSessions.indexOf(item)"
+            offset-y
+          >
+            <template #activator="{ on, attrs }">
+              <v-chip
+                color="transparent"
                 v-on="on"
-                @click="detailsSession(item)"
               >
-                info
-              </v-icon>
+                <v-icon
+                  small
+                  class="icons"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  mdi-dots-horizontal
+                </v-icon>
+              </v-chip>
             </template>
-            <span>Details</span>
-          </v-tooltip>
-          <SessionClose
-            v-if="item.active"
-            data-test="close-field"
-            :uid="item.uid"
-            :device="item.device_uid"
-            @update="refresh"
-          />
-          <SessionPlay
-            :recorded="item.authenticated && item.recorded"
-            :uid="item.uid"
-          />
+
+            <v-card>
+              <v-list-item @click.stop="detailsSession(item)">
+                <v-icon left>
+                  info
+                </v-icon>
+
+                <v-list-item-title>
+                  Details
+                </v-list-item-title>
+              </v-list-item>
+
+              <v-list-item
+                v-if="item.authenticated && item.recorded"
+                @click.stop="showSessionPlay(getListSessions.indexOf(item))"
+              >
+                <SessionPlay
+                  :recorded="item.authenticated && item.recorded"
+                  :uid="item.uid"
+                  :show.sync="sessionPlayShow[getListSessions.indexOf(item)]"
+                  data-test="sessionPlay-component"
+                />
+              </v-list-item>
+
+              <v-list-item
+                v-if="item.active"
+                @click="showSessionClose(getListSessions.indexOf(item))"
+              >
+                <SessionClose
+                  :uid="item.uid"
+                  :device="item.device_uid"
+                  :show.sync="sessionCloseShow[getListSessions.indexOf(item)]"
+                  data-test="sessionClose-component"
+                  @update="refresh"
+                />
+              </v-list-item>
+            </v-card>
+          </v-menu>
         </template>
       </v-data-table>
     </v-card-text>
@@ -145,8 +179,10 @@ export default {
 
   data() {
     return {
+      menu: false,
       pagination: {},
-
+      sessionPlayShow: [],
+      sessionCloseShow: [],
       headers: [
         {
           text: 'Active',
@@ -226,6 +262,8 @@ export default {
 
         try {
           await this.$store.dispatch('sessions/fetch', data);
+
+          this.setArrays();
         } catch (error) {
           if (error.response.status === 403) {
             this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
@@ -234,8 +272,38 @@ export default {
           }
         }
       } else {
+        this.setArrays();
         this.$store.dispatch('boxs/setStatus', false);
       }
+    },
+
+    showSessionPlay(index) {
+      this.sessionPlayShow[index] = this.sessionPlayShow[index] === undefined
+        ? true : !this.sessionPlayShow[index];
+      this.$set(this.sessionPlayShow, index, this.sessionPlayShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    showSessionClose(index) {
+      this.sessionCloseShow[index] = this.sessionCloseShow[index] === undefined
+        ? true : !this.sessionCloseShow[index];
+      this.$set(this.sessionCloseShow, index, this.sessionCloseShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    setArrays() {
+      const numberSessions = this.getListSessions.length;
+
+      if (numberSessions > 0) {
+        this.sessionPlayShow = new Array(this.getNumberSessions).fill(false);
+        this.sessionCloseShow = new Array(this.getNumberSessions).fill(false);
+      }
+    },
+
+    closeMenu(index) {
+      this.$refs[`menu${index}`].isActive = false;
     },
   },
 };

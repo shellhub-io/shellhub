@@ -34,7 +34,7 @@ describe('SessionPlay', () => {
 
   const tests = [
     {
-      description: 'Icon without record',
+      description: 'Icon',
       variables: {
         session: [],
         recorded: false,
@@ -44,6 +44,7 @@ describe('SessionPlay', () => {
       props: {
         uid: '8c354a00',
         recorded: false,
+        show: false,
       },
       data: {
         dialog: false,
@@ -75,47 +76,6 @@ describe('SessionPlay', () => {
       },
     },
     {
-      description: 'Icon with record',
-      variables: {
-        session: sessionGlobal,
-        recorded: true,
-        paused: false,
-        dialog: false,
-      },
-      props: {
-        uid: '8c354a00',
-        recorded: true,
-      },
-      data: {
-        dialog: false,
-        currentTime: 0,
-        totalLength: 0,
-        endTimerDisplay: 0,
-        getTimerNow: 0,
-        paused: false,
-        previousPause: false,
-        sliderChange: false,
-        speedList: [0.5, 1, 1.5, 2, 4],
-        logs: sessionGlobal,
-        frames: [],
-        defaultSpeed: 1,
-        transition: false,
-        action: 'play',
-      },
-      computed: {
-        length: 1,
-        nowTimerDisplay: 0,
-      },
-      template: {
-        'sessionPlay-card': false,
-        'close-btn': false,
-        'pause-icon': false,
-        'play-icon': false,
-        'time-slider': false,
-        'speed-select': false,
-      },
-    },
-    {
       description: 'Dialog play paused',
       variables: {
         session: sessionGlobal,
@@ -126,6 +86,7 @@ describe('SessionPlay', () => {
       props: {
         uid: '8c354a00',
         recorded: true,
+        show: true,
       },
       data: {
         dialog: true,
@@ -151,7 +112,7 @@ describe('SessionPlay', () => {
         'sessionPlay-card': true,
         'close-btn': true,
         'pause-icon': true,
-        'play-icon': false,
+        'play-icon': true,
         'time-slider': true,
         'speed-select': true,
       },
@@ -162,11 +123,13 @@ describe('SessionPlay', () => {
         session: sessionGlobal,
         recorded: true,
         paused: true,
+        show: true,
         dialog: true,
       },
       props: {
         uid: '8c354a00',
         recorded: true,
+        show: true,
       },
       data: {
         dialog: true,
@@ -223,7 +186,11 @@ describe('SessionPlay', () => {
             store: storeVuex(test.variables.session, currentrole),
             localVue,
             stubs: ['fragment'],
-            propsData: { uid: test.props.uid, recorded: test.props.recorded },
+            propsData: {
+              uid: test.props.uid,
+              recorded: test.props.recorded,
+              show: test.props.show,
+            },
             vuetify,
             mocks: {
               $authorizer: authorizer,
@@ -277,27 +244,16 @@ describe('SessionPlay', () => {
         //////
 
         it('Renders the template with data', () => {
-          Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-          });
-        });
-
-        if (!test.variables.dialog && test.variables.recorded !== false) {
           if (hasAuthorization[currentrole]) {
-            it('Show message tooltip user has permission', async (done) => {
-              const icons = wrapper.findAll('.v-icon');
-              const helpIcon = icons.at(0);
-              helpIcon.trigger('mouseenter');
-              await wrapper.vm.$nextTick();
-
-              expect(icons.length).toBe(1);
-              requestAnimationFrame(() => {
-                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Play');
-                done();
-              });
+            Object.keys(test.template).forEach((item) => {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            });
+          } else if (!test.props.show) {
+            Object.keys(test.template).forEach((item) => {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
             });
           }
-        }
+        });
       });
     });
   });

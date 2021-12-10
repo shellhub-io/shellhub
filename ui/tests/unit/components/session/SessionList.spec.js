@@ -167,6 +167,9 @@ describe('SessionList', () => {
   //////
 
   it('Compare data with default value', () => {
+    expect(wrapper.vm.menu).toEqual(false);
+    expect(wrapper.vm.sessionPlayShow).toEqual([false, false]);
+    expect(wrapper.vm.sessionCloseShow).toEqual([false, false]);
     expect(wrapper.vm.headers).toEqual(headers);
   });
   it('Process data in the computed', () => {
@@ -183,6 +186,5 @@ describe('SessionList', () => {
     const dataTableProps = dt.vm.$options.propsData;
 
     expect(dataTableProps.items).toHaveLength(numberSessions);
-    expect(wrapper.find('[data-test="close-field"]').exists()).toBe(true);
   });
 });

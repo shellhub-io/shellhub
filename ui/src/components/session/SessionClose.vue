@@ -1,35 +1,37 @@
 <template>
   <fragment>
-    <v-tooltip bottom>
+    <v-tooltip
+      :disabled="hasAuthorization"
+      bottom
+    >
       <template #activator="{ on }">
+        <span>
+          <v-list-item-title data-test="close-item">
+            Close
+          </v-list-item-title>
+        </span>
+
         <span v-on="on">
           <v-icon
             :disabled="!hasAuthorization"
+            left
+            data-test="close-icon"
             v-on="on"
-            @click="dialog = !dialog"
           >
             mdi-close-circle
           </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="hasAuthorization"
-          data-test="text-tooltip"
-        >
-          Close
-        </span>
-
-        <span v-else>
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span v-if="!hasAuthorization">
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="400"
+      @click:outside="close"
     >
       <v-card data-test="sessionClose-card">
         <v-card-title class="headline grey lighten-2 text-center">
@@ -46,7 +48,7 @@
           <v-btn
             text
             data-test="cancel-btn"
-            @click="dialog=!dialog"
+            @click="close()"
           >
             Cancel
           </v-btn>
@@ -55,7 +57,7 @@
             color="red darken-1"
             text
             data-test="close-btn"
-            @click="close();"
+            @click="closeSession()"
           >
             Close
           </v-btn>
@@ -83,17 +85,30 @@ export default {
       type: String,
       required: true,
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
     return {
-      dialog: false,
       session: {},
       action: 'close',
     };
   },
 
   computed: {
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+      set(value) {
+        this.$emit('update:show', value);
+      },
+    },
+
     hasAuthorization() {
       const role = this.$store.getters['auth/role'];
       if (role !== '') {
@@ -115,16 +130,20 @@ export default {
   },
 
   methods: {
-    async close() {
+    async closeSession() {
       try {
         await this.$store.dispatch('sessions/close', this.session);
-        this.dialog = false;
+        this.close();
 
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.sessionClose);
         this.$emit('update');
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.sessionClose);
       }
+    },
+
+    close() {
+      this.$emit('update:show', false);
     },
   },
 };

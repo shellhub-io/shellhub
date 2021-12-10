@@ -39,20 +39,35 @@
 
         <v-spacer />
 
-        <SessionPlay
-          v-if="session.recorded"
-          :uid="session.uid"
-          :recorded="session.authenticated && session.recorded"
-          data-test="sessionPlay-component"
-        />
+        <v-card class="text elevation-0">
+          <v-list-item
+            v-if="session.recorded"
+            @click.stop="sessionPlayDialog = !sessionPlayDialog"
+          >
+            <SessionPlay
+              v-if="session.recorded"
+              :uid="session.uid"
+              :recorded="session.authenticated && session.recorded"
+              :show.sync="sessionPlayDialog"
+              data-test="sessionPlay-component"
+            />
+          </v-list-item>
+        </v-card>
 
-        <SessionClose
-          v-if="session.active"
-          :uid="session.uid"
-          :device="session.device_uid"
-          data-test="sessionClose-component"
-          @update="refresh"
-        />
+        <v-card class="text elevation-0">
+          <v-list-item
+            v-if="session.active"
+            @click.stop="sessionCloseDialog = !sessionCloseDialog"
+          >
+            <SessionClose
+              :uid="session.uid"
+              :device="session.device_uid"
+              :show.sync="sessionCloseDialog"
+              data-test="sessionClose-component"
+              @update="refresh"
+            />
+          </v-list-item>
+        </v-card>
 
         <SessionDeleteRecord
           v-if="session.recorded"
@@ -210,6 +225,8 @@ export default {
       uid: '',
       session: null,
       dialog: false,
+      sessionPlayDialog: false,
+      sessionCloseDialog: false,
       hide: true,
     };
   },
