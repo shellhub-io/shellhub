@@ -94,8 +94,6 @@ describe('SettingNamespace', () => {
       },
       components: {
         'namespaceMemberFormDialogAdd-component': true,
-        'namespaceMemberFormDialogEdit-component': false,
-        'namespaceMemberDelete-component': true,
         'namespaceDelete-component': true,
       },
       template: {
@@ -126,8 +124,6 @@ describe('SettingNamespace', () => {
       },
       components: {
         'namespaceMemberFormDialogAdd-component': true,
-        'namespaceMemberFormDialogEdit-component': false,
-        'namespaceMemberDelete-component': true,
         'namespaceDelete-component': true,
       },
       template: {

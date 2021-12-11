@@ -141,6 +141,7 @@
                 >
                   <NamespaceMemberFormDialog
                     :add-user="true"
+                    :show.sync="namespaceMemberFormShow"
                     data-test="namespaceMemberFormDialogAdd-component"
                     @update="refresh"
                   />
@@ -234,6 +235,7 @@ export default {
   data() {
     return {
       name: '',
+      namespaceMemberFormShow: false,
     };
   },
 

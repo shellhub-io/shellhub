@@ -51,17 +51,17 @@ describe('NamespaceMemberDelete', () => {
       description: 'Button',
       variables: {
         namespace: namespaceGlobal,
-        dialog: false,
       },
       props: {
         member: members[0],
+        show: false,
       },
       data: {
-        dialog: false,
         action: 'removeMember',
       },
       template: {
-        'removeMember-btn': true,
+        'remove-item': true,
+        'remove-icon': true,
         'namespaceMemberDelete-dialog': false,
         'close-btn': false,
         'remove-btn': false,
@@ -71,17 +71,17 @@ describe('NamespaceMemberDelete', () => {
       description: 'Dialog',
       variables: {
         namespace: namespaceGlobal,
-        dialog: true,
       },
       props: {
         member: members[0],
+        show: true,
       },
       data: {
-        dialog: true,
         action: 'removeMember',
       },
       template: {
-        'removeMember-btn': true,
+        'remove-item': true,
+        'remove-icon': true,
         'namespaceMemberDelete-dialog': true,
         'close-btn': true,
         'remove-btn': true,
@@ -120,15 +120,13 @@ describe('NamespaceMemberDelete', () => {
             ),
             localVue,
             stubs: ['fragment'],
-            propsData: { member: test.props.member },
+            propsData: { member: test.props.member, show: test.props.show },
             vuetify,
             mocks: {
               $authorizer: authorizer,
               $actions: actions,
             },
           });
-
-          wrapper.setData({ dialog: test.variables.dialog });
         });
 
         ///////
@@ -165,9 +163,15 @@ describe('NamespaceMemberDelete', () => {
         //////
 
         it('Renders the template with data', () => {
-          Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-          });
+          if (hasAuthorization[currentrole]) {
+            Object.keys(test.template).forEach((item) => {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            });
+          } else if (!test.props.show) {
+            Object.keys(test.template).forEach((item) => {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            });
+          }
         });
       });
     });

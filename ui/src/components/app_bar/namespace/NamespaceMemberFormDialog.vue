@@ -12,7 +12,7 @@
             class="mr-2"
             outlined
             data-test="add-btn"
-            @click="dialog = !dialog"
+            @click="setShowDialog()"
           >
             Add Member
           </v-btn>
@@ -31,42 +31,30 @@
     >
       <template #activator="{ on }">
         <span v-on="on">
-          <v-btn
+          <v-list-item-title data-test="edit-list">
+            Edit
+          </v-list-item-title>
+        </span>
+
+        <span v-on="on">
+          <v-icon
             :disabled="!hasAuthorization"
-            class="mr-2"
-            outlined
-            data-test="edit-btn"
-            @click="dialog = !dialog"
+            left
+            data-test="edit-icon"
+            v-on="on"
           >
-            <v-icon
-              outlined
-              :disabled="!hasAuthorization"
-              v-on="on"
-            >
-              edit
-            </v-icon>
-          </v-btn>
+            mdi-pencil
+          </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="hasAuthorization"
-          data-test="text-tooltip"
-        >
-          Edit
-        </span>
-
-        <span
-          v-else
-        >
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span>
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="450"
       @click:outside="close"
     >
@@ -126,7 +114,7 @@
             <v-btn
               text
               data-test="dialogClose-btn"
-              @click="close"
+              @click="close()"
             >
               Close
             </v-btn>
@@ -187,11 +175,16 @@ export default {
       type: Boolean,
       required: true,
     },
+
+    show: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
 
   data() {
     return {
-      dialog: false,
       username: '',
       selectedRole: '',
       memberLocal: [],
@@ -200,6 +193,16 @@ export default {
   },
 
   computed: {
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+
+      set(value) {
+        this.$emit('show', value);
+      },
+    },
+
     hasAuthorization() {
       const ownerID = this.$store.getters['namespaces/get'].owner;
       if (this.member.id === ownerID) {
@@ -302,8 +305,12 @@ export default {
       this.close();
     },
 
+    setShowDialog() {
+      this.$emit('update:show', true);
+    },
+
     close() {
-      this.dialog = false;
+      this.$emit('update:show', false);
       this.$refs.obs.reset();
     },
   },

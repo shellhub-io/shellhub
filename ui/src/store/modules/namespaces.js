@@ -92,7 +92,6 @@ export default {
     },
 
     addUser: async (context, data) => {
-      console.log(data);
       await apiNamespace.addUserToNamespace(data);
     },
 

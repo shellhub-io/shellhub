@@ -4,7 +4,7 @@
       <v-data-table
         class="elevation-0"
         :headers="headers"
-        :items="namespace.members"
+        :items="members"
         hide-default-footer
         data-test="dataTable-field"
       >
@@ -15,23 +15,47 @@
           {{ item.username }}
         </template>
 
-        <template #[`item.type`]="{ item }">
-          {{ item.type }}
+        <template #[`item.role`]="{ item }">
+          {{ item.role }}
         </template>
 
         <template #[`item.actions`]="{ item }">
-          <NamespaceMemberFormDialog
-            :add-user="false"
-            :member="item"
-            data-test="NamespaceMemberFormDialogEdit-component"
-            @update="refresh"
-          />
+          <v-menu
+            :ref="'menu'+members.indexOf(item)"
+            offset-y
+          >
+            <template #activator="{ on, attrs}">
+              <v-icon
+                small
+                class="icons"
+                v-bind="attrs"
+                v-on="on"
+              >
+                mdi-dots-horizontal
+              </v-icon>
+            </template>
 
-          <NamespaceMemberDelete
-            :member="item"
-            data-test="namespaceMemberDelete-component"
-            @update="refresh"
-          />
+            <v-list>
+              <v-list-item @click.stop="showNamespaceMemberForm(members.indexOf(item))">
+                <NamespaceMemberFormDialog
+                  :add-user="false"
+                  :member="item"
+                  :show.sync="namespaceMemberFormShow[members.indexOf(item)]"
+                  data-test="NamespaceMemberFormDialogEdit-component"
+                  @update="refresh"
+                />
+              </v-list-item>
+
+              <v-list-item @click.stop="showNamespaceMemberDelete(members.indexOf(item))">
+                <NamespaceMemberDelete
+                  :member="item"
+                  :show.sync="namespaceMemberDeleteShow[members.indexOf(item)]"
+                  data-test="namespaceMemberDelete-component"
+                  @update="refresh"
+                />
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </template>
       </v-data-table>
     </div>
@@ -60,6 +84,9 @@ export default {
 
   data() {
     return {
+      menu: false,
+      namespaceMemberFormShow: [],
+      namespaceMemberDeleteShow: [],
       headers: [
         {
           text: 'Username',
@@ -87,11 +114,35 @@ export default {
     tenant() {
       return this.$store.getters['auth/tenant'];
     },
+
+    members() {
+      return this.namespace.members;
+    },
   },
 
   methods: {
     refresh() {
       this.getNamespace();
+    },
+
+    showNamespaceMemberForm(index) {
+      this.namespaceMemberFormShow[index] = this.namespaceMemberFormShow[index] === undefined
+        ? true : !this.namespaceMemberFormShow[index];
+      this.$set(this.namespaceMemberFormShow, index, this.namespaceMemberFormShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    showNamespaceMemberDelete(index) {
+      this.namespaceMemberDeleteShow[index] = this.namespaceMemberDeleteShow[index] === undefined
+        ? true : !this.namespaceMemberDeleteShow[index];
+      this.$set(this.namespaceMemberDeleteShow, index, this.namespaceMemberDeleteShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    closeMenu(index) {
+      this.$refs[`menu${index}`].isActive = false;
     },
 
     async getNamespace() {

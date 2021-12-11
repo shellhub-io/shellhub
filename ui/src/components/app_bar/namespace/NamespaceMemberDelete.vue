@@ -6,43 +6,32 @@
     >
       <template #activator="{ on }">
         <span v-on="on">
-          <v-btn
+          <v-list-item-title data-test="remove-item">
+            Remove
+          </v-list-item-title>
+        </span>
+
+        <span v-on="on">
+          <v-icon
             :disabled="!hasAuthorization"
-            class="mr-2"
-            outlined
-            data-test="removeMember-btn"
-            @click="dialog = !dialog"
+            left
+            data-test="remove-icon"
+            v-on="on"
           >
-            <v-icon
-              outlined
-              :disabled="!hasAuthorization"
-              v-on="on"
-            >
-              delete
-            </v-icon>
-          </v-btn>
+            delete
+          </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="hasAuthorization"
-          data-test="tooltip-text"
-        >
-          Remove
-        </span>
-
-        <span
-          v-else
-        >
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span>
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="400"
+      @click:outside="close"
     >
       <v-card data-test="namespaceMemberDelete-dialog">
         <v-card-title class="headline grey lighten-2 text-center">
@@ -59,7 +48,7 @@
           <v-btn
             text
             data-test="close-btn"
-            @click="dialog=!dialog"
+            @click="close()"
           >
             Close
           </v-btn>
@@ -92,16 +81,31 @@ export default {
       type: Object,
       required: true,
     },
+
+    show: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
 
   data() {
     return {
-      dialog: false,
       action: 'removeMember',
     };
   },
 
   computed: {
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+
+      set(value) {
+        this.$emit('update:show', value);
+      },
+    },
+
     hasAuthorization() {
       const ownerID = this.$store.getters['namespaces/get'].owner;
       if (this.member.id === ownerID) {
@@ -142,7 +146,7 @@ export default {
     },
 
     close() {
-      this.dialog = false;
+      this.$emit('update:show', false);
     },
   },
 };

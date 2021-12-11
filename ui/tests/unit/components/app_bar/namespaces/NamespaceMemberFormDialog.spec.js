@@ -66,15 +66,14 @@ describe('NamespaceMemberFormDialog', () => {
     {
       description: 'Icon add user',
       variables: {
-        dialog: false,
         namespaceGlobal,
       },
       props: {
         member: {},
         addUser: true,
+        show: false,
       },
       data: {
-        dialog: false,
         username: '',
         selectedRole: '',
         memberLocal,
@@ -82,7 +81,8 @@ describe('NamespaceMemberFormDialog', () => {
       },
       template: {
         'add-btn': true,
-        'edit-btn': false,
+        'edit-list': false,
+        'edit-icon': false,
         'namespaceNewMember-dialog': false,
         'dialogClose-btn': false,
         'dialogAdd-btn': false,
@@ -93,14 +93,13 @@ describe('NamespaceMemberFormDialog', () => {
       description: 'Icon edit user',
       variables: {
         namespaceGlobal,
-        dialog: false,
       },
       props: {
         member: members[1],
         addUser: false,
+        show: false,
       },
       data: {
-        dialog: false,
         username: '',
         selectedRole: '',
         memberLocal: memberLocalEdit,
@@ -108,7 +107,8 @@ describe('NamespaceMemberFormDialog', () => {
       },
       template: {
         'add-btn': false,
-        'edit-btn': true,
+        'edit-list': true,
+        'edit-icon': true,
         'namespaceNewMember-dialog': false,
         'dialogClose-btn': false,
         'dialogAdd-btn': false,
@@ -118,15 +118,14 @@ describe('NamespaceMemberFormDialog', () => {
     {
       description: 'Dialog create user',
       variables: {
-        dialog: true,
         namespaceGlobal,
       },
       props: {
         member: {},
         addUser: true,
+        show: true,
       },
       data: {
-        dialog: true,
         username: '',
         selectedRole: '',
         memberLocal,
@@ -134,7 +133,8 @@ describe('NamespaceMemberFormDialog', () => {
       },
       template: {
         'add-btn': true,
-        'edit-btn': false,
+        'edit-list': false,
+        'edit-icon': false,
         'namespaceNewMember-dialog': true,
         'dialogClose-btn': true,
         'dialogAdd-btn': true,
@@ -150,9 +150,9 @@ describe('NamespaceMemberFormDialog', () => {
       props: {
         member: members[1],
         addUser: false,
+        show: true,
       },
       data: {
-        dialog: true,
         username: '',
         selectedRole: '',
         memberLocal: memberLocalEdit,
@@ -160,7 +160,8 @@ describe('NamespaceMemberFormDialog', () => {
       },
       template: {
         'add-btn': false,
-        'edit-btn': true,
+        'edit-list': true,
+        'edit-icon': true,
         'namespaceNewMember-dialog': true,
         'dialogClose-btn': true,
         'dialogAdd-btn': false,
@@ -194,15 +195,17 @@ describe('NamespaceMemberFormDialog', () => {
             store: storeVuex(test.variables.namespaceGlobal, currentrole),
             localVue,
             stubs: ['fragment'],
-            propsData: { member: test.props.member, addUser: test.props.addUser },
+            propsData: {
+              member: test.props.member,
+              addUser: test.props.addUser,
+              show: test.props.show,
+            },
             vuetify,
             mocks: {
               $authorizer: authorizer,
               $actions: actions,
             },
           });
-
-          wrapper.setData({ dialog: test.variables.dialog });
         });
 
         ///////
@@ -239,12 +242,18 @@ describe('NamespaceMemberFormDialog', () => {
         //////
 
         it('Renders the template with data', () => {
-          Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-          });
+          if (hasAuthorization[currentrole]) {
+            Object.keys(test.template).forEach((item) => {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            });
+          } else if (!test.props.show) {
+            Object.keys(test.template).forEach((item) => {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            });
+          }
         });
 
-        if (test.data.dialog) {
+        if (test.props.show) {
           if (hasAuthorization[currentrole] && !test.props.addUser) {
             it('Show validation messages', async () => {
               wrapper.setData({ memberLocal: { username: '' } });
