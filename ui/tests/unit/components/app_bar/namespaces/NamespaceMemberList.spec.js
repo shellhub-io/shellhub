@@ -78,6 +78,9 @@ describe('NamespaceMemberList', () => {
   });
 
   it('Compares data with default value', () => {
+    expect(wrapper.vm.menu).toEqual(false);
+    expect(wrapper.vm.namespaceMemberFormShow).toEqual([]);
+    expect(wrapper.vm.namespaceMemberDeleteShow).toEqual([]);
     expect(wrapper.vm.headers).toEqual(headers);
   });
 
