@@ -243,6 +243,12 @@ describe('SettingBilling', () => {
         // HTML validation
         //////
 
+        if (currentrole !== 'owner') {
+          it('Template rendering - not the owner', () => {
+            expect(wrapper.find('[data-test="activeLoading-div"]').exists()).toBe(false);
+          });
+        }
+
         if (currentrole === 'owner') {
           describe(`Template rendering - ${test.description}`, () => {
             Reflect.ownKeys(test.template).forEach((k) => {
@@ -252,6 +258,7 @@ describe('SettingBilling', () => {
             });
           });
         }
+
         ///////
         // Data checking
         //////

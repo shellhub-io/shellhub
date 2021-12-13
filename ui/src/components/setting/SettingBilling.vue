@@ -184,7 +184,7 @@
           </div>
         </div>
 
-        <div v-else-if="state==='processed' && active">
+        <div v-else-if="hasAuthorization && state==='processed' && active">
           <div
             data-test="activeLoading-div"
           >
