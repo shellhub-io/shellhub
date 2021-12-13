@@ -87,9 +87,9 @@ patch:
         schema:
           type: object
           properties:
-            username:
-              description: Token ID
-              type: string
+            read_only:
+              description: Raad only status
+              type: boolean 
   responses:
     '200':
       description: Success update token for the namespace
