@@ -94,17 +94,7 @@ exports[`SettingBilling Premium usage operator Renders the component 1`] = `
     <v-col-stub sm="8" tag="div">
       <settingownerinfo-stub data-test="settingOwnerInfo-component"></settingownerinfo-stub>
       <!---->
-      <div>
-        <div data-test="activeLoading-div">
-          <v-divider-stub></v-divider-stub>
-          <v-divider-stub></v-divider-stub>
-          <div class="mt-6 mb-2">
-            <p>
-              Loading data
-            </p>
-          </div>
-        </div>
-      </div>
+      <!---->
     </v-col-stub>
   </v-row-stub>
 </v-container-stub>
