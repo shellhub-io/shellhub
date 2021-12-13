@@ -115,7 +115,7 @@ export default {
       if (res.status === 200) {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('tenant', data.tenant_id);
-        localStorage.setItem('role', res.data.type);
+        localStorage.setItem('role', res.data.role);
       }
     },
 
