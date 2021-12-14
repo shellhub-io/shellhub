@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestListAPIToken(t *testing.T) {
+func TestTokenList(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -36,7 +36,7 @@ func TestListAPIToken(t *testing.T) {
 	assert.Equal(t, *createdToken2, tokens[1])
 }
 
-func TestCreateAPIToken(t *testing.T) {
+func TestTokenCreate(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -53,7 +53,7 @@ func TestCreateAPIToken(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestGetAPIToken(t *testing.T) {
+func TestTokenGet(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -61,20 +61,23 @@ func TestGetAPIToken(t *testing.T) {
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", Tokens: []models.Token{}}
+	token := &models.Token{
+		ID:       "tokenID",
+		TenantID: "tenant",
+		ReadOnly: false,
+	}
+
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", Tokens: []models.Token{*token}}
 
 	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
 
-	createdToken, err := mongostore.TokenCreate(ctx, namespace.TenantID)
+	returnedToken, err := mongostore.TokenGet(ctx, namespace.TenantID, token.ID)
 	assert.NoError(t, err)
-
-	returnedToken, err := mongostore.TokenGet(ctx, namespace.TenantID, createdToken.ID)
-	assert.NoError(t, err)
-	assert.Equal(t, createdToken, returnedToken)
+	assert.Equal(t, token, returnedToken)
 }
 
-func TestDeleteAPIToken(t *testing.T) {
+func TestTokenDelete(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
@@ -101,7 +104,7 @@ func TestDeleteAPIToken(t *testing.T) {
 	assert.Equal(t, len(tokens), 1)
 }
 
-func TestUpdateAPIToken(t *testing.T) {
+func TestTokenUpdate(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
