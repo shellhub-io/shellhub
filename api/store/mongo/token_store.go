@@ -58,15 +58,16 @@ func (s *Store) TokenGet(ctx context.Context, tenantID string, id string) (*mode
 		return nil, err
 	}
 
-	var token *models.Token
+	var token models.Token
 	for _, t := range tokens {
 		if t.ID == id {
-			*token = t
+			token = t
+
 			break
 		}
 	}
 
-	return token, nil
+	return &token, nil
 }
 
 func (s *Store) TokenDelete(ctx context.Context, tenantID string, id string) error {
