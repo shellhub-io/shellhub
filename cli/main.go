@@ -116,7 +116,7 @@ func main() {
 
 		&cobra.Command{
 			Use:   "add-user-namespace",
-			Short: "Usage: <username> <namespace> <type>",
+			Short: "Usage: <username> <namespace> <role>",
 			Args:  cobra.ExactArgs(3),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				ns, err := services.NamespaceAddMember(args[0], args[1], args[2])
@@ -126,7 +126,7 @@ func main() {
 
 				rootCmd.Println("User:", ns.Owner)
 				rootCmd.Println("added to namespace:", ns.Name)
-				rootCmd.Println("with type:", args[2])
+				rootCmd.Println("with role:", args[2])
 
 				return nil
 			},
