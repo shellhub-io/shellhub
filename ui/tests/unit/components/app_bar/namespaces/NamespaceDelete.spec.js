@@ -281,7 +281,11 @@ describe('NamespaceDelete', () => {
 
         it('Renders the template with data', async () => {
           Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            if (item === 'contentSubscription-p' && !hasAuthorization[currentrole] && test.computed.active) {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(!test.template[item]);
+            } else {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            }
           });
         });
       });
