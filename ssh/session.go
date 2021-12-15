@@ -389,6 +389,10 @@ func handleRequests(ctx context.Context, reqs <-chan *ssh.Request, c client.Clie
 	for {
 		select {
 		case req := <-reqs:
+			if req == nil {
+				break
+			}
+
 			switch req.Type {
 			case "keepalive":
 				if id, ok := ctx.Value(sshserver.ContextKeySessionID).(string); ok {
