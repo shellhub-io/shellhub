@@ -159,8 +159,6 @@ export const authorizer = {
       actions.namespace.removeMember,
       actions.namespace.enableSessionRecord,
       // Billing
-      actions.billing.subscribe,
-      actions.billing.unsubscribe,
       // Notification
       actions.notification.view,
     ],
