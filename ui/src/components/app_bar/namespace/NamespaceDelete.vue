@@ -34,7 +34,7 @@
 
         <v-card-text class="mt-4 mb-3 pb-1">
           <p
-            v-if="active && billInfo.amountDue !== null"
+            v-if="hasAuthorization && active && billInfo.amountDue !== null"
             data-test="contentSubscription-p"
           >
             Deleting the namespace will generate an invoice,
