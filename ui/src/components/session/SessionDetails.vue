@@ -39,42 +39,67 @@
 
         <v-spacer />
 
-        <v-card class="text elevation-0">
-          <v-list-item
-            v-if="session.recorded"
-            @click.stop="sessionPlayDialog = !sessionPlayDialog"
-          >
-            <SessionPlay
+        <v-menu
+          ref="menu"
+          offset-y
+        >
+          <template #activator="{ on, attrs }">
+            <v-chip
+              color="transparent"
+              v-on="on"
+            >
+              <v-icon
+                small
+                class="icons"
+                v-bind="attrs"
+                v-on="on"
+              >
+                mdi-dots-horizontal
+              </v-icon>
+            </v-chip>
+          </template>
+
+          <v-card>
+            <v-list-item
               v-if="session.recorded"
-              :uid="session.uid"
-              :recorded="session.authenticated && session.recorded"
-              :show.sync="sessionPlayDialog"
-              data-test="sessionPlay-component"
-            />
-          </v-list-item>
-        </v-card>
+              @click.stop="openDialog('sessionPlayDialog')"
+            >
+              <SessionPlay
+                v-if="session.recorded"
+                :uid="session.uid"
+                :recorded="session.authenticated && session.recorded"
+                :show.sync="sessionPlayDialog"
+                data-test="sessionPlay-component"
+              />
+            </v-list-item>
 
-        <v-card class="text elevation-0">
-          <v-list-item
-            v-if="session.active"
-            @click.stop="sessionCloseDialog = !sessionCloseDialog"
-          >
-            <SessionClose
-              :uid="session.uid"
-              :device="session.device_uid"
-              :show.sync="sessionCloseDialog"
-              data-test="sessionClose-component"
-              @update="refresh"
-            />
-          </v-list-item>
-        </v-card>
+            <v-list-item
+              v-if="session.active"
+              @click.stop="openDialog(sessionCloseDialog)"
+            >
+              <SessionClose
+                :uid="session.uid"
+                :device="session.device_uid"
+                :show.sync="sessionCloseDialog"
+                data-test="sessionClose-component"
+                @update="refresh"
+              />
+            </v-list-item>
 
-        <SessionDeleteRecord
-          v-if="session.recorded"
-          :uid="session.uid"
-          data-test="sessionDeleteRecord-component"
-          @update="refresh"
-        />
+            <v-list-item
+              v-if="session.recorded"
+              @click.stop="openDialog(sessionDeleteRecord)"
+            >
+              <SessionDeleteRecord
+                v-if="session.recorded"
+                :uid="session.uid"
+                :show.sync="sessionDeleteRecord"
+                data-test="sessionDeleteRecord-component"
+                @update="refresh"
+              />
+            </v-list-item>
+          </v-card>
+        </v-menu>
       </v-toolbar>
 
       <v-divider />
@@ -227,6 +252,7 @@ export default {
       dialog: false,
       sessionPlayDialog: false,
       sessionCloseDialog: false,
+      sessionDeleteRecord: false,
       hide: true,
     };
   },
@@ -256,6 +282,15 @@ export default {
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.sessionDetails);
       }
+    },
+
+    openDialog(action) {
+      this[action] = !this[action];
+      this.closeMenu();
+    },
+
+    closeMenu() {
+      this.$refs.menu.isActive = false;
     },
   },
 };

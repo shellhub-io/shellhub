@@ -16,13 +16,13 @@ exports[`SessionDetails Recorded is false and device is offline Renders the comp
 
       </v-toolbar-title-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
-      <v-card-stub loaderheight="4" tag="div" class="text elevation-0">
-        <!---->
-      </v-card-stub>
-      <v-card-stub loaderheight="4" tag="div" class="text elevation-0">
-        <!---->
-      </v-card-stub>
-      <!---->
+      <v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+        <v-card-stub loaderheight="4" tag="div">
+          <!---->
+          <!---->
+          <!---->
+        </v-card-stub>
+      </v-menu-stub>
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
     <v-card-text-stub tag="div">
@@ -112,15 +112,15 @@ exports[`SessionDetails Recorded is false and device is online Renders the compo
         39-5e-2a
       </v-toolbar-title-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
-      <v-card-stub loaderheight="4" tag="div" class="text elevation-0">
-        <!---->
-      </v-card-stub>
-      <v-card-stub loaderheight="4" tag="div" class="text elevation-0">
-        <v-list-item-stub activeclass="" tag="div">
-          <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
-        </v-list-item-stub>
-      </v-card-stub>
-      <!---->
+      <v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+        <v-card-stub loaderheight="4" tag="div">
+          <!---->
+          <v-list-item-stub activeclass="" tag="div">
+            <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
+          </v-list-item-stub>
+          <!---->
+        </v-card-stub>
+      </v-menu-stub>
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
     <v-card-text-stub tag="div">
@@ -210,17 +210,19 @@ exports[`SessionDetails Recorded is true and device is online Renders the compon
         39-5e-2a
       </v-toolbar-title-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
-      <v-card-stub loaderheight="4" tag="div" class="text elevation-0">
-        <v-list-item-stub activeclass="" tag="div">
-          <sessionplay-stub uid="8c354a00" recorded="true" data-test="sessionPlay-component"></sessionplay-stub>
-        </v-list-item-stub>
-      </v-card-stub>
-      <v-card-stub loaderheight="4" tag="div" class="text elevation-0">
-        <v-list-item-stub activeclass="" tag="div">
-          <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
-        </v-list-item-stub>
-      </v-card-stub>
-      <sessiondeleterecord-stub uid="8c354a00" data-test="sessionDeleteRecord-component"></sessiondeleterecord-stub>
+      <v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+        <v-card-stub loaderheight="4" tag="div">
+          <v-list-item-stub activeclass="" tag="div">
+            <sessionplay-stub uid="8c354a00" recorded="true" data-test="sessionPlay-component"></sessionplay-stub>
+          </v-list-item-stub>
+          <v-list-item-stub activeclass="" tag="div">
+            <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
+          </v-list-item-stub>
+          <v-list-item-stub activeclass="" tag="div">
+            <sessiondeleterecord-stub uid="8c354a00" data-test="sessionDeleteRecord-component"></sessiondeleterecord-stub>
+          </v-list-item-stub>
+        </v-card-stub>
+      </v-menu-stub>
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
     <v-card-text-stub tag="div">
