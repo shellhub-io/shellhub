@@ -154,7 +154,7 @@ exports[`SettingNamespace Hosted version administrator Renders the component 1`]
       </div>
       <div class="ml-auto mb-4 col-md-auto col">
         <fragment-stub data-test="namespaceDelete-component">
-          <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
+          <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
           Delete namespace
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
           <div role="dialog" class="v-dialog__container">
@@ -804,7 +804,7 @@ exports[`SettingNamespace Open version administrator Renders the component 1`] =
       </div>
       <div class="ml-auto mb-4 col-md-auto col">
         <fragment-stub data-test="namespaceDelete-component">
-          <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
+          <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
           Delete namespace
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
           <div role="dialog" class="v-dialog__container">

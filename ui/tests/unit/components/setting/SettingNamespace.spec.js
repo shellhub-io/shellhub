@@ -36,7 +36,7 @@ describe('SettingNamespace', () => {
 
   const hasAuthorizationDeleteNamespace = {
     owner: true,
-    administrator: true,
+    administrator: false,
     operator: false,
     observer: false,
   };
