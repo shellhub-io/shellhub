@@ -21,6 +21,7 @@
 
         <template #[`item.actions`]="{ item }">
           <v-menu
+            v-if="item.id !== namespace.owner"
             :ref="'menu'+members.indexOf(item)"
             offset-y
           >
