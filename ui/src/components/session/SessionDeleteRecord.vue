@@ -1,34 +1,37 @@
 <template>
   <fragment>
-    <v-tooltip bottom>
+    <v-tooltip
+      :disabled="hasAuthorization"
+      bottom
+    >
       <template #activator="{ on }">
+        <span v-on="on">
+          <v-list-item-title data-test="play-item">
+            Delete Session Record
+          </v-list-item-title>
+        </span>
+
         <span v-on="on">
           <v-icon
             :disabled="!hasAuthorization"
+            left
+            data-test="play-icon"
             v-on="on"
-            @click="dialog = !dialog"
           >
             mdi-playlist-remove
           </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="hasAuthorization"
-          data-test="text-tooltip"
-        >
-          Delete session record
-        </span>
-        <span v-else>
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span v-if="!hasAuthorization">
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="400"
+      @click:outside="close"
     >
       <v-card data-test="sessionDeleteRecord-card">
         <v-card-title class="headline grey lighten-2 text-center">
@@ -44,7 +47,7 @@
           <v-btn
             text
             data-test="cancel-btn"
-            @click="dialog=!dialog"
+            @click="close()"
           >
             Cancel
           </v-btn>
@@ -77,16 +80,30 @@ export default {
       type: String,
       required: true,
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
     return {
-      dialog: false,
+      // dialog: false,
       action: 'removeRecord',
     };
   },
 
   computed: {
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+      set(value) {
+        this.$emit('update:show', value);
+      },
+    },
+
     hasAuthorization() {
       const role = this.$store.getters['auth/role'];
       if (role !== '') {
@@ -110,6 +127,10 @@ export default {
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.sessionRemoveRecord);
       }
+    },
+
+    close() {
+      this.$emit('update:show', false);
     },
   },
 };
