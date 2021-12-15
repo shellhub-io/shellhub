@@ -87,7 +87,6 @@ var adminPermissions = permissions{
 	NamespaceRemoveMember,
 	NamespaceEditMember,
 	NamespaceEnableSessionRecord,
-	NamespaceDelete,
 }
 
 var ownerPermissions = permissions{
