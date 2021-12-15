@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -71,6 +72,7 @@ func (h *Handler) AuthRequest(c apicontext.Context) error {
 
 		c.Response().Header().Set("X-ID", claims.ID)
 		c.Response().Header().Set("X-Tenant-ID", claims.TenantID)
+		c.Response().Header().Set("X-Role", authorizer.MemberRoleToken)
 
 		return c.NoContent(http.StatusOK)
 	}

@@ -291,6 +291,12 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Namespace.RemoveMember,
 				authorizer.Actions.Namespace.EditMember,
 				authorizer.Actions.Namespace.EnableSessionRecord,
+
+				authorizer.Actions.Token.List,
+				authorizer.Actions.Token.Create,
+				authorizer.Actions.Token.Get,
+				authorizer.Actions.Token.Edit,
+				authorizer.Actions.Token.Remove,
 			},
 			requiredMocks: func() {
 			},
@@ -334,6 +340,12 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Billing.CancelSubscription,
 				authorizer.Actions.Billing.CreateSubscription,
 				authorizer.Actions.Billing.GetSubscription,
+
+				authorizer.Actions.Token.List,
+				authorizer.Actions.Token.Create,
+				authorizer.Actions.Token.Get,
+				authorizer.Actions.Token.Edit,
+				authorizer.Actions.Token.Remove,
 			},
 			requiredMocks: func() {
 			},

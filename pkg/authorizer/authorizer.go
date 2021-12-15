@@ -1,6 +1,7 @@
 package authorizer
 
 const (
+	MemberRoleToken         = "token"
 	MemberRoleObserver      = "observer"
 	MemberRoleOperator      = "operator"
 	MemberRoleAdministrator = "administrator"
@@ -10,7 +11,14 @@ const (
 // GetAllMemberRoles return a list with all member roles.
 // What out, when you add a new role, you need to add it to this return list.
 func GetAllMemberRoles() []string {
-	return []string{MemberRoleObserver, MemberRoleOperator, MemberRoleAdministrator, MemberRoleOwner}
+	// The position at this slice is important to define the role priority.
+	return []string{
+		MemberRoleToken,
+		MemberRoleObserver,
+		MemberRoleOperator,
+		MemberRoleAdministrator,
+		MemberRoleOwner,
+	}
 }
 
 func checkPermission(action int, permissions permissions) bool {
@@ -51,6 +59,8 @@ func EvaluateRole(firstRole, secondRole string) bool {
 // EvaluatePermission checks if the user's role has the permission to execute an action.
 func EvaluatePermission(userRole string, action int) bool {
 	switch userRole {
+	case MemberRoleToken:
+		return checkPermission(action, tokenPermission)
 	case MemberRoleObserver:
 		return checkPermission(action, observerPermissions)
 	case MemberRoleOperator:

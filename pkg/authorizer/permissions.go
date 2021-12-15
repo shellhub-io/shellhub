@@ -37,9 +37,20 @@ const (
 	BillingCreateSubscription
 	BillingGetPaymentMethod
 	BillingGetSubscription
+
+	TokenList
+	TokenCreate
+	TokenGet
+	TokenEdit
+	TokenRemove
 )
 
 type permissions []int
+
+var tokenPermission = permissions{
+	DeviceDetails,
+	SessionDetails,
+}
 
 var observerPermissions = permissions{
 	DeviceConnect,
@@ -87,6 +98,13 @@ var adminPermissions = permissions{
 	NamespaceRemoveMember,
 	NamespaceEditMember,
 	NamespaceEnableSessionRecord,
+	NamespaceDelete,
+
+	TokenList,
+	TokenCreate,
+	TokenGet,
+	TokenEdit,
+	TokenRemove,
 }
 
 var ownerPermissions = permissions{
@@ -125,4 +143,10 @@ var ownerPermissions = permissions{
 	BillingCancelSubscription,
 	BillingCreateSubscription,
 	BillingGetSubscription,
+
+	TokenList,
+	TokenCreate,
+	TokenGet,
+	TokenEdit,
+	TokenRemove,
 }

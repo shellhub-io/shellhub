@@ -10,6 +10,7 @@ type actions struct {
 	PublicKey publicKeyActions
 	Namespace namespaceActions
 	Billing   billingActions
+	Token     tokenActions
 }
 
 type deviceActions struct {
@@ -34,6 +35,10 @@ type namespaceActions struct {
 
 type billingActions struct {
 	ChooseDevices, AddPaymentMethod, UpdatePaymentMethod, RemovePaymentMethod, CancelSubscription, CreateSubscription, GetSubscription int
+}
+
+type tokenActions struct {
+	List, Create, Get, Edit, Remove int
 }
 
 // Actions has all available and allowed actions.
@@ -79,5 +84,12 @@ var Actions = actions{
 		CancelSubscription:  BillingCancelSubscription,
 		CreateSubscription:  BillingCreateSubscription,
 		GetSubscription:     BillingGetSubscription,
+	},
+	Token: tokenActions{
+		List:   TokenList,
+		Create: TokenCreate,
+		Get:    TokenGet,
+		Edit:   TokenEdit,
+		Remove: TokenRemove,
 	},
 }

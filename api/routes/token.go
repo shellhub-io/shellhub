@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -22,9 +24,17 @@ func (h *Handler) ListToken(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	tokens, err := h.service.ListToken(c.Ctx(), tenantID)
+	var tokens []models.Token
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Token.List, func() error {
+		var err error
+		tokens, err = h.service.ListToken(c.Ctx(), tenantID)
+
+		return err
+	})
 	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		default:
@@ -41,9 +51,15 @@ func (h *Handler) CreateToken(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	_, err := h.service.CreateToken(c.Ctx(), tenantID)
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Token.Create, func() error {
+		_, err := h.service.CreateToken(c.Ctx(), tenantID)
+
+		return err
+	})
 	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		default:
@@ -56,6 +72,8 @@ func (h *Handler) CreateToken(c apicontext.Context) error {
 	})
 	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrHashGeneration:
@@ -78,9 +96,17 @@ func (h *Handler) GetToken(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	token, err := h.service.GetToken(c.Ctx(), tenantID, c.Param("id"))
+	var token *models.Token
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Token.Get, func() error {
+		var err error
+		token, err = h.service.GetToken(c.Ctx(), tenantID, c.Param("id"))
+
+		return err
+	})
 	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrNotFound:
 			return c.NoContent(http.StatusNotFound)
 		default:
@@ -97,9 +123,15 @@ func (h *Handler) DeleteToken(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.DeleteToken(c.Ctx(), tenantID, c.Param("id"))
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Token.Remove, func() error {
+		err := h.service.DeleteToken(c.Ctx(), tenantID, c.Param("id"))
+
+		return err
+	})
 	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrNotFound:
 			return c.NoContent(http.StatusNotFound)
 		default:
@@ -124,9 +156,15 @@ func (h *Handler) UpdateToken(c apicontext.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := h.service.UpdateToken(c.Ctx(), tenantID, c.Param("id"), req.ReadOnly)
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Token.Remove, func() error {
+		err := h.service.UpdateToken(c.Ctx(), tenantID, c.Param("id"), req.ReadOnly)
+
+		return err
+	})
 	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrNotFound:
 			return c.NoContent(http.StatusNotFound)
 		default:
