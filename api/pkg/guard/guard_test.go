@@ -291,7 +291,6 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Namespace.RemoveMember,
 				authorizer.Actions.Namespace.EditMember,
 				authorizer.Actions.Namespace.EnableSessionRecord,
-				authorizer.Actions.Namespace.Delete,
 			},
 			requiredMocks: func() {
 			},
