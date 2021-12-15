@@ -210,7 +210,7 @@ export default {
 
       try {
         await this.$store.dispatch('devices/postDevicesChooser', { choices });
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceChoose);
+        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceChooser);
 
         this.$store.dispatch('devices/refresh');
 
