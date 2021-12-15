@@ -225,6 +225,8 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRo
 		for _, memberSearch := range namespace.Members {
 			if memberSearch.ID == member.ID {
 				memberFound = memberSearch
+
+				break
 			}
 		}
 		if memberFound.ID == "" || memberFound.Role == "" {
@@ -274,6 +276,8 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 		for _, memberSearch := range namespace.Members {
 			if memberSearch.ID == member.ID {
 				memberFound = memberSearch
+
+				break
 			}
 		}
 		if memberFound.ID == "" || memberFound.Role == "" {
@@ -319,6 +323,8 @@ func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, membe
 		for _, memberSearch := range namespace.Members {
 			if memberSearch.ID == member.ID {
 				memberFound = memberSearch
+
+				break
 			}
 		}
 		if memberFound.ID == "" || memberFound.Role == "" {
