@@ -23,15 +23,12 @@ describe('DeviceDelete', () => {
   const tests = [
     {
       description: 'Icon',
-      variables: {
-        dialog: false,
-      },
       props: {
         uid: 'a582b47a42d',
         redirect: false,
+        show: false,
       },
       data: {
-        dialog: false,
         action: 'remove',
       },
       template: {
@@ -42,15 +39,12 @@ describe('DeviceDelete', () => {
     },
     {
       description: 'Dialog without redirect',
-      variables: {
-        dialog: true,
-      },
       props: {
         uid: 'a582b47a42d',
         redirect: false,
+        show: true,
       },
       data: {
-        dialog: true,
         action: 'remove',
       },
       template: {
@@ -61,15 +55,12 @@ describe('DeviceDelete', () => {
     },
     {
       description: 'Dialog with redirect',
-      variables: {
-        dialog: true,
-      },
       props: {
         uid: 'a582b47a42d',
         redirect: true,
+        show: true,
       },
       data: {
-        dialog: true,
         action: 'remove',
       },
       template: {
@@ -103,15 +94,17 @@ describe('DeviceDelete', () => {
             store: storeVuex(currentrole),
             localVue,
             stubs: ['fragment'],
-            propsData: { uid: test.props.uid, redirect: test.props.redirect },
+            propsData: {
+              uid: test.props.uid,
+              redirect: test.props.redirect,
+              show: test.props.show,
+            },
             vuetify,
             mocks: {
               $authorizer: authorizer,
               $actions: actions,
             },
           });
-
-          wrapper.setData({ dialog: test.variables.dialog });
         });
 
         ///////
@@ -149,26 +142,13 @@ describe('DeviceDelete', () => {
 
         it('Renders the template with data', () => {
           Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            if (!hasAuthorization[currentrole] && currentrole === 'operator' && test.props.show) {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(!test.template[item]);
+            } else {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            }
           });
         });
-
-        if (!test.data.dialog) {
-          if (hasAuthorization[currentrole]) {
-            it('Show message tooltip user has permission', async (done) => {
-              const icons = wrapper.findAll('.v-icon');
-              const helpIcon = icons.at(0);
-              helpIcon.trigger('mouseenter');
-              await wrapper.vm.$nextTick();
-
-              expect(icons.length).toBe(1);
-              requestAnimationFrame(() => {
-                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Remove');
-                done();
-              });
-            });
-          }
-        }
       });
     });
   });

@@ -54,7 +54,7 @@ describe('TerminalDialog', () => {
         store,
         localVue,
         stubs: ['fragment'],
-        propsData: { uid: '' },
+        propsData: { uid: '', show: false },
         vuetify,
       });
     });
@@ -77,6 +77,7 @@ describe('TerminalDialog', () => {
 
     it('Receive data in props', () => {
       expect(wrapper.vm.uid).toEqual('');
+      expect(wrapper.vm.show).toEqual(false);
     });
     it('Compare data with default value', () => {
       wrapper.setData({ rules });
@@ -89,6 +90,7 @@ describe('TerminalDialog', () => {
       expect(wrapper.vm.tabs).toEqual(tabs);
     });
     it('Receive data in computed', () => {
+      expect(wrapper.vm.showTerminal).toEqual(false);
       expect(wrapper.vm.show).toEqual(false);
       expect(wrapper.vm.getListPrivateKeys).toEqual(privateKeys);
     });
@@ -97,26 +99,13 @@ describe('TerminalDialog', () => {
 
       await wrapper.vm.$options.watch.show.call(wrapper.vm, false);
 
-      expect(wrapper.vm.username).toEqual('');
-      expect(wrapper.vm.passwd).toEqual('');
+      expect(wrapper.vm.username).toEqual(username);
+      expect(wrapper.vm.passwd).toEqual(passwd);
     });
 
     //////
     // HTML validation
     //////
-
-    it('Show message tooltip', async (done) => {
-      const icons = wrapper.findAll('.v-icon');
-      const helpIcon = icons.at(0);
-      helpIcon.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(icons.length).toBe(1);
-      requestAnimationFrame(() => {
-        expect(wrapper.find('[data-test="console-tooltip"]').text()).toEqual('Terminal');
-        done();
-      });
-    });
 
     it('Renders the template with data', () => {
       expect(wrapper.find('[data-test="terminal-dialog"]').exists()).toBe(false);
@@ -133,7 +122,7 @@ describe('TerminalDialog', () => {
         store,
         localVue,
         stubs: ['fragment'],
-        propsData: { uid },
+        propsData: { uid, show: true },
         vuetify,
       });
     });
@@ -156,6 +145,7 @@ describe('TerminalDialog', () => {
 
     it('Receive data in props', () => {
       expect(wrapper.vm.uid).toEqual(uid);
+      expect(wrapper.vm.show).toEqual(true);
     });
     it('Compare data with default value', () => {
       wrapper.setData({ rules });
@@ -168,6 +158,7 @@ describe('TerminalDialog', () => {
       expect(wrapper.vm.tabs).toEqual(tabs);
     });
     it('Receive data in computed', () => {
+      expect(wrapper.vm.showTerminal).toEqual(true);
       expect(wrapper.vm.show).toEqual(true);
       expect(wrapper.vm.getListPrivateKeys).toEqual(privateKeys);
     });
@@ -175,8 +166,8 @@ describe('TerminalDialog', () => {
       wrapper.setData({ username, passwd });
       await wrapper.vm.$options.watch.show.call(wrapper.vm, false);
 
-      expect(wrapper.vm.username).toEqual('');
-      expect(wrapper.vm.passwd).toEqual('');
+      expect(wrapper.vm.username).toEqual(username);
+      expect(wrapper.vm.passwd).toEqual(passwd);
     });
 
     //////
