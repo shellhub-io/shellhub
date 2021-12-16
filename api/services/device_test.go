@@ -786,8 +786,7 @@ func TestDeviceHeartbeat(t *testing.T) {
 
 	clockMock.On("Now").Return(now).Once()
 
-	mock.On("DeviceUpdateLastSeen", ctx, uid, now).Return(nil).Once()
-	mock.On("DeviceUpdateOnline", ctx, uid, true).Return(nil).Once()
+	mock.On("DeviceSetOnline", ctx, uid, true).Return(nil).Once()
 
 	err := s.DeviceHeartbeat(ctx, uid)
 	assert.NoError(t, err)
