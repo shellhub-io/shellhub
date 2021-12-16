@@ -5,8 +5,11 @@
       bottom
     >
       <template #activator="{ on }">
-        <span>
-          <v-list-item-title data-test="close-item">
+        <span v-on="on">
+          <v-list-item-title
+            data-test="close-item"
+            v-on="on"
+          >
             Close
           </v-list-item-title>
         </span>
