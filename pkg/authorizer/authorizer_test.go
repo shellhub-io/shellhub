@@ -15,28 +15,28 @@ func TestEvaluateRole(t *testing.T) {
 			name: "Fail when the first role is not great than the second one",
 			exec: func(t *testing.T) {
 				t.Helper()
-				assert.False(t, EvaluateRole(MemberRoleAdministrator, MemberRoleOwner))
+				assert.False(t, CheckRole(MemberRoleAdministrator, MemberRoleOwner))
 			},
 		},
 		{
 			name: "Fail when a role is not valid",
 			exec: func(t *testing.T) {
 				t.Helper()
-				assert.False(t, EvaluateRole("invalidRole", MemberRoleOperator))
+				assert.False(t, CheckRole("invalidRole", MemberRoleOperator))
 			},
 		},
 		{
 			name: "Fail when both roles are equals",
 			exec: func(t *testing.T) {
 				t.Helper()
-				assert.False(t, EvaluateRole(MemberRoleOperator, MemberRoleOperator))
+				assert.False(t, CheckRole(MemberRoleOperator, MemberRoleOperator))
 			},
 		},
 		{
 			name: "Success when the first role is great than the second one",
 			exec: func(t *testing.T) {
 				t.Helper()
-				assert.True(t, EvaluateRole(MemberRoleAdministrator, MemberRoleOperator))
+				assert.True(t, CheckRole(MemberRoleAdministrator, MemberRoleOperator))
 			},
 		},
 	}
@@ -85,7 +85,7 @@ func TestEvaluatePermission(t *testing.T) {
 				t.Helper()
 				ty := "observer"
 				action := Actions.Firewall.Create
-				assert.False(t, EvaluatePermission(ty, action))
+				assert.False(t, CheckPermission(ty, action))
 			},
 		},
 		{
@@ -94,7 +94,7 @@ func TestEvaluatePermission(t *testing.T) {
 				t.Helper()
 				ty := "owner"
 				action := Actions.Firewall.Create
-				assert.True(t, EvaluatePermission(ty, action))
+				assert.True(t, CheckPermission(ty, action))
 			},
 		},
 	}

@@ -1,3 +1,4 @@
+// Package authorizer is a hard coded package that contains the roles, actions, permissions and function related to ShellHub's API.
 package authorizer
 
 const (
@@ -7,13 +8,24 @@ const (
 	MemberRoleOwner         = "owner"
 )
 
-// GetAllMemberRoles return a list with all member roles.
-// What out, when you add a new role, you need to add it to this return list.
-func GetAllMemberRoles() []string {
-	return []string{MemberRoleObserver, MemberRoleOperator, MemberRoleAdministrator, MemberRoleOwner}
+// rolePermission is mapping role to its Permissions.
+var rolePermission = map[string]Permissions{
+	MemberRoleObserver:      observerPermissions,
+	MemberRoleOperator:      operatorPermissions,
+	MemberRoleAdministrator: adminPermissions,
+	MemberRoleOwner:         ownerPermissions,
 }
 
-func checkPermission(action int, permissions permissions) bool {
+// roleCode is mapping role to its code.
+// 1 has the lowest priority.
+var roleCode = map[string]int{
+	MemberRoleObserver:      1,
+	MemberRoleOperator:      2,
+	MemberRoleAdministrator: 3,
+	MemberRoleOwner:         4,
+}
+
+func checkPermission(action int, permissions Permissions) bool {
 	for _, permission := range permissions {
 		if permission == action {
 			return true
@@ -25,19 +37,17 @@ func checkPermission(action int, permissions permissions) bool {
 
 // GetRoleCode converts a member's role to an int.
 func GetRoleCode(role string) int {
-	roles := GetAllMemberRoles()
-	for code, roleSearch := range roles {
-		if role == roleSearch {
-			return code
-		}
+	code := roleCode[role]
+	if code != 0 {
+		return code
 	}
 
 	// return -1 when member role is not valid.
 	return -1
 }
 
-// EvaluateRole checks if the first role has a great value than second.
-func EvaluateRole(firstRole, secondRole string) bool {
+// CheckRole checks if the first role has a great value than second.
+func CheckRole(firstRole, secondRole string) bool {
 	firstRoleCode := GetRoleCode(firstRole)
 	secondRoleCode := GetRoleCode(secondRole)
 
@@ -48,17 +58,11 @@ func EvaluateRole(firstRole, secondRole string) bool {
 	return firstRoleCode > secondRoleCode
 }
 
-// EvaluatePermission checks if the user's role has the permission to execute an action.
-func EvaluatePermission(userRole string, action int) bool {
-	switch userRole {
-	case MemberRoleObserver:
-		return checkPermission(action, observerPermissions)
-	case MemberRoleOperator:
-		return checkPermission(action, operatorPermissions)
-	case MemberRoleAdministrator:
-		return checkPermission(action, adminPermissions)
-	case MemberRoleOwner:
-		return checkPermission(action, ownerPermissions)
+// CheckPermission checks if the user's role has the permission to execute an action.
+func CheckPermission(userRole string, action int) bool {
+	rolePermission := rolePermission[userRole]
+	if rolePermission != nil {
+		return checkPermission(action, rolePermission)
 	}
 
 	return false
