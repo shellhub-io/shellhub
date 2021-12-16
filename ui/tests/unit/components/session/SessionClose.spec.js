@@ -138,15 +138,13 @@ describe('SessionClose', () => {
         //////
 
         it('Renders the template with data', () => {
-          if (hasAuthorization[currentrole]) {
-            Object.keys(test.template).forEach((item) => {
+          Object.keys(test.template).forEach((item) => {
+            if (!hasAuthorization[currentrole] && currentrole === 'operator' && test.props.show) {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(!test.template[item]);
+            } else {
               expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-            });
-          } else if (!test.props.show) {
-            Object.keys(test.template).forEach((item) => {
-              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-            });
-          }
+            }
+          });
         });
       });
     });
