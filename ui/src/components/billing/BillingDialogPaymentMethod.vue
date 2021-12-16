@@ -23,10 +23,19 @@
 
         <v-card-text class="mt-4 mb-3 pb-1">
           <div v-if="typeOperation === 'subscription'">
-            <h4>Subscribe to premium plan</h4>
-            <p>
-              The amount charged will be based on the device usage.
-            </p>
+            <div data-test="subscription-description">
+              <h4>Subscribe to premium plan</h4>
+              <p data-test="subscription-message">
+                The subscription is charged monthly, based on the number of devices
+                you have in your namespace.
+              </p>
+              <div>
+                <b>
+                  Estimated cost:
+                </b>
+                {{ currentQuantity }} devices : {{ priceEstimator(currentQuantity) }} / month
+              </div>
+            </div>
           </div>
 
           <v-card class="mt-6">
@@ -80,11 +89,12 @@
 <script>
 
 import capitalizeFirstLetter from '@/components/filter/string';
+import formatCurrency from '@/components/filter/currency';
 
 export default {
   name: 'BillingDialogPaymentMethodComponent',
 
-  filters: { capitalizeFirstLetter },
+  filters: { capitalizeFirstLetter, formatCurrency },
 
   props: {
     typeOperation: {
@@ -105,6 +115,10 @@ export default {
   },
 
   computed: {
+    currentQuantity() {
+      return this.$store.getters['stats/stats'].registered_devices;
+    },
+
     requestWaiting() {
       return this.$store.getters['spinner/getStatus'];
     },
@@ -119,6 +133,26 @@ export default {
   },
 
   methods: {
+    priceEstimator(n) {
+      let sumPrice = 0;
+
+      const ranges = [3, 10, 25, 40, 55, 70, 85, 100,
+        115, 130, 145, 160, 175, 190, Infinity];
+      const ks = [3, 2.91, 2.82, 2.74, 2.66, 2.58, 2.50,
+        2.42, 2.35, 2.28, 2.21, 2.15, 2.08, 2.02, 2.00];
+
+      const tiers = Array.from({ length: ks.length - 1 },
+        (_, i) => ({ begin: ranges[i], upTo: ranges[i + 1], k: ks[i] }));
+
+      tiers.forEach((t) => {
+        if (n > t.begin) {
+          sumPrice += ((n <= t.upTo) ? (n - t.begin) : (t.upTo - t.begin)) * t.k;
+        }
+      });
+
+      return formatCurrency(String(sumPrice * 100));
+    },
+
     typeTitle(type) {
       switch (type) {
       case 'subscription':
