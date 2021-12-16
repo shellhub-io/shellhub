@@ -13,14 +13,18 @@ exports[`DeviceDetails Offline Renders the component 1`] = `
         <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active 2 years ago</span></v-tooltip-stub>
         39-5e-2a
       </v-toolbar-title-stub>
-      <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
-      <!---->
-      <v-list-stub tag="div">
-        <v-list-item-stub activeclass="" tag="div">
-          <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
-        </v-list-item-stub>
-      </v-list-stub>
+      <v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+        <v-card-stub loaderheight="4" tag="div">
+          <v-list-item-stub activeclass="" tag="div">
+            <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
+          </v-list-item-stub>
+          <!---->
+          <v-list-item-stub activeclass="" tag="div">
+            <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
+          </v-list-item-stub>
+        </v-card-stub>
+      </v-menu-stub>
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
     <v-card-text-stub tag="div">
@@ -95,18 +99,20 @@ exports[`DeviceDetails Online Renders the component 1`] = `
         </v-icon-stub>
         39-5e-2a
       </v-toolbar-title-stub>
-      <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
-      <v-list-stub tag="div">
-        <v-list-item-stub activeclass="" tag="div">
-          <terminaldialog-stub uid="a582b47a" data-test="terminalDialog-component"></terminaldialog-stub>
-        </v-list-item-stub>
-      </v-list-stub>
-      <v-list-stub tag="div">
-        <v-list-item-stub activeclass="" tag="div">
-          <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
-        </v-list-item-stub>
-      </v-list-stub>
+      <v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+        <v-card-stub loaderheight="4" tag="div">
+          <v-list-item-stub activeclass="" tag="div">
+            <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
+          </v-list-item-stub>
+          <v-list-item-stub activeclass="" tag="div">
+            <terminaldialog-stub uid="a582b47a" data-test="terminalDialog-component"></terminaldialog-stub>
+          </v-list-item-stub>
+          <v-list-item-stub activeclass="" tag="div">
+            <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
+          </v-list-item-stub>
+        </v-card-stub>
+      </v-menu-stub>
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
     <v-card-text-stub tag="div">

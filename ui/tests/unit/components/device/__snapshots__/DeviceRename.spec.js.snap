@@ -1,19 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DeviceRename Dialog operator Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-pencil theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+<fragment-stub><span><div data-test="rename-item" class="v-list-item__title">
+          Rename
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="rename-icon" class="v-icon notranslate v-icon--left mdi mdi-pencil theme--light"></i></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
 exports[`DeviceRename Dialog owner Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-pencil theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+<fragment-stub><span><div data-test="rename-item" class="v-list-item__title">
+          Rename
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="rename-icon" class="v-icon notranslate v-icon--left mdi mdi-pencil theme--light"></i></span>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
 exports[`DeviceRename Icon operator Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-pencil theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+<fragment-stub><span><div data-test="rename-item" class="v-list-item__title">
+          Rename
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="rename-icon" class="v-icon notranslate v-icon--left mdi mdi-pencil theme--light"></i></span>
   <div role="dialog" class="v-dialog__container">
     <!---->
   </div>
@@ -21,7 +27,9 @@ exports[`DeviceRename Icon operator Renders the component 1`] = `
 `;
 
 exports[`DeviceRename Icon owner Renders the component 1`] = `
-<fragment-stub><span><button type="button" class="v-icon notranslate v-icon--link mdi mdi-pencil theme--light"></button></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+<fragment-stub><span><div data-test="rename-item" class="v-list-item__title">
+          Rename
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="rename-icon" class="v-icon notranslate v-icon--left mdi mdi-pencil theme--light"></i></span>
   <div role="dialog" class="v-dialog__container">
     <!---->
   </div>

@@ -1,36 +1,40 @@
 <template>
   <fragment>
-    <v-tooltip bottom>
+    <v-tooltip
+      :disabled="hasAuthorization"
+      bottom
+    >
       <template #activator="{ on }">
+        <span v-on="on">
+          <v-list-item-title
+            data-test="rename-item"
+            v-on="on"
+          >
+            Rename
+          </v-list-item-title>
+        </span>
+
         <span v-on="on">
           <v-icon
             :disabled="!hasAuthorization"
+            left
+            data-test="rename-icon"
             v-on="on"
-            @click="dialog = !dialog"
           >
             mdi-pencil
           </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="hasAuthorization"
-          data-test="text-tooltip"
-        >
-          Edit
-        </span>
-
-        <span v-else>
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span v-if="!hasAuthorization">
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="450"
-      @click:outside="cancel"
+      @click:outside="close"
     >
       <v-card data-test="deviceRename-card">
         <v-card-title class="headline grey lighten-2 text-center">
@@ -63,7 +67,7 @@
             <v-btn
               text
               data-test="cancel-btn"
-              @click="cancel"
+              @click="close()"
             >
               Close
             </v-btn>
@@ -111,11 +115,15 @@ export default {
       type: String,
       required: true,
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
     return {
-      dialog: false,
       invalid: false,
       editName: '',
       messages: 'Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)',
@@ -130,6 +138,15 @@ export default {
           name: this.name,
           uid: this.uid,
         };
+      },
+    },
+
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+      set(value) {
+        this.$emit('update:show', value);
       },
     },
 
@@ -167,7 +184,8 @@ export default {
           uid: this.device.uid,
           name: this.editName,
         });
-        this.dialog = false;
+
+        this.close();
         this.$emit('new-hostname', this.editName);
         this.editName = '';
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceRename);
@@ -184,6 +202,10 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceRename);
         }
       }
+    },
+
+    close() {
+      this.$emit('update:show', false);
     },
   },
 };

@@ -40,15 +40,12 @@ describe('DeviceRename', () => {
   const tests = [
     {
       description: 'Icon',
-      variables: {
-        dialog: false,
-      },
       props: {
         name,
         uid,
+        show: false,
       },
       data: {
-        dialog: false,
         invalid: false,
         editName: name,
         messages: 'Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)',
@@ -74,9 +71,9 @@ describe('DeviceRename', () => {
       props: {
         name,
         uid,
+        show: true,
       },
       data: {
-        dialog: true,
         invalid: false,
         editName: name,
         messages: 'Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)',
@@ -119,15 +116,17 @@ describe('DeviceRename', () => {
             store: storeVuex(currentrole),
             localVue,
             stubs: ['fragment'],
-            propsData: { name: test.props.name, uid: test.props.uid },
+            propsData: {
+              name: test.props.name,
+              uid: test.props.uid,
+              show: test.props.show,
+            },
             vuetify,
             mocks: {
               $authorizer: authorizer,
               $actions: actions,
             },
           });
-
-          wrapper.setData({ dialog: test.variables.dialog });
         });
 
         ///////
@@ -168,7 +167,11 @@ describe('DeviceRename', () => {
 
         it('Renders the template with data', () => {
           Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            if (!hasAuthorization[currentrole] && currentrole === 'operator' && test.props.show) {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(!test.template[item]);
+            } else {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            }
           });
         });
 
@@ -177,22 +180,7 @@ describe('DeviceRename', () => {
         // - And the second, when the dialog is tested;
         /// ///
 
-        if (!test.data.dialog) {
-          if (hasAuthorization[currentrole]) {
-            it('Show message tooltip user has permission', async (done) => {
-              const icons = wrapper.findAll('.v-icon');
-              const helpIcon = icons.at(0);
-              helpIcon.trigger('mouseenter');
-              await wrapper.vm.$nextTick();
-
-              expect(icons.length).toBe(1);
-              requestAnimationFrame(() => {
-                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Edit');
-                done();
-              });
-            });
-          }
-        } else if (hasAuthorization[currentrole]) {
+        if (hasAuthorization[currentrole] && test.props.show) {
           //////
           // In this case, the empty fields are validated.
           //////
