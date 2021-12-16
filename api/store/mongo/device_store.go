@@ -22,6 +22,20 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 
 	query := []bson.M{
 		{
+
+			"$lookup": bson.M{
+				"from":         "connected_devices",
+				"localField":   "uid",
+				"foreignField": "uid",
+				"as":           "online",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"online": bson.M{"$anyElementTrue": []interface{}{"$online"}},
+			},
+		},
+		{
 			"$lookup": bson.M{
 				"from":         "namespaces",
 				"localField":   "tenant_id",
@@ -112,6 +126,19 @@ func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, 
 		},
 		{
 			"$lookup": bson.M{
+				"from":         "connected_devices",
+				"localField":   "uid",
+				"foreignField": "uid",
+				"as":           "online",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"online": bson.M{"$anyElementTrue": []interface{}{"$online"}},
+			},
+		},
+		{
+			"$lookup": bson.M{
 				"from":         "namespaces",
 				"localField":   "tenant_id",
 				"foreignField": "tenant_id",
@@ -163,7 +190,11 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 		logrus.Error(err)
 	}
 
-	_, err := s.db.Collection("sessions").DeleteMany(ctx, bson.M{"device_uid": uid})
+	if _, err := s.db.Collection("sessions").DeleteMany(ctx, bson.M{"device_uid": uid}); err != nil {
+		return fromMongoError(err)
+	}
+
+	_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
 
 	return fromMongoError(err)
 }
@@ -222,10 +253,27 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 		return fromMongoError(err)
 	}
 
+	if !online {
+		_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
+
+		return fromMongoError(err)
+	}
+
 	device.LastSeen = clock.Now()
 	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"online": online, "last_seen": device.LastSeen}}, opts)
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"last_seen": device.LastSeen}}, opts)
 	if err != nil {
+		return fromMongoError(err)
+	}
+
+	cd := &models.ConnectedDevice{
+		UID:      device.UID,
+		TenantID: device.TenantID,
+		LastSeen: clock.Now(),
+		Status:   device.Status,
+	}
+
+	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
 		return fromMongoError(err)
 	}
 
@@ -253,6 +301,17 @@ func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status s
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"status": status}}, opts)
 	if err != nil {
+		return fromMongoError(err)
+	}
+
+	cd := &models.ConnectedDevice{
+		UID:      device.UID,
+		TenantID: device.TenantID,
+		LastSeen: clock.Now(),
+		Status:   status,
+	}
+
+	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
 		return fromMongoError(err)
 	}
 

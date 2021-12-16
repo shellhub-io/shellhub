@@ -67,7 +67,7 @@ func TestMigration17(t *testing.T) {
 		DeviceUID: "1",
 	}
 
-	connectedDevice := connectedDevice{
+	connectedDevice := models.ConnectedDevice{
 		UID: "1",
 	}
 
