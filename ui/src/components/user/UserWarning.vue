@@ -82,7 +82,7 @@ export default {
 
     async showDialogs() {
       try {
-        await this.getNamespaces();
+        await this.$store.dispatch('namespaces/fetch');
 
         if (this.hasNamespaces) {
           await this.$store.dispatch('stats/get');
@@ -95,40 +95,13 @@ export default {
           // This shows the namespace instructions when the user has no namespace
           this.showInstructions = true;
         }
-      } catch (error) {
-        switch (true) {
-        case (error.response.status === 403): {
-          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
-          break;
-        }
-        default: {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.dashboard);
-        }
-        }
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceList);
       }
     },
 
     isBillingEnabled() {
       return this.$env.billingEnable;
-    },
-
-    async getNamespaces() {
-      try {
-        await this.$store.dispatch('namespaces/fetch');
-      } catch (error) {
-        switch (true) {
-        case (!this.inANamespace && error.response.status === 403): { // dialog pops
-          break;
-        }
-        case (error.response.status === 403): {
-          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
-          break;
-        }
-        default: {
-          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceList);
-        }
-        }
-      }
     },
 
     async billingWarning() {
