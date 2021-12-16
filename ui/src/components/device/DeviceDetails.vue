@@ -34,35 +34,61 @@
           </v-tooltip>
           {{ device.name }}
         </v-toolbar-title>
-        <DeviceRename
-          :name="device.name"
-          :uid="device.uid"
-          data-test="deviceRename-component"
-          @newHostname="receiveName"
-        />
 
         <v-spacer />
 
-        <v-list v-if="device.online">
-          <v-list-item @click="terminalDialogShow = !terminalDialogShow">
-            <TerminalDialog
-              :uid="device.uid"
-              :show="terminalDialogShow"
-              data-test="terminalDialog-component"
-            />
-          </v-list-item>
-        </v-list>
+        <v-menu
+          ref="menu"
+          offset-y
+        >
+          <template #activator="{ on, attrs }">
+            <v-chip
+              color="transparent"
+              v-on="on"
+            >
+              <v-icon
+                small
+                class="icons"
+                v-bind="attrs"
+                v-on="on"
+              >
+                mdi-dots-horizontal
+              </v-icon>
+            </v-chip>
+          </template>
 
-        <v-list>
-          <v-list-item @click="deviceDeleteShow = !deviceDeleteShow">
-            <DeviceDelete
-              :uid="device.uid"
-              :redirect="true"
-              :show="deviceDeleteShow"
-              data-test="deviceDelete-component"
-            />
-          </v-list-item>
-        </v-list>
+          <v-card>
+            <v-list-item @click.stop="openDialog('deviceRenameShow')">
+              <DeviceRename
+                :name="device.name"
+                :uid="device.uid"
+                :show.sync="deviceRenameShow"
+                data-test="deviceRename-component"
+                @newHostname="receiveName"
+              />
+            </v-list-item>
+
+            <v-list-item
+              v-if="device.online"
+              @click.stop="openDialog('terminalDialogShow')"
+            >
+              <TerminalDialog
+                :uid="device.uid"
+                :show.sync="terminalDialogShow"
+                data-test="terminalDialog-component"
+              />
+            </v-list-item>
+
+            <v-list-item @click.stop="openDialog('deviceDeleteShow')">
+              <DeviceDelete
+                :uid="device.uid"
+                :redirect="true"
+                :show.sync="deviceDeleteShow"
+                data-test="deviceDelete-component"
+              />
+            </v-list-item>
+          </v-card>
+        </v-menu>
       </v-toolbar>
 
       <v-divider />
@@ -198,6 +224,7 @@ export default {
       dialogError: false,
       list: [],
       oldList: [],
+      deviceRenameShow: false,
       deviceDeleteShow: false,
       terminalDialogShow: false,
     };
@@ -276,6 +303,16 @@ export default {
         }
       }
       return false;
+    },
+
+    openDialog(action) {
+      this[action] = !this[action];
+
+      this.closeMenu();
+    },
+
+    closeMenu() {
+      this.$refs.menu.isActive = false;
     },
   },
 };
