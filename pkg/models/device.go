@@ -14,7 +14,7 @@ type Device struct {
 	PublicKey  string          `json:"public_key" bson:"public_key"`
 	TenantID   string          `json:"tenant_id" bson:"tenant_id"`
 	LastSeen   time.Time       `json:"last_seen" bson:"last_seen"`
-	Online     bool            `json:"online" bson:"online"`
+	Online     bool            `json:"online" bson:",omitempty"`
 	Namespace  string          `json:"namespace" bson:",omitempty"`
 	Status     string          `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused`
 	CreatedAt  time.Time       `json:"created_at" bson:"created_at,omitempty"`
@@ -60,6 +60,13 @@ type DeviceInfo struct {
 	Version    string `json:"version"`
 	Arch       string `json:"arch"`
 	Platform   string `json:"platform"`
+}
+
+type ConnectedDevice struct {
+	UID      string    `json:"uid"`
+	TenantID string    `json:"tenant_id" bson:"tenant_id"`
+	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+	Status   string    `json:"status" bson:"status"`
 }
 
 type DevicePosition struct {
