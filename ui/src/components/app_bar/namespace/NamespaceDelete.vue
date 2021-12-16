@@ -154,6 +154,7 @@ export default {
         this.dialog = !this.dialog;
         await this.$store.dispatch('namespaces/remove', this.tenant);
         await this.$store.dispatch('auth/logout');
+        await this.$store.dispatch('layout/setLayout', 'simpleLayout');
         await this.$router.push({ name: 'login' });
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceDelete);
       } catch {
