@@ -27,20 +27,6 @@ describe('SettingNamespace', () => {
     observer: false,
   };
 
-  const hasAuthorizationRemoveUser = {
-    owner: true,
-    administrator: true,
-    operator: false,
-    observer: false,
-  };
-
-  const hasAuthorizationDeleteNamespace = {
-    owner: true,
-    administrator: false,
-    operator: false,
-    observer: false,
-  };
-
   const members = [
     {
       id: 'xxxxxxxx',
@@ -221,10 +207,6 @@ describe('SettingNamespace', () => {
           });
           expect(wrapper.vm.hasAuthorizationRenameNamespace)
             .toEqual(hasAuthorizationRenameNamespace[currentrole]);
-          expect(wrapper.vm.hasAuthorizationRemoveUser)
-            .toEqual(hasAuthorizationRemoveUser[currentrole]);
-          expect(wrapper.vm.hasAuthorizationDeleteNamespace)
-            .toEqual(hasAuthorizationDeleteNamespace[currentrole]);
         });
         it('Process data in methods', () => {
           let percent = 0;
