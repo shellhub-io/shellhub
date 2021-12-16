@@ -14,14 +14,17 @@ describe('BillingDialogPaymentMethod', () => {
 
   const typeOperation = 'subscription';
   const hasSpinner = false;
+  const stats = { registered_devices: 36 };
 
   const store = new Vuex.Store({
     namespaced: true,
     state: {
       hasSpinner,
+      stats,
     },
     getters: {
       'spinner/getStatus': (state) => state.hasSpinner,
+      'stats/stats': (state) => state.stats,
     },
     actions: {
       'billing/subscritionPaymentMethod': () => {},
@@ -126,6 +129,16 @@ describe('BillingDialogPaymentMethod', () => {
       expect(wrapper.vm.elements).toEqual(null);
       expect(wrapper.vm.lockButton).toEqual(false);
     });
+    it('Process data in methods', () => {
+      const priceTable = {
+        22: 55.92,
+        123: 319.25,
+        171: 426.70,
+      };
+      Reflect.ownKeys(priceTable).forEach((k) => {
+        expect(wrapper.vm.priceEstimator(parseInt(k, 10))).toContain(priceTable[k]);
+      });
+    });
 
     //////
     // HTML validation
@@ -137,6 +150,12 @@ describe('BillingDialogPaymentMethod', () => {
       expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="confirm-btn"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="text-cardTitle"]').text()).toEqual('Create subscription');
+      expect(wrapper.find('[data-test="subscription-description"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="subscription-description"]').text()).toContain('36');
+      expect(wrapper.find('[data-test="subscription-description"]').text()).toContain('95.67');
+      expect(wrapper.find('[data-test="subscription-description"]').text()).toContain('$');
+      expect(wrapper.find('[data-test="subscription-message"]').text()).toContain('The subscription is charged monthly, based on the number of devices');
+      expect(wrapper.find('[data-test="subscription-message"]').text()).toContain('you have in your namespace.');
     });
   });
 
@@ -194,6 +213,7 @@ describe('BillingDialogPaymentMethod', () => {
       expect(wrapper.find('[data-test="cancel-btn"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="confirm-btn"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="text-cardTitle"]').text()).toEqual('Add payment method');
+      expect(wrapper.find('[data-test="subscription-description"]').exists()).toBe(false);
     });
   });
 });
