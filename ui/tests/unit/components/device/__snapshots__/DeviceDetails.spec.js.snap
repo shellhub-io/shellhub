@@ -16,7 +16,11 @@ exports[`DeviceDetails Offline Renders the component 1`] = `
       <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
       <!---->
-      <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
+      <v-list-stub tag="div">
+        <v-list-item-stub activeclass="" tag="div">
+          <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
+        </v-list-item-stub>
+      </v-list-stub>
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
     <v-card-text-stub tag="div">
@@ -93,8 +97,16 @@ exports[`DeviceDetails Online Renders the component 1`] = `
       </v-toolbar-title-stub>
       <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
-      <terminaldialog-stub uid="a582b47a" data-test="terminalDialog-component"></terminaldialog-stub>
-      <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
+      <v-list-stub tag="div">
+        <v-list-item-stub activeclass="" tag="div">
+          <terminaldialog-stub uid="a582b47a" data-test="terminalDialog-component"></terminaldialog-stub>
+        </v-list-item-stub>
+      </v-list-stub>
+      <v-list-stub tag="div">
+        <v-list-item-stub activeclass="" tag="div">
+          <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
+        </v-list-item-stub>
+      </v-list-stub>
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
     <v-card-text-stub tag="div">

@@ -108,6 +108,8 @@ describe('DeviceDetails', () => {
       expect(wrapper.vm.dialogDelete).toEqual(false);
       expect(wrapper.vm.dialogError).toEqual(false);
       expect(wrapper.vm.list).toEqual(deviceOnline.tags);
+      expect(wrapper.vm.deviceDeleteShow).toEqual(false);
+      expect(wrapper.vm.terminalDialogShow).toEqual(false);
     });
     it('Process data in methods', () => {
       wrapper.vm.receiveName('ShellHub');
@@ -177,6 +179,8 @@ describe('DeviceDetails', () => {
       expect(wrapper.vm.device).toEqual(deviceOffline);
       expect(wrapper.vm.dialogDelete).toEqual(false);
       expect(wrapper.vm.dialogError).toEqual(false);
+      expect(wrapper.vm.deviceDeleteShow).toEqual(false);
+      expect(wrapper.vm.terminalDialogShow).toEqual(false);
     });
     it('Process data in methods', () => {
       wrapper.vm.receiveName('ShellHub');

@@ -120,38 +120,68 @@
         </template>
 
         <template #[`item.actions`]="{ item }">
-          <v-tooltip bottom>
-            <template #activator="{ on }">
-              <v-icon
-                class="icons"
+          <v-menu
+            :ref="'menu'+getListDevices.indexOf(item)"
+            offset-y
+          >
+            <template #activator="{ on, attrs }">
+              <v-chip
+                color="transparent"
                 v-on="on"
-                @click="detailsDevice(item)"
               >
-                info
-              </v-icon>
+                <v-icon
+                  small
+                  class="icons"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  mdi-dots-horizontal
+                </v-icon>
+              </v-chip>
             </template>
-            <span>Details</span>
-          </v-tooltip>
 
-          <TagFormDialog
-            v-if="false"
-            action="create"
-            :uid="item.uid"
-            data-test="tagFormDialog-component"
-            @update="getDevices()"
-          />
+            <v-card>
+              <v-list-item @click.stop="detailsDevice(item)">
+                <v-icon left>
+                  info
+                </v-icon>
 
-          <TerminalDialog
-            v-if="item.online"
-            :uid="item.uid"
-            data-test="terminalDialog-component"
-          />
+                <v-list-item-title>
+                  Details
+                </v-list-item-title>
+              </v-list-item>
 
-          <DeviceDelete
-            :uid="item.uid"
-            data-test="deviceDelete-component"
-            @update="refresh"
-          />
+              <v-list-item v-if="false">
+                <TagFormDialog
+                  v-if="false"
+                  action="create"
+                  :uid="item.uid"
+                  data-test="tagFormDialog-component"
+                  @update="getDevices()"
+                />
+              </v-list-item>
+
+              <v-list-item
+                v-if="item.online"
+                @click.stop="showTerminalDialog(getListDevices.indexOf(item))"
+              >
+                <TerminalDialog
+                  :uid="item.uid"
+                  :show.sync="terminalDialogShow[getListDevices.indexOf(item)]"
+                  data-test="terminalDialog-component"
+                />
+              </v-list-item>
+
+              <v-list-item @click="showDeviceDelete(getListDevices.indexOf(item))">
+                <DeviceDelete
+                  :uid="item.uid"
+                  :show.sync="deviceDeleteShow[getListDevices.indexOf(item)]"
+                  data-test="deviceDelete-component"
+                  @update="refresh"
+                />
+              </v-list-item>
+            </v-card>
+          </v-menu>
         </template>
       </v-data-table>
     </v-card-text>
@@ -183,6 +213,8 @@ export default {
       hostname: window.location.hostname,
       pagination: {},
       tags: [],
+      terminalDialogShow: [],
+      deviceDeleteShow: [],
       headers: [
         {
           text: 'Online',
@@ -259,6 +291,8 @@ export default {
 
       try {
         await this.$store.dispatch('devices/fetch', data);
+
+        this.setArrays();
       } catch (error) {
         if (error.response.status === 403) {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
@@ -307,6 +341,35 @@ export default {
         }
       }
       return false;
+    },
+
+    showTerminalDialog(index) {
+      this.terminalDialogShow[index] = this.terminalDialogShow[index] === undefined
+        ? true : !this.terminalDialogShow[index];
+      this.$set(this.terminalDialogShow, index, this.terminalDialogShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    showDeviceDelete(index) {
+      this.deviceDeleteShow[index] = this.deviceDeleteShow[index] === undefined
+        ? true : !this.deviceDeleteShow[index];
+      this.$set(this.deviceDeleteShow, index, this.deviceDeleteShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    setArrays() {
+      const numberDevices = this.getListDevices.length;
+
+      if (numberDevices > 0) {
+        this.terminalDialogShow = new Array(numberDevices).fill(false);
+        this.deviceDeleteShow = new Array(numberDevices).fill(false);
+      }
+    },
+
+    closeMenu(index) {
+      this.$refs[`menu${index}`].isActive = false;
     },
   },
 };

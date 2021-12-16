@@ -1,23 +1,26 @@
 <template>
   <fragment>
-    <v-tooltip bottom>
-      <template #activator="{ on }">
-        <v-icon
-          class="ml-1"
-          v-on="on"
-          @click="open()"
-        >
-          mdi-console
-        </v-icon>
-      </template>
-      <span data-test="console-tooltip">
-        Terminal
-      </span>
-    </v-tooltip>
+    <span>
+      <v-icon
+        left
+        data-test="console-icon"
+      >
+        mdi-console
+      </v-icon>
+    </span>
+
+    <span>
+      <v-list-item-title
+        data-test="console-item"
+      >
+        Console
+      </v-list-item-title>
+    </span>
 
     <v-dialog
-      v-model="show"
+      v-model="showTerminal"
       max-width="1024px"
+      @click:outside="close"
     >
       <v-card data-test="terminal-dialog">
         <v-toolbar
@@ -168,6 +171,11 @@ export default {
       type: String,
       required: true,
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
@@ -192,7 +200,7 @@ export default {
       };
     },
 
-    show: {
+    showTerminal: {
       get() {
         return this.$store.getters['modals/terminal'] === this.$props.uid;
       },
@@ -203,6 +211,7 @@ export default {
         } else {
           this.$store.dispatch('modals/toggleTerminal', '');
         }
+        this.$emit('update:show', value);
       },
     },
 
@@ -212,7 +221,7 @@ export default {
   },
 
   watch: {
-    show(value) {
+    showTerminal(value) {
       if (!value) {
         if (this.ws) this.ws.close();
         if (this.xterm) this.xterm.dispose();
@@ -224,6 +233,12 @@ export default {
         requestAnimationFrame(() => {
           this.$refs.username.focus();
         });
+      }
+    },
+
+    show(value) {
+      if (value) {
+        this.open();
       }
     },
   },
@@ -249,6 +264,8 @@ export default {
 
     close() {
       this.$store.dispatch('modals/toggleTerminal', '');
+
+      this.$emit('update:show', false);
     },
 
     connectWithPassword() {

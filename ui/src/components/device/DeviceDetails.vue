@@ -43,18 +43,26 @@
 
         <v-spacer />
 
-        <TerminalDialog
-          v-if="device.online"
-          :uid="device.uid"
-          data-test="terminalDialog-component"
-        />
+        <v-list v-if="device.online">
+          <v-list-item @click="terminalDialogShow = !terminalDialogShow">
+            <TerminalDialog
+              :uid="device.uid"
+              :show="terminalDialogShow"
+              data-test="terminalDialog-component"
+            />
+          </v-list-item>
+        </v-list>
 
-        <DeviceDelete
-          :uid="device.uid"
-          :dialog="dialogDelete"
-          :redirect="true"
-          data-test="deviceDelete-component"
-        />
+        <v-list>
+          <v-list-item @click="deviceDeleteShow = !deviceDeleteShow">
+            <DeviceDelete
+              :uid="device.uid"
+              :redirect="true"
+              :show="deviceDeleteShow"
+              data-test="deviceDelete-component"
+            />
+          </v-list-item>
+        </v-list>
       </v-toolbar>
 
       <v-divider />
@@ -190,6 +198,8 @@ export default {
       dialogError: false,
       list: [],
       oldList: [],
+      deviceDeleteShow: false,
+      terminalDialogShow: false,
     };
   },
 
