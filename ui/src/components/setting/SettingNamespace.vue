@@ -263,30 +263,6 @@ export default {
 
       return false;
     },
-
-    hasAuthorizationRemoveUser() {
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.namespace.removeMember,
-        );
-      }
-
-      return false;
-    },
-
-    hasAuthorizationDeleteNamespace() {
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.namespace.remove,
-        );
-      }
-
-      return false;
-    },
   },
 
   async created() {
