@@ -18,13 +18,11 @@ describe('SettingNamespace', () => {
 
   let wrapper;
 
-  const role = ['owner', 'administrator', 'operator', 'observer'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorizationRenameNamespace = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const members = [
