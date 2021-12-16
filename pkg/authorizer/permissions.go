@@ -1,5 +1,7 @@
 package authorizer
 
+type Permissions []int
+
 const (
 	DeviceAccept = iota
 	DeviceReject
@@ -21,7 +23,6 @@ const (
 	PublicKeyEdit
 	PublicKeyRemove
 
-	NamespaceCreate
 	NamespaceRename
 	NamespaceAddMember
 	NamespaceRemoveMember
@@ -39,16 +40,13 @@ const (
 	BillingGetSubscription
 )
 
-type permissions []int
-
-var observerPermissions = permissions{
+var observerPermissions = Permissions{
 	DeviceConnect,
 	DeviceDetails,
 	SessionDetails,
-	NamespaceCreate,
 }
 
-var operatorPermissions = permissions{
+var operatorPermissions = Permissions{
 	DeviceAccept,
 	DeviceReject,
 	DeviceConnect,
@@ -56,11 +54,9 @@ var operatorPermissions = permissions{
 	DeviceDetails,
 
 	SessionDetails,
-
-	NamespaceCreate,
 }
 
-var adminPermissions = permissions{
+var adminPermissions = Permissions{
 	DeviceAccept,
 	DeviceReject,
 	DeviceRemove,
@@ -81,7 +77,6 @@ var adminPermissions = permissions{
 	PublicKeyEdit,
 	PublicKeyRemove,
 
-	NamespaceCreate,
 	NamespaceRename,
 	NamespaceAddMember,
 	NamespaceRemoveMember,
@@ -89,7 +84,7 @@ var adminPermissions = permissions{
 	NamespaceEnableSessionRecord,
 }
 
-var ownerPermissions = permissions{
+var ownerPermissions = Permissions{
 	DeviceAccept,
 	DeviceReject,
 	DeviceRemove,
@@ -110,7 +105,6 @@ var ownerPermissions = permissions{
 	PublicKeyEdit,
 	PublicKeyRemove,
 
-	NamespaceCreate,
 	NamespaceRename,
 	NamespaceAddMember,
 	NamespaceRemoveMember,

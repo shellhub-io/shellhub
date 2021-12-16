@@ -29,7 +29,7 @@ type publicKeyActions struct {
 }
 
 type namespaceActions struct {
-	Create, Rename, AddMember, RemoveMember, EditMember, EnableSessionRecord, Delete int
+	Rename, AddMember, RemoveMember, EditMember, EnableSessionRecord, Delete int
 }
 
 type billingActions struct {
@@ -63,7 +63,6 @@ var Actions = actions{
 		Remove: PublicKeyRemove,
 	},
 	Namespace: namespaceActions{
-		Create:              NamespaceCreate,
 		Rename:              NamespaceRename,
 		AddMember:           NamespaceAddMember,
 		RemoveMember:        NamespaceRemoveMember,

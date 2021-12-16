@@ -46,12 +46,12 @@ func EvaluateSubject(ctx context.Context, s store.Store, tenantID, activeID, rol
 		return false
 	}
 
-	return authorizer.EvaluateRole(roleActive, rolePassive)
+	return authorizer.CheckRole(roleActive, rolePassive)
 }
 
 // EvaluatePermission checks if a namespace's member has the role that allows an action.
 func EvaluatePermission(role string, action int, service func() error) error {
-	if !authorizer.EvaluatePermission(role, action) {
+	if !authorizer.CheckPermission(role, action) {
 		return ErrForbidden
 	}
 

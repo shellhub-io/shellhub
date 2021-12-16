@@ -232,21 +232,19 @@ func TestEvaluatePermission(t *testing.T) {
 		expected      bool
 	}{
 		{
-			description: "EvaluatePermission success when user is the observer",
+			description: "CheckPermission success when user is the observer",
 			role:        authorizer.MemberRoleObserver,
 			actions: []int{
 				authorizer.Actions.Device.Connect,
 
 				authorizer.Actions.Session.Details,
-
-				authorizer.Actions.Namespace.Create,
 			},
 			requiredMocks: func() {
 			},
 			expected: true,
 		},
 		{
-			description: "EvaluatePermission success when user is the operator",
+			description: "CheckPermission success when user is the operator",
 			role:        authorizer.MemberRoleOperator,
 			actions: []int{
 				authorizer.Actions.Device.Accept,
@@ -255,15 +253,13 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Device.Rename,
 
 				authorizer.Actions.Session.Details,
-
-				authorizer.Actions.Namespace.Create,
 			},
 			requiredMocks: func() {
 			},
 			expected: true,
 		},
 		{
-			description: "EvaluatePermission success when user is the administrator",
+			description: "CheckPermission success when user is the administrator",
 			role:        authorizer.MemberRoleAdministrator,
 			actions: []int{
 				authorizer.Actions.Device.Accept,
@@ -285,7 +281,6 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.PublicKey.Edit,
 				authorizer.Actions.PublicKey.Remove,
 
-				authorizer.Actions.Namespace.Create,
 				authorizer.Actions.Namespace.Rename,
 				authorizer.Actions.Namespace.AddMember,
 				authorizer.Actions.Namespace.RemoveMember,
@@ -297,7 +292,7 @@ func TestEvaluatePermission(t *testing.T) {
 			expected: true,
 		},
 		{
-			description: "EvaluatePermission success when user is the owner",
+			description: "CheckPermission success when user is the owner",
 			role:        authorizer.MemberRoleOwner,
 			actions: []int{
 				authorizer.Actions.Device.Accept,
@@ -319,7 +314,6 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.PublicKey.Edit,
 				authorizer.Actions.PublicKey.Remove,
 
-				authorizer.Actions.Namespace.Create,
 				authorizer.Actions.Namespace.Rename,
 				authorizer.Actions.Namespace.AddMember,
 				authorizer.Actions.Namespace.RemoveMember,
