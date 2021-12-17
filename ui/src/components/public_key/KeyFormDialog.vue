@@ -13,7 +13,6 @@
             text
             color="primary"
             data-test="createKey-btn"
-            @click="dialog = !dialog"
           >
             Add {{ action }} Key
           </v-btn>
@@ -27,36 +26,38 @@
 
     <v-tooltip
       v-else
+      :disabled="hasAuthorization"
       bottom
     >
       <template #activator="{ on }">
         <span v-on="on">
-          <v-icon
-            :disabled="!hasAuthorization && action == 'public'"
+          <v-list-item-title
+            data-test="close-item"
             v-on="on"
-            @click="dialog = !dialog"
+          >
+            Edit
+          </v-list-item-title>
+        </span>
+
+        <span v-on="on">
+          <v-icon
+            :disabled="!hasAuthorization"
+            left
+            data-test="remove-icon"
+            v-on="on"
           >
             edit
           </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="hasAuthorization || action == 'private'"
-          data-test="text-tooltip"
-        >
-          Edit
-        </span>
-
-        <span v-else>
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span v-if="!hasAuthorization && action == 'public'">
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="400"
       @click:outside="close"
     >
@@ -210,17 +211,30 @@ export default {
       required: false,
       validator: (value) => ['public', 'private'].includes(value),
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
     return {
-      dialog: false,
       keyLocal: [],
       supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
     };
   },
 
   computed: {
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+      set(value) {
+        this.$emit('update:show', value);
+      },
+    },
+
     hasAuthorization() {
       const role = this.$store.getters['auth/role'];
       if (role !== '') {
@@ -353,7 +367,7 @@ export default {
     },
 
     close() {
-      this.dialog = !this.dialog;
+      this.$emit('update:show', false);
       this.$refs.obs.reset();
     },
   },

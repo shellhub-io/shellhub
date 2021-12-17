@@ -13,11 +13,15 @@
             <div class="d-flex pa-0 align-center">
               <v-spacer />
               <v-spacer />
-              <PrivateKeyFormDialog
-                :create-key="true"
-                action="private"
-                data-test="privateKeyFormDialogFirst-component"
-              />
+
+              <span @click="privateKeyFormDialogAddShow = !privateKeyFormDialogAddShow">
+                <PrivateKeyFormDialog
+                  :create-key="true"
+                  action="private"
+                  :show.sync="privateKeyFormDialogAddShow"
+                  data-test="privateKeyFormDialogFirst-component"
+                />
+              </span>
             </div>
 
             <v-data-table
@@ -36,17 +40,49 @@
               </template>
 
               <template #[`item.actions`]="{ item }">
-                <PrivateKeyFormDialog
-                  :key-object="item"
-                  :create-key="false"
-                  action="private"
-                  data-test="privateKeyFormDialogSecond-component"
-                />
-                <PrivateKeyDelete
-                  :fingerprint="item.data"
-                  action="private"
-                  data-test="privateKeyDelete-component"
-                />
+                <v-menu
+                  :ref="'menu'+getListPrivateKeys.indexOf(item)"
+                  offset-y
+                >
+                  <template #activator="{ on, attrs }">
+                    <v-chip
+                      color="transparent"
+                      v-on="on"
+                    >
+                      <v-icon
+                        small
+                        class="icons"
+                        v-bind="attrs"
+                        v-on="on"
+                      >
+                        mdi-dots-horizontal
+                      </v-icon>
+                    </v-chip>
+                  </template>
+
+                  <v-card>
+                    <v-list-item
+                      @click="showPrivateKeyFormDialog(getListPrivateKeys.indexOf(item))"
+                    >
+                      <PrivateKeyFormDialog
+                        :key-object="item"
+                        :create-key="false"
+                        action="private"
+                        :show.sync="privateKeyFormDialogShow[getListPrivateKeys.indexOf(item)]"
+                        data-test="privateKeyFormDialogSecond-component"
+                      />
+                    </v-list-item>
+
+                    <v-list-item @click="showPrivateKeyDelete(getListPrivateKeys.indexOf(item))">
+                      <PrivateKeyDelete
+                        :fingerprint="item.data"
+                        action="private"
+                        :show.sync="privateKeyDeleteShow[getListPrivateKeys.indexOf(item)]"
+                        data-test="privateKeyDelete-component"
+                      />
+                    </v-list-item>
+                  </v-card>
+                </v-menu>
               </template>
             </v-data-table>
           </v-card>
@@ -114,6 +150,10 @@ export default {
       pagination: {},
       dialog: true,
       privatekeyPrivacyPolicy: false,
+      privateKeyFormDialogAddShow: false,
+      privateKeyFormDialogShow: [],
+      privateKeyDeleteShow: [],
+
       headers: [
         {
           text: 'Name',
@@ -146,6 +186,7 @@ export default {
 
   created() {
     this.dialog = !(localStorage.getItem('privatekeyPrivacyPolicy') === 'true');
+    this.setArrays();
   },
 
   methods: {
@@ -156,6 +197,35 @@ export default {
     accept() {
       localStorage.setItem('privatekeyPrivacyPolicy', this.privatekeyPrivacyPolicy);
       this.dialog = false;
+    },
+
+    showPrivateKeyFormDialog(index) {
+      this.privateKeyFormDialogShow[index] = this.privateKeyFormDialogShow[index] === undefined
+        ? true : !this.privateKeyFormDialogShow[index];
+      this.$set(this.privateKeyFormDialogShow, index, this.privateKeyFormDialogShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    showPrivateKeyDelete(index) {
+      this.privateKeyDeleteShow[index] = this.privateKeyDeleteShow[index] === undefined
+        ? true : !this.privateKeyDeleteShow[index];
+      this.$set(this.privateKeyDeleteShow, index, this.privateKeyDeleteShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    setArrays() {
+      const numberPrivateKey = this.getListPrivateKeys.length;
+
+      if (numberPrivateKey > 0) {
+        this.privateKeyFormDialogShow = new Array(numberPrivateKey).fill(false);
+        this.privateKeyDeleteShow = new Array(numberPrivateKey).fill(false);
+      }
+    },
+
+    closeMenu(index) {
+      this.$refs[`menu${index}`].isActive = false;
     },
   },
 };

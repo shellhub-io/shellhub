@@ -66,11 +66,16 @@
           />
         </span>
 
-        <PublicKeyCreate
+        <span
           v-else-if="typeMessage == 'publicKey'"
-          :create-key="true"
-          @update="refreshPublicKey"
-        />
+          @click="publicKeyCreateShow = !publicKeyCreateShow"
+        >
+          <PublicKeyCreate
+            :create-key="true"
+            :show.sync="publicKeyCreateShow"
+            @update="refreshPublicKey"
+          />
+        </span>
       </v-card-actions>
     </v-card>
   </fragment>
@@ -102,6 +107,7 @@ export default {
   data() {
     return {
       firewallRuleCreateShow: false,
+      publicKeyCreateShow: false,
       items:
       {
         device:

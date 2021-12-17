@@ -13,27 +13,20 @@ describe('KeyDelete', () => {
 
   let wrapper;
 
-  const role = ['owner', 'administrator', 'operator', 'observer'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const tests = [
     {
       description: 'Icon public',
-      variables: {
-        dialog: false,
-      },
       props: {
         fingerprint: 'b7:25:f8',
         action: 'public',
-      },
-      data: {
-        dialog: false,
+        show: false,
       },
       template: {
         'keyDelete-card': false,
@@ -43,15 +36,10 @@ describe('KeyDelete', () => {
     },
     {
       description: 'Icon private',
-      variables: {
-        dialog: false,
-      },
       props: {
         fingerprint: 'b7:25:f8',
         action: 'private',
-      },
-      data: {
-        dialog: false,
+        show: false,
       },
       template: {
         'keyDelete-card': false,
@@ -61,15 +49,10 @@ describe('KeyDelete', () => {
     },
     {
       description: 'Dialog public',
-      variables: {
-        dialog: true,
-      },
       props: {
         fingerprint: 'b7:25:f8',
         action: 'public',
-      },
-      data: {
-        dialog: true,
+        show: true,
       },
       template: {
         'keyDelete-card': true,
@@ -79,15 +62,10 @@ describe('KeyDelete', () => {
     },
     {
       description: 'Dialog private',
-      variables: {
-        dialog: true,
-      },
       props: {
         fingerprint: 'b7:25:f8',
         action: 'private',
-      },
-      data: {
-        dialog: true,
+        show: true,
       },
       template: {
         'keyDelete-card': true,
@@ -123,6 +101,7 @@ describe('KeyDelete', () => {
             propsData: {
               fingerprint: test.props.fingerprint,
               action: test.props.action,
+              show: test.props.show,
             },
             vuetify,
             mocks: {
@@ -130,8 +109,6 @@ describe('KeyDelete', () => {
               $actions: actions,
             },
           });
-
-          wrapper.setData({ dialog: test.variables.dialog });
         });
 
         ///////
@@ -154,11 +131,6 @@ describe('KeyDelete', () => {
             expect(wrapper.vm[item]).toEqual(test.props[item]);
           });
         });
-        it('Compare data with default value', () => {
-          Object.keys(test.data).forEach((item) => {
-            expect(wrapper.vm[item]).toEqual(test.data[item]);
-          });
-        });
         it('Process data in the computed', () => {
           expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
@@ -169,26 +141,13 @@ describe('KeyDelete', () => {
 
         it('Renders the template with data', () => {
           Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            if (!hasAuthorization[currentrole] && currentrole === 'operator' && test.props.show) {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(!test.template[item]);
+            } else {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            }
           });
         });
-
-        if (!test.data.dialog) {
-          if (hasAuthorization[currentrole]) {
-            it('Show message tooltip user has permission', async (done) => {
-              const icons = wrapper.findAll('.v-icon');
-              const helpIcon = icons.at(0);
-              helpIcon.trigger('mouseenter');
-              await wrapper.vm.$nextTick();
-
-              expect(icons.length).toBe(1);
-              requestAnimationFrame(() => {
-                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Remove');
-                done();
-              });
-            });
-          }
-        }
       });
     });
   });
