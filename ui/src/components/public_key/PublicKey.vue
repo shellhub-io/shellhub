@@ -6,11 +6,14 @@
       <v-spacer />
       <v-spacer />
 
-      <PublicKeyCreate
-        :create-key="true"
-        data-test="publicKeyCreate-component"
-        @update="refresh"
-      />
+      <span @click="publicKeyCreateShow = !publicKeyCreateShow">
+        <PublicKeyCreate
+          :create-key="true"
+          :show.sync="publicKeyCreateShow"
+          data-test="publicKeyCreate-component"
+          @update="refresh"
+        />
+      </span>
     </div>
 
     <v-card class="mt-2">
@@ -43,6 +46,7 @@ export default {
   data() {
     return {
       show: false,
+      publicKeyCreateShow: false,
     };
   },
 

@@ -1,5 +1,5 @@
 import Vuex from 'vuex';
-import { mount, createLocalVue, config } from '@vue/test-utils';
+import { shallowMount, createLocalVue, config } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import Router from 'vue-router';
 import publicKey from '@/components/public_key/PublicKey';
@@ -62,7 +62,7 @@ describe('PublicKey', () => {
 
   describe('Without public key', () => {
     beforeEach(() => {
-      wrapper = mount(publicKey, {
+      wrapper = shallowMount(publicKey, {
         store: storeWithoutPublickeys,
         localVue,
         stubs: ['fragment'],
@@ -115,7 +115,7 @@ describe('PublicKey', () => {
 
   describe('With public key', () => {
     beforeEach(() => {
-      wrapper = mount(publicKey, {
+      wrapper = shallowMount(publicKey, {
         store: storeWithPublickeys,
         localVue,
         stubs: ['fragment'],
@@ -145,6 +145,7 @@ describe('PublicKey', () => {
 
     it('Compare data with the default and defined value', () => {
       expect(wrapper.vm.show).toEqual(true);
+      expect(wrapper.vm.publicKeyCreateShow).toEqual(false);
     });
     it('Process data in the computed', () => {
       expect(wrapper.vm.hasPublickey).toEqual(true);

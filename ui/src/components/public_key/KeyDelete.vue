@@ -1,37 +1,40 @@
 <template>
   <fragment>
     <v-tooltip
+      :disabled="hasAuthorization"
       bottom
     >
       <template #activator="{ on }">
         <span v-on="on">
-          <v-icon
-            :disabled="!hasAuthorization && action == 'public'"
+          <v-list-item-title
+            data-test="close-item"
             v-on="on"
-            @click="dialog = !dialog"
+          >
+            Remove
+          </v-list-item-title>
+        </span>
+
+        <span v-on="on">
+          <v-icon
+            :disabled="!hasAuthorization"
+            left
+            data-test="remove-icon"
+            v-on="on"
           >
             delete
           </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="hasAuthorization || action == 'private'"
-          data-test="text-tooltip"
-        >
-          Remove
-        </span>
-
-        <span v-else>
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span v-if="!hasAuthorization && action == 'public'">
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="400"
+      @click:outside="close"
     >
       <v-card data-test="keyDelete-card">
         <v-card-title class="headline grey lighten-2 text-center">
@@ -48,7 +51,7 @@
           <v-btn
             text
             data-test="close-btn"
-            @click="dialog=!dialog"
+            @click="close()"
           >
             Close
           </v-btn>
@@ -88,15 +91,23 @@ export default {
       required: false,
       validator: (value) => ['public', 'private'].includes(value),
     },
-  },
 
-  data() {
-    return {
-      dialog: false,
-    };
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   computed: {
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+      set(value) {
+        this.$emit('update:show', value);
+      },
+    },
+
     hasAuthorization() {
       const role = this.$store.getters['auth/role'];
       if (role !== '') {
@@ -141,7 +152,7 @@ export default {
     },
 
     close() {
-      this.dialog = !this.dialog;
+      this.$emit('update:show', false);
     },
   },
 };

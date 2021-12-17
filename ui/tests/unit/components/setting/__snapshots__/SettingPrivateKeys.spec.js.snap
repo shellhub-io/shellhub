@@ -8,8 +8,7 @@ exports[`SettingPrivateKeys Dialog is false Renders the component 1`] = `
         <v-card-stub loaderheight="4" tag="div" class="pb-0 elevation-0">
           <div class="d-flex pa-0 align-center">
             <v-spacer-stub tag="div"></v-spacer-stub>
-            <v-spacer-stub tag="div"></v-spacer-stub>
-            <privatekeyformdialog-stub keyobject="[object Object]" createkey="true" action="private" data-test="privateKeyFormDialogFirst-component"></privatekeyformdialog-stub>
+            <v-spacer-stub tag="div"></v-spacer-stub> <span><privatekeyformdialog-stub keyobject="[object Object]" createkey="true" action="private" data-test="privateKeyFormDialogFirst-component"></privatekeyformdialog-stub></span>
           </div>
           <v-data-table-stub mobilebreakpoint="600" items="[object Object],[object Object]" options="[object Object]" sortby="" sortdesc="" customsort="[Function]" page="1" itemsperpage="10" groupby="" groupdesc="" customgroup="[Function]" locale="en-US" customfilter="[Function]" serveritemslength="2" itemkey="id" value="" expanded="" noresultstext="$vuetify.dataIterator.noResultsText" nodatatext="$vuetify.noDataText" loadingtext="$vuetify.dataIterator.loadingText" hidedefaultfooter="true" selectablekey="isSelectable" loaderheight="4" headers="[object Object],[object Object],[object Object]" expandicon="$expand" itemclass="" data-test="dataTable-field"></v-data-table-stub>
         </v-card-stub>
@@ -46,8 +45,7 @@ exports[`SettingPrivateKeys Dialog is true Renders the component 1`] = `
         <v-card-stub loaderheight="4" tag="div" class="pb-0 elevation-0">
           <div class="d-flex pa-0 align-center">
             <v-spacer-stub tag="div"></v-spacer-stub>
-            <v-spacer-stub tag="div"></v-spacer-stub>
-            <privatekeyformdialog-stub keyobject="[object Object]" createkey="true" action="private" data-test="privateKeyFormDialogFirst-component"></privatekeyformdialog-stub>
+            <v-spacer-stub tag="div"></v-spacer-stub> <span><privatekeyformdialog-stub keyobject="[object Object]" createkey="true" action="private" data-test="privateKeyFormDialogFirst-component"></privatekeyformdialog-stub></span>
           </div>
           <v-data-table-stub mobilebreakpoint="600" items="[object Object],[object Object]" options="[object Object]" sortby="" sortdesc="" customsort="[Function]" page="1" itemsperpage="10" groupby="" groupdesc="" customgroup="[Function]" locale="en-US" customfilter="[Function]" serveritemslength="2" itemkey="id" value="" expanded="" noresultstext="$vuetify.dataIterator.noResultsText" nodatatext="$vuetify.noDataText" loadingtext="$vuetify.dataIterator.loadingText" hidedefaultfooter="true" selectablekey="isSelectable" loaderheight="4" headers="[object Object],[object Object],[object Object]" expandicon="$expand" itemclass="" data-test="dataTable-field"></v-data-table-stub>
         </v-card-stub>

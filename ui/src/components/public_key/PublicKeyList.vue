@@ -35,16 +35,45 @@
         </template>
 
         <template #[`item.actions`]="{ item }">
-          <PublicKeyFormDialog
-            :key-object="item"
-            :create-key="false"
-            @update="refresh"
-          />
+          <v-menu
+            :ref="'menu'+getPublicKeys.indexOf(item)"
+            offset-y
+          >
+            <template #activator="{ on, attrs }">
+              <v-chip
+                color="transparent"
+                v-on="on"
+              >
+                <v-icon
+                  small
+                  class="icons"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  mdi-dots-horizontal
+                </v-icon>
+              </v-chip>
+            </template>
 
-          <PublicKeyDelete
-            :fingerprint="item.fingerprint"
-            @update="refresh"
-          />
+            <v-card>
+              <v-list-item @click="showPublicKeyFormDialog(getPublicKeys.indexOf(item))">
+                <PublicKeyFormDialog
+                  :key-object="item"
+                  :create-key="false"
+                  :show.sync="publicKeyFormDialogShow[getPublicKeys.indexOf(item)]"
+                  @update="refresh"
+                />
+              </v-list-item>
+
+              <v-list-item @click="showPublicKeyDelete(getPublicKeys.indexOf(item))">
+                <PublicKeyDelete
+                  :fingerprint="item.fingerprint"
+                  :show.sync="publicKeyDeleteShow[getPublicKeys.indexOf(item)]"
+                  @update="refresh"
+                />
+              </v-list-item>
+            </v-card>
+          </v-menu>
         </template>
       </v-data-table>
     </v-card-text>
@@ -67,6 +96,8 @@ export default {
   data() {
     return {
       pagination: {},
+      publicKeyFormDialogShow: [],
+      publicKeyDeleteShow: [],
 
       headers: [
         {
@@ -140,8 +171,38 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.publicKeyList);
         }
       } else {
+        this.setArrays();
         this.$store.dispatch('boxs/setStatus', false);
       }
+    },
+
+    showPublicKeyFormDialog(index) {
+      this.publicKeyFormDialogShow[index] = this.publicKeyFormDialogShow[index] === undefined
+        ? true : !this.publicKeyFormDialogShow[index];
+      this.$set(this.publicKeyFormDialogShow, index, this.publicKeyFormDialogShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    showPublicKeyDelete(index) {
+      this.publicKeyDeleteShow[index] = this.publicKeyDeleteShow[index] === undefined
+        ? true : !this.publicKeyDeleteShow[index];
+      this.$set(this.publicKeyDeleteShow, index, this.publicKeyDeleteShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    setArrays() {
+      const numberPublicKey = this.getPublicKeys.length;
+
+      if (numberPublicKey > 0) {
+        this.publicKeyFormDialogShow = new Array(numberPublicKey).fill(false);
+        this.publicKeyDeleteShow = new Array(numberPublicKey).fill(false);
+      }
+    },
+
+    closeMenu(index) {
+      this.$refs[`menu${index}`].isActive = false;
     },
   },
 };

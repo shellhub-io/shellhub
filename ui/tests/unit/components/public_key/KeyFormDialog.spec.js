@@ -18,13 +18,11 @@ describe('KeyFormDialog', () => {
 
   let wrapper;
 
-  const role = ['owner', 'administrator', 'operator', 'observer'];
+  const role = ['owner', 'operator'];
 
   const hasAuthorization = {
     owner: true,
-    administrator: true,
     operator: false,
-    observer: false,
   };
 
   const privateKeyLocal = {
@@ -86,15 +84,14 @@ describe('KeyFormDialog', () => {
       description: 'Button create publicKey',
       variables: {
         createKey: true,
-        dialog: false,
       },
       props: {
         keyObject: {},
         createKey: true,
         action: 'public',
+        show: false,
       },
       data: {
-        dialog: false,
         keyLocal: publicKeyLocal,
         supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
       },
@@ -107,15 +104,14 @@ describe('KeyFormDialog', () => {
       description: 'Icon edit publicKey',
       variables: {
         createKey: false,
-        dialog: false,
       },
       props: {
         keyObject,
         createKey: false,
         action: 'public',
+        show: false,
       },
       data: {
-        dialog: false,
         supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
       },
       template: {
@@ -127,15 +123,14 @@ describe('KeyFormDialog', () => {
       description: 'Button create privateKey',
       variables: {
         createKey: true,
-        dialog: false,
       },
       props: {
         keyObject: {},
         createKey: true,
         action: 'private',
+        show: false,
       },
       data: {
-        dialog: false,
         keyLocal: privateKeyLocal,
         supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
       },
@@ -148,15 +143,14 @@ describe('KeyFormDialog', () => {
       description: 'Icon edit privateKey',
       variables: {
         createKey: false,
-        dialog: false,
       },
       props: {
         keyObject: { name: 'xxxxxxx', data: 'xxxxxxx' },
         createKey: false,
         action: 'private',
+        show: false,
       },
       data: {
-        dialog: false,
         keyLocal: { name: 'xxxxxxx', data: 'xxxxxxx' },
         supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
       },
@@ -169,15 +163,14 @@ describe('KeyFormDialog', () => {
       description: 'Dialog edit publicKey',
       variables: {
         createKey: false,
-        dialog: true,
       },
       props: {
         keyObject,
         createKey: false,
         action: 'public',
+        show: true,
       },
       data: {
-        dialog: true,
         supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
       },
       template: {
@@ -189,15 +182,14 @@ describe('KeyFormDialog', () => {
       description: 'Dialog edit privateKey',
       variables: {
         createKey: false,
-        dialog: true,
       },
       props: {
         keyObject: { name: 'xxxxxxx', data: 'xxxxxxx' },
         createKey: false,
         action: 'private',
+        show: true,
       },
       data: {
-        dialog: true,
         keyLocal: { name: 'xxxxxxx', data: 'xxxxxxx' },
         supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
       },
@@ -240,6 +232,7 @@ describe('KeyFormDialog', () => {
               keyObject: test.props.keyObject,
               createKey: test.props.createKey,
               action: test.props.action,
+              show: test.props.show,
             },
             vuetify,
             mocks: {
@@ -247,8 +240,6 @@ describe('KeyFormDialog', () => {
               $actions: actions,
             },
           });
-
-          wrapper.setData({ dialog: test.variables.dialog });
         });
 
         ///////
@@ -286,27 +277,15 @@ describe('KeyFormDialog', () => {
 
         it('Renders the template with data', () => {
           Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            if (!hasAuthorization[currentrole] && currentrole === 'operator' && test.props.show) {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(false);
+            } else {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            }
           });
         });
 
-        if (!test.data.dialog) {
-          if (hasAuthorization[currentrole] && !test.variables.createKey) {
-            it('Show message tooltip to user owner', async (done) => {
-              const icons = wrapper.findAll('.v-icon');
-              const helpIcon = icons.at(0);
-              helpIcon.trigger('mouseenter');
-              await wrapper.vm.$nextTick();
-
-              expect(icons.length).toBe(1);
-              expect(helpIcon.text()).toEqual('edit');
-              requestAnimationFrame(() => {
-                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Edit');
-                done();
-              });
-            });
-          }
-        } else if (test.props.action === 'public') {
+        if (test.props.show && test.props.action === 'public' && currentrole === 'owner') {
           it('Show validation messages', async () => {
             //////
             // In this case, the empty fields are validated.
@@ -335,7 +314,7 @@ describe('KeyFormDialog', () => {
             await validatorData.validate();
             expect(validatorData.errors[0]).toBe('Not valid key');
           });
-        } else if (test.props.action === 'private') {
+        } else if (test.props.show && test.props.action === 'private' && currentrole === 'owner') {
           it('Show validation messages', async () => {
             //////
             // In this case, the empty fields are validated.
