@@ -50,17 +50,47 @@
         </template>
 
         <template #[`item.actions`]="{ item }">
-          <FirewallRuleEdit
-            :firewall-rule="item"
-            :create-rule="false"
-            data-test="firewallRuleEdit-component"
-            @update="refresh"
-          />
-          <FirewallRuleDelete
-            :id="item.id"
-            data-test="firewallRuleDelete-component"
-            @update="refresh"
-          />
+          <v-menu
+            :ref="'menu'+getFirewallRules.indexOf(item)"
+            offset-y
+          >
+            <template #activator="{ on, attrs }">
+              <v-chip
+                color="transparent"
+                v-on="on"
+              >
+                <v-icon
+                  small
+                  class="icons"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  mdi-dots-horizontal
+                </v-icon>
+              </v-chip>
+            </template>
+
+            <v-card>
+              <v-list-item @click.stop="showFirewallRuleEdit(getFirewallRules.indexOf(item))">
+                <FirewallRuleEdit
+                  :firewall-rule="item"
+                  :create-rule="false"
+                  :show.sync="firewallRuleEditShow[getFirewallRules.indexOf(item)]"
+                  data-test="firewallRuleEdit-component"
+                  @update="refresh"
+                />
+              </v-list-item>
+
+              <v-list-item @click.stop="showFirewallRuleDelete(getFirewallRules.indexOf(item))">
+                <FirewallRuleDelete
+                  :id="item.id"
+                  :show.sync="firewallRuleDeleteShow[getFirewallRules.indexOf(item)]"
+                  data-test="firewallRuleDelete-component"
+                  @update="refresh"
+                />
+              </v-list-item>
+            </v-card>
+          </v-menu>
         </template>
       </v-data-table>
     </v-card>
@@ -83,6 +113,8 @@ export default {
   data() {
     return {
       pagination: {},
+      firewallRuleEditShow: [],
+      firewallRuleDeleteShow: [],
 
       headers: [
         {
@@ -159,6 +191,8 @@ export default {
 
         try {
           await this.$store.dispatch('firewallrules/fetch', data);
+
+          this.setArrays();
         } catch (error) {
           if (error.response.status === 403) {
             this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
@@ -167,8 +201,38 @@ export default {
           }
         }
       } else {
+        this.setArrays();
         this.$store.dispatch('boxs/setStatus', false);
       }
+    },
+
+    showFirewallRuleEdit(index) {
+      this.firewallRuleEditShow[index] = this.firewallRuleEditShow[index] === undefined
+        ? true : !this.firewallRuleEditShow[index];
+      this.$set(this.firewallRuleEditShow, index, this.firewallRuleEditShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    showFirewallRuleDelete(index) {
+      this.firewallRuleDeleteShow[index] = this.firewallRuleDeleteShow[index] === undefined
+        ? true : !this.firewallRuleDeleteShow[index];
+      this.$set(this.firewallRuleDeleteShow, index, this.firewallRuleDeleteShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    setArrays() {
+      const numberFirewallRules = this.getFirewallRules.length;
+
+      if (numberFirewallRules > 0) {
+        this.firewallRuleEditShow = new Array(numberFirewallRules).fill(false);
+        this.firewallRuleDeleteShow = new Array(numberFirewallRules).fill(false);
+      }
+    },
+
+    closeMenu(index) {
+      this.$refs[`menu${index}`].isActive = false;
     },
   },
 };

@@ -126,6 +126,8 @@ describe('FirewallRuleList', () => {
   it('Compare data with default value', () => {
     expect(wrapper.vm.headers).toEqual(headers);
     expect(wrapper.vm.showHelp).toEqual(false);
+    expect(wrapper.vm.firewallRuleEditShow).toEqual([false, false]);
+    expect(wrapper.vm.firewallRuleDeleteShow).toEqual([false, false]);
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.getFirewallRules).toEqual(firewalls);
@@ -141,7 +143,5 @@ describe('FirewallRuleList', () => {
     const dataTableProps = dt.vm.$options.propsData;
 
     expect(dataTableProps.items).toHaveLength(numberFirewalls);
-    expect(wrapper.find('[data-test="firewallRuleEdit-component"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="firewallRuleDelete-component"]').exists()).toBe(true);
   });
 });

@@ -55,11 +55,16 @@
       <v-card-actions class="justify-center pt-8 pb-0">
         <DeviceAdd v-if="typeMessage == 'device'" />
 
-        <FirewallRuleEdit
+        <span
           v-if="typeMessage == 'firewall'"
-          :create-rule="true"
-          @update="refreshFirewallRule"
-        />
+          @click="firewallRuleCreateShow = !firewallRuleCreateShow"
+        >
+          <FirewallRuleEdit
+            :create-rule="true"
+            :show.sync="firewallRuleCreateShow"
+            @update="refreshFirewallRule"
+          />
+        </span>
 
         <PublicKeyCreate
           v-else-if="typeMessage == 'publicKey'"
@@ -96,6 +101,7 @@ export default {
 
   data() {
     return {
+      firewallRuleCreateShow: false,
       items:
       {
         device:

@@ -58,17 +58,14 @@ describe('FirewallRuleFormDialog', () => {
   const tests = [
     {
       description: 'Button add firewall rule',
-      variables: {
-        dialog: false,
-      },
       props: {
         firewallRule: {},
         createRule: true,
+        show: false,
       },
       data: {
         ruleFirewallLocal,
         state: stateRuleFirewall,
-        dialog: false,
       },
       template: {
         'add-btn': true,
@@ -81,17 +78,16 @@ describe('FirewallRuleFormDialog', () => {
     {
       description: 'Button edit firewall rule',
       variables: {
-        dialog: false,
         createRule: false,
       },
       props: {
         firewallRule: {},
         createRule: false,
+        show: false,
       },
       data: {
         ruleFirewallLocal: {},
         state: stateRuleFirewall,
-        dialog: false,
       },
       template: {
         'add-btn': false,
@@ -104,17 +100,16 @@ describe('FirewallRuleFormDialog', () => {
     {
       description: 'Dialog creating firewall rule',
       variables: {
-        dialog: true,
         createRule: true,
       },
       props: {
         firewallRule: {},
         createRule: true,
+        show: true,
       },
       data: {
         ruleFirewallLocal,
         state: stateRuleFirewall,
-        dialog: true,
       },
       template: {
         'add-btn': true,
@@ -127,17 +122,16 @@ describe('FirewallRuleFormDialog', () => {
     {
       description: 'Dialog editing firewall rule',
       variables: {
-        dialog: true,
         createRule: false,
       },
       props: {
         firewallRule,
         createRule: false,
+        show: true,
       },
       data: {
         ruleFirewallLocal: firewallRule,
         state: stateRuleFirewall,
-        dialog: true,
       },
       template: {
         'add-btn': false,
@@ -176,6 +170,7 @@ describe('FirewallRuleFormDialog', () => {
             propsData: {
               firewallRule: test.props.firewallRule,
               createRule: test.props.createRule,
+              show: test.props.show,
             },
             vuetify,
             mocks: {
@@ -183,8 +178,6 @@ describe('FirewallRuleFormDialog', () => {
               $actions: actions,
             },
           });
-
-          wrapper.setData({ dialog: test.variables.dialog });
         });
 
         ///////
@@ -222,26 +215,11 @@ describe('FirewallRuleFormDialog', () => {
 
         it('Renders the template with data', () => {
           Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            if (hasAuthorization[currentrole]) {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            }
           });
         });
-
-        if (!test.variables.dialog && test.variables.create === false) {
-          if (hasAuthorization[currentrole]) {
-            it('Show message tooltip to user owner', async (done) => {
-              const icons = wrapper.findAll('.v-icon');
-              const helpIcon = icons.at(0);
-              helpIcon.trigger('mouseenter');
-              await wrapper.vm.$nextTick();
-
-              expect(icons.length).toBe(1);
-              requestAnimationFrame(() => {
-                expect(wrapper.find('[data-test="text-tooltip"]').text()).toEqual('Edit');
-                done();
-              });
-            });
-          }
-        }
       });
     });
   });

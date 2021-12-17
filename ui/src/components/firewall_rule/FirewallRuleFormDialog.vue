@@ -13,7 +13,6 @@
             text
             color="primary"
             data-test="add-btn"
-            @click="dialog = !dialog"
           >
             Add Rule
           </v-btn>
@@ -27,36 +26,38 @@
 
     <v-tooltip
       v-else
+      :disabled="hasAuthorization"
       bottom
     >
       <template #activator="{ on }">
         <span v-on="on">
+          <v-list-item-title
+            data-test="edit-item"
+            v-on="on"
+          >
+            Edit
+          </v-list-item-title>
+        </span>
+
+        <span v-on="on">
           <v-icon
             :disabled="!hasAuthorization"
+            left
+            data-test="edit-icon"
             v-on="on"
-            @click="dialog = !dialog"
           >
             edit
           </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="hasAuthorization"
-          data-test="text-tooltip"
-        >
-          Edit
-        </span>
-
-        <span v-else>
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span v-if="!hasAuthorization">
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="400"
       @click:outside="close"
     >
@@ -237,6 +238,11 @@ export default {
       type: Boolean,
       required: true,
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
@@ -255,6 +261,15 @@ export default {
   },
 
   computed: {
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+      set(value) {
+        this.$emit('update:show', value);
+      },
+    },
+
     hasAuthorization() {
       const role = this.$store.getters['auth/role'];
       if (role !== '') {
@@ -322,7 +337,7 @@ export default {
     },
 
     close() {
-      this.dialog = !this.dialog;
+      this.$emit('update:show', false);
       this.$refs.obs.reset();
     },
   },
