@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"context"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/cache"
@@ -55,36 +56,111 @@ func TestNamespaceUpdateDataUserSecurity(t *testing.T) {
 }
 
 func TestNamespaceCreate(t *testing.T) {
-	data := initData()
-
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	ctx := context.TODO()
 
-	err := mongostore.UserCreate(data.Context, &data.User)
-	assert.NoError(t, err)
+	userValid := &models.User{}
+	namespaceValid := &models.Namespace{}
 
-	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
-	assert.NoError(t, err)
+	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	tests := []struct {
+		description string
+		namespace   *models.Namespace
+		test        func(t *testing.T)
+	}{
+		{
+			description: "Fail when user is nil",
+			namespace:   nil,
+			test: func(t *testing.T) {
+				err := store.UserCreate(ctx, nil)
+				assert.Error(t, err)
+			},
+		},
+		{
+			description: "Success to create a namespace",
+			namespace:   namespaceValid,
+			test: func(t *testing.T) {
+				err := store.UserCreate(ctx, userValid)
+				assert.NoError(t, err)
+
+				_, err = store.NamespaceCreate(ctx, namespaceValid)
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, test.test)
+	}
 }
 
 func TestNamespaceDelete(t *testing.T) {
-	data := initData()
-
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	ctx := context.TODO()
 
-	err := mongostore.UserCreate(data.Context, &data.User)
-	assert.NoError(t, err)
+	userValid := &models.User{
+		ID: "userValidID",
+		UserData: models.UserData{
+			Name:     "userValidName",
+			Email:    "userValidName@email.com",
+			Username: "userValidUsername",
+		},
+		UserPassword: models.UserPassword{},
+	}
+	userInvalid := &models.User{
+		ID: "userInvalidID",
+		UserData: models.UserData{
+			Name:     "userInvalidName",
+			Email:    "userInvalidName@email.com",
+			Username: "userInvalidUsername",
+		},
+		UserPassword: models.UserPassword{},
+	}
+	namespaceValid := &models.Namespace{
+		Name:     "namespaceValidName",
+		Owner:    userValid.ID,
+		TenantID: "namespaceValidTenant",
+	}
+	namespaceInvalid := &models.Namespace{
+		Name:     "namespaceInvalidName",
+		Owner:    userInvalid.ID,
+		TenantID: "namespaceInvalidTenant",
+	}
 
-	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
-	assert.NoError(t, err)
+	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	tests := []struct {
+		description string
+		test        func(t *testing.T)
+	}{
+		{
+			description: "Fail when cannot find the tenant ID",
+			test: func(t *testing.T) {
+				err := store.NamespaceDelete(ctx, namespaceInvalid.TenantID)
+				assert.Error(t, err)
+			},
+		},
+		{
+			description: "Success to delete a namespace",
+			test: func(t *testing.T) {
+				err := store.UserCreate(ctx, userValid)
+				assert.NoError(t, err)
 
-	err = mongostore.NamespaceDelete(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
-	assert.NoError(t, err)
+				_, err = store.NamespaceCreate(ctx, namespaceValid)
+				assert.NoError(t, err)
+
+				err = store.NamespaceDelete(ctx, namespaceValid.TenantID)
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, test.test)
+	}
 }
 
 func TestNamespaceGet(t *testing.T) {
