@@ -15,11 +15,14 @@
       <v-spacer />
       <v-spacer />
 
-      <FirewallRuleCreate
-        :create-rule="true"
-        data-test="firewallRuleCreate-component"
-        @update="refresh"
-      />
+      <span @click="firewallRuleCreateShow = !firewallRuleCreateShow">
+        <FirewallRuleCreate
+          :create-rule="true"
+          :show.sync="firewallRuleCreateShow"
+          data-test="firewallRuleCreate-component"
+          @update="refresh"
+        />
+      </span>
     </div>
 
     <p v-if="showHelp">
@@ -59,6 +62,7 @@ export default {
     return {
       showHelp: false,
       show: false,
+      firewallRuleCreateShow: false,
     };
   },
 

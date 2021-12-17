@@ -1,35 +1,40 @@
 <template>
   <fragment>
-    <v-tooltip bottom>
+    <v-tooltip
+      :disabled="hasAuthorization"
+      bottom
+    >
       <template #activator="{ on }">
+        <span v-on="on">
+          <v-list-item-title
+            data-test="delete-item"
+            v-on="on"
+          >
+            Remove
+          </v-list-item-title>
+        </span>
+
         <span v-on="on">
           <v-icon
             :disabled="!hasAuthorization"
+            left
+            data-test="delete-icon"
             v-on="on"
-            @click="dialog = !dialog"
           >
             delete
           </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="hasAuthorization"
-          data-test="tooltip-text"
-        >
-          Remove
-        </span>
-
-        <span v-else>
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span v-if="!hasAuthorization">
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="400"
+      @click:outside="close"
     >
       <v-card data-test="firewallRuleDelete-card">
         <v-card-title class="headline grey lighten-2 text-center">
@@ -46,7 +51,7 @@
           <v-btn
             text
             data-test="close-btn"
-            @click="dialog=!dialog"
+            @click="close()"
           >
             Close
           </v-btn>
@@ -79,6 +84,11 @@ export default {
       type: String,
       required: true,
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
@@ -89,6 +99,15 @@ export default {
   },
 
   computed: {
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+      set(value) {
+        this.$emit('update:show', value);
+      },
+    },
+
     hasAuthorization() {
       const role = this.$store.getters['auth/role'];
       if (role !== '') {
@@ -119,7 +138,7 @@ export default {
     },
 
     close() {
-      this.dialog = !this.dialog;
+      this.$emit('update:show', false);
     },
   },
 };

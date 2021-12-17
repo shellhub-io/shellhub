@@ -23,14 +23,11 @@ describe('FirewallRuleDelete', () => {
   const tests = [
     {
       description: 'Icon',
-      variables: {
-        dialog: false,
-      },
       props: {
         id: 'a582b47a42d',
+        show: false,
       },
       data: {
-        dialog: false,
         action: 'remove',
       },
       template: {
@@ -41,14 +38,11 @@ describe('FirewallRuleDelete', () => {
     },
     {
       description: 'Dialog',
-      variables: {
-        dialog: true,
-      },
       props: {
         id: 'a582b47a42d',
+        show: true,
       },
       data: {
-        dialog: true,
         action: 'remove',
       },
       template: {
@@ -82,15 +76,13 @@ describe('FirewallRuleDelete', () => {
             store: storeVuex(currentrole),
             localVue,
             stubs: ['fragment'],
-            propsData: { id: test.props.id },
+            propsData: { id: test.props.id, show: test.props.show },
             vuetify,
             mocks: {
               $authorizer: authorizer,
               $actions: actions,
             },
           });
-
-          wrapper.setData({ dialog: test.variables.dialog });
         });
 
         ///////
@@ -128,26 +120,13 @@ describe('FirewallRuleDelete', () => {
 
         it('Renders the template with data', () => {
           Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            if (!hasAuthorization[currentrole] && currentrole === 'operator' && test.props.show) {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(!test.template[item]);
+            } else {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            }
           });
         });
-
-        if (!test.data.dialog) {
-          if (hasAuthorization[currentrole]) {
-            it('Show message tooltip user has permission', async (done) => {
-              const icons = wrapper.findAll('.v-icon');
-              const helpIcon = icons.at(0);
-              helpIcon.trigger('mouseenter');
-              await wrapper.vm.$nextTick();
-
-              expect(icons.length).toBe(1);
-              requestAnimationFrame(() => {
-                expect(wrapper.find('[data-test="tooltip-text"]').text()).toEqual('Remove');
-                done();
-              });
-            });
-          }
-        }
       });
     });
   });

@@ -91,11 +91,23 @@ describe('BoxMessage', () => {
     });
   });
 
+  ///////
+  // Component Rendering
+  //////
+
   it('Is a Vue instance', () => {
     expect(wrapper).toBeTruthy();
   });
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+
+  ///////
+  // Data checking
+  //////
+
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.firewallRuleCreateShow).toEqual(false);
   });
   it('Process data in methods Device', () => {
     wrapper = shallowMount(BoxMessage, {

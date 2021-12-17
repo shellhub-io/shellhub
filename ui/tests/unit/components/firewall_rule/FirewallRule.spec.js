@@ -97,6 +97,7 @@ describe('FirewallRule', () => {
     it('Compare data with the default', () => {
       expect(wrapper.vm.show).toEqual(true);
       expect(wrapper.vm.showHelp).toEqual(false);
+      expect(wrapper.vm.firewallRuleCreateShow).toEqual(false);
     });
 
     //////
@@ -150,6 +151,8 @@ describe('FirewallRule', () => {
     });
     it('Compare data with the default and defined value', () => {
       expect(wrapper.vm.show).toEqual(true);
+      expect(wrapper.vm.showHelp).toEqual(false);
+      expect(wrapper.vm.firewallRuleCreateShow).toEqual(false);
     });
 
     //////
