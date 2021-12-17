@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"github.com/shellhub-io/shellhub/api/store"
 	"strings"
 	"time"
 
@@ -169,8 +170,9 @@ func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace
 }
 
 func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
-	if _, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": tenantID}); err != nil {
-		return fromMongoError(err)
+	result, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": tenantID})
+	if err != nil || result.DeletedCount == 0 {
+		return store.ErrNoDocuments
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
