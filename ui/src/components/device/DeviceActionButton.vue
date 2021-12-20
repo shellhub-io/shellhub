@@ -25,7 +25,7 @@
               data-test="action-item"
               v-on="on"
             >
-              {{ action }}
+              {{ action | capitalizeFirstLetter }}
             </v-list-item-title>
           </span>
 
@@ -89,12 +89,13 @@
 
 <script>
 
+import capitalizeFirstLetter from '@/components/filter/string';
 import hasPermission from '@/components/filter/permission';
 
 export default {
   name: 'DeviceActionButtonComponent',
 
-  filters: { hasPermission },
+  filters: { capitalizeFirstLetter, hasPermission },
 
   props: {
     uid: {
