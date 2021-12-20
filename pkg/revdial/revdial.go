@@ -330,7 +330,7 @@ func (ln *Listener) run() {
 	for {
 		ln.sendMessage(controlMsg{Command: "keep-alive"})
 
-		t := time.NewTimer(3 * time.Second)
+		t := time.NewTimer(30 * time.Second)
 		select {
 		case <-t.C:
 			continue
