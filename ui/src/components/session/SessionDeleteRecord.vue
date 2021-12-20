@@ -89,7 +89,6 @@ export default {
 
   data() {
     return {
-      // dialog: false,
       action: 'removeRecord',
     };
   },
