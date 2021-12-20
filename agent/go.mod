@@ -24,10 +24,10 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/shellhub-io/shellhub v0.5.2
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.2.1
+	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
-	golang.org/x/sys v0.0.0-20211116061358-0a5406a5449c
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d
 )
 
 replace github.com/shellhub-io/shellhub => ../
