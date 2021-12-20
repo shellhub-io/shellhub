@@ -7,7 +7,6 @@
         x-small
         color="primary"
         data-test="notification-btn"
-        @click="dialog = !dialog"
       >
         Accept
       </v-btn>
@@ -22,28 +21,36 @@
       >
         <template #activator="{ on }">
           <span v-on="on">
-            <v-btn
-              :disabled="!hasAuthorization"
-              class="mr-2"
-              small
-              outlined
-              data-test="tooltip-text"
-              @click="dialog = !dialog"
+            <v-list-item-title
+              data-test="action-item"
+              v-on="on"
             >
               {{ action }}
-            </v-btn>
+            </v-list-item-title>
+          </span>
+
+          <span v-on="on">
+            <v-icon
+              :disabled="!hasAuthorization"
+              left
+              data-test="action-icon"
+              v-on="on"
+            >
+              {{ icon }}
+            </v-icon>
           </span>
         </template>
 
-        <span>
+        <span v-if="!hasAuthorization">
           You don't have this kind of authorization.
         </span>
       </v-tooltip>
     </fragment>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="400"
+      @click:outside="close"
     >
       <v-card data-test="deviceActionButton-card">
         <v-card-title class="headline grey lighten-2 text-center">
@@ -62,7 +69,7 @@
           <v-btn
             text
             data-test="cancel-btn"
-            @click="dialog=!dialog"
+            @click="close()"
           >
             Cancel
           </v-btn>
@@ -106,15 +113,29 @@ export default {
       default: 'accept',
       validator: (value) => ['accept', 'reject', 'remove'].includes(value),
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
     return {
-      dialog: false,
+      icon: this.findIcon(),
     };
   },
 
   computed: {
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+      set(value) {
+        this.$emit('update:show', value);
+      },
+    },
+
     hasAuthorization() {
       const role = this.$store.getters['auth/role'];
       if (role !== '') {
@@ -204,8 +225,21 @@ export default {
       }
     },
 
+    findIcon() {
+      switch (this.action) {
+      case 'accept':
+        return 'mdi-check';
+      case 'reject':
+        return 'close';
+      case 'remove':
+        return 'delete';
+      default:
+        return '';
+      }
+    },
+
     close() {
-      this.dialog = !this.dialog;
+      this.$emit('update:show', false);
     },
   },
 };
