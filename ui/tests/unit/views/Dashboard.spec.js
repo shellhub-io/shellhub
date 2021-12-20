@@ -36,6 +36,7 @@ describe('Dashboard', () => {
     },
     actions: {
       'stats/get': () => {},
+      'users/setStatusUpdateAccountDialog': () => {},
     },
   });
 
