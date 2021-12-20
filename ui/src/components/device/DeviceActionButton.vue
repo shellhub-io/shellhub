@@ -7,6 +7,7 @@
         x-small
         color="primary"
         data-test="notification-btn"
+        @click="doAction()"
       >
         Accept
       </v-btn>
