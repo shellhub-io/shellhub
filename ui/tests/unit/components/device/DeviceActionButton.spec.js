@@ -26,19 +26,20 @@ describe('DeviceActionButton', () => {
       description: 'Create button in the notification',
       variables: {
         isActive: true,
-        dialog: false,
       },
       props: {
         uid: 'xxxxxxxx',
         notificationStatus: true,
         action: 'accept',
+        show: false,
       },
       data: {
-        dialog: false,
+        icon: 'mdi-check',
       },
       template: {
         'notification-btn': true,
-        'tooltip-text': false,
+        'action-item': false,
+        'action-icon': false,
         'deviceActionButton-card': false,
         'cancel-btn': false,
         'dialog-btn': false,
@@ -48,19 +49,20 @@ describe('DeviceActionButton', () => {
       description: 'Create button in the list',
       variables: {
         isActive: true,
-        dialog: false,
       },
       props: {
         uid: 'xxxxxxxx',
         notificationStatus: false,
         action: 'accept',
+        show: false,
       },
       data: {
-        dialog: false,
+        icon: 'mdi-check',
       },
       template: {
         'notification-btn': false,
-        'tooltip-text': true,
+        'action-item': true,
+        'action-icon': true,
         'deviceActionButton-card': false,
         'cancel-btn': false,
         'dialog-btn': false,
@@ -70,19 +72,20 @@ describe('DeviceActionButton', () => {
       description: 'Reject button in the list',
       variables: {
         isActive: true,
-        dialog: false,
       },
       props: {
         uid: 'xxxxxxxx',
         notificationStatus: false,
         action: 'reject',
+        show: false,
       },
       data: {
-        dialog: false,
+        icon: 'close',
       },
       template: {
         'notification-btn': false,
-        'tooltip-text': true,
+        'action-item': true,
+        'action-icon': true,
         'deviceActionButton-card': false,
         'cancel-btn': false,
         'dialog-btn': false,
@@ -92,19 +95,20 @@ describe('DeviceActionButton', () => {
       description: 'Remove button in the list',
       variables: {
         isActive: true,
-        dialog: false,
       },
       props: {
         uid: 'xxxxxxxx',
         notificationStatus: false,
         action: 'remove',
+        show: false,
       },
       data: {
-        dialog: false,
+        icon: 'delete',
       },
       template: {
         'notification-btn': false,
-        'tooltip-text': true,
+        'action-item': true,
+        'action-icon': true,
         'deviceActionButton-card': false,
         'cancel-btn': false,
         'dialog-btn': false,
@@ -114,19 +118,18 @@ describe('DeviceActionButton', () => {
       description: 'Dialog',
       variables: {
         isActive: true,
-        dialog: true,
       },
       props: {
         uid: 'xxxxxxxx',
         notificationStatus: false,
         action: 'accept',
+        show: true,
       },
       data: {
-        dialog: true,
+        icon: 'mdi-check',
       },
       template: {
         'notification-btn': false,
-        'tooltip-text': true,
         'deviceActionButton-card': true,
         'cancel-btn': true,
         'dialog-btn': true,
@@ -170,6 +173,7 @@ describe('DeviceActionButton', () => {
               uid: test.props.uid,
               notificationStatus: test.props.notificationStatus,
               action: test.props.action,
+              show: test.props.show,
             },
             vuetify,
             mocks: {
@@ -177,8 +181,6 @@ describe('DeviceActionButton', () => {
               $actions: actions,
             },
           });
-
-          wrapper.setData({ dialog: test.variables.dialog });
         });
 
         ///////
@@ -220,7 +222,11 @@ describe('DeviceActionButton', () => {
 
         it('Renders the template with data', () => {
           Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            if (!hasAuthorization[currentrole] && currentrole === 'observer' && test.props.show) {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(false);
+            } else {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            }
           });
         });
       });

@@ -122,6 +122,8 @@ describe('DeviceRejectedList', () => {
   it('Compare data with default value', () => {
     expect(wrapper.vm.pagination).toEqual(pagination);
     expect(wrapper.vm.headers).toEqual(headers);
+    expect(wrapper.vm.deviceAcceptButtonShow).toEqual([false]);
+    expect(wrapper.vm.deviceRemoveButtonShow).toEqual([false]);
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.getListRejectedDevices).toEqual(devices);
@@ -134,8 +136,6 @@ describe('DeviceRejectedList', () => {
 
   it('Renders the template with components', async () => {
     expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="DeviceActionButtonAccept-component"]').exists()).toEqual(true);
-    expect(wrapper.find('[data-test="deviceActionButtonReject-component"]').exists()).toEqual(true);
   });
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');

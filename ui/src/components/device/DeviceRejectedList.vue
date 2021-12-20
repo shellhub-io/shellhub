@@ -34,19 +34,52 @@
         </template>
 
         <template #[`item.actions`]="{ item }">
-          <DeviceActionButton
-            :uid="item.uid"
-            action="accept"
-            data-test="DeviceActionButtonAccept-component"
-            @update="refresh"
-          />
+          <v-menu
+            :ref="'menu'+getListRejectedDevices.indexOf(item)"
+            offset-y
+          >
+            <template #activator="{ on, attrs }">
+              <v-chip
+                color="transparent"
+                v-on="on"
+              >
+                <v-icon
+                  small
+                  class="icons"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  mdi-dots-horizontal
+                </v-icon>
+              </v-chip>
+            </template>
 
-          <DeviceActionButton
-            :uid="item.uid"
-            action="remove"
-            data-test="deviceActionButtonReject-component"
-            @update="refresh"
-          />
+            <v-card>
+              <v-list-item
+                @click="showDeviceAcceptButton(getListRejectedDevices.indexOf(item))"
+              >
+                <DeviceActionButton
+                  :uid="item.uid"
+                  action="accept"
+                  :show.sync="deviceAcceptButtonShow[getListRejectedDevices.indexOf(item)]"
+                  data-test="DeviceActionButtonAccept-component"
+                  @update="refresh"
+                />
+              </v-list-item>
+
+              <v-list-item
+                @click="showDeviceRemoveButton(getListRejectedDevices.indexOf(item))"
+              >
+                <DeviceActionButton
+                  :uid="item.uid"
+                  action="remove"
+                  :show.sync="deviceRemoveButtonShow[getListRejectedDevices.indexOf(item)]"
+                  data-test="deviceActionButtonRemove-component"
+                  @update="refresh"
+                />
+              </v-list-item>
+            </v-card>
+          </v-menu>
         </template>
       </v-data-table>
     </v-card-text>
@@ -70,6 +103,9 @@ export default {
   data() {
     return {
       pagination: {},
+      deviceAcceptButtonShow: [],
+      deviceRemoveButtonShow: [],
+
       headers: [
         {
           text: 'Hostname',
@@ -141,6 +177,8 @@ export default {
 
       try {
         await this.$store.dispatch('devices/fetch', data);
+
+        this.setArrays();
       } catch (error) {
         if (error.response.status === 403) {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
@@ -152,6 +190,35 @@ export default {
 
     refresh() {
       this.getRejectedDevices();
+    },
+
+    showDeviceAcceptButton(index) {
+      this.deviceAcceptButtonShow[index] = this.deviceAcceptButtonShow[index] === undefined
+        ? true : !this.deviceAcceptButtonShow[index];
+      this.$set(this.deviceAcceptButtonShow, index, this.deviceAcceptButtonShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    showDeviceRemoveButton(index) {
+      this.deviceRemoveButtonShow[index] = this.deviceRemoveButtonShow[index] === undefined
+        ? true : !this.deviceRemoveButtonShow[index];
+      this.$set(this.deviceRemoveButtonShow, index, this.deviceRemoveButtonShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    setArrays() {
+      const numberRejectedDevices = this.getListRejectedDevices.length;
+
+      if (numberRejectedDevices > 0) {
+        this.deviceAcceptButtonShow = new Array(numberRejectedDevices).fill(false);
+        this.deviceRemoveButtonShow = new Array(numberRejectedDevices).fill(false);
+      }
+    },
+
+    closeMenu(index) {
+      this.$refs[`menu${index}`].isActive = false;
     },
   },
 };

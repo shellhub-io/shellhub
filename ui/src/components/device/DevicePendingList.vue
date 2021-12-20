@@ -34,19 +34,52 @@
         </template>
 
         <template #[`item.actions`]="{ item }">
-          <DeviceActionButton
-            :uid="item.uid"
-            action="accept"
-            data-test="DeviceActionButtonAccept-component"
-            @update="refresh"
-          />
+          <v-menu
+            :ref="'menu'+getListPendingDevices.indexOf(item)"
+            offset-y
+          >
+            <template #activator="{ on, attrs }">
+              <v-chip
+                color="transparent"
+                v-on="on"
+              >
+                <v-icon
+                  small
+                  class="icons"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  mdi-dots-horizontal
+                </v-icon>
+              </v-chip>
+            </template>
 
-          <DeviceActionButton
-            :uid="item.uid"
-            action="reject"
-            data-test="deviceActionButtonReject-component"
-            @update="refresh"
-          />
+            <v-card>
+              <v-list-item
+                @click="showDeviceAcceptButton(getListPendingDevices.indexOf(item))"
+              >
+                <DeviceActionButton
+                  :uid="item.uid"
+                  action="accept"
+                  :show.sync="deviceAcceptButtonShow[getListPendingDevices.indexOf(item)]"
+                  data-test="DeviceActionButtonAccept-component"
+                  @update="refresh"
+                />
+              </v-list-item>
+
+              <v-list-item
+                @click="showDeviceRejectButton(getListPendingDevices.indexOf(item))"
+              >
+                <DeviceActionButton
+                  :uid="item.uid"
+                  action="reject"
+                  :show.sync="deviceRejectButtonShow[getListPendingDevices.indexOf(item)]"
+                  data-test="deviceActionButtonReject-component"
+                  @update="refresh"
+                />
+              </v-list-item>
+            </v-card>
+          </v-menu>
         </template>
       </v-data-table>
     </v-card-text>
@@ -70,6 +103,9 @@ export default {
   data() {
     return {
       pagination: {},
+      deviceAcceptButtonShow: [],
+      deviceRejectButtonShow: [],
+
       headers: [
         {
           text: 'Hostname',
@@ -141,6 +177,8 @@ export default {
 
       try {
         await this.$store.dispatch('devices/fetch', data);
+
+        this.setArrays();
       } catch (error) {
         if (error.response.status === 403) {
           this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
@@ -152,6 +190,35 @@ export default {
 
     refresh() {
       this.getPendingDevices();
+    },
+
+    showDeviceAcceptButton(index) {
+      this.deviceAcceptButtonShow[index] = this.deviceAcceptButtonShow[index] === undefined
+        ? true : !this.deviceAcceptButtonShow[index];
+      this.$set(this.deviceAcceptButtonShow, index, this.deviceAcceptButtonShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    showDeviceRejectButton(index) {
+      this.deviceRejectButtonShow[index] = this.deviceRejectButtonShow[index] === undefined
+        ? true : !this.deviceRejectButtonShow[index];
+      this.$set(this.deviceRejectButtonShow, index, this.deviceRejectButtonShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    setArrays() {
+      const numberPedingDevices = this.getListPendingDevices.length;
+
+      if (numberPedingDevices > 0) {
+        this.deviceAcceptButtonShow = new Array(numberPedingDevices).fill(false);
+        this.deviceRejectButtonShow = new Array(numberPedingDevices).fill(false);
+      }
+    },
+
+    closeMenu(index) {
+      this.$refs[`menu${index}`].isActive = false;
     },
   },
 };
