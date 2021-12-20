@@ -65,7 +65,6 @@
               @click.stop="openDialog('sessionPlayDialog')"
             >
               <SessionPlay
-                v-if="session.recorded"
                 :uid="session.uid"
                 :recorded="session.authenticated && session.recorded"
                 :show.sync="sessionPlayDialog"
@@ -75,7 +74,7 @@
 
             <v-list-item
               v-if="session.active"
-              @click.stop="openDialog(sessionCloseDialog)"
+              @click.stop="openDialog('sessionCloseDialog')"
             >
               <SessionClose
                 :uid="session.uid"
@@ -88,10 +87,9 @@
 
             <v-list-item
               v-if="session.recorded"
-              @click.stop="openDialog(sessionDeleteRecord)"
+              @click.stop="openDialog('sessionDeleteRecord')"
             >
               <SessionDeleteRecord
-                v-if="session.recorded"
                 :uid="session.uid"
                 :show.sync="sessionDeleteRecord"
                 data-test="sessionDeleteRecord-component"
