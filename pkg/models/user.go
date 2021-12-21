@@ -48,8 +48,8 @@ type UserAuthClaims struct {
 	ID       string `json:"id"`
 	Role     string `json:"role"`
 
-	AuthClaims         `mapstruct:",squash"`
-	jwt.StandardClaims `mapstruct:",squash"`
+	AuthClaims           `mapstruct:",squash"`
+	jwt.RegisteredClaims `mapstruct:",squash"`
 }
 
 type UserTokenRecover struct {
