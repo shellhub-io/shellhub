@@ -375,7 +375,7 @@ func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, membe
 	}
 
 	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberNewRole) {
-		return ErrForbidden
+		return guard.ErrForbidden
 	}
 
 	return s.store.NamespaceEditMember(ctx, tenantID, memberPassive.ID, memberNewRole)
