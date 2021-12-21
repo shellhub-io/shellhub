@@ -241,7 +241,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRo
 	}
 
 	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberRole) {
-		return nil, ErrForbidden
+		return nil, guard.ErrForbidden
 	}
 
 	member, err := s.store.UserGetByUsername(ctx, memberUsername)
@@ -311,7 +311,7 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 	}
 
 	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberFound.Role) {
-		return nil, ErrForbidden
+		return nil, guard.ErrForbidden
 	}
 
 	return s.store.NamespaceRemoveMember(ctx, tenantID, memberPassive.ID)
@@ -371,7 +371,7 @@ func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, membe
 	}
 
 	if activeMemberFound.Role == passiveMemberFound.Role {
-		return ErrForbidden
+		return guard.ErrForbidden
 	}
 
 	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberNewRole) {
