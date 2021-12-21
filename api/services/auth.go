@@ -156,8 +156,8 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			AuthClaims: models.AuthClaims{
 				Claims: "user",
 			},
-			StandardClaims: jwt.StandardClaims{
-				ExpiresAt: clock.Now().Add(time.Hour * 72).Unix(),
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(clock.Now().Add(time.Hour * 72)),
 			},
 		})
 
@@ -217,8 +217,8 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 		AuthClaims: models.AuthClaims{
 			Claims: "user",
 		},
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: clock.Now().Add(time.Hour * 72).Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(clock.Now().Add(time.Hour * 72)),
 		},
 	})
 
@@ -296,8 +296,8 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				AuthClaims: models.AuthClaims{
 					Claims: "user",
 				},
-				StandardClaims: jwt.StandardClaims{
-					ExpiresAt: clock.Now().Add(time.Hour * 72).Unix(),
+				RegisteredClaims: jwt.RegisteredClaims{
+					ExpiresAt: jwt.NewNumericDate(clock.Now().Add(time.Hour * 72)),
 				},
 			})
 

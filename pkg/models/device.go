@@ -26,8 +26,8 @@ type Device struct {
 type DeviceAuthClaims struct {
 	UID string `json:"uid"`
 
-	AuthClaims         `mapstruct:",squash"`
-	jwt.StandardClaims `mapstruct:",squash"`
+	AuthClaims           `mapstruct:",squash"`
+	jwt.RegisteredClaims `mapstruct:",squash"`
 }
 
 type DeviceAuthRequest struct {
