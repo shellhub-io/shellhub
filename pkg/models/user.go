@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 type UserData struct {
