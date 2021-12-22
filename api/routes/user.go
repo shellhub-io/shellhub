@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -13,6 +13,11 @@ const (
 	UpdateUserPasswordURL = "/users/:id/password" //nolint:gosec
 )
 
+const (
+	ParamUserID   = "id"
+	ParamUserName = "username"
+)
+
 func (h *Handler) UpdateUserData(c apicontext.Context) error {
 	var user models.User
 
@@ -20,9 +25,7 @@ func (h *Handler) UpdateUserData(c apicontext.Context) error {
 		return err
 	}
 
-	ID := c.Param("id")
-
-	if fields, err := h.service.UpdateDataUser(c.Ctx(), &user, ID); err != nil {
+	if fields, err := h.service.UpdateDataUser(c.Ctx(), &user, c.Param(ParamUserID)); err != nil {
 		switch {
 		case err == services.ErrBadRequest:
 			return c.JSON(http.StatusBadRequest, fields)
@@ -45,7 +48,7 @@ func (h *Handler) UpdateUserPassword(c apicontext.Context) error {
 		return err
 	}
 
-	if err := h.service.UpdatePasswordUser(c.Ctx(), req.CurrentPassword, req.NewPassword, c.Param("id")); err != nil {
+	if err := h.service.UpdatePasswordUser(c.Ctx(), req.CurrentPassword, req.NewPassword, c.Param(ParamUserID)); err != nil {
 		switch {
 		case err == services.ErrBadRequest:
 			return c.NoContent(http.StatusBadRequest)

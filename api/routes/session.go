@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -19,6 +19,10 @@ const (
 	KeepAliveSessionURL        = "/sessions/:uid/keepalive"
 	RecordSessionURL           = "/sessions/:uid/record"
 	PlaySessionURL             = "/sessions/:uid/play"
+)
+
+const (
+	ParamSessionID = "uid"
 )
 
 func (h *Handler) GetSessionList(c apicontext.Context) error {
@@ -41,7 +45,7 @@ func (h *Handler) GetSessionList(c apicontext.Context) error {
 }
 
 func (h *Handler) GetSession(c apicontext.Context) error {
-	session, err := h.service.GetSession(c.Ctx(), models.UID(c.Param("uid")))
+	session, err := h.service.GetSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
 	if err != nil {
 		return err
 	}
@@ -58,7 +62,7 @@ func (h *Handler) SetSessionAuthenticated(c apicontext.Context) error {
 		return err
 	}
 
-	return h.service.SetSessionAuthenticated(c.Ctx(), models.UID(c.Param("uid")), req.Authenticated)
+	return h.service.SetSessionAuthenticated(c.Ctx(), models.UID(c.Param(ParamSessionID)), req.Authenticated)
 }
 
 func (h *Handler) CreateSession(c apicontext.Context) error {
@@ -83,7 +87,7 @@ func (h *Handler) CreateSession(c apicontext.Context) error {
 }
 
 func (h *Handler) FinishSession(c apicontext.Context) error {
-	err := h.service.DeactivateSession(c.Ctx(), models.UID(c.Param("uid")))
+	err := h.service.DeactivateSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
 	if err == services.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -92,7 +96,7 @@ func (h *Handler) FinishSession(c apicontext.Context) error {
 }
 
 func (h *Handler) KeepAliveSession(c apicontext.Context) error {
-	return h.service.KeepAliveSession(c.Ctx(), models.UID(c.Param("uid")))
+	return h.service.KeepAliveSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
 }
 
 func (h *Handler) RecordSession(c apicontext.Context) error {

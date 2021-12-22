@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -27,6 +27,12 @@ const (
 	GetTagsURL         = "/devices/tags"            // Get tags from all device.
 	RenameTagURL       = "/devices/tags/:name"      // Rename a tag inside all devices.
 	DeleteTagsURL      = "/devices/tags/:name"      // Delete all tag's occurrence inside all devices with a specif name.
+)
+
+const (
+	ParamDeviceID     = "uid"
+	ParamDeviceStatus = "status"
+	ParamTagName      = "name"
 )
 
 type filterQuery struct {
@@ -56,7 +62,7 @@ func (h *Handler) GetDeviceList(c apicontext.Context) error {
 }
 
 func (h *Handler) GetDevice(c apicontext.Context) error {
-	device, err := h.service.GetDevice(c.Ctx(), models.UID(c.Param("uid")))
+	device, err := h.service.GetDevice(c.Ctx(), models.UID(c.Param(ParamDeviceID)))
 	if err != nil {
 		return err
 	}
@@ -71,7 +77,7 @@ func (h *Handler) DeleteDevice(c apicontext.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.Remove, func() error {
-		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenantID)
+		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param(ParamDeviceID)), tenantID)
 
 		return err
 	})
@@ -102,7 +108,7 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.Rename, func() error {
-		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenantID)
+		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Name, tenantID)
 
 		return err
 	})
@@ -123,7 +129,7 @@ func (h *Handler) RenameDevice(c apicontext.Context) error {
 }
 
 func (h *Handler) OfflineDevice(c apicontext.Context) error {
-	if err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(c.Param("uid")), false); err != nil {
+	if err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(c.Param(ParamDeviceID)), false); err != nil {
 		return err
 	}
 
@@ -165,7 +171,7 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 		"unused":  "unused",
 	}
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.Accept, func() error {
-		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param("uid")), status[c.Param("status")], tenantID)
+		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param(ParamDeviceID)), status[c.Param(ParamDeviceStatus)], tenantID)
 
 		return err
 	})
@@ -186,7 +192,7 @@ func (h *Handler) UpdatePendingStatus(c apicontext.Context) error {
 }
 
 func (h *Handler) HeartbeatDevice(c apicontext.Context) error {
-	return h.service.DeviceHeartbeat(c.Ctx(), models.UID(c.Param("uid")))
+	return h.service.DeviceHeartbeat(c.Ctx(), models.UID(c.Param(ParamDeviceID)))
 }
 
 func (h *Handler) CreateTag(c apicontext.Context) error {
@@ -199,7 +205,7 @@ func (h *Handler) CreateTag(c apicontext.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.CreateTag, func() error {
-		return h.service.CreateTag(c.Ctx(), models.UID(c.Param("uid")), req.Name)
+		return h.service.CreateTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Name)
 	})
 	if err != nil {
 		switch err {
@@ -223,7 +229,7 @@ func (h *Handler) CreateTag(c apicontext.Context) error {
 
 func (h *Handler) RemoveTag(c apicontext.Context) error {
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.RemoveTag, func() error {
-		return h.service.RemoveTag(c.Ctx(), models.UID(c.Param("uid")), c.Param("name"))
+		return h.service.RemoveTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), c.Param(ParamTagName))
 	})
 	if err != nil {
 		switch err {
@@ -256,7 +262,7 @@ func (h *Handler) RenameTag(c apicontext.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.RenameTag, func() error {
-		return h.service.RenameTag(c.Ctx(), tenant, c.Param("name"), req.Name)
+		return h.service.RenameTag(c.Ctx(), tenant, c.Param(ParamTagName), req.Name)
 	})
 	if err != nil {
 		switch err {
@@ -288,7 +294,7 @@ func (h *Handler) UpdateTag(c apicontext.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.UpdateTag, func() error {
-		return h.service.UpdateTag(c.Ctx(), models.UID(c.Param("uid")), req.Tags)
+		return h.service.UpdateTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Tags)
 	})
 	if err != nil {
 		switch err {
@@ -300,9 +306,9 @@ func (h *Handler) UpdateTag(c apicontext.Context) error {
 			return c.NoContent(http.StatusNotAcceptable)
 		case services.ErrDeviceNotFound:
 			return c.NoContent(http.StatusNotFound)
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -336,7 +342,7 @@ func (h *Handler) DeleteTags(c apicontext.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.DeleteTag, func() error {
-		return h.service.DeleteTags(c.Ctx(), tenant, c.Param("name"))
+		return h.service.DeleteTags(c.Ctx(), tenant, c.Param(ParamTagName))
 	})
 	if err != nil {
 		switch err {

@@ -1,3 +1,7 @@
+// Package apicontext is the ShellHub's context package that is used, mainly, on the routes to pass data to services.
+//
+// The data returned by some apicontext's functions was set by gateway, that gets the JWT token from request, open it and reset
+// to the header.
 package apicontext
 
 import (
@@ -20,12 +24,13 @@ func (c *Context) Service() interface{} {
 	return c.service
 }
 
-// Role returns the user's role from the current namespace.
+// Role returns the user's namespace role from JWT token.
 // It can be empty if the user has no namespaces.
 func (c *Context) Role() string {
 	return c.Request().Header.Get("X-Role")
 }
 
+// Tenant returns the namespace's tenant from JWT token.
 func (c *Context) Tenant() *models.Tenant {
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 	if tenant != "" {
@@ -35,6 +40,7 @@ func (c *Context) Tenant() *models.Tenant {
 	return nil
 }
 
+// Username returns the username from JWT token.
 func (c *Context) Username() *models.Username {
 	username := c.Request().Header.Get("X-Username")
 	if username != "" {
@@ -44,6 +50,7 @@ func (c *Context) Username() *models.Username {
 	return nil
 }
 
+// ID returns the user's ID from JWT token.
 func (c *Context) ID() *models.ID {
 	ID := c.Request().Header.Get("X-ID")
 	if ID != "" {
