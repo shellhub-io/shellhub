@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
@@ -14,14 +14,19 @@ import (
 const (
 	ListNamespaceURL           = "/namespaces"
 	CreateNamespaceURL         = "/namespaces"
-	GetNamespaceURL            = "/namespaces/:id"
-	DeleteNamespaceURL         = "/namespaces/:id"
-	EditNamespaceURL           = "/namespaces/:id"
-	AddNamespaceUserURL        = "/namespaces/:id/members"
-	RemoveNamespaceUserURL     = "/namespaces/:id/members/:uid"
-	EditNamespaceUserURL       = "/namespaces/:id/members/:uid"
+	GetNamespaceURL            = "/namespaces/:tenant"
+	DeleteNamespaceURL         = "/namespaces/:tenant"
+	EditNamespaceURL           = "/namespaces/:tenant"
+	AddNamespaceUserURL        = "/namespaces/:tenant/members"
+	RemoveNamespaceUserURL     = "/namespaces/:tenant/members/:uid"
+	EditNamespaceUserURL       = "/namespaces/:tenant/members/:uid"
 	GetSessionRecordURL        = "/users/security"
-	EditSessionRecordStatusURL = "/users/security/:id"
+	EditSessionRecordStatusURL = "/users/security/:tenant"
+)
+
+const (
+	ParamNamespaceTenant   = "tenant"
+	ParamNamespaceMemberID = "uid"
 )
 
 func (h *Handler) GetNamespaceList(c apicontext.Context) error {
@@ -74,7 +79,7 @@ func (h *Handler) GetNamespace(c apicontext.Context) error {
 		userID = c.ID().ID
 	}
 
-	namespace, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	namespace, err := h.service.GetNamespace(c.Ctx(), c.Param(ParamNamespaceTenant))
 	if err != nil || namespace == nil {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -93,7 +98,7 @@ func (h *Handler) DeleteNamespace(c apicontext.Context) error {
 		userID = c.ID().ID
 	}
 
-	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param(ParamNamespaceTenant))
 	if err != nil || namespaceToMember == nil {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -104,7 +109,7 @@ func (h *Handler) DeleteNamespace(c apicontext.Context) error {
 	}
 
 	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.Delete, func() error {
-		err := h.service.DeleteNamespace(c.Ctx(), c.Param("id"))
+		err := h.service.DeleteNamespace(c.Ctx(), namespaceToMember.TenantID)
 
 		return err
 	})
@@ -136,7 +141,7 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 		userID = c.ID().ID
 	}
 
-	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param(ParamNamespaceTenant))
 	if err != nil || namespaceToMember == nil {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -184,7 +189,7 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 		return err
 	}
 
-	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param(ParamNamespaceTenant))
 	if err != nil || namespaceToMember == nil {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -197,7 +202,7 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 	var namespace *models.Namespace
 	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.AddMember, func() error {
 		var err error
-		namespace, err = h.service.AddNamespaceUser(c.Ctx(), member.Username, member.Role, c.Param("id"), userID)
+		namespace, err = h.service.AddNamespaceUser(c.Ctx(), member.Username, member.Role, namespaceToMember.TenantID, userID)
 
 		return err
 	})
@@ -227,7 +232,7 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 		userID = c.ID().ID
 	}
 
-	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param(ParamNamespaceTenant))
 	if err != nil || namespaceToMember == nil {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -240,7 +245,7 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 	var namespace *models.Namespace
 	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.RemoveMember, func() error {
 		var err error
-		namespace, err = h.service.RemoveNamespaceUser(c.Ctx(), c.Param("id"), c.Param("uid"), userID)
+		namespace, err = h.service.RemoveNamespaceUser(c.Ctx(), namespaceToMember.TenantID, c.Param(ParamNamespaceMemberID), userID)
 
 		return err
 	})
@@ -276,7 +281,7 @@ func (h *Handler) EditNamespaceUser(c apicontext.Context) error {
 		userID = c.ID().ID
 	}
 
-	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param(ParamNamespaceTenant))
 	if err != nil || namespaceToMember == nil {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -287,7 +292,7 @@ func (h *Handler) EditNamespaceUser(c apicontext.Context) error {
 	}
 
 	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.EditMember, func() error {
-		err := h.service.EditNamespaceUser(c.Ctx(), c.Param("id"), userID, c.Param("uid"), member.Role)
+		err := h.service.EditNamespaceUser(c.Ctx(), namespaceToMember.TenantID, userID, c.Param(ParamNamespaceMemberID), member.Role)
 
 		return err
 	})
@@ -322,7 +327,7 @@ func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
 		userID = c.ID().ID
 	}
 
-	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param(ParamNamespaceTenant))
 	if err != nil || namespaceToMember == nil {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -333,7 +338,7 @@ func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
 	}
 
 	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.EnableSessionRecord, func() error {
-		err := h.service.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, c.Param("id"))
+		err := h.service.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, namespaceToMember.TenantID)
 
 		return err
 	})
