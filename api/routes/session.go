@@ -86,9 +86,9 @@ func (h *Handler) FinishSession(c apicontext.Context) error {
 	err := h.service.DeactivateSession(c.Ctx(), models.UID(c.Param("uid")))
 	if err == services.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
-	} else {
-		return err
 	}
+
+	return err
 }
 
 func (h *Handler) KeepAliveSession(c apicontext.Context) error {
