@@ -30,11 +30,12 @@ func (s *service) CreateSession(ctx context.Context, session models.Session) (*m
 }
 
 func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
-	if err := s.store.SessionDeleteActives(ctx, uid); err != nil && err == store.ErrNoDocuments {
+	err := s.store.SessionDeleteActives(ctx, uid)
+	if err == store.ErrNoDocuments {
 		return ErrNotFound
-	} else {
-		return err
 	}
+
+	return err
 }
 
 func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
