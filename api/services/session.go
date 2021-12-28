@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -29,7 +30,11 @@ func (s *service) CreateSession(ctx context.Context, session models.Session) (*m
 }
 
 func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
-	return s.store.SessionDeleteActives(ctx, uid)
+	if err := s.store.SessionDeleteActives(ctx, uid); err != nil && err == store.ErrNoDocuments {
+		return ErrNotFound
+	} else {
+		return err
+	}
 }
 
 func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
