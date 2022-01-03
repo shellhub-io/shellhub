@@ -25,6 +25,8 @@ export default () => {
     if (error.response.status === 401) {
       await store.dispatch('auth/logout');
       await router.push({ name: 'login' }).catch(() => {});
+
+      store.dispatch('layout/setLayout', 'simpleLayout');
     }
     throw error;
   });
