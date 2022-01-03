@@ -13,7 +13,7 @@ import (
 	"time"
 
 	sshserver "github.com/gliderlabs/ssh"
-	"github.com/parnurzeal/gorequest"
+	"github.com/go-resty/resty/v2"
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -345,8 +345,10 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 }
 
 func (s *Session) register(_ sshserver.Session) error {
-	if _, _, errs := gorequest.New().Post("http://api:8080/internal/sessions").Send(*s).End(); len(errs) > 0 {
-		return errs[0]
+	if _, err := resty.New().R().
+		SetBody(*s).
+		Post("http://api:8080/internal/sessions"); err != nil {
+		return err
 	}
 
 	return nil
