@@ -10,11 +10,11 @@ exports[`DeviceDetails Offline Renders the component 1`] = `
   <v-card-stub loaderheight="4" tag="div" class="mt-2">
     <v-toolbar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="">
       <v-toolbar-title-stub tag="div">
-        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active 2 years ago</span></v-tooltip-stub>
+        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active 2 years ago</span></v-tooltip-stub>
         39-5e-2a
       </v-toolbar-title-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
-      <v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+      <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
         <v-card-stub loaderheight="4" tag="div">
           <v-list-item-stub activeclass="" tag="div">
             <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
@@ -64,7 +64,7 @@ exports[`DeviceDetails Offline Renders the component 1`] = `
     </v-card-text-stub>
   </v-card-stub>
   <div class="text-center">
-    <v-dialog-stub opendelay="0" closedelay="0" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+    <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
         <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
           Device ID error
@@ -100,7 +100,7 @@ exports[`DeviceDetails Online Renders the component 1`] = `
         39-5e-2a
       </v-toolbar-title-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
-      <v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+      <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
         <v-card-stub loaderheight="4" tag="div">
           <v-list-item-stub activeclass="" tag="div">
             <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
@@ -152,7 +152,7 @@ exports[`DeviceDetails Online Renders the component 1`] = `
     </v-card-text-stub>
   </v-card-stub>
   <div class="text-center">
-    <v-dialog-stub opendelay="0" closedelay="0" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+    <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
         <v-card-title-stub tag="div" primary-title="" class="headline grey lighten-2">
           Device ID error

@@ -61,14 +61,14 @@ exports[`BillingPaymentList Renders the component 1`] = `
             <div data-test="actions-pm_1JzQ80KJsksFHO6pREJA5TrG-div" class="ml-2">
               <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="mr-2">
                 <div>
-                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
                       Make default
                     </span></v-tooltip-stub>
                 </div>
               </v-btn-stub>
               <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="mr-2">
                 <div>
-                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
                       Remove
                     </span></v-tooltip-stub>
                 </div>
@@ -96,14 +96,14 @@ exports[`BillingPaymentList Renders the component 1`] = `
             <div data-test="actions-pm_1JzQ80KJsksFHO6pREJA5TrF-div" class="ml-2">
               <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="mr-2">
                 <div>
-                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
                       Make default
                     </span></v-tooltip-stub>
                 </div>
               </v-btn-stub>
               <v-btn-stub outlined="true" tag="button" activeclass="" type="button" class="mr-2">
                 <div>
-                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonhover="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+                  <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
                       Remove
                     </span></v-tooltip-stub>
                 </div>

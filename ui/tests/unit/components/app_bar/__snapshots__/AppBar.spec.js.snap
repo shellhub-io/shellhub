@@ -16,7 +16,7 @@ exports[`AppBar Renders the component 1`] = `
       </v-icon-stub>
     </v-chip-stub>
     <notification-stub data-test="notification-component"></notification-stub>
-    <v-menu-stub opendelay="0" closedelay="0" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" openonclick="true" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+    <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
       <v-card-stub loaderheight="4" tag="div">
         <v-list-item-stub activeclass="" tag="div" router="" data-test="Settings">
           <v-icon-stub left="">
