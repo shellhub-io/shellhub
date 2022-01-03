@@ -32,6 +32,7 @@ services:
       - STORE_CACHE=${SHELLHUB_STORE_CACHE}
       - GEOIP=${SHELLHUB_GEOIP}
       - MAXMIND_LICENSE=${SHELLHUB_MAXMIND_LICENSE}
+      - RECORD_RETENTION=${SHELLHUB_RECORD_RETENTION}
     labels:
       ofelia.enabled: "true"
       ofelia.job-exec.api_worker.schedule: "${SHELLHUB_WORKER_SCHEDULE}"
