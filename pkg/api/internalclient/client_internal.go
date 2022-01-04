@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"go.uber.org/multierr"
 )
 
 const (
@@ -44,35 +43,39 @@ func (c *client) LookupDevice() {
 }
 
 func (c *client) ReportDelete(ns *models.Namespace) (int, error) {
-	res, _, errs := c.http.Delete(fmt.Sprintf("%s://%s:%d/internal/billing/namespace-subscription", apiScheme, billingURL, apiPort)).Send(struct {
-		Namespace *models.Namespace `json:"namespace"`
-	}{
-		Namespace: ns,
-	}).End()
-	if len(errs) >= 1 {
-		return http.StatusInternalServerError, errs[0]
+	res, err := c.http.R().
+		SetBody(struct {
+			Namespace *models.Namespace `json:"namespace"`
+		}{Namespace: ns}).
+		Delete(fmt.Sprintf("%s://%s:%d/internal/billing/namespace-subscription", apiScheme, billingURL, apiPort))
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
 
-	return res.StatusCode, nil
+	return res.StatusCode(), nil
 }
 
 func (c *client) ReportUsage(ur *models.UsageRecord) (int, error) {
-	res, _, errs := c.http.Post(fmt.Sprintf("%s://%s:%d/internal/billing/report-usage", apiScheme, billingURL, apiPort)).Send(&ur).End()
-	if len(errs) >= 1 {
-		return http.StatusInternalServerError, errs[0]
+	res, err := c.http.R().
+		SetBody(ur).
+		Post(fmt.Sprintf("%s://%s:%d/internal/billing/report-usage", apiScheme, billingURL, apiPort))
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
 
-	return res.StatusCode, nil
+	return res.StatusCode(), nil
 }
 
 func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, error) {
 	var pubKey *models.PublicKey
-	resp, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/internal/sshkeys/public-keys/%s/%s", fingerprint, tenant))).EndStruct(&pubKey)
-	if len(errs) > 0 {
-		return nil, errs[0]
+	resp, err := c.http.R().
+		SetResult(&pubKey).
+		Get(buildURL(c, fmt.Sprintf("/internal/sshkeys/public-keys/%s/%s", fingerprint, tenant)))
+	if err != nil {
+		return nil, err
 	}
 
-	if resp.StatusCode == 404 {
+	if resp.StatusCode() == 404 {
 		return nil, ErrNotFound
 	}
 
@@ -81,28 +84,29 @@ func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, er
 
 func (c *client) BillingEvaluate(tenantID string) (*models.Namespace, int, error) {
 	var namespace *models.Namespace
-	resp, _, errs := c.http.Get(fmt.Sprintf("%s://%s:%d/internal/billing/evaluate", apiScheme, billingURL, apiPort)).Send(&models.Namespace{TenantID: tenantID}).End()
-	if len(errs) > 0 {
-		return nil, resp.StatusCode, errs[0]
+	resp, err := c.http.R().
+		SetQueryParam("tenant_id", tenantID).
+		SetResult(&namespace).
+		Get(fmt.Sprintf("%s://%s:%d/internal/billing/evaluate", apiScheme, billingURL, apiPort))
+	if err != nil {
+		return namespace, resp.StatusCode(), err
 	}
 
-	return namespace, resp.StatusCode, nil
+	return namespace, resp.StatusCode(), nil
 }
 
 func (c *client) EvaluateKey(fingerprint string, dev *models.Device, username string) (bool, error) {
 	var evaluate *bool
 
-	resp, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/sshkeys/public-keys/evaluate/%s/%s", fingerprint, username))).Send(dev).EndStruct(&evaluate)
-	if len(errs) > 0 {
-		var err error
-		for _, e := range errs {
-			err = multierr.Append(err, e)
-		}
-
+	resp, err := c.http.R().
+		SetBody(dev).
+		SetResult(&evaluate).
+		Post(buildURL(c, fmt.Sprintf("/internal/sshkeys/public-keys/evaluate/%s/%s", fingerprint, username)))
+	if err != nil {
 		return false, err
 	}
 
-	if resp.StatusCode == 200 {
+	if resp.StatusCode() == 200 {
 		return *evaluate, nil
 	}
 
@@ -111,39 +115,45 @@ func (c *client) EvaluateKey(fingerprint string, dev *models.Device, username st
 
 func (c *client) CreatePrivateKey() (*models.PrivateKey, error) {
 	var privKey *models.PrivateKey
-	_, _, errs := c.http.Post(buildURL(c, "/internal/sshkeys/private-keys")).EndStruct(&privKey)
-	if len(errs) > 0 {
-		return nil, errs[0]
+	_, err := c.http.R().
+		SetResult(&privKey).
+		Post(buildURL(c, "/internal/sshkeys/private-keys"))
+	if err != nil {
+		return nil, err
 	}
 
 	return privKey, nil
 }
 
 func (c *client) DevicesOffline(id string) error {
-	_, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/devices/%s/offline", id))).End()
-	if len(errs) > 0 {
-		return errs[0]
+	_, err := c.http.R().
+		Post(buildURL(c, fmt.Sprintf("/internal/devices/%s/offline", id)))
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (c *client) DevicesHeartbeat(id string) error {
-	_, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/devices/%s/heartbeat", id))).End()
-	if len(errs) > 0 {
-		return errs[0]
+	_, err := c.http.R().
+		Post(buildURL(c, fmt.Sprintf("/internal/devices/%s/heartbeat", id)))
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (c *client) FirewallEvaluate(lookup map[string]string) error {
-	res, _, errs := c.http.Get("http://cloud-api:8080/internal/firewall/rules/evaluate").Query(lookup).End()
-	if len(errs) > 0 {
-		return fmt.Errorf("failed to make the request to evaluate the firewall: %v with error %v", lookup, errs)
+	resp, err := c.http.R().
+		SetQueryParams(lookup).
+		Get("http://cloud-api:8080/internal/firewall/rules/evaluate")
+	if err != nil {
+		return fmt.Errorf("failed to make the request to evaluate the firewall: %v with error %v", lookup, err)
 	}
 
-	if res.StatusCode != http.StatusOK {
+	if resp.StatusCode() != http.StatusOK {
 		return errors.New("a firewall rule prohibit this connection")
 	}
 
@@ -151,27 +161,45 @@ func (c *client) FirewallEvaluate(lookup map[string]string) error {
 }
 
 func (c *client) PatchSessions(uid string) []error {
-	_, _, errs := c.http.Patch(buildURL(c, fmt.Sprintf("/internal/sessions/"+uid))).Send(&models.Status{
-		Authenticated: true,
-	}).End()
+	var errors []error
+	_, err := c.http.R().
+		SetBody(&models.Status{
+			Authenticated: true,
+		}).
+		Patch(buildURL(c, fmt.Sprintf("/internal/sessions/"+uid)))
+	if err != nil {
+		errors = append(errors, err)
+	}
 
-	return errs
+	return errors
 }
 
 func (c *client) FinishSession(uid string) []error {
-	_, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/sessions/%s/finish", uid))).End()
+	var errors []error
+	_, err := c.http.R().
+		Post(buildURL(c, fmt.Sprintf("/internal/sessions/%s/finish", uid)))
+	if err != nil {
+		errors = append(errors, err)
+	}
 
-	return errs
+	return errors
 }
 
 func (c *client) KeepAliveSession(uid string) []error {
-	_, _, errs := c.http.Post(buildURL(c, fmt.Sprintf("/internal/sessions/%s/keepalive", uid))).End()
+	var errors []error
+	_, err := c.http.R().
+		Post(buildURL(c, fmt.Sprintf("/internal/sessions/%s/keepalive", uid)))
+	if err != nil {
+		errors = append(errors, err)
+	}
 
-	return errs
+	return errors
 }
 
 func (c *client) RecordSession(session *models.SessionRecorded, recordURL string) {
-	c.http.Post(fmt.Sprintf("http://"+recordURL+"/internal/sessions/%s/record", session.UID)).Send(&session).End()
+	_, _ = c.http.R().
+		SetBody(session).
+		Post(fmt.Sprintf("http://"+recordURL+"/internal/sessions/%s/record", session.UID))
 }
 
 func (c *client) Lookup(lookup map[string]string) (string, []error) {
@@ -179,8 +207,13 @@ func (c *client) Lookup(lookup map[string]string) (string, []error) {
 		UID string `json:"uid"`
 	}
 
-	if res, _, errors := c.http.Get(buildURL(c, "/internal/lookup")).Query(lookup).EndStruct(&device); res.StatusCode != http.StatusOK {
-		return "", errors
+	resp, _ := c.http.R().
+		SetQueryParams(lookup).
+		SetResult(&device).
+		Get(buildURL(c, "/internal/lookup"))
+
+	if resp.StatusCode() != http.StatusOK {
+		return "", []error{errors.New("lookup failed")}
 	}
 
 	return device.UID, nil
@@ -189,8 +222,16 @@ func (c *client) Lookup(lookup map[string]string) (string, []error) {
 func (c *client) DeviceLookup(lookup map[string]string) (*models.Device, []error) {
 	var device *models.Device
 
-	if res, _, errors := c.http.Get(buildURL(c, "/internal/lookup")).Query(lookup).EndStruct(&device); res.StatusCode != http.StatusOK {
-		return nil, errors
+	resp, err := c.http.R().
+		SetQueryParams(lookup).
+		SetResult(&device).
+		Get(buildURL(c, "/internal/lookup"))
+	if err != nil {
+		return nil, []error{err}
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, []error{err}
 	}
 
 	return device, nil

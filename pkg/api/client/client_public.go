@@ -35,9 +35,11 @@ type publicAPI interface {
 func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 	var info *models.Info
 
-	_, _, errs := c.http.Get(buildURL(c, "/info?agent_version="+agentVersion)).EndStruct(&info)
-	if len(errs) > 0 {
-		return nil, errs[0]
+	_, err := c.http.R().
+		SetResult(&info).
+		Get(buildURL(c, "/info?agent_version="+agentVersion))
+	if err != nil {
+		return nil, err
 	}
 
 	return info, nil
@@ -45,9 +47,12 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 
 func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
 	var res *models.DeviceAuthResponse
-	_, _, errs := c.http.Post(buildURL(c, "/api/devices/auth")).Send(req).EndStruct(&res)
-	if len(errs) > 0 {
-		return nil, errs[0]
+	_, err := c.http.R().
+		SetBody(req).
+		SetResult(&res).
+		Post(buildURL(c, "/api/devices/auth"))
+	if err != nil {
+		return nil, err
 	}
 
 	return res, nil
@@ -55,9 +60,11 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 
 func (c *client) Endpoints() (*models.Endpoints, error) {
 	var endpoints *models.Endpoints
-	_, _, errs := c.http.Get(buildURL(c, "/endpoints")).EndStruct(&endpoints)
-	if len(errs) > 0 {
-		return nil, errs[0]
+	_, err := c.http.R().
+		SetResult(&endpoints).
+		Get(buildURL(c, "/endpoints"))
+	if err != nil {
+		return nil, err
 	}
 
 	return endpoints, nil
@@ -84,10 +91,13 @@ func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
 
 func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error) {
 	var res *models.PublicKeyAuthResponse
-	_, _, errs := c.http.Post(buildURL(c, "/api/auth/ssh")).Set("Authorization", fmt.Sprintf("Bearer %s", token)).Send(req).EndStruct(&res)
-
-	if len(errs) > 0 {
-		return nil, errs[0]
+	_, err := c.http.R().
+		SetBody(req).
+		SetResult(&res).
+		SetAuthToken(token).
+		Post(buildURL(c, "/api/auth/ssh"))
+	if err != nil {
+		return nil, err
 	}
 
 	return res, nil

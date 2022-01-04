@@ -1,4 +1,4 @@
-package client
+package internalclient
 
 import (
 	"github.com/sirupsen/logrus"

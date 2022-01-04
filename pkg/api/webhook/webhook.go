@@ -1,20 +1,17 @@
 package webhook
 
 import (
-	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
 	"path"
 
-	retryablehttp "github.com/hashicorp/go-retryablehttp"
+	"github.com/go-resty/resty/v2"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/parnurzeal/gorequest"
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/sirupsen/logrus"
@@ -37,21 +34,8 @@ type Options struct {
 }
 
 func NewClient() Webhook {
-	retryClient := retryablehttp.NewClient()
-	retryClient.HTTPClient = &http.Client{}
-	retryClient.RetryMax = 3
-	retryClient.CheckRetry = func(ctx context.Context, resp *http.Response, err error) (bool, error) {
-		if _, ok := err.(net.Error); ok {
-			return true, nil
-		}
-
-		return retryablehttp.DefaultRetryPolicy(ctx, resp, err)
-	}
-
-	gorequest.DisableTransportSwap = true
-
-	httpClient := gorequest.New()
-	httpClient.Client = retryClient.StandardClient()
+	httpClient := resty.New()
+	httpClient.SetRetryCount(3)
 	opts := Options{}
 	err := envconfig.Process("", &opts)
 	if err != nil {
@@ -66,7 +50,7 @@ func NewClient() Webhook {
 	}
 
 	if w.logger != nil {
-		retryClient.Logger = &client.LeveledLogger{w.logger}
+		httpClient.SetLogger(&client.LeveledLogger{w.logger})
 	}
 
 	return w
@@ -76,7 +60,7 @@ type webhookClient struct {
 	scheme string
 	host   string
 	port   int
-	http   *gorequest.SuperAgent
+	http   *resty.Client
 	logger *logrus.Logger
 }
 
@@ -96,16 +80,24 @@ func (w *webhookClient) Connect(m map[string]string) (*IncomingConnectionWebhook
 	signature := mac.Sum(nil)
 
 	var res *IncomingConnectionWebhookResponse
-	resp, _, errs := w.http.Post(buildURL(w, "/")).Set(WebhookIDHeader, uuid).Set(WebhookEventHeader, WebhookIncomingConnectionEvent).Set(WebhookSignatureHeader, hex.EncodeToString(signature)).Send(payload).EndStruct(&res)
-	if len(errs) > 0 {
+	resp, err := w.http.R().
+		SetHeaders(map[string]string{
+			WebhookIDHeader:        uuid,
+			WebhookEventHeader:     WebhookIncomingConnectionEvent,
+			WebhookSignatureHeader: hex.EncodeToString(signature),
+		}).
+		SetBody(payload).
+		SetResult(&res).
+		Post(buildURL(w, "/"))
+	if err != nil {
 		return nil, ErrConnectionFailed
 	}
 
-	if resp.StatusCode == http.StatusForbidden {
+	if resp.StatusCode() == http.StatusForbidden {
 		return nil, ErrForbidden
 	}
 
-	if resp.StatusCode == http.StatusOK {
+	if resp.StatusCode() == http.StatusOK {
 		return res, nil
 	}
 
