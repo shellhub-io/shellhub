@@ -1,17 +1,13 @@
 package client
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"math"
-	"net"
-	"net/http"
 	"net/url"
 	"path"
 
-	retryablehttp "github.com/hashicorp/go-retryablehttp"
-	"github.com/parnurzeal/gorequest"
+	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 )
@@ -27,21 +23,8 @@ var (
 )
 
 func NewClient(opts ...Opt) Client {
-	retryClient := retryablehttp.NewClient()
-	retryClient.HTTPClient = &http.Client{}
-	retryClient.RetryMax = math.MaxInt32
-	retryClient.CheckRetry = func(ctx context.Context, resp *http.Response, err error) (bool, error) {
-		if _, ok := err.(net.Error); ok {
-			return true, nil
-		}
-
-		return retryablehttp.DefaultRetryPolicy(ctx, resp, err)
-	}
-
-	gorequest.DisableTransportSwap = true
-
-	httpClient := gorequest.New()
-	httpClient.Client = retryClient.StandardClient()
+	httpClient := resty.New()
+	httpClient.SetRetryCount(math.MaxInt32)
 
 	c := &client{
 		host:   apiHost,
@@ -57,7 +40,7 @@ func NewClient(opts ...Opt) Client {
 	}
 
 	if c.logger != nil {
-		retryClient.Logger = &LeveledLogger{c.logger}
+		httpClient.SetLogger(&LeveledLogger{c.logger})
 	}
 
 	return c
@@ -72,15 +55,17 @@ type client struct {
 	scheme string
 	host   string
 	port   int
-	http   *gorequest.SuperAgent
+	http   *resty.Client
 	logger *logrus.Logger
 }
 
 func (c *client) ListDevices() ([]models.Device, error) {
 	list := []models.Device{}
-	_, _, errs := c.http.Get(buildURL(c, "/api/devices")).EndStruct(&list)
-	if len(errs) > 0 {
-		return nil, errs[0]
+	_, err := c.http.R().
+		SetResult(&list).
+		Get(buildURL(c, "/api/devices"))
+	if err != nil {
+		return nil, err
 	}
 
 	return list, nil
@@ -88,12 +73,14 @@ func (c *client) ListDevices() ([]models.Device, error) {
 
 func (c *client) GetDevice(uid string) (*models.Device, error) {
 	var device *models.Device
-	resp, _, errs := c.http.Get(buildURL(c, fmt.Sprintf("/api/devices/%s", uid))).EndStruct(&device)
-	if len(errs) > 0 {
+	resp, err := c.http.R().
+		SetResult(&device).
+		Get(buildURL(c, fmt.Sprintf("/api/devices/%s", uid)))
+	if err != nil {
 		return nil, ErrConnectionFailed
 	}
 
-	switch resp.StatusCode {
+	switch resp.StatusCode() {
 	case 400:
 		return nil, ErrNotFound
 	case 200:
