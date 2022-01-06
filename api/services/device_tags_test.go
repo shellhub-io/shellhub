@@ -2,13 +2,13 @@ package services
 
 import (
 	"context"
+	"errors"
 	"testing"
-
-	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -93,7 +93,7 @@ func TestCreateTag(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestDeleteTag(t *testing.T) {
+func TestRemoveTag(t *testing.T) {
 	locator := &mocksGeoIp.Locator{}
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
@@ -124,7 +124,7 @@ func TestDeleteTag(t *testing.T) {
 			deviceName: "device1",
 			requiredMocks: func() {
 				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
-				mock.On("DeviceDeleteTag", ctx, models.UID(device.UID), "device1").Return(nil).Once()
+				mock.On("DeviceRemoveTag", ctx, models.UID(device.UID), "device1").Return(nil).Once()
 			},
 			expected: nil,
 		},
@@ -133,7 +133,7 @@ func TestDeleteTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.DeleteTag(ctx, tc.uid, tc.deviceName)
+			err := s.RemoveTag(ctx, tc.uid, tc.deviceName)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -147,6 +147,21 @@ func TestRenameTag(t *testing.T) {
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
 
 	ctx := context.TODO()
+
+	Err := errors.New("")
+
+	deviceWithTags := &models.Device{
+		UID:      "deviceWithTagsUID",
+		Name:     "deviceWithTagsName",
+		TenantID: "deviceWithTagsTenantID",
+		Tags:     []string{"device3", "device4", "device5"},
+	}
+
+	namespace := &models.Namespace{
+		Name:     "namespaceName",
+		Owner:    "owner",
+		TenantID: "namespaceTenantID",
+	}
 
 	cases := []struct {
 		name              string
@@ -163,12 +178,43 @@ func TestRenameTag(t *testing.T) {
 			expected:      ErrInvalidFormat,
 		},
 		{
-			name:              "successful rename a tag",
-			tenantID:          "tenant",
+			name:              "Fail when device has no tags",
+			tenantID:          "namespaceTenantIDNoTag",
 			currentDeviceName: "device3",
 			newDeviceName:     "device1",
 			requiredMocks: func() {
-				mock.On("DeviceRenameTag", ctx, "tenant", "device3", "device1").Return(nil).Once()
+				mock.On("DeviceGetTags", ctx, "namespaceTenantIDNoTag").Return(nil, 0, Err)
+			},
+			expected: ErrNoTags,
+		},
+		{
+			name:              "Fail when device don't have a tag",
+			tenantID:          namespace.TenantID,
+			currentDeviceName: "device2",
+			newDeviceName:     "device1",
+			requiredMocks: func() {
+				mock.On("DeviceGetTags", ctx, namespace.TenantID).Return(deviceWithTags.Tags, len(deviceWithTags.Tags), nil).Once()
+			},
+			expected: ErrTagNameNotFound,
+		},
+		{
+			name:              "Fail when device already have a tag",
+			tenantID:          namespace.TenantID,
+			currentDeviceName: "device3",
+			newDeviceName:     "device5",
+			requiredMocks: func() {
+				mock.On("DeviceGetTags", ctx, namespace.TenantID).Return(deviceWithTags.Tags, len(deviceWithTags.Tags), nil).Once()
+			},
+			expected: ErrDuplicateTagName,
+		},
+		{
+			name:              "Successful rename a tag",
+			tenantID:          namespace.TenantID,
+			currentDeviceName: "device3",
+			newDeviceName:     "device1",
+			requiredMocks: func() {
+				mock.On("DeviceGetTags", ctx, namespace.TenantID).Return(deviceWithTags.Tags, len(deviceWithTags.Tags), nil).Once()
+				mock.On("DeviceRenameTag", ctx, namespace.TenantID, "device3", "device1").Return(nil).Once()
 			},
 			expected: nil,
 		},
@@ -179,54 +225,6 @@ func TestRenameTag(t *testing.T) {
 			tc.requiredMocks()
 			err := s.RenameTag(ctx, tc.tenantID, tc.currentDeviceName, tc.newDeviceName)
 			assert.Equal(t, tc.expected, err)
-		})
-	}
-
-	mock.AssertExpectations(t)
-}
-
-func TestListTag(t *testing.T) {
-	locator := &mocksGeoIp.Locator{}
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
-
-	ctx := context.TODO()
-
-	device := &models.Device{UID: "uid", TenantID: "tenant", Tags: []string{"device1", "device2"}}
-
-	type Expected struct {
-		Tags  []string
-		Count int
-		Error error
-	}
-
-	cases := []struct {
-		name          string
-		requiredMocks func()
-		uid           models.UID
-		tenantID      string
-		expected      Expected
-	}{
-		{
-			name: "successful list tags",
-			requiredMocks: func() {
-				mock.On("DeviceListTag", ctx).Return(device.Tags, len(device.Tags), nil).Once()
-			},
-			uid:      models.UID(device.UID),
-			tenantID: device.TenantID,
-			expected: Expected{
-				Tags:  device.Tags,
-				Count: len(device.Tags),
-				Error: nil,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.requiredMocks()
-			returnedTags, count, err := s.ListTag(ctx)
-			assert.Equal(t, tc.expected, Expected{returnedTags, count, err})
 		})
 	}
 
@@ -288,13 +286,11 @@ func TestUpdateTag(t *testing.T) {
 			uid:  models.UID(device.UID),
 			tags: maxReachedTags,
 			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
-				mock.On("DeviceUpdateTag", ctx, models.UID(device.UID), maxReachedTags).Return(ErrMaxTagReached).Once()
 			},
 			expected: ErrMaxTagReached,
 		},
 		{
-			name: "successful create tags for the device",
+			name: "Successful create tags for the device",
 			uid:  models.UID(device.UID),
 			tags: tags,
 			requiredMocks: func() {
@@ -349,7 +345,7 @@ func TestGetTags(t *testing.T) {
 			expected: Expected{
 				Tags:  nil,
 				Count: 0,
-				Error: ErrNotFound,
+				Error: ErrNamespaceNotFound,
 			},
 		},
 		{
@@ -403,7 +399,7 @@ func TestDeleteAllTags(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, ErrNotFound).Once()
 			},
-			expected: ErrNotFound,
+			expected: ErrNamespaceNotFound,
 		},
 		{
 			name:       "successful get tags",
@@ -411,7 +407,7 @@ func TestDeleteAllTags(t *testing.T) {
 			tenantID:   device.TenantID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
-				mock.On("DeviceDeleteAllTags", ctx, "tenant", "device1").Return(nil).Once()
+				mock.On("DeviceDeleteTags", ctx, "tenant", "device1").Return(nil).Once()
 			},
 			expected: nil,
 		},
@@ -420,7 +416,7 @@ func TestDeleteAllTags(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.DeleteAllTags(ctx, tc.tenantID, tc.deviceName)
+			err := s.DeleteTags(ctx, tc.tenantID, tc.deviceName)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

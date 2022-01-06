@@ -4,13 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
-
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
-
 	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -23,16 +21,13 @@ const (
 	HeartbeatDeviceURL = "/devices/:uid/heartbeat"
 	LookupDeviceURL    = "/lookup"
 	UpdateStatusURL    = "/devices/:uid/:status"
-	CreateTagURL       = "/devices/:uid/tags"
-	DeleteTagURL       = "/devices/:uid/tags/:name"
-	RenameTagURL       = "/devices/tags/:name"
-	ListTagURL         = "/devices/tags"
-	UpdateTagURL       = "/devices/:uid/tags"
-	GetTagsURL         = "/devices/tags"
-	DeleteAllTagsURL   = "/devices/tags/:name"
+	CreateTagURL       = "/devices/:uid/tags"       // Add a tag to a device.
+	UpdateTagURL       = "/devices/:uid/tags"       // Update device's tags with a new set.
+	RemoveTagURL       = "/devices/:uid/tags/:name" // Delete a tag from a device.
+	GetTagsURL         = "/devices/tags"            // Get tags from all device.
+	RenameTagURL       = "/devices/tags/:name"      // Rename a tag inside all devices.
+	DeleteTagsURL      = "/devices/tags/:name"      // Delete all tag's occurrence inside all devices with a specif name.
 )
-
-const TenantIDHeader = "X-Tenant-ID"
 
 type filterQuery struct {
 	Filter string `query:"filter"`
@@ -205,32 +200,32 @@ func (h *Handler) CreateTag(c apicontext.Context) error {
 
 	if err := h.service.CreateTag(c.Ctx(), models.UID(c.Param("uid")), req.Name); err != nil {
 		switch err {
-		case services.ErrUnauthorized:
-			return c.NoContent(http.StatusForbidden)
 		case services.ErrInvalidFormat:
 			return c.NoContent(http.StatusBadRequest)
+		case services.ErrDeviceNotFound:
+			return c.NoContent(http.StatusNotFound)
 		case services.ErrMaxTagReached:
 			return c.NoContent(http.StatusNotAcceptable)
 		case services.ErrDuplicateTagName:
 			return c.NoContent(http.StatusConflict)
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) DeleteTag(c apicontext.Context) error {
-	if err := h.service.DeleteTag(c.Ctx(), models.UID(c.Param("uid")), c.Param("name")); err != nil {
+func (h *Handler) RemoveTag(c apicontext.Context) error {
+	if err := h.service.RemoveTag(c.Ctx(), models.UID(c.Param("uid")), c.Param("name")); err != nil {
 		switch err {
-		case services.ErrUnauthorized:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrNotFound:
+		case services.ErrDeviceNotFound:
 			return c.NoContent(http.StatusNotFound)
+		case services.ErrTagNameNotFound:
+			return c.NoContent(http.StatusNotFound)
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -252,29 +247,20 @@ func (h *Handler) RenameTag(c apicontext.Context) error {
 
 	if err := h.service.RenameTag(c.Ctx(), tenant, c.Param("name"), req.Name); err != nil {
 		switch err {
-		case services.ErrUnauthorized:
-			return c.NoContent(http.StatusForbidden)
 		case services.ErrInvalidFormat:
 			return c.NoContent(http.StatusBadRequest)
-		case services.ErrNotFound:
+		case services.ErrNoTags:
 			return c.NoContent(http.StatusNotFound)
+		case services.ErrTagNameNotFound:
+			return c.NoContent(http.StatusNotFound)
+		case services.ErrDuplicateTagName:
+			return c.NoContent(http.StatusConflict)
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handler) ListTag(c apicontext.Context) error {
-	tags, count, err := h.service.ListTag(c.Ctx())
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, tags)
 }
 
 func (h *Handler) UpdateTag(c apicontext.Context) error {
@@ -288,13 +274,11 @@ func (h *Handler) UpdateTag(c apicontext.Context) error {
 
 	if err := h.service.UpdateTag(c.Ctx(), models.UID(c.Param("uid")), req.Tags); err != nil {
 		switch err {
-		case services.ErrUnauthorized:
-			return c.NoContent(http.StatusForbidden)
 		case services.ErrInvalidFormat:
 			return c.NoContent(http.StatusBadRequest)
 		case services.ErrMaxTagReached:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrNotFound:
+			return c.NoContent(http.StatusNotAcceptable)
+		case services.ErrDeviceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		}
 
@@ -311,10 +295,13 @@ func (h *Handler) GetTags(c apicontext.Context) error {
 	}
 
 	tags, count, err := h.service.GetTags(c.Ctx(), tenant)
-	if err == services.ErrUnauthorized {
-		return c.NoContent(http.StatusForbidden)
-	} else if err != nil {
-		return err
+	if err != nil {
+		switch err {
+		case services.ErrNamespaceNotFound:
+			return c.NoContent(http.StatusNotFound)
+		default:
+			return err
+		}
 	}
 
 	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
@@ -322,16 +309,20 @@ func (h *Handler) GetTags(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, tags)
 }
 
-func (h *Handler) DeleteAllTags(c apicontext.Context) error {
+func (h *Handler) DeleteTags(c apicontext.Context) error {
 	tenant := ""
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID
 	}
 
-	if err := h.service.DeleteAllTags(c.Ctx(), tenant, c.Param("name")); err == services.ErrUnauthorized {
-		return c.NoContent(http.StatusForbidden)
-	} else if err != nil {
-		return err
+	err := h.service.DeleteTags(c.Ctx(), tenant, c.Param("name"))
+	if err != nil {
+		switch err {
+		case services.ErrNamespaceNotFound:
+			return c.NoContent(http.StatusNotFound)
+		default:
+			return err
+		}
 	}
 
 	return c.NoContent(http.StatusOK)
