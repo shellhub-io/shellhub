@@ -11,7 +11,7 @@ parameters:
     in: header
 delete:
   summary: Delete a tag
-  description: Delete a tag
+  description: Delete a tag from a device
   tags:
     - device
   security:
@@ -19,35 +19,6 @@ delete:
   responses:
     '200':
       $ref: ../../shared/responses/ok.yaml
-    '401':
-      $ref: ../../shared/responses/unauthorized.yaml
-    '403':
-      $ref: ../../shared/responses/forbidden.yaml
-    '404':
-      $ref: ../../shared/responses/not_found.yaml
-    '500':
-      $ref: ../../shared/responses/any_internal_error.yaml
-put:
-  summary: Update a tag name
-  description: Update a tag name
-  tags:
-    - device
-  security:
-    - Auth: []
-  requestBody:
-    content:
-      application/json:
-        schema:
-          type: object
-          properties:
-            new_name:
-              description: New tag name
-              type: string
-  responses:
-    '200':
-      $ref: ../../shared/responses/ok.yaml
-    '400':
-      $ref: ../../shared/responses/bad_request.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':

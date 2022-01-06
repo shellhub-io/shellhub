@@ -1,12 +1,12 @@
 parameters:
-  - name: uid
-    description: Device UID
+  - name: name
+    description: Tag name
     schema:
       type: string
-    in: header
-post:
-  summary: Create a tag
-  description: Create a tag to a device
+    in: path
+put:
+  summary: Rename a tag name
+  description: Rename a tag name from a device
   tags:
     - device
   security:
@@ -18,7 +18,7 @@ post:
           type: object
           properties:
             name:
-              description: Tag name
+              description: New tag name
               type: string
   responses:
     '200':
@@ -31,42 +31,25 @@ post:
       $ref: ../../shared/responses/forbidden.yaml
     '404':
       $ref: ../../shared/responses/not_found.yaml
-    '406':
-      $ref: ../../shared/responses/not_acceptable.yaml
     '409':
       $ref: ../../shared/responses/conflict.yaml
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml
-put:
-  summary: Update all tags
-  description: Update all tags from a device
+delete:
+  summary: Remove a tag name
+  description: Remove a tag name from a device
   tags:
     - device
   security:
     - Auth: []
-  requestBody:
-    content:
-      application/json:
-        schema:
-          type: object
-          properties:
-            tags:
-              description: List of tags
-              type: array
-              items:
-                type: string
   responses:
     '200':
       $ref: ../../shared/responses/ok.yaml
-    '400':
-      $ref: ../../shared/responses/bad_request.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':
       $ref: ../../shared/responses/forbidden.yaml
     '404':
       $ref: ../../shared/responses/not_found.yaml
-    '406':
-      $ref: ../../shared/responses/not_acceptable.yaml
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml

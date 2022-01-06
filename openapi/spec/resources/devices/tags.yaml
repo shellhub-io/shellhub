@@ -1,6 +1,6 @@
 get:
   summary: Get all tags
-  description: Get all tags
+  description: Get all tags from all devices from a namespace.
   tags:
     - device
   security:
@@ -22,5 +22,9 @@ get:
               type: string
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
+    '403':
+      $ref: ../../shared/responses/forbidden.yaml
+    '404':
+      $ref: ../../shared/responses/not_found.yaml
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml
