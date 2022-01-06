@@ -58,7 +58,7 @@ func TestDeviceDeleteTag(t *testing.T) {
 	err = mongostore.DeviceCreateTag(data.Context, models.UID(data.Device.UID), "device3")
 	assert.NoError(t, err)
 
-	err = mongostore.DeviceDeleteTag(data.Context, models.UID(data.Device.UID), "device2")
+	err = mongostore.DeviceRemoveTag(data.Context, models.UID(data.Device.UID), "device2")
 	assert.NoError(t, err)
 
 	d, err := mongostore.DeviceGetByUID(data.Context, models.UID(data.Device.UID), "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
@@ -130,44 +130,6 @@ func TestDeviceRenameTag(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, len(d3.Tags), 3)
 	assert.Equal(t, d3.Tags[1], "device4")
-}
-
-func TestDeviceListTag(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-
-	device1 := models.Device{
-		UID:      "1",
-		TenantID: "tenant",
-		Tags: []string{
-			"device1",
-			"device5",
-			"device3",
-		},
-	}
-
-	device2 := models.Device{
-		UID:      "1",
-		TenantID: "tenant",
-		Tags: []string{
-			"device4",
-			"device5",
-			"device6",
-		},
-	}
-
-	_, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, &device1)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device2)
-	assert.NoError(t, err)
-
-	_, count, err := mongostore.DeviceListTag(ctx)
-	assert.NoError(t, err)
-	assert.Equal(t, count, 5)
 }
 
 func TestDeviceUpdateTag(t *testing.T) {
@@ -288,7 +250,7 @@ func TestDeviceDeleteAllTags(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device3)
 	assert.NoError(t, err)
 
-	err = mongostore.DeviceDeleteAllTags(ctx, "tenant1", "device1")
+	err = mongostore.DeviceDeleteTags(ctx, "tenant1", "device1")
 	assert.NoError(t, err)
 
 	d1, err := mongostore.DeviceGetByUID(ctx, models.UID(device1.UID), "tenant1")

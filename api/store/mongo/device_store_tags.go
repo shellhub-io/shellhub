@@ -15,7 +15,7 @@ func (s *Store) DeviceCreateTag(ctx context.Context, uid models.UID, tag string)
 	return err
 }
 
-func (s *Store) DeviceDeleteTag(ctx context.Context, uid models.UID, tag string) error {
+func (s *Store) DeviceRemoveTag(ctx context.Context, uid models.UID, tag string) error {
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$pull": bson.M{"tags": tag}})
 
 	return err
@@ -43,17 +43,6 @@ func (s *Store) DeviceRenameTag(ctx context.Context, tenantID string, currentTag
 	return err
 }
 
-func (s *Store) DeviceListTag(ctx context.Context) ([]string, int, error) {
-	tagList, err := s.db.Collection("devices").Distinct(ctx, "tags", bson.M{})
-
-	tags := make([]string, len(tagList))
-	for i, v := range tagList {
-		tags[i] = fmt.Sprint(v)
-	}
-
-	return tags, len(tags), err
-}
-
 func (s *Store) DeviceUpdateTag(ctx context.Context, uid models.UID, tags []string) error {
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"tags": tags}})
 
@@ -71,7 +60,7 @@ func (s *Store) DeviceGetTags(ctx context.Context, tenantID string) ([]string, i
 	return tags, len(tags), err
 }
 
-func (s *Store) DeviceDeleteAllTags(ctx context.Context, tenantID string, tagName string) error {
+func (s *Store) DeviceDeleteTags(ctx context.Context, tenantID string, tagName string) error {
 	_, err := s.db.Collection("devices").UpdateMany(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"tags": tagName}})
 
 	return err

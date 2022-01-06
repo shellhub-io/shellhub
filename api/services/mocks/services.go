@@ -290,20 +290,6 @@ func (_m *Service) DeactivateSession(ctx context.Context, uid models.UID) error 
 	return r0
 }
 
-// DeleteAllTags provides a mock function with given fields: ctx, tenant, name
-func (_m *Service) DeleteAllTags(ctx context.Context, tenant string, name string) error {
-	ret := _m.Called(ctx, tenant, name)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, tenant, name)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeleteDevice provides a mock function with given fields: ctx, uid, tenant
 func (_m *Service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
 	ret := _m.Called(ctx, uid, tenant)
@@ -346,13 +332,13 @@ func (_m *Service) DeletePublicKey(ctx context.Context, fingerprint string, tena
 	return r0
 }
 
-// DeleteTag provides a mock function with given fields: ctx, uid, name
-func (_m *Service) DeleteTag(ctx context.Context, uid models.UID, name string) error {
-	ret := _m.Called(ctx, uid, name)
+// DeleteTags provides a mock function with given fields: ctx, tenant, name
+func (_m *Service) DeleteTags(ctx context.Context, tenant string, name string) error {
+	ret := _m.Called(ctx, tenant, name)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, name)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, tenant, name)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -818,36 +804,6 @@ func (_m *Service) ListSessions(ctx context.Context, pagination paginator.Query)
 	return r0, r1, r2
 }
 
-// ListTag provides a mock function with given fields: ctx
-func (_m *Service) ListTag(ctx context.Context) ([]string, int, error) {
-	ret := _m.Called(ctx)
-
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(context.Context) []string); ok {
-		r0 = rf(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context) int); ok {
-		r1 = rf(ctx)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context) error); ok {
-		r2 = rf(ctx)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
 // LookupDevice provides a mock function with given fields: ctx, namespace, name
 func (_m *Service) LookupDevice(ctx context.Context, namespace string, name string) (*models.Device, error) {
 	ret := _m.Called(ctx, namespace, name)
@@ -908,6 +864,20 @@ func (_m *Service) RemoveNamespaceUser(ctx context.Context, tenantID string, mem
 	}
 
 	return r0, r1
+}
+
+// RemoveTag provides a mock function with given fields: ctx, uid, name
+func (_m *Service) RemoveTag(ctx context.Context, uid models.UID, name string) error {
+	ret := _m.Called(ctx, uid, name)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
+		r0 = rf(ctx, uid, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // RenameDevice provides a mock function with given fields: ctx, uid, name, tenant

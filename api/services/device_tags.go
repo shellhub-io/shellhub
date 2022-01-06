@@ -9,12 +9,11 @@ import (
 
 type DeviceTags interface {
 	CreateTag(ctx context.Context, uid models.UID, name string) error
-	DeleteTag(ctx context.Context, uid models.UID, name string) error
+	RemoveTag(ctx context.Context, uid models.UID, name string) error
 	RenameTag(ctx context.Context, tenantID string, currentName string, newName string) error
-	ListTag(ctx context.Context) ([]string, int, error)
 	UpdateTag(ctx context.Context, uid models.UID, tags []string) error
 	GetTags(ctx context.Context, tenant string) ([]string, int, error)
-	DeleteAllTags(ctx context.Context, tenant string, name string) error
+	DeleteTags(ctx context.Context, tenant string, name string) error
 }
 
 func (s *service) CreateTag(ctx context.Context, uid models.UID, name string) error {
@@ -23,11 +22,7 @@ func (s *service) CreateTag(ctx context.Context, uid models.UID, name string) er
 	}
 
 	device, err := s.store.DeviceGet(ctx, uid)
-	if err != nil {
-		return err
-	}
-
-	if device == nil {
+	if err != nil || device == nil {
 		return ErrDeviceNotFound
 	}
 
@@ -42,17 +37,17 @@ func (s *service) CreateTag(ctx context.Context, uid models.UID, name string) er
 	return s.store.DeviceCreateTag(ctx, uid, name)
 }
 
-func (s *service) DeleteTag(ctx context.Context, uid models.UID, name string) error {
+func (s *service) RemoveTag(ctx context.Context, uid models.UID, name string) error {
 	device, err := s.store.DeviceGet(ctx, uid)
-	if err != nil {
-		return err
-	}
-
-	if device == nil {
+	if err != nil || device == nil {
 		return ErrDeviceNotFound
 	}
 
-	return s.store.DeviceDeleteTag(ctx, uid, name)
+	if !contains(device.Tags, name) {
+		return ErrTagNameNotFound
+	}
+
+	return s.store.DeviceRemoveTag(ctx, uid, name)
 }
 
 func (s *service) RenameTag(ctx context.Context, tenantID string, currentName string, newName string) error {
@@ -60,11 +55,20 @@ func (s *service) RenameTag(ctx context.Context, tenantID string, currentName st
 		return err
 	}
 
-	return s.store.DeviceRenameTag(ctx, tenantID, currentName, newName)
-}
+	tags, count, err := s.store.DeviceGetTags(ctx, tenantID)
+	if err != nil || count == 0 {
+		return ErrNoTags
+	}
 
-func (s *service) ListTag(ctx context.Context) ([]string, int, error) {
-	return s.store.DeviceListTag(ctx)
+	if !contains(tags, currentName) {
+		return ErrTagNameNotFound
+	}
+
+	if contains(tags, newName) {
+		return ErrDuplicateTagName
+	}
+
+	return s.store.DeviceRenameTag(ctx, tenantID, currentName, newName)
 }
 
 func (s *service) UpdateTag(ctx context.Context, uid models.UID, tags []string) error {
@@ -74,50 +78,38 @@ func (s *service) UpdateTag(ctx context.Context, uid models.UID, tags []string) 
 		}
 	}
 
-	device, err := s.store.DeviceGet(ctx, uid)
-	if err != nil {
-		return err
-	}
-
-	if device == nil {
-		return ErrDeviceNotFound
-	}
-
-	if len(device.Tags) == 5 {
+	if len(tags) > 5 {
 		return ErrMaxTagReached
+	}
+
+	device, err := s.store.DeviceGet(ctx, uid)
+	if err != nil || device == nil {
+		return ErrDeviceNotFound
 	}
 
 	return s.store.DeviceUpdateTag(ctx, uid, tags)
 }
 
 func (s *service) GetTags(ctx context.Context, tenant string) ([]string, int, error) {
-	ns, err := s.store.NamespaceGet(ctx, tenant)
-	if err != nil {
-		return nil, 0, err
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil || namespace == nil {
+		return nil, 0, ErrNamespaceNotFound
 	}
 
-	if ns == nil {
-		return nil, 0, ErrNotFound
-	}
-
-	return s.store.DeviceGetTags(ctx, ns.TenantID)
+	return s.store.DeviceGetTags(ctx, namespace.TenantID)
 }
 
-func (s *service) DeleteAllTags(ctx context.Context, tenant string, name string) error {
-	ns, err := s.store.NamespaceGet(ctx, tenant)
-	if err != nil {
-		return err
+func (s *service) DeleteTags(ctx context.Context, tenant string, name string) error {
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil || namespace == nil {
+		return ErrNamespaceNotFound
 	}
 
-	if ns == nil {
-		return ErrNotFound
-	}
-
-	return s.store.DeviceDeleteAllTags(ctx, ns.TenantID, name)
+	return s.store.DeviceDeleteTags(ctx, namespace.TenantID, name)
 }
 
-func contains(s []string, name string) bool {
-	for _, tag := range s {
+func contains(tags []string, name string) bool {
+	for _, tag := range tags {
 		if tag == name {
 			return true
 		}

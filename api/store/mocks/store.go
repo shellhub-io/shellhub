@@ -162,27 +162,13 @@ func (_m *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	return r0
 }
 
-// DeviceDeleteAllTags provides a mock function with given fields: ctx, tenantID, tagName
-func (_m *Store) DeviceDeleteAllTags(ctx context.Context, tenantID string, tagName string) error {
+// DeviceDeleteTags provides a mock function with given fields: ctx, tenantID, tagName
+func (_m *Store) DeviceDeleteTags(ctx context.Context, tenantID string, tagName string) error {
 	ret := _m.Called(ctx, tenantID, tagName)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
 		r0 = rf(ctx, tenantID, tagName)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeviceDeleteTag provides a mock function with given fields: ctx, uid, tag
-func (_m *Store) DeviceDeleteTag(ctx context.Context, uid models.UID, tag string) error {
-	ret := _m.Called(ctx, uid, tag)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, tag)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -365,36 +351,6 @@ func (_m *Store) DeviceListByUsage(ctx context.Context, tenantID string) ([]mode
 	return r0, r1
 }
 
-// DeviceListTag provides a mock function with given fields: ctx
-func (_m *Store) DeviceListTag(ctx context.Context) ([]string, int, error) {
-	ret := _m.Called(ctx)
-
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(context.Context) []string); ok {
-		r0 = rf(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context) int); ok {
-		r1 = rf(ctx)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context) error); ok {
-		r2 = rf(ctx)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
 // DeviceLookup provides a mock function with given fields: ctx, namespace, hostname
 func (_m *Store) DeviceLookup(ctx context.Context, namespace string, hostname string) (*models.Device, error) {
 	ret := _m.Called(ctx, namespace, hostname)
@@ -416,6 +372,20 @@ func (_m *Store) DeviceLookup(ctx context.Context, namespace string, hostname st
 	}
 
 	return r0, r1
+}
+
+// DeviceRemoveTag provides a mock function with given fields: ctx, uid, tag
+func (_m *Store) DeviceRemoveTag(ctx context.Context, uid models.UID, tag string) error {
+	ret := _m.Called(ctx, uid, tag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
+		r0 = rf(ctx, uid, tag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DeviceRename provides a mock function with given fields: ctx, uid, hostname
