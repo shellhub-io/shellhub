@@ -55,3 +55,5 @@ paths:
     $ref: spec/resources/devices/uid_tags_name.yaml
   '/api/devices/tags':
     $ref: spec/resources/devices/tags.yaml
+  '/api/devices/tags/{name}':
+    $ref: spec/resources/devices/tags_name.yaml
