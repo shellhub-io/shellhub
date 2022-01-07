@@ -58,6 +58,18 @@
               {{ item.title }}
             </v-list-item-title>
           </v-list-item>
+
+          <v-divider />
+
+          <v-list-item>
+            <v-switch
+              :input-value="darkMode"
+              label="Dark Mode"
+              dense
+              inset
+              @change="toggleDarkMode"
+            />
+          </v-list-item>
         </v-card>
       </v-menu>
     </v-app-bar>
@@ -82,6 +94,7 @@ export default {
       chat: null,
       chatOpen: false,
       defaultSize: 24,
+      darkMode: true,
       menu: [
         {
           title: 'Settings',
@@ -149,6 +162,11 @@ export default {
 
     toggleChat() {
       this.chat.toggleChat(!this.chatOpen);
+    },
+
+    toggleDarkMode() {
+      this.darkMode = !this.darkMode;
+      this.$vuetify.theme.dark = this.darkMode;
     },
   },
 };
