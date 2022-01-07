@@ -12,6 +12,7 @@ import (
 	_ "github.com/GehirnInc/crypt/md5_crypt"    // GehirnInc/crypt uses blank imports for crypto subpackages
 	_ "github.com/GehirnInc/crypt/sha256_crypt" // GehirnInc/crypt uses blank imports for crypto subpackages
 	_ "github.com/GehirnInc/crypt/sha512_crypt" // GehirnInc/crypt uses blank imports for crypto subpackages
+	"github.com/shellhub-io/shellhub/agent/pkg/yescrypt"
 	"github.com/sirupsen/logrus"
 )
 
@@ -33,6 +34,11 @@ func VerifyPasswordHash(hashPassword, passwd string) bool {
 		logrus.Error("Password entry is empty")
 
 		return false
+	}
+
+	// If hash algorithm is yescrypt verify by ourselves, otherwise let's try crypt package
+	if strings.HasPrefix(hashPassword, "$y$") {
+		return yescrypt.Verify(passwd, hashPassword)
 	}
 
 	if ok := crypt.IsHashSupported(hashPassword); !ok {
