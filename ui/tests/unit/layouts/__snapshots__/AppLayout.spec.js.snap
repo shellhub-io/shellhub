@@ -2,7 +2,7 @@
 
 exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
 <fragment-stub>
-  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" height="100vh" minivariantwidth="56" src="" tag="nav" width="256">
+  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" dark="true" height="100vh" minivariantwidth="56" src="" tag="nav" width="256">
     <v-list-item-stub activeclass="" tag="div">
       <v-list-item-content-stub tag="div">
         <v-list-item-title-stub tag="div">
@@ -83,7 +83,7 @@ exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
 
 exports[`AppLayout Is not enterprise Renders the component 1`] = `
 <fragment-stub>
-  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" height="100vh" minivariantwidth="56" src="" tag="nav" width="256">
+  <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" dark="true" height="100vh" minivariantwidth="56" src="" tag="nav" width="256">
     <v-list-item-stub activeclass="" tag="div">
       <v-list-item-content-stub tag="div">
         <v-list-item-title-stub tag="div">

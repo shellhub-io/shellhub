@@ -24,6 +24,10 @@ exports[`AppBar Renders the component 1`] = `
             Logout
           </v-list-item-title-stub>
         </v-list-item-stub>
+        <v-divider-stub></v-divider-stub>
+        <v-list-item-stub activeclass="" tag="div">
+          <v-switch-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" backgroundcolor="" dense="true" label="Dark Mode" ripple="true" valuecomparator="[Function]" inputvalue="true" inset="true"></v-switch-stub>
+        </v-list-item-stub>
       </v-card-stub>
     </v-menu-stub>
   </v-app-bar-stub>
