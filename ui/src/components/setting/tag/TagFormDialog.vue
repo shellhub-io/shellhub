@@ -2,64 +2,70 @@
   <fragment>
     <v-tooltip
       v-if="isCreate"
-      bottom
-    >
-      <template #activator="{ on }">
-        <v-icon
-          :disabled="!isOwner"
-          v-on="on"
-          @click="dialog = !dialog"
-        >
-          mdi-tag
-        </v-icon>
-      </template>
-
-      <div>
-        <span
-          v-if="isOwner"
-          data-test="text-span"
-        >
-          Create tag
-        </span>
-
-        <span v-else>
-          You don't have this kind of authorization.
-        </span>
-      </div>
-    </v-tooltip>
-
-    <v-tooltip
-      v-else
+      :disabled="hasAuthorization"
       bottom
     >
       <template #activator="{ on }">
         <span v-on="on">
-          <v-icon
-            :disabled="!isOwner"
+          <v-list-item-title
+            data-test="create-item"
             v-on="on"
-            @click="dialog = !dialog"
           >
-            edit
+            Add tag
+          </v-list-item-title>
+        </span>
+
+        <span v-on="on">
+          <v-icon
+            :disabled="!hasAuthorization"
+            left
+            data-test="create-icon"
+            v-on="on"
+          >
+            mdi-tag
           </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="isOwner"
-          data-test="text-span"
-        >
-          Edit
+      <span v-if="!hasAuthorization">
+        You don't have this kind of authorization.
+      </span>
+    </v-tooltip>
+
+    <v-tooltip
+      v-else
+      :disabled="hasAuthorization"
+      bottom
+    >
+      <template #activator="{ on }">
+        <span v-on="on">
+          <v-list-item-title
+            data-test="edit-item"
+            v-on="on"
+          >
+            Edit
+          </v-list-item-title>
         </span>
 
-        <span v-else>
-          You don't have this kind of authorization.
+        <span v-on="on">
+          <v-icon
+            :disabled="!hasAuthorization"
+            left
+            data-test="edit-icon"
+            v-on="on"
+          >
+            mdi-tag
+          </v-icon>
         </span>
-      </div>
+      </template>
+
+      <span v-if="!hasAuthorization">
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="400"
       @click:outside="close"
     >
@@ -125,8 +131,12 @@ import {
   ValidationProvider,
 } from 'vee-validate';
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'TagFormDialogComponent',
+
+  filters: { hasPermission },
 
   components: {
     ValidationProvider,
@@ -152,6 +162,11 @@ export default {
       default: '',
       required: false,
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
@@ -168,6 +183,32 @@ export default {
 
     isCreate() {
       return this.action === 'create';
+    },
+
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+      set(value) {
+        this.$emit('update:show', value);
+      },
+    },
+
+    hasAuthorization() {
+      const role = this.$store.getters['auth/role'];
+
+      if (role !== '') {
+        let action = '';
+        if (this.isCreate) action = 'deviceCreate';
+        else action = 'edit';
+
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.tag[action],
+        );
+      }
+
+      return false;
     },
   },
 
@@ -216,7 +257,7 @@ export default {
     },
 
     close() {
-      this.dialog = !this.dialog;
+      this.$emit('update:show', false);
       this.$refs.obs.reset();
     },
   },

@@ -12,12 +12,14 @@ exports[`DeviceList Device online Renders the component 1`] = `
             <col class="">
             <col class="">
             <col class="">
+            <col class="">
           </colgroup>
           <thead class="v-data-table-header">
             <tr>
               <th role="columnheader" scope="col" aria-label="Online: Not sorted. Activate to sort ascending." aria-sort="none" class="text-center sortable"><span>Online</span><i aria-hidden="true" class="v-icon notranslate v-data-table-header__icon mdi mdi-arrow-up theme--light" style="font-size: 18px;"></i></th>
               <th role="columnheader" scope="col" aria-label="Hostname: Not sorted. Activate to sort ascending." aria-sort="none" class="text-center sortable"><span>Hostname</span><i aria-hidden="true" class="v-icon notranslate v-data-table-header__icon mdi mdi-arrow-up theme--light" style="font-size: 18px;"></i></th>
               <th role="columnheader" scope="col" aria-label="Operating System" class="text-center"><span>Operating System</span></th>
+              <th role="columnheader" scope="col" aria-label="Tags" class="text-center"><span>Tags</span></th>
               <th role="columnheader" scope="col" aria-label="SSHID" class="text-center"><span>SSHID</span></th>
               <th role="columnheader" scope="col" aria-label="Actions" class="text-center"><span>Actions</span></th>
             </tr>
@@ -33,6 +35,19 @@ exports[`DeviceList Device online Renders the component 1`] = `
               <td class="text-center">
                 <fragment-stub data-test="deviceIcon-component"><i aria-hidden="true" data-test="type-icon" class="v-icon notranslate icons fl fl-linuxmint theme--light"></i></fragment-stub>
                 Linux Mint 19.3
+              </td>
+              <td class="text-center">
+                <div><span class="short justify-center v-chip v-chip--no-color theme--light v-size--default" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                device1
+              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div><button type="button" class="v-btn v-btn--text theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content"><div text="" small="" flat="" aria-haspopup="true" aria-expanded="false" class="test justify-center">
+                    + 1
+                  </div></span></button>
+                    <div class="v-menu">
+                      <!---->
+                    </div>
+                  </div>
+                </div>
               </td>
               <td class="text-center"><span class="list-itens v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content">
           user.39-5e-2a@localhost
@@ -54,6 +69,19 @@ exports[`DeviceList Device online Renders the component 1`] = `
                 <fragment-stub data-test="deviceIcon-component"><i aria-hidden="true" data-test="type-icon" class="v-icon notranslate icons fl fl-linuxmint theme--light"></i></fragment-stub>
                 Linux Mint 19.3
               </td>
+              <td class="text-center">
+                <div><span class="short justify-center v-chip v-chip--no-color theme--light v-size--default" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                device1
+              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div><button type="button" class="v-btn v-btn--text theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content"><div text="" small="" flat="" aria-haspopup="true" aria-expanded="false" class="test justify-center">
+                    + 1
+                  </div></span></button>
+                    <div class="v-menu">
+                      <!---->
+                    </div>
+                  </div>
+                </div>
+              </td>
               <td class="text-center"><span class="list-itens v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content">
           user.39-5e-2b@localhost
           <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
@@ -69,10 +97,10 @@ exports[`DeviceList Device online Renders the component 1`] = `
       <div class="v-data-footer">
         <div class="v-data-footer__select">Rows per page:<div class="v-input v-input--hide-details v-input--is-label-active v-input--is-dirty theme--light v-text-field v-select">
             <div class="v-input__control">
-              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-75" class="v-input__slot">
+              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-91" class="v-input__slot">
                 <div class="v-select__slot">
                   <div class="v-select__selections">
-                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-75" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
+                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-91" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
                   </div>
                   <div class="v-input__append-inner">
                     <div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div>
@@ -106,12 +134,14 @@ exports[`DeviceList Device online Renders the component 2`] = `
             <col class="">
             <col class="">
             <col class="">
+            <col class="">
           </colgroup>
           <thead class="v-data-table-header">
             <tr>
               <th role="columnheader" scope="col" aria-label="Online: Not sorted. Activate to sort ascending." aria-sort="none" class="text-center sortable"><span>Online</span><i aria-hidden="true" class="v-icon notranslate v-data-table-header__icon mdi mdi-arrow-up theme--light" style="font-size: 18px;"></i></th>
               <th role="columnheader" scope="col" aria-label="Hostname: Not sorted. Activate to sort ascending." aria-sort="none" class="text-center sortable"><span>Hostname</span><i aria-hidden="true" class="v-icon notranslate v-data-table-header__icon mdi mdi-arrow-up theme--light" style="font-size: 18px;"></i></th>
               <th role="columnheader" scope="col" aria-label="Operating System" class="text-center"><span>Operating System</span></th>
+              <th role="columnheader" scope="col" aria-label="Tags" class="text-center"><span>Tags</span></th>
               <th role="columnheader" scope="col" aria-label="SSHID" class="text-center"><span>SSHID</span></th>
               <th role="columnheader" scope="col" aria-label="Actions" class="text-center"><span>Actions</span></th>
             </tr>
@@ -127,6 +157,19 @@ exports[`DeviceList Device online Renders the component 2`] = `
               <td class="text-center">
                 <fragment-stub data-test="deviceIcon-component"><i aria-hidden="true" data-test="type-icon" class="v-icon notranslate icons fl fl-linuxmint theme--light"></i></fragment-stub>
                 Linux Mint 19.3
+              </td>
+              <td class="text-center">
+                <div><span class="short justify-center v-chip v-chip--no-color theme--light v-size--default" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                device1
+              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div><button type="button" class="v-btn v-btn--text theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content"><div text="" small="" flat="" aria-haspopup="true" aria-expanded="false" class="test justify-center">
+                    + 1
+                  </div></span></button>
+                    <div class="v-menu">
+                      <!---->
+                    </div>
+                  </div>
+                </div>
               </td>
               <td class="text-center"><span class="list-itens v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content">
           user.39-5e-2a@localhost
@@ -148,6 +191,19 @@ exports[`DeviceList Device online Renders the component 2`] = `
                 <fragment-stub data-test="deviceIcon-component"><i aria-hidden="true" data-test="type-icon" class="v-icon notranslate icons fl fl-linuxmint theme--light"></i></fragment-stub>
                 Linux Mint 19.3
               </td>
+              <td class="text-center">
+                <div><span class="short justify-center v-chip v-chip--no-color theme--light v-size--default" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                device1
+              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
+                  <div><button type="button" class="v-btn v-btn--text theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content"><div text="" small="" flat="" aria-haspopup="true" aria-expanded="false" class="test justify-center">
+                    + 1
+                  </div></span></button>
+                    <div class="v-menu">
+                      <!---->
+                    </div>
+                  </div>
+                </div>
+              </td>
               <td class="text-center"><span class="list-itens v-chip v-chip--no-color theme--light v-size--default"><span class="v-chip__content">
           user.39-5e-2b@localhost
           <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
@@ -163,10 +219,10 @@ exports[`DeviceList Device online Renders the component 2`] = `
       <div class="v-data-footer">
         <div class="v-data-footer__select">Rows per page:<div class="v-input v-input--hide-details v-input--is-label-active v-input--is-dirty theme--light v-text-field v-select">
             <div class="v-input__control">
-              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-343" class="v-input__slot">
+              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-415" class="v-input__slot">
                 <div class="v-select__slot">
                   <div class="v-select__selections">
-                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-343" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
+                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-415" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
                   </div>
                   <div class="v-input__append-inner">
                     <div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div>

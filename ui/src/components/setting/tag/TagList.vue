@@ -12,18 +12,47 @@
       </template>
 
       <template #[`item.actions`]="{ item }">
-        <TagFormDialog
-          action="edit"
-          :tag-name="item.name"
-          data-test="tagFormDialog-component"
-          @update="getTags()"
-        />
+        <v-menu
+          :ref="'menu'+getListTags.indexOf(item)"
+          offset-y
+        >
+          <template #activator="{ on, attrs }">
+            <v-chip
+              color="transparent"
+              v-on="on"
+            >
+              <v-icon
+                small
+                class="icons"
+                v-bind="attrs"
+                v-on="on"
+              >
+                mdi-dots-horizontal
+              </v-icon>
+            </v-chip>
+          </template>
 
-        <TagDelete
-          :tag-name="item.name"
-          data-test="tagDelete-component"
-          @update="getTags()"
-        />
+          <v-card>
+            <v-list-item @click="showTagDialog(getListTags.indexOf(item))">
+              <TagFormDialog
+                action="edit"
+                :tag-name="item.name"
+                :show.sync="tagDialogShow[getListTags.indexOf(item)]"
+                data-test="tagFormDialog-component"
+                @update="getTags()"
+              />
+            </v-list-item>
+
+            <v-list-item @click="showTagDelete(getListTags.indexOf(item))">
+              <TagDelete
+                :tag-name="item.name"
+                :show.sync="tagDeleteShow[getListTags.indexOf(item)]"
+                data-test="tagDelete-component"
+                @update="getTags()"
+              />
+            </v-list-item>
+          </v-card>
+        </v-menu>
       </template>
     </v-data-table>
   </fragment>
@@ -44,6 +73,8 @@ export default {
 
   data() {
     return {
+      tagDialogShow: [],
+      tagDeleteShow: [],
       headers: [
         {
           text: 'Name',
@@ -78,9 +109,40 @@ export default {
     async getTags() {
       try {
         await this.$store.dispatch('tags/fetch');
+
+        this.setArrays();
       } catch (error) {
         this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.deviceTagList);
       }
+    },
+
+    showTagDialog(index) {
+      this.tagDialogShow[index] = this.tagDialogShow[index] === undefined
+        ? true : !this.tagDialogShow[index];
+      this.$set(this.tagDialogShow, index, this.tagDialogShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    showTagDelete(index) {
+      this.tagDeleteShow[index] = this.tagDeleteShow[index] === undefined
+        ? true : !this.tagDeleteShow[index];
+      this.$set(this.tagDeleteShow, index, this.tagDeleteShow[index]);
+
+      this.closeMenu(index);
+    },
+
+    setArrays() {
+      const numberTags = this.getListTags.length;
+
+      if (numberTags > 0) {
+        this.tagDialogShow = new Array(numberTags).fill(false);
+        this.tagDeleteShow = new Array(numberTags).fill(false);
+      }
+    },
+
+    closeMenu(index) {
+      this.$refs[`menu${index}`].isActive = false;
     },
   },
 };

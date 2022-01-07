@@ -1,13 +1,25 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
+import Vuetify from 'vuetify';
 import timezoneMock from 'timezone-mock';
 import DeviceDetails from '@/components/device/DeviceDetails';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('DeviceDetails', () => {
   const localVue = createLocalVue();
+  const vuetify = new Vuetify();
   localVue.use(Vuex);
 
+  document.body.setAttribute('data-app', true);
+
   let wrapper;
+
+  const role = ['owner', 'observer'];
+
+  const hasAuthorization = {
+    owner: true,
+    observer: false,
+  };
 
   const deviceOnline = {
     uid: 'a582b47a',
@@ -30,178 +42,150 @@ describe('DeviceDetails', () => {
 
   const deviceOffline = { ...deviceOnline, online: false };
 
-  const storeDeviceOnline = new Vuex.Store({
+  const tests = [
+    {
+      description: 'Online Device',
+      variables: {
+        device: deviceOnline,
+      },
+      data: {
+        uid: deviceOnline.uid,
+        hostname: 'localhost',
+        hide: true,
+        device: deviceOnline,
+        dialogDelete: false,
+        dialogError: false,
+        list: deviceOnline.tags,
+        deviceDeleteShow: false,
+        terminalDialogShow: false,
+        action: 'deviceUpdate',
+      },
+      components: {
+        'deviceRename-component': true,
+        'terminalDialog-component': true,
+        'deviceDelete-component': true,
+
+      },
+      template: {
+        'deviceUid-field': deviceOnline.uid,
+        'deviceMac-field': deviceOnline.identity.mac,
+        'devicePrettyName-field': deviceOnline.info.pretty_name,
+        'deviceConvertDate-field': 'Wednesday, May 20th 2020, 6:58:53 pm',
+      },
+    },
+    {
+      description: 'Offline Device',
+      variables: {
+        device: deviceOffline,
+      },
+      data: {
+        uid: deviceOffline.uid,
+        hostname: 'localhost',
+        hide: true,
+        device: deviceOffline,
+        dialogDelete: false,
+        dialogError: false,
+        list: deviceOffline.tags,
+        deviceDeleteShow: false,
+        terminalDialogShow: false,
+        action: 'deviceUpdate',
+      },
+      components: {
+        'deviceRename-component': true,
+        'terminalDialog-component': false,
+        'deviceDelete-component': true,
+
+      },
+      template: {
+        'deviceUid-field': deviceOffline.uid,
+        'deviceMac-field': deviceOffline.identity.mac,
+        'devicePrettyName-field': deviceOffline.info.pretty_name,
+        'deviceConvertDate-field': 'Wednesday, May 20th 2020, 6:58:53 pm',
+      },
+    },
+  ];
+
+  const storeVuex = (device, currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
-      device: deviceOnline,
+      device,
+      currentrole,
     },
     getters: {
       'devices/get': (state) => state.device,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'devices/get': () => {},
       'devices/updateTag': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
       'snackbar/showSnackbarErrorAction': () => {},
+      'snackbar/showSnackbarErrorLoading': () => {},
     },
   });
 
-  const storeDeviceOffline = new Vuex.Store({
-    namespaced: true,
-    state: {
-      device: deviceOffline,
-    },
-    getters: {
-      'devices/get': (state) => state.device,
-    },
-    actions: {
-      'devices/get': () => {},
-      'devices/updateTag': () => {},
-      'snackbar/showSnackbarSuccessAction': () => {},
-      'snackbar/showSnackbarErrorAction': () => {},
-    },
-  });
+  tests.forEach((test) => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
+        beforeEach(async () => {
+          timezoneMock.register('UTC');
 
-  ///////
-  // In this case, it is checking the rendering of components and
-  // the device is online.
-  ///////
-
-  describe('Online', () => {
-    beforeEach(() => {
-      timezoneMock.register('UTC');
-
-      wrapper = shallowMount(DeviceDetails, {
-        store: storeDeviceOnline,
-        localVue,
-        stubs: ['fragment'],
-        mocks: {
-          $route: {
-            params: {
-              id: deviceOnline.uid,
+          wrapper = shallowMount(DeviceDetails, {
+            store: storeVuex(test.variables.device, currentrole),
+            localVue,
+            stubs: ['fragment'],
+            vuetify,
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+              $route: {
+                params: {
+                  id: test.variables.device.uid,
+                },
+              },
             },
-          },
-        },
+          });
+        });
+
+        ///////
+        // Component Rendering
+        //////
+
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
+        });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
+
+        ///////
+        // Data checking
+        //////
+
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
+          });
+        });
+        it('Process data in the computed', () => {
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
+        });
+
+        //////
+        // HTML validation
+        //////
+
+        it('Renders the template with components', () => {
+          Object.keys(test.components).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.components[item]);
+          });
+        });
+        it('Renders the template with data', () => {
+          Object.keys(test.template).forEach((item) => {
+            expect(wrapper.find(`[data-test="${item}"]`).text()).toEqual(test.template[item]);
+          });
+        });
       });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.uid).toEqual(deviceOnline.uid);
-      expect(wrapper.vm.hostname).toEqual('localhost');
-      expect(wrapper.vm.hide).toEqual(true);
-      expect(wrapper.vm.device).toEqual(deviceOnline);
-      expect(wrapper.vm.dialogDelete).toEqual(false);
-      expect(wrapper.vm.dialogError).toEqual(false);
-      expect(wrapper.vm.list).toEqual(deviceOnline.tags);
-      expect(wrapper.vm.deviceDeleteShow).toEqual(false);
-      expect(wrapper.vm.terminalDialogShow).toEqual(false);
-    });
-    it('Process data in methods', () => {
-      wrapper.vm.receiveName('ShellHub');
-      expect(wrapper.vm.device.name).toEqual('ShellHub');
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="deviceRename-component"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(deviceOnline.uid);
-      expect(wrapper.find('[data-test="deviceMac-field"]').text()).toEqual(deviceOnline.identity.mac);
-      expect(wrapper.find('[data-test="deviceTag-field"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(deviceOnline.info.pretty_name);
-      expect(wrapper.find('[data-test="deviceConvertDate-field"]').text()).toEqual('Wednesday, May 20th 2020, 6:58:53 pm');
-    });
-  });
-
-  ///////
-  // In this case, it is checking the rendering of components and
-  // the device is offline.
-  ///////
-
-  describe('Offline', () => {
-    beforeEach(() => {
-      timezoneMock.register('UTC');
-
-      wrapper = shallowMount(DeviceDetails, {
-        store: storeDeviceOffline,
-        localVue,
-        stubs: ['fragment'],
-        mocks: {
-          $route: {
-            params: {
-              id: deviceOffline.uid,
-            },
-          },
-        },
-      });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.uid).toEqual(deviceOffline.uid);
-      expect(wrapper.vm.hostname).toEqual('localhost');
-      expect(wrapper.vm.hide).toEqual(true);
-      expect(wrapper.vm.device).toEqual(deviceOffline);
-      expect(wrapper.vm.dialogDelete).toEqual(false);
-      expect(wrapper.vm.dialogError).toEqual(false);
-      expect(wrapper.vm.deviceDeleteShow).toEqual(false);
-      expect(wrapper.vm.terminalDialogShow).toEqual(false);
-    });
-    it('Process data in methods', () => {
-      wrapper.vm.receiveName('ShellHub');
-      expect(wrapper.vm.device.name).toEqual('ShellHub');
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="deviceRename-component"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="deviceDelete-component"]').exists()).toEqual(true);
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="deviceUid-field"]').text()).toEqual(deviceOffline.uid);
-      expect(wrapper.find('[data-test="deviceMac-field"]').text()).toEqual(deviceOffline.identity.mac);
-      expect(wrapper.find('[data-test="deviceTag-field"]').exists()).toEqual(false);
-      expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(deviceOffline.info.pretty_name);
-      expect(wrapper.find('[data-test="deviceConvertDate-field"]').text()).toEqual('Wednesday, May 20th 2020, 6:58:53 pm');
     });
   });
 });

@@ -42,6 +42,12 @@ describe('DeviceList', () => {
       sortable: false,
     },
     {
+      text: 'Tags',
+      value: 'tags',
+      align: 'center',
+      sortable: false,
+    },
+    {
       text: 'SSHID',
       value: 'namespace',
       align: 'center',
