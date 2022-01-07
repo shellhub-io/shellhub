@@ -3,7 +3,7 @@ FROM golang:1.17.5-alpine3.14 AS base
 
 ARG GOPROXY
 
-RUN apk add --update git ca-certificates build-base bash util-linux setpriv alpine-sdk perl xz
+RUN apk add --update git ca-certificates build-base bash util-linux setpriv perl xz
 
 # We are using libxcrypt to support yescrypt password hashing method
 # Since libxcrypt package is not available in Alpine, so we need to build libxcrypt from source code
