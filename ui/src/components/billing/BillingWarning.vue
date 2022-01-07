@@ -1,7 +1,7 @@
 <template>
   <fragment>
     <v-dialog
-      v-if="isOwner"
+      v-if="hasAuthorization"
       v-model="showMessage"
       max-width="510"
     >
@@ -48,12 +48,27 @@
 
 <script>
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'BillingWarningComponent',
 
+  filters: {
+    hasPermission,
+  },
+
   computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    hasAuthorization() {
+      const role = this.$store.getters['auth/role'];
+
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.billing.subscribe,
+        );
+      }
+
+      return false;
     },
 
     showMessage: {

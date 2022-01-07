@@ -101,8 +101,6 @@ export default {
     async getNamespace() {
       try {
         await this.$store.dispatch('namespaces/get', this.tenant);
-        const isOwner = this.$store.getters['namespaces/get'].owner === this.$store.getters['auth/id'];
-        this.$store.dispatch('namespaces/setOwnerStatus', isOwner);
       } catch (error) {
         switch (true) {
         case (error.response.status === 404): { // detects namespace inserted
@@ -146,9 +144,6 @@ export default {
         await this.$store.dispatch('namespaces/switchNamespace', {
           tenant_id: tenant,
         });
-
-        const isOwner = this.$store.getters['namespaces/get'].owner === this.$store.getters['auth/id'];
-        this.$store.dispatch('namespaces/setOwnerStatus', isOwner);
 
         window.location.reload();
       } catch {
