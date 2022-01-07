@@ -257,10 +257,6 @@ export default {
       return this.$store.getters['billing/get'];
     },
 
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
-    },
-
     state() {
       return this.$store.getters['billing/status'];
     },
@@ -303,7 +299,7 @@ export default {
       }
     },
 
-    isOwner(status) {
+    hasPermission(status) {
       if (status) {
         this.stripeData();
       }
@@ -324,7 +320,7 @@ export default {
   },
 
   mounted() {
-    if (this.isOwner) {
+    if (this.hasAuthorization) {
       this.stripeData();
     }
   },
