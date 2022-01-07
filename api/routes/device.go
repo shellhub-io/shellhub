@@ -198,8 +198,13 @@ func (h *Handler) CreateTag(c apicontext.Context) error {
 		return err
 	}
 
-	if err := h.service.CreateTag(c.Ctx(), models.UID(c.Param("uid")), req.Name); err != nil {
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.CreateTag, func() error {
+		return h.service.CreateTag(c.Ctx(), models.UID(c.Param("uid")), req.Name)
+	})
+	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrInvalidFormat:
 			return c.NoContent(http.StatusBadRequest)
 		case services.ErrDeviceNotFound:
@@ -217,8 +222,13 @@ func (h *Handler) CreateTag(c apicontext.Context) error {
 }
 
 func (h *Handler) RemoveTag(c apicontext.Context) error {
-	if err := h.service.RemoveTag(c.Ctx(), models.UID(c.Param("uid")), c.Param("name")); err != nil {
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.RemoveTag, func() error {
+		return h.service.RemoveTag(c.Ctx(), models.UID(c.Param("uid")), c.Param("name"))
+	})
+	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrDeviceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrTagNameNotFound:
@@ -245,8 +255,13 @@ func (h *Handler) RenameTag(c apicontext.Context) error {
 		return err
 	}
 
-	if err := h.service.RenameTag(c.Ctx(), tenant, c.Param("name"), req.Name); err != nil {
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.RenameTag, func() error {
+		return h.service.RenameTag(c.Ctx(), tenant, c.Param("name"), req.Name)
+	})
+	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrInvalidFormat:
 			return c.NoContent(http.StatusBadRequest)
 		case services.ErrNoTags:
@@ -272,8 +287,13 @@ func (h *Handler) UpdateTag(c apicontext.Context) error {
 		return err
 	}
 
-	if err := h.service.UpdateTag(c.Ctx(), models.UID(c.Param("uid")), req.Tags); err != nil {
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.UpdateTag, func() error {
+		return h.service.UpdateTag(c.Ctx(), models.UID(c.Param("uid")), req.Tags)
+	})
+	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrInvalidFormat:
 			return c.NoContent(http.StatusBadRequest)
 		case services.ErrMaxTagReached:
@@ -315,9 +335,13 @@ func (h *Handler) DeleteTags(c apicontext.Context) error {
 		tenant = v.ID
 	}
 
-	err := h.service.DeleteTags(c.Ctx(), tenant, c.Param("name"))
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.DeleteTag, func() error {
+		return h.service.DeleteTags(c.Ctx(), tenant, c.Param("name"))
+	})
 	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		default:

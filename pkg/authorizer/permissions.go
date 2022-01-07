@@ -10,6 +10,12 @@ const (
 	DeviceRename
 	DeviceDetails
 
+	DeviceCreateTag
+	DeviceUpdateTag
+	DeviceRemoveTag
+	DeviceRenameTag
+	DeviceDeleteTag
+
 	SessionPlay
 	SessionClose
 	SessionRemove
@@ -53,6 +59,12 @@ var operatorPermissions = Permissions{
 	DeviceRename,
 	DeviceDetails,
 
+	DeviceCreateTag,
+	DeviceUpdateTag,
+	DeviceRemoveTag,
+	DeviceRenameTag,
+	DeviceDeleteTag,
+
 	SessionDetails,
 }
 
@@ -63,6 +75,12 @@ var adminPermissions = Permissions{
 	DeviceConnect,
 	DeviceRename,
 	DeviceDetails,
+
+	DeviceCreateTag,
+	DeviceUpdateTag,
+	DeviceRemoveTag,
+	DeviceRenameTag,
+	DeviceDeleteTag,
 
 	SessionPlay,
 	SessionClose,
@@ -91,6 +109,12 @@ var ownerPermissions = Permissions{
 	DeviceConnect,
 	DeviceRename,
 	DeviceDetails,
+
+	DeviceCreateTag,
+	DeviceUpdateTag,
+	DeviceRemoveTag,
+	DeviceRenameTag,
+	DeviceDeleteTag,
 
 	SessionPlay,
 	SessionClose,

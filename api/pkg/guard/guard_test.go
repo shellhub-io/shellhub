@@ -252,6 +252,12 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Device.Connect,
 				authorizer.Actions.Device.Rename,
 
+				authorizer.Actions.Device.CreateTag,
+				authorizer.Actions.Device.UpdateTag,
+				authorizer.Actions.Device.RemoveTag,
+				authorizer.Actions.Device.RenameTag,
+				authorizer.Actions.Device.DeleteTag,
+
 				authorizer.Actions.Session.Details,
 			},
 			requiredMocks: func() {
@@ -267,6 +273,12 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Device.Remove,
 				authorizer.Actions.Device.Connect,
 				authorizer.Actions.Device.Rename,
+
+				authorizer.Actions.Device.CreateTag,
+				authorizer.Actions.Device.UpdateTag,
+				authorizer.Actions.Device.RemoveTag,
+				authorizer.Actions.Device.RenameTag,
+				authorizer.Actions.Device.DeleteTag,
 
 				authorizer.Actions.Session.Play,
 				authorizer.Actions.Session.Close,
@@ -300,6 +312,12 @@ func TestEvaluatePermission(t *testing.T) {
 				authorizer.Actions.Device.Remove,
 				authorizer.Actions.Device.Connect,
 				authorizer.Actions.Device.Rename,
+
+				authorizer.Actions.Device.CreateTag,
+				authorizer.Actions.Device.UpdateTag,
+				authorizer.Actions.Device.RemoveTag,
+				authorizer.Actions.Device.RenameTag,
+				authorizer.Actions.Device.DeleteTag,
 
 				authorizer.Actions.Session.Play,
 				authorizer.Actions.Session.Close,
