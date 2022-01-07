@@ -13,7 +13,7 @@ type actions struct {
 }
 
 type deviceActions struct {
-	Accept, Reject, Remove, Connect, Rename int
+	Accept, Reject, Remove, Connect, Rename, CreateTag, UpdateTag, RemoveTag, RenameTag, DeleteTag int
 }
 
 type sessionActions struct {
@@ -40,11 +40,16 @@ type billingActions struct {
 // You should use it to get the code's action.
 var Actions = actions{
 	Device: deviceActions{
-		Accept:  DeviceAccept,
-		Reject:  DeviceReject,
-		Remove:  DeviceRemove,
-		Connect: DeviceConnect,
-		Rename:  DeviceRename,
+		Accept:    DeviceAccept,
+		Reject:    DeviceReject,
+		Remove:    DeviceRemove,
+		Connect:   DeviceConnect,
+		Rename:    DeviceRename,
+		CreateTag: DeviceCreateTag,
+		UpdateTag: DeviceUpdateTag,
+		RemoveTag: DeviceRemoveTag,
+		RenameTag: DeviceRenameTag,
+		DeleteTag: DeviceDeleteTag,
 	},
 	Session: sessionActions{
 		Play:    SessionPlay,
