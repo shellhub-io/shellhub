@@ -1,37 +1,37 @@
 <template>
   <fragment>
     <v-tooltip
+      :disabled="hasAuthorization"
       bottom
     >
       <template #activator="{ on }">
         <span v-on="on">
+          <v-list-item-title data-test="play-item">
+            Remove
+          </v-list-item-title>
+        </span>
+
+        <span v-on="on">
           <v-icon
-            :disabled="!isOwner"
+            :disabled="!hasAuthorization"
+            left
+            data-test="play-icon"
             v-on="on"
-            @click="dialog = !dialog"
           >
             delete
           </v-icon>
         </span>
       </template>
 
-      <div>
-        <span
-          v-if="isOwner"
-          data-test="text-span"
-        >
-          Remove
-        </span>
-
-        <span v-else>
-          You don't have this kind of authorization.
-        </span>
-      </div>
+      <span v-if="!hasAuthorization">
+        You don't have this kind of authorization.
+      </span>
     </v-tooltip>
 
     <v-dialog
-      v-model="dialog"
+      v-model="showDialog"
       max-width="400"
+      @click:outside="close"
     >
       <v-card data-test="tagDelete-card">
         <v-card-title class="headline primary text-center">
@@ -48,7 +48,7 @@
           <v-btn
             text
             data-test="close-btn"
-            @click="dialog=!dialog"
+            @click="close"
           >
             Close
           </v-btn>
@@ -69,25 +69,51 @@
 
 <script>
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'TagDeleteComponent',
+
+  filters: { hasPermission },
 
   props: {
     tagName: {
       type: String,
       required: true,
     },
+
+    show: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   data() {
     return {
-      dialog: false,
+      action: 'remove',
     };
   },
 
   computed: {
-    isOwner() {
-      return this.$store.getters['namespaces/owner'];
+    showDialog: {
+      get() {
+        return this.show && this.hasAuthorization;
+      },
+      set(value) {
+        this.$emit('update:show', value);
+      },
+    },
+
+    hasAuthorization() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.tag[this.action],
+        );
+      }
+
+      return false;
     },
   },
 
@@ -108,7 +134,7 @@ export default {
     },
 
     close() {
-      this.dialog = !this.dialog;
+      this.$emit('update:show', false);
     },
   },
 };

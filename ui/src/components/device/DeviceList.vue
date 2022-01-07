@@ -37,64 +37,63 @@
           </router-link>
         </template>
 
-        <template #[`item.tag`]="{ item }">
-          <div
-            v-if="item.tags"
-          >
+        <template #[`item.tags`]="{ item }">
+          <div v-if="item.tags[0]">
             <v-tooltip
               bottom
-              :disabled="!showTag(item.tags[0])"
+              :disabled="!item.tags[0]"
             >
-              <template #activator="{ on }">
+              <template #activator="{ on, attrs }">
                 <v-chip
-                  v-if="item.tags != null && item.tags.length > 0"
                   class="short justify-center"
+                  v-bind="attrs"
                   v-on="on"
                 >
                   {{ displayOnlyTenCharacters(item.tags[0]) }}
                 </v-chip>
               </template>
-              <span>
-                <div v-if="showTag(item.tags[0])">
-                  {{ item.tags[0] }}
-                </div>
+
+              <span v-if="showTag(item.tags[0])">
+                {{ item.tags[0] }}
               </span>
             </v-tooltip>
 
-            <v-menu
-              v-if="item.tags != null && item.tags.length > 0"
-              open-on-hover
-              bottom
-              offset-y
-            >
-              <template #activator="{ on, attrs }">
-                <v-btn
-                  v-if="item.tags != null && item.tags.length >= 2"
-                  text
-                  v-bind="attrs"
-                  small
-                  v-on="on"
-                >
-                  <div
+            <div v-if="item.tags.length > 1">
+              <v-menu
+                open-on-hover
+                bottom
+                offset-y
+              >
+                <template #activator="{ on, attrs }">
+                  <v-btn
                     text
                     small
-                    flat
-                    class="test justify-center"
+                    v-bind="attrs"
+                    v-on="on"
                   >
-                    {{ `+ ${item.tags.length - 1}` }}
-                  </div>
-                </v-btn>
-              </template>
+                    <div
+                      text
+                      small
+                      flat
+                      v-bind="attrs"
+                      class="test justify-center"
+                      v-on="on"
+                    >
+                      {{ `+ ${item.tags.length - 1}` }}
+                    </div>
+                  </v-btn>
+                </template>
 
-              <v-list>
-                <v-list-item
-                  v-for="(tag, index) in item.tags.slice(1,item.tags.length)"
-                  :key="index"
-                >
-                  <v-list-item-title>{{ tag }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+                <v-list>
+                  <v-list-item
+                    v-for="(tag, index) in item.tags.slice(1,item.tags.length)"
+                    :key="index"
+                  >
+                    <v-list-item-title>{{ tag }}</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </div>
           </div>
         </template>
 
@@ -151,11 +150,11 @@
                 </v-list-item-title>
               </v-list-item>
 
-              <v-list-item v-if="false">
+              <v-list-item @click="showTagDialog(getListDevices.indexOf(item))">
                 <TagFormDialog
-                  v-if="false"
                   action="create"
                   :uid="item.uid"
+                  :show.sync="tagDialogShow[getListDevices.indexOf(item)]"
                   data-test="tagFormDialog-component"
                   @update="getDevices()"
                 />
@@ -213,6 +212,7 @@ export default {
       hostname: window.location.hostname,
       pagination: {},
       tags: [],
+      tagDialogShow: [],
       terminalDialogShow: [],
       deviceDeleteShow: [],
       headers: [
@@ -229,6 +229,12 @@ export default {
         {
           text: 'Operating System',
           value: 'info.pretty_name',
+          align: 'center',
+          sortable: false,
+        },
+        {
+          text: 'Tags',
+          value: 'tags',
           align: 'center',
           sortable: false,
         },
@@ -343,6 +349,14 @@ export default {
       return false;
     },
 
+    showTagDialog(index) {
+      this.tagDialogShow[index] = this.tagDialogShow[index] === undefined
+        ? true : !this.tagDialogShow[index];
+      this.$set(this.tagDialogShow, index, this.tagDialogShow[index]);
+
+      this.closeMenu(index);
+    },
+
     showTerminalDialog(index) {
       this.terminalDialogShow[index] = this.terminalDialogShow[index] === undefined
         ? true : !this.terminalDialogShow[index];
@@ -365,6 +379,7 @@ export default {
       if (numberDevices > 0) {
         this.terminalDialogShow = new Array(numberDevices).fill(false);
         this.deviceDeleteShow = new Array(numberDevices).fill(false);
+        this.tagDialogShow = new Array(numberDevices).fill(false);
       }
     },
 

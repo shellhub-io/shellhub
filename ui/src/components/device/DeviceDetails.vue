@@ -149,6 +149,22 @@
         </div>
 
         <div class="mt-2">
+          <v-combobox
+            id="targetInput"
+            v-model="list"
+            label="Tag"
+            hint="Maximum of 5 tags"
+            multiple
+            chips
+            append-icon
+            data-test="deviceTag-field"
+            :deletable-chips="true"
+            :rules="[tagRule]"
+            :disabled="!hasAuthorization"
+          />
+        </div>
+
+        <div class="mt-2">
           <div class="overline">
             Last Seen
           </div>
@@ -200,6 +216,7 @@ import DeviceIcon from '@/components/device/DeviceIcon';
 import DeviceDelete from '@/components/device/DeviceDelete';
 import DeviceRename from '@/components/device/DeviceRename';
 import { formatDate, lastSeen } from '@/components/filter/date';
+import hasPermission from '@/components/filter/permission';
 
 export default {
   name: 'DeviceDetailsComponent',
@@ -211,7 +228,7 @@ export default {
     DeviceRename,
   },
 
-  filters: { formatDate, lastSeen },
+  filters: { formatDate, lastSeen, hasPermission },
 
   data() {
     return {
@@ -227,7 +244,22 @@ export default {
       deviceRenameShow: false,
       deviceDeleteShow: false,
       terminalDialogShow: false,
+      action: 'deviceUpdate',
     };
+  },
+
+  computed: {
+    hasAuthorization() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.tag[this.action],
+        );
+      }
+
+      return false;
+    },
   },
 
   watch: {

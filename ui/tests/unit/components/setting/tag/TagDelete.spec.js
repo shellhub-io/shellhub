@@ -2,24 +2,62 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import TagDelete from '@/components/setting/tag/TagDelete';
+import { actions, authorizer } from '../../../../../src/authorizer';
 
 describe('TagDelete', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
   localVue.use(Vuex);
 
+  document.body.setAttribute('data-app', true);
+
   let wrapper;
 
-  const isOwner = true;
-  const tagName = 'tag';
+  const role = ['owner', 'observer'];
 
-  const store = new Vuex.Store({
+  const hasAuthorization = {
+    owner: true,
+    observer: false,
+  };
+
+  const tests = [
+    {
+      description: 'Icon',
+      props: {
+        tagName: 'tag',
+        show: false,
+      },
+      data: {
+        action: 'remove',
+      },
+      template: {
+        'close-btn': false,
+        'remove-btn': false,
+      },
+    },
+    {
+      description: 'Dialog',
+      props: {
+        tagName: 'tag',
+        show: true,
+      },
+      data: {
+        action: 'remove',
+      },
+      template: {
+        'close-btn': true,
+        'remove-btn': true,
+      },
+    },
+  ];
+
+  const storeVuex = (currentrole) => new Vuex.Store({
     namespaced: true,
     state: {
-      isOwner,
+      currentrole,
     },
     getters: {
-      'namespaces/owner': (state) => state.isOwner,
+      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'tags/remove': () => {},
@@ -28,122 +66,71 @@ describe('TagDelete', () => {
     },
   });
 
-  ///////
-  // in this case, when the user owns the namespace and the focus of
-  // the test is icon rendering.
-  ///////
+  tests.forEach((test) => {
+    role.forEach((currentrole) => {
+      describe(`${test.description} ${currentrole}`, () => {
+        beforeEach(async () => {
+          wrapper = mount(TagDelete, {
+            store: storeVuex(currentrole),
+            localVue,
+            stubs: ['fragment'],
+            propsData: {
+              tagName: test.props.tagName,
+              show: test.props.show,
+            },
+            vuetify,
+            mocks: {
+              $authorizer: authorizer,
+              $actions: actions,
+            },
+          });
+        });
 
-  describe('Icon', () => {
-    beforeEach(() => {
-      wrapper = mount(TagDelete, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { tagName },
-        vuetify,
+        ///////
+        // Component Rendering
+        //////
+
+        it('Is a Vue instance', () => {
+          expect(wrapper).toBeTruthy();
+        });
+        it('Renders the component', () => {
+          expect(wrapper.html()).toMatchSnapshot();
+        });
+
+        ///////
+        // Data checking
+        //////
+
+        it('Receive data in props', () => {
+          Object.keys(test.props).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.props[item]);
+          });
+        });
+        it('Compare data with default value', () => {
+          Object.keys(test.data).forEach((item) => {
+            expect(wrapper.vm[item]).toEqual(test.data[item]);
+          });
+        });
+        it('Process data in the computed', () => {
+          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
+        });
+
+        //////
+        // HTML validation
+        //////
+
+        it('Renders the template with data', () => {
+          if (hasAuthorization[currentrole]) {
+            Object.keys(test.template).forEach((item) => {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            });
+          } else if (!test.props.show) {
+            Object.keys(test.template).forEach((item) => {
+              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+            });
+          }
+        });
       });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      document.body.setAttribute('data-app', true);
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.tagName).toEqual(tagName);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(false);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.isOwner).toEqual(isOwner);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Show message tooltip to user owner', async (done) => {
-      const icons = wrapper.findAll('.v-icon');
-      const helpIcon = icons.at(0);
-      helpIcon.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(icons.length).toBe(1);
-      expect(helpIcon.text()).toEqual('delete');
-      requestAnimationFrame(() => {
-        expect(wrapper.find('[data-test="text-span"]').text()).toEqual('Remove');
-        done();
-      });
-    });
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="tagDelete-card"]').exists()).toEqual(false);
-    });
-  });
-
-  ///////
-  // In this case, when the user owns the namespace and the focus of
-  // the test is dialog rendering.
-  ///////
-
-  describe('Dialog', () => {
-    beforeEach(() => {
-      wrapper = mount(TagDelete, {
-        store,
-        localVue,
-        stubs: ['fragment'],
-        propsData: { tagName },
-        vuetify,
-      });
-
-      wrapper.setData({ dialog: true });
-    });
-
-    ///////
-    // Component Rendering
-    //////
-
-    it('Is a Vue instance', () => {
-      document.body.setAttribute('data-app', true);
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Receive data in props', () => {
-      expect(wrapper.vm.tagName).toEqual(tagName);
-    });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.dialog).toEqual(true);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.isOwner).toEqual(isOwner);
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with data', () => {
-      expect(wrapper.find('[data-test="tagDelete-card"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="close-btn"]').exists()).toEqual(true);
-      expect(wrapper.find('[data-test="remove-btn"]').exists()).toEqual(true);
     });
   });
 });

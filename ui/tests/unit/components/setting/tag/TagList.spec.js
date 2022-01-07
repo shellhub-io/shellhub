@@ -104,10 +104,6 @@ describe('TagList', () => {
     // HTML validation
     //////
 
-    it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="tagFormDialog-component"]').exists()).toBe(false);
-      expect(wrapper.find('[data-test="tagDelete-component"]').exists()).toBe(false);
-    });
     it('Renders the template with data', () => {
       const dt = wrapper.find('[data-test="tagListList-dataTable"]');
       const dataTableProps = dt.vm.$options.propsData;
@@ -156,10 +152,6 @@ describe('TagList', () => {
     // HTML validation
     //////
 
-    it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="tagFormDialog-component"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="tagDelete-component"]').exists()).toBe(true);
-    });
     it('Renders the template with data', () => {
       const dt = wrapper.find('[data-test="tagListList-dataTable"]');
       const dataTableProps = dt.vm.$options.propsData;

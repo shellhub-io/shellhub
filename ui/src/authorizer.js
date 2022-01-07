@@ -21,6 +21,11 @@ const {
   deviceRename,
   deviceChooser,
   deviceDetails,
+  // Tag
+  tagEdit,
+  tagRemove,
+  tagDeviceCreate,
+  tagDeviceUpdate,
   // Session
   sessionPlay,
   sessionClose,
@@ -58,6 +63,12 @@ export const actions = {
     rename: deviceRename,
     chooser: deviceChooser,
     details: deviceDetails,
+  },
+  tag: {
+    edit: tagEdit,
+    remove: tagRemove,
+    deviceCreate: tagDeviceCreate,
+    deviceUpdate: tagDeviceUpdate,
   },
   session: {
     play: sessionPlay,
@@ -104,6 +115,11 @@ export const authorizer = {
       actions.device.rename,
       actions.device.chooser,
       actions.device.details,
+      // Tag
+      actions.tag.edit,
+      actions.tag.remove,
+      actions.tag.deviceCreate,
+      actions.tag.deviceUpdate,
       // Session
       actions.session.play,
       actions.session.close,
@@ -139,6 +155,11 @@ export const authorizer = {
       actions.device.connect,
       actions.device.rename,
       actions.device.details,
+      // Tag
+      actions.tag.edit,
+      actions.tag.remove,
+      actions.tag.deviceCreate,
+      actions.tag.deviceUpdate,
       // Session
       actions.session.play,
       actions.session.close,
@@ -170,6 +191,11 @@ export const authorizer = {
       actions.device.connect,
       actions.device.rename,
       actions.device.details,
+      // Tag
+      actions.tag.edit,
+      actions.tag.remove,
+      actions.tag.deviceCreate,
+      actions.tag.deviceUpdate,
       // Session
       actions.session.details,
       // Firewall
@@ -183,6 +209,7 @@ export const authorizer = {
       // Device
       actions.device.connect,
       actions.device.details,
+      // Tag
       // Session
       actions.session.details,
       // Firewall
