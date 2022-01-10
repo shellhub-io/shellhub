@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
-
 	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -70,16 +69,41 @@ func (h *Handler) CreateNamespace(c apicontext.Context) error {
 }
 
 func (h *Handler) GetNamespace(c apicontext.Context) error {
+	var userID string
+	if c.ID() != nil {
+		userID = c.ID().ID
+	}
+
 	namespace, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
-	if err != nil {
-		return err
+	if err != nil || namespace == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	_, ok := guard.CheckMember(namespace, userID)
+	if !ok {
+		return c.NoContent(http.StatusForbidden)
 	}
 
 	return c.JSON(http.StatusOK, namespace)
 }
 
 func (h *Handler) DeleteNamespace(c apicontext.Context) error {
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Namespace.Delete, func() error {
+	var userID string
+	if c.ID() != nil {
+		userID = c.ID().ID
+	}
+
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	if err != nil || namespaceToMember == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	memberFromNamespace, ok := guard.CheckMember(namespaceToMember, userID)
+	if !ok {
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.Delete, func() error {
 		err := h.service.DeleteNamespace(c.Ctx(), c.Param("id"))
 
 		return err
@@ -107,10 +131,25 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 		return err
 	}
 
+	var userID string
+	if c.ID() != nil {
+		userID = c.ID().ID
+	}
+
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	if err != nil || namespaceToMember == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	memberFromNamespace, ok := guard.CheckMember(namespaceToMember, userID)
+	if !ok {
+		return c.NoContent(http.StatusForbidden)
+	}
+
 	var namespace *models.Namespace
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Namespace.Rename, func() error {
+	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.Rename, func() error {
 		var err error
-		namespace, err = h.service.EditNamespace(c.Ctx(), c.Param("id"), req.Name)
+		namespace, err = h.service.EditNamespace(c.Ctx(), namespaceToMember.TenantID, req.Name)
 
 		return err
 	})
@@ -145,8 +184,18 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 		return err
 	}
 
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	if err != nil || namespaceToMember == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	memberFromNamespace, ok := guard.CheckMember(namespaceToMember, userID)
+	if !ok {
+		return c.NoContent(http.StatusForbidden)
+	}
+
 	var namespace *models.Namespace
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Namespace.AddMember, func() error {
+	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.AddMember, func() error {
 		var err error
 		namespace, err = h.service.AddNamespaceUser(c.Ctx(), member.Username, member.Role, c.Param("id"), userID)
 
@@ -178,8 +227,18 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 		userID = c.ID().ID
 	}
 
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	if err != nil || namespaceToMember == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	memberFromNamespace, ok := guard.CheckMember(namespaceToMember, userID)
+	if !ok {
+		return c.NoContent(http.StatusForbidden)
+	}
+
 	var namespace *models.Namespace
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Namespace.RemoveMember, func() error {
+	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.RemoveMember, func() error {
 		var err error
 		namespace, err = h.service.RemoveNamespaceUser(c.Ctx(), c.Param("id"), c.Param("uid"), userID)
 
@@ -217,7 +276,17 @@ func (h *Handler) EditNamespaceUser(c apicontext.Context) error {
 		userID = c.ID().ID
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Namespace.EditMember, func() error {
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	if err != nil || namespaceToMember == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	memberFromNamespace, ok := guard.CheckMember(namespaceToMember, userID)
+	if !ok {
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.EditMember, func() error {
 		err := h.service.EditNamespaceUser(c.Ctx(), c.Param("id"), userID, c.Param("uid"), member.Role)
 
 		return err
@@ -248,10 +317,23 @@ func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
 		return err
 	}
 
-	tenant := c.Param("id")
+	userID := ""
+	if c.ID() != nil {
+		userID = c.ID().ID
+	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Namespace.EnableSessionRecord, func() error {
-		err := h.service.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, tenant)
+	namespaceToMember, err := h.service.GetNamespace(c.Ctx(), c.Param("id"))
+	if err != nil || namespaceToMember == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	memberFromNamespace, ok := guard.CheckMember(namespaceToMember, userID)
+	if !ok {
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	err = guard.EvaluatePermission(memberFromNamespace.Role, authorizer.Actions.Namespace.EnableSessionRecord, func() error {
+		err := h.service.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, c.Param("id"))
 
 		return err
 	})
