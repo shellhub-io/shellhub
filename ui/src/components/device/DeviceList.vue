@@ -41,11 +41,10 @@
           <div v-if="item.tags[0]">
             <v-tooltip
               bottom
-              :disabled="!item.tags[0]"
+              :disabled="!showTag(item.tags[0])"
             >
               <template #activator="{ on, attrs }">
                 <v-chip
-                  class="short justify-center"
                   v-bind="attrs"
                   v-on="on"
                 >
@@ -58,42 +57,41 @@
               </span>
             </v-tooltip>
 
-            <div v-if="item.tags.length > 1">
-              <v-menu
-                open-on-hover
-                bottom
-                offset-y
-              >
-                <template #activator="{ on, attrs }">
-                  <v-btn
+            <v-menu
+              v-if="item.tags.length > 1"
+              open-on-hover
+              bottom
+              offset-y
+            >
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  text
+                  small
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <div
                     text
                     small
+                    flat
                     v-bind="attrs"
+                    class="test justify-center"
                     v-on="on"
                   >
-                    <div
-                      text
-                      small
-                      flat
-                      v-bind="attrs"
-                      class="test justify-center"
-                      v-on="on"
-                    >
-                      {{ `+ ${item.tags.length - 1}` }}
-                    </div>
-                  </v-btn>
-                </template>
+                    {{ `+ ${item.tags.length - 1}` }}
+                  </div>
+                </v-btn>
+              </template>
 
-                <v-list>
-                  <v-list-item
-                    v-for="(tag, index) in item.tags.slice(1,item.tags.length)"
-                    :key="index"
-                  >
-                    <v-list-item-title>{{ tag }}</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </div>
+              <v-list>
+                <v-list-item
+                  v-for="(tag, index) in item.tags.slice(1,item.tags.length)"
+                  :key="index"
+                >
+                  <v-list-item-title>{{ tag }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </div>
         </template>
 
@@ -233,14 +231,14 @@ export default {
           sortable: false,
         },
         {
-          text: 'Tags',
-          value: 'tags',
+          text: 'SSHID',
+          value: 'namespace',
           align: 'center',
           sortable: false,
         },
         {
-          text: 'SSHID',
-          value: 'namespace',
+          text: '',
+          value: 'tags',
           align: 'center',
           sortable: false,
         },
