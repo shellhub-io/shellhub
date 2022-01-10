@@ -55,6 +55,10 @@ func CheckRole(firstRole, secondRole string) bool {
 		return false
 	}
 
+	if firstRoleCode == secondRoleCode {
+		return false
+	}
+
 	return firstRoleCode > secondRoleCode
 }
 
