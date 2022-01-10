@@ -1,59 +1,42 @@
+// Package guard is a helper package to evaluate question about members in ShellHub.
 package guard
 
 import (
-	"context"
 	"errors"
 
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 var ErrForbidden = errors.New("forbidden")
 
-func getUserRoleByID(ctx context.Context, s store.Store, tenantID, id string) (string, bool) {
-	user, _, err := s.UserGetByID(ctx, id, false)
-	if err != nil || err == store.ErrNoDocuments {
-		return "", false
-	}
-
-	namespaceUserActive, err := s.NamespaceGet(ctx, tenantID)
-	if err != nil || err == store.ErrNoDocuments {
-		return "", false
-	}
-
-	var role string
-	var userFound bool
-	for _, member := range namespaceUserActive.Members {
-		if member.ID == user.ID {
-			userFound = true
-			role = member.Role
+// CheckMember checks if a user is a namespace's member.
+func CheckMember(namespace *models.Namespace, id string) (*models.Member, bool) {
+	var memberFound models.Member
+	for _, memberSearch := range namespace.Members {
+		if memberSearch.ID == id {
+			memberFound = memberSearch
 
 			break
 		}
 	}
+	if memberFound.ID == "" || memberFound.Role == "" {
+		return nil, false
+	}
 
-	return role, userFound
+	return &memberFound, true
 }
 
-// EvaluateSubject checks if the user's role, active one, may act over another, passive one.
-func EvaluateSubject(ctx context.Context, s store.Store, tenantID, activeID, rolePassive string) bool {
-	roleActive, ok := getUserRoleByID(ctx, s, tenantID, activeID)
-	if !ok {
-		return false
-	}
-
-	if roleActive == rolePassive {
-		return false
-	}
-
+// CheckRole checks if a member from a namespace can act over other with a specif role.
+func CheckRole(roleActive, rolePassive string) bool {
 	return authorizer.CheckRole(roleActive, rolePassive)
 }
 
 // EvaluatePermission checks if a namespace's member has the role that allows an action.
-func EvaluatePermission(role string, action int, service func() error) error {
+func EvaluatePermission(role string, action int, callback func() error) error {
 	if !authorizer.CheckPermission(role, action) {
 		return ErrForbidden
 	}
 
-	return service()
+	return callback()
 }

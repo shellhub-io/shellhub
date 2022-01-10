@@ -134,8 +134,8 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 
 func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
 	namespaces, err := s.store.NamespaceGet(ctx, tenantID)
-	if err != nil {
-		return nil, err
+	if err != nil || namespaces == nil {
+		return nil, ErrNamespaceNotFound
 	}
 
 	members := []models.Member{}
@@ -220,37 +220,8 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*mo
 }
 
 func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error) {
-	findMemberNamespace := func(member *models.User, namespace *models.Namespace) (*models.Member, bool) {
-		var memberFound models.Member
-		for _, memberSearch := range namespace.Members {
-			if memberSearch.ID == member.ID {
-				memberFound = memberSearch
-
-				break
-			}
-		}
-		if memberFound.ID == "" || memberFound.Role == "" {
-			return nil, false
-		}
-
-		return &memberFound, true
-	}
-
 	if _, err := validator.ValidateStruct(models.Member{Username: memberUsername, Role: memberRole}); err != nil {
 		return nil, ErrInvalidFormat
-	}
-
-	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberRole) {
-		return nil, guard.ErrForbidden
-	}
-
-	member, err := s.store.UserGetByUsername(ctx, memberUsername)
-	if err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrUserNotFound
-		}
-
-		return nil, err
 	}
 
 	namespace, err := s.store.NamespaceGet(ctx, tenantID)
@@ -262,29 +233,60 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRo
 		return nil, err
 	}
 
-	_, ok := findMemberNamespace(member, namespace)
+	memberActive, _, err := s.store.UserGetByID(ctx, userID, false)
+	if err != nil {
+		if err == store.ErrNoDocuments {
+			return nil, ErrUserNotFound
+		}
+
+		return nil, err
+	}
+
+	// Checks if the active member is in the namespace.
+	memberActiveFound, ok := guard.CheckMember(namespace, memberActive.ID)
+	if !ok {
+		return nil, ErrBadRequest
+	}
+
+	memberPassive, err := s.store.UserGetByUsername(ctx, memberUsername)
+	if err != nil {
+		if err == store.ErrNoDocuments {
+			return nil, ErrUserNotFound
+		}
+
+		return nil, err
+	}
+
+	// Checks if the passive member is in the namespace.
+	_, ok = guard.CheckMember(namespace, memberPassive.ID)
 	if ok {
 		return nil, ErrNamespaceDuplicatedMember
 	}
 
-	return s.store.NamespaceAddMember(ctx, tenantID, member.ID, memberRole)
+	if !guard.CheckRole(memberActiveFound.Role, memberRole) {
+		return nil, guard.ErrForbidden
+	}
+
+	return s.store.NamespaceAddMember(ctx, tenantID, memberPassive.ID, memberRole)
 }
 
 func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error) {
-	findMemberNamespace := func(member *models.User, namespace *models.Namespace) (*models.Member, bool) {
-		var memberFound models.Member
-		for _, memberSearch := range namespace.Members {
-			if memberSearch.ID == member.ID {
-				memberFound = memberSearch
-
-				break
-			}
-		}
-		if memberFound.ID == "" || memberFound.Role == "" {
-			return nil, false
+	namespace, err := s.store.NamespaceGet(ctx, tenantID)
+	if err != nil {
+		if err == store.ErrNoDocuments {
+			return nil, ErrNamespaceNotFound
 		}
 
-		return &memberFound, true
+		return nil, err
+	}
+
+	memberActive, _, err := s.store.UserGetByID(ctx, userID, false)
+	if err != nil {
+		if err == store.ErrNoDocuments {
+			return nil, ErrUserNotFound
+		}
+
+		return nil, err
 	}
 
 	memberPassive, _, err := s.store.UserGetByID(ctx, memberID, false)
@@ -296,21 +298,13 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 		return nil, err
 	}
 
-	namespace, err := s.store.NamespaceGet(ctx, tenantID)
-	if err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrNamespaceNotFound
-		}
-
-		return nil, err
-	}
-
-	memberFound, ok := findMemberNamespace(memberPassive, namespace)
-	if !ok {
+	memberActiveFound, okActive := guard.CheckMember(namespace, memberActive.ID)
+	memberPassiveFound, okPassive := guard.CheckMember(namespace, memberPassive.ID)
+	if !okActive || !okPassive {
 		return nil, ErrNamespaceMemberNotFound
 	}
 
-	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberFound.Role) {
+	if !guard.CheckRole(memberActiveFound.Role, memberPassiveFound.Role) {
 		return nil, guard.ErrForbidden
 	}
 
@@ -318,26 +312,10 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 }
 
 func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error {
-	findMemberNamespace := func(member *models.User, namespace *models.Namespace) (*models.Member, bool) {
-		var memberFound models.Member
-		for _, memberSearch := range namespace.Members {
-			if memberSearch.ID == member.ID {
-				memberFound = memberSearch
-
-				break
-			}
-		}
-		if memberFound.ID == "" || memberFound.Role == "" {
-			return nil, false
-		}
-
-		return &memberFound, true
-	}
-
-	memberPassive, _, err := s.store.UserGetByID(ctx, memberID, false)
+	namespace, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
 		if err == store.ErrNoDocuments {
-			return ErrUserNotFound
+			return ErrNamespaceNotFound
 		}
 
 		return err
@@ -352,29 +330,27 @@ func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, membe
 		return err
 	}
 
-	namespace, err := s.store.NamespaceGet(ctx, tenantID)
+	memberPassive, _, err := s.store.UserGetByID(ctx, memberID, false)
 	if err != nil {
 		if err == store.ErrNoDocuments {
-			return ErrNamespaceNotFound
+			return ErrUserNotFound
 		}
 
 		return err
 	}
 
-	passiveMemberFound, ok := findMemberNamespace(memberPassive, namespace)
-	if !ok {
-		return ErrNamespaceMemberNotFound
-	}
-	activeMemberFound, ok := findMemberNamespace(memberActive, namespace)
-	if !ok {
+	memberActiveFound, okActive := guard.CheckMember(namespace, memberActive.ID)
+	memberPassiveFound, okPassive := guard.CheckMember(namespace, memberPassive.ID)
+	if !okActive || !okPassive {
 		return ErrNamespaceMemberNotFound
 	}
 
-	if activeMemberFound.Role == passiveMemberFound.Role {
+	// Blocks if the active member's role is equal to the passive one.
+	if memberPassiveFound.Role == memberActiveFound.Role {
 		return guard.ErrForbidden
 	}
 
-	if !guard.EvaluateSubject(ctx, s.store, tenantID, userID, memberNewRole) {
+	if !guard.CheckRole(memberActiveFound.Role, memberNewRole) {
 		return guard.ErrForbidden
 	}
 

@@ -1,22 +1,125 @@
 package guard
 
 import (
-	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEvaluateSubject(t *testing.T) {
 	mock := &mocks.Store{}
 
-	ctx := context.TODO()
+	memberOperator := models.Member{
+		ID:       "memberOperatorID",
+		Username: "memberOperatorUsername",
+		Role:     authorizer.MemberRoleOperator,
+	}
 
+	memberAdministrator := models.Member{
+		ID:       "memberAdministratorID",
+		Username: "memberAdministratorUsername",
+		Role:     authorizer.MemberRoleAdministrator,
+	}
+
+	memberOwner := models.Member{
+		ID:       "memberOwnerID",
+		Username: "memberOwnerUsername",
+		Role:     authorizer.MemberRoleOwner,
+	}
+
+	passiveRoleOperator := authorizer.MemberRoleOperator
+	passiveRoleObserver := authorizer.MemberRoleObserver
+	passiveRoleAdministrator := authorizer.MemberRoleAdministrator
+	passiveRoleOwner := authorizer.MemberRoleOwner
+
+	cases := []struct {
+		description  string
+		memberActive models.Member
+		rolePassive  string
+		expected     bool
+	}{
+		{
+			description:  "CheckRole successes when active user is a operator and passive role is observer",
+			memberActive: memberOperator,
+			rolePassive:  passiveRoleObserver,
+			expected:     true,
+		},
+		{
+			description:  "CheckRole fails when active user is a operator and passive role is operator",
+			memberActive: memberOperator,
+			rolePassive:  passiveRoleOperator,
+			expected:     false,
+		},
+		{
+			description:  "CheckRole fails when active user is a operator and passive role is administrator",
+			memberActive: memberOperator,
+			rolePassive:  passiveRoleAdministrator,
+			expected:     false,
+		},
+		{
+			description:  "CheckRole successes when active user is a administrator and passive role is observer",
+			memberActive: memberAdministrator,
+			rolePassive:  passiveRoleObserver,
+			expected:     true,
+		},
+		{
+			description:  "CheckRole success when active user is a administrator and passive role is operator",
+			memberActive: memberAdministrator,
+			rolePassive:  passiveRoleOperator,
+			expected:     true,
+		},
+		{
+			description:  "CheckRole fails when active user is a administrator and passive role is administrator",
+			memberActive: memberAdministrator,
+			rolePassive:  passiveRoleAdministrator,
+			expected:     false,
+		},
+		{
+			description:  "CheckRole fails when active user is a administrator and passive role is owner",
+			memberActive: memberAdministrator,
+			rolePassive:  passiveRoleOwner,
+			expected:     false,
+		},
+		{
+			description:  "CheckRole fails when active user is a owner and passive role is observer",
+			memberActive: memberOwner,
+			rolePassive:  passiveRoleObserver,
+			expected:     true,
+		},
+		{
+			description:  "CheckRole fails when active user is a owner and passive role is operator",
+			memberActive: memberOwner,
+			rolePassive:  passiveRoleObserver,
+			expected:     true,
+		},
+		{
+			description:  "CheckRole fails when active user is a owner and passive role is administrator",
+			memberActive: memberOwner,
+			rolePassive:  passiveRoleAdministrator,
+			expected:     true,
+		},
+		{
+			description:  "CheckRole fails when active user is a owner and passive role is owner",
+			memberActive: memberOwner,
+			rolePassive:  passiveRoleOwner,
+			expected:     false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ok := CheckRole(tc.memberActive.Role, tc.rolePassive)
+			assert.Equal(t, tc.expected, ok)
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
+
+func TestEvaluateNamespace(t *testing.T) {
 	userOwner := &models.User{
 		ID: "userOwnerID",
 		UserData: models.UserData{
@@ -51,6 +154,7 @@ func TestEvaluateSubject(t *testing.T) {
 			Username: "usernameAdministrator",
 		},
 	}
+
 	namespace := &models.Namespace{
 		Name:     "namespace",
 		Owner:    userOwner.ID,
@@ -74,151 +178,52 @@ func TestEvaluateSubject(t *testing.T) {
 			},
 		},
 	}
-	passiveRoleOperator := authorizer.MemberRoleOperator
-	passiveRoleObserver := authorizer.MemberRoleObserver
-	passiveRoleAdministrator := authorizer.MemberRoleAdministrator
-	passiveRoleOwner := authorizer.MemberRoleOwner
 
 	cases := []struct {
-		description   string
-		tenantID      string
-		activeID      string
-		passiveRole   string
-		requiredMocks func()
-		expected      bool
+		description string
+		id          string
+		namespace   *models.Namespace
+		expected    bool
 	}{
 		{
-			description: "EvaluateSubject successes when active user is a operator and passive role is observer",
-			tenantID:    namespace.TenantID,
-			activeID:    userOperator.ID,
-			passiveRole: passiveRoleObserver,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userOperator.ID, false).Return(userOperator, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: true,
+			description: "Fails when user is not inside the namespace",
+			id:          "invalidUserID",
+			namespace:   namespace,
+			expected:    false,
 		},
 		{
-			description: "EvaluateSubject fails when active user is a operator and passive role is operator",
-			tenantID:    namespace.TenantID,
-			activeID:    userOperator.ID,
-			passiveRole: passiveRoleOperator,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userOperator.ID, false).Return(userOperator, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: false,
+			description: "Success find the user inside the namespace 1",
+			id:          userObserver.ID,
+			namespace:   namespace,
+			expected:    true,
 		},
 		{
-			description: "EvaluateSubject fails when active user is a operator and passive role is administrator",
-			tenantID:    namespace.TenantID,
-			activeID:    userOperator.ID,
-			passiveRole: passiveRoleAdministrator,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userOperator.ID, false).Return(userOperator, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: false,
+			description: "Success find the user inside the namespace 2",
+			id:          userOperator.ID,
+			namespace:   namespace,
+			expected:    true,
 		},
 		{
-			description: "EvaluateSubject successes when active user is a administrator and passive role is observer",
-			tenantID:    namespace.TenantID,
-			activeID:    userAdministrator.ID,
-			passiveRole: passiveRoleObserver,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userAdministrator.ID, false).Return(userAdministrator, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: true,
+			description: "Success find the user inside the namespace 3",
+			id:          userAdministrator.ID,
+			namespace:   namespace,
+			expected:    true,
 		},
 		{
-			description: "EvaluateSubject success when active user is a administrator and passive role is operator",
-			tenantID:    namespace.TenantID,
-			activeID:    userAdministrator.ID,
-			passiveRole: passiveRoleOperator,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userAdministrator.ID, false).Return(userAdministrator, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: true,
-		},
-		{
-			description: "EvaluateSubject fails when active user is a administrator and passive role is administrator",
-			tenantID:    namespace.TenantID,
-			activeID:    userAdministrator.ID,
-			passiveRole: passiveRoleAdministrator,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userAdministrator.ID, false).Return(userAdministrator, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: false,
-		},
-		{
-			description: "EvaluateSubject fails when active user is a administrator and passive role is owner",
-			tenantID:    namespace.TenantID,
-			activeID:    userAdministrator.ID,
-			passiveRole: passiveRoleOwner,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userAdministrator.ID, false).Return(userAdministrator, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: false,
-		},
-		{
-			description: "EvaluateSubject fails when active user is a owner and passive role is observer",
-			tenantID:    namespace.TenantID,
-			activeID:    userOwner.ID,
-			passiveRole: passiveRoleObserver,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userOwner.ID, false).Return(userOwner, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: true,
-		},
-		{
-			description: "EvaluateSubject fails when active user is a owner and passive role is operator",
-			tenantID:    namespace.TenantID,
-			activeID:    userOwner.ID,
-			passiveRole: passiveRoleObserver,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userOwner.ID, false).Return(userOwner, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: true,
-		},
-		{
-			description: "EvaluateSubject fails when active user is a owner and passive role is administrator",
-			tenantID:    namespace.TenantID,
-			activeID:    userOwner.ID,
-			passiveRole: passiveRoleAdministrator,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userOwner.ID, false).Return(userOwner, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: true,
-		},
-		{
-			description: "EvaluateSubject fails when active user is a owner and passive role is owner",
-			tenantID:    namespace.TenantID,
-			activeID:    userOwner.ID,
-			passiveRole: passiveRoleOwner,
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, userOwner.ID, false).Return(userOwner, 0, nil)
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil)
-			},
-			expected: false,
+			description: "Success find the user inside the namespace 4",
+			id:          userOwner.ID,
+			namespace:   namespace,
+			expected:    true,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
-			ok := EvaluateSubject(ctx, store.Store(mock), tc.tenantID, tc.activeID, tc.passiveRole)
+			_, ok := CheckMember(tc.namespace, tc.id)
+
 			assert.Equal(t, tc.expected, ok)
 		})
 	}
-
-	mock.AssertExpectations(t)
 }
 
 func TestEvaluatePermission(t *testing.T) {
