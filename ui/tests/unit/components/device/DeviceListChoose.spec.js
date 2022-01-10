@@ -1,10 +1,9 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
-import DeviceList from '@/components/device/DeviceList';
-import { actions, authorizer } from '../../../../src/authorizer';
+import DeviceListChoose from '@/components/device/DeviceListChooser';
 
-describe('DeviceList', () => {
+describe('DeviceListChoose', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
   localVue.use(Vuex);
@@ -13,6 +12,7 @@ describe('DeviceList', () => {
 
   const numberDevices = 2;
   const devicesSelected = [];
+  const action = 'suggestedDevices';
 
   const pagination = {
     groupBy: [],
@@ -24,6 +24,26 @@ describe('DeviceList', () => {
     sortBy: [],
     sortDesc: [],
   };
+
+  const headers = [
+    {
+      text: 'Hostname',
+      value: 'hostname',
+      align: 'center',
+    },
+    {
+      text: 'Operating System',
+      value: 'info.pretty_name',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      text: 'SSHID',
+      value: 'namespace',
+      align: 'center',
+      sortable: false,
+    },
+  ];
 
   const devices = [
     {
@@ -64,9 +84,6 @@ describe('DeviceList', () => {
     },
   ];
 
-  // const devicesOffline = JSON.parse(JSON.stringify(devices));
-  // devicesOffline[1].online = false;
-
   const store = new Vuex.Store({
     namespaced: true,
     state: {
@@ -75,8 +92,8 @@ describe('DeviceList', () => {
       devicesSelected,
     },
     getters: {
-      'devices/list': (state) => state.devices,
-      'devices/getNumberDevices': (state) => state.numberDevices,
+      'devices/getDevicesForUserToChoose': (state) => state.devices,
+      'devices/getNumberForUserToChoose': (state) => state.numberDevices,
       'devices/getDevicesSelected': (state) => state.devicesSelected,
     },
     actions: {
@@ -98,15 +115,14 @@ describe('DeviceList', () => {
 
   describe('Suggested devices', () => {
     beforeEach(() => {
-      wrapper = mount(DeviceList, {
+      wrapper = mount(DeviceListChoose, {
         store,
         localVue,
         stubs: ['fragment', 'router-link'],
-        vuetify,
-        mocks: {
-          $authorizer: authorizer,
-          $actions: actions,
+        propsData: {
+          action,
         },
+        vuetify,
       });
     });
 
@@ -128,6 +144,7 @@ describe('DeviceList', () => {
     it('Compare data with default value', () => {
       expect(wrapper.vm.hostname).toEqual('localhost');
       expect(wrapper.vm.pagination).toEqual(pagination);
+      expect(wrapper.vm.headers).toEqual(headers);
     });
     it('Process data in the computed', () => {
       expect(wrapper.vm.getListDevices).toEqual(devices);
@@ -148,7 +165,7 @@ describe('DeviceList', () => {
       expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
     });
     it('Renders the template with data', () => {
-      const dt = wrapper.find('[data-test="dataTable-field"]');
+      const dt = wrapper.find('[data-test="devices-dataTable"]');
       const dataTableProps = dt.vm.$options.propsData;
 
       expect(dataTableProps.items).toHaveLength(numberDevices);
