@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ValidationAccount Failed to verify account Renders the component 1`] = `
-<v-layout-stub tag="div" align-center="" justify-center="" class="grey lighten-4">
+<v-layout-stub tag="div" align-center="" justify-center="">
   <v-flex-stub tag="div" xs12="" sm8="" md4="">
     <v-container-stub tag="div">
       <v-layout-stub tag="div" align-center="" justify-center="" column="">
@@ -32,7 +32,7 @@ exports[`ValidationAccount Failed to verify account Renders the component 1`] = 
 `;
 
 exports[`ValidationAccount Success to verify account Renders the component 1`] = `
-<v-layout-stub tag="div" align-center="" justify-center="" class="grey lighten-4">
+<v-layout-stub tag="div" align-center="" justify-center="">
   <v-flex-stub tag="div" xs12="" sm8="" md4="">
     <v-container-stub tag="div">
       <v-layout-stub tag="div" align-center="" justify-center="" column="">
