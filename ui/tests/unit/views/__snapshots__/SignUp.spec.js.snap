@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SignUp Renders the component 1`] = `
-<div class="layout grey lighten-4 align-center justify-center">
+<div class="layout align-center justify-center">
   <div class="text-center">
     <div class="v-overlay theme--dark" style="z-index: 5;">
       <div class="v-overlay__scrim" style="opacity: 0; background-color: rgb(33, 33, 33); border-color: #212121;"></div>

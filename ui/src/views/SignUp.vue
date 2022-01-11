@@ -1,6 +1,5 @@
 <template>
   <v-layout
-    class="grey lighten-4"
     align-center
     justify-center
   >
