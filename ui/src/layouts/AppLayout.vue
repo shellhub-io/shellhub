@@ -6,7 +6,7 @@
     >
       <v-list-item>
         <v-list-item-content>
-          <v-list-item-title>
+          <v-list-item-title class="d-flex justify-center">
             <router-link to="/">
               <v-img
                 class="d-sm-flex hidden-sm-and-down"
