@@ -2,7 +2,7 @@
 
 exports[`Notification With notifications operator Renders the component 1`] = `
 <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
-  <v-card-stub loaderheight="4" tag="div" data-test="hasNotifications-subheader">
+  <v-card-stub loaderheight="4" tag="div" data-test="hasNotifications-subheader" offset-x="20">
     <v-subheader-stub>Pending Devices</v-subheader-stub>
     <v-divider-stub></v-divider-stub>
     <v-list-stub tag="div" class="pa-0">
@@ -43,7 +43,7 @@ exports[`Notification With notifications operator Renders the component 1`] = `
 
 exports[`Notification With notifications owner Renders the component 1`] = `
 <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
-  <v-card-stub loaderheight="4" tag="div" data-test="hasNotifications-subheader">
+  <v-card-stub loaderheight="4" tag="div" data-test="hasNotifications-subheader" offset-x="20">
     <v-subheader-stub>Pending Devices</v-subheader-stub>
     <v-divider-stub></v-divider-stub>
     <v-list-stub tag="div" class="pa-0">
