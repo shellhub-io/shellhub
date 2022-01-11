@@ -13,23 +13,22 @@
         color="success"
         data-test="notifications-badge"
       >
-        <v-chip
+        <v-icon
+          class="ml-2 mr-2"
+          color="primary"
+          :size="defaultSize"
           v-on="on"
           @click="getNotifications()"
         >
-          <v-icon
-            class="ml-2 mr-2"
-            :size="defaultSize"
-          >
-            notifications
-          </v-icon>
-        </v-chip>
+          notifications
+        </v-icon>
       </v-badge>
     </template>
 
     <v-card
       v-if="!getStatusNotifications"
       data-test="hasNotifications-subheader"
+      offset-x="20"
     >
       <v-subheader>Pending Devices</v-subheader>
 

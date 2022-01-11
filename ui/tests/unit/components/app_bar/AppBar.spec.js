@@ -94,6 +94,9 @@ describe('AppBar', () => {
   // HTML validation
   //////
 
+  it('Renders the template with components', () => {
+    expect(wrapper.find('[data-test="notification-component"]').exists()).toBe(true);
+  });
   it('Renders the template with data', async () => {
     expect(wrapper.find('[data-test="Settings"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="Logout"]').exists()).toEqual(true);

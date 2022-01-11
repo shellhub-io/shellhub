@@ -11,6 +11,8 @@
 
       <v-spacer />
 
+      <Notification data-test="notification-component" />
+
       <v-menu
         offset-y
       >
@@ -84,9 +86,14 @@
 <script>
 
 import GitterSidecar from 'gitter-sidecar';
+import Notification from '@/components/app_bar/notification/Notification';
 
 export default {
   name: 'AppBarComponent',
+
+  components: {
+    Notification,
+  },
 
   data() {
     return {
