@@ -11,6 +11,15 @@
 
       <v-spacer />
 
+      <v-icon
+        :size="defaultSize"
+        class="ml-1 mr-1"
+        color="primary"
+        @click="toggleChat()"
+      >
+        help
+      </v-icon>
+
       <Notification data-test="notification-component" />
 
       <v-menu
