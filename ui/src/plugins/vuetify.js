@@ -42,6 +42,7 @@ export default new Vuetify({
         background: '#18191B',
         tabs: '#1E1E1E',
         foreground: '#1E1E1E',
+        paymentForm: '#E0E0E0',
       },
       light: {
         primary: '#667acc',
@@ -49,6 +50,7 @@ export default new Vuetify({
         background: '#FFFFFF',
         tabs: '#FFFFFF',
         foreground: '#FFFFFF',
+        paymentForm: '#FFFFFF',
       },
     },
   },

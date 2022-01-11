@@ -38,7 +38,7 @@
             </div>
           </div>
 
-          <v-card class="mt-6">
+          <v-card class="paymentForm mt-6">
             <v-col>
               <div ref="card" />
             </v-col>
