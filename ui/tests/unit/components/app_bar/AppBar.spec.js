@@ -15,6 +15,7 @@ describe('AppBar', () => {
   const isLoggedIn = true;
   const numberNamespaces = 1;
   const isMobile = false;
+  const statusDarkMode = true;
 
   const menu = [
     {
@@ -39,12 +40,14 @@ describe('AppBar', () => {
       numberNamespaces,
       tenant,
       isMobile,
+      statusDarkMode,
     },
     getters: {
       'auth/isLoggedIn': (state) => state.isLoggedIn,
       'namespaces/getNumberNamespaces': (state) => state.numberNamespaces,
       'auth/tenant': (state) => state.tenant,
       'mobile/isMobile': (state) => state.isMobile,
+      'layout/getStatusDarkMode': (state) => state.statusDarkMode,
     },
     actions: {
       'auth/logout': () => {},
@@ -88,6 +91,7 @@ describe('AppBar', () => {
     expect(wrapper.vm.isLoggedIn).toEqual(isLoggedIn);
     expect(wrapper.vm.hasNamespaces).toEqual(numberNamespaces !== 0);
     expect(wrapper.vm.isMobile).toEqual(isMobile);
+    expect(wrapper.vm.getStatusDarkMode).toEqual(true);
   });
 
   //////

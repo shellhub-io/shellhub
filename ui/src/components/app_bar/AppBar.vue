@@ -74,7 +74,7 @@
 
           <v-list-item>
             <v-switch
-              :input-value="darkMode"
+              :input-value="getStatusDarkMode"
               label="Dark Mode"
               dense
               inset
@@ -141,6 +141,10 @@ export default {
     isMobile() {
       return this.$store.getters['mobile/isMobile'];
     },
+
+    getStatusDarkMode() {
+      return this.$store.getters['layout/getStatusDarkMode'];
+    },
   },
 
   async mounted() {
@@ -182,6 +186,7 @@ export default {
 
     toggleDarkMode() {
       this.darkMode = !this.darkMode;
+      this.$store.dispatch('layout/setStatusDarkMode', this.darkMode);
       this.$vuetify.theme.dark = this.darkMode;
     },
   },
