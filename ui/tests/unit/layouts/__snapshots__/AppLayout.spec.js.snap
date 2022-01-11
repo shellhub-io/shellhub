@@ -5,7 +5,7 @@ exports[`AppLayout Is enterprise and has namespace Renders the component 1`] = `
   <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" dark="true" height="100vh" minivariantwidth="56" src="" tag="nav" width="256">
     <v-list-item-stub activeclass="" tag="div">
       <v-list-item-content-stub tag="div">
-        <v-list-item-title-stub tag="div">
+        <v-list-item-title-stub tag="div" class="d-flex justify-center">
           <router-link-stub to="/" tag="a" ariacurrentvalue="page" event="click">
             <v-img-stub maxwidth="140" options="[object Object]" position="center center" src="@/assets/logo-inverted.png" transition="fade-transition" class="d-sm-flex hidden-sm-and-down"></v-img-stub>
           </router-link-stub>
@@ -86,7 +86,7 @@ exports[`AppLayout Is not enterprise Renders the component 1`] = `
   <v-navigation-drawer-stub app="true" mobilebreakpoint="1264" dark="true" height="100vh" minivariantwidth="56" src="" tag="nav" width="256">
     <v-list-item-stub activeclass="" tag="div">
       <v-list-item-content-stub tag="div">
-        <v-list-item-title-stub tag="div">
+        <v-list-item-title-stub tag="div" class="d-flex justify-center">
           <router-link-stub to="/" tag="a" ariacurrentvalue="page" event="click">
             <v-img-stub maxwidth="140" options="[object Object]" position="center center" src="@/assets/logo-inverted.png" transition="fade-transition" class="d-sm-flex hidden-sm-and-down"></v-img-stub>
           </router-link-stub>
