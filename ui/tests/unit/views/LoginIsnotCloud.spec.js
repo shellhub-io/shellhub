@@ -33,18 +33,14 @@ describe('Login', () => {
 
   let wrapper;
 
-  const auth = {
-    status: true,
-    token: 'xxxxxxxx',
-    user: 'user',
-    tenant: 'xxxxxxxx',
-  };
+  const statusDarkMode = true;
 
   const store = new Vuex.Store({
     state: {
-      auth,
+      statusDarkMode,
     },
     getters: {
+      'layout/getStatusDarkMode': (state) => state.statusDarkMode,
     },
     actions: {
       'auth/logout': () => {},
@@ -88,6 +84,9 @@ describe('Login', () => {
       expect(wrapper.vm.error).toEqual(false);
       expect(wrapper.vm.showPassword).toEqual(false);
       expect(wrapper.vm.showMessage).toEqual(false);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.getStatusDarkMode).toEqual(true);
     });
 
     //////
@@ -140,6 +139,9 @@ describe('Login', () => {
       expect(wrapper.vm.error).toEqual(false);
       expect(wrapper.vm.showPassword).toEqual(false);
       expect(wrapper.vm.showMessage).toEqual(true);
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.getStatusDarkMode).toEqual(true);
     });
 
     //////

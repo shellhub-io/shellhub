@@ -36,7 +36,14 @@
           >
             <v-flex class="text-center primary--text">
               <v-img
+                v-if="getStatusDarkMode"
                 src="@/assets/logo-inverted.png"
+                max-width="220"
+              />
+
+              <v-img
+                v-else
+                src="@/assets/logo.png"
                 max-width="220"
               />
             </v-flex>
@@ -154,6 +161,12 @@ export default {
         this.$router.push({ name: 'dashboard' }).catch(() => {});
       });
     }
+  },
+
+  computed: {
+    getStatusDarkMode() {
+      return this.$store.getters['layout/getStatusDarkMode'];
+    },
   },
 
   methods: {
