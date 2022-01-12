@@ -28,14 +28,18 @@ describe('ForgotPassword', () => {
 
   let wrapper;
 
+  const statusDarkMode = true;
+
   // vee-validate variables bellow
   const invalidEmails = ['notemail', 'missing@dot', 'with.only.dots', 'r4ndomCH@r5'];
   const validEmails = ['new@email.com', 'another@email.org'];
 
   const store = new Vuex.Store({
     state: {
+      statusDarkMode,
     },
     getters: {
+      'layout/getStatusDarkMode': (state) => state.statusDarkMode,
     },
     actions: {
       'users/recoverPassword': () => {},
@@ -71,6 +75,9 @@ describe('ForgotPassword', () => {
 
   it('Compare data with default value', () => {
     expect(wrapper.vm.email).toEqual('');
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getStatusDarkMode).toEqual(statusDarkMode);
   });
 
   //////

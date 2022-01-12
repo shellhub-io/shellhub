@@ -16,26 +16,35 @@
       xs12
       sm8
       md4
+      lg3
+      xl2
     >
-      <v-container>
-        <v-layout
-          align-center
-          justify-center
-          column
-        >
-          <v-flex class="text-center primary--text">
-            <v-img
-              src="@/assets/logo.png"
-            />
-          </v-flex>
-        </v-layout>
-      </v-container>
-
       <v-card
         v-if="!showMessage"
-        color="transparent"
-        class="elevation-0"
+        class="pa-6"
       >
+        <v-container>
+          <v-layout
+            align-center
+            justify-center
+            column
+          >
+            <v-flex class="text-center primary--text">
+              <v-img
+                v-if="getStatusDarkMode"
+                src="@/assets/logo-inverted.png"
+                max-width="220"
+              />
+
+              <v-img
+                v-else
+                src="@/assets/logo.png"
+                max-width="220"
+              />
+            </v-flex>
+          </v-layout>
+        </v-container>
+
         <ValidationObserver
           ref="obs"
           v-slot="{ passes }"
@@ -196,6 +205,12 @@ export default {
       delay: 500,
       overlay: false,
     };
+  },
+
+  computed: {
+    getStatusDarkMode() {
+      return this.$store.getters['layout/getStatusDarkMode'];
+    },
   },
 
   watch: {
