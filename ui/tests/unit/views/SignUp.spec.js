@@ -47,10 +47,14 @@ describe('SignUp', () => {
 
   let wrapper;
 
+  const statusDarkMode = true;
+
   const store = new Vuex.Store({
     state: {
+      statusDarkMode,
     },
     getters: {
+      'layout/getStatusDarkMode': (state) => state.statusDarkMode,
     },
     actions: {
       'users/signUp': () => {},
@@ -91,6 +95,9 @@ describe('SignUp', () => {
     expect(wrapper.vm.newUser.confirmPassword).toEqual(newUser.confirmPassword);
     expect(wrapper.vm.delay).toEqual(500);
     expect(wrapper.vm.overlay).toEqual(false);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getStatusDarkMode).toEqual(statusDarkMode);
   });
 
   //////

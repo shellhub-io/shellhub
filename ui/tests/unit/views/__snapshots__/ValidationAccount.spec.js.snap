@@ -2,15 +2,15 @@
 
 exports[`ValidationAccount Failed to verify account Renders the component 1`] = `
 <v-layout-stub tag="div" align-center="" justify-center="">
-  <v-flex-stub tag="div" xs12="" sm8="" md4="">
-    <v-container-stub tag="div">
-      <v-layout-stub tag="div" align-center="" justify-center="" column="">
-        <v-flex-stub tag="div" class="text-center primary--text">
-          <v-img-stub options="[object Object]" position="center center" src="@/assets/logo.png" transition="fade-transition"></v-img-stub>
-        </v-flex-stub>
-      </v-layout-stub>
-    </v-container-stub>
-    <v-card-stub loaderheight="4" tag="div" color="transparent" data-test="accountCreated-card" class="elevation-0">
+  <v-flex-stub tag="div" xs12="" sm8="" md4="" lg3="" xl2="">
+    <v-card-stub loaderheight="4" tag="div" data-test="accountCreated-card" class="pa-6">
+      <v-container-stub tag="div">
+        <v-layout-stub tag="div" align-center="" justify-center="" column="">
+          <v-flex-stub tag="div" class="text-center primary--text">
+            <v-img-stub maxwidth="220" options="[object Object]" position="center center" src="@/assets/logo-inverted.png" transition="fade-transition"></v-img-stub>
+          </v-flex-stub>
+        </v-layout-stub>
+      </v-container-stub>
       <v-card-title-stub tag="div" class="justify-center">
         Verification Account
       </v-card-title-stub>
@@ -33,15 +33,15 @@ exports[`ValidationAccount Failed to verify account Renders the component 1`] = 
 
 exports[`ValidationAccount Success to verify account Renders the component 1`] = `
 <v-layout-stub tag="div" align-center="" justify-center="">
-  <v-flex-stub tag="div" xs12="" sm8="" md4="">
-    <v-container-stub tag="div">
-      <v-layout-stub tag="div" align-center="" justify-center="" column="">
-        <v-flex-stub tag="div" class="text-center primary--text">
-          <v-img-stub options="[object Object]" position="center center" src="@/assets/logo.png" transition="fade-transition"></v-img-stub>
-        </v-flex-stub>
-      </v-layout-stub>
-    </v-container-stub>
-    <v-card-stub loaderheight="4" tag="div" color="transparent" data-test="accountCreated-card" class="elevation-0">
+  <v-flex-stub tag="div" xs12="" sm8="" md4="" lg3="" xl2="">
+    <v-card-stub loaderheight="4" tag="div" data-test="accountCreated-card" class="pa-6">
+      <v-container-stub tag="div">
+        <v-layout-stub tag="div" align-center="" justify-center="" column="">
+          <v-flex-stub tag="div" class="text-center primary--text">
+            <v-img-stub maxwidth="220" options="[object Object]" position="center center" src="@/assets/logo-inverted.png" transition="fade-transition"></v-img-stub>
+          </v-flex-stub>
+        </v-layout-stub>
+      </v-container-stub>
       <v-card-title-stub tag="div" class="justify-center">
         Verification Account
       </v-card-title-stub>

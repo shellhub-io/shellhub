@@ -28,6 +28,8 @@ describe('UpdatePassword', () => {
 
   let wrapper;
 
+  const statusDarkMode = true;
+
   // vee-validate variables bellow
   const invalidPasswords = ['aPasswordBiggerThanExpectedBecauseHasMoreThan30chars', 'shor'];
   const validPasswords = ['newPassword', 'password123'];
@@ -36,8 +38,10 @@ describe('UpdatePassword', () => {
 
   const store = new Vuex.Store({
     state: {
+      statusDarkMode,
     },
     getters: {
+      'layout/getStatusDarkMode': (state) => state.statusDarkMode,
     },
     actions: {
       'users/updatePassword': () => {},
@@ -75,6 +79,9 @@ describe('UpdatePassword', () => {
     expect(wrapper.vm.newPassword).toEqual('');
     expect(wrapper.vm.newPasswordConfirm).toEqual('');
     expect(wrapper.vm.data).toEqual({});
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getStatusDarkMode).toEqual(statusDarkMode);
   });
 
   //////

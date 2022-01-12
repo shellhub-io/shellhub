@@ -7,26 +7,35 @@
       xs12
       sm8
       md4
+      lg3
+      xl2
     >
-      <v-container>
-        <v-layout
-          align-center
-          justify-center
-          column
-        >
-          <v-flex class="text-center primary--text">
-            <v-img
-              src="@/assets/logo.png"
-            />
-          </v-flex>
-        </v-layout>
-      </v-container>
-
       <v-card
-        color="transparent"
-        class="elevation-0"
+        class="pa-6"
         data-test="accountCreated-card"
       >
+        <v-container>
+          <v-layout
+            align-center
+            justify-center
+            column
+          >
+            <v-flex class="text-center primary--text">
+              <v-img
+                v-if="getStatusDarkMode"
+                src="@/assets/logo-inverted.png"
+                max-width="220"
+              />
+
+              <v-img
+                v-else
+                src="@/assets/logo.png"
+                max-width="220"
+              />
+            </v-flex>
+          </v-layout>
+        </v-container>
+
         <v-card-title class="justify-center">
           Verification Account
         </v-card-title>
@@ -87,6 +96,10 @@ export default {
   computed: {
     verifyActivationProcessingStatus() {
       return this.activationProcessingStatus;
+    },
+
+    getStatusDarkMode() {
+      return this.$store.getters['layout/getStatusDarkMode'];
     },
   },
 

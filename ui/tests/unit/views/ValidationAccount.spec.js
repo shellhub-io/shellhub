@@ -24,6 +24,16 @@ describe('ValidationAccount', () => {
 
   let wrapper;
 
+  const statusDarkMode = true;
+
+  const stateVuex = {
+    statusDarkMode,
+  };
+
+  const getters = {
+    'layout/getStatusDarkMode': (state) => state.statusDarkMode,
+  };
+
   const actionsValidationSuccess = {
     'users/validationAccount': () => {},
     'snackbar/showSnackbarSuccessAction': () => {},
@@ -39,18 +49,14 @@ describe('ValidationAccount', () => {
   };
 
   const storeValidationSuccess = new Vuex.Store({
-    state: {
-    },
-    getters: {
-    },
+    state: stateVuex,
+    getters,
     actions: actionsValidationSuccess,
   });
 
   const storeValidationFalied = new Vuex.Store({
-    state: {
-    },
-    getters: {
-    },
+    state: stateVuex,
+    getters,
     actions: actionsValidationFalied,
   });
 
@@ -82,6 +88,9 @@ describe('ValidationAccount', () => {
 
     it('Compare data with default value', () => {
       expect(wrapper.vm.activationProcessingStatus).toEqual('success');
+    });
+    it('Process data in the computed', () => {
+      expect(wrapper.vm.getStatusDarkMode).toEqual(statusDarkMode);
     });
 
     //////
