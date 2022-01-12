@@ -2,7 +2,7 @@
 
 exports[`Login Account has been activated Renders the component 1`] = `
 <div class="layout align-center justify-center">
-  <div class="flex xs12 sm8 md4 lg2">
+  <div class="flex xs12 sm8 md4 lg3">
     <!---->
     <div class="pa-6 v-card v-sheet theme--light">
       <div class="container">
@@ -80,7 +80,7 @@ exports[`Login Account has been activated Renders the component 1`] = `
 
 exports[`Login Account has not been activated Renders the component 1`] = `
 <div class="layout align-center justify-center">
-  <div class="flex xs12 sm8 md4 lg2">
+  <div class="flex xs12 sm8 md4 lg3">
     <!---->
     <!---->
     <fragment-stub data-test="accountCreated-component">
