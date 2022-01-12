@@ -7,7 +7,7 @@
       xs12
       sm8
       md4
-      lg2
+      lg3
     >
       <v-card
         v-if="showMessage && !$env.isCloud"
