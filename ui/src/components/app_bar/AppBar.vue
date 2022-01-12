@@ -110,7 +110,6 @@ export default {
       chat: null,
       chatOpen: false,
       defaultSize: 24,
-      darkMode: true,
       menu: [
         {
           title: 'Settings',
@@ -185,9 +184,8 @@ export default {
     },
 
     toggleDarkMode() {
-      this.darkMode = !this.darkMode;
-      this.$store.dispatch('layout/setStatusDarkMode', this.darkMode);
-      this.$vuetify.theme.dark = this.darkMode;
+      this.$store.dispatch('layout/setStatusDarkMode', !this.getStatusDarkMode);
+      this.$vuetify.theme.dark = this.getStatusDarkMode;
     },
   },
 };

@@ -5,7 +5,7 @@ export default {
 
   state: {
     layout: 'appLayout',
-    statusDarkMode: true,
+    statusDarkMode: localStorage.getItem('statusDarkMode') === 'true' || localStorage.getItem('statusDarkMode') === null,
   },
 
   getters: {
@@ -30,6 +30,7 @@ export default {
 
     setStatusDarkMode(context, status) {
       context.commit('setStatusDarkMode', status);
+      localStorage.setItem('statusDarkMode', status);
     },
   },
 };

@@ -11,11 +11,8 @@ describe('Stats', () => {
     expect(store.getters['layout/getLayout']).toEqual(layouts[0]);
   });
 
-  // Test to verify dark mode
+  // Verify change dark to light mode
 
-  it('Verify dark mode', () => {
-    expect(store.getters['layout/getStatusDarkMode']).toEqual(true);
-  });
   it('verify light mode', () => {
     store.commit('layout/setStatusDarkMode', false);
     expect(store.getters['layout/getStatusDarkMode']).toEqual(false);
