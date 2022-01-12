@@ -40,6 +40,8 @@ export default {
   },
 
   async created() {
+    this.$vuetify.theme.dark = this.$store.getters['layout/getStatusDarkMode'];
+
     if (!this.isLoggedIn) {
       this.$store.dispatch('layout/setLayout', 'simpleLayout');
     }

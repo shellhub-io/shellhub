@@ -11,6 +11,7 @@ describe('App', () => {
   const isLoggedIn = false;
   const authId = 'xxxxxxxx';
   const layouts = ['simpleLayout', 'appLayout'];
+  const statusDarkMode = true;
 
   const storeNotLoggedIn = new Vuex.Store({
     namespaced: true,
@@ -23,6 +24,7 @@ describe('App', () => {
       'layout/getLayout': (state) => state.layout,
       'auth/isLoggedIn': (state) => state.isLoggedIn,
       'auth/id': (state) => state.authId,
+      'layout/getStatusDarkMode': (state) => state.statusDarkMode,
     },
     actions: {
       'layout/setLayout': () => {},
@@ -35,11 +37,13 @@ describe('App', () => {
       layout: layouts[1],
       isLoggedIn: !isLoggedIn,
       authId,
+      statusDarkMode,
     },
     getters: {
       'layout/getLayout': (state) => state.layout,
       'auth/isLoggedIn': (state) => state.isLoggedIn,
       'auth/id': (state) => state.authId,
+      'layout/getStatusDarkMode': (state) => state.statusDarkMode,
     },
     actions: {
       'layout/setLayout': () => {},
