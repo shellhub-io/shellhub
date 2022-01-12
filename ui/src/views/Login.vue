@@ -8,6 +8,7 @@
       sm8
       md4
       lg3
+      xl2
     >
       <v-card
         v-if="showMessage && !$env.isCloud"
@@ -149,6 +150,12 @@ export default {
     };
   },
 
+  computed: {
+    getStatusDarkMode() {
+      return this.$store.getters['layout/getStatusDarkMode'];
+    },
+  },
+
   async created() {
     if (this.$route.query.token) {
       this.$store.dispatch('layout/setLayout', 'simpleLayout');
@@ -161,12 +168,6 @@ export default {
         this.$router.push({ name: 'dashboard' }).catch(() => {});
       });
     }
-  },
-
-  computed: {
-    getStatusDarkMode() {
-      return this.$store.getters['layout/getStatusDarkMode'];
-    },
   },
 
   methods: {
