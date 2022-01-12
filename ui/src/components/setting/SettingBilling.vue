@@ -17,7 +17,29 @@
           v-if="hasAuthorization"
           data-test="content-div"
         >
-          <v-row>
+          <div
+            v-if="active && state === 'processed' && notifyWarning"
+            data-test="warning-div"
+          >
+            <v-alert
+              dense
+              outlined
+              type="error"
+              color="#E53935"
+            >
+              <div>
+                <p class="font-weight-bold">
+                  {{ warningTitle }}
+                </p>
+              </div>
+
+              <div>
+                {{ warningMessage }}
+              </div>
+            </v-alert>
+          </div>
+
+          <v-row class="mt-4">
             <v-col>
               <h3>
                 Subscription info
@@ -92,7 +114,7 @@
           <v-divider />
           <v-divider />
 
-          <div class="mt-6">
+          <div class="mt-6 mb-6">
             <v-row>
               <v-col>
                 <h3>
@@ -113,7 +135,22 @@
                 </b>
               </p>
             </div>
+
+            <v-divider />
+            <v-divider />
           </div>
+
+          <div class="mt-6 mb-6">
+            <v-row>
+              <v-col>
+                <h3>
+                  Latest invoices
+                </h3>
+              </v-col>
+            </v-row>
+          </div>
+
+          <BillingInvoiceList data-test="invoiceList-component" />
 
           <v-divider />
           <v-divider />
@@ -208,6 +245,7 @@ import SettingOwnerInfo from '@/components/setting/SettingOwnerInfo';
 import BillingCancel from '@/components/billing/BillingCancel';
 import PaymentMethod from '@/components/billing/BillingDialogPaymentMethod';
 import BillingPaymentList from '@/components/billing/BillingPaymentList';
+import BillingInvoiceList from '@/components/billing/BillingInvoiceList';
 import { formatDateWithoutDayAndHours } from '@/components/filter/date';
 import formatCurrency from '@/components/filter/currency';
 import hasPermission from '@/components/filter/permission';
@@ -219,6 +257,7 @@ export default {
     SettingOwnerInfo,
     BillingCancel,
     BillingPaymentList,
+    BillingInvoiceList,
     PaymentMethod,
   },
 
@@ -237,10 +276,18 @@ export default {
       elements: null,
       renderData: false,
       action: 'subscribe',
+      warningTitle: 'Payment failed',
+      warningMessage: `Please update your payment method
+      by adding a new card, or attempt to pay failed latest
+      invoices through url`,
     };
   },
 
   computed: {
+    notifyWarning() {
+      return this.billingData.warning;
+    },
+
     retrialExceeded() {
       return this.retrials >= this.pollMax;
     },

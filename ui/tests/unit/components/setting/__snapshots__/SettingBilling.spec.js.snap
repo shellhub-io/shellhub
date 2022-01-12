@@ -18,7 +18,8 @@ exports[`SettingBilling Create subscription owner Renders the component 1`] = `
     <v-col-stub sm="8" tag="div">
       <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
       <div data-test="content-div">
-        <v-row-stub tag="div">
+        <!---->
+        <v-row-stub tag="div" class="mt-4">
           <v-col-stub tag="div">
             <h3>
               Subscription info
@@ -65,7 +66,8 @@ exports[`SettingBilling Pending request owner Renders the component 1`] = `
     <v-col-stub sm="8" tag="div">
       <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
       <div data-test="content-div">
-        <v-row-stub tag="div">
+        <!---->
+        <v-row-stub tag="div" class="mt-4">
           <v-col-stub tag="div">
             <h3>
               Subscription info
@@ -88,7 +90,7 @@ exports[`SettingBilling Pending request owner Renders the component 1`] = `
 </v-container-stub>
 `;
 
-exports[`SettingBilling Premium usage operator Renders the component 1`] = `
+exports[`SettingBilling Premium usage - warning operator Renders the component 1`] = `
 <v-container-stub tag="div">
   <v-row-stub tag="div" align="center" justify="center" class="mt-4">
     <v-col-stub sm="8" tag="div">
@@ -100,13 +102,27 @@ exports[`SettingBilling Premium usage operator Renders the component 1`] = `
 </v-container-stub>
 `;
 
-exports[`SettingBilling Premium usage owner Renders the component 1`] = `
+exports[`SettingBilling Premium usage - warning owner Renders the component 1`] = `
 <v-container-stub tag="div">
   <v-row-stub tag="div" align="center" justify="center" class="mt-4">
     <v-col-stub sm="8" tag="div">
       <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
       <div data-test="content-div">
-        <v-row-stub tag="div">
+        <div data-test="warning-div">
+          <v-alert-stub color="#E53935" outlined="true" tag="div" value="true" closelabel="$vuetify.close" dense="true" closeicon="$cancel" icon="" type="error">
+            <div>
+              <p class="font-weight-bold">
+                Payment failed
+              </p>
+            </div>
+            <div>
+              Please update your payment method
+              by adding a new card, or attempt to pay failed latest
+              invoices through url
+            </div>
+          </v-alert-stub>
+        </div>
+        <v-row-stub tag="div" class="mt-4">
           <v-col-stub tag="div">
             <h3>
               Subscription info
@@ -131,7 +147,7 @@ exports[`SettingBilling Premium usage owner Renders the component 1`] = `
       <div data-test="subscriptionActive-div" class="mt-4 mb-4">
         <v-divider-stub></v-divider-stub>
         <v-divider-stub></v-divider-stub>
-        <div class="mt-6">
+        <div class="mt-6 mb-6">
           <v-row-stub tag="div">
             <v-col-stub tag="div">
               <h3>
@@ -149,7 +165,139 @@ exports[`SettingBilling Premium usage owner Renders the component 1`] = `
               </b>
             </p>
           </div>
+          <v-divider-stub></v-divider-stub>
+          <v-divider-stub></v-divider-stub>
         </div>
+        <div class="mt-6 mb-6">
+          <v-row-stub tag="div">
+            <v-col-stub tag="div">
+              <h3>
+                Latest invoices
+              </h3>
+            </v-col-stub>
+          </v-row-stub>
+        </div>
+        <billinginvoicelist-stub data-test="invoiceList-component"></billinginvoicelist-stub>
+        <v-divider-stub></v-divider-stub>
+        <v-divider-stub></v-divider-stub>
+        <div class="mt-6 mb-2">
+          <v-row-stub tag="div">
+            <v-col-stub tag="div">
+              <h3>
+                Payment methods
+              </h3>
+            </v-col-stub>
+            <v-col-stub md="auto" tag="div" class="ml-auto">
+              <paymentmethod-stub typeoperation="update" data-test="updatePaymentMethod-component"></paymentmethod-stub>
+            </v-col-stub>
+          </v-row-stub>
+        </div>
+        <billingpaymentlist-stub cards="[object Object],[object Object],[object Object]" data-test="paymentMethods-component"></billingpaymentlist-stub>
+        <v-divider-stub></v-divider-stub>
+        <v-divider-stub></v-divider-stub>
+        <div data-test="cancel-div" class="mt-6">
+          <v-row-stub tag="div">
+            <v-col-stub tag="div">
+              <h3>
+                Cancel Subscription
+              </h3>
+            </v-col-stub>
+          </v-row-stub>
+          <div class="mt-2 pl-4">
+            <v-row-stub tag="div">
+              <v-col-stub tag="div">
+                <p>
+                  When canceling subscription, you may lose access to devices.
+                </p>
+              </v-col-stub>
+              <v-spacer-stub tag="div"></v-spacer-stub>
+              <v-col-stub md="auto" tag="div" class="ml-auto">
+                <billingcancel-stub nextpaymentdue="0"></billingcancel-stub>
+              </v-col-stub>
+            </v-row-stub>
+          </div>
+        </div>
+      </div>
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Premium usage operator Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <!---->
+      <!---->
+    </v-col-stub>
+  </v-row-stub>
+</v-container-stub>
+`;
+
+exports[`SettingBilling Premium usage owner Renders the component 1`] = `
+<v-container-stub tag="div">
+  <v-row-stub tag="div" align="center" justify="center" class="mt-4">
+    <v-col-stub sm="8" tag="div">
+      <settingownerinfo-stub isowner="true" data-test="settingOwnerInfo-component"></settingownerinfo-stub>
+      <div data-test="content-div">
+        <!---->
+        <v-row-stub tag="div" class="mt-4">
+          <v-col-stub tag="div">
+            <h3>
+              Subscription info
+            </h3>
+          </v-col-stub>
+          <v-spacer-stub tag="div"></v-spacer-stub>
+          <!---->
+        </v-row-stub>
+        <div class="mt-6 pl-4 pr-4">
+          <div>
+            <div data-test="premiumPlan-div">
+              <p>
+                Plan: <b> Premium usage </b></p>
+              <p>
+                Description: In this plan, the amount is charged according to the number of
+                devices used.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-test="subscriptionActive-div" class="mt-4 mb-4">
+        <v-divider-stub></v-divider-stub>
+        <v-divider-stub></v-divider-stub>
+        <div class="mt-6 mb-6">
+          <v-row-stub tag="div">
+            <v-col-stub tag="div">
+              <h3>
+                Next bill
+              </h3>
+            </v-col-stub>
+          </v-row-stub>
+          <div class="mt-6 pl-4 pr-4">
+            <p>
+              Date: <b> December 24th 2021 </b></p>
+            <p>
+              Estimated total:
+              <b>
+                $0.00
+              </b>
+            </p>
+          </div>
+          <v-divider-stub></v-divider-stub>
+          <v-divider-stub></v-divider-stub>
+        </div>
+        <div class="mt-6 mb-6">
+          <v-row-stub tag="div">
+            <v-col-stub tag="div">
+              <h3>
+                Latest invoices
+              </h3>
+            </v-col-stub>
+          </v-row-stub>
+        </div>
+        <billinginvoicelist-stub data-test="invoiceList-component"></billinginvoicelist-stub>
         <v-divider-stub></v-divider-stub>
         <v-divider-stub></v-divider-stub>
         <div class="mt-6 mb-2">
