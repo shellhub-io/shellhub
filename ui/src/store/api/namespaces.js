@@ -24,5 +24,4 @@ export const editUserToNamespace = async (data) => http().patch(`/namespaces/${d
 });
 
 export const removeUserFromNamespace = async (data) => http().delete(`/namespaces/${data.tenant_id}/members/${data.user_id}`);
-
 export const tenantSwitch = async (data) => http().get(`/auth/token/${data.tenant_id}`);

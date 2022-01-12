@@ -138,6 +138,7 @@ describe('Billing', () => {
         last4: '4042',
         id: 'pm_1JzQ80KJsksFHO6pREJA5TrK',
       },
+      invoices: [],
       cards: [
         {
           brand: 'visa',
@@ -202,6 +203,7 @@ describe('Billing', () => {
         last4: '4042',
         id: 'pm_1JzQ80KJsksFHO6pREJA5TrF',
       },
+      invoices: [],
       cards: [
         {
           brand: 'visa',
@@ -238,5 +240,27 @@ describe('Billing', () => {
     expect(store.getters['billing/getBillInfoData'].cards.length).toEqual(infoData.cards.length - 1);
     expect(store.getters['billing/getBillInfoData'].defaultCard).toEqual(infoData.defaultCard);
     expect(store.getters['billing/getBillInfoData'].info).toEqual(infoData.info);
+  });
+
+  ///////
+  // In this case, the setPagination is checked.
+  ///////
+
+  it('Verify initial state change for setPagination mutation', () => {
+    const pagination = {
+      perPage: 3,
+      page: 1,
+    };
+
+    const infoData = {
+      invoices: ['in_1', 'in_2', 'in_3', 'in_4'],
+    };
+
+    store.commit('billing/setGetSubscription', infoData);
+    store.commit('billing/setPagination', pagination);
+    expect(store.getters['billing/getInvoices']).toEqual(infoData.invoices.slice(0, 3));
+    store.commit('billing/setPagination', { perPage: 3, page: 2 });
+    expect(store.getters['billing/getInvoices']).toHaveLength(1);
+    expect(store.getters['billing/getInvoicesLength']).toEqual(infoData.invoices.length);
   });
 });

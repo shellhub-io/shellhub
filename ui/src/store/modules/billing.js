@@ -13,6 +13,9 @@ export default {
     active: (state) => state.billing.active || false,
     status: (state) => state.billing.state || 'inactive',
     getBillInfoData: (state) => state.billInfoData,
+    getInvoices: (state) => state.invoices,
+    getInvoicesLength: (state) => state.invoicesLength,
+    getPerPage: (state) => state.defaultPerPage,
   },
 
   mutations: {
@@ -28,7 +31,11 @@ export default {
     },
 
     setGetSubscription: (state, data) => {
+      const perPage = state.defaultPerPage;
+
       Vue.set(state, 'billInfoData', data);
+      Vue.set(state, 'invoices', data.invoices.slice(0, perPage));
+      Vue.set(state, 'invoicesLength', data.invoices.length);
     },
 
     setPaymentMethod: (state, data) => {
@@ -64,6 +71,12 @@ export default {
       });
     },
 
+    setPagination: (state, data) => {
+      const { perPage, page } = data;
+      const { invoices } = state.billInfoData;
+      Vue.set(state, 'invoices', invoices.slice((page - 1) * perPage, page * perPage));
+    },
+
     deactivateSubscription: (state) => {
       Vue.set(state, 'billing', {
         ...state.billing,
@@ -92,6 +105,10 @@ export default {
         context.commit('setGetSubscription', data);
       }
       return new Error('failed to get subscrition');
+    },
+
+    getPagination: (context, data) => {
+      context.commit('setPagination', data);
     },
 
     updatePaymentMethod: async (context, id) => {

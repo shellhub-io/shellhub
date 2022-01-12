@@ -1,113 +1,69 @@
 <template>
   <fragment>
     <div class="mt-5">
-      <v-row class="text-center mb-2">
-        <v-col
-          v-for="(item, index) in heading"
-          :key="item.id"
-          :data-test="item.id+'-div'"
-          :cols="(index === 3) ? 4 : null"
-        >
-          <b>
-            {{ item.title }}
-          </b>
-        </v-col>
-      </v-row>
+      <v-data-table
+        class="elevation-0"
+        :headers="headers"
+        :items="paymentList"
+        hide-default-footer
+        data-test="dataTable-field"
+      >
+        <template #[`item.brand`]="{ item }">
+          <BillingIcon :icon-name="item.brand" />
+        </template>
 
-      <v-list class="mb-2">
-        <v-list-item
-          v-for="item in paymentList"
-          :key="item.id"
-          class="mb-1"
-        >
-          <v-row class="text-center">
-            <v-col>
-              <BillingIcon
-                :icon-name="item.brand"
-                :data-test="'icon-'+item.id+'-component'"
-              />
-            </v-col>
-            <v-col
-              :data-test="'exp-date-'+item.id+'-col'"
-              class="pm-data"
-            >
-              <p>
-                {{ item.expMonth }}/{{ item.expYear }}
-              </p>
-            </v-col>
-            <v-col
-              :data-test="'last4-'+item.id+'-col'"
-              class="pm-data"
-            >
-              <p>
-                {{ item.last4 }}
-              </p>
-            </v-col>
-            <v-col
-              cols="4"
-              class="actions-column"
-            >
-              <div
-                v-if="item.default"
-                :data-test="'default-'+item.id+'-div'"
-                class="ml-4 pm-text"
+        <template #[`item.last4`]="{ item }">
+          {{ item.last4 }}
+        </template>
+
+        <template #[`item.expdate`]="{ item }">
+          {{ item.expMonth }} / {{ item.expYear }}
+        </template>
+
+        <template #[`item.actions`]="{ item }">
+          <v-menu
+            v-if="!item.default"
+            offset-y
+          >
+            <template #activator="{ on, attrs }">
+              <v-icon
+                small
+                class="icons"
+                v-bind="attrs"
+                v-on="on"
               >
-                <p>
-                  Default
-                </p>
-              </div>
-              <div
-                v-else
-                class="ml-2"
-                :data-test="'actions-'+item.id+'-div'"
-              >
-                <v-btn
-                  outlined
-                  class="mr-2"
-                  @click="updatePaymentMethod(item.id)"
-                >
-                  <div>
-                    <v-tooltip bottom>
-                      <template #activator="{ on }">
-                        <span v-on="on">
-                          <v-icon v-on="on">
-                            mdi-pencil
-                          </v-icon>
-                        </span>
-                      </template>
-                      <span>
-                        Make default
-                      </span>
-                    </v-tooltip>
-                  </div>
-                </v-btn>
-                <v-btn
-                  outlined
-                  class="mr-2"
-                  @click="deletePaymentMethod(item.id)"
-                >
-                  <div>
-                    <v-tooltip bottom>
-                      <template #activator="{ on }">
-                        <span v-on="on">
-                          <v-icon
-                            v-on="on"
-                          >
-                            delete
-                          </v-icon>
-                        </span>
-                      </template>
-                      <span>
-                        Remove
-                      </span>
-                    </v-tooltip>
-                  </div>
-                </v-btn>
-              </div>
-            </v-col>
-          </v-row>
-        </v-list-item>
-      </v-list>
+                mdi-dots-horizontal
+              </v-icon>
+            </template>
+
+            <v-list>
+              <v-list-item @click.stop="updatePaymentMethod(item.id)">
+                <v-icon class="mr-2">
+                  mdi-pencil
+                </v-icon>
+
+                <v-list-item-title>
+                  Make default
+                </v-list-item-title>
+              </v-list-item>
+
+              <v-list-item @click.stop="deletePaymentMethod(item.id)">
+                <v-icon class="mr-2">
+                  mdi-delete
+                </v-icon>
+
+                <v-list-item-title>
+                  Remove
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+
+          <div v-else>
+            Default
+          </div>
+        </template>
+      </v-data-table>
     </div>
   </fragment>
 </template>
@@ -132,22 +88,30 @@ export default {
 
   data() {
     return {
-      heading: [
+      headers: [
         {
-          id: 'brand',
-          title: 'Brand',
+          text: 'Brand',
+          value: 'brand',
+          align: 'center',
+          sortable: false,
         },
         {
-          id: 'expdate',
-          title: 'Exp. Date',
+          text: 'Exp. Date',
+          value: 'expdate',
+          align: 'center',
+          sortable: false,
         },
         {
-          id: 'last4',
-          title: 'Ends with',
+          text: 'Ends with',
+          value: 'last4',
+          align: 'center',
+          sortable: false,
         },
         {
-          id: 'actions',
-          title: 'Actions',
+          text: 'Actions',
+          value: 'actions',
+          align: 'center',
+          sortable: false,
         },
       ],
     };

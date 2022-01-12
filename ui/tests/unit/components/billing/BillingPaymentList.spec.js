@@ -33,22 +33,30 @@ describe('BillingPaymentList', () => {
     },
   ];
 
-  const heading = [
+  const headers = [
     {
-      id: 'brand',
-      title: 'Brand',
+      text: 'Brand',
+      value: 'brand',
+      align: 'center',
+      sortable: false,
     },
     {
-      id: 'expdate',
-      title: 'Exp. Date',
+      text: 'Exp. Date',
+      value: 'expdate',
+      align: 'center',
+      sortable: false,
     },
     {
-      id: 'last4',
-      title: 'Ends with',
+      text: 'Ends with',
+      value: 'last4',
+      align: 'center',
+      sortable: false,
     },
     {
-      id: 'actions',
-      title: 'Actions',
+      text: 'Actions',
+      value: 'actions',
+      align: 'center',
+      sortable: false,
     },
   ];
 
@@ -71,42 +79,30 @@ describe('BillingPaymentList', () => {
   });
 
   ///////
-  // Data checking
+  // Data and props checking
   //////
 
   it('Compares data with default value', () => {
-    expect(wrapper.vm.heading).toStrictEqual(heading);
+    expect(wrapper.vm.headers).toStrictEqual(headers);
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.paymentList).toBe(pms);
   });
+  it('Process data in props', () => {
+    expect(wrapper.vm.cards).toBe(pms);
+  });
 
-  //////
+  ///////
   // HTML validation
   //////
 
-  heading.forEach((item) => {
-    it(`Renders the template heading ${item.id} with data`, () => {
-      expect(wrapper.find(`[data-test="${item.id}-div"]`).text()).toBe(item.title);
+  it('Renders the template with data', () => {
+    const dt = wrapper.find('[data-test="dataTable-field"]');
+    const dataTableProps = dt.vm.$options.propsData;
+    dataTableProps.items.forEach((item, i) => {
+      expect(item).toStrictEqual(pms[i]);
     });
-  });
 
-  pms.forEach((pm, i) => {
-    it(`Renders the template for payment row ${i} with data`, () => {
-      expect(wrapper.find(`[data-test="icon-${pm.id}-component"]`).exists()).toBe(true);
-      expect(wrapper.find(`[data-test="exp-date-${pm.id}-col"]`).exists()).toBe(true);
-      expect(wrapper.find(`[data-test="exp-date-${pm.id}-col"]`).text()).toBe(`${pm.expMonth}/${pm.expYear}`);
-      expect(wrapper.find(`[data-test="last4-${pm.id}-col"]`).text()).toBe(`${pm.last4}`);
-      if (pm.default) {
-        expect(wrapper.find(`[data-test="default-${pm.id}-div"]`).exists()).toBe(true);
-        expect(wrapper.find(`[data-test="default-${pm.id}-div"]`).text()).toBe('Default');
-        expect(wrapper.find(`[data-test="actions-${pm.id}-div"]`).exists()).toBe(false);
-      } else {
-        expect(wrapper.find(`[data-test="actions-${pm.id}-div"]`).exists()).toBe(true);
-        expect(wrapper.find(`[data-test="actions-${pm.id}-div"]`).text()).toContain('Make default');
-        expect(wrapper.find(`[data-test="actions-${pm.id}-div"]`).text()).toContain('Remove');
-        expect(wrapper.find(`[data-test="default-${pm.id}-div"]`).exists()).toBe(false);
-      }
-    });
+    expect(dataTableProps.items).toHaveLength(pms.length);
   });
 });

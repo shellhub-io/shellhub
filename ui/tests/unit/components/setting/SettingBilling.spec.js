@@ -66,6 +66,8 @@ describe('SettingBilling', () => {
         id: 'pm_1JzQ80KJsksFHO6pREJA5TrF',
       },
     ],
+    invoices: [],
+    warning: false,
   };
 
   const info2 = {
@@ -106,6 +108,7 @@ describe('SettingBilling', () => {
         subscription_id: '',
         payment_method_id: '',
       },
+      infoData,
       template: {
         'subscriptionPaymentMethod-component': true,
         'freePlan-div': true,
@@ -113,7 +116,9 @@ describe('SettingBilling', () => {
         'subscriptionActive-div': false,
         'updatePaymentMethod-component': false,
         'paymentMethods-component': false,
+        'invoiceList-component': false,
         'cancel-div': false,
+        'warning-div': false,
       },
     },
     {
@@ -135,6 +140,7 @@ describe('SettingBilling', () => {
         subscription_id: 'sub_123',
         payment_method_id: 'pm_123',
       },
+      infoData,
       template: {
         'subscriptionPaymentMethod-component': false,
         'pendingRetrial-div': true,
@@ -143,8 +149,10 @@ describe('SettingBilling', () => {
         'subscriptionActive-div': false,
         'updatePaymentMethod-component': false,
         'paymentMethods-component': false,
+        'invoiceList-component': false,
         'cancel-div': false,
         'activeLoading-div': false,
+        'warning-div': false,
       },
     },
     {
@@ -167,25 +175,62 @@ describe('SettingBilling', () => {
         info: info2,
         card: card2,
       },
+      infoData,
       template: {
         'subscriptionPaymentMethod-component': false,
         'freePlan-div': false,
         'premiumPlan-div': true,
         'subscriptionActive-div': true,
         'updatePaymentMethod-component': true,
+        'invoiceList-component': true,
         'paymentMethods-component': true,
         'cancel-div': true,
         'activeLoading-div': false,
+        'warning-div': false,
+      },
+    },
+    {
+      description: 'Premium usage - warning',
+      computed: {
+        active: true,
+        state: 'processed',
+      },
+      data: {
+        renderData: true,
+        action: 'subscribe',
+      },
+      infoData: { ...infoData, warning: true },
+      instance: {
+        active: true,
+        state: 'processed',
+        current_period_end: 0,
+        customer_id: 'cus_123',
+        subscription_id: 'sub_123',
+        payment_method_id: 'pm_123',
+        info: info2,
+        card: card2,
+      },
+      template: {
+        'subscriptionPaymentMethod-component': false,
+        'freePlan-div': false,
+        'premiumPlan-div': true,
+        'subscriptionActive-div': true,
+        'updatePaymentMethod-component': true,
+        'invoiceList-component': true,
+        'paymentMethods-component': true,
+        'cancel-div': true,
+        'activeLoading-div': false,
+        'warning-div': true,
       },
     },
   ];
 
-  const storeVuex = (billing, currentrole) => new Vuex.Store({
+  const storeVuex = (billing, currentrole, info) => new Vuex.Store({
     namespaced: true,
     state: {
       billing,
       currentrole,
-      info: infoData,
+      info,
     },
     getters: {
       'billing/active': (state) => state.billing.active || false,
@@ -208,7 +253,7 @@ describe('SettingBilling', () => {
       describe(`${test.description} ${currentrole}`, () => {
         beforeEach(() => {
           wrapper = shallowMount(SettingBilling, {
-            store: storeVuex(test.instance, currentrole),
+            store: storeVuex(test.instance, currentrole, test.infoData),
             localVue,
             stubs: ['fragment'],
             mocks: {

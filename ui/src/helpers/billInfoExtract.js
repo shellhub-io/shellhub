@@ -1,15 +1,37 @@
 export default function infoExtract(data, periodEnd) {
-  const latestInvoice = data.latest_invoice;
+  const { invoices, warning } = data;
   const upcomingInvoice = data.upcoming_invoice;
   const productDescription = data.product_description;
   const pms = data.payment_methods;
   const pm = data.default_payment_method;
 
+  const showLink = (r, s) => {
+    if (s === 'open') {
+      return r;
+    }
+
+    return '---';
+  };
+
+  const parseInvoices = (invs) => {
+    if (invs.length === 0) {
+      return [];
+    }
+
+    return invs.reduce((ac, inv) => [...ac, {
+      paid: inv.paid,
+      status: inv.status,
+      url: showLink(inv.hosted_invoice_url, inv.status),
+      pdf: inv.invoice_pdf,
+      dueDate: inv.due_date === 0 ? inv.created : inv.due_date,
+      amountDue: inv.amount_due,
+      attempted: inv.attempted,
+    }], []);
+  };
+
   const info = {
     periodEnd,
     description: productDescription,
-    latestPaymentDue: latestInvoice.amount_due,
-    latestPaymentPaid: latestInvoice.amount_paid,
     nextPaymentDue: upcomingInvoice.amount_due,
     nextPaymentPaid: upcomingInvoice.amount_paid,
   };
@@ -39,5 +61,7 @@ export default function infoExtract(data, periodEnd) {
     info,
     defaultCard,
     cards,
+    warning,
+    invoices: parseInvoices(invoices),
   };
 }
