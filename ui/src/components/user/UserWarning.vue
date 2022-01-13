@@ -26,7 +26,7 @@
 
 import DeviceChooser from '@/components/device/DeviceChooser';
 import Welcome from '@/components/welcome/Welcome';
-import NamespaceInstructions from '@/components/app_bar/namespace/NamespaceInstructions';
+import NamespaceInstructions from '@/components/namespace/NamespaceInstructions';
 import BillingWarning from '@/components/billing/BillingWarning';
 
 export default {

@@ -3,8 +3,8 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
-import NamespaceMemberFormDialog from '@/components/app_bar/namespace/NamespaceMemberFormDialog';
-import { actions, authorizer } from '../../../../../src/authorizer';
+import NamespaceMemberFormDialog from '@/components/namespace/NamespaceMemberFormDialog';
+import { actions, authorizer } from '../../../../src/authorizer';
 import '@/vee-validate';
 
 describe('NamespaceMemberFormDialog', () => {

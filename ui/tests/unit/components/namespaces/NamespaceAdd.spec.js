@@ -3,7 +3,7 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
-import NamespaceAdd from '@/components/app_bar/namespace/NamespaceAdd';
+import NamespaceAdd from '@/components/namespace/NamespaceAdd';
 import '@/vee-validate';
 
 describe('NamespaceAdd', () => {

@@ -65,8 +65,8 @@
 
 <script>
 
-import NamespaceMemberDelete from '@/components/app_bar/namespace/NamespaceMemberDelete';
-import NamespaceMemberFormDialog from '@/components/app_bar/namespace/NamespaceMemberFormDialog';
+import NamespaceMemberDelete from '@/components/namespace/NamespaceMemberDelete';
+import NamespaceMemberFormDialog from '@/components/namespace/NamespaceMemberFormDialog';
 
 export default {
   name: 'NamespaceMemberList',

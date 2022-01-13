@@ -212,9 +212,9 @@ import {
 } from 'vee-validate';
 
 import SettingSecurity from '@/components/setting/SettingSecurity';
-import NamespaceMemberList from '@/components/app_bar/namespace/NamespaceMemberList';
-import NamespaceMemberFormDialog from '@/components/app_bar/namespace/NamespaceMemberFormDialog';
-import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
+import NamespaceMemberList from '@/components/namespace/NamespaceMemberList';
+import NamespaceMemberFormDialog from '@/components/namespace/NamespaceMemberFormDialog';
+import NamespaceDelete from '@/components/namespace/NamespaceDelete';
 
 import hasPermission from '@/components/filter/permission';
 
