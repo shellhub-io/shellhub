@@ -20,7 +20,7 @@ exports[`DeviceList Device online Renders the component 1`] = `
               <th role="columnheader" scope="col" aria-label="Hostname: Not sorted. Activate to sort ascending." aria-sort="none" class="text-center sortable"><span>Hostname</span><i aria-hidden="true" class="v-icon notranslate v-data-table-header__icon mdi mdi-arrow-up theme--light" style="font-size: 18px;"></i></th>
               <th role="columnheader" scope="col" aria-label="Operating System" class="text-center"><span>Operating System</span></th>
               <th role="columnheader" scope="col" aria-label="SSHID" class="text-center"><span>SSHID</span></th>
-              <th role="columnheader" scope="col" aria-label="" class="text-center"><span></span></th>
+              <th role="columnheader" scope="col" aria-label="Tags" class="text-center"><span>Tags</span></th>
               <th role="columnheader" scope="col" aria-label="Actions" class="text-center"><span>Actions</span></th>
             </tr>
           </thead>
@@ -40,15 +40,11 @@ exports[`DeviceList Device online Renders the component 1`] = `
           user.39-5e-2a@localhost
           <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
               <td class="text-center">
-                <div><span class="v-chip v-chip--no-color theme--light v-size--default" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                <div class="mt-1"><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
                 device1
-              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-                  <div class="v-menu">
-                    <!---->
-                  </div><button type="button" class="v-btn v-btn--text theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content"><div text="" small="" flat="" aria-haspopup="true" aria-expanded="false" class="test justify-center">
-                  + 1
-                </div></span></button>
-                </div>
+              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                device2
+              </span></span></div>
               </td>
               <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
                 <div class="v-menu">
@@ -71,15 +67,11 @@ exports[`DeviceList Device online Renders the component 1`] = `
           user.39-5e-2b@localhost
           <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
               <td class="text-center">
-                <div><span class="v-chip v-chip--no-color theme--light v-size--default" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                <div class="mt-1"><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
                 device1
-              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-                  <div class="v-menu">
-                    <!---->
-                  </div><button type="button" class="v-btn v-btn--text theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content"><div text="" small="" flat="" aria-haspopup="true" aria-expanded="false" class="test justify-center">
-                  + 1
-                </div></span></button>
-                </div>
+              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                device2
+              </span></span></div>
               </td>
               <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
                 <div class="v-menu">
@@ -138,7 +130,7 @@ exports[`DeviceList Device online Renders the component 2`] = `
               <th role="columnheader" scope="col" aria-label="Hostname: Not sorted. Activate to sort ascending." aria-sort="none" class="text-center sortable"><span>Hostname</span><i aria-hidden="true" class="v-icon notranslate v-data-table-header__icon mdi mdi-arrow-up theme--light" style="font-size: 18px;"></i></th>
               <th role="columnheader" scope="col" aria-label="Operating System" class="text-center"><span>Operating System</span></th>
               <th role="columnheader" scope="col" aria-label="SSHID" class="text-center"><span>SSHID</span></th>
-              <th role="columnheader" scope="col" aria-label="" class="text-center"><span></span></th>
+              <th role="columnheader" scope="col" aria-label="Tags" class="text-center"><span>Tags</span></th>
               <th role="columnheader" scope="col" aria-label="Actions" class="text-center"><span>Actions</span></th>
             </tr>
           </thead>
@@ -158,15 +150,11 @@ exports[`DeviceList Device online Renders the component 2`] = `
           user.39-5e-2a@localhost
           <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
               <td class="text-center">
-                <div><span class="v-chip v-chip--no-color theme--light v-size--default" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                <div class="mt-1"><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
                 device1
-              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-                  <div class="v-menu">
-                    <!---->
-                  </div><button type="button" class="v-btn v-btn--text theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content"><div text="" small="" flat="" aria-haspopup="true" aria-expanded="false" class="test justify-center">
-                  + 1
-                </div></span></button>
-                </div>
+              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                device2
+              </span></span></div>
               </td>
               <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
                 <div class="v-menu">
@@ -189,15 +177,11 @@ exports[`DeviceList Device online Renders the component 2`] = `
           user.39-5e-2b@localhost
           <button type="button" class="v-icon notranslate v-icon--link v-icon--right mdi mdi-content-copy theme--light" style="font-size: 16px;"></button></span></span></td>
               <td class="text-center">
-                <div><span class="v-chip v-chip--no-color theme--light v-size--default" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                <div class="mt-1"><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
                 device1
-              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span>
-                  <div class="v-menu">
-                    <!---->
-                  </div><button type="button" class="v-btn v-btn--text theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content"><div text="" small="" flat="" aria-haspopup="true" aria-expanded="false" class="test justify-center">
-                  + 1
-                </div></span></button>
-                </div>
+              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                device2
+              </span></span></div>
               </td>
               <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
                 <div class="v-menu">

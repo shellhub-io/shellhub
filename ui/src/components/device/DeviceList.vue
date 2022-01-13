@@ -38,60 +38,32 @@
         </template>
 
         <template #[`item.tags`]="{ item }">
-          <div v-if="item.tags[0]">
+          <div
+            v-if="item.tags[0]"
+            class="mt-1"
+          >
             <v-tooltip
+              v-for="(tag, index) in item.tags"
+              :key="index"
               bottom
-              :disabled="!showTag(item.tags[0])"
+              :disabled="!showTag(tag)"
             >
               <template #activator="{ on, attrs }">
                 <v-chip
+                  class="ml-1 mb-1"
+                  small
+                  outlined
                   v-bind="attrs"
                   v-on="on"
                 >
-                  {{ displayOnlyTenCharacters(item.tags[0]) }}
+                  {{ displayOnlyTenCharacters(tag) }}
                 </v-chip>
               </template>
 
-              <span v-if="showTag(item.tags[0])">
-                {{ item.tags[0] }}
+              <span v-if="showTag(tag)">
+                {{ tag }}
               </span>
             </v-tooltip>
-
-            <v-menu
-              v-if="item.tags.length > 1"
-              open-on-hover
-              bottom
-              offset-y
-            >
-              <template #activator="{ on, attrs }">
-                <v-btn
-                  text
-                  small
-                  v-bind="attrs"
-                  v-on="on"
-                >
-                  <div
-                    text
-                    small
-                    flat
-                    v-bind="attrs"
-                    class="test justify-center"
-                    v-on="on"
-                  >
-                    {{ `+ ${item.tags.length - 1}` }}
-                  </div>
-                </v-btn>
-              </template>
-
-              <v-list>
-                <v-list-item
-                  v-for="(tag, index) in item.tags.slice(1,item.tags.length)"
-                  :key="index"
-                >
-                  <v-list-item-title>{{ tag }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
           </div>
         </template>
 
@@ -237,7 +209,7 @@ export default {
           sortable: false,
         },
         {
-          text: '',
+          text: 'Tags',
           value: 'tags',
           align: 'center',
           sortable: false,
