@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
-import NamespaceMemberList from '@/components/app_bar/namespace/NamespaceMemberList';
+import NamespaceMemberList from '@/components/namespace/NamespaceMemberList';
 
 describe('NamespaceMemberList', () => {
   const localVue = createLocalVue();

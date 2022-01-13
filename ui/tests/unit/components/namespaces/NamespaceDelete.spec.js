@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
-import NamespaceDelete from '@/components/app_bar/namespace/NamespaceDelete';
-import { actions, authorizer } from '../../../../../src/authorizer';
+import NamespaceDelete from '@/components/namespace/NamespaceDelete';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('NamespaceDelete', () => {
   const localVue = createLocalVue();

@@ -2,8 +2,8 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import Vuetify from 'vuetify';
-import NamespaceMemberDelete from '@/components/app_bar/namespace/NamespaceMemberDelete';
-import { actions, authorizer } from '../../../../../src/authorizer';
+import NamespaceMemberDelete from '@/components/namespace/NamespaceMemberDelete';
+import { actions, authorizer } from '../../../../src/authorizer';
 import '@/vee-validate';
 
 describe('NamespaceMemberDelete', () => {

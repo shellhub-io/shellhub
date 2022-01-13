@@ -74,7 +74,7 @@
 
 import AppBar from '@/components/app_bar/AppBar';
 import UserWarning from '@/components/user/UserWarning';
-import Namespace from '@/components/app_bar/namespace/Namespace';
+import Namespace from '@/components/namespace/Namespace';
 
 export default {
   name: 'AppLayoutComponent',

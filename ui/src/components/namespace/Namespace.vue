@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import NamespaceAdd from '@/components/app_bar/namespace/NamespaceAdd';
+import NamespaceAdd from '@/components/namespace/NamespaceAdd';
 
 export default {
   name: 'NamespaceMenuComponent',

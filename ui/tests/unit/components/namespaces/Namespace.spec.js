@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
-import Namespace from '@/components/app_bar/namespace/Namespace';
+import Namespace from '@/components/namespace/Namespace';
 
 describe('Namespace', () => {
   const localVue = createLocalVue();
@@ -73,7 +73,7 @@ describe('Namespace', () => {
         vuetify,
       });
 
-      localStorage.setItem('tenant', namespace.tenant_id);
+      jest.spyOn(Storage.prototype, 'getItem').mockReturnValue(namespace.tenant_id);
     });
 
     ///////
@@ -142,7 +142,7 @@ describe('Namespace', () => {
         vuetify,
       });
 
-      localStorage.setItem('tenant', namespace.tenant_id);
+      jest.spyOn(Storage.prototype, 'getItem').mockReturnValue(namespace.tenant_id);
     });
 
     ///////
