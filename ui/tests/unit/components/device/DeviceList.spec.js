@@ -48,7 +48,7 @@ describe('DeviceList', () => {
       sortable: false,
     },
     {
-      text: '',
+      text: 'Tags',
       value: 'tags',
       align: 'center',
       sortable: false,
