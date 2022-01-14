@@ -17,4 +17,13 @@ describe('Stats', () => {
     store.commit('layout/setStatusDarkMode', false);
     expect(store.getters['layout/getStatusDarkMode']).toEqual(false);
   });
+
+  // Verify the default value of the navigation drawer status
+  it('Returns navigation drawer default variable', () => {
+    expect(store.getters['layout/getStatusNavigationDrawer']).toEqual(true);
+  });
+  it('Verify initial state change for setStatusNavigationDrawer mutation', () => {
+    store.commit('layout/setStatusNavigationDrawer', false);
+    expect(store.getters['layout/getStatusNavigationDrawer']).toEqual(false);
+  });
 });

@@ -27,6 +27,7 @@ describe('AppLayout', () => {
   const isMobile = false;
   const numberNamespaces = 0;
   const hasSpinner = false;
+  const statusNavigationDrawer = false;
   const isEnterprise = false;
 
   const admins = [
@@ -82,16 +83,19 @@ describe('AppLayout', () => {
       numberNamespaces,
       isMobile,
       hasSpinner,
+      statusNavigationDrawer,
     },
     getters: {
       'auth/isLoggedIn': (state) => state.isLoggedIn,
       'namespaces/getNumberNamespaces': (state) => state.numberNamespaces,
       'mobile/isMobile': (state) => state.isMobile,
       'spinner/getStatus': (state) => state.hasSpinner,
+      'layout/getStatusNavigationDrawer': (state) => state.statusNavigationDrawer,
     },
     actions: {
       'privatekeys/fetch': () => {},
       'mobile/setIsMobileStatus': () => {},
+      'layout/setStatusNavigationDrawer': () => {},
     },
   });
 

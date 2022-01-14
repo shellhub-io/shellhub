@@ -1,6 +1,7 @@
 <template>
   <fragment>
     <v-navigation-drawer
+      v-model="showNavigationDrawer"
       app
       dark
     >
@@ -138,6 +139,15 @@ export default {
 
     hasSpinner() {
       return this.$store.getters['spinner/getStatus'];
+    },
+
+    showNavigationDrawer: {
+      get() {
+        return !this.$store.getters['mobile/isMobile'] || this.$store.getters['layout/getStatusNavigationDrawer'];
+      },
+      set(status) {
+        this.$store.dispatch('layout/setStatusNavigationDrawer', status);
+      },
     },
   },
 

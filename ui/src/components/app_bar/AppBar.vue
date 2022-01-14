@@ -5,7 +5,10 @@
       app
       flat
     >
-      <v-app-bar-nav-icon class="hidden-lg-and-up" />
+      <v-app-bar-nav-icon
+        class="hidden-lg-and-up"
+        @click.stop="updateDrawer()"
+      />
 
       <router-link to="/" />
 
@@ -186,6 +189,10 @@ export default {
     toggleDarkMode() {
       this.$store.dispatch('layout/setStatusDarkMode', !this.getStatusDarkMode);
       this.$vuetify.theme.dark = this.getStatusDarkMode;
+    },
+
+    updateDrawer() {
+      this.$store.dispatch('layout/setStatusNavigationDrawer', true);
     },
   },
 };
