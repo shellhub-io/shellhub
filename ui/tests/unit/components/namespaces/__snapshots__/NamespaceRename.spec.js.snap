@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SettingNamespace Hosted version operator Renders the component 1`] = `
+<fragment-stub><span><div class="row"><div class="col"><h3>
+          Namespace
+        </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default"><span class="v-btn__content">
+                Rename Namespace
+              </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span></div>
+  </div>
+  <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-1499" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-1499" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div>
+  </span>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Hosted version owner Renders the component 1`] = `
+<fragment-stub><span><div class="row"><div class="col"><h3>
+          Namespace
+        </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary"><span class="v-btn__content">
+                Rename Namespace
+              </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span></div>
+  </div>
+  <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-1007" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-1007" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div>
+  </span>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Open version operator Renders the component 1`] = `
+<fragment-stub><span><div class="row"><div class="col"><h3>
+          Namespace
+        </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default"><span class="v-btn__content">
+                Rename Namespace
+              </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span></div>
+  </div>
+  <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-515" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-515" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div>
+  </span>
+</fragment-stub>
+`;
+
+exports[`SettingNamespace Open version owner Renders the component 1`] = `
+<fragment-stub><span><div class="row"><div class="col"><h3>
+          Namespace
+        </h3></div> <div class="spacer"></div> <div class="ml-auto col-md-auto col"><div><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary"><span class="v-btn__content">
+                Rename Namespace
+              </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span></div>
+  </div>
+  <div class="mt-4 mb-2"><span><div class="v-input ml-3 v-input--is-label-active v-input--is-dirty theme--light v-text-field"><div class="v-input__control"><div class="v-input__slot"><div class="v-text-field__slot"><label for="input-23" class="v-label v-label--active theme--light" style="left: 0px; position: absolute;">Name</label><input required="required" data-test="name-text" id="input-23" type="text"></div></div><div class="v-text-field__details"><div class="v-messages theme--light"><transition-group-stub tag="div" name="message-transition" class="v-messages__wrapper"></transition-group-stub></div></div></div></div></span></div>
+  </span>
+</fragment-stub>
+`;
