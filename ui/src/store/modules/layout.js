@@ -6,11 +6,13 @@ export default {
   state: {
     layout: 'appLayout',
     statusDarkMode: localStorage.getItem('statusDarkMode') === 'true' || localStorage.getItem('statusDarkMode') === null,
+    statusNavigationDrawer: true,
   },
 
   getters: {
     getLayout: (state) => state.layout,
     getStatusDarkMode: (state) => state.statusDarkMode,
+    getStatusNavigationDrawer: (state) => state.statusNavigationDrawer,
   },
 
   mutations: {
@@ -20,6 +22,10 @@ export default {
 
     setStatusDarkMode: (state, status) => {
       Vue.set(state, 'statusDarkMode', status);
+    },
+
+    setStatusNavigationDrawer: (state, status) => {
+      Vue.set(state, 'statusNavigationDrawer', status);
     },
   },
 
@@ -31,6 +37,10 @@ export default {
     setStatusDarkMode(context, status) {
       context.commit('setStatusDarkMode', status);
       localStorage.setItem('statusDarkMode', status);
+    },
+
+    setStatusNavigationDrawer(context, status) {
+      context.commit('setStatusNavigationDrawer', status);
     },
   },
 };
