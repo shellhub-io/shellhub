@@ -12,23 +12,12 @@
         :options.sync="pagination"
       >
         <template #[`item.online`]="{ item }">
-          <v-icon
-            v-if="item.online"
-            color="success"
-          >
-            check_circle
-          </v-icon>
-          <v-tooltip
-            v-else
-            bottom
-          >
-            <template #activator="{ on }">
-              <v-icon v-on="on">
-                check_circle
-              </v-icon>
-            </template>
-            <span>last seen {{ item.last_seen | lastSeen }}</span>
-          </v-tooltip>
+          <TerminalDialog
+            :enable-connect-button="true"
+            :uid="item.uid"
+            :online="item.online"
+            data-test="terminalDialog-component"
+          />
         </template>
 
         <template #[`item.hostname`]="{ item }">
@@ -130,17 +119,6 @@
                 />
               </v-list-item>
 
-              <v-list-item
-                v-if="item.online"
-                @click.stop="showTerminalDialog(getListDevices.indexOf(item))"
-              >
-                <TerminalDialog
-                  :uid="item.uid"
-                  :show.sync="terminalDialogShow[getListDevices.indexOf(item)]"
-                  data-test="terminalDialog-component"
-                />
-              </v-list-item>
-
               <v-list-item @click="showDeviceDelete(getListDevices.indexOf(item))">
                 <DeviceDelete
                   :uid="item.uid"
@@ -183,7 +161,6 @@ export default {
       pagination: {},
       tags: [],
       tagDialogShow: [],
-      terminalDialogShow: [],
       deviceDeleteShow: [],
       headers: [
         {
@@ -327,14 +304,6 @@ export default {
       this.closeMenu(index);
     },
 
-    showTerminalDialog(index) {
-      this.terminalDialogShow[index] = this.terminalDialogShow[index] === undefined
-        ? true : !this.terminalDialogShow[index];
-      this.$set(this.terminalDialogShow, index, this.terminalDialogShow[index]);
-
-      this.closeMenu(index);
-    },
-
     showDeviceDelete(index) {
       this.deviceDeleteShow[index] = this.deviceDeleteShow[index] === undefined
         ? true : !this.deviceDeleteShow[index];
@@ -347,7 +316,6 @@ export default {
       const numberDevices = this.getListDevices.length;
 
       if (numberDevices > 0) {
-        this.terminalDialogShow = new Array(numberDevices).fill(false);
         this.deviceDeleteShow = new Array(numberDevices).fill(false);
         this.tagDialogShow = new Array(numberDevices).fill(false);
       }

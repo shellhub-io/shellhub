@@ -48,6 +48,73 @@ describe('TerminalDialog', () => {
   // For this test to work, the uid in props is an empty string.
   ///////
 
+  describe('Button', () => {
+    beforeEach(() => {
+      wrapper = mount(TerminalDialog, {
+        store,
+        localVue,
+        stubs: ['fragment'],
+        propsData: { uid: '', show: false, enableConnectButton: true },
+        vuetify,
+      });
+    });
+
+    ///////
+    // Component Rendering
+    //////
+
+    it('Is a Vue instance', () => {
+      document.body.setAttribute('data-app', true);
+      expect(wrapper).toBeTruthy();
+    });
+    it('Renders the component', () => {
+      expect(wrapper.html()).toMatchSnapshot();
+    });
+
+    ///////
+    // Data and Props checking
+    //////
+
+    it('Receive data in props', () => {
+      expect(wrapper.vm.uid).toEqual('');
+      expect(wrapper.vm.show).toEqual(false);
+    });
+    it('Compare data with default value', () => {
+      wrapper.setData({ rules });
+
+      expect(wrapper.vm.username).toEqual('');
+      expect(wrapper.vm.passwd).toEqual('');
+      expect(wrapper.vm.showLoginForm).toEqual(true);
+      expect(wrapper.vm.valid).toEqual(true);
+      expect(wrapper.vm.rules).toEqual(rules);
+      expect(wrapper.vm.tabs).toEqual(tabs);
+    });
+    it('Receive data in computed', () => {
+      expect(wrapper.vm.showTerminal).toEqual(false);
+      expect(wrapper.vm.show).toEqual(false);
+      expect(wrapper.vm.getListPrivateKeys).toEqual(privateKeys);
+    });
+    it('Check the watch action', async () => {
+      wrapper.setData({ username, passwd });
+
+      await wrapper.vm.$options.watch.show.call(wrapper.vm, false);
+
+      expect(wrapper.vm.username).toEqual(username);
+      expect(wrapper.vm.passwd).toEqual(passwd);
+    });
+
+    //////
+    // HTML validation
+    //////
+
+    it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="console-icon"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="console-item"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="terminal-dialog"]').exists()).toBe(false);
+    });
+  });
+
   describe('Icon', () => {
     beforeEach(() => {
       wrapper = mount(TerminalDialog, {
@@ -108,6 +175,9 @@ describe('TerminalDialog', () => {
     //////
 
     it('Renders the template with data', () => {
+      expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="console-icon"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="console-item"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="terminal-dialog"]').exists()).toBe(false);
     });
   });
@@ -122,7 +192,7 @@ describe('TerminalDialog', () => {
         store,
         localVue,
         stubs: ['fragment'],
-        propsData: { uid, show: true },
+        propsData: { uid, show: true, enableConnectButton: true },
         vuetify,
       });
     });
@@ -175,6 +245,9 @@ describe('TerminalDialog', () => {
     //////
 
     it('Renders the template with data', async () => {
+      expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="console-icon"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="console-item"]').exists()).toBe(false);
       // Validate if the table was created
       tabs.forEach((item) => {
         expect(wrapper.find(`[data-test="${item}-tab"]`).exists()).toEqual(true);

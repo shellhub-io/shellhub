@@ -1,17 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`TerminalDialog Button Renders the component 1`] = `
+<fragment-stub><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="connect-btn"><span class="v-btn__content">
+      Offline
+    </span></button>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
 exports[`TerminalDialog Dialog opened Renders the component 1`] = `
-<fragment-stub><span><i aria-hidden="true" data-test="console-icon" class="v-icon notranslate v-icon--left mdi mdi-console theme--light"></i></span> <span><div data-test="console-item" class="v-list-item__title">
-      Console
-    </div></span>
+<fragment-stub><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="connect-btn"><span class="v-btn__content">
+      Offline
+    </span></button>
   <div role="dialog" class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
 exports[`TerminalDialog Icon Renders the component 1`] = `
 <fragment-stub><span><i aria-hidden="true" data-test="console-icon" class="v-icon notranslate v-icon--left mdi mdi-console theme--light"></i></span> <span><div data-test="console-item" class="v-list-item__title">
-      Console
-    </div></span>
+        Console
+      </div></span>
   <div role="dialog" class="v-dialog__container">
     <!---->
   </div>

@@ -1,21 +1,36 @@
 <template>
   <fragment>
-    <span>
-      <v-icon
-        left
-        data-test="console-icon"
+    <template v-if="enableConnectButton">
+      <v-btn
+        :disabled="!online"
+        outlined
+        small
+        :color="online ? 'success': 'normal'"
+        data-test="connect-btn"
+        @click="open()"
       >
-        mdi-console
-      </v-icon>
-    </span>
+        {{ online ? 'Connect' : 'Offline' }}
+      </v-btn>
+    </template>
 
-    <span>
-      <v-list-item-title
-        data-test="console-item"
-      >
-        Console
-      </v-list-item-title>
-    </span>
+    <template v-else>
+      <span>
+        <v-icon
+          left
+          data-test="console-icon"
+        >
+          mdi-console
+        </v-icon>
+      </span>
+
+      <span>
+        <v-list-item-title
+          data-test="console-item"
+        >
+          Console
+        </v-list-item-title>
+      </span>
+    </template>
 
     <v-dialog
       v-model="showTerminal"
@@ -167,14 +182,27 @@ export default {
   name: 'TerminalDialogComponent',
 
   props: {
+    enableConnectButton: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+
     uid: {
       type: String,
       required: true,
     },
 
+    online: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+
     show: {
       type: Boolean,
-      required: true,
+      required: false,
+      default: false,
     },
   },
 
