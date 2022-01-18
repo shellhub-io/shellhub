@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"net/url"
 	"path"
 
@@ -25,6 +26,9 @@ var (
 func NewClient(opts ...Opt) Client {
 	httpClient := resty.New()
 	httpClient.SetRetryCount(math.MaxInt32)
+	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
+		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
+	})
 
 	c := &client{
 		host:   apiHost,
