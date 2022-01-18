@@ -51,8 +51,13 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 			}
 
 			switch params.Operator {
-			case "like":
-				property = bson.M{"$regex": params.Value, "$options": "i"}
+			case "contains":
+				switch params.Value.(type) {
+				case string:
+					property = bson.M{"$regex": params.Value, "$options": "i"}
+				case []interface{}:
+					property = bson.M{"$all": params.Value}
+				}
 			case "eq":
 				property = bson.M{"$eq": params.Value}
 			case "bool":
