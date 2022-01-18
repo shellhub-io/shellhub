@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TagSelector With tags Renders the component 1`] = `
+<fragment-stub>
+  <div class="mr-4">
+    <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+      <v-list-stub tag="div">
+        <v-list-item-stub activeclass="" tag="div" data-test="ShellHub-item">
+          <v-list-item-action-stub>
+            <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="ShellHub" backgroundcolor="" ripple="true" valuecomparator="[Function]" inputvalue="" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
+          </v-list-item-action-stub>
+          <v-list-item-title-stub tag="div" data-test="ShellHub-title">ShellHub</v-list-item-title-stub>
+        </v-list-item-stub>
+        <v-list-item-stub activeclass="" tag="div" data-test="Shell-item">
+          <v-list-item-action-stub>
+            <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="Shell" backgroundcolor="" ripple="true" valuecomparator="[Function]" inputvalue="" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
+          </v-list-item-action-stub>
+          <v-list-item-title-stub tag="div" data-test="Shell-title">Shell</v-list-item-title-stub>
+        </v-list-item-stub>
+        <v-list-item-stub activeclass="" tag="div" data-test="Hub-item">
+          <v-list-item-action-stub>
+            <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="Hub" backgroundcolor="" ripple="true" valuecomparator="[Function]" inputvalue="" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
+          </v-list-item-action-stub>
+          <v-list-item-title-stub tag="div" data-test="Hub-title">Hub</v-list-item-title-stub>
+        </v-list-item-stub>
+      </v-list-stub>
+    </v-menu-stub>
+  </div>
+</fragment-stub>
+`;
+
+exports[`TagSelector Without tags Renders the component 1`] = `
+<fragment-stub>
+  <div class="mr-4"><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--dark v-size--default primary" data-test="tags-btn" role="button" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content">
+          Tags
+
+          <i aria-hidden="true" class="v-icon notranslate ml-3 mdi mdi-chevron-down theme--dark"></i></span></button>
+    <div class="v-menu">
+      <!---->
+    </div>
+  </div>
+</fragment-stub>
+`;

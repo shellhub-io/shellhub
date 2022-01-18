@@ -18,6 +18,11 @@
 
       <v-spacer />
 
+      <TagSelector
+        v-if="isDeviceList"
+        data-test="tagSelector-component"
+      />
+
       <DeviceAdd />
     </div>
 
@@ -77,6 +82,7 @@
 <script>
 
 import DeviceAdd from '@/components/device/DeviceAdd';
+import TagSelector from '@/components/setting/tag/TagSelector';
 import BoxMessageDevice from '@/components/box/BoxMessage';
 
 export default {
@@ -84,6 +90,7 @@ export default {
 
   components: {
     DeviceAdd,
+    TagSelector,
     BoxMessageDevice,
   },
 
@@ -107,6 +114,10 @@ export default {
 
     showBoxMessage() {
       return !this.hasDevice && this.show;
+    },
+
+    isDeviceList() {
+      return this.$router.currentRoute.fullPath === '/devices';
     },
   },
 

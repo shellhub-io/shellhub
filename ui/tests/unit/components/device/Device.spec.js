@@ -3,6 +3,36 @@ import VueRouter from 'vue-router';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import Device from '@/components/device/Device';
 
+const router = new VueRouter({
+  routes: [
+    {
+      path: '/devices',
+      name: 'devices',
+      component: () => import(/* webpackChunkName: 'devices' */ '@/views/Devices'),
+      redirect: {
+        name: 'listDevices',
+      },
+      children: [
+        {
+          path: '',
+          name: 'listDevices',
+          component: () => import('@/components/device/DeviceList'),
+        },
+        {
+          path: 'pending',
+          name: 'pendingDevices',
+          component: () => import('@/components/device/DevicePendingList'),
+        },
+        {
+          path: 'rejected',
+          name: 'rejectedDevices',
+          component: () => import('@/components/device/DeviceRejectedList'),
+        },
+      ],
+    },
+  ],
+});
+
 describe('Device', () => {
   const localVue = createLocalVue();
   localVue.use(Vuex);
@@ -39,6 +69,7 @@ describe('Device', () => {
         store,
         localVue,
         stubs: ['fragment'],
+        router,
       });
     });
 
@@ -61,6 +92,7 @@ describe('Device', () => {
       expect(wrapper.vm.getNumberPendingDevices).toEqual(pendingDevices);
       expect(wrapper.vm.hasDevice).toEqual(true);
       expect(wrapper.vm.showBoxMessage).toEqual(false);
+      expect(wrapper.vm.isDeviceList).toEqual(false);
     });
     it('Compare data with the default and defined value', () => {
       expect(wrapper.vm.show).toEqual(true);
@@ -76,6 +108,7 @@ describe('Device', () => {
     //////
 
     it('Renders the template with components', () => {
+      expect(wrapper.find('[data-test="tagSelector-component"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="boxMessageDevice-component"]').exists()).toBe(false);
     });
     it('Renders the template with data', () => {
