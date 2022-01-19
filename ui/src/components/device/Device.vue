@@ -117,7 +117,7 @@ export default {
     },
 
     isDeviceList() {
-      return this.$router.currentRoute.fullPath === '/devices';
+      return this.$router.currentRoute.name === 'listDevices';
     },
   },
 
