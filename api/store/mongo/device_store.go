@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -15,7 +16,7 @@ import (
 )
 
 func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
-	queryMatch, err := buildFilterQuery(filters)
+	queryMatch, err := queries.BuildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, fromMongoError(err)
 	}
@@ -97,7 +98,7 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 		return nil, 0, fromMongoError(err)
 	}
 
-	query = append(query, buildPaginationQuery(pagination)...)
+	query = append(query, queries.BuildPaginationQuery(pagination)...)
 
 	devices := make([]models.Device, 0)
 

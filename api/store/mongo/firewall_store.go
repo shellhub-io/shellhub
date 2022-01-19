@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -35,7 +36,7 @@ func (s *Store) FirewallRuleList(ctx context.Context, pagination paginator.Query
 		return nil, 0, fromMongoError(err)
 	}
 
-	query = append(query, buildPaginationQuery(pagination)...)
+	query = append(query, queries.BuildPaginationQuery(pagination)...)
 
 	rules := make([]models.FirewallRule, 0)
 	cursor, err := s.db.Collection("firewall_rules").Aggregate(ctx, query)

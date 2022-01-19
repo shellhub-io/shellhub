@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -43,7 +44,7 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 		},
 	}...)
 
-	queryMatch, err := buildFilterQuery(filters)
+	queryMatch, err := queries.BuildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, fromMongoError(err)
 	}
@@ -60,7 +61,7 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 	}
 
 	if pagination.Page > 0 && pagination.PerPage > 0 {
-		query = append(query, buildPaginationQuery(pagination)...)
+		query = append(query, queries.BuildPaginationQuery(pagination)...)
 	}
 
 	users := make([]models.User, 0)
