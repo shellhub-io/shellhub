@@ -16,6 +16,9 @@ type DeviceTags interface {
 	DeleteTags(ctx context.Context, tenant string, name string) error
 }
 
+// DeviceMaxTags is the number of tags that a device can have.
+const DeviceMaxTags = 3
+
 func (s *service) CreateTag(ctx context.Context, uid models.UID, name string) error {
 	if err := validateTagName(name); err != nil {
 		return err
@@ -26,7 +29,7 @@ func (s *service) CreateTag(ctx context.Context, uid models.UID, name string) er
 		return ErrDeviceNotFound
 	}
 
-	if len(device.Tags) == 5 {
+	if len(device.Tags) == DeviceMaxTags {
 		return ErrMaxTagReached
 	}
 
@@ -78,7 +81,7 @@ func (s *service) UpdateTag(ctx context.Context, uid models.UID, tags []string) 
 		}
 	}
 
-	if len(tags) > 5 {
+	if len(tags) > DeviceMaxTags {
 		return ErrMaxTagReached
 	}
 

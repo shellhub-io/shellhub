@@ -27,7 +27,7 @@ func TestCreateTag(t *testing.T) {
 
 	device := &models.Device{UID: "uid", TenantID: "tenant", Tags: []string{"device1"}}
 
-	device2 := &models.Device{UID: "uid2", TenantID: "tenant2", Tags: []string{"device1", "device2", "device3", "device4", "device5"}}
+	device2 := &models.Device{UID: "uid2", TenantID: "tenant2", Tags: []string{"device1", "device2", "device3"}}
 
 	cases := []struct {
 		name          string
@@ -240,11 +240,11 @@ func TestUpdateTag(t *testing.T) {
 
 	device := &models.Device{UID: "uid", TenantID: "tenant"}
 
-	tags := []string{"device1", "device2", "device3", "device4", "device5"}
+	tags := []string{"device1", "device2", "device3"}
 
 	duplicatedTags := []string{"device1", "device1"}
 
-	maxReachedTags := []string{"device1", "device2", "device3", "device4", "device5", "device6"}
+	maxReachedTags := []string{"device1", "device2", "device3", "device4"}
 
 	invalidTag := []string{"de"}
 
