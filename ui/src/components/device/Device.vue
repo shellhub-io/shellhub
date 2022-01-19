@@ -149,7 +149,7 @@ export default {
       let encodedFilter = null;
 
       if (this.search) {
-        const filter = [{ type: 'property', params: { name: 'name', operator: 'like', value: this.search } }];
+        const filter = [{ type: 'property', params: { name: 'name', operator: 'contains', value: this.search } }];
         encodedFilter = btoa(JSON.stringify(filter));
       }
       await this.$store.dispatch('devices/setFilter', encodedFilter);
