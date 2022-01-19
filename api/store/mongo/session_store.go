@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -50,7 +51,7 @@ func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]
 		return nil, 0, fromMongoError(err)
 	}
 
-	query = append(query, buildPaginationQuery(pagination)...)
+	query = append(query, queries.BuildPaginationQuery(pagination)...)
 
 	sessions := make([]models.Session, 0)
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)

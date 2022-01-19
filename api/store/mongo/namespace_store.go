@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -14,7 +15,7 @@ import (
 
 func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error) {
 	query := []bson.M{}
-	queryMatch, err := buildFilterQuery(filters)
+	queryMatch, err := queries.BuildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, fromMongoError(err)
 	}
@@ -84,7 +85,7 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 	}
 
 	if pagination.Page != 0 && pagination.PerPage != 0 {
-		query = append(query, buildPaginationQuery(pagination)...)
+		query = append(query, queries.BuildPaginationQuery(pagination)...)
 	}
 
 	namespaces := make([]models.Namespace, 0)

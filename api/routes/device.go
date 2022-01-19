@@ -36,11 +36,11 @@ const (
 )
 
 type filterQuery struct {
-	Filter string `query:"filter"`
-	paginator.Query
+	Filter  string `query:"filter"`
 	Status  string `query:"status"`
 	SortBy  string `query:"sort_by"`
 	OrderBy string `query:"order_by"`
+	paginator.Query
 }
 
 func (h *Handler) GetDeviceList(c gateway.Context) error {
