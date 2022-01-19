@@ -44,6 +44,7 @@
                   outlined
                   v-bind="attrs"
                   v-on="on"
+                  @click="filterByTag(tag)"
                 >
                   {{ displayOnlyTenCharacters(tag) }}
                 </v-chip>
@@ -162,6 +163,7 @@ export default {
       tags: [],
       tagDialogShow: [],
       deviceDeleteShow: [],
+      selectedTags: [],
       headers: [
         {
           text: 'Online',
@@ -220,11 +222,26 @@ export default {
     },
   },
 
+  created() {
+    this.$store.dispatch('tags/clearSelectedTags');
+  },
+
   mounted() {
     this.$store.dispatch('devices/resetListDevices');
   },
 
   methods: {
+    filterByTag(tag) {
+      if (this.selectedTags.includes(tag)) {
+        this.selectedTags.pop(tag);
+      } else {
+        this.selectedTags.push(tag);
+      }
+
+      this.$store.dispatch('tags/setSelected', this.selectedTags);
+      this.getDevices();
+    },
+
     async getDevices() {
       let sortStatusMap = {};
 
@@ -232,6 +249,14 @@ export default {
         this.pagination.sortBy[0],
         this.pagination.sortDesc[0],
       );
+
+      let encodedFilter = null;
+
+      if (this.selectedTags.length > 0) {
+        const filter = [{ type: 'property', params: { name: 'tags', operator: 'contains', value: this.selectedTags } }];
+        encodedFilter = btoa(JSON.stringify(filter));
+      }
+      await this.$store.dispatch('devices/setFilter', encodedFilter);
 
       const data = {
         perPage: this.pagination.itemsPerPage,

@@ -118,14 +118,13 @@ describe('DeviceList', () => {
     actions: {
       'modals/showAddDevice': () => {
       },
-      'devices/fetch': () => {
-      },
-      'devices/rename': () => {
-      },
-      'devices/resetListDevices': () => {
-      },
-      'stats/get': () => {
-      },
+      'devices/fetch': () => {},
+      'devices/rename': () => {},
+      'tags/clearSelectedTags': () => {},
+      'devices/resetListDevices': () => {},
+      'tags/setSelected': () => {},
+      'devices/setFilter': () => {},
+      'stats/get': () => {},
     },
   });
 
@@ -143,7 +142,10 @@ describe('DeviceList', () => {
       'modals/showAddDevice': () => {},
       'devices/fetch': () => {},
       'devices/rename': () => {},
+      'tags/clearSelectedTags': () => {},
       'devices/resetListDevices': () => {},
+      'tags/setSelected': () => {},
+      'devices/setFilter': () => {},
       'stats/get': () => {},
     },
   });
@@ -185,6 +187,7 @@ describe('DeviceList', () => {
       expect(wrapper.vm.hostname).toEqual('localhost');
       expect(wrapper.vm.pagination).toEqual(pagination);
       expect(wrapper.vm.headers).toEqual(headers);
+      expect(wrapper.vm.selectedTags).toEqual([]);
     });
     it('Process data in the computed', () => {
       expect(wrapper.vm.getListDevices).toEqual(devices);
@@ -216,7 +219,7 @@ describe('DeviceList', () => {
   // In this case, it is tested when device is offline.
   ///////
 
-  describe('Device online', () => {
+  describe('Device offline', () => {
     beforeEach(() => {
       wrapper = mount(DeviceList, {
         store: storeDevicesOffline,
@@ -249,6 +252,7 @@ describe('DeviceList', () => {
       expect(wrapper.vm.hostname).toEqual('localhost');
       expect(wrapper.vm.pagination).toEqual(pagination);
       expect(wrapper.vm.headers).toEqual(headers);
+      expect(wrapper.vm.selectedTags).toEqual([]);
     });
     it('Process data in the computed', () => {
       expect(wrapper.vm.getListDevices).toEqual(devicesOffline);

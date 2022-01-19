@@ -7,11 +7,13 @@ export default {
   state: {
     tags: [],
     numberTags: 0,
+    selected: [],
   },
 
   getters: {
     list: (state) => state.tags,
     getNumberTags: (state) => state.numberTags,
+    selected: (state) => state.selected,
   },
 
   mutations: {
@@ -19,11 +21,19 @@ export default {
       Vue.set(state, 'tags', res.data);
       Vue.set(state, 'numberTags', parseInt(res.headers['x-total-count'], 10));
     },
+
+    setSelected: (state, data) => {
+      Vue.set(state, 'selected', data);
+    },
   },
 
   actions: {
     post: async (context, data) => {
       await apiDevice.postTag(data);
+    },
+
+    setSelected: async (context, data) => {
+      context.commit('setSelected', data);
     },
 
     fetch: async (context) => {
@@ -38,6 +48,10 @@ export default {
 
     remove: async (context, name) => {
       await apiDevice.removeTag(name);
+    },
+
+    clearSelectedTags: (context) => {
+      context.commit('setSelected', []);
     },
   },
 };

@@ -51,15 +51,19 @@
 export default {
   name: 'TagSelector',
 
-  data() {
-    return {
-      selectedTags: [],
-    };
-  },
-
   computed: {
     getListTags() {
       return this.$store.getters['tags/list'];
+    },
+
+    selectedTags: {
+      get() {
+        return this.$store.getters['tags/selected'];
+      },
+
+      set(item) {
+        this.$store.dispatch('tags/setSelected', item);
+      },
     },
   },
 

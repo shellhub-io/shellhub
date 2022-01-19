@@ -7,19 +7,19 @@ exports[`TagSelector With tags Renders the component 1`] = `
       <v-list-stub tag="div">
         <v-list-item-stub activeclass="" tag="div" data-test="ShellHub-item">
           <v-list-item-action-stub>
-            <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="ShellHub" backgroundcolor="" ripple="true" valuecomparator="[Function]" inputvalue="" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
+            <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="ShellHub" backgroundcolor="" ripple="true" valuecomparator="[Function]" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
           </v-list-item-action-stub>
           <v-list-item-title-stub tag="div" data-test="ShellHub-title">ShellHub</v-list-item-title-stub>
         </v-list-item-stub>
         <v-list-item-stub activeclass="" tag="div" data-test="Shell-item">
           <v-list-item-action-stub>
-            <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="Shell" backgroundcolor="" ripple="true" valuecomparator="[Function]" inputvalue="" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
+            <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="Shell" backgroundcolor="" ripple="true" valuecomparator="[Function]" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
           </v-list-item-action-stub>
           <v-list-item-title-stub tag="div" data-test="Shell-title">Shell</v-list-item-title-stub>
         </v-list-item-stub>
         <v-list-item-stub activeclass="" tag="div" data-test="Hub-item">
           <v-list-item-action-stub>
-            <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="Hub" backgroundcolor="" ripple="true" valuecomparator="[Function]" inputvalue="" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
+            <v-checkbox-stub errorcount="1" errormessages="" messages="" rules="" successmessages="" value="Hub" backgroundcolor="" ripple="true" valuecomparator="[Function]" indeterminateicon="$checkboxIndeterminate" officon="$checkboxOff" onicon="$checkboxOn"></v-checkbox-stub>
           </v-list-item-action-stub>
           <v-list-item-title-stub tag="div" data-test="Hub-title">Hub</v-list-item-title-stub>
         </v-list-item-stub>

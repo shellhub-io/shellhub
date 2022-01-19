@@ -19,8 +19,6 @@ describe('TagSelector', () => {
       description: 'Without tags',
       variables: {
         tags: [],
-      },
-      data: {
         selectedTags: [],
       },
       computed: {
@@ -34,8 +32,6 @@ describe('TagSelector', () => {
       description: 'With tags',
       variables: {
         tags: tagsGlobal,
-      },
-      data: {
         selectedTags: [],
       },
       computed: {
@@ -44,15 +40,18 @@ describe('TagSelector', () => {
     },
   ];
 
-  const storeVuex = (tags) => new Vuex.Store({
+  const storeVuex = (tags, selectedTags) => new Vuex.Store({
     namespaced: true,
     state: {
       tags,
+      selectedTags,
     },
     getters: {
       'tags/list': (state) => state.tags,
+      'tags/selected': (state) => state.selectedTags,
     },
     actions: {
+      'tags/setSelected': () => {},
       'tags/fetch': () => {},
       'devices/setFilter': () => {},
       'devices/refresh': () => {},
@@ -66,7 +65,10 @@ describe('TagSelector', () => {
       beforeEach(async () => {
         if (index === 0) {
           wrapper = mount(TagSelector, {
-            store: storeVuex(test.variables.tags),
+            store: storeVuex(
+              test.variables.tags,
+              test.variables.selectedTags,
+            ),
             localVue,
             stubs: ['fragment'],
             vuetify,
@@ -96,11 +98,6 @@ describe('TagSelector', () => {
       // Data checking
       //////
 
-      it('Compare data with default value', () => {
-        Object.keys(test.data).forEach((item) => {
-          expect(wrapper.vm[item]).toEqual(test.data[item]);
-        });
-      });
       it('Process data in the computed', () => {
         Object.keys(test.computed).forEach((item) => {
           expect(wrapper.vm[item]).toEqual(test.computed[item]);
