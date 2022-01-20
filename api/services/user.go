@@ -42,15 +42,7 @@ func (s *service) UpdateDataUser(ctx context.Context, user *models.User, id stri
 }
 
 func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, id string) error {
-	validatePassword := func(password string) bool {
-		if _, err := validator.ValidateVar(password, "required,min=5,max=30"); err != nil {
-			return false
-		}
-
-		return true
-	}
-
-	if !validatePassword(currentPassword) || !validatePassword(newPassword) {
+	if !validator.ValidateFieldPassword(currentPassword) || !validator.ValidateFieldPassword(newPassword) {
 		return ErrBadRequest
 	}
 

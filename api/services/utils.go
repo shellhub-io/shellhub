@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
@@ -30,4 +30,14 @@ func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	}
 
 	return privKey, pubKey, nil
+}
+
+func contains(list []string, item string) bool {
+	for _, i := range list {
+		if i == item {
+			return true
+		}
+	}
+
+	return false
 }
