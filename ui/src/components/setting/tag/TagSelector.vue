@@ -6,40 +6,55 @@
         :close-on-content-click="false"
       >
         <template #activator="{ on, attrs }">
-          <v-btn
+          <v-badge
+            bordered
             color="primary"
-            dark
-            v-bind="attrs"
-            data-test="tags-btn"
-            v-on="on"
-            @click="getTags"
+            :content="selectedTags.length"
+            :value="selectedTags.length"
+            overlap
           >
-            Tags
-
-            <v-icon class="ml-3">
-              mdi-chevron-down
-            </v-icon>
-          </v-btn>
+            <v-btn
+              color="primary"
+              v-bind="attrs"
+              data-test="tags-btn"
+              outlined
+              v-on="on"
+              @click="getTags"
+            >
+              Tags
+              <v-icon right>
+                mdi-chevron-down
+              </v-icon>
+            </v-btn>
+          </v-badge>
         </template>
 
         <v-list>
-          <v-list-item
-            v-for="(item, index) in getListTags"
-            :key="index"
-            :data-test="item + '-item'"
+          <v-list-item-group
+            v-model="selectedTags"
+            multiple
           >
-            <v-list-item-action>
-              <v-checkbox
-                v-model="selectedTags"
+            <template v-for="(item, i) in getListTags">
+              <v-list-item
+                :key="`item-${i}`"
                 :value="item"
-              />
-            </v-list-item-action>
+                :data-test="item + '-item'"
+              >
+                <template #default="{ active }">
+                  <v-list-item-action>
+                    <v-checkbox :input-value="active" />
+                  </v-list-item-action>
 
-            <v-list-item-title
-              :data-test="item + '-title'"
-              v-text="item"
-            />
-          </v-list-item>
+                  <v-list-item-content>
+                    <v-list-item-title
+                      :data-test="item + '-title'"
+                      v-text="item"
+                    />
+                  </v-list-item-content>
+                </template>
+              </v-list-item>
+            </template>
+          </v-list-item-group>
         </v-list>
       </v-menu>
     </div>

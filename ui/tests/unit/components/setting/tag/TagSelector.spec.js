@@ -115,7 +115,7 @@ describe('TagSelector', () => {
           });
         } else {
           Object.keys(test.variables.tags).forEach((tagIndex) => {
-            expect(wrapper.find(`[data-test="${test.variables.tags[tagIndex]}-title"]`).text()).toEqual(test.variables.tags[tagIndex]);
+            expect(wrapper.find(`[data-test="${test.variables.tags[tagIndex]}-item"]`).exists()).toBe(true);
           });
         }
       });
