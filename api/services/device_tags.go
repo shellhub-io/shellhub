@@ -20,8 +20,8 @@ type DeviceTags interface {
 const DeviceMaxTags = 3
 
 func (s *service) CreateTag(ctx context.Context, uid models.UID, name string) error {
-	if err := validateTagName(name); err != nil {
-		return err
+	if !validator.ValidateFieldTag(name) {
+		return ErrInvalidFormat
 	}
 
 	device, err := s.store.DeviceGet(ctx, uid)
@@ -54,8 +54,8 @@ func (s *service) RemoveTag(ctx context.Context, uid models.UID, name string) er
 }
 
 func (s *service) RenameTag(ctx context.Context, tenantID string, currentName string, newName string) error {
-	if err := validateTagName(newName); err != nil {
-		return err
+	if !validator.ValidateFieldTag(newName) {
+		return ErrInvalidFormat
 	}
 
 	tags, count, err := s.store.DeviceGetTags(ctx, tenantID)
@@ -95,8 +95,8 @@ func (s *service) UpdateTag(ctx context.Context, uid models.UID, tags []string) 
 	tagSet := listToSet(tags)
 
 	for _, tag := range tagSet {
-		if err := validateTagName(tag); err != nil {
-			return err
+		if !validator.ValidateFieldTag(tag) {
+			return ErrInvalidFormat
 		}
 	}
 
@@ -124,22 +124,4 @@ func (s *service) DeleteTags(ctx context.Context, tenant string, name string) er
 	}
 
 	return s.store.DeviceDeleteTags(ctx, namespace.TenantID, name)
-}
-
-func contains(tags []string, name string) bool {
-	for _, tag := range tags {
-		if tag == name {
-			return true
-		}
-	}
-
-	return false
-}
-
-func validateTagName(tag string) error {
-	if _, err := validator.ValidateVar(tag, "required,min=3,max=255,alphanum,ascii,excludes=/@&:"); err != nil {
-		return ErrInvalidFormat
-	}
-
-	return nil
 }

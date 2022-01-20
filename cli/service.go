@@ -225,7 +225,7 @@ func (s *service) NamespaceAddMember(username string, namespace string, role str
 }
 
 func (s *service) NamespaceRemoveMember(username string, namespace string) (*models.Namespace, error) {
-	if _, err := validator.ValidateVar(username, "min=3,max=30,alphanum,ascii"); err != nil { // TODO Remove this static tag string.
+	if !validator.ValidateFieldUsername(username) {
 		return nil, ErrInvalidFormat
 	}
 
