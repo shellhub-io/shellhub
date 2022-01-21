@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
@@ -33,7 +33,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		echoContext.SetParamValues("123", "pending")
 		mock.On("UpdatePendingStatus", ctx, models.UID("123"), "pending", "").Return(svc.ErrMaxDeviceCountReached)
 
-		apictx := apicontext.NewContext(mock, echoContext)
+		apictx := gateway.NewContext(mock, echoContext)
 
 		_ = h.UpdatePendingStatus(*apictx)
 

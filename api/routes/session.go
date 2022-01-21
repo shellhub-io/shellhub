@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -25,7 +25,7 @@ const (
 	ParamSessionID = "uid"
 )
 
-func (h *Handler) GetSessionList(c apicontext.Context) error {
+func (h *Handler) GetSessionList(c gateway.Context) error {
 	query := paginator.NewQuery()
 	if err := c.Bind(query); err != nil {
 		return err
@@ -44,7 +44,7 @@ func (h *Handler) GetSessionList(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, sessions)
 }
 
-func (h *Handler) GetSession(c apicontext.Context) error {
+func (h *Handler) GetSession(c gateway.Context) error {
 	session, err := h.service.GetSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (h *Handler) GetSession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, session)
 }
 
-func (h *Handler) SetSessionAuthenticated(c apicontext.Context) error {
+func (h *Handler) SetSessionAuthenticated(c gateway.Context) error {
 	var req struct {
 		Authenticated bool `json:"authenticated"`
 	}
@@ -65,7 +65,7 @@ func (h *Handler) SetSessionAuthenticated(c apicontext.Context) error {
 	return h.service.SetSessionAuthenticated(c.Ctx(), models.UID(c.Param(ParamSessionID)), req.Authenticated)
 }
 
-func (h *Handler) CreateSession(c apicontext.Context) error {
+func (h *Handler) CreateSession(c gateway.Context) error {
 	session := new(models.Session)
 
 	if err := c.Bind(&session); err != nil {
@@ -86,7 +86,7 @@ func (h *Handler) CreateSession(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, session)
 }
 
-func (h *Handler) FinishSession(c apicontext.Context) error {
+func (h *Handler) FinishSession(c gateway.Context) error {
 	err := h.service.DeactivateSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
 	if err == services.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
@@ -95,18 +95,18 @@ func (h *Handler) FinishSession(c apicontext.Context) error {
 	return err
 }
 
-func (h *Handler) KeepAliveSession(c apicontext.Context) error {
+func (h *Handler) KeepAliveSession(c gateway.Context) error {
 	return h.service.KeepAliveSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
 }
 
-func (h *Handler) RecordSession(c apicontext.Context) error {
+func (h *Handler) RecordSession(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) PlaySession(c apicontext.Context) error {
+func (h *Handler) PlaySession(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) DeleteRecordedSession(c apicontext.Context) error {
+func (h *Handler) DeleteRecordedSession(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }

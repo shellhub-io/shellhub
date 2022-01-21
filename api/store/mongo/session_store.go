@@ -3,7 +3,7 @@ package mongo
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -35,7 +35,7 @@ func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
+	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -99,7 +99,7 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
+	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -257,7 +257,7 @@ func (s *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]mo
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
+	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
@@ -281,7 +281,7 @@ func (s *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]mo
 		sessionRecord = append(sessionRecord, *record)
 	}
 
-	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
+	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
 			"$match": bson.M{
 				"tenant_id": tenant.ID,
