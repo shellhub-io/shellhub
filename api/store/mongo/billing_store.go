@@ -74,3 +74,46 @@ func (s *Store) BillingDeleteSubscription(ctx context.Context, tenantID string) 
 
 	return nil
 }
+
+func (s *Store) BillingActiveInstances(ctx context.Context) ([]models.Namespace, int, error) {
+	filter := bson.M{
+		"$and": []bson.M{
+			{
+				"billing": bson.M{
+					"$ne": nil,
+				},
+			},
+			{
+				"billing.active": true,
+			},
+		},
+	}
+
+	instances := make([]models.Namespace, 0)
+
+	cursor, err := s.db.Collection("namespaces").Find(ctx, filter, nil)
+	if err != nil {
+		return nil, 0, fromMongoError(err)
+	}
+
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		inst := new(models.Namespace)
+		err = cursor.Decode(&inst)
+		if err != nil {
+			return instances, 0, err
+		}
+
+		countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": inst.TenantID, "status": "accepted"})
+		if err != nil {
+			return instances, 0, err
+		}
+
+		inst.DevicesCount = int(countDevice)
+
+		instances = append(instances, *inst)
+	}
+
+	return instances, len(instances), nil
+}

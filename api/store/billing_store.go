@@ -12,4 +12,5 @@ type BillingStore interface {
 	BillingUpdateDeviceLimit(ctx context.Context, tenantID string, newLimit int) (*models.Namespace, error)
 	BillingDeleteSubscription(ctx context.Context, tenantID string) error
 	BillingRemoveInstance(ctx context.Context, custID string) error
+	BillingActiveInstances(ctx context.Context) ([]models.Namespace, int, error)
 }

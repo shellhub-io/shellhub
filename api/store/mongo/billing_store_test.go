@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -142,4 +143,80 @@ func TestBillingRemoveInstance(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, ns.Billing)
 	assert.Nil(t, ns.Billing)
+}
+
+func TestBillingActiveInstances(t *testing.T) {
+	data := initData()
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	namespaces := []models.Namespace{
+		{
+			TenantID: "xxx1",
+			Billing: &models.Billing{
+				Active: false,
+			},
+		},
+		{
+			TenantID: "xxx2",
+			Billing: &models.Billing{
+				SubscriptionID: "sxx2",
+				Active:         true,
+			},
+		},
+		{
+			TenantID: "xxx3",
+			Billing: &models.Billing{
+				SubscriptionID: "sxx3",
+				Active:         true,
+			},
+		},
+	}
+
+	countDev := 4
+
+	namespaceInterfaces := make([]interface{}, len(namespaces))
+
+	for i, v := range namespaces {
+		namespaceInterfaces[i] = v
+	}
+
+	devices := make([]models.Device, 0)
+
+	for i := 0; i < countDev; i++ {
+		devices = append(devices, models.Device{
+			TenantID: "xxx2",
+			Status:   "accepted",
+			UID:      fmt.Sprintf("uid%d", i+1),
+		})
+	}
+
+	deviceInterfaces := make([]interface{}, len(devices))
+
+	for i, v := range devices {
+		deviceInterfaces[i] = v
+	}
+
+	_, err := db.Client().Database("test").Collection("namespaces").InsertMany(data.Context, namespaceInterfaces)
+	assert.NoError(t, err)
+	_, err = db.Client().Database("test").Collection("devices").InsertMany(data.Context, deviceInterfaces)
+	assert.NoError(t, err)
+
+	instances, count, err := mongostore.BillingActiveInstances(data.Context)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, count)
+	assert.Equal(t, []models.Namespace{
+		{
+			TenantID:     "xxx2",
+			DevicesCount: countDev,
+			Billing:      &models.Billing{Active: true, SubscriptionID: "sxx2"},
+		},
+		{
+			TenantID: "xxx3",
+			Billing:  &models.Billing{Active: true, SubscriptionID: "sxx3"},
+		},
+	}, instances)
 }
