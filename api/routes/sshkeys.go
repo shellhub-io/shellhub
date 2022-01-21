@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -27,7 +27,7 @@ const (
 	ParamPublicKeyFingerprint = "fingerprint"
 )
 
-func (h *Handler) GetPublicKeys(c apicontext.Context) error {
+func (h *Handler) GetPublicKeys(c gateway.Context) error {
 	query := paginator.NewQuery()
 	if err := c.Bind(query); err != nil {
 		return err
@@ -46,7 +46,7 @@ func (h *Handler) GetPublicKeys(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
-func (h *Handler) GetPublicKey(c apicontext.Context) error {
+func (h *Handler) GetPublicKey(c gateway.Context) error {
 	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), c.Param(ParamNamespaceTenant))
 	if err != nil {
 		if err == store.ErrNoDocuments {
@@ -59,7 +59,7 @@ func (h *Handler) GetPublicKey(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, pubKey)
 }
 
-func (h *Handler) CreatePublicKey(c apicontext.Context) error {
+func (h *Handler) CreatePublicKey(c gateway.Context) error {
 	var key models.PublicKey
 	if err := c.Bind(&key); err != nil {
 		return err
@@ -92,7 +92,7 @@ func (h *Handler) CreatePublicKey(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, key)
 }
 
-func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
+func (h *Handler) UpdatePublicKey(c gateway.Context) error {
 	var params models.PublicKeyUpdate
 	if err := c.Bind(&params); err != nil {
 		return err
@@ -122,7 +122,7 @@ func (h *Handler) UpdatePublicKey(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, key)
 }
 
-func (h *Handler) DeletePublicKey(c apicontext.Context) error {
+func (h *Handler) DeletePublicKey(c gateway.Context) error {
 	tenantID := ""
 	if c.Tenant() != nil {
 		tenantID = c.Tenant().ID
@@ -145,7 +145,7 @@ func (h *Handler) DeletePublicKey(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) CreatePrivateKey(c apicontext.Context) error {
+func (h *Handler) CreatePrivateKey(c gateway.Context) error {
 	privKey, err := h.service.CreatePrivateKey(c.Ctx())
 	if err != nil {
 		return err
@@ -154,7 +154,7 @@ func (h *Handler) CreatePrivateKey(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, privKey)
 }
 
-func (h *Handler) EvaluateKey(c apicontext.Context) error {
+func (h *Handler) EvaluateKey(c gateway.Context) error {
 	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), c.Param(ParamNamespaceTenant))
 	if err != nil {
 		return c.JSON(http.StatusForbidden, err)

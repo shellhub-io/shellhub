@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/api/pkg/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
@@ -29,7 +29,7 @@ const (
 	ParamNamespaceMemberID = "uid"
 )
 
-func (h *Handler) GetNamespaceList(c apicontext.Context) error {
+func (h *Handler) GetNamespaceList(c gateway.Context) error {
 	query := filterQuery{}
 	if err := c.Bind(&query); err != nil {
 		return err
@@ -45,7 +45,7 @@ func (h *Handler) GetNamespaceList(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespaces)
 }
 
-func (h *Handler) CreateNamespace(c apicontext.Context) error {
+func (h *Handler) CreateNamespace(c gateway.Context) error {
 	var req models.Namespace
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -73,7 +73,7 @@ func (h *Handler) CreateNamespace(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) GetNamespace(c apicontext.Context) error {
+func (h *Handler) GetNamespace(c gateway.Context) error {
 	var userID string
 	if c.ID() != nil {
 		userID = c.ID().ID
@@ -92,7 +92,7 @@ func (h *Handler) GetNamespace(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) DeleteNamespace(c apicontext.Context) error {
+func (h *Handler) DeleteNamespace(c gateway.Context) error {
 	var userID string
 	if c.ID() != nil {
 		userID = c.ID().ID
@@ -127,7 +127,7 @@ func (h *Handler) DeleteNamespace(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) EditNamespace(c apicontext.Context) error {
+func (h *Handler) EditNamespace(c gateway.Context) error {
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -174,7 +174,7 @@ func (h *Handler) EditNamespace(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
+func (h *Handler) AddNamespaceUser(c gateway.Context) error {
 	var member struct {
 		Username string `json:"username"`
 		Role     string `json:"role"`
@@ -226,7 +226,7 @@ func (h *Handler) AddNamespaceUser(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
+func (h *Handler) RemoveNamespaceUser(c gateway.Context) error {
 	userID := ""
 	if v := c.ID(); v != nil {
 		userID = c.ID().ID
@@ -267,7 +267,7 @@ func (h *Handler) RemoveNamespaceUser(c apicontext.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) EditNamespaceUser(c apicontext.Context) error {
+func (h *Handler) EditNamespaceUser(c gateway.Context) error {
 	var member struct {
 		Role string `json:"role"`
 	}
@@ -314,7 +314,7 @@ func (h *Handler) EditNamespaceUser(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
+func (h *Handler) EditSessionRecordStatus(c gateway.Context) error {
 	var req struct {
 		SessionRecord bool `json:"session_record"`
 	}
@@ -349,7 +349,7 @@ func (h *Handler) EditSessionRecordStatus(c apicontext.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) GetSessionRecord(c apicontext.Context) error {
+func (h *Handler) GetSessionRecord(c gateway.Context) error {
 	tenantID := ""
 	if v := c.Tenant(); v != nil {
 		tenantID = v.ID
