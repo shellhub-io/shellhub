@@ -13,6 +13,7 @@ type Billing struct {
 	PaymentFailed    *PaymentFailed `json:"payment_failed" bson:"payment_failed,omitempty"`
 	State            string         `json:"state" bson:"state,omitempty"`
 	Active           bool           `json:"active" bson:"active,omitempty"`
+	SubItem          string         `json:"sub_item_id" bson:"sub_item_id,omitempty"`
 }
 
 type PaymentFailed struct {
