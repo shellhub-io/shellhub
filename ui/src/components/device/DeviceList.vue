@@ -111,12 +111,12 @@
               </v-list-item>
 
               <v-list-item @click="showTagDialog(getListDevices.indexOf(item))">
-                <TagFormDialog
-                  action="create"
-                  :uid="item.uid"
+                <TagFormUpdate
+                  :device-uid="item.uid"
+                  :tags-list="item.tags"
                   :show.sync="tagDialogShow[getListDevices.indexOf(item)]"
-                  data-test="tagFormDialog-component"
-                  @update="getDevices()"
+                  data-test="tagFormUpdate-component"
+                  @update="refresh"
                 />
               </v-list-item>
 
@@ -140,7 +140,7 @@
 import TerminalDialog from '@/components/terminal/TerminalDialog';
 import DeviceIcon from '@/components/device/DeviceIcon';
 import DeviceDelete from '@/components/device/DeviceDelete';
-import TagFormDialog from '@/components/setting/tag/TagFormDialog';
+import TagFormUpdate from '@/components/setting/tag/TagFormUpdate';
 import { lastSeen } from '@/components/filter/date';
 import formatDeviceSort from '@/components/filter/object';
 
@@ -151,7 +151,7 @@ export default {
     TerminalDialog,
     DeviceIcon,
     DeviceDelete,
-    TagFormDialog,
+    TagFormUpdate,
   },
 
   filters: { lastSeen },

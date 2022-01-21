@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TagFormUpdate Dialog observer Renders the component 1`] = `
+<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
+          Edit tag
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-tag theme--light"></i></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`TagFormUpdate Dialog owner Renders the component 1`] = `
+<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
+          Edit tag
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></span>
+  <div role="dialog" class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`TagFormUpdate Icon add tag observer Renders the component 1`] = `
+<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
+          Add tag
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-tag theme--light"></i></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`TagFormUpdate Icon add tag owner Renders the component 1`] = `
+<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
+          Add tag
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`TagFormUpdate Icon edit tag observer Renders the component 1`] = `
+<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
+          Edit tag
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-tag theme--light"></i></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`TagFormUpdate Icon edit tag owner Renders the component 1`] = `
+<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
+          Edit tag
+        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></span>
+  <div role="dialog" class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
