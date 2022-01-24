@@ -68,6 +68,16 @@
               />
             </v-list-item>
 
+            <v-list-item @click.stop="openDialog('tagFormUpdateShow')">
+              <TagFormUpdate
+                :device-uid="device.uid"
+                :tags-list="device.tags"
+                :show.sync="tagFormUpdateShow"
+                data-test="tagFormUpdate-component"
+                @update="getDevice()"
+              />
+            </v-list-item>
+
             <v-list-item
               v-if="device.online"
               @click.stop="openDialog('terminalDialogShow')"
@@ -117,24 +127,6 @@
           </code>
         </div>
 
-        <div
-          v-if="false"
-          class="mt-2"
-        >
-          <v-combobox
-            id="targetInput"
-            v-model="list"
-            label="Tag"
-            hint="Maximum of 5 tags"
-            multiple
-            chips
-            append-icon
-            data-test="deviceTag-field"
-            :deletable-chips="true"
-            :rules="[tagRule]"
-          />
-        </div>
-
         <div class="mt-2">
           <div class="overline">
             Operating System
@@ -149,19 +141,19 @@
         </div>
 
         <div class="mt-2">
-          <v-combobox
-            id="targetInput"
-            v-model="list"
-            label="Tag"
-            hint="Maximum of 5 tags"
-            multiple
-            chips
-            append-icon
-            data-test="deviceTag-field"
-            :deletable-chips="true"
-            :rules="[tagRule]"
-            :disabled="!hasAuthorization"
-          />
+          <div class="overline">
+            Tags
+          </div>
+
+          <v-chip
+            v-for="(tag, index) in device.tags"
+            :key="index"
+            class="ml-1 mb-1"
+            small
+            outlined
+          >
+            {{ tag }}
+          </v-chip>
         </div>
 
         <div class="mt-2">
@@ -215,8 +207,8 @@ import TerminalDialog from '@/components/terminal/TerminalDialog';
 import DeviceIcon from '@/components/device/DeviceIcon';
 import DeviceDelete from '@/components/device/DeviceDelete';
 import DeviceRename from '@/components/device/DeviceRename';
+import TagFormUpdate from '@/components/setting/tag/TagFormUpdate';
 import { formatDate, lastSeen } from '@/components/filter/date';
-import hasPermission from '@/components/filter/permission';
 
 export default {
   name: 'DeviceDetailsComponent',
@@ -226,62 +218,30 @@ export default {
     DeviceIcon,
     DeviceDelete,
     DeviceRename,
+    TagFormUpdate,
   },
 
-  filters: { formatDate, lastSeen, hasPermission },
+  filters: { formatDate, lastSeen },
 
   data() {
     return {
       uid: '',
-      errorMsg: '',
       hostname: window.location.hostname,
       hide: true,
       device: null,
       dialogDelete: false,
       dialogError: false,
-      list: [],
-      oldList: [],
       deviceRenameShow: false,
+      tagFormUpdateShow: false,
       deviceDeleteShow: false,
       terminalDialogShow: false,
-      action: 'deviceUpdate',
     };
-  },
-
-  computed: {
-    hasAuthorization() {
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.tag[this.action],
-        );
-      }
-
-      return false;
-    },
-  },
-
-  watch: {
-    list(newList) {
-      if (JSON.stringify(newList) !== JSON.stringify(this.oldList)) {
-        this.actionTag(newList);
-      }
-    },
   },
 
   async created() {
     this.uid = await this.$route.params.id;
-    try {
-      await this.$store.dispatch('devices/get', this.uid);
-      this.device = this.$store.getters['devices/get'];
-      this.list = this.device.tags;
-      this.oldList = this.device.tags;
-    } catch (error) {
-      this.hide = false;
-      this.dialogError = true;
-      this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.deviceDetails);
-    }
+
+    this.getDevice();
   },
 
   methods: {
@@ -294,47 +254,15 @@ export default {
       this.device.name = params;
     },
 
-    tagRule() {
-      if (this.errorMsg !== '') {
-        return this.errorMsg;
-      }
-
-      return true;
-    },
-
-    async actionTag(newList) {
-      const device = this.$store.getters['devices/get'];
-      const data = { uid: device.uid, tags: newList };
-
+    async getDevice() {
       try {
-        this.errorMsg = '';
-        await this.$store.dispatch('devices/updateDeviceTag', data);
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceTagUpdate);
-        this.oldList = newList;
+        await this.$store.dispatch('devices/get', this.uid);
+        this.device = this.$store.getters['devices/get'];
       } catch (error) {
-        this.$nextTick(() => this.list.pop());
-        switch (true) {
-        // when the name the format is invalid.
-        case (error.response.status === 400): {
-          this.errorMsg = 'The format is invalid. Min 3, Max 255 characters!';
-          break;
-        }
-        // when the user is not authorized.
-        case (error.response.status === 403): {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceTagUpdate);
-          break;
-        }
-        // When the array tag size reached the max capacity.
-        case (error.response.status === 406): {
-          this.errorMsg = 'The maximum capacity has reached.';
-          break;
-        }
-        default: {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.deviceTagUpdate);
-        }
-        }
+        this.hide = false;
+        this.dialogError = true;
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.deviceDetails);
       }
-      return false;
     },
 
     openDialog(action) {

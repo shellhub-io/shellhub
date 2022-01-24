@@ -14,13 +14,6 @@ describe('DeviceDetails', () => {
 
   let wrapper;
 
-  const role = ['owner', 'observer'];
-
-  const hasAuthorization = {
-    owner: true,
-    observer: false,
-  };
-
   const deviceOnline = {
     uid: 'a582b47a',
     name: '39-5e-2a',
@@ -55,16 +48,14 @@ describe('DeviceDetails', () => {
         device: deviceOnline,
         dialogDelete: false,
         dialogError: false,
-        list: deviceOnline.tags,
         deviceDeleteShow: false,
         terminalDialogShow: false,
-        action: 'deviceUpdate',
       },
       components: {
         'deviceRename-component': true,
+        'tagFormUpdate-component': true,
         'terminalDialog-component': true,
         'deviceDelete-component': true,
-
       },
       template: {
         'deviceUid-field': deviceOnline.uid,
@@ -85,16 +76,14 @@ describe('DeviceDetails', () => {
         device: deviceOffline,
         dialogDelete: false,
         dialogError: false,
-        list: deviceOffline.tags,
         deviceDeleteShow: false,
         terminalDialogShow: false,
-        action: 'deviceUpdate',
       },
       components: {
         'deviceRename-component': true,
+        'tagFormUpdate-component': true,
         'terminalDialog-component': false,
         'deviceDelete-component': true,
-
       },
       template: {
         'deviceUid-field': deviceOffline.uid,
@@ -105,15 +94,13 @@ describe('DeviceDetails', () => {
     },
   ];
 
-  const storeVuex = (device, currentrole) => new Vuex.Store({
+  const storeVuex = (device) => new Vuex.Store({
     namespaced: true,
     state: {
       device,
-      currentrole,
     },
     getters: {
       'devices/get': (state) => state.device,
-      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'devices/get': () => {},
@@ -125,65 +112,60 @@ describe('DeviceDetails', () => {
   });
 
   tests.forEach((test) => {
-    role.forEach((currentrole) => {
-      describe(`${test.description} ${currentrole}`, () => {
-        beforeEach(async () => {
-          timezoneMock.register('UTC');
+    describe(`${test.description}`, () => {
+      beforeEach(async () => {
+        timezoneMock.register('UTC');
 
-          wrapper = shallowMount(DeviceDetails, {
-            store: storeVuex(test.variables.device, currentrole),
-            localVue,
-            stubs: ['fragment'],
-            vuetify,
-            mocks: {
-              $authorizer: authorizer,
-              $actions: actions,
-              $route: {
-                params: {
-                  id: test.variables.device.uid,
-                },
+        wrapper = shallowMount(DeviceDetails, {
+          store: storeVuex(test.variables.device),
+          localVue,
+          stubs: ['fragment'],
+          vuetify,
+          mocks: {
+            $authorizer: authorizer,
+            $actions: actions,
+            $route: {
+              params: {
+                id: test.variables.device.uid,
               },
             },
-          });
+          },
         });
+      });
 
-        ///////
-        // Component Rendering
-        //////
+      ///////
+      // Component Rendering
+      //////
 
-        it('Is a Vue instance', () => {
-          expect(wrapper).toBeTruthy();
+      it('Is a Vue instance', () => {
+        expect(wrapper).toBeTruthy();
+      });
+      it('Renders the component', () => {
+        expect(wrapper.html()).toMatchSnapshot();
+      });
+
+      ///////
+      // Data checking
+      //////
+
+      it('Compare data with default value', () => {
+        Object.keys(test.data).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.data[item]);
         });
-        it('Renders the component', () => {
-          expect(wrapper.html()).toMatchSnapshot();
-        });
+      });
 
-        ///////
-        // Data checking
-        //////
+      //////
+      // HTML validation
+      //////
 
-        it('Compare data with default value', () => {
-          Object.keys(test.data).forEach((item) => {
-            expect(wrapper.vm[item]).toEqual(test.data[item]);
-          });
+      it('Renders the template with components', () => {
+        Object.keys(test.components).forEach((item) => {
+          expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.components[item]);
         });
-        it('Process data in the computed', () => {
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
-        });
-
-        //////
-        // HTML validation
-        //////
-
-        it('Renders the template with components', () => {
-          Object.keys(test.components).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.components[item]);
-          });
-        });
-        it('Renders the template with data', () => {
-          Object.keys(test.template).forEach((item) => {
-            expect(wrapper.find(`[data-test="${item}"]`).text()).toEqual(test.template[item]);
-          });
+      });
+      it('Renders the template with data', () => {
+        Object.keys(test.template).forEach((item) => {
+          expect(wrapper.find(`[data-test="${item}"]`).text()).toEqual(test.template[item]);
         });
       });
     });
