@@ -242,8 +242,6 @@ func TestUpdateTag(t *testing.T) {
 
 	tags := []string{"device1", "device2", "device3"}
 
-	duplicatedTags := []string{"device1", "device1"}
-
 	maxReachedTags := []string{"device1", "device2", "device3", "device4"}
 
 	invalidTag := []string{"de"}
@@ -270,16 +268,6 @@ func TestUpdateTag(t *testing.T) {
 			tags:          invalidTag,
 			requiredMocks: func() {},
 			expected:      ErrInvalidFormat,
-		},
-		{
-			name: "Fails duplicated name",
-			uid:  models.UID(device.UID),
-			tags: duplicatedTags,
-			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
-				mock.On("DeviceUpdateTag", ctx, models.UID(device.UID), duplicatedTags).Return(ErrDuplicateTagName).Once()
-			},
-			expected: ErrDuplicateTagName,
 		},
 		{
 			name: "Fails max capacity reached",

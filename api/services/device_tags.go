@@ -75,14 +75,29 @@ func (s *service) RenameTag(ctx context.Context, tenantID string, currentName st
 }
 
 func (s *service) UpdateTag(ctx context.Context, uid models.UID, tags []string) error {
-	for _, tag := range tags {
-		if err := validateTagName(tag); err != nil {
-			return err
+	listToSet := func(list []string) []string {
+		s := make(map[string]bool)
+		l := make([]string, 0)
+		for _, o := range list {
+			if _, ok := s[o]; !ok {
+				s[o] = true
+				l = append(l, o)
+			}
 		}
+
+		return l
 	}
 
 	if len(tags) > DeviceMaxTags {
 		return ErrMaxTagReached
+	}
+
+	tagSet := listToSet(tags)
+
+	for _, tag := range tagSet {
+		if err := validateTagName(tag); err != nil {
+			return err
+		}
 	}
 
 	device, err := s.store.DeviceGet(ctx, uid)
@@ -90,7 +105,7 @@ func (s *service) UpdateTag(ctx context.Context, uid models.UID, tags []string) 
 		return ErrDeviceNotFound
 	}
 
-	return s.store.DeviceUpdateTag(ctx, uid, tags)
+	return s.store.DeviceUpdateTag(ctx, uid, tagSet)
 }
 
 func (s *service) GetTags(ctx context.Context, tenant string) ([]string, int, error) {
