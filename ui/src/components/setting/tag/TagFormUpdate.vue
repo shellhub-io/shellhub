@@ -53,6 +53,7 @@
             data-test="deviceTag-combobox"
             :deletable-chips="true"
             :rules="[tagRule]"
+            :delimiters="[',', ' ']"
           />
         </v-card-text>
 
