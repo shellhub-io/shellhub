@@ -187,7 +187,8 @@ export default {
 
         this.update();
       } catch (error) {
-        this.$nextTick(() => this.listTagLocal.pop());
+        this.listTagLocal = this.tagsList;
+
         switch (true) {
         // when the name the format is invalid.
         case (error.response.status === 400): {
