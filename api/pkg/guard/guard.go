@@ -20,6 +20,7 @@ func CheckMember(namespace *models.Namespace, id string) (*models.Member, bool) 
 			break
 		}
 	}
+
 	if memberFound.ID == "" || memberFound.Role == "" {
 		return nil, false
 	}
@@ -35,6 +36,19 @@ func CheckRole(roleActive, rolePassive string) bool {
 // EvaluatePermission checks if a namespace's member has the role that allows an action.
 func EvaluatePermission(role string, action int, callback func() error) error {
 	if !authorizer.CheckPermission(role, action) {
+		return ErrForbidden
+	}
+
+	return callback()
+}
+
+func EvaluateNamespace(namespace *models.Namespace, userID string, action int, callback func() error) error {
+	mb, ok := CheckMember(namespace, userID)
+	if !ok {
+		return ErrForbidden
+	}
+
+	if !authorizer.CheckPermission(mb.Role, action) {
 		return ErrForbidden
 	}
 
