@@ -44,6 +44,7 @@
         <v-card-text>
           <v-combobox
             id="targetInput"
+            ref="tags"
             v-model="listTagLocal"
             label="Tag"
             hint="Maximum of 3 tags"
@@ -175,6 +176,8 @@ export default {
     },
 
     async save() {
+      await this.$refs.tags.blur();
+
       const data = { uid: this.deviceUid, tags: this.listTagLocal };
 
       try {
