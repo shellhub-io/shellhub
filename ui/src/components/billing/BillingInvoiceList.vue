@@ -78,7 +78,6 @@
 <script>
 
 import formatCurrency from '@/components/filter/currency';
-import simpleFormat from '@/components/filter/date';
 import unixTimeFormat from '@/helpers/timestamp';
 
 export default {
@@ -86,7 +85,6 @@ export default {
 
   filters: {
     formatCurrency,
-    simpleFormat,
     unixTimeFormat,
   },
 
