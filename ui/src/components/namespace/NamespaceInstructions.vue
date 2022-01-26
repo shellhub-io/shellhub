@@ -7,9 +7,7 @@
       persistent
     >
       <v-card data-test="namespaceInstructions-card">
-        <v-card-title
-          class="headline primary"
-        >
+        <v-card-title class="headline primary">
           There are no namespaces associated with your account
         </v-card-title>
 

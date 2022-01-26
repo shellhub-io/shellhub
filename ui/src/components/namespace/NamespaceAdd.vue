@@ -17,7 +17,7 @@
         @click:outside="update"
       >
         <v-card data-test="namespaceAdd-card">
-          <v-card-title class="headline primary text-center">
+          <v-card-title class="headline primary">
             Enter Namespace
           </v-card-title>
 

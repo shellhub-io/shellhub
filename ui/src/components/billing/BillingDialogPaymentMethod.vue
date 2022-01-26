@@ -15,7 +15,7 @@
     >
       <v-card data-test="BillingDialogPaymentMethod-dialog">
         <v-card-title
-          class="headline primary text-center"
+          class="headline primary"
           data-test="text-cardTitle"
         >
           {{ typeTitle(typeOperation) }}

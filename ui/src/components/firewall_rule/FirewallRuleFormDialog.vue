@@ -67,13 +67,13 @@
         >
           <v-card-title
             v-if="createRule"
-            class="headline primary text-center"
+            class="headline primary"
           >
             New Rule
           </v-card-title>
           <v-card-title
             v-else
-            class="headline primary text-center"
+            class="headline primary"
           >
             Edit Rule
           </v-card-title>

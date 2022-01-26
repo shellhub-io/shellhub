@@ -37,7 +37,7 @@
     >
       <v-card data-test="tagForm-card">
         <v-card-title
-          class="headline primary text-center"
+          class="headline primary"
           v-text="'Manage Tags'"
         />
 

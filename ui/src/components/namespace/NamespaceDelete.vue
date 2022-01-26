@@ -28,7 +28,7 @@
       max-width="400"
     >
       <v-card data-test="namespaceDelete-dialog">
-        <v-card-title class="headline primary text-center">
+        <v-card-title class="headline primary">
           Are you sure?
         </v-card-title>
 

@@ -28,7 +28,7 @@
       max-width="510"
     >
       <v-card data-test="billingCancel-dialog">
-        <v-card-title class="headline primary text-center">
+        <v-card-title class="headline primary">
           Are you sure?
         </v-card-title>
 

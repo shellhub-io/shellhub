@@ -200,10 +200,7 @@
         persistent
       >
         <v-card>
-          <v-card-title
-            class="headline primary"
-            primary-title
-          >
+          <v-card-title class="headline primary">
             Session ID error
           </v-card-title>
           <v-card-text class="mt-4 mb-3 pb-1">

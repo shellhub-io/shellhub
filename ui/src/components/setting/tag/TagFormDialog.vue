@@ -74,7 +74,7 @@
           ref="obs"
           v-slot="{ passes }"
         >
-          <v-card-title class="headline primary text-center">
+          <v-card-title class="headline primary">
             <div v-if="isCreate">
               New tag
             </div>
