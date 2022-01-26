@@ -10,7 +10,7 @@
             data-test="title-item"
             v-on="on"
           >
-            {{ hasTag ? 'Edit tag' : 'Add tag' }}
+            {{ hasTag ? 'Edit tags' : 'Add tags' }}
           </v-list-item-title>
         </span>
 
