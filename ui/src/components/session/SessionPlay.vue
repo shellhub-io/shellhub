@@ -42,13 +42,9 @@
         :elevation="0"
         data-test="sessionPlay-card"
       >
-        <v-toolbar
-          dark
-          color="primary"
-        >
+        <v-toolbar color="primary">
           <v-btn
             icon
-            dark
             data-test="close-btn"
             @click="close"
           >

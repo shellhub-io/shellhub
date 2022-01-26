@@ -38,13 +38,9 @@
       @click:outside="close"
     >
       <v-card data-test="terminal-dialog">
-        <v-toolbar
-          dark
-          color="primary"
-        >
+        <v-toolbar color="primary">
           <v-btn
             icon
-            dark
             @click="close()"
           >
             <v-icon>close</v-icon>
