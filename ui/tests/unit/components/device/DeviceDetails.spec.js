@@ -30,10 +30,11 @@ describe('DeviceDetails', () => {
     last_seen: '2020-05-20T18:58:53.276Z',
     online: true,
     namespace: 'user',
+    status: 'accepted',
     tags: ['device1', 'device2'],
   };
 
-  const deviceOffline = { ...deviceOnline, online: false };
+  const deviceOffline = { ...deviceOnline, online: false, status: 'pending' };
 
   const tests = [
     {
@@ -49,7 +50,6 @@ describe('DeviceDetails', () => {
         dialogDelete: false,
         dialogError: false,
         deviceDeleteShow: false,
-        terminalDialogShow: false,
       },
       components: {
         'deviceRename-component': true,
@@ -77,7 +77,6 @@ describe('DeviceDetails', () => {
         dialogDelete: false,
         dialogError: false,
         deviceDeleteShow: false,
-        terminalDialogShow: false,
       },
       components: {
         'deviceRename-component': true,

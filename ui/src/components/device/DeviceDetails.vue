@@ -15,23 +15,14 @@
         color="transparent"
       >
         <v-toolbar-title>
-          <v-icon
-            v-if="device.online"
-            color="success"
-          >
-            check_circle
-          </v-icon>
-          <v-tooltip
-            v-else
-            bottom
-          >
-            <template #activator="{ on }">
-              <v-icon v-on="on">
-                check_circle
-              </v-icon>
-            </template>
-            <span>active {{ device.last_seen | lastSeen }}</span>
-          </v-tooltip>
+          <TerminalDialog
+            v-if="device.status === 'accepted'"
+            :enable-connect-button="true"
+            :uid="device.uid"
+            :online="device.online"
+            data-test="terminalDialog-component"
+          />
+
           {{ device.name }}
         </v-toolbar-title>
 
@@ -75,17 +66,6 @@
                 :show.sync="tagFormUpdateShow"
                 data-test="tagFormUpdate-component"
                 @update="getDevice()"
-              />
-            </v-list-item>
-
-            <v-list-item
-              v-if="device.online"
-              @click.stop="openDialog('terminalDialogShow')"
-            >
-              <TerminalDialog
-                :uid="device.uid"
-                :show.sync="terminalDialogShow"
-                data-test="terminalDialog-component"
               />
             </v-list-item>
 
@@ -234,7 +214,6 @@ export default {
       deviceRenameShow: false,
       tagFormUpdateShow: false,
       deviceDeleteShow: false,
-      terminalDialogShow: false,
     };
   },
 
