@@ -10,7 +10,8 @@ exports[`DeviceDetails Offline Device Renders the component 1`] = `
   <v-card-stub loaderheight="4" tag="div" class="mt-2">
     <v-toolbar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="">
       <v-toolbar-title-stub tag="div">
-        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active 2 years ago</span></v-tooltip-stub>
+        <!---->
+
         39-5e-2a
       </v-toolbar-title-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
@@ -22,7 +23,6 @@ exports[`DeviceDetails Offline Device Renders the component 1`] = `
           <v-list-item-stub activeclass="" tag="div">
             <tagformupdate-stub deviceuid="a582b47a" tagslist="device1,device2" data-test="tagFormUpdate-component"></tagformupdate-stub>
           </v-list-item-stub>
-          <!---->
           <v-list-item-stub activeclass="" tag="div">
             <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
           </v-list-item-stub>
@@ -107,9 +107,8 @@ exports[`DeviceDetails Online Device Renders the component 1`] = `
   <v-card-stub loaderheight="4" tag="div" class="mt-2">
     <v-toolbar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="">
       <v-toolbar-title-stub tag="div">
-        <v-icon-stub color="success">
-          check_circle
-        </v-icon-stub>
+        <terminaldialog-stub enableconnectbutton="true" uid="a582b47a" online="true" data-test="terminalDialog-component"></terminaldialog-stub>
+
         39-5e-2a
       </v-toolbar-title-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
@@ -120,9 +119,6 @@ exports[`DeviceDetails Online Device Renders the component 1`] = `
           </v-list-item-stub>
           <v-list-item-stub activeclass="" tag="div">
             <tagformupdate-stub deviceuid="a582b47a" tagslist="device1,device2" data-test="tagFormUpdate-component"></tagformupdate-stub>
-          </v-list-item-stub>
-          <v-list-item-stub activeclass="" tag="div">
-            <terminaldialog-stub uid="a582b47a" data-test="terminalDialog-component"></terminaldialog-stub>
           </v-list-item-stub>
           <v-list-item-stub activeclass="" tag="div">
             <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
