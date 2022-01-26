@@ -37,7 +37,7 @@
       @click:outside="close"
     >
       <v-card data-test="deviceRename-card">
-        <v-card-title class="headline primary text-center">
+        <v-card-title class="headline primary">
           Rename Device
         </v-card-title>
         <ValidationObserver

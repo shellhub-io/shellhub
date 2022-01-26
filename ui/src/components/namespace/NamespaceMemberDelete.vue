@@ -34,7 +34,7 @@
       @click:outside="close"
     >
       <v-card data-test="namespaceMemberDelete-dialog">
-        <v-card-title class="headline primary text-center">
+        <v-card-title class="headline primary">
           Are you sure?
         </v-card-title>
 

@@ -54,7 +54,7 @@
       @click:outside="close"
     >
       <v-card data-test="deviceActionButton-card">
-        <v-card-title class="headline primary text-center">
+        <v-card-title class="headline primary">
           Are you sure?
         </v-card-title>
 

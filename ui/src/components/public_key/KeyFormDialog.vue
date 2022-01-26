@@ -67,13 +67,13 @@
         >
           <v-card-title
             v-if="createKey"
-            class="headline primary text-center"
+            class="headline primary"
           >
             New {{ action }} key
           </v-card-title>
           <v-card-title
             v-else
-            class="headline primary text-center"
+            class="headline primary"
           >
             Edit {{ action }} key
           </v-card-title>

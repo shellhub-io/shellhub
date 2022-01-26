@@ -59,7 +59,7 @@
       @click:outside="close"
     >
       <v-card data-test="namespaceNewMember-dialog">
-        <v-card-title class="headline primary text-center">
+        <v-card-title class="headline primary">
           {{ addUser ? 'Add member to namespace' : 'Update member role' }}
         </v-card-title>
 

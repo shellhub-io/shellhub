@@ -30,9 +30,7 @@
       max-width="800px"
     >
       <v-card data-test="deviceAdd-dialog">
-        <v-card-title
-          class="headline primary text-center"
-        >
+        <v-card-title class="headline primary">
           Registering a device
         </v-card-title>
 
