@@ -46,7 +46,7 @@ describe('TagFormUpdate', () => {
         'save-btn': false,
       },
       templateFields: {
-        'title-item': 'Add tag',
+        'title-item': 'Add tags',
       },
     },
     {
@@ -74,7 +74,7 @@ describe('TagFormUpdate', () => {
         'save-btn': false,
       },
       templateFields: {
-        'title-item': 'Edit tag',
+        'title-item': 'Edit tags',
       },
     },
     {
@@ -110,7 +110,7 @@ describe('TagFormUpdate', () => {
         'save-btn': false,
       },
       templateFields: {
-        'title-item': 'Edit tag',
+        'title-item': 'Edit tags',
       },
     },
   ];
