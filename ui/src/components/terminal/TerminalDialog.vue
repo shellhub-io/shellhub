@@ -38,17 +38,18 @@
       @click:outside="close"
     >
       <v-card data-test="terminal-dialog">
-        <v-toolbar color="primary">
+        <v-card-title class="headline primary">
+          Terminal
+
+          <v-spacer />
+
           <v-btn
             icon
             @click="close()"
           >
-            <v-icon>close</v-icon>
+            <v-icon v-text="'close'" />
           </v-btn>
-          <v-toolbar-title>Terminal</v-toolbar-title>
-
-          <v-spacer />
-        </v-toolbar>
+        </v-card-title>
 
         <v-card
           v-if="showLoginForm"
