@@ -3,8 +3,8 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
-import TagFormDialog from '@/components/setting/tag/TagFormDialog';
-import { actions, authorizer } from '../../../../../src/authorizer';
+import TagFormDialog from '@/components/tag/TagFormDialog';
+import { actions, authorizer } from '../../../../src/authorizer';
 import '@/vee-validate';
 
 describe('TagFormDialog', () => {

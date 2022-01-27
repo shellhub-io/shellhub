@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
-import TagDelete from '@/components/setting/tag/TagDelete';
-import { actions, authorizer } from '../../../../../src/authorizer';
+import TagDelete from '@/components/tag/TagDelete';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('TagDelete', () => {
   const localVue = createLocalVue();

@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, shallowMount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
-import TagSelector from '@/components/setting/tag/TagSelector';
+import TagSelector from '@/components/tag/TagSelector';
 
 describe('TagSelector', () => {
   const localVue = createLocalVue();

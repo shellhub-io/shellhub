@@ -82,7 +82,7 @@
 <script>
 
 import DeviceAdd from '@/components/device/DeviceAdd';
-import TagSelector from '@/components/setting/tag/TagSelector';
+import TagSelector from '@/components/tag/TagSelector';
 import BoxMessageDevice from '@/components/box/BoxMessage';
 
 export default {

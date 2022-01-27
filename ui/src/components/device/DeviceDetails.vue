@@ -184,7 +184,7 @@ import TerminalDialog from '@/components/terminal/TerminalDialog';
 import DeviceIcon from '@/components/device/DeviceIcon';
 import DeviceDelete from '@/components/device/DeviceDelete';
 import DeviceRename from '@/components/device/DeviceRename';
-import TagFormUpdate from '@/components/setting/tag/TagFormUpdate';
+import TagFormUpdate from '@/components/tag/TagFormUpdate';
 import { formatDate, lastSeen } from '@/components/filter/date';
 
 export default {
