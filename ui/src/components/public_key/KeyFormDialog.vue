@@ -61,23 +61,23 @@
       @click:outside="close"
     >
       <v-card data-test="keyFormDialog-card">
+        <v-card-title
+          v-if="createKey"
+          class="headline primary"
+        >
+          New {{ action }} key
+        </v-card-title>
+        <v-card-title
+          v-else
+          class="headline primary"
+        >
+          Edit {{ action }} key
+        </v-card-title>
+
         <ValidationObserver
           ref="obs"
           v-slot="{ passes }"
         >
-          <v-card-title
-            v-if="createKey"
-            class="headline primary"
-          >
-            New {{ action }} key
-          </v-card-title>
-          <v-card-title
-            v-else
-            class="headline primary"
-          >
-            Edit {{ action }} key
-          </v-card-title>
-
           <v-card-text>
             <ValidationProvider
               v-slot="{ errors }"

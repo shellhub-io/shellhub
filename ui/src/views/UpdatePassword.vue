@@ -33,14 +33,14 @@
           </v-layout>
         </v-container>
 
+        <v-card-title class="justify-center">
+          Reset your password
+        </v-card-title>
+
         <ValidationObserver
           ref="obs"
           v-slot="{ passes }"
         >
-          <v-card-title class="justify-center">
-            Reset your password
-          </v-card-title>
-
           <v-card-text>
             <div class="d-flex align-center justify-center mb-6">
               Please enter your new password you would like.
