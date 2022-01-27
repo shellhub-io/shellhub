@@ -45,14 +45,14 @@
           </v-layout>
         </v-container>
 
+        <v-card-title class="justify-center">
+          Sign up for free
+        </v-card-title>
+
         <ValidationObserver
           ref="obs"
           v-slot="{ passes }"
         >
-          <v-card-title class="justify-center">
-            Sign up for free
-          </v-card-title>
-
           <v-card-text>
             <ValidationProvider
               v-slot="{ errors }"

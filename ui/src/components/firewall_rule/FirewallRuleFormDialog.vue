@@ -61,23 +61,23 @@
       @click:outside="close"
     >
       <v-card data-test="firewallRuleForm-card">
+        <v-card-title
+          v-if="createRule"
+          class="headline primary"
+        >
+          New Rule
+        </v-card-title>
+        <v-card-title
+          v-else
+          class="headline primary"
+        >
+          Edit Rule
+        </v-card-title>
+
         <ValidationObserver
           ref="obs"
           v-slot="{ passes }"
         >
-          <v-card-title
-            v-if="createRule"
-            class="headline primary"
-          >
-            New Rule
-          </v-card-title>
-          <v-card-title
-            v-else
-            class="headline primary"
-          >
-            Edit Rule
-          </v-card-title>
-
           <v-card-text>
             <v-layout
               justify-space-between

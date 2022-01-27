@@ -70,19 +70,19 @@
       @click:outside="close"
     >
       <v-card data-test="tagForm-card">
+        <v-card-title class="headline primary">
+          <div v-if="isCreate">
+            New tag
+          </div>
+          <div v-else>
+            Edit tag
+          </div>
+        </v-card-title>
+
         <ValidationObserver
           ref="obs"
           v-slot="{ passes }"
         >
-          <v-card-title class="headline primary">
-            <div v-if="isCreate">
-              New tag
-            </div>
-            <div v-else>
-              Edit tag
-            </div>
-          </v-card-title>
-
           <v-card-text>
             <ValidationProvider
               v-slot="{ errors }"
