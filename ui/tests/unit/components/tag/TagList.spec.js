@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
-import TagList from '@/components/setting/tag/TagList';
+import TagList from '@/components/tag/TagList';
 
 describe('TagList', () => {
   const localVue = createLocalVue();

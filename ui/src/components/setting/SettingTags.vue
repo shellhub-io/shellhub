@@ -25,7 +25,7 @@
 
 <script>
 
-import TagList from '@/components/setting/tag/TagList';
+import TagList from '@/components/tag/TagList';
 
 export default {
   name: 'SettingsTagsComponent',

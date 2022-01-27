@@ -60,8 +60,8 @@
 
 <script>
 
-import TagFormDialog from '@/components/setting/tag/TagFormDialog';
-import TagDelete from '@/components/setting/tag/TagDelete';
+import TagFormDialog from '@/components/tag/TagFormDialog';
+import TagDelete from '@/components/tag/TagDelete';
 
 export default {
   name: 'TagListComponent',

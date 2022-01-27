@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
-import TagFormUpdate from '@/components/setting/tag/TagFormUpdate';
-import { actions, authorizer } from '../../../../../src/authorizer';
+import TagFormUpdate from '@/components/tag/TagFormUpdate';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('TagFormUpdate', () => {
   const localVue = createLocalVue();
