@@ -5,7 +5,7 @@ exports[`DeviceAdd Button observer Renders the component 1`] = `
   <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Device
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -16,7 +16,7 @@ exports[`DeviceAdd Button owner Renders the component 1`] = `
   <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Device
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -27,7 +27,7 @@ exports[`DeviceAdd Dialog observer Renders the component 1`] = `
   <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--small" data-test="add-btn"><span class="v-btn__content">
           Add Device
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -36,6 +36,6 @@ exports[`DeviceAdd Dialog owner Renders the component 1`] = `
   <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--small primary" data-test="add-btn"><span class="v-btn__content">
           Add Device
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;

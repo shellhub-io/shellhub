@@ -4,7 +4,7 @@ exports[`SessionClose Dialog operator Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Close
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="close-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-close-circle theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -14,7 +14,7 @@ exports[`SessionClose Dialog owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Close
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="close-icon" class="v-icon notranslate v-icon--left mdi mdi-close-circle theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -22,7 +22,7 @@ exports[`SessionClose Icon operator Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Close
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="close-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-close-circle theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -32,7 +32,7 @@ exports[`SessionClose Icon owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Close
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="close-icon" class="v-icon notranslate v-icon--left mdi mdi-close-circle theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>

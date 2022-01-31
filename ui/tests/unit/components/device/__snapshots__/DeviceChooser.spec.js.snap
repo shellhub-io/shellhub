@@ -3,7 +3,7 @@
 exports[`DeviceChooser Dialog is closes administrator Renders the component 1`] = `""`;
 
 exports[`DeviceChooser Dialog is closes owner Renders the component 1`] = `
-<div role="dialog" class="v-dialog__container">
+<div class="v-dialog__container">
   <!---->
 </div>
 `;

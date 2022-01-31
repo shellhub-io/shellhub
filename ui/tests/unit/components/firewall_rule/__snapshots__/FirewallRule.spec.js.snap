@@ -9,7 +9,7 @@ exports[`FirewallRule With firewall rules Renders the component 1`] = `
           Add Rule
         </span></button>
   </div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub></span></div>
@@ -27,7 +27,7 @@ exports[`FirewallRule Without firewall rules Renders the component 1`] = `
           Add Rule
         </span></button>
   </div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub></span></div>
@@ -57,7 +57,7 @@ exports[`FirewallRule Without firewall rules Renders the component 1`] = `
           Add Rule
         </span></button>
       </div></span>
-      <div role="dialog" class="v-dialog__container">
+      <div class="v-dialog__container">
         <!---->
       </div>
   </fragment-stub></span>

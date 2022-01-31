@@ -30,7 +30,7 @@ exports[`DeviceList Device offline Renders the component 1`] = `
                 <fragment-stub data-test="terminalDialog-component"><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="connect-btn"><span class="v-btn__content">
       Offline
     </span></button>
-                  <div role="dialog" class="v-dialog__container">
+                  <div class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>
@@ -65,7 +65,7 @@ exports[`DeviceList Device offline Renders the component 1`] = `
                 <fragment-stub data-test="terminalDialog-component"><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="connect-btn"><span class="v-btn__content">
       Offline
     </span></button>
-                  <div role="dialog" class="v-dialog__container">
+                  <div class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>
@@ -156,7 +156,7 @@ exports[`DeviceList Device online Renders the component 1`] = `
                 <fragment-stub data-test="terminalDialog-component"><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--small" data-test="connect-btn"><span class="v-btn__content">
       Offline
     </span></button>
-                  <div role="dialog" class="v-dialog__container">
+                  <div class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>
@@ -191,7 +191,7 @@ exports[`DeviceList Device online Renders the component 1`] = `
                 <fragment-stub data-test="terminalDialog-component"><button type="button" class="v-btn v-btn--outlined theme--light v-size--small success--text" data-test="connect-btn"><span class="v-btn__content">
       Connect
     </span></button>
-                  <div role="dialog" class="v-dialog__container">
+                  <div class="v-dialog__container">
                     <!---->
                   </div>
                 </fragment-stub>

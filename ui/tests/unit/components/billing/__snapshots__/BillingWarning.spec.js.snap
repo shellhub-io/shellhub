@@ -2,13 +2,13 @@
 
 exports[`BillingWarning 3 devices, no subscription Renders the component 1`] = `
 <fragment-stub>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
 exports[`BillingWarning 3 devices, with subscription Renders the component 1`] = `
 <fragment-stub>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -16,7 +16,7 @@ exports[`BillingWarning 3 devices, with subscription Renders the component 1`] =
 
 exports[`BillingWarning Less than 3 devices, no subscription Renders the component 1`] = `
 <fragment-stub>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
