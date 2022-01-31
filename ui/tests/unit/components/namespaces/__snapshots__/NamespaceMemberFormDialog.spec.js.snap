@@ -5,7 +5,7 @@ exports[`NamespaceMemberFormDialog Dialog create user administrator Renders the 
   <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -14,7 +14,7 @@ exports[`NamespaceMemberFormDialog Dialog create user observer Renders the compo
   <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -25,7 +25,7 @@ exports[`NamespaceMemberFormDialog Dialog create user operator Renders the compo
   <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -36,7 +36,7 @@ exports[`NamespaceMemberFormDialog Dialog create user owner Renders the componen
   <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -44,7 +44,7 @@ exports[`NamespaceMemberFormDialog Dialog edit user administrator Renders the co
 <fragment-stub><span><div data-test="edit-list" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left mdi mdi-pencil theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -52,7 +52,7 @@ exports[`NamespaceMemberFormDialog Dialog edit user observer Renders the compone
 <fragment-stub><span><div data-test="edit-list" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-pencil theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -62,7 +62,7 @@ exports[`NamespaceMemberFormDialog Dialog edit user operator Renders the compone
 <fragment-stub><span><div data-test="edit-list" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-pencil theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -72,7 +72,7 @@ exports[`NamespaceMemberFormDialog Dialog edit user owner Renders the component 
 <fragment-stub><span><div data-test="edit-list" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left mdi mdi-pencil theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -81,7 +81,7 @@ exports[`NamespaceMemberFormDialog Icon add user administrator Renders the compo
   <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -92,7 +92,7 @@ exports[`NamespaceMemberFormDialog Icon add user observer Renders the component 
   <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -103,7 +103,7 @@ exports[`NamespaceMemberFormDialog Icon add user operator Renders the component 
   <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -114,7 +114,7 @@ exports[`NamespaceMemberFormDialog Icon add user owner Renders the component 1`]
   <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn"><span class="v-btn__content">
           Add Member
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -124,7 +124,7 @@ exports[`NamespaceMemberFormDialog Icon edit user administrator Renders the comp
 <fragment-stub><span><div data-test="edit-list" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left mdi mdi-pencil theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -134,7 +134,7 @@ exports[`NamespaceMemberFormDialog Icon edit user observer Renders the component
 <fragment-stub><span><div data-test="edit-list" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-pencil theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -144,7 +144,7 @@ exports[`NamespaceMemberFormDialog Icon edit user operator Renders the component
 <fragment-stub><span><div data-test="edit-list" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-pencil theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -154,7 +154,7 @@ exports[`NamespaceMemberFormDialog Icon edit user owner Renders the component 1`
 <fragment-stub><span><div data-test="edit-list" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left mdi mdi-pencil theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>

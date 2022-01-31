@@ -4,7 +4,7 @@ exports[`TagDelete Dialog observer Renders the component 1`] = `
 <fragment-stub><span><div data-test="play-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--disabled v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -14,7 +14,7 @@ exports[`TagDelete Dialog owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="play-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -22,7 +22,7 @@ exports[`TagDelete Icon observer Renders the component 1`] = `
 <fragment-stub><span><div data-test="play-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--disabled v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -32,7 +32,7 @@ exports[`TagDelete Icon owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="play-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>

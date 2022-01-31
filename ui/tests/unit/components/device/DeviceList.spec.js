@@ -21,7 +21,7 @@ describe('DeviceList', () => {
     mustSort: false,
     page: 1,
     sortBy: [],
-    sortDesc: [],
+    sortDesc: [false],
   };
 
   const headers = [

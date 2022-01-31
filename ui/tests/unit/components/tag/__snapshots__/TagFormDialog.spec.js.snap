@@ -4,7 +4,7 @@ exports[`TagFormDialog Dialog create observer Renders the component 1`] = `
 <fragment-stub><span><div data-test="create-item" class="v-list-item__title">
           Add tag
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="create-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -14,7 +14,7 @@ exports[`TagFormDialog Dialog create owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="create-item" class="v-list-item__title">
           Add tag
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="create-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -22,7 +22,7 @@ exports[`TagFormDialog Dialog edit observer Renders the component 1`] = `
 <fragment-stub><span><div data-test="edit-item" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -32,7 +32,7 @@ exports[`TagFormDialog Dialog edit owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="edit-item" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -40,7 +40,7 @@ exports[`TagFormDialog Icon create observer Renders the component 1`] = `
 <fragment-stub><span><div data-test="create-item" class="v-list-item__title">
           Add tag
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="create-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -50,7 +50,7 @@ exports[`TagFormDialog Icon create owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="create-item" class="v-list-item__title">
           Add tag
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="create-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -60,7 +60,7 @@ exports[`TagFormDialog Icon edit observer Renders the component 1`] = `
 <fragment-stub><span><div data-test="edit-item" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -70,7 +70,7 @@ exports[`TagFormDialog Icon edit owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="edit-item" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>

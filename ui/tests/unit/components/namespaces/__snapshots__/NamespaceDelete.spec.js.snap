@@ -5,7 +5,7 @@ exports[`NamespaceDelete Button operator Renders the component 1`] = `
   <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
           Delete namespace
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -16,7 +16,7 @@ exports[`NamespaceDelete Button owner Renders the component 1`] = `
   <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
           Delete namespace
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -27,7 +27,7 @@ exports[`NamespaceDelete Dialog with subscription operator Renders the component
   <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
           Delete namespace
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -36,7 +36,7 @@ exports[`NamespaceDelete Dialog with subscription owner Renders the component 1`
   <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
           Delete namespace
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -45,7 +45,7 @@ exports[`NamespaceDelete Dialog without subscription operator Renders the compon
   <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="delete-btn"><span class="v-btn__content">
           Delete namespace
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -54,6 +54,6 @@ exports[`NamespaceDelete Dialog without subscription owner Renders the component
   <div><button type="button" class="v-btn v-btn--outlined theme--light v-size--default red--text text--darken-1" data-test="delete-btn"><span class="v-btn__content">
           Delete namespace
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;

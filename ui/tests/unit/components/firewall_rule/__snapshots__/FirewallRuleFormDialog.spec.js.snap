@@ -5,7 +5,7 @@ exports[`FirewallRuleFormDialog Button add firewall rule operator Renders the co
   <div><button type="button" disabled="disabled" class="v-btn--active primary v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Rule
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -16,7 +16,7 @@ exports[`FirewallRuleFormDialog Button add firewall rule owner Renders the compo
   <div><button type="button" class="v-btn--active primary v-btn v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Rule
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -26,7 +26,7 @@ exports[`FirewallRuleFormDialog Button edit firewall rule operator Renders the c
 <fragment-stub><span><div data-test="edit-item" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--disabled v-icon--left material-icons theme--light">edit</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -36,7 +36,7 @@ exports[`FirewallRuleFormDialog Button edit firewall rule owner Renders the comp
 <fragment-stub><span><div data-test="edit-item" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left material-icons theme--light">edit</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -47,7 +47,7 @@ exports[`FirewallRuleFormDialog Dialog creating firewall rule operator Renders t
   <div><button type="button" disabled="disabled" class="v-btn--active primary v-btn v-btn--disabled v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Rule
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -58,7 +58,7 @@ exports[`FirewallRuleFormDialog Dialog creating firewall rule owner Renders the 
   <div><button type="button" class="v-btn--active primary v-btn v-btn--text theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
           Add Rule
         </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -66,7 +66,7 @@ exports[`FirewallRuleFormDialog Dialog editing firewall rule operator Renders th
 <fragment-stub><span><div data-test="edit-item" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--disabled v-icon--left material-icons theme--light">edit</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -76,6 +76,6 @@ exports[`FirewallRuleFormDialog Dialog editing firewall rule owner Renders the c
 <fragment-stub><span><div data-test="edit-item" class="v-list-item__title">
           Edit
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left material-icons theme--light">edit</i></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;

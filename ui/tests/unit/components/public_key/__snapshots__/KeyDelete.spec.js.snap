@@ -4,7 +4,7 @@ exports[`KeyDelete Dialog private operator Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="remove-icon" class="v-icon notranslate v-icon--disabled v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -14,7 +14,7 @@ exports[`KeyDelete Dialog private owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="remove-icon" class="v-icon notranslate v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -22,7 +22,7 @@ exports[`KeyDelete Dialog public operator Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="remove-icon" class="v-icon notranslate v-icon--disabled v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -32,7 +32,7 @@ exports[`KeyDelete Dialog public owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="remove-icon" class="v-icon notranslate v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container"></div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
 
@@ -40,7 +40,7 @@ exports[`KeyDelete Icon private operator Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="remove-icon" class="v-icon notranslate v-icon--disabled v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -50,7 +50,7 @@ exports[`KeyDelete Icon private owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="remove-icon" class="v-icon notranslate v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -60,7 +60,7 @@ exports[`KeyDelete Icon public operator Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="remove-icon" class="v-icon notranslate v-icon--disabled v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
@@ -70,7 +70,7 @@ exports[`KeyDelete Icon public owner Renders the component 1`] = `
 <fragment-stub><span><div data-test="close-item" class="v-list-item__title">
           Remove
         </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="remove-icon" class="v-icon notranslate v-icon--left material-icons theme--light">delete</i></span>
-  <div role="dialog" class="v-dialog__container">
+  <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
