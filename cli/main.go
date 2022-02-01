@@ -20,7 +20,6 @@ type config struct {
 
 func main() {
 	var cfg config
-
 	if err := envconfig.Process("cli", &cfg); err != nil {
 		log.Error(err.Error())
 	}
@@ -31,7 +30,6 @@ func main() {
 	}
 
 	var cache storecache.Cache
-
 	if cfg.StoreCache {
 		cache, err = storecache.NewRedisCache(cfg.RedisURI)
 		if err != nil {
@@ -61,7 +59,6 @@ func main() {
 			return nil
 		},
 	},
-
 		&cobra.Command{
 			Use:   "del-user",
 			Short: "Usage: <username>",
@@ -76,7 +73,6 @@ func main() {
 				return nil
 			},
 		},
-
 		&cobra.Command{
 			Use:   "reset-user-password",
 			Short: "Usage: <username> <password>",
@@ -113,7 +109,6 @@ func main() {
 				return nil
 			},
 		},
-
 		&cobra.Command{
 			Use:   "add-user-namespace",
 			Short: "Usage: <username> <namespace> <role>",
@@ -131,7 +126,6 @@ func main() {
 				return nil
 			},
 		},
-
 		&cobra.Command{
 			Use:   "del-user-namespace",
 			Short: "Usage <username> <namespace>",
@@ -148,7 +142,6 @@ func main() {
 				return nil
 			},
 		},
-
 		&cobra.Command{
 			Use:   "del-namespace",
 			Short: "Usage: <namespace>",
