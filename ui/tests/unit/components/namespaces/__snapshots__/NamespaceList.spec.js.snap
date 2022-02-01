@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Namespace Enterprise version Renders the component 1`] = `
+<fragment-stub>
+  <v-list-item-stub activeclass="" link="true" tag="div">
+    <v-list-item-content-stub tag="div">
+      <v-list-item-title-stub tag="div" data-test="namespace1-namespace">namespace1</v-list-item-title-stub>
+    </v-list-item-content-stub>
+  </v-list-item-stub>
+  <v-list-item-stub activeclass="" link="true" tag="div">
+    <v-list-item-content-stub tag="div">
+      <v-list-item-title-stub tag="div" data-test="namespace2-namespace">namespace2</v-list-item-title-stub>
+    </v-list-item-content-stub>
+  </v-list-item-stub>
+</fragment-stub>
+`;
+
+exports[`Namespace Open version Renders the component 1`] = `
+<fragment-stub>
+  <v-list-item-stub activeclass="" link="true" tag="div">
+    <v-list-item-content-stub tag="div">
+      <v-list-item-title-stub tag="div" data-test="namespace1-namespace">namespace1</v-list-item-title-stub>
+    </v-list-item-content-stub>
+  </v-list-item-stub>
+  <v-list-item-stub activeclass="" link="true" tag="div">
+    <v-list-item-content-stub tag="div">
+      <v-list-item-title-stub tag="div" data-test="namespace2-namespace">namespace2</v-list-item-title-stub>
+    </v-list-item-content-stub>
+  </v-list-item-stub>
+</fragment-stub>
+`;
