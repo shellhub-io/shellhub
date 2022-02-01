@@ -12,6 +12,6 @@ func hashPassword(password string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func normalizeString(data string) string {
+func normalizeField(data string) string {
 	return strings.ToLower(data)
 }
