@@ -79,6 +79,26 @@ func ValidateFieldUsername(username string) bool {
 	return true
 }
 
+// ValidateFieldEmail validate the data for the field Email from structure models.UserData.
+func ValidateFieldEmail(email string) bool {
+	// Field's name that have a tag value.
+	const Field = "Email"
+	// Structure that contains the field above.
+	s := models.UserData{}
+	// Getting tag string from a structure's field.
+	t, ok := getValidateTag(s, Field)
+	if !ok {
+		return false
+	}
+
+	// Validating the input data against the tag got.
+	if _, err := ValidateVar(email, t); err != nil {
+		return false
+	}
+
+	return true
+}
+
 // ValidateFieldPassword validate the data for the field Password from structure models.UserPassword.
 func ValidateFieldPassword(password string) bool {
 	// Field's name that have a tag value.
