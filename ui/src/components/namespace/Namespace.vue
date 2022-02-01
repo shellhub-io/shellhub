@@ -17,19 +17,7 @@
           mdi-chevron-down
         </v-icon>
 
-        <v-list-item
-          v-for="item in namespaces"
-          :key="item.tenant_id"
-          link
-          @click="switchIn(item.tenant_id)"
-        >
-          <v-list-item-content>
-            <v-list-item-title
-              :data-test="item.name+'-namespace'"
-              v-text="item.name"
-            />
-          </v-list-item-content>
-        </v-list-item>
+        <NamespaceList data-test="namespaceList-component" />
 
         <v-list-item v-if="isEnterprise">
           <NamespaceAdd data-test="namespaceAdd-component" />
@@ -46,12 +34,15 @@
 </template>
 
 <script>
+
+import NamespaceList from '@/components/namespace/NamespaceList';
 import NamespaceAdd from '@/components/namespace/NamespaceAdd';
 
 export default {
   name: 'NamespaceMenuComponent',
 
   components: {
+    NamespaceList,
     NamespaceAdd,
   },
 
@@ -64,10 +55,6 @@ export default {
   computed: {
     namespace() {
       return this.$store.getters['namespaces/get'];
-    },
-
-    namespaces() {
-      return this.$store.getters['namespaces/list'].filter((el) => el.name !== this.namespace.name);
     },
 
     hasNamespace() {
