@@ -5,7 +5,7 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Shellhub - Documentation</title>
+    <title>ShellHub - Documentation Hub</title>
     <style>
         * {
             margin: 0;
@@ -17,11 +17,10 @@
         }
         .container {
             display: grid;
-            grid-template-rows: 300px 100%;
-            grid-template-columns: 100%;
+            grid-template-rows: 100%;
+            grid-template-columns: 70% 30%;
             grid-template-areas:
-                "header"
-                "main";
+                "header main";
             width: 100vw;
             min-height: 100vh;
             justify-content: center;
@@ -50,30 +49,39 @@
             align-items: center;
         }
 
-        .doc-item {
+        .options {
             list-style: none;
             text-align: center;
         }
-        .doc-item-button {
+        .option-button {
             display: block;
-            margin: 5px 0;
-            padding: 20px;
+            margin: 0.5em 0;
+            padding: 2em;
             text-decoration: none;
             color: #ffffff;
             background: #3b4473;
         }
-        .doc-item-button:hover {
+        .option-button:hover {
             color: #ffffff;
             background: #373a5f;
         }
-
+        
+        @media only screen and (max-width: 550px) {
+           .container {
+               grid-template-rows: 300px 100%;
+               grid-template-columns: 100%;
+               grid-template-areas:
+                "header"
+                "main";
+           }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header class="header">
             <a class="logo" href="https://www.shellhub.io/">
-                <svg class="logo-img" width="756" height="194" viewBox="0 0 756 194" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="logo-img" width="800" height="200" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0)">
                         <path d="M47.8089 131.231C47.8089 134.14 47.8089 136.835 47.8089 140.098C34.0084 140.098 22.3202 134.991 13.2372 124.847C0.0703945 110.163 -3.66137 92.9256 3.73176 74.5532C12.6739 52.0664 30.4174 42.7736 54.2865 43.696C56.2581 29.083 62.8065 17.0948 74.9169 8.58244C83.6481 2.41097 93.5053 -0.42648 104.137 -0.000863887C125.894 0.921308 146.595 16.6692 150.256 43.7668C169.408 42.4192 185.18 49.016 196.164 65.3316C203.416 76.0428 205.67 88.102 203.346 100.871C199.192 123.499 175.956 142.936 156.734 139.673C156.734 136.977 156.734 134.211 156.734 131.09C170.183 130.096 181.096 124.563 188.63 113.072C194.122 104.701 195.953 95.4084 194.334 85.6192C192.292 73.3472 185.743 64.0548 174.97 57.8832C164.198 51.7116 152.862 51.7116 140.751 55.684C142.018 40.5748 138.216 27.7352 126.669 18.1588C119.557 12.2002 111.319 9.2918 102.025 9.36272C90.0553 9.5046 80.1977 14.2573 72.4525 23.4081C64.7777 32.6298 62.6657 43.554 63.6513 55.7552C49.2877 51.0732 36.1911 52.2084 24.5029 61.3592C16.2648 67.8144 11.2657 76.3976 9.99833 86.8252C7.25229 108.248 21.6865 129.245 47.8089 131.231Z" fill="white"/>
                         <path d="M714.105 53.1318C714.105 63.4174 714.105 73.0646 714.105 83.4214C718.753 79.2362 723.541 76.9662 729.033 76.5406C740.793 75.7602 750.437 82.4282 753.961 94.2038C756.777 103.709 756.777 113.357 753.749 122.791C748.749 138.397 731.005 144.356 717.485 135.205C716.573 134.567 715.585 133.928 714.317 133.006C714.105 134.709 713.965 136.056 713.825 137.688C710.869 137.688 707.909 137.688 704.529 137.688C704.529 136.127 704.529 134.779 704.529 133.361C704.529 109.597 704.601 85.9042 704.461 62.1406C704.461 58.5938 705.445 56.6786 708.685 55.6146C710.233 55.1886 711.785 54.1958 714.105 53.1318ZM713.965 107.54C713.965 111.583 713.825 115.556 714.037 119.599C714.105 121.018 714.529 122.649 715.445 123.784C719.881 129.388 725.865 131.233 732.697 130.169C739.033 129.175 742.693 124.919 744.525 118.961C746.497 112.647 746.497 106.192 745.297 99.737C744.173 93.4946 741.425 88.245 734.949 86.1878C728.117 84.0598 721.853 85.4786 716.781 90.515C715.305 92.0046 714.317 94.4874 714.105 96.6158C713.685 100.233 713.965 103.922 713.965 107.54Z" fill="white"/>
@@ -90,16 +98,16 @@
                     </g>
                     <defs>
                         <clipPath id="clip0">
-                            <rect width="756" height="194" fill="white"/>
+                            <rect width="800" height="200" fill="white"/>
                         </clipPath>
                     </defs>
                 </svg>
             </a>
         </header>
         <main class="main">
-            <ul class="doc-list">
-                <li class="doc-item"><a class="doc-item-button" href="http://localhost:80/openapi/community/">Community</a></li>
-                <li class="doc-item"><a class="doc-item-button" href="http://localhost:80/openapi/cloud/">Cloud</a></li>
+            <ul class="options">
+                <li class="option"><a class="option-button" href="http://localhost:80/openapi/community/">Community</a></li>
+                <li class="option"><a class="option-button" href="http://localhost:80/openapi/cloud/">Cloud</a></li>
             </ul>
         </main>
     </div>
