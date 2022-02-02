@@ -7,3 +7,4 @@ content:
         message:
           type: string
           description: Unauthorized
+          example: missing or malformated jwt
