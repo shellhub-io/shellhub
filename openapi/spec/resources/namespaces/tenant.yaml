@@ -6,7 +6,7 @@ parameters:
     in: path
 get:
   summary: Get namespace
-  description: Get a namespace from its `ID`.
+  description: Get a namespace from its `tenant`.
   tags:
     - namespace
   security:
@@ -24,7 +24,7 @@ get:
       $ref: ../../shared/responses/any_internal_error.yaml
 post:
   summary: Create namespace
-  description: Create a namespace from its `ID`.
+  description: Create a namespace from its `tenant`.
   tags:
     - namespace
   security:
@@ -57,7 +57,7 @@ post:
       $ref: ../../shared/responses/any_internal_error.yaml
 put:
   summary: Edit namespace
-  description: Edit a namespace from its `ID`.
+  description: Edit a namespace from its `tenant`.
   tags:
     - namespace
   security:
@@ -90,7 +90,7 @@ put:
       $ref: ../../shared/responses/any_internal_error.yaml
 delete:
   summary: Delete namespace
-  description: Delete a namespace from its `ID`.
+  description: Delete a namespace from its `tenant`.
   tags:
     - namespace
   security:
