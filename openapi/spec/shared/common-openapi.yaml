@@ -1,6 +1,6 @@
 info:
   title: ShellHub
-  description: Shellhub's API
+  description: Shellhub's API documentation
   contact:
     email: contato@ossystems.com.br
   license:
@@ -12,6 +12,7 @@ servers:
 components:
   securitySchemes:
     Auth:
+      name: JWT
       type: http
       scheme: bearer
       bearerFormat: JWT
