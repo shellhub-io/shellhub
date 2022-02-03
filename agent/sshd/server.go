@@ -29,7 +29,9 @@ type sshConn struct {
 }
 
 func (c *sshConn) Close() error {
-	c.closeCallback(c.ctx.SessionID())
+	if id, ok := c.ctx.Value(sshserver.ContextKeySessionID).(string); ok {
+		c.closeCallback(id)
+	}
 
 	return c.Conn.Close()
 }
