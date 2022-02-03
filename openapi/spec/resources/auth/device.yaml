@@ -6,8 +6,8 @@ post:
     `X-Real-IP` header is used to set a geolocation position to device when
     `geoip` feature is enable.
 
-    Every 30 seconds, this route is hit by internal ShellHub to check device
-    availability.
+    Every 30 seconds, this route is hit by internal ShellHub to check if a 
+    device is online.
   tags:
     - device
   security:
