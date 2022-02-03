@@ -2,14 +2,16 @@ FROM node:16.9.1-alpine3.11 as openapi
 
 RUN npm install --global @redocly/openapi-cli
 
-WORKDIR /app
+RUN apk add inotify-tools
 
-RUN mkdir server
+RUN mkdir /openapi
 
-COPY openapi/server/package*.json ./server/
+COPY ./openapi/server/package*.json /openapi/server/
 
-RUN cd server && npm install
+RUN cd /openapi/server && npm install
 
-COPY openapi/. ./
+COPY ./openapi/. /openapi
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+WORKDIR /openapi
+
+ENTRYPOINT ["/openapi/entrypoint.sh"]

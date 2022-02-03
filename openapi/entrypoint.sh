@@ -1,6 +1,19 @@
 #!/bin/sh
 
-openapi preview-docs community-openapi.yaml --port 8081 &
-openapi preview-docs cloud-openapi.yaml --port 8082 &
+bundle () {
+  openapi bundle community-openapi.yaml > server/www/community-openapi.yaml &
+  openapi bundle cloud-openapi.yaml > server/www/cloud-openapi.yaml &
+}
+
+watch () {
+  echo "Watching for changes in /spec"
+  while inotifywait -q -r -e close_write "spec/"
+  do
+    bundle
+  done
+}
+
+bundle
+watch &
 
 (cd server && node index.js)
