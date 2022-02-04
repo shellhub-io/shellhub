@@ -218,7 +218,7 @@ export default {
         return hasPermission(
           this.$authorizer.role[role],
           this.$actions.namespace[action],
-        );
+        ) && this.member.role !== role;
       }
 
       return false;
