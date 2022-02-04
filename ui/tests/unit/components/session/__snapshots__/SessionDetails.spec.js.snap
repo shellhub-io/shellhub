@@ -16,13 +16,7 @@ exports[`SessionDetails Recorded is false and device is offline Renders the comp
 
       </v-toolbar-title-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
-      <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
-        <v-card-stub loaderheight="4" tag="div">
-          <!---->
-          <!---->
-          <!---->
-        </v-card-stub>
-      </v-menu-stub>
+      <!---->
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
     <v-card-text-stub tag="div">
@@ -112,15 +106,7 @@ exports[`SessionDetails Recorded is false and device is online Renders the compo
         39-5e-2a
       </v-toolbar-title-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
-      <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
-        <v-card-stub loaderheight="4" tag="div">
-          <!---->
-          <v-list-item-stub activeclass="" tag="div">
-            <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
-          </v-list-item-stub>
-          <!---->
-        </v-card-stub>
-      </v-menu-stub>
+      <!---->
     </v-toolbar-stub>
     <v-divider-stub></v-divider-stub>
     <v-card-text-stub tag="div">

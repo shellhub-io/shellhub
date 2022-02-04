@@ -205,7 +205,7 @@ describe('SessionDetails', () => {
 
     it('Renders the template with components', () => {
       expect(wrapper.find('[data-test="sessionPlay-component"]').exists()).toBe(false);
-      expect(wrapper.find('[data-test="sessionClose-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="sessionClose-component"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="sessionDeleteRecord-component"]').exists()).toBe(false);
     });
 

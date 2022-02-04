@@ -40,6 +40,7 @@
         <v-spacer />
 
         <v-menu
+          v-if="session.recorded"
           ref="menu"
           offset-y
         >
