@@ -42,10 +42,10 @@ exports[`SessionList Renders the component 1`] = `
               <td class="text-center"><i aria-hidden="true" class="v-icon notranslate mdi mdi-shield-alert theme--light error--text"></i><span class="v-tooltip v-tooltip--bottom"><!----></span></td>
               <td class="text-center"><code>00.00.00</code></td>
               <td class="text-center">
-                Monday, May 18th 2020, 12:30:28 pm
+                May 18, 2020 12:30 PM
               </td>
               <td class="text-center">
-                Monday, May 18th 2020, 12:30:30 pm
+                May 18, 2020 12:30 PM
               </td>
               <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
                 <div class="v-menu">
@@ -66,10 +66,10 @@ exports[`SessionList Renders the component 1`] = `
               <td class="text-center"><i aria-hidden="true" class="v-icon notranslate mdi mdi-shield-alert theme--light error--text"></i><span class="v-tooltip v-tooltip--bottom"><!----></span></td>
               <td class="text-center"><code>00.00.00</code></td>
               <td class="text-center">
-                Monday, May 18th 2020, 12:30:28 pm
+                May 18, 2020 12:30 PM
               </td>
               <td class="text-center">
-                Monday, May 18th 2020, 12:30:30 pm
+                May 18, 2020 12:30 PM
               </td>
               <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
                 <div class="v-menu">

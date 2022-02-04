@@ -90,11 +90,11 @@
         </template>
 
         <template #[`item.started`]="{ item }">
-          {{ item.started_at | formatDate }}
+          {{ item.started_at | formatDateCompact }}
         </template>
 
         <template #[`item.last_seen`]="{ item }">
-          {{ item.last_seen | formatDate }}
+          {{ item.last_seen | formatDateCompact }}
         </template>
 
         <template #[`item.actions`]="{ item }">
@@ -165,7 +165,7 @@
 
 import SessionClose from '@/components/session/SessionClose';
 import SessionPlay from '@/components/session/SessionPlay';
-import { formatDate, lastSeen } from '@/components/filter/date';
+import { formatDateCompact, lastSeen } from '@/components/filter/date';
 
 export default {
   name: 'SessionListComponent',
@@ -175,7 +175,7 @@ export default {
     SessionPlay,
   },
 
-  filters: { formatDate, lastSeen },
+  filters: { formatDateCompact, lastSeen },
 
   data() {
     return {
