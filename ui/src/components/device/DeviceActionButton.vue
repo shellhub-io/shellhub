@@ -118,7 +118,8 @@ export default {
 
     show: {
       type: Boolean,
-      required: true,
+      default: false,
+      required: false,
     },
   },
 

@@ -117,6 +117,7 @@ describe('NamespaceDelete', () => {
       env: {
         billingEnable: false,
       },
+      info: {},
       template: {
         'delete-btn': true,
         'namespaceDelete-dialog': false,
@@ -144,6 +145,7 @@ describe('NamespaceDelete', () => {
       env: {
         billingEnable: false,
       },
+      info: {},
       template: {
         'delete-btn': true,
         'namespaceDelete-dialog': true,
@@ -171,6 +173,7 @@ describe('NamespaceDelete', () => {
       env: {
         billingEnable: true,
       },
+      info: infoData,
       template: {
         'delete-btn': true,
         'namespaceDelete-dialog': true,
@@ -181,14 +184,14 @@ describe('NamespaceDelete', () => {
     },
   ];
 
-  const storeVuex = (active, billing, currentrole, namespace) => new Vuex.Store({
+  const storeVuex = (active, billing, currentrole, namespace, info) => new Vuex.Store({
     namespaced: true,
     state: {
       active,
       billing,
       currentrole,
       namespace,
-      info: infoData,
+      info,
     },
     getters: {
       'billing/active': (state) => state.active,
@@ -217,6 +220,7 @@ describe('NamespaceDelete', () => {
               test.computed.billing,
               currentrole,
               test.namespace,
+              test.info,
             ),
             localVue,
             stubs: ['fragment'],
@@ -239,8 +243,6 @@ describe('NamespaceDelete', () => {
           });
 
           wrapper.setData({ dialog: test.data.dialog });
-
-          if (test.env.billingEnable) wrapper.setData({ amountDue: 100 });
         });
 
         ///////
