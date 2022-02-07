@@ -154,7 +154,11 @@ func (h *Handler) EditNamespace(c gateway.Context) error {
 		switch err {
 		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
-		case services.ErrInvalidFormat:
+		case services.ErrNamespaceNameInvalid:
+			return c.NoContent(http.StatusBadRequest)
+		case services.ErrNamespaceTenantInvalid:
+			return c.NoContent(http.StatusBadRequest)
+		case services.ErrNamespaceRename:
 			return c.NoContent(http.StatusBadRequest)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)

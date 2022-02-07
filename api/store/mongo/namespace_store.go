@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -188,16 +189,24 @@ func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	return nil
 }
 
-func (s *Store) NamespaceRename(ctx context.Context, tenantID string, name string) (*models.Namespace, error) {
-	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"name": name}}); err != nil {
-		return nil, fromMongoError(err)
+// NamespaceRename renames a namespace.
+//
+// tenant is the model.Namespace's tenant from what namespace you want to change and name is the new namespace's name.
+func (s *Store) NamespaceRename(ctx context.Context, tenant string, name string) (*models.Namespace, error) {
+	ns, err := s.NamespaceGet(ctx, tenant)
+	if err != nil {
+		return nil, store.ErrNamespaceNotFound
 	}
 
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
-		logrus.Error(err)
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"name": name}}); err != nil {
+		return nil, store.ErrNamespaceRename
 	}
 
-	return s.NamespaceGet(ctx, tenantID)
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenant}, "/")); err != nil {
+		logrus.Error(store.ErrNamespaceNotFound)
+	}
+
+	return ns, err
 }
 
 func (s *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error {

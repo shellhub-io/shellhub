@@ -199,24 +199,30 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 	return members, nil
 }
 
-func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*models.Namespace, error) {
-	ns, err := s.store.NamespaceGet(ctx, tenantID)
+func (s *service) EditNamespace(ctx context.Context, tenant, name string) (*models.Namespace, error) {
+	if !validator.ValidateField(models.Namespace{}, "Name", name) {
+		return nil, ErrNamespaceNameInvalid
+	}
+
+	if !validator.ValidateField(models.Namespace{}, "TenantID", tenant) {
+		return nil, ErrNamespaceTenantInvalid
+	}
+
+	name = strings.ToLower(name)
+
+	ns, err := s.store.NamespaceRename(ctx, tenant, name)
 	if err != nil {
-		return nil, err
+		switch err {
+		case store.ErrNamespaceNotFound:
+			return nil, ErrNamespaceNotFound
+		case store.ErrNamespaceRename:
+			return nil, ErrNamespaceRename
+		default:
+			return nil, err
+		}
 	}
 
-	lowerName := strings.ToLower(name)
-	if _, err := validator.ValidateStruct(&models.Namespace{
-		Name: lowerName,
-	}); err != nil {
-		return nil, ErrInvalidFormat
-	}
-
-	if ns.Name == lowerName {
-		return nil, ErrBadRequest
-	}
-
-	return s.store.NamespaceRename(ctx, ns.TenantID, lowerName)
+	return ns, err
 }
 
 func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error) {
