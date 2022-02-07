@@ -34,7 +34,7 @@
 
         <v-card-text class="mt-4 mb-3 pb-1">
           <p
-            v-if="hasAuthorization && active && billInfo.amountDue !== null"
+            v-if="hasAuthorization && active && billInfo != undefined"
             data-test="contentSubscription-p"
           >
             Deleting the namespace will generate an invoice,
@@ -98,7 +98,6 @@ export default {
       dialog: false,
       card: null,
       elements: null,
-      amountDue: null,
       cardItems: {},
       action: 'remove',
     };
