@@ -49,6 +49,21 @@ func ValidateVar(data interface{}, tag string) ([]string, error) {
 	return nil, nil
 }
 
+func ValidateField(s interface{}, field, value string) bool {
+	// Getting tag string from a structure's field.
+	t, ok := getValidateTag(s, field)
+	if !ok {
+		return false
+	}
+
+	// Validating the input data against the tag got.
+	if _, err := ValidateVar(value, t); err != nil {
+		return false
+	}
+
+	return true
+}
+
 // ValidateFieldTag validate the data for the field Tag from structure models.Device.
 func ValidateFieldTag(tag string) bool {
 	const Tag = "required,min=3,max=255,alphanum,ascii,excludes=/@&:"
@@ -65,16 +80,7 @@ func ValidateFieldUsername(username string) bool {
 	const Field = "Username"
 	// Structure that contains the field above.
 	s := models.UserData{}
-	// Getting tag string from a structure's field.
-	t, ok := getValidateTag(s, Field)
-	if !ok {
-		return false
-	}
-
-	// Validating the input data against the tag got.
-	if _, err := ValidateVar(username, t); err != nil {
-		return false
-	}
+	ValidateField(s, Field, username)
 
 	return true
 }
@@ -85,16 +91,7 @@ func ValidateFieldEmail(email string) bool {
 	const Field = "Email"
 	// Structure that contains the field above.
 	s := models.UserData{}
-	// Getting tag string from a structure's field.
-	t, ok := getValidateTag(s, Field)
-	if !ok {
-		return false
-	}
-
-	// Validating the input data against the tag got.
-	if _, err := ValidateVar(email, t); err != nil {
-		return false
-	}
+	ValidateField(s, Field, email)
 
 	return true
 }
@@ -105,16 +102,7 @@ func ValidateFieldPassword(password string) bool {
 	const Field = "Password"
 	// Structure that contains the field above.
 	s := models.UserPassword{}
-	// Getting tag string from a structure's field.
-	t, ok := getValidateTag(s, Field)
-	if !ok {
-		return false
-	}
-
-	// Validating the input data against the tag got.
-	if _, err := ValidateVar(password, t); err != nil {
-		return false
-	}
+	ValidateField(s, Field, password)
 
 	return true
 }
