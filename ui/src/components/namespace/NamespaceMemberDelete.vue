@@ -1,32 +1,20 @@
 <template>
   <fragment>
-    <v-tooltip
-      bottom
-      :disabled="hasAuthorization"
-    >
-      <template #activator="{ on }">
-        <span v-on="on">
-          <v-list-item-title data-test="remove-item">
-            Remove
-          </v-list-item-title>
-        </span>
+    <v-list-item-icon class="mr-0">
+      <v-icon
+        left
+        data-test="remove-icon"
+        v-text="'delete'"
+      />
+    </v-list-item-icon>
 
-        <span v-on="on">
-          <v-icon
-            :disabled="!hasAuthorization"
-            left
-            data-test="remove-icon"
-            v-on="on"
-          >
-            delete
-          </v-icon>
-        </span>
-      </template>
-
-      <span>
-        You don't have this kind of authorization.
-      </span>
-    </v-tooltip>
+    <v-list-item-content>
+      <v-list-item-title
+        class="text-left"
+        data-test="remove-title"
+        v-text="'Remove'"
+      />
+    </v-list-item-content>
 
     <v-dialog
       v-model="showDialog"
@@ -89,38 +77,15 @@ export default {
     },
   },
 
-  data() {
-    return {
-      action: 'removeMember',
-    };
-  },
-
   computed: {
     showDialog: {
       get() {
-        return this.show && this.hasAuthorization;
+        return this.show;
       },
 
       set(value) {
         this.$emit('update:show', value);
       },
-    },
-
-    hasAuthorization() {
-      const ownerID = this.$store.getters['namespaces/get'].owner;
-      if (this.member.id === ownerID) {
-        return false;
-      }
-
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.namespace[this.action],
-        ) && this.member.role !== role;
-      }
-
-      return false;
     },
   },
 
