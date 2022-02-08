@@ -113,6 +113,6 @@ services:
       dockerfile: openapi/Dockerfile
       target: openapi
     volumes:
-      - ./openapi:/openapi
+      - ./openapi/spec:/openapi/spec
     networks:
       - shellhub
