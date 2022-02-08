@@ -42,7 +42,7 @@ exports[`SettingNamespace Hosted version Renders the component 1`] = `
             <v-spacer-stub tag="div"></v-spacer-stub>
             <div>
               <v-col-stub md="auto" tag="div" class="ml-auto">
-                <namespacememberformdialog-stub member="[object Object]" adduser="true" data-test="namespaceMemberFormDialogAdd-component"></namespacememberformdialog-stub>
+                <namespacememberformdialogadd-stub data-test="namespaceMemberFormDialogAdd-component"></namespacememberformdialogadd-stub>
               </v-col-stub>
             </div>
           </v-row-stub>
@@ -123,7 +123,7 @@ exports[`SettingNamespace Open version Renders the component 1`] = `
             <v-spacer-stub tag="div"></v-spacer-stub>
             <div>
               <v-col-stub md="auto" tag="div" class="ml-auto">
-                <namespacememberformdialog-stub member="[object Object]" adduser="true" data-test="namespaceMemberFormDialogAdd-component"></namespacememberformdialog-stub>
+                <namespacememberformdialogadd-stub data-test="namespaceMemberFormDialogAdd-component"></namespacememberformdialogadd-stub>
               </v-col-stub>
             </div>
           </v-row-stub>
