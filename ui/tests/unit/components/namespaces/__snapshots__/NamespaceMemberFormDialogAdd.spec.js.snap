@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NamespaceMemberFormDialogAdd Button add user has authorization - owner Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="addMember-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`NamespaceMemberFormDialogAdd Button add user has no authorization - operator Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" disabled="disabled" class="mr-2 v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="addMember-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`NamespaceMemberFormDialogAdd dialog add user has authorization - owner Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="mr-2 v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="addMember-btn"><span class="v-btn__content">
+          Add Member
+        </span></button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div class="v-dialog__container"></div>
+</fragment-stub>
+`;

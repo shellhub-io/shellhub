@@ -81,9 +81,7 @@
                   md="auto"
                   class="ml-auto"
                 >
-                  <NamespaceMemberFormDialog
-                    :add-user="true"
-                    :show.sync="namespaceMemberFormShow"
+                  <NamespaceMemberFormDialogAdd
                     data-test="namespaceMemberFormDialogAdd-component"
                     @update="refresh"
                   />
@@ -151,7 +149,7 @@
 import SettingSecurity from '@/components/setting/SettingSecurity';
 import NamespaceMemberList from '@/components/namespace/NamespaceMemberList';
 import NamespaceRename from '@/components/namespace/NamespaceRename';
-import NamespaceMemberFormDialog from '@/components/namespace/NamespaceMemberFormDialog';
+import NamespaceMemberFormDialogAdd from '@/components/namespace/NamespaceMemberFormDialogAdd';
 import NamespaceDelete from '@/components/namespace/NamespaceDelete';
 
 export default {
@@ -161,7 +159,7 @@ export default {
     NamespaceDelete,
     NamespaceMemberList,
     NamespaceRename,
-    NamespaceMemberFormDialog,
+    NamespaceMemberFormDialogAdd,
     SettingSecurity,
   },
 
