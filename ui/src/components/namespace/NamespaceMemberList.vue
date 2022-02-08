@@ -47,14 +47,33 @@
                 />
               </v-list-item>
 
-              <v-list-item @click.stop="showNamespaceMemberDelete(members.indexOf(item))">
-                <NamespaceMemberDelete
-                  :member="item"
-                  :show.sync="namespaceMemberDeleteShow[members.indexOf(item)]"
-                  data-test="namespaceMemberDelete-component"
-                  @update="refresh"
-                />
-              </v-list-item>
+              <v-tooltip
+                bottom
+                :disabled="hasAuthorizationRemoveMember"
+              >
+                <template #activator="{ on, attrs }">
+                  <div
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-list-item
+                      :disabled="!hasAuthorizationRemoveMember"
+                      @click.stop="showNamespaceMemberDelete(members.indexOf(item))"
+                    >
+                      <NamespaceMemberDelete
+                        :member="item"
+                        :show.sync="namespaceMemberDeleteShow[members.indexOf(item)]"
+                        data-test="namespaceMemberDelete-component"
+                        @update="refresh"
+                      />
+                    </v-list-item>
+                  </div>
+                </template>
+
+                <span>
+                  You don't have this kind of authorization.
+                </span>
+              </v-tooltip>
             </v-list>
           </v-menu>
         </template>
@@ -68,8 +87,12 @@
 import NamespaceMemberDelete from '@/components/namespace/NamespaceMemberDelete';
 import NamespaceMemberFormDialog from '@/components/namespace/NamespaceMemberFormDialog';
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'NamespaceMemberList',
+
+  filters: { hasPermission },
 
   components: {
     NamespaceMemberDelete,
@@ -88,6 +111,7 @@ export default {
       menu: false,
       namespaceMemberFormShow: [],
       namespaceMemberDeleteShow: [],
+      removeMemberAction: 'removeMember',
       headers: [
         {
           text: 'Username',
@@ -118,6 +142,18 @@ export default {
 
     members() {
       return this.namespace.members;
+    },
+
+    hasAuthorizationRemoveMember() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.namespace[this.removeMemberAction],
+        );
+      }
+
+      return false;
     },
   },
 

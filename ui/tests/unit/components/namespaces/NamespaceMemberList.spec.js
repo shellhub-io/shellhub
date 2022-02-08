@@ -2,11 +2,16 @@ import Vuex from 'vuex';
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import NamespaceMemberList from '@/components/namespace/NamespaceMemberList';
+import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('NamespaceMemberList', () => {
   const localVue = createLocalVue();
   const vuetify = new Vuetify();
   localVue.use(Vuex);
+
+  let wrapper;
+
+  const tenantGlobal = 'xxxxxxxx';
 
   const namespace = {
     name: 'nsxxx',
@@ -34,13 +39,68 @@ describe('NamespaceMemberList', () => {
     },
   ];
 
-  const store = new Vuex.Store({
+  const tests = [
+    {
+      description: 'List data when user has owner role',
+      variables: {
+        tenant: tenantGlobal,
+      },
+      role: {
+        type: 'owner',
+        permission: true,
+      },
+      props: {
+        namespace,
+      },
+      data: {
+        menu: false,
+        namespaceMemberFormShow: [],
+        namespaceMemberDeleteShow: [],
+        removeMemberAction: 'removeMember',
+        headers,
+      },
+      computed: {
+        tenant: tenantGlobal,
+        members: namespace.members,
+        hasAuthorizationRemoveMember: true,
+      },
+    },
+    {
+      description: 'List data when user has observer role',
+      variables: {
+        tenant: tenantGlobal,
+      },
+      role: {
+        type: 'observer',
+        permission: false,
+      },
+      props: {
+        namespace,
+      },
+      data: {
+        menu: false,
+        namespaceMemberFormShow: [],
+        namespaceMemberDeleteShow: [],
+        removeMemberAction: 'removeMember',
+        headers,
+      },
+      computed: {
+        tenant: tenantGlobal,
+        members: namespace.members,
+        hasAuthorizationRemoveMember: false,
+      },
+    },
+  ];
+
+  const storeVuex = (tenant, currentRole) => new Vuex.Store({
     namespaced: true,
     state: {
-      tenant: 'xxxx',
+      tenant,
+      currentRole,
     },
     getters: {
       'auth/tenant': (state) => state.tenant,
+      'auth/role': (state) => state.currentRole,
     },
     actions: {
       'snackbar/showSnackbarErrorAssociation': () => {},
@@ -49,53 +109,66 @@ describe('NamespaceMemberList', () => {
     },
   });
 
-  const wrapper = shallowMount(NamespaceMemberList, {
-    store,
-    localVue,
-    stubs: ['fragment'],
-    propsData: { namespace },
-    vuetify,
-  });
+  tests.forEach((test) => {
+    describe(`${test.description}`, () => {
+      beforeEach(() => {
+        wrapper = shallowMount(NamespaceMemberList, {
+          store: storeVuex(
+            test.variables.tenant,
+            test.role.type,
+          ),
+          localVue,
+          stubs: ['fragment'],
+          propsData: { namespace: test.props.namespace },
+          vuetify,
+          mocks: {
+            $authorizer: authorizer,
+            $actions: actions,
+          },
+        });
+      });
 
-  ///////
-  // Component Rendering
-  ///////
+      ///////
+      // Component Rendering
+      //////
 
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
+      it('Is a Vue instance', () => {
+        expect(wrapper).toBeTruthy();
+      });
+      it('Renders the component', () => {
+        expect(wrapper.html()).toMatchSnapshot();
+      });
 
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+      ///////
+      // Data checking
+      //////
 
-  ///////
-  // Data and Props checking
-  ///////
+      it('Receive data in props', () => {
+        Object.keys(test.props).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.props[item]);
+        });
+      });
+      it('Compare data with default value', () => {
+        Object.keys(test.data).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.data[item]);
+        });
+      });
+      it('Process data in the computed', () => {
+        Object.keys(test.computed).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.computed[item]);
+        });
+      });
 
-  it('Receive data in props', () => {
-    expect(wrapper.vm.namespace).toEqual(namespace);
-  });
+      // ///////
+      // HTML validation
+      ///////
 
-  it('Compares data with default value', () => {
-    expect(wrapper.vm.menu).toEqual(false);
-    expect(wrapper.vm.namespaceMemberFormShow).toEqual([]);
-    expect(wrapper.vm.namespaceMemberDeleteShow).toEqual([]);
-    expect(wrapper.vm.headers).toEqual(headers);
-  });
+      it('Renders the template with data', () => {
+        const dt = wrapper.find('[data-test="dataTable-field"]');
+        const dataTableProps = dt.vm.$options.propsData;
 
-  it('Proccess data in the computed', () => {
-    expect(wrapper.vm.tenant).toEqual('xxxx');
-  });
-
-  ///////
-  // HTML validation
-  ///////
-
-  it('Renders the template with data', () => {
-    const dt = wrapper.find('[data-test="dataTable-field"]');
-    const dataTableProps = dt.vm.$options.propsData;
-
-    expect(dataTableProps.items).toHaveLength(namespace.members.length);
+        expect(dataTableProps.items).toHaveLength(namespace.members.length);
+      });
+    });
   });
 });
