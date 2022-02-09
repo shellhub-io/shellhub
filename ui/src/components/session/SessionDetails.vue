@@ -62,7 +62,7 @@
 
           <v-card>
             <v-list-item
-              v-if="session.recorded"
+              v-if="session.recorded && isEnterprise"
               @click.stop="openDialog('sessionPlayDialog')"
             >
               <SessionPlay
@@ -251,6 +251,12 @@ export default {
       sessionDeleteRecord: false,
       hide: true,
     };
+  },
+
+  computed: {
+    isEnterprise() {
+      return this.$env.isEnterprise;
+    },
   },
 
   async created() {
