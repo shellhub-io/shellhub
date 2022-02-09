@@ -1,57 +1,20 @@
 <template>
   <fragment>
-    <v-tooltip
-      v-if="addUser"
-      bottom
-      :disabled="hasAuthorization"
-    >
-      <template #activator="{ on }">
-        <div v-on="on">
-          <v-btn
-            :disabled="!hasAuthorization"
-            class="mr-2"
-            color="primary"
-            data-test="add-btn"
-            @click="setShowDialog()"
-          >
-            Add Member
-          </v-btn>
-        </div>
-      </template>
+    <v-list-item-icon class="mr-0">
+      <v-icon
+        left
+        data-test="remove-icon"
+        v-text="'mdi-pencil'"
+      />
+    </v-list-item-icon>
 
-      <span>
-        You don't have this kind of authorization.
-      </span>
-    </v-tooltip>
-
-    <v-tooltip
-      v-else
-      bottom
-      :disabled="hasAuthorization"
-    >
-      <template #activator="{ on }">
-        <span v-on="on">
-          <v-list-item-title data-test="edit-list">
-            Edit
-          </v-list-item-title>
-        </span>
-
-        <span v-on="on">
-          <v-icon
-            :disabled="!hasAuthorization"
-            left
-            data-test="edit-icon"
-            v-on="on"
-          >
-            mdi-pencil
-          </v-icon>
-        </span>
-      </template>
-
-      <span>
-        You don't have this kind of authorization.
-      </span>
-    </v-tooltip>
+    <v-list-item-content>
+      <v-list-item-title
+        class="text-left"
+        data-test="edit-title"
+        v-text="'Edit'"
+      />
+    </v-list-item-content>
 
     <v-dialog
       v-model="showDialog"
@@ -59,9 +22,11 @@
       @click:outside="close"
     >
       <v-card data-test="namespaceNewMember-dialog">
-        <v-card-title class="headline primary">
-          {{ addUser ? 'Add member to namespace' : 'Update member role' }}
-        </v-card-title>
+        <v-card-title
+          class="headline primary"
+          data-test="text-title"
+          v-text="'Update member role'"
+        />
 
         <ValidationObserver
           ref="obs"
@@ -77,7 +42,7 @@
             >
               <v-text-field
                 v-model="memberLocal.username"
-                :disabled="!addUser"
+                :disabled="true"
                 label="Username"
                 :error-messages="errors"
                 require
@@ -113,31 +78,18 @@
             <v-spacer />
             <v-btn
               text
-              data-test="dialogClose-btn"
+              data-test="close-btn"
               @click="close()"
-            >
-              Close
-            </v-btn>
+              v-text="'Close'"
+            />
 
             <v-btn
-              v-if="addUser"
               color="primary"
               text
-              data-test="dialogAdd-btn"
-              @click="passes(addMember)"
-            >
-              Add
-            </v-btn>
-
-            <v-btn
-              v-else
-              color="primary"
-              text
-              data-test="dialogEdit-btn"
+              data-test="edit-btn"
               @click="passes(editMember)"
-            >
-              Edit
-            </v-btn>
+              v-text="'Edit'"
+            />
           </v-card-actions>
         </ValidationObserver>
       </v-card>
@@ -171,11 +123,6 @@ export default {
       default: Object,
     },
 
-    addUser: {
-      type: Boolean,
-      required: true,
-    },
-
     show: {
       type: Boolean,
       required: false,
@@ -195,33 +142,12 @@ export default {
   computed: {
     showDialog: {
       get() {
-        return this.show && this.hasAuthorization;
+        return this.show;
       },
 
       set(value) {
         this.$emit('show', value);
       },
-    },
-
-    hasAuthorization() {
-      const ownerID = this.$store.getters['namespaces/get'].owner;
-      if (this.member.id === ownerID) {
-        return false;
-      }
-
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        let action = '';
-        if (this.addUser) action = 'addMember';
-        else action = 'removeMember';
-
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.namespace[action],
-        ) && this.member.role !== role;
-      }
-
-      return false;
     },
   },
 
@@ -235,40 +161,7 @@ export default {
 
   methods: {
     setLocalVariable() {
-      if (this.addUser) {
-        this.memberLocal = {
-          id: '',
-          username: '',
-          selectedRole: '',
-        };
-      } else {
-        this.memberLocal = { ...this.member, selectedRole: this.member.role };
-      }
-    },
-
-    async addMember() {
-      try {
-        await this.$store.dispatch('namespaces/addUser', {
-          username: this.memberLocal.username,
-          tenant_id: this.$store.getters['auth/tenant'],
-          role: this.memberLocal.selectedRole,
-        });
-
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceNewMember);
-        this.update();
-      } catch (error) {
-        if (error.response.status === 404) {
-          this.$refs.obs.setErrors({
-            username: 'The username doesn\'t exist.',
-          });
-        } else if (error.response.status === 409) {
-          this.$refs.obs.setErrors({
-            username: 'The username has already been added to namespace.',
-          });
-        } else {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.namespaceNewMember);
-        }
-      }
+      this.memberLocal = { ...this.member, selectedRole: this.member.role };
     },
 
     async editMember() {
@@ -303,10 +196,6 @@ export default {
     update() {
       this.$emit('update');
       this.close();
-    },
-
-    setShowDialog() {
-      this.$emit('update:show', true);
     },
 
     close() {

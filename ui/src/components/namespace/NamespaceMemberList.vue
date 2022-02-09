@@ -37,15 +37,33 @@
             </template>
 
             <v-list>
-              <v-list-item @click.stop="showNamespaceMemberForm(members.indexOf(item))">
-                <NamespaceMemberFormDialog
-                  :add-user="false"
-                  :member="item"
-                  :show.sync="namespaceMemberFormShow[members.indexOf(item)]"
-                  data-test="NamespaceMemberFormDialogEdit-component"
-                  @update="refresh"
-                />
-              </v-list-item>
+              <v-tooltip
+                bottom
+                :disabled="hasAuthorizationEditMember"
+              >
+                <template #activator="{ on, attrs }">
+                  <div
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-list-item
+                      :disabled="!hasAuthorizationEditMember"
+                      @click.stop="showNamespaceMemberFormEdit(members.indexOf(item))"
+                    >
+                      <NamespaceMemberFormDialogEdit
+                        :member="item"
+                        :show.sync="namespaceMemberFormShow[members.indexOf(item)]"
+                        data-test="NamespaceMemberFormDialogEdit-component"
+                        @update="refresh"
+                      />
+                    </v-list-item>
+                  </div>
+                </template>
+
+                <span>
+                  You don't have this kind of authorization.
+                </span>
+              </v-tooltip>
 
               <v-tooltip
                 bottom
@@ -84,8 +102,8 @@
 
 <script>
 
+import NamespaceMemberFormDialogEdit from '@/components/namespace/NamespaceMemberFormDialogEdit';
 import NamespaceMemberDelete from '@/components/namespace/NamespaceMemberDelete';
-import NamespaceMemberFormDialog from '@/components/namespace/NamespaceMemberFormDialog';
 
 import hasPermission from '@/components/filter/permission';
 
@@ -95,8 +113,8 @@ export default {
   filters: { hasPermission },
 
   components: {
+    NamespaceMemberFormDialogEdit,
     NamespaceMemberDelete,
-    NamespaceMemberFormDialog,
   },
 
   props: {
@@ -111,6 +129,7 @@ export default {
       menu: false,
       namespaceMemberFormShow: [],
       namespaceMemberDeleteShow: [],
+      editMemberAction: 'editMember',
       removeMemberAction: 'removeMember',
       headers: [
         {
@@ -144,6 +163,18 @@ export default {
       return this.namespace.members;
     },
 
+    hasAuthorizationEditMember() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.namespace[this.editMemberAction],
+        );
+      }
+
+      return false;
+    },
+
     hasAuthorizationRemoveMember() {
       const role = this.$store.getters['auth/role'];
       if (role !== '') {
@@ -162,7 +193,7 @@ export default {
       this.getNamespace();
     },
 
-    showNamespaceMemberForm(index) {
+    showNamespaceMemberFormEdit(index) {
       this.namespaceMemberFormShow[index] = this.namespaceMemberFormShow[index] === undefined
         ? true : !this.namespaceMemberFormShow[index];
       this.$set(this.namespaceMemberFormShow, index, this.namespaceMemberFormShow[index]);
