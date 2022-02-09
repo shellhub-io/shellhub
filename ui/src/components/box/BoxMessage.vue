@@ -59,9 +59,7 @@
           v-if="typeMessage == 'firewall'"
           @click="firewallRuleCreateShow = !firewallRuleCreateShow"
         >
-          <FirewallRuleEdit
-            :create-rule="true"
-            :show.sync="firewallRuleCreateShow"
+          <FirewallRuleFormDialogAdd
             @update="refreshFirewallRule"
           />
         </span>
@@ -84,7 +82,7 @@
 <script>
 
 import DeviceAdd from '@/components/device/DeviceAdd';
-import FirewallRuleEdit from '@/components/firewall_rule/FirewallRuleFormDialog';
+import FirewallRuleFormDialogAdd from '@/components/firewall_rule/FirewallRuleFormDialogAdd';
 import PublicKeyCreate from '@/components/public_key/KeyFormDialog';
 
 export default {
@@ -92,7 +90,7 @@ export default {
 
   components: {
     DeviceAdd,
-    FirewallRuleEdit,
+    FirewallRuleFormDialogAdd,
     PublicKeyCreate,
   },
 

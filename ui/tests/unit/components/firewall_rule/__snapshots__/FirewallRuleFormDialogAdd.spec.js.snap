@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FirewallRuleFormDialog Dialog closed - operator Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn">Add Rule</button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Dialog closed - owner Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn">Add Rule</button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`FirewallRuleFormDialog Dialog opened - owner Renders the component 1`] = `
+<fragment-stub>
+  <div><button type="button" class="v-btn v-btn--is-elevated v-btn--has-bg theme--light v-size--default primary" data-test="add-btn">Add Rule</button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+  <div class="v-dialog__container"></div>
+</fragment-stub>
+`;

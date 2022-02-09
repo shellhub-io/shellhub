@@ -105,7 +105,7 @@ describe('FirewallRule', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="firewallRuleCreate-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="FirewallRuleFormDialogAdd-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="boxMessageFirewall-component"]').exists()).toBe(true);
     });
   });
@@ -160,7 +160,7 @@ describe('FirewallRule', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="firewallRuleCreate-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="FirewallRuleFormDialogAdd-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="boxMessageFirewall-component"]').exists()).toBe(false);
     });
   });
