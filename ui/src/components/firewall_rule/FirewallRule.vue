@@ -15,14 +15,10 @@
       <v-spacer />
       <v-spacer />
 
-      <span @click="firewallRuleCreateShow = !firewallRuleCreateShow">
-        <FirewallRuleCreate
-          :create-rule="true"
-          :show.sync="firewallRuleCreateShow"
-          data-test="firewallRuleCreate-component"
-          @update="refresh"
-        />
-      </span>
+      <FirewallRuleFormDialogAdd
+        data-test="FirewallRuleFormDialogAdd-component"
+        @update="refresh"
+      />
     </div>
 
     <p v-if="showHelp">
@@ -47,14 +43,14 @@
 
 <script>
 
-import FirewallRuleCreate from '@/components/firewall_rule/FirewallRuleFormDialog';
+import FirewallRuleFormDialogAdd from '@/components/firewall_rule/FirewallRuleFormDialogAdd';
 import BoxMessageFirewall from '@/components/box/BoxMessage';
 
 export default {
   name: 'FirewallRuleComponent',
 
   components: {
-    FirewallRuleCreate,
+    FirewallRuleFormDialogAdd,
     BoxMessageFirewall,
   },
 

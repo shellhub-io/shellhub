@@ -5,16 +5,16 @@ exports[`FirewallRule With firewall rules Renders the component 1`] = `
   <div class="d-flex pa-0 align-center">
     <h1>Firewall Rules</h1> <button type="button" class="ml-2 v-btn v-btn--icon v-btn--round theme--light v-size--x-small"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-help-circle theme--light"></i></span></button>
     <div class="spacer"></div>
-    <div class="spacer"></div> <span><fragment-stub data-test="firewallRuleCreate-component"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
-          Add Rule
-        </span></button>
-  </div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div class="v-dialog__container">
-    <!---->
+    <div class="spacer"></div>
+    <fragment-stub data-test="FirewallRuleFormDialogAdd-component">
+      <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn">Add Rule</button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
+      <div class="v-dialog__container">
+        <!---->
+      </div>
+    </fragment-stub>
   </div>
-</fragment-stub></span></div>
-<!---->
-<div class="mt-2 v-card v-sheet theme--light"></div>
+  <!---->
+  <div class="mt-2 v-card v-sheet theme--light"></div>
 </fragment-stub>
 `;
 
@@ -23,46 +23,43 @@ exports[`FirewallRule Without firewall rules Renders the component 1`] = `
   <div class="d-flex pa-0 align-center">
     <h1>Firewall Rules</h1> <button type="button" class="ml-2 v-btn v-btn--icon v-btn--round theme--light v-size--x-small"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-help-circle theme--light"></i></span></button>
     <div class="spacer"></div>
-    <div class="spacer"></div> <span><fragment-stub data-test="firewallRuleCreate-component"><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
-          Add Rule
-        </span></button>
-  </div><span class="v-tooltip v-tooltip--bottom"><!----></span>
-  <div class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub></span></div>
-<!---->
-<div class="mt-2 v-card v-sheet theme--light">
-  <!---->
-  <fragment-stub data-test="boxMessageFirewall-component">
-    <div class="mx-auto py-6 v-card v-sheet v-sheet--outlined theme--light">
-      <div class="v-card__title justify-center">
-        <div><i aria-hidden="true" data-test="boxMessage-icon" class="v-icon notranslate material-icons theme--light" style="font-size: 40px;">security</i></div>
-      </div>
-      <div class="v-card__title justify-center">
-        <div data-test="boxMessage-title" class="headline">
-          Looks like you don't have any Firewall Rule
-        </div>
-      </div>
-      <div tabindex="-1" class="text-center listText v-list-item theme--light">
-        <div data-test="0-boxMessage-text" class="v-list-item__content justify-center py-0">ShellHub provides flexible firewall for filtering SSH connections.
-          It gives a fine-grained control over which SSH connections reach the devices.</div>
-      </div>
-      <div tabindex="-1" class="text-center listText v-list-item theme--light">
-        <div data-test="1-boxMessage-text" class="v-list-item__content justify-center py-0 pt-2">Using Firewall Rules you can deny or allow SSH connections from specific
-          IP address to a specific or a group of devices using a given username.</div>
-      </div>
-      <div class="v-card__actions justify-center pt-8 pb-0">
-        <!----> <span><fragment-stub><span class="v-tooltip v-tooltip--bottom"><!----><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn"><span class="v-btn__content">
-          Add Rule
-        </span></button>
-      </div></span>
+    <div class="spacer"></div>
+    <fragment-stub data-test="FirewallRuleFormDialogAdd-component">
+      <div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn">Add Rule</button></div><span class="v-tooltip v-tooltip--bottom"><!----></span>
       <div class="v-dialog__container">
         <!---->
       </div>
-  </fragment-stub></span>
-</div>
-</div>
+    </fragment-stub>
+  </div>
+  <!---->
+  <div class="mt-2 v-card v-sheet theme--light">
+    <!---->
+    <fragment-stub data-test="boxMessageFirewall-component">
+      <div class="mx-auto py-6 v-card v-sheet v-sheet--outlined theme--light">
+        <div class="v-card__title justify-center">
+          <div><i aria-hidden="true" data-test="boxMessage-icon" class="v-icon notranslate material-icons theme--light" style="font-size: 40px;">security</i></div>
+        </div>
+        <div class="v-card__title justify-center">
+          <div data-test="boxMessage-title" class="headline">
+            Looks like you don't have any Firewall Rule
+          </div>
+        </div>
+        <div tabindex="-1" class="text-center listText v-list-item theme--light">
+          <div data-test="0-boxMessage-text" class="v-list-item__content justify-center py-0">ShellHub provides flexible firewall for filtering SSH connections.
+            It gives a fine-grained control over which SSH connections reach the devices.</div>
+        </div>
+        <div tabindex="-1" class="text-center listText v-list-item theme--light">
+          <div data-test="1-boxMessage-text" class="v-list-item__content justify-center py-0 pt-2">Using Firewall Rules you can deny or allow SSH connections from specific
+            IP address to a specific or a group of devices using a given username.</div>
+        </div>
+        <div class="v-card__actions justify-center pt-8 pb-0">
+          <!----> <span><fragment-stub><span class="v-tooltip v-tooltip--bottom"><!----><div><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--has-bg theme--light v-size--default" data-test="add-btn">Add Rule</button></div></span>
+          <div class="v-dialog__container">
+            <!---->
+          </div>
+    </fragment-stub></span>
+  </div>
+  </div>
 </fragment-stub>
 </div>
 </fragment-stub>
