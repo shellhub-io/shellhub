@@ -11,12 +11,26 @@ describe('SessionList', () => {
 
   localVue.use(Vuex);
 
-  let wrapper;
+  const numberSessionsGlobal = 2;
+  const sessionPlayShow = [false, false];
+  const sessionCloseShow = [false, false];
 
-  const status = true;
-  const numberSessions = 2;
+  const pagination = {
+    groupBy: [],
+    groupDesc: [],
+    itemsPerPage: 10,
+    multiSort: false,
+    mustSort: false,
+    page: 1,
+    sortBy: [
+      'started_at',
+    ],
+    sortDesc: [
+      true,
+    ],
+  };
 
-  const sessions = [
+  const sessionsGlobal = [
     {
       uid: '8c354a00',
       device_uid: 'a582b47a',
@@ -118,12 +132,54 @@ describe('SessionList', () => {
     },
   ];
 
-  const store = new Vuex.Store({
+  const tests = [
+    {
+      description: 'Sessions has enterprise version',
+      variables: {
+        sessions: sessionsGlobal,
+        numberSessions: numberSessionsGlobal,
+        enterprise: true,
+      },
+      data: {
+        menu: false,
+        pagination,
+        sessionPlayShow,
+        sessionCloseShow,
+        headers,
+      },
+      computed: {
+        getListSessions: sessionsGlobal,
+        getNumberSessions: numberSessionsGlobal,
+        isEnterprise: true,
+      },
+    },
+    {
+      description: 'Sessions has no enterprise version',
+      variables: {
+        sessions: sessionsGlobal,
+        numberSessions: numberSessionsGlobal,
+        enterprise: false,
+      },
+      data: {
+        menu: false,
+        pagination,
+        sessionPlayShow,
+        sessionCloseShow,
+        headers,
+      },
+      computed: {
+        getListSessions: sessionsGlobal,
+        getNumberSessions: numberSessionsGlobal,
+        isEnterprise: false,
+      },
+    },
+  ];
+
+  const storeVuex = (sessions, numberSessions) => new Vuex.Store({
     namespaced: true,
     state: {
       sessions,
       numberSessions,
-      status,
     },
     getters: {
       'sessions/list': (state) => state.sessions,
@@ -135,56 +191,63 @@ describe('SessionList', () => {
     },
   });
 
-  beforeEach(() => {
-    timezoneMock.register('UTC');
+  tests.forEach((test) => {
+    describe(`${test.description}`, () => {
+      timezoneMock.register('UTC');
 
-    wrapper = mount(SessionList, {
-      store,
-      localVue,
-      stubs: ['fragment', 'router-link'],
-      vuetify,
-      mocks: {
-        $authorizer: authorizer,
-        $actions: actions,
-        $env: (isEnterprise) => isEnterprise,
-      },
+      const wrapper = mount(SessionList, {
+        store: storeVuex(
+          test.variables.sessions,
+          test.variables.numberSessions,
+        ),
+        localVue,
+        stubs: ['fragment', 'router-link'],
+        vuetify,
+        mocks: {
+          $authorizer: authorizer,
+          $actions: actions,
+          $env: {
+            isEnterprise: test.variables.enterprise,
+          },
+        },
+      });
+
+      ///////
+      // Component Rendering
+      //////
+
+      it('Is a Vue instance', () => {
+        expect(wrapper).toBeTruthy();
+      });
+      it('Renders the component', () => {
+        expect(wrapper.html()).toMatchSnapshot();
+      });
+
+      ///////
+      // Data checking
+      //////
+
+      it('Compare data with default value', () => {
+        Object.keys(test.data).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.data[item]);
+        });
+      });
+      it('Process data in the computed', () => {
+        Object.keys(test.computed).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.computed[item]);
+        });
+      });
+
+      //////
+      // HTML validation
+      //////
+
+      it('Renders the template with data', () => {
+        const dt = wrapper.find('[data-test="dataTable-field"]');
+        const dataTableProps = dt.vm.$options.propsData;
+
+        expect(dataTableProps.items).toHaveLength(numberSessionsGlobal);
+      });
     });
-  });
-
-  ///////
-  // Component Rendering
-  //////
-
-  it('Is a Vue instance', () => {
-    expect(wrapper).toBeTruthy();
-  });
-  it('Renders the component', () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  ///////
-  // Data and Props checking
-  //////
-
-  it('Compare data with default value', () => {
-    expect(wrapper.vm.menu).toEqual(false);
-    expect(wrapper.vm.sessionPlayShow).toEqual([false, false]);
-    expect(wrapper.vm.sessionCloseShow).toEqual([false, false]);
-    expect(wrapper.vm.headers).toEqual(headers);
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.getListSessions).toEqual(sessions);
-    expect(wrapper.vm.getNumberSessions).toEqual(numberSessions);
-  });
-
-  //////
-  // HTML validation
-  //////
-
-  it('Renders the template with data', () => {
-    const dt = wrapper.find('[data-test="dataTable-field"]');
-    const dataTableProps = dt.vm.$options.propsData;
-
-    expect(dataTableProps.items).toHaveLength(numberSessions);
   });
 });

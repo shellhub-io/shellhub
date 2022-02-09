@@ -130,7 +130,7 @@
               </v-list-item>
 
               <v-list-item
-                v-if="item.authenticated && item.recorded"
+                v-if="item.authenticated && item.recorded && isEnterprise"
                 @click.stop="showSessionPlay(getListSessions.indexOf(item))"
               >
                 <SessionPlay
@@ -235,6 +235,10 @@ export default {
 
     getNumberSessions() {
       return this.$store.getters['sessions/getNumberSessions'];
+    },
+
+    isEnterprise() {
+      return this.$env.isEnterprise;
     },
   },
 

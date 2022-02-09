@@ -1,8 +1,5 @@
 <template>
-  <fragment
-    v-if="hidden()"
-    data-test="render-fragment"
-  >
+  <fragment>
     <v-tooltip
       v-if="recorded"
       :disabled="hasAuthorization"
@@ -429,10 +426,6 @@ export default {
           interval * (1 / this.defaultSpeed),
         );
       }
-    },
-
-    hidden() {
-      return this.$env.isEnterprise;
     },
   },
 };
