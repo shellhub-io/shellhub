@@ -1,7 +1,13 @@
 # base stage
 FROM golang:1.17.6-alpine3.14 AS base
 
+# target build flags
+ARG DB_NAME
 ARG GOPROXY
+ARG BILLING
+ARG CLOUD
+ARG CACHE
+ARG ENTERPRISE
 
 RUN apk add --no-cache git ca-certificates
 
@@ -18,7 +24,12 @@ RUN go mod download
 # builder stage
 FROM base AS builder
 
+ARG DB_NAME
 ARG GOPROXY
+ARG BILLING
+ARG CLOUD
+ARG CACHE
+ARG ENTERPRISE
 
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
 COPY ./api .
@@ -34,8 +45,26 @@ RUN go build
 # development stage
 FROM base AS development
 
+# override envs in case of build args
 ARG GOPROXY
 ENV GOPROXY ${GOPROXY}
+
+ARG DB_NAME
+ENV MONGO_DB_NAME ${DB_NAME}
+
+ARG ENTERPRISE
+ENV SHELLHUB_ENTERPRISE ${ENTERPRISE}
+
+ARG CLOUD
+ENV SHELLHUB_CLOUD ${CLOUD}
+
+ARG BILLING
+ENV SHELLHUB_BILLING ${BILLING}
+
+ARG CACHE
+ENV SHELLHUB_STORE_CACHE ${CACHE}
+
+# install deps
 
 RUN apk add --update openssl build-base docker-cli
 RUN go install github.com/markbates/refresh@v1.11.1 && \

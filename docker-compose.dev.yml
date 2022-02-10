@@ -27,6 +27,7 @@ services:
       network: host
       args:
         - GOPROXY=${SHELLHUB_GOPROXY}
+        - DB_NAME=${MONGO_DB_NAME}
     volumes:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
@@ -35,6 +36,7 @@ services:
     environment:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
+      - SHELLHUB_BILLING=${SHELLHUB_BILLING}
   ui:
     image: ui
     build:
@@ -95,6 +97,8 @@ services:
       context: .
       dockerfile: cli/Dockerfile
       target: development
+      args:
+        - DB_NAME=${MONGO_DB_NAME}
     entrypoint: /entrypoint.sh
     volumes:
       - ./cli:/go/src/github.com/shellhub-io/shellhub/cli

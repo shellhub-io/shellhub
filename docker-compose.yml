@@ -26,9 +26,6 @@ services:
     environment:
       - PRIVATE_KEY=/run/secrets/api_private_key
       - PUBLIC_KEY=/run/secrets/api_public_key
-      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
-      - SHELLHUB_BILLING=${SHELLHUB_BILLING}
-      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - STORE_CACHE=${SHELLHUB_STORE_CACHE}
       - GEOIP=${SHELLHUB_GEOIP}
       - MAXMIND_LICENSE=${SHELLHUB_MAXMIND_LICENSE}

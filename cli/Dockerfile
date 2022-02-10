@@ -1,6 +1,9 @@
 # base stage
 FROM golang:1.17.6-alpine3.14 AS base
 
+# target build flags
+ARG DB_NAME
+
 RUN apk add --no-cache git ca-certificates
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
@@ -17,6 +20,8 @@ RUN go mod download
 # builder stage
 FROM base AS builder
 
+ARG DB_NAME
+
 COPY ./api $GOPATH/src/github.com/shellhub-io/shellhub/api
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
 COPY ./cli .
@@ -31,6 +36,9 @@ RUN go build
 
 # development stage
 FROM base AS development
+
+ARG DB_NAME
+ENV MONGO_DB_NAME ${DB_NAME}
 
 RUN apk add --update openssl build-base docker-cli
 RUN go install github.com/markbates/refresh@v1.11.1 && \
