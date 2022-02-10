@@ -9,8 +9,7 @@
         <div v-on="on">
           <v-btn
             :disabled="!hasAuthorization"
-            class="v-btn--active primary"
-            text
+            color="primary"
             data-test="add-btn"
           >
             Add Rule
