@@ -13,9 +13,10 @@ import (
 )
 
 type config struct {
-	MongoURI   string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
-	RedisURI   string `envconfig:"redis_uri" default:"redis://redis:6379"`
-	StoreCache bool   `envconfig:"store_cache" default:"false"`
+	MongoURI    string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+	RedisURI    string `envconfig:"redis_uri" default:"redis://redis:6379"`
+	StoreCache  bool   `envconfig:"store_cache" default:"false"`
+	MongoDBName string `envconfig:"mongo_db_name" default:"main"`
 }
 
 func main() {
@@ -39,7 +40,7 @@ func main() {
 		cache = storecache.NewNullCache()
 	}
 
-	services := NewService(mongo.NewStore(client.Database("main"), cache))
+	services := NewService(mongo.NewStore(client.Database(cfg.MongoDBName), cache))
 
 	rootCmd := &cobra.Command{Use: "cli"}
 	rootCmd.AddCommand(&cobra.Command{

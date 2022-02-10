@@ -40,6 +40,8 @@ type config struct {
 	StoreCache bool `envconfig:"store_cache" default:"false"`
 	// Enable geoip feature
 	GeoIP bool `envconfig:"geoip" default:"false"`
+	// Defines environment mongo
+	MongoDBName string `envconfig:"mongo_db_name" default:"main"`
 }
 
 func startServer() error {
@@ -73,7 +75,7 @@ func startServer() error {
 
 	logrus.Info("Running database migrations")
 
-	if err := mongo.ApplyMigrations(client.Database("main")); err != nil {
+	if err := mongo.ApplyMigrations(client.Database(cfg.MongoDBName)); err != nil {
 		logrus.WithError(err).Fatal("Failed to apply mongo migrations")
 	}
 
@@ -93,7 +95,7 @@ func startServer() error {
 	requestClient := requests.NewClient()
 
 	// apply dependency injection through project layers
-	store := mongo.NewStore(client.Database("main"), cache)
+	store := mongo.NewStore(client.Database(cfg.MongoDBName), cache)
 
 	var locator geoip.Locator
 	if cfg.GeoIP {
