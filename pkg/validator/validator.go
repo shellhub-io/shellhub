@@ -49,6 +49,22 @@ func ValidateVar(data interface{}, tag string) ([]string, error) {
 	return nil, nil
 }
 
+// ValidateField validates if a structure's field is valid.
+func ValidateField(structure interface{}, field, value string) bool {
+	// Getting tag string from a structure's field.
+	t, ok := getValidateTag(structure, field)
+	if !ok {
+		return false
+	}
+
+	// Validating the input data against the tag got.
+	if _, err := ValidateVar(value, t); err != nil {
+		return false
+	}
+
+	return true
+}
+
 // ValidateFieldTag validate the data for the field Tag from structure models.Device.
 func ValidateFieldTag(tag string) bool {
 	const Tag = "required,min=3,max=255,alphanum,ascii,excludes=/@&:"
@@ -65,18 +81,8 @@ func ValidateFieldUsername(username string) bool {
 	const Field = "Username"
 	// Structure that contains the field above.
 	s := models.UserData{}
-	// Getting tag string from a structure's field.
-	t, ok := getValidateTag(s, Field)
-	if !ok {
-		return false
-	}
 
-	// Validating the input data against the tag got.
-	if _, err := ValidateVar(username, t); err != nil {
-		return false
-	}
-
-	return true
+	return ValidateField(s, Field, username)
 }
 
 // ValidateFieldEmail validate the data for the field Email from structure models.UserData.
@@ -85,18 +91,8 @@ func ValidateFieldEmail(email string) bool {
 	const Field = "Email"
 	// Structure that contains the field above.
 	s := models.UserData{}
-	// Getting tag string from a structure's field.
-	t, ok := getValidateTag(s, Field)
-	if !ok {
-		return false
-	}
 
-	// Validating the input data against the tag got.
-	if _, err := ValidateVar(email, t); err != nil {
-		return false
-	}
-
-	return true
+	return ValidateField(s, Field, email)
 }
 
 // ValidateFieldPassword validate the data for the field Password from structure models.UserPassword.
@@ -105,16 +101,6 @@ func ValidateFieldPassword(password string) bool {
 	const Field = "Password"
 	// Structure that contains the field above.
 	s := models.UserPassword{}
-	// Getting tag string from a structure's field.
-	t, ok := getValidateTag(s, Field)
-	if !ok {
-		return false
-	}
 
-	// Validating the input data against the tag got.
-	if _, err := ValidateVar(password, t); err != nil {
-		return false
-	}
-
-	return true
+	return ValidateField(s, Field, password)
 }
