@@ -103,7 +103,7 @@ describe('PublicKey', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="publicKeyCreate-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="publicKeyFormDialogAdd-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="boxMessagePublicKey-component"]').exists()).toBe(true);
     });
   });
@@ -157,7 +157,7 @@ describe('PublicKey', () => {
     //////
 
     it('Renders the template with components', () => {
-      expect(wrapper.find('[data-test="publicKeyCreate-component"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="publicKeyFormDialogAdd-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="boxMessagePublicKey-component"]').exists()).toBe(false);
     });
   });

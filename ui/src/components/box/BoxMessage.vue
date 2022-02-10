@@ -68,8 +68,7 @@
           v-else-if="typeMessage == 'publicKey'"
           @click="publicKeyCreateShow = !publicKeyCreateShow"
         >
-          <PublicKeyCreate
-            :create-key="true"
+          <PublicKeyFormDialogAdd
             :show.sync="publicKeyCreateShow"
             @update="refreshPublicKey"
           />
@@ -83,7 +82,7 @@
 
 import DeviceAdd from '@/components/device/DeviceAdd';
 import FirewallRuleFormDialogAdd from '@/components/firewall_rule/FirewallRuleFormDialogAdd';
-import PublicKeyCreate from '@/components/public_key/KeyFormDialog';
+import PublicKeyFormDialogAdd from '@/components/public_key/PublicKeyFormDialogAdd';
 
 export default {
   name: 'BoxMessageComponent',
@@ -91,7 +90,7 @@ export default {
   components: {
     DeviceAdd,
     FirewallRuleFormDialogAdd,
-    PublicKeyCreate,
+    PublicKeyFormDialogAdd,
   },
 
   props: {
