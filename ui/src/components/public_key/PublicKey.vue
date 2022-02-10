@@ -7,10 +7,8 @@
       <v-spacer />
 
       <span @click="publicKeyCreateShow = !publicKeyCreateShow">
-        <PublicKeyCreate
-          :create-key="true"
-          :show.sync="publicKeyCreateShow"
-          data-test="publicKeyCreate-component"
+        <PublicKeyFormDialogAdd
+          data-test="publicKeyFormDialogAdd-component"
           @update="refresh"
         />
       </span>
@@ -32,14 +30,14 @@
 
 <script>
 
-import PublicKeyCreate from '@/components/public_key/KeyFormDialog';
+import PublicKeyFormDialogAdd from '@/components/public_key/PublicKeyFormDialogAdd';
 import BoxMessagePublicKey from '@/components/box/BoxMessage';
 
 export default {
   name: 'PublickeyComponent',
 
   components: {
-    PublicKeyCreate,
+    PublicKeyFormDialogAdd,
     BoxMessagePublicKey,
   },
 
