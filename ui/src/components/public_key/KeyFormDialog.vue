@@ -9,8 +9,7 @@
         <div v-on="on">
           <v-btn
             :disabled="!hasAuthorization && action == 'public'"
-            class="v-btn--active primary"
-            text
+            color="primary"
             data-test="createKey-btn"
           >
             Add {{ action }} Key
