@@ -12,7 +12,7 @@
         :server-items-length="getNumberPublicKeys"
         :options.sync="pagination"
         :disable-sort="true"
-        data-test="publickeyList-dataTable"
+        data-test="publicKeyList-dataTable"
       >
         <template #[`item.name`]="{ item }">
           {{ item.name }}
@@ -56,14 +56,32 @@
             </template>
 
             <v-card>
-              <v-list-item @click="showPublicKeyFormDialog(getPublicKeys.indexOf(item))">
-                <PublicKeyFormDialog
-                  :key-object="item"
-                  :create-key="false"
-                  :show.sync="publicKeyFormDialogShow[getPublicKeys.indexOf(item)]"
-                  @update="refresh"
-                />
-              </v-list-item>
+              <v-tooltip
+                bottom
+                :disabled="hasAuthorizationFormDialogEdit"
+              >
+                <template #activator="{ on, attrs }">
+                  <div
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-list-item
+                      :disabled="!hasAuthorizationFormDialogEdit"
+                      @click="showPublicKeyFormDialog(getPublicKeys.indexOf(item))"
+                    >
+                      <PublicKeyFormDialogEdit
+                        :key-object="item"
+                        :show.sync="publicKeyFormDialogShow[getPublicKeys.indexOf(item)]"
+                        @update="refresh"
+                      />
+                    </v-list-item>
+                  </div>
+                </template>
+
+                <span>
+                  You don't have this kind of authorization.
+                </span>
+              </v-tooltip>
 
               <v-list-item @click="showPublicKeyDelete(getPublicKeys.indexOf(item))">
                 <PublicKeyDelete
@@ -82,14 +100,18 @@
 
 <script>
 
-import PublicKeyFormDialog from '@/components/public_key/KeyFormDialog';
+import PublicKeyFormDialogEdit from '@/components/public_key/PublicKeyFormDialogEdit';
 import PublicKeyDelete from '@/components/public_key/KeyDelete';
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
-  name: 'PublickeyListComponent',
+  name: 'PublicKeyListComponent',
+
+  filters: { hasPermission },
 
   components: {
-    PublicKeyFormDialog,
+    PublicKeyFormDialogEdit,
     PublicKeyDelete,
   },
 
@@ -98,7 +120,7 @@ export default {
       pagination: {},
       publicKeyFormDialogShow: [],
       publicKeyDeleteShow: [],
-
+      editAction: 'edit',
       headers: [
         {
           text: 'Name',
@@ -141,6 +163,18 @@ export default {
 
     getNumberPublicKeys() {
       return this.$store.getters['publickeys/getNumberPublicKeys'];
+    },
+
+    hasAuthorizationFormDialogEdit() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.publicKey[this.editAction],
+        );
+      }
+
+      return false;
     },
   },
 
