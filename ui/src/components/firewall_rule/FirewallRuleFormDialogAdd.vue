@@ -215,17 +215,17 @@ export default {
 
   methods: {
     resetRuleFirewall() {
-      this.ruleFirewallLocal.active = true;
-      this.ruleFirewallLocal.priority = '';
-      this.ruleFirewallLocal.action = '';
-      this.ruleFirewallLocal.source_ip = '';
-      this.ruleFirewallLocal.username = '';
-      this.ruleFirewallLocal.hostname = '';
+      this.ruleFirewall.active = true;
+      this.ruleFirewall.priority = '';
+      this.ruleFirewall.action = '';
+      this.ruleFirewall.source_ip = '';
+      this.ruleFirewall.username = '';
+      this.ruleFirewall.hostname = '';
     },
 
     async create() {
       try {
-        await this.$store.dispatch('firewallrules/post', this.ruleFirewallLocal);
+        await this.$store.dispatch('firewallrules/post', this.ruleFirewall);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.firewallRuleCreating);
         this.update();
       } catch {
