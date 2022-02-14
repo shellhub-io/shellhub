@@ -84,7 +84,7 @@
               ref="providerData"
               vid="key"
               name="Data"
-              :rules="`required|parseKey:${action}`"
+              :rules="'required|parseKey:public'"
             >
               <v-textarea
                 v-model="publicKey.data"
