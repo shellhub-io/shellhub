@@ -40,3 +40,21 @@ func (s *Store) PublicKeyRemoveTag(ctx context.Context, tenant, fingerprint, tag
 
 	return nil
 }
+
+// PublicKeyUpdateTags update with a new set the tag's list in models.PublicKey.
+//
+// To update models.PublicKey with a new set, all tags need to exist on a models.Device. If it is not true, the update
+// action will fail.
+func (s *Store) PublicKeyUpdateTags(ctx context.Context, tenant, fingerprint string, tags []string) error {
+	// If all tags exist in device, set the tags to tag's field in models.PublicKey.
+	result, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"tenant_id": tenant, "fingerprint": fingerprint}, bson.M{"$set": bson.M{"filter.tags": tags}})
+	if err != nil {
+		return err
+	}
+
+	if result.ModifiedCount <= 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}

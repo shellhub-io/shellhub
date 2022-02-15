@@ -14,15 +14,16 @@ import (
 )
 
 const (
-	GetPublicKeysURL      = "/sshkeys/public-keys"
-	GetPublicKeyURL       = "/sshkeys/public-keys/:fingerprint/:tenant"
-	CreatePublicKeyURL    = "/sshkeys/public-keys"
-	UpdatePublicKeyURL    = "/sshkeys/public-keys/:fingerprint"
-	DeletePublicKeyURL    = "/sshkeys/public-keys/:fingerprint"
-	CreatePrivateKeyURL   = "/sshkeys/private-keys"
-	EvaluateKeyURL        = "/sshkeys/public-keys/evaluate/:fingerprint/:username"
-	AddPublicKeyTagURL    = "/sshkeys/public-keys/:fingerprint/tags"       // Add a tag to a public key.
-	RemovePublicKeyTagURL = "/sshkeys/public-keys/:fingerprint/tags/:name" // Remove a tag to a public key.
+	GetPublicKeysURL       = "/sshkeys/public-keys"
+	GetPublicKeyURL        = "/sshkeys/public-keys/:fingerprint/:tenant"
+	CreatePublicKeyURL     = "/sshkeys/public-keys"
+	UpdatePublicKeyURL     = "/sshkeys/public-keys/:fingerprint"
+	DeletePublicKeyURL     = "/sshkeys/public-keys/:fingerprint"
+	CreatePrivateKeyURL    = "/sshkeys/private-keys"
+	EvaluateKeyURL         = "/sshkeys/public-keys/evaluate/:fingerprint/:username"
+	AddPublicKeyTagURL     = "/sshkeys/public-keys/:fingerprint/tags"       // Add a tag to a public key.
+	RemovePublicKeyTagURL  = "/sshkeys/public-keys/:fingerprint/tags/:name" // Remove a tag to a public key.
+	UpdatePublicKeyTagsURL = "/sshkeys/public-keys/:fingerprint/tags"       // Update all tags from a public key.
 )
 
 const (
@@ -229,6 +230,41 @@ func (h *Handler) RemovePublicKeyTag(c gateway.Context) error {
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrTagNameNotFound:
 			return c.NoContent(http.StatusNotFound)
+		default:
+			return err
+		}
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) UpdatePublicKeyTags(c gateway.Context) error {
+	var req struct {
+		Tags []string `json:"tags"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	var tenant string
+	if c.Tenant() != nil {
+		tenant = c.Tenant().ID
+	}
+
+	err := h.service.UpdatePublicKeyTags(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tags)
+	if err != nil {
+		switch err {
+		case services.ErrNamespaceNotFound:
+			return c.NoContent(http.StatusNotFound)
+		case services.ErrPublicKeyNotFound:
+			return c.NoContent(http.StatusNotFound)
+		case services.ErrMaxTagReached:
+			return c.NoContent(http.StatusNotAcceptable)
+		case services.ErrTagNameNotFound:
+			return c.NoContent(http.StatusNotFound)
+		case services.ErrDuplicateTagName:
+			return c.NoContent(http.StatusConflict)
 		default:
 			return err
 		}
