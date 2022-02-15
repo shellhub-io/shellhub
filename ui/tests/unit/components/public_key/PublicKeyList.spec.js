@@ -87,6 +87,7 @@ describe('PublicKeyList', () => {
         getPublicKeys: publicKeysGlobal,
         getNumberPublicKeys: numberPublicKeysGlobal,
         hasAuthorizationFormDialogEdit: true,
+        hasAuthorizationFormDialogRemove: true,
       },
     },
     {
@@ -111,6 +112,7 @@ describe('PublicKeyList', () => {
         getPublicKeys: publicKeysGlobal,
         getNumberPublicKeys: numberPublicKeysGlobal,
         hasAuthorizationFormDialogEdit: false,
+        hasAuthorizationFormDialogRemove: false,
       },
     },
   ];
