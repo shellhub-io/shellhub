@@ -81,14 +81,33 @@
                 />
               </v-list-item>
 
-              <v-list-item @click.stop="showFirewallRuleDelete(getFirewallRules.indexOf(item))">
-                <FirewallRuleDelete
-                  :id="item.id"
-                  :show.sync="firewallRuleDeleteShow[getFirewallRules.indexOf(item)]"
-                  data-test="firewallRuleDelete-component"
-                  @update="refresh"
-                />
-              </v-list-item>
+              <v-tooltip
+                bottom
+                :disabled="hasAuthorizationFormDialogRemove"
+              >
+                <template #activator="{ on, attrs }">
+                  <div
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-list-item
+                      :disabled="!hasAuthorizationFormDialogRemove"
+                      @click.stop="showFirewallRuleDelete(getFirewallRules.indexOf(item))"
+                    >
+                      <FirewallRuleDelete
+                        :id="item.id"
+                        :show.sync="firewallRuleDeleteShow[getFirewallRules.indexOf(item)]"
+                        data-test="firewallRuleDelete-component"
+                        @update="refresh"
+                      />
+                    </v-list-item>
+                  </div>
+                </template>
+
+                <span>
+                  You don't have this kind of authorization.
+                </span>
+              </v-tooltip>
             </v-card>
           </v-menu>
         </template>
@@ -102,8 +121,12 @@
 import FirewallRuleEdit from '@/components/firewall_rule/FirewallRuleFormDialog';
 import FirewallRuleDelete from '@/components/firewall_rule/FirewallRuleDelete';
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'FirewallRuleListComponent',
+
+  filters: { hasPermission },
 
   components: {
     FirewallRuleDelete,
@@ -115,7 +138,7 @@ export default {
       pagination: {},
       firewallRuleEditShow: [],
       firewallRuleDeleteShow: [],
-
+      removeAction: 'remove',
       headers: [
         {
           text: 'Active',
@@ -165,6 +188,18 @@ export default {
 
     getNumberFirewallRules() {
       return this.$store.getters['firewallrules/getNumberFirewalls'];
+    },
+
+    hasAuthorizationFormDialogRemove() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.firewall[this.removeAction],
+        );
+      }
+
+      return false;
     },
   },
 
