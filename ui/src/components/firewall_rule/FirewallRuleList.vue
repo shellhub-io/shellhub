@@ -71,15 +71,33 @@
             </template>
 
             <v-card>
-              <v-list-item @click.stop="showFirewallRuleEdit(getFirewallRules.indexOf(item))">
-                <FirewallRuleEdit
-                  :firewall-rule="item"
-                  :create-rule="false"
-                  :show.sync="firewallRuleEditShow[getFirewallRules.indexOf(item)]"
-                  data-test="firewallRuleEdit-component"
-                  @update="refresh"
-                />
-              </v-list-item>
+              <v-tooltip
+                bottom
+                :disabled="hasAuthorizationFormDialogEdit"
+              >
+                <template #activator="{ on, attrs }">
+                  <div
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-list-item
+                      :disabled="!hasAuthorizationFormDialogEdit"
+                      @click.stop="showFirewallRuleEdit(getFirewallRules.indexOf(item))"
+                    >
+                      <FirewallRuleEdit
+                        :firewall-rule="item"
+                        :show.sync="firewallRuleEditShow[getFirewallRules.indexOf(item)]"
+                        data-test="firewallRuleEdit-component"
+                        @update="refresh"
+                      />
+                    </v-list-item>
+                  </div>
+                </template>
+
+                <span>
+                  You don't have this kind of authorization.
+                </span>
+              </v-tooltip>
 
               <v-tooltip
                 bottom
@@ -118,7 +136,7 @@
 
 <script>
 
-import FirewallRuleEdit from '@/components/firewall_rule/FirewallRuleFormDialog';
+import FirewallRuleEdit from '@/components/firewall_rule/FirewallRuleFormDialogEdit';
 import FirewallRuleDelete from '@/components/firewall_rule/FirewallRuleDelete';
 
 import hasPermission from '@/components/filter/permission';
@@ -138,6 +156,7 @@ export default {
       pagination: {},
       firewallRuleEditShow: [],
       firewallRuleDeleteShow: [],
+      editAction: 'edit',
       removeAction: 'remove',
       headers: [
         {
@@ -188,6 +207,18 @@ export default {
 
     getNumberFirewallRules() {
       return this.$store.getters['firewallrules/getNumberFirewalls'];
+    },
+
+    hasAuthorizationFormDialogEdit() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.firewall[this.editAction],
+        );
+      }
+
+      return false;
     },
 
     hasAuthorizationFormDialogRemove() {
