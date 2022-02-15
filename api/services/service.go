@@ -22,6 +22,7 @@ type Service interface {
 	DeviceTags
 	UserService
 	SSHKeysService
+	SSHKeysTagsService
 	SessionService
 	NamespaceService
 	AuthService

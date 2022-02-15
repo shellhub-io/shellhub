@@ -21,6 +21,7 @@ const (
 	DeletePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
 	CreatePrivateKeyURL = "/sshkeys/private-keys"
 	EvaluateKeyURL      = "/sshkeys/public-keys/evaluate/:fingerprint/:username"
+	AddPublicKeyTagURL  = "/sshkeys/public-keys/:fingerprint/tags" // Add a tag to a public key.
 )
 
 const (
@@ -176,4 +177,38 @@ func (h *Handler) EvaluateKey(c gateway.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, usernameOk && hostnameOk)
+}
+
+func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
+	var req struct {
+		Tag string `json:"tag"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	var tenant string
+	if c.Tenant() != nil {
+		tenant = c.Tenant().ID
+	}
+
+	err := h.service.AddPublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tag)
+	if err != nil {
+		switch err {
+		case services.ErrNamespaceNotFound:
+			return c.NoContent(http.StatusNotFound)
+		case services.ErrPublicKeyNotFound:
+			return c.NoContent(http.StatusNotFound)
+		case services.ErrTagNameNotFound:
+			return c.NoContent(http.StatusNotFound)
+		case services.ErrMaxTagReached:
+			return c.NoContent(http.StatusNotAcceptable)
+		case services.ErrDuplicateTagName:
+			return c.NoContent(http.StatusConflict)
+		default:
+			return err
+		}
+	}
+
+	return c.NoContent(http.StatusOK)
 }
