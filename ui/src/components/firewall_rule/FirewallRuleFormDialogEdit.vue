@@ -1,58 +1,20 @@
 <template>
   <fragment>
-    <v-tooltip
-      v-if="createRule"
-      bottom
-      :disabled="hasAuthorization"
-    >
-      <template #activator="{ on }">
-        <div v-on="on">
-          <v-btn
-            :disabled="!hasAuthorization"
-            color="primary"
-            data-test="add-btn"
-          >
-            Add Rule
-          </v-btn>
-        </div>
-      </template>
+    <v-list-item-icon class="mr-0">
+      <v-icon
+        left
+        data-test="edit-icon"
+        v-text="'edit'"
+      />
+    </v-list-item-icon>
 
-      <span>
-        You don't have this kind of authorization.
-      </span>
-    </v-tooltip>
-
-    <v-tooltip
-      v-else
-      :disabled="hasAuthorization"
-      bottom
-    >
-      <template #activator="{ on }">
-        <span v-on="on">
-          <v-list-item-title
-            data-test="edit-item"
-            v-on="on"
-          >
-            Edit
-          </v-list-item-title>
-        </span>
-
-        <span v-on="on">
-          <v-icon
-            :disabled="!hasAuthorization"
-            left
-            data-test="edit-icon"
-            v-on="on"
-          >
-            edit
-          </v-icon>
-        </span>
-      </template>
-
-      <span v-if="!hasAuthorization">
-        You don't have this kind of authorization.
-      </span>
-    </v-tooltip>
+    <v-list-item-content>
+      <v-list-item-title
+        class="text-left"
+        data-test="edit-title"
+        v-text="'Edit'"
+      />
+    </v-list-item-content>
 
     <v-dialog
       v-model="showDialog"
@@ -61,17 +23,10 @@
     >
       <v-card data-test="firewallRuleForm-card">
         <v-card-title
-          v-if="createRule"
           class="headline primary"
-        >
-          New Rule
-        </v-card-title>
-        <v-card-title
-          v-else
-          class="headline primary"
-        >
-          Edit Rule
-        </v-card-title>
+          data-test="text-title"
+          v-text="'Edit Firewall Rule'"
+        />
 
         <ValidationObserver
           ref="obs"
@@ -84,24 +39,20 @@
             >
               <v-flex>
                 <v-card :elevation="0">
-                  <v-card-text class="v-label theme--light pl-0">
-                    Active
-                  </v-card-text>
-                </v-card>
-              </v-flex>
-
-              <v-flex
-                xs2
-              >
-                <v-card
-                  :elevation="0"
-                >
-                  <v-switch
-                    v-model="ruleFirewallLocal.active"
+                  <v-card-text
+                    class="v-label theme--light pl-0"
+                    v-text="'Active'"
                   />
                 </v-card>
               </v-flex>
+
+              <v-flex xs2>
+                <v-card :elevation="0">
+                  <v-switch v-model="ruleFirewallLocal.active" />
+                </v-card>
+              </v-flex>
             </v-layout>
+
             <ValidationProvider
               v-slot="{ errors }"
               name="Priority"
@@ -113,6 +64,7 @@
                 type="number"
                 :error-messages="errors"
                 required
+                data-test="priority-field"
               />
             </ValidationProvider>
 
@@ -129,6 +81,7 @@
                 label="Action"
                 :error-messages="errors"
                 required
+                data-test="action-field"
               />
             </ValidationProvider>
 
@@ -142,6 +95,7 @@
                 label="Source IP"
                 :error-messages="errors"
                 required
+                data-test="source_ip-field"
               />
             </ValidationProvider>
 
@@ -155,6 +109,7 @@
                 label="Username"
                 :error-messages="errors"
                 required
+                data-test="username-field"
               />
             </ValidationProvider>
 
@@ -168,6 +123,7 @@
                 label="Hostname"
                 :error-messages="errors"
                 required
+                data-test="hostname-field"
               />
             </ValidationProvider>
           </v-card-text>
@@ -179,27 +135,15 @@
               text
               data-test="cancel-btn"
               @click="close"
-            >
-              Cancel
-            </v-btn>
+              v-text="'Cancel'"
+            />
 
             <v-btn
-              v-if="createRule"
-              text
-              data-test="create-btn"
-              @click="passes(create)"
-            >
-              Create
-            </v-btn>
-
-            <v-btn
-              v-else
               text
               data-test="edit-btn"
               @click="passes(edit)"
-            >
-              Edit
-            </v-btn>
+              v-text="'Edit'"
+            />
           </v-card-actions>
         </ValidationObserver>
       </v-card>
@@ -214,12 +158,8 @@ import {
   ValidationProvider,
 } from 'vee-validate';
 
-import hasPermission from '@/components/filter/permission';
-
 export default {
   name: 'FirewallRuleFormDialogComponent',
-
-  filters: { hasPermission },
 
   components: {
     ValidationProvider,
@@ -231,10 +171,6 @@ export default {
       type: Object,
       required: false,
       default: Object,
-    },
-    createRule: {
-      type: Boolean,
-      required: true,
     },
 
     show: {
@@ -254,34 +190,27 @@ export default {
         id: 'deny',
         name: 'deny',
       }],
-      ruleFirewallLocal: [],
+
+      ruleFirewallLocal: {
+        active: true,
+        priority: '',
+        action: '',
+        source_ip: '',
+        username: '',
+        hostname: '',
+      },
     };
   },
 
   computed: {
     showDialog: {
       get() {
-        return this.show && this.hasAuthorization;
+        return this.show;
       },
+
       set(value) {
         this.$emit('update:show', value);
       },
-    },
-
-    hasAuthorization() {
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        let action = '';
-        if (this.createRule) action = 'create';
-        else action = 'edit';
-
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.firewall[action],
-        );
-      }
-
-      return false;
     },
   },
 
@@ -295,28 +224,7 @@ export default {
 
   methods: {
     setLocalVariable() {
-      if (this.createRule) {
-        this.ruleFirewallLocal = {
-          active: true,
-          priority: '',
-          action: '',
-          source_ip: '',
-          username: '',
-          hostname: '',
-        };
-      } else {
-        this.ruleFirewallLocal = { ...this.firewallRule };
-      }
-    },
-
-    async create() {
-      try {
-        await this.$store.dispatch('firewallrules/post', this.ruleFirewallLocal);
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.firewallRuleCreating);
-        this.update();
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.firewallRuleCreating);
-      }
+      this.ruleFirewallLocal = { ...this.firewallRule };
     },
 
     async edit() {

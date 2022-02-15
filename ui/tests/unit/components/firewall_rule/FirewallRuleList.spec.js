@@ -90,12 +90,14 @@ describe('FirewallRuleList', () => {
       data: {
         firewallRuleEditShow: [false, false],
         firewallRuleDeleteShow: [false, false],
+        editAction: 'edit',
         removeAction: 'remove',
         headers,
       },
       computed: {
         getFirewallRules: firewallsGlobal,
         getNumberFirewallRules: numberFirewallsGlobal,
+        hasAuthorizationFormDialogEdit: true,
         hasAuthorizationFormDialogRemove: true,
       },
     },
@@ -113,12 +115,14 @@ describe('FirewallRuleList', () => {
       data: {
         firewallRuleEditShow: [false, false],
         firewallRuleDeleteShow: [false, false],
+        editAction: 'edit',
         removeAction: 'remove',
         headers,
       },
       computed: {
         getFirewallRules: firewallsGlobal,
         getNumberFirewallRules: numberFirewallsGlobal,
+        hasAuthorizationFormDialogEdit: false,
         hasAuthorizationFormDialogRemove: false,
       },
     },
