@@ -31,11 +31,11 @@ type Request struct {
 }
 
 func (s *service) EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
-	if key.Hostname == "" {
+	if key.Filter.Hostname == "" {
 		return true, nil
 	}
 
-	ok, err := regexp.MatchString(key.Hostname, dev.Name)
+	ok, err := regexp.MatchString(key.Filter.Hostname, dev.Name)
 	if err != nil {
 		return false, err
 	}
