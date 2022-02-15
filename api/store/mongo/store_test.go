@@ -195,7 +195,7 @@ func initData() Data {
 			Data:            []byte("teste"),
 			Fingerprint:     "fingerprint",
 			TenantID:        "tenant1",
-			PublicKeyFields: models.PublicKeyFields{Name: "teste1", Hostname: ".*"},
+			PublicKeyFields: models.PublicKeyFields{Name: "teste1", Filter: models.PublicKeyFilter{Hostname: ".*"}},
 		},
 		models.Session{
 			Username:      "username",

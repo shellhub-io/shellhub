@@ -3,9 +3,9 @@ package migrations
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -22,10 +22,24 @@ func TestMigration19(t *testing.T) {
 	err := migrates.Up(migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	pk := models.PublicKey{
+	type PublicKeyFields struct {
+		Name     string `json:"name"`
+		Username string `json:"username" bson:"username,omitempty" validate:"regexp"`
+		Hostname string `json:"hostname" bson:"hostname" validate:"regexp"`
+	}
+
+	type PublicKey struct {
+		Data            []byte    `json:"data"`
+		Fingerprint     string    `json:"fingerprint"`
+		CreatedAt       time.Time `json:"created_at" bson:"created_at"`
+		TenantID        string    `json:"tenant_id" bson:"tenant_id"`
+		PublicKeyFields `bson:",inline"`
+	}
+
+	pk := PublicKey{
 		Data:            []byte("teste"),
 		TenantID:        "tenant",
-		PublicKeyFields: models.PublicKeyFields{Name: "teste1", Hostname: ".*"},
+		PublicKeyFields: PublicKeyFields{Name: "teste1", Hostname: ".*"},
 	}
 
 	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), pk)
