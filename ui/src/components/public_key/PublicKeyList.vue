@@ -83,13 +83,32 @@
                 </span>
               </v-tooltip>
 
-              <v-list-item @click="showPublicKeyDelete(getPublicKeys.indexOf(item))">
-                <PublicKeyDelete
-                  :fingerprint="item.fingerprint"
-                  :show.sync="publicKeyDeleteShow[getPublicKeys.indexOf(item)]"
-                  @update="refresh"
-                />
-              </v-list-item>
+              <v-tooltip
+                bottom
+                :disabled="hasAuthorizationFormDialogRemove"
+              >
+                <template #activator="{ on, attrs }">
+                  <div
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-list-item
+                      :disabled="!hasAuthorizationFormDialogRemove"
+                      @click="showPublicKeyDelete(getPublicKeys.indexOf(item))"
+                    >
+                      <PublicKeyDelete
+                        :fingerprint="item.fingerprint"
+                        :show.sync="publicKeyDeleteShow[getPublicKeys.indexOf(item)]"
+                        @update="refresh"
+                      />
+                    </v-list-item>
+                  </div>
+                </template>
+
+                <span>
+                  You don't have this kind of authorization.
+                </span>
+              </v-tooltip>
             </v-card>
           </v-menu>
         </template>
@@ -101,7 +120,7 @@
 <script>
 
 import PublicKeyFormDialogEdit from '@/components/public_key/PublicKeyFormDialogEdit';
-import PublicKeyDelete from '@/components/public_key/KeyDelete';
+import PublicKeyDelete from '@/components/public_key/PublicKeyDelete';
 
 import hasPermission from '@/components/filter/permission';
 
@@ -121,6 +140,7 @@ export default {
       publicKeyFormDialogShow: [],
       publicKeyDeleteShow: [],
       editAction: 'edit',
+      removeAction: 'remove',
       headers: [
         {
           text: 'Name',
@@ -171,6 +191,18 @@ export default {
         return hasPermission(
           this.$authorizer.role[role],
           this.$actions.publicKey[this.editAction],
+        );
+      }
+
+      return false;
+    },
+
+    hasAuthorizationFormDialogRemove() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.publicKey[this.removeAction],
         );
       }
 
