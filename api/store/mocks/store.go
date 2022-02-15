@@ -1108,6 +1108,20 @@ func (_m *Store) PublicKeyRemoveTag(ctx context.Context, tenant string, fingerpr
 	return r0
 }
 
+// PublicKeyRenameTag provides a mock function with given fields: ctx, tenant, old, neo
+func (_m *Store) PublicKeyRenameTag(ctx context.Context, tenant string, old string, neo string) error {
+	ret := _m.Called(ctx, tenant, old, neo)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenant, old, neo)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PublicKeyUpdate provides a mock function with given fields: ctx, fingerprint, tenantID, key
 func (_m *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
 	ret := _m.Called(ctx, fingerprint, tenantID, key)

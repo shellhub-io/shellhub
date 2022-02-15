@@ -163,3 +163,45 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 		t.Run(tc.description, tc.test)
 	}
 }
+
+func TestPublicKeyRenameTag(t *testing.T) {
+	ctx := context.TODO()
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	setup(ctx, db.Client().Database("test"))
+
+	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	cases := []struct {
+		description string
+		test        func(t *testing.T)
+	}{
+		{
+			description: "fail to rename a tags from public key when tenant is not valid",
+			test: func(t *testing.T) {
+				err := store.PublicKeyRenameTag(ctx, "invalidTenant", "tag2", "tag4")
+				assert.Error(t, err)
+			},
+		},
+		{
+			description: "fail to rename a tags from public key when tag does not exist",
+			test: func(t *testing.T) {
+				err := store.PublicKeyRenameTag(ctx, "tenant", "tag4", "tag5")
+				assert.Error(t, err)
+			},
+		},
+		{
+			description: "success to rename a tags from public key",
+			test: func(t *testing.T) {
+				err := store.PublicKeyRenameTag(ctx, "tenant", "tag2", "tag4")
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, tc.test)
+	}
+}
