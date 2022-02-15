@@ -20,6 +20,7 @@ type Store interface {
 	FirewallStore
 	NamespaceStore
 	PublicKeyStore
+	PublicKeyTagsStore
 	PrivateKeyStore
 	LicenseStore
 	StatsStore

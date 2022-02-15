@@ -25,6 +25,8 @@ var (
 	ErrDeviceNotFound            = errors.New("device not found")
 	ErrDuplicateTagName          = errors.New("this tag Name already exists")
 	ErrTagNameNotFound           = errors.New("tag Name not found")
+	ErrPublicKeyNotFound         = errors.New("public key not found")
+	ErrPublicKeyInvalid          = errors.New("public key invalid")
 	ErrNoTags                    = errors.New("no tags has found")
 	ErrTypeAssertion             = errors.New("type assertion failed")
 )

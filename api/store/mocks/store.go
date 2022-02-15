@@ -999,6 +999,20 @@ func (_m *Store) PrivateKeyGet(ctx context.Context, fingerprint string) (*models
 	return r0, r1
 }
 
+// PublicKeyAddTag provides a mock function with given fields: ctx, tenant, fingerprint, tag
+func (_m *Store) PublicKeyAddTag(ctx context.Context, tenant string, fingerprint string, tag string) error {
+	ret := _m.Called(ctx, tenant, fingerprint, tag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenant, fingerprint, tag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PublicKeyCreate provides a mock function with given fields: ctx, key
 func (_m *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) error {
 	ret := _m.Called(ctx, key)

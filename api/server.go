@@ -180,6 +180,8 @@ func startServer() error {
 	internalAPI.POST(routes.CreatePrivateKeyURL, gateway.Handler(handler.CreatePrivateKey))
 	internalAPI.POST(routes.EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
 
+	publicAPI.POST(routes.AddPublicKeyTagURL, gateway.Handler(handler.AddPublicKeyTag))
+
 	publicAPI.GET(routes.ListNamespaceURL, gateway.Handler(handler.GetNamespaceList))
 	publicAPI.GET(routes.GetNamespaceURL, gateway.Handler(handler.GetNamespace))
 	publicAPI.POST(routes.CreateNamespaceURL, gateway.Handler(handler.CreateNamespace))
