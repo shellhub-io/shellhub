@@ -880,6 +880,20 @@ func (_m *Service) RemoveNamespaceUser(ctx context.Context, tenantID string, mem
 	return r0, r1
 }
 
+// RemovePublicKeyTag provides a mock function with given fields: ctx, tenant, fingerprint, tag
+func (_m *Service) RemovePublicKeyTag(ctx context.Context, tenant string, fingerprint string, tag string) error {
+	ret := _m.Called(ctx, tenant, fingerprint, tag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenant, fingerprint, tag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RemoveTag provides a mock function with given fields: ctx, uid, name
 func (_m *Service) RemoveTag(ctx context.Context, uid models.UID, name string) error {
 	ret := _m.Called(ctx, uid, name)

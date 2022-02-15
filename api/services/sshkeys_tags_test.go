@@ -33,7 +33,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tag:         "tag",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenant").Return(nil, err)
+				mock.On("NamespaceGet", ctx, "tenant").Return(nil, err).Once()
 			},
 			expected: ErrNamespaceNotFound,
 		},
@@ -159,6 +159,132 @@ func TestAddPublicKeyTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 			err := services.AddPublicKeyTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
+
+func TestRemovePublicKeyTag(t *testing.T) {
+	mock := &mocks.Store{}
+	services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
+	ctx := context.TODO()
+	err := errors.New("generic errors")
+
+	cases := []struct {
+		description   string
+		tenant        string
+		fingerprint   string
+		tag           string
+		requiredMocks func()
+		expected      error
+	}{
+		{
+			description: "fail when namespace was not found",
+			tenant:      "tenant",
+			fingerprint: "fingerprint",
+			tag:         "tag",
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, "tenant").Return(nil, err).Once()
+			},
+			expected: ErrNamespaceNotFound,
+		},
+		{
+			description: "fail when public key was not found",
+			tenant:      "tenant",
+			fingerprint: "fingerprint",
+			tag:         "tag",
+			requiredMocks: func() {
+				namespace := &models.Namespace{TenantID: "tenant"}
+
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, err).Once()
+			},
+			expected: ErrPublicKeyNotFound,
+		},
+		{
+			description: "fail when the tag does not exist in public key",
+			tenant:      "tenant",
+			fingerprint: "fingerprint",
+			tag:         "tag",
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					TenantID: "tenant",
+				}
+				tags := []string{"tag1", "tag2"}
+				key := &models.PublicKey{
+					TenantID:    "tenant",
+					Fingerprint: "fingerprint",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: tags,
+						},
+					},
+				}
+
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
+			},
+			expected: ErrTagNameNotFound,
+		},
+		{
+			description: "fail when remove the tag from public key",
+			tenant:      "tenant",
+			fingerprint: "fingerprint",
+			tag:         "tag",
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					TenantID: "tenant",
+				}
+				tags := []string{"tag", "tag1", "tag2"}
+				key := &models.PublicKey{
+					TenantID:    "tenant",
+					Fingerprint: "fingerprint",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: tags,
+						},
+					},
+				}
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
+				mock.On("PublicKeyRemoveTag", ctx, "tenant", "fingerprint", "tag").Return(err).Once()
+			},
+			expected: err,
+		},
+		{
+			description: "success when remove a from public key",
+			tenant:      "tenant",
+			fingerprint: "fingerprint",
+			tag:         "tag",
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					TenantID: "tenant",
+				}
+				tags := []string{"tag", "tag1", "tag2"}
+				key := &models.PublicKey{
+					TenantID:    "tenant",
+					Fingerprint: "fingerprint",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: tags,
+						},
+					},
+				}
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
+				mock.On("PublicKeyRemoveTag", ctx, "tenant", "fingerprint", "tag").Return(nil).Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+			err := services.RemovePublicKeyTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
