@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"github.com/shellhub-io/shellhub/api/store"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -31,10 +32,13 @@ func (s *Store) DeviceRenameTag(ctx context.Context, tenantID string, currentTag
 
 	// Rename all devices tags inside a transaction.
 	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
-		if _, err := s.db.Collection("devices").UpdateMany(ctx,
-			bson.M{"tags": currentTagName, "tenant_id": tenantID},
-			bson.M{"$set": bson.M{"tags.$": newTagName}}); err != nil {
+		_, err := s.db.Collection("devices").UpdateMany(ctx, bson.M{"tags": currentTagName, "tenant_id": tenantID}, bson.M{"$set": bson.M{"tags.$": newTagName}})
+		if err != nil {
 			return nil, fromMongoError(err)
+		}
+
+		if err := s.PublicKeyRenameTag(ctx, tenantID, currentTagName, newTagName); err != store.ErrNoDocuments {
+			return nil, err
 		}
 
 		return nil, nil
