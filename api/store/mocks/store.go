@@ -1094,6 +1094,20 @@ func (_m *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) 
 	return r0, r1, r2
 }
 
+// PublicKeyRemoveTag provides a mock function with given fields: ctx, tenant, fingerprint, tag
+func (_m *Store) PublicKeyRemoveTag(ctx context.Context, tenant string, fingerprint string, tag string) error {
+	ret := _m.Called(ctx, tenant, fingerprint, tag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenant, fingerprint, tag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PublicKeyUpdate provides a mock function with given fields: ctx, fingerprint, tenantID, key
 func (_m *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
 	ret := _m.Called(ctx, fingerprint, tenantID, key)

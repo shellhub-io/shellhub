@@ -181,6 +181,7 @@ func startServer() error {
 	internalAPI.POST(routes.EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
 
 	publicAPI.POST(routes.AddPublicKeyTagURL, gateway.Handler(handler.AddPublicKeyTag))
+	publicAPI.DELETE(routes.RemovePublicKeyTagURL, gateway.Handler(handler.RemovePublicKeyTag))
 
 	publicAPI.GET(routes.ListNamespaceURL, gateway.Handler(handler.GetNamespaceList))
 	publicAPI.GET(routes.GetNamespaceURL, gateway.Handler(handler.GetNamespace))

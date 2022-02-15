@@ -23,3 +23,20 @@ func (s *Store) PublicKeyAddTag(ctx context.Context, tenant, fingerprint, tag st
 
 	return nil
 }
+
+// PublicKeyRemoveTag removes a tag to the tag's list in models.PublicKey.
+//
+// To remove a tag from a models.PublicKey, that tag needs to exist on a models.Device. If it is not, the tag deletion from
+// PublicKey will fail.
+func (s *Store) PublicKeyRemoveTag(ctx context.Context, tenant, fingerprint, tag string) error {
+	result, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"tenant_id": tenant, "fingerprint": fingerprint}, bson.M{"$pull": bson.M{"filter.tags": tag}})
+	if err != nil {
+		return err
+	}
+
+	if result.ModifiedCount <= 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}

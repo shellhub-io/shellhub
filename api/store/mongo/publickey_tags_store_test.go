@@ -86,3 +86,45 @@ func TestPublicKeyAddTag(t *testing.T) {
 		t.Run(tc.description, tc.test)
 	}
 }
+
+func TestPublicKeyRemoveTag(t *testing.T) {
+	ctx := context.TODO()
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	setup(ctx, db.Client().Database("test"))
+
+	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	cases := []struct {
+		description string
+		test        func(t *testing.T)
+	}{
+		{
+			description: "fail to remove a tag from a public key when tenant is invalid",
+			test: func(t *testing.T) {
+				err := store.PublicKeyRemoveTag(ctx, "invalidTenant", "fingerprintKeyTags", "tag1")
+				assert.Error(t, err)
+			},
+		},
+		{
+			description: "fail to remove a tag from a public key when tag does not exist",
+			test: func(t *testing.T) {
+				err := store.PublicKeyRemoveTag(ctx, "tenant", "fingerprintKeyTags", "tag3")
+				assert.Error(t, err)
+			},
+		},
+		{
+			description: "success to remove a tag from a public key",
+			test: func(t *testing.T) {
+				err := store.PublicKeyRemoveTag(ctx, "tenant", "fingerprintKeyTags", "tag1")
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, tc.test)
+	}
+}
