@@ -1052,6 +1052,20 @@ func (_m *Service) UpdatePublicKey(ctx context.Context, fingerprint string, tena
 	return r0, r1
 }
 
+// UpdatePublicKeyTags provides a mock function with given fields: ctx, tenant, fingerprint, tags
+func (_m *Service) UpdatePublicKeyTags(ctx context.Context, tenant string, fingerprint string, tags []string) error {
+	ret := _m.Called(ctx, tenant, fingerprint, tags)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string) error); ok {
+		r0 = rf(ctx, tenant, fingerprint, tags)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateTag provides a mock function with given fields: ctx, uid, tags
 func (_m *Service) UpdateTag(ctx context.Context, uid models.UID, tags []string) error {
 	ret := _m.Called(ctx, uid, tags)

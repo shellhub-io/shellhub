@@ -1131,6 +1131,20 @@ func (_m *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenant
 	return r0, r1
 }
 
+// PublicKeyUpdateTags provides a mock function with given fields: ctx, tenant, fingerprint, tags
+func (_m *Store) PublicKeyUpdateTags(ctx context.Context, tenant string, fingerprint string, tags []string) error {
+	ret := _m.Called(ctx, tenant, fingerprint, tags)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string) error); ok {
+		r0 = rf(ctx, tenant, fingerprint, tags)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SessionCreate provides a mock function with given fields: ctx, session
 func (_m *Store) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
 	ret := _m.Called(ctx, session)
