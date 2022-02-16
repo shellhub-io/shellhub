@@ -43,14 +43,33 @@
               />
             </v-list-item>
 
-            <v-list-item @click="showTagDelete(getListTags.indexOf(item))">
-              <TagDelete
-                :tag-name="item.name"
-                :show.sync="tagDeleteShow[getListTags.indexOf(item)]"
-                data-test="tagDelete-component"
-                @update="getTags()"
-              />
-            </v-list-item>
+            <v-tooltip
+              bottom
+              :disabled="hasAuthorizationRemove"
+            >
+              <template #activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-list-item
+                    :disabled="!hasAuthorizationRemove"
+                    @click="showTagDelete(getListTags.indexOf(item))"
+                  >
+                    <TagDelete
+                      :tag-name="item.name"
+                      :show.sync="tagDeleteShow[getListTags.indexOf(item)]"
+                      data-test="tagDelete-component"
+                      @update="getTags()"
+                    />
+                  </v-list-item>
+                </div>
+              </template>
+
+              <span>
+                You don't have this kind of authorization.
+              </span>
+            </v-tooltip>
           </v-card>
         </v-menu>
       </template>
@@ -63,8 +82,12 @@
 import TagFormDialog from '@/components/tag/TagFormDialog';
 import TagDelete from '@/components/tag/TagDelete';
 
+import hasPermission from '@/components/filter/permission';
+
 export default {
   name: 'TagListComponent',
+
+  filters: { hasPermission },
 
   components: {
     TagFormDialog,
@@ -75,6 +98,7 @@ export default {
     return {
       tagDialogShow: [],
       tagDeleteShow: [],
+      removeAction: 'remove',
       headers: [
         {
           text: 'Name',
@@ -98,6 +122,18 @@ export default {
 
     getNumberTags() {
       return this.$store.getters['tags/getNumberTags'];
+    },
+
+    hasAuthorizationRemove() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.tag[this.removeAction],
+        );
+      }
+
+      return false;
     },
   },
 

@@ -2,7 +2,6 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import TagDelete from '@/components/tag/TagDelete';
-import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('TagDelete', () => {
   const localVue = createLocalVue();
@@ -13,52 +12,51 @@ describe('TagDelete', () => {
 
   let wrapper;
 
-  const role = ['owner', 'observer'];
-
-  const hasAuthorization = {
-    owner: true,
-    observer: false,
-  };
-
   const tests = [
     {
-      description: 'Icon',
+      description: 'Dialog Closed',
       props: {
         tagName: 'tag',
         show: false,
       },
-      data: {
-        action: 'remove',
-      },
       template: {
-        'close-btn': false,
-        'remove-btn': false,
+        'remove-icon': true,
+        'remove-title': true,
+        'tagDelete-card': false,
+      },
+      templateText: {
+        'remove-title': 'Remove',
       },
     },
     {
-      description: 'Dialog',
+      description: 'Dialog opened',
       props: {
         tagName: 'tag',
         show: true,
       },
-      data: {
-        action: 'remove',
-      },
       template: {
+        'remove-icon': true,
+        'remove-title': true,
+        'tagDelete-card': true,
+        'text-title': true,
+        'text-text': true,
         'close-btn': true,
         'remove-btn': true,
+      },
+      templateText: {
+        'remove-title': 'Remove',
+        'text-title': 'Are you sure?',
+        'text-text': 'You are about to remove this tag.',
+        'close-btn': 'Close',
+        'remove-btn': 'Remove',
       },
     },
   ];
 
-  const storeVuex = (currentrole) => new Vuex.Store({
+  const storeVuex = () => new Vuex.Store({
     namespaced: true,
-    state: {
-      currentrole,
-    },
-    getters: {
-      'auth/role': (state) => state.currentrole,
-    },
+    state: { },
+    getters: { },
     actions: {
       'tags/remove': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
@@ -67,68 +65,53 @@ describe('TagDelete', () => {
   });
 
   tests.forEach((test) => {
-    role.forEach((currentrole) => {
-      describe(`${test.description} ${currentrole}`, () => {
-        beforeEach(async () => {
-          wrapper = mount(TagDelete, {
-            store: storeVuex(currentrole),
-            localVue,
-            stubs: ['fragment'],
-            propsData: {
-              tagName: test.props.tagName,
-              show: test.props.show,
-            },
-            vuetify,
-            mocks: {
-              $authorizer: authorizer,
-              $actions: actions,
-            },
-          });
+    describe(`${test.description}`, () => {
+      beforeEach(async () => {
+        wrapper = mount(TagDelete, {
+          store: storeVuex(),
+          localVue,
+          stubs: ['fragment'],
+          propsData: {
+            tagName: test.props.tagName,
+            show: test.props.show,
+          },
+          vuetify,
         });
+      });
 
-        ///////
-        // Component Rendering
-        //////
+      ///////
+      // Component Rendering
+      //////
 
-        it('Is a Vue instance', () => {
-          expect(wrapper).toBeTruthy();
+      it('Is a Vue instance', () => {
+        expect(wrapper).toBeTruthy();
+      });
+      it('Renders the component', () => {
+        expect(wrapper.html()).toMatchSnapshot();
+      });
+
+      ///////
+      // Data checking
+      //////
+
+      it('Receive data in props', () => {
+        Object.keys(test.props).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.props[item]);
         });
-        it('Renders the component', () => {
-          expect(wrapper.html()).toMatchSnapshot();
-        });
+      });
 
-        ///////
-        // Data checking
-        //////
+      //////
+      // HTML validation
+      //////
 
-        it('Receive data in props', () => {
-          Object.keys(test.props).forEach((item) => {
-            expect(wrapper.vm[item]).toEqual(test.props[item]);
-          });
+      it('Renders the template with data', () => {
+        Object.keys(test.template).forEach((item) => {
+          expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
         });
-        it('Compare data with default value', () => {
-          Object.keys(test.data).forEach((item) => {
-            expect(wrapper.vm[item]).toEqual(test.data[item]);
-          });
-        });
-        it('Process data in the computed', () => {
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
-        });
-
-        //////
-        // HTML validation
-        //////
-
-        it('Renders the template with data', () => {
-          if (hasAuthorization[currentrole]) {
-            Object.keys(test.template).forEach((item) => {
-              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-            });
-          } else if (!test.props.show) {
-            Object.keys(test.template).forEach((item) => {
-              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-            });
-          }
+      });
+      it('Renders template with expected text', () => {
+        Object.keys(test.templateText).forEach((item) => {
+          expect(wrapper.find(`[data-test="${item}"]`).text()).toContain(test.templateText[item]);
         });
       });
     });

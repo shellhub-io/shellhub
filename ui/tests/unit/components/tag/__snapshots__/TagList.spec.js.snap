@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TagList With Data Renders the component 1`] = `
+exports[`TagList List data when user has operator role Renders the component 1`] = `
 <fragment-stub>
   <div class="v-data-table theme--light" data-test="tagListList-dataTable">
     <div class="v-data-table__wrapper">
@@ -18,7 +18,9 @@ exports[`TagList With Data Renders the component 1`] = `
         <tbody>
           <tr class="">
             <td class="text-center">
-              tag1
+              {
+              "name": "tag1"
+              }
             </td>
             <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
               <div class="v-menu">
@@ -28,7 +30,9 @@ exports[`TagList With Data Renders the component 1`] = `
           </tr>
           <tr class="">
             <td class="text-center">
-              tag2
+              {
+              "name": "tag2"
+              }
             </td>
             <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
               <div class="v-menu">
@@ -38,7 +42,9 @@ exports[`TagList With Data Renders the component 1`] = `
           </tr>
           <tr class="">
             <td class="text-center">
-              tag3
+              {
+              "name": "tag3"
+              }
             </td>
             <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
               <div class="v-menu">
@@ -53,7 +59,7 @@ exports[`TagList With Data Renders the component 1`] = `
 </fragment-stub>
 `;
 
-exports[`TagList Without Data Renders the component 1`] = `
+exports[`TagList List data when user has owner role Renders the component 1`] = `
 <fragment-stub>
   <div class="v-data-table theme--light" data-test="tagListList-dataTable">
     <div class="v-data-table__wrapper">
@@ -69,8 +75,41 @@ exports[`TagList Without Data Renders the component 1`] = `
           </tr>
         </thead>
         <tbody>
-          <tr class="v-data-table__empty-wrapper">
-            <td colspan="2">No data available</td>
+          <tr class="">
+            <td class="text-center">
+              {
+              "name": "tag1"
+              }
+            </td>
+            <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
+              <div class="v-menu">
+                <!---->
+              </div>
+            </td>
+          </tr>
+          <tr class="">
+            <td class="text-center">
+              {
+              "name": "tag2"
+              }
+            </td>
+            <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
+              <div class="v-menu">
+                <!---->
+              </div>
+            </td>
+          </tr>
+          <tr class="">
+            <td class="text-center">
+              {
+              "name": "tag3"
+              }
+            </td>
+            <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
+              <div class="v-menu">
+                <!---->
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
