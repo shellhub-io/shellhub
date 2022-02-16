@@ -20,9 +20,6 @@ patch:
             name:
               description: Public key name
               type: string
-            hostname:
-              description: Public key hostname
-              type: string
             username:
               description: Public key username
               type: string
@@ -32,7 +29,9 @@ patch:
       content:
         application/json:
           schema:
-            $ref: model/public_key.yaml
+            oneOf:
+              - $ref: model/public_key_hostname.yaml
+              - $ref: model/public_key_tags.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '500':

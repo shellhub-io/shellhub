@@ -39,6 +39,10 @@ paths:
     $ref: spec/resources/sshkeys/public-keys.yaml
   '/api/sshkeys/public-keys/{fingerprint}':
     $ref: spec/resources/sshkeys/public-keys_fingerprint.yaml
+  '/api/sshkeys/public-keys/{fingerprint}/tags':
+    $ref: spec/resources/sshkeys/public-keys_fingerprint_tags.yaml
+  '/api/sshkeys/public-keys/{fingerprint}/tags/{name}':
+    $ref: spec/resources/sshkeys/public-keys_fingerprint_tags_name.yaml
   /api/stats:
     $ref: spec/resources/devices/stats.yaml
   /api/namespaces:

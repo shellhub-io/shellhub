@@ -1,0 +1,37 @@
+type: object
+properties:
+  data:
+    description: Public key  data
+    type: string
+  fingerprint:
+    description: Public key  fingerprint
+    type: string
+  created_at:
+    description: Public key creation date
+    type: string
+  tenant_id:
+    description: Public key tenant
+    type: string
+  name:
+    description: Public key name
+    type: string
+  filter:
+    description: Public key filter rule
+    type: object
+    properties:
+      tags:
+        description: Public key tags
+        type: array
+        items:
+          type: string
+  username:
+    description: Public key username
+    type: string
+example:
+  data: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  fingerprint: "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00"
+  tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  name: "name"
+  filter:
+    tags: ["tag1", "tag2", "tag3"]
+  username: ".*"

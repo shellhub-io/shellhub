@@ -22,9 +22,9 @@ get:
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: model/public_key.yaml
+            oneOf:
+              - $ref: model/public_key_hostname.yaml
+              - $ref: model/public_key_tags.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '500':
@@ -40,14 +40,18 @@ post:
     content:
       application/json:
         schema:
-          $ref: model/public_key.yaml
+          oneOf:
+            - $ref: model/public_key_hostname.yaml
+            - $ref: model/public_key_tags.yaml
   responses:
     '200':
       description: Success create public key
       content:
         application/json:
           schema:
-            $ref: model/public_key.yaml
+            oneOf:
+              - $ref: model/public_key_hostname.yaml
+              - $ref: model/public_key_tags.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '409':
