@@ -67,5 +67,9 @@ func (s *Store) DeviceGetTags(ctx context.Context, tenantID string) ([]string, i
 func (s *Store) DeviceDeleteTags(ctx context.Context, tenantID string, tagName string) error {
 	_, err := s.db.Collection("devices").UpdateMany(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"tags": tagName}})
 
+	if err := s.PublicKeyDeleteTag(ctx, tenantID, tagName); err != store.ErrNoDocuments {
+		return err
+	}
+
 	return err
 }
