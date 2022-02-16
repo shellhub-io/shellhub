@@ -18,13 +18,6 @@ describe('PublicKeyFormDialogAdd', () => {
 
   let wrapper;
 
-  const publicKey = {
-    name: '',
-    hostname: '',
-    username: '',
-    data: '',
-  };
-
   const tests = [
     {
       description: 'Button create publicKey has authorization',
@@ -35,7 +28,7 @@ describe('PublicKeyFormDialogAdd', () => {
       data: {
         dialog: false,
         action: 'create',
-        publicKey,
+        keyLocal: {},
         supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
       },
       computed: {
@@ -57,8 +50,8 @@ describe('PublicKeyFormDialogAdd', () => {
       },
       data: {
         dialog: false,
+        keyLocal: {},
         action: 'create',
-        publicKey,
         supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
       },
       computed: {
@@ -80,8 +73,11 @@ describe('PublicKeyFormDialogAdd', () => {
       },
       data: {
         dialog: true,
+        keyLocal: {},
         action: 'create',
-        publicKey,
+        hostname: '',
+        choiceFilter: 'all',
+        choiceUsername: 'all',
         supportedKeys: 'Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.',
       },
       computed: {
@@ -92,8 +88,8 @@ describe('PublicKeyFormDialogAdd', () => {
         'publicKeyFormDialog-card': true,
         'text-title': true,
         'name-field': true,
-        'hostname-field': true,
-        'username-field': true,
+        'hostname-field': false,
+        'username-field': false,
         'data-field': true,
         'cancel-btn': true,
         'create-btn': true,
@@ -102,8 +98,6 @@ describe('PublicKeyFormDialogAdd', () => {
         'createKey-btn': 'Add Public Key',
         'text-title': 'New Public Key',
         'name-field': '',
-        'hostname-field': '',
-        'username-field': '',
         'data-field': '',
         'cancel-btn': 'Cancel',
         'create-btn': 'Create',
@@ -163,8 +157,8 @@ describe('PublicKeyFormDialogAdd', () => {
       // Data checking
       //////
 
-      it('Compare data with default value', () => {
-        Object.keys(test.data).forEach((item) => {
+      Object.keys(test.data).forEach((item) => {
+        it(`Compare data ${item} with default value`, () => {
           expect(wrapper.vm[item]).toEqual(test.data[item]);
         });
       });
@@ -178,8 +172,8 @@ describe('PublicKeyFormDialogAdd', () => {
       // HTML validation
       //////
 
-      it('Renders the template with data', () => {
-        Object.keys(test.template).forEach((item) => {
+      Object.keys(test.template).forEach((item) => {
+        it(`Renders the template ${item} with data`, () => {
           expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
         });
       });
@@ -194,7 +188,7 @@ describe('PublicKeyFormDialogAdd', () => {
           // In this case, the empty fields are validated.
           //////
 
-          wrapper.setData({ publicKey: { name: '', data: '' } });
+          wrapper.setData({ keyLocal: { name: '', data: '' } });
           await flushPromises();
 
           const validatorName = wrapper.vm.$refs.providerName;
@@ -209,7 +203,7 @@ describe('PublicKeyFormDialogAdd', () => {
           // In this case, any string is validated in the data.
           //////
 
-          wrapper.setData({ publicKey: { data: 'xxxxxxxx' } });
+          wrapper.setData({ keyLocal: { data: 'xxxxxxxx' } });
           await flushPromises();
 
           validatorData = wrapper.vm.$refs.providerData;

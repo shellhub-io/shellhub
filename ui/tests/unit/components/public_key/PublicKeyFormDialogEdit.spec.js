@@ -21,9 +21,20 @@ describe('PublicKeyFormDialogEdit', () => {
 
   const keyObject = {
     name: 'ShellHub',
-    hostname: 'ShellHub',
     username: 'ShellHub',
     data: '',
+    filter: {
+      hostname: '.*',
+    },
+  };
+
+  const keyObject2 = {
+    name: 'ShellHub',
+    username: 'ShellHub',
+    data: '',
+    filter: {
+      tags: ['tag1', 'tag2'],
+    },
   };
 
   const tests = [
@@ -63,11 +74,41 @@ describe('PublicKeyFormDialogEdit', () => {
         'text-title': true,
         'name-field': true,
         'hostname-field': true,
+        'tags-field': false,
         'username-field': true,
         'data-field': true,
         'cancel-btn': true,
         'edit-btn': true,
-
+        'access-restriction-field': true,
+      },
+      templateText: {
+        'edit-title': 'Edit',
+        'text-title': 'Edit Public Key',
+        'cancel-btn': 'Cancel',
+        'edit-btn': 'Edit',
+      },
+    },
+    {
+      description: 'Dialog with tags',
+      props: {
+        keyObject: keyObject2,
+        show: true,
+      },
+      data: {
+        keyObject: keyObject2,
+        supportedKeys,
+      },
+      template: {
+        'edit-icon': true,
+        'edit-title': true,
+        'publicKeyFormDialog-card': true,
+        'text-title': true,
+        'name-field': true,
+        'username-field': true,
+        'data-field': true,
+        'cancel-btn': true,
+        'edit-btn': true,
+        'access-restriction-field': true,
       },
       templateText: {
         'edit-title': 'Edit',
@@ -134,8 +175,8 @@ describe('PublicKeyFormDialogEdit', () => {
       // HTML validation
       //////
 
-      it('Renders the template with data', () => {
-        Object.keys(test.template).forEach((item) => {
+      Object.keys(test.template).forEach((item) => {
+        it(`Renders the template ${item} with data`, () => {
           expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
         });
       });
@@ -172,6 +213,28 @@ describe('PublicKeyFormDialogEdit', () => {
 
           await validatorData.validate();
           expect(validatorData.errors[0]).toBe('Not valid key');
+        });
+        it('Populate filter according to key', async () => {
+          wrapper.setData({ showDialog: true });
+          await flushPromises();
+
+          const { tags } = wrapper.vm.keyObject.filter;
+          const { hasTags } = wrapper.vm;
+          expect(hasTags).toBe(!!tags);
+
+          // call update hook
+          wrapper.vm.handleUpdate();
+          await flushPromises();
+
+          if (hasTags) {
+            // compare data
+            expect(wrapper.vm.tagChoices).toStrictEqual(['tag1', 'tag2']);
+            expect(wrapper.vm.choiceFilter).toStrictEqual('tags');
+
+            // render template
+            expect(wrapper.find('[data-test="hostname-field"]').exists()).toBe(false);
+            expect(wrapper.find('[data-test="tags-field"]').exists()).toBe(true);
+          }
         });
       }
     });

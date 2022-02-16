@@ -70,7 +70,7 @@ export default {
 
     show: {
       type: Boolean,
-      required: true,
+      required: false,
     },
   },
 
