@@ -205,3 +205,45 @@ func TestPublicKeyRenameTag(t *testing.T) {
 		t.Run(tc.description, tc.test)
 	}
 }
+
+func TestPublicKeyDeleteTag(t *testing.T) {
+	ctx := context.TODO()
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	setup(ctx, db.Client().Database("test"))
+
+	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
+
+	cases := []struct {
+		description string
+		test        func(t *testing.T)
+	}{
+		{
+			description: "fail to delete a tags from all public keys",
+			test: func(t *testing.T) {
+				err := store.PublicKeyDeleteTag(ctx, "invalidTenant", "tag2")
+				assert.Error(t, err)
+			},
+		},
+		{
+			description: "fail to delete a tag from public key when tag does not exist",
+			test: func(t *testing.T) {
+				err := store.PublicKeyDeleteTag(ctx, "tenant", "tag4")
+				assert.Error(t, err)
+			},
+		},
+		{
+			description: "success to delete a tags from all public keys",
+			test: func(t *testing.T) {
+				err := store.PublicKeyDeleteTag(ctx, "tenant", "tag2")
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, tc.test)
+	}
+}

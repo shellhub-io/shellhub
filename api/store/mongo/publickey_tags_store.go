@@ -72,3 +72,17 @@ func (s *Store) PublicKeyRenameTag(ctx context.Context, tenant, old, neo string)
 
 	return nil
 }
+
+// PublicKeyDeleteTag remove a tag from all public keys.
+func (s *Store) PublicKeyDeleteTag(ctx context.Context, tenant, name string) error {
+	result, err := s.db.Collection("public_keys").UpdateMany(ctx, bson.M{"tenant_id": tenant}, bson.M{"$pull": bson.M{"filter.tags": name}})
+	if err != nil {
+		return err
+	}
+
+	if result.ModifiedCount <= 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}

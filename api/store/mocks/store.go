@@ -1041,6 +1041,20 @@ func (_m *Store) PublicKeyDelete(ctx context.Context, fingerprint string, tenant
 	return r0
 }
 
+// PublicKeyDeleteTag provides a mock function with given fields: ctx, tenant, name
+func (_m *Store) PublicKeyDeleteTag(ctx context.Context, tenant string, name string) error {
+	ret := _m.Called(ctx, tenant, name)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, tenant, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PublicKeyGet provides a mock function with given fields: ctx, fingerprint, tenantID
 func (_m *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
 	ret := _m.Called(ctx, fingerprint, tenantID)
