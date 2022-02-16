@@ -1078,6 +1078,36 @@ func (_m *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID 
 	return r0, r1
 }
 
+// PublicKeyGetTags provides a mock function with given fields: ctx, tenant
+func (_m *Store) PublicKeyGetTags(ctx context.Context, tenant string) ([]string, int, error) {
+	ret := _m.Called(ctx, tenant)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
+		r0 = rf(ctx, tenant)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
+		r1 = rf(ctx, tenant)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
+		r2 = rf(ctx, tenant)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // PublicKeyList provides a mock function with given fields: ctx, pagination
 func (_m *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
 	ret := _m.Called(ctx, pagination)

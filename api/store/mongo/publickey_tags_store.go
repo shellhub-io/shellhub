@@ -86,3 +86,15 @@ func (s *Store) PublicKeyDeleteTag(ctx context.Context, tenant, name string) err
 
 	return nil
 }
+
+// PublicKeyGetTags gets all tags from public keys.
+func (s *Store) PublicKeyGetTags(ctx context.Context, tenant string) ([]string, int, error) {
+	list, err := s.db.Collection("public_keys").Distinct(ctx, "filter.tags", bson.M{"tenant_id": tenant})
+
+	tags := make([]string, len(list))
+	for i, item := range list {
+		tags[i] = item.(string)
+	}
+
+	return tags, len(tags), err
+}

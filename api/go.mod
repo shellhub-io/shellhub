@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
+	github.com/emirpasic/gods v1.12.0
 	github.com/go-playground/validator/v10 v10.10.0
 	github.com/go-redis/cache/v8 v8.4.3
 	github.com/go-redis/redis/v8 v8.11.4
