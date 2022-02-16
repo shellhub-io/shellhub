@@ -1,0 +1,64 @@
+parameters:
+  - name: fingerprint
+    description: Public key fingerprint
+    schema:
+      type: string
+    in: path
+    example: 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+post:
+  summary: Add a tag to public key
+  tags:
+    - ssh
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tag:
+              description: Tag's name
+              type: string
+          example:
+            tag: tag1
+  responses:
+    '200':
+      $ref: ../../shared/responses/ok.yaml
+    '401':
+      $ref: ../../shared/responses/unauthorized.yaml
+    '404':
+      $ref: ../../shared/responses/not_found.yaml
+    '409':
+      $ref: ../../shared/responses/conflict.yaml
+    '500':
+      $ref: ../../shared/responses/any_internal_error.yaml
+put:
+  summary: Update all tags in a public key
+  tags:
+    - ssh
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tags:
+              description: List of tags
+              type: array
+              items:
+                type: string
+              example: [tag1, tag2, tag3]
+  responses:
+    '200':
+      $ref: ../../shared/responses/ok.yaml
+    '401':
+      $ref: ../../shared/responses/unauthorized.yaml
+    '404':
+      $ref: ../../shared/responses/not_found.yaml
+    '409':
+      $ref: ../../shared/responses/conflict.yaml
+    '500':
+      $ref: ../../shared/responses/any_internal_error.yaml
