@@ -51,6 +51,7 @@ describe('TagList', () => {
         getListTags: tagsObject,
         getNumberTags: numberTagsGlobal,
         hasAuthorizationRemove: true,
+        hasAuthorizationEdit: true,
       },
     },
     {
@@ -73,6 +74,7 @@ describe('TagList', () => {
         getListTags: tagsObject,
         getNumberTags: numberTagsGlobal,
         hasAuthorizationRemove: false,
+        hasAuthorizationEdit: false,
       },
     },
   ];

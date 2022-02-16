@@ -33,15 +33,33 @@
           </template>
 
           <v-card>
-            <v-list-item @click="showTagDialog(getListTags.indexOf(item))">
-              <TagFormDialog
-                action="edit"
-                :tag-name="item.name"
-                :show.sync="tagDialogShow[getListTags.indexOf(item)]"
-                data-test="tagFormDialog-component"
-                @update="getTags()"
-              />
-            </v-list-item>
+            <v-tooltip
+              bottom
+              :disabled="hasAuthorizationEdit"
+            >
+              <template #activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-list-item
+                    :disabled="!hasAuthorizationEdit"
+                    @click="showTagDialog(getListTags.indexOf(item))"
+                  >
+                    <TagFormDialogEdit
+                      :tag-name="item.name"
+                      :show.sync="tagDialogShow[getListTags.indexOf(item)]"
+                      data-test="tagFormDialogEdit-component"
+                      @update="getTags()"
+                    />
+                  </v-list-item>
+                </div>
+              </template>
+
+              <span>
+                You don't have this kind of authorization.
+              </span>
+            </v-tooltip>
 
             <v-tooltip
               bottom
@@ -79,7 +97,7 @@
 
 <script>
 
-import TagFormDialog from '@/components/tag/TagFormDialog';
+import TagFormDialogEdit from '@/components/tag/TagFormDialogEdit';
 import TagDelete from '@/components/tag/TagDelete';
 
 import hasPermission from '@/components/filter/permission';
@@ -90,7 +108,7 @@ export default {
   filters: { hasPermission },
 
   components: {
-    TagFormDialog,
+    TagFormDialogEdit,
     TagDelete,
   },
 
@@ -98,6 +116,7 @@ export default {
     return {
       tagDialogShow: [],
       tagDeleteShow: [],
+      editAction: 'edit',
       removeAction: 'remove',
       headers: [
         {
@@ -122,6 +141,18 @@ export default {
 
     getNumberTags() {
       return this.$store.getters['tags/getNumberTags'];
+    },
+
+    hasAuthorizationEdit() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.tag[this.editAction],
+        );
+      }
+
+      return false;
     },
 
     hasAuthorizationRemove() {
