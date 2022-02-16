@@ -8,4 +8,5 @@ type PublicKeyTagsStore interface {
 	PublicKeyUpdateTags(ctx context.Context, tenant, fingerprint string, tags []string) error
 	PublicKeyRenameTag(ctx context.Context, tenant, old, neo string) error
 	PublicKeyDeleteTag(ctx context.Context, tenant, name string) error
+	PublicKeyGetTags(ctx context.Context, tenant string) ([]string, int, error)
 }

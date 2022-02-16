@@ -3,8 +3,9 @@ package mongo
 import (
 	"context"
 	"fmt"
-	"github.com/shellhub-io/shellhub/api/store"
 
+	"github.com/emirpasic/gods/sets/hashset"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
@@ -54,10 +55,22 @@ func (s *Store) DeviceUpdateTag(ctx context.Context, uid models.UID, tags []stri
 }
 
 func (s *Store) DeviceGetTags(ctx context.Context, tenantID string) ([]string, int, error) {
-	tagList, err := s.db.Collection("devices").Distinct(ctx, "tags", bson.M{"tenant_id": tenantID})
+	tagsDevice, err := s.db.Collection("devices").Distinct(ctx, "tags", bson.M{"tenant_id": tenantID})
+	if err != nil {
+		return nil, 0, err
+	}
 
-	tags := make([]string, len(tagList))
-	for i, v := range tagList {
+	tagsKey, err := s.db.Collection("public_keys").Distinct(ctx, "filter.tags", bson.M{"tenant_id": tenantID})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	tagsSet := hashset.New()
+	tagsSet.Add(tagsDevice...)
+	tagsSet.Add(tagsKey...)
+
+	tags := make([]string, tagsSet.Size())
+	for i, v := range tags {
 		tags[i] = fmt.Sprint(v)
 	}
 
