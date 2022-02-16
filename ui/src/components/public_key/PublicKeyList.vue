@@ -22,12 +22,41 @@
           {{ item.fingerprint }}
         </template>
 
-        <template #[`item.hostname`]="{ item }">
-          {{ item.hostname }}
+        <template #[`item.filter`]="{ item }">
+          <div
+            v-if="filterKey(item.filter)=='hostname'"
+          >
+            {{ formatHostnameFilter(item.filter) }}
+          </div>
+
+          <div v-else-if="filterKey(item.filter)=='tags'">
+            <v-tooltip
+              v-for="(tag, index) in item.filter.tags"
+              :key="index"
+              bottom
+              :disabled="!showTag(tag)"
+            >
+              <template #activator="{ on, attrs }">
+                <v-chip
+                  class="ml-1 mb-1"
+                  small
+                  outlined
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  {{ displayOnlyTenCharacters(tag) }}
+                </v-chip>
+              </template>
+
+              <span v-if="showTag(tag)">
+                {{ tag }}
+              </span>
+            </v-tooltip>
+          </div>
         </template>
 
         <template #[`item.username`]="{ item }">
-          {{ item.username }}
+          {{ item.username === '' ? 'All users' : item.username }}
         </template>
 
         <template #[`item.created_at`]="{ item }">
@@ -153,8 +182,8 @@ export default {
           align: 'center',
         },
         {
-          text: 'Hostname',
-          value: 'hostname',
+          text: 'Filter',
+          value: 'filter',
           align: 'center',
         },
         {
@@ -220,6 +249,30 @@ export default {
   },
 
   methods: {
+    showTag(str) {
+      if (str !== undefined) {
+        if (str.length > 10) {
+          return true;
+        }
+      }
+      return false;
+    },
+
+    filterKey(filter) {
+      return Reflect.ownKeys(filter)[0];
+    },
+
+    hasKeys(filter) {
+      return Object.keys(filter).length > 0;
+    },
+
+    displayOnlyTenCharacters(str) {
+      if (str !== undefined) {
+        if (str.length > 10) return `${str.substr(0, 10)}...`;
+      }
+      return str;
+    },
+
     refresh() {
       this.getPublicKeysList();
     },
@@ -256,6 +309,10 @@ export default {
       this.$set(this.publicKeyDeleteShow, index, this.publicKeyDeleteShow[index]);
 
       this.closeMenu(index);
+    },
+
+    formatHostnameFilter(filter) {
+      return filter.hostname === '.*' ? 'All devices' : filter.hostname;
     },
 
     setArrays() {

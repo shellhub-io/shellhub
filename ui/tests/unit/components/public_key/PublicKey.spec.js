@@ -22,6 +22,13 @@ describe('PublicKey', () => {
 
   const numberPublickeysEqualZero = 0;
   const numberPublickeysGreaterThanZero = 1;
+  const actionsMock = {
+    'publickeys/refresh': () => {},
+    'boxs/setStatus': () => {},
+    'publickeys/resetPagePerpage': () => {},
+    'snackbar/showSnackbarErrorLoading': () => {},
+    'tags/fetch': jest.fn(),
+  };
 
   const storeWithoutPublickeys = new Vuex.Store({
     namespaced: true,
@@ -31,12 +38,7 @@ describe('PublicKey', () => {
     getters: {
       'publickeys/getNumberPublicKeys': (state) => state.numberPublickeys,
     },
-    actions: {
-      'publickeys/refresh': () => {},
-      'boxs/setStatus': () => {},
-      'publickeys/resetPagePerpage': () => {},
-      'snackbar/showSnackbarErrorLoading': () => {},
-    },
+    actions: actionsMock,
   });
 
   const storeWithPublickeys = new Vuex.Store({
@@ -47,12 +49,7 @@ describe('PublicKey', () => {
     getters: {
       'publickeys/getNumberPublicKeys': (state) => state.numberPublickeys,
     },
-    actions: {
-      'publickeys/refresh': () => {},
-      'boxs/setStatus': () => {},
-      'publickeys/resetPagePerpage': () => {},
-      'snackbar/showSnackbarErrorLoading': () => {},
-    },
+    actions: actionsMock,
   });
 
   ///////
@@ -159,6 +156,10 @@ describe('PublicKey', () => {
     it('Renders the template with components', () => {
       expect(wrapper.find('[data-test="publicKeyFormDialogAdd-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="boxMessagePublicKey-component"]').exists()).toBe(false);
+    });
+
+    it('Calls dispatch on mount', () => {
+      expect(actionsMock['tags/fetch']).toHaveBeenCalled();
     });
   });
 });

@@ -21,3 +21,13 @@ exports[`PublicKeyFormDialogEdit Dialog opened Renders the component 1`] = `
   <div class="v-dialog__container"></div>
 </fragment-stub>
 `;
+
+exports[`PublicKeyFormDialogEdit Dialog with tags Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-list-item__icon mr-0"><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left material-icons theme--light">edit</i></div>
+  <div class="v-list-item__content">
+    <div data-test="edit-title" class="v-list-item__title text-left">Edit</div>
+  </div>
+  <div class="v-dialog__container"></div>
+</fragment-stub>
+`;

@@ -43,8 +43,8 @@ describe('PublicKeyList', () => {
       align: 'center',
     },
     {
-      text: 'Hostname',
-      value: 'hostname',
+      text: 'Filter',
+      value: 'filter',
       align: 'center',
     },
     {
