@@ -61,6 +61,21 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, tenant string) error {
+	exists := func(item string, list []string) bool {
+		for _, elem := range list {
+			if elem == item {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	err := key.Validate()
+	if err != nil {
+		return ErrPublicKeyInvalid
+	}
+
 	key.CreatedAt = clock.Now()
 
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint:dogsled
@@ -79,6 +94,21 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, te
 		return ErrDuplicateFingerprint
 	}
 
+	// Checks if the tags in public key are valid.
+	// The tags are valid when they exist in some device.
+	if key.Filter.Tags != nil {
+		tags, _, err := s.GetTags(ctx, tenant)
+		if err != nil {
+			return err
+		}
+
+		for _, tag := range key.Filter.Tags {
+			if !exists(tag, tags) {
+				return ErrTagNameNotFound
+			}
+		}
+	}
+
 	err = s.store.PublicKeyCreate(ctx, key)
 	if err != nil {
 		return err
@@ -92,6 +122,35 @@ func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query
 }
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
+	exists := func(item string, list []string) bool {
+		for _, elem := range list {
+			if elem == item {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	if err := key.Validate(); err != nil {
+		return nil, ErrPublicKeyInvalid
+	}
+
+	// Checks if the tags in public key are valid.
+	// The tags are valid when they exist in some device.
+	if key.Filter.Tags != nil {
+		tags, _, err := s.store.DeviceGetTags(ctx, tenant)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, tag := range key.Filter.Tags {
+			if !exists(tag, tags) {
+				return nil, ErrTagNameNotFound
+			}
+		}
+	}
+
 	return s.store.PublicKeyUpdate(ctx, fingerprint, tenant, key)
 }
 

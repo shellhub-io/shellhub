@@ -73,20 +73,12 @@ func (s *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) (
 }
 
 func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) error {
-	if err := key.Validate(); err != nil {
-		return err
-	}
-
 	_, err := s.db.Collection("public_keys").InsertOne(ctx, key)
 
 	return fromMongoError(err)
 }
 
 func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	if err := key.Validate(); err != nil {
-		return nil, err
-	}
-
 	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint}, bson.M{"$set": key}); err != nil {
 		if err != nil {
 			return nil, fromMongoError(err)
