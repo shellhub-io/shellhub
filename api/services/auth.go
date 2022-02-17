@@ -15,11 +15,11 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
+	"github.com/go-playground/validator/v10"
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 type AuthService interface {
