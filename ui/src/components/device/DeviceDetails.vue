@@ -59,15 +59,34 @@
               />
             </v-list-item>
 
-            <v-list-item @click.stop="openDialog('tagFormUpdateShow')">
-              <TagFormUpdate
-                :device-uid="device.uid"
-                :tags-list="device.tags"
-                :show.sync="tagFormUpdateShow"
-                data-test="tagFormUpdate-component"
-                @update="getDevice()"
-              />
-            </v-list-item>
+            <v-tooltip
+              bottom
+              :disabled="hasAuthorizationFormUpdate"
+            >
+              <template #activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-list-item
+                    :disabled="!hasAuthorizationFormUpdate"
+                    @click.stop="openDialog('tagFormUpdateShow')"
+                  >
+                    <TagFormUpdate
+                      :device-uid="device.uid"
+                      :tags-list="device.tags"
+                      :show.sync="tagFormUpdateShow"
+                      data-test="tagFormUpdate-component"
+                      @update="getDevice()"
+                    />
+                  </v-list-item>
+                </div>
+              </template>
+
+              <span>
+                You don't have this kind of authorization.
+              </span>
+            </v-tooltip>
 
             <v-list-item @click.stop="openDialog('deviceDeleteShow')">
               <DeviceDelete
@@ -186,6 +205,7 @@ import DeviceDelete from '@/components/device/DeviceDelete';
 import DeviceRename from '@/components/device/DeviceRename';
 import TagFormUpdate from '@/components/tag/TagFormUpdate';
 import { formatDate, lastSeen } from '@/components/filter/date';
+import hasPermission from '@/components/filter/permission';
 
 export default {
   name: 'DeviceDetailsComponent',
@@ -198,7 +218,7 @@ export default {
     TagFormUpdate,
   },
 
-  filters: { formatDate, lastSeen },
+  filters: { formatDate, lastSeen, hasPermission },
 
   data() {
     return {
@@ -211,7 +231,22 @@ export default {
       deviceRenameShow: false,
       tagFormUpdateShow: false,
       deviceDeleteShow: false,
+      updateAction: 'deviceUpdate',
     };
+  },
+
+  computed: {
+    hasAuthorizationFormUpdate() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.tag[this.updateAction],
+        );
+      }
+
+      return false;
+    },
   },
 
   async created() {

@@ -11,7 +11,7 @@ describe('DeviceList', () => {
 
   let wrapper;
 
-  const numberDevices = 2;
+  const numberDevicesGlobal = 2;
 
   const pagination = {
     groupBy: [],
@@ -61,7 +61,7 @@ describe('DeviceList', () => {
     },
   ];
 
-  const devices = [
+  const devicesGlobal = [
     {
       uid: 'a582b47a42d',
       name: '39-5e-2a',
@@ -102,41 +102,72 @@ describe('DeviceList', () => {
     },
   ];
 
-  const devicesOffline = JSON.parse(JSON.stringify(devices));
-  devicesOffline[1].online = false;
+  const tests = [
+    {
+      description: 'List data when user has owner role',
+      role: {
+        type: 'owner',
+        permission: true,
+      },
+      variables: {
+        devices: devicesGlobal,
+        numberDevices: numberDevicesGlobal,
+      },
+      data: {
+        hostname: 'localhost',
+        pagination,
+        tags: [],
+        tagDialogShow: [],
+        deviceDeleteShow: [],
+        selectedTags: [],
+        updateAction: 'deviceUpdate',
+        headers,
+      },
+      computed: {
+        getListDevices: devicesGlobal,
+        getNumberDevices: numberDevicesGlobal,
+        hasAuthorizationFormUpdate: true,
+      },
+    },
+    {
+      description: 'List data when user has observer role',
+      role: {
+        type: 'observer',
+        permission: false,
+      },
+      variables: {
+        devices: devicesGlobal,
+        numberDevices: numberDevicesGlobal,
+      },
+      data: {
+        hostname: 'localhost',
+        pagination,
+        tags: [],
+        tagDialogShow: [],
+        deviceDeleteShow: [],
+        selectedTags: [],
+        updateAction: 'deviceUpdate',
+        headers,
+      },
+      computed: {
+        getListDevices: devicesGlobal,
+        getNumberDevices: numberDevicesGlobal,
+        hasAuthorizationFormUpdate: false,
+      },
+    },
+  ];
 
-  const store = new Vuex.Store({
+  const storeVuex = (devices, numberDevices, currentRole) => new Vuex.Store({
     namespaced: true,
     state: {
       devices,
       numberDevices,
+      currentRole,
     },
     getters: {
       'devices/list': (state) => state.devices,
       'devices/getNumberDevices': (state) => state.numberDevices,
-    },
-    actions: {
-      'modals/showAddDevice': () => {
-      },
-      'devices/fetch': () => {},
-      'devices/rename': () => {},
-      'tags/clearSelectedTags': () => {},
-      'devices/resetListDevices': () => {},
-      'tags/setSelected': () => {},
-      'devices/setFilter': () => {},
-      'stats/get': () => {},
-    },
-  });
-
-  const storeDevicesOffline = new Vuex.Store({
-    namespaced: true,
-    state: {
-      devices: devicesOffline,
-      numberDevices,
-    },
-    getters: {
-      'devices/list': (state) => state.devices,
-      'devices/getNumberDevices': (state) => state.numberDevices,
+      'auth/role': (state) => state.currentRole,
     },
     actions: {
       'modals/showAddDevice': () => {},
@@ -150,133 +181,67 @@ describe('DeviceList', () => {
     },
   });
 
-  ///////
-  // In this case, it is tested when device is online.
-  ///////
-
-  describe('Device online', () => {
-    beforeEach(() => {
-      wrapper = mount(DeviceList, {
-        store,
-        localVue,
-        stubs: ['fragment', 'router-link'],
-        vuetify,
-        mocks: {
-          $authorizer: authorizer,
-          $actions: actions,
-        },
+  tests.forEach((test) => {
+    describe(`${test.description}`, () => {
+      beforeEach(() => {
+        wrapper = mount(DeviceList, {
+          store: storeVuex(
+            test.variables.devices,
+            test.variables.numberDevices,
+            test.role.type,
+          ),
+          localVue,
+          stubs: ['fragment', 'router-link'],
+          vuetify,
+          mocks: {
+            $authorizer: authorizer,
+            $actions: actions,
+          },
+        });
       });
-    });
 
-    ///////
-    // Component Rendering
-    //////
+      ///////
+      // Component Rendering
+      //////
 
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.hostname).toEqual('localhost');
-      expect(wrapper.vm.pagination).toEqual(pagination);
-      expect(wrapper.vm.headers).toEqual(headers);
-      expect(wrapper.vm.selectedTags).toEqual([]);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.getListDevices).toEqual(devices);
-      expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
-    });
-    it('Process data in methods', () => {
-      Object.keys(devices).forEach((device) => {
-        const address = `${device.namespace}.${device.name}@localhost`;
-        expect(wrapper.vm.address(device)).toEqual(address);
+      it('Is a Vue instance', () => {
+        expect(wrapper).toBeTruthy();
       });
-    });
-
-    //////
-    // HTML validation
-    //////
-
-    it('Renders the template with components', async () => {
-      expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
-    });
-    it('Renders the template with data', () => {
-      const dt = wrapper.find('[data-test="dataTable-field"]');
-      const dataTableProps = dt.vm.$options.propsData;
-
-      expect(dataTableProps.items).toHaveLength(numberDevices);
-    });
-  });
-
-  ///////
-  // In this case, it is tested when device is offline.
-  ///////
-
-  describe('Device offline', () => {
-    beforeEach(() => {
-      wrapper = mount(DeviceList, {
-        store: storeDevicesOffline,
-        localVue,
-        stubs: ['fragment', 'router-link'],
-        vuetify,
-        mocks: {
-          $authorizer: authorizer,
-          $actions: actions,
-        },
+      it('Renders the component', () => {
+        expect(wrapper.html()).toMatchSnapshot();
       });
-    });
 
-    ///////
-    // Component Rendering
-    //////
+      ///////
+      // Data checking
+      //////
 
-    it('Is a Vue instance', () => {
-      expect(wrapper).toBeTruthy();
-    });
-    it('Renders the component', () => {
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    ///////
-    // Data and Props checking
-    //////
-
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.hostname).toEqual('localhost');
-      expect(wrapper.vm.pagination).toEqual(pagination);
-      expect(wrapper.vm.headers).toEqual(headers);
-      expect(wrapper.vm.selectedTags).toEqual([]);
-    });
-    it('Process data in the computed', () => {
-      expect(wrapper.vm.getListDevices).toEqual(devicesOffline);
-      expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
-    });
-    it('Process data in methods', () => {
-      Object.keys(devices).forEach((device) => {
-        const address = `${device.namespace}.${device.name}@localhost`;
-        expect(wrapper.vm.address(device)).toEqual(address);
+      it('Compare data with default value', () => {
+        Object.keys(test.data).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.data[item]);
+        });
       });
-    });
+      it('Process data in the computed', () => {
+        Object.keys(test.computed).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.computed[item]);
+        });
+      });
+      it('Process data in methods', () => {
+        Object.keys(test.variables.devices).forEach((device) => {
+          const address = `${device.namespace}.${device.name}@localhost`;
+          expect(wrapper.vm.address(device)).toEqual(address);
+        });
+      });
 
-    //////
-    // HTML validation
-    //////
+      //////
+      // HTML validation
+      //////
 
-    it('Renders the template with components', async () => {
-      expect(wrapper.find('[data-test="deviceIcon-component"]').exists()).toEqual(true);
-    });
-    it('Renders the template with data', () => {
-      const dt = wrapper.find('[data-test="dataTable-field"]');
-      const dataTableProps = dt.vm.$options.propsData;
+      it('Renders the template with data', () => {
+        const dt = wrapper.find('[data-test="dataTable-field"]');
+        const dataTableProps = dt.vm.$options.propsData;
 
-      expect(dataTableProps.items).toHaveLength(numberDevices);
+        expect(dataTableProps.items).toHaveLength(test.variables.numberDevices);
+      });
     });
   });
 });

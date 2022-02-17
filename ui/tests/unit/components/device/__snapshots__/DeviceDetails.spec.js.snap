@@ -20,9 +20,9 @@ exports[`DeviceDetails Offline Device Renders the component 1`] = `
           <v-list-item-stub activeclass="" tag="div">
             <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
           </v-list-item-stub>
-          <v-list-item-stub activeclass="" tag="div">
-            <tagformupdate-stub deviceuid="a582b47a" tagslist="device1,device2" data-test="tagFormUpdate-component"></tagformupdate-stub>
-          </v-list-item-stub>
+          <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" disabled="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+              You don't have this kind of authorization.
+            </span></v-tooltip-stub>
           <v-list-item-stub activeclass="" tag="div">
             <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
           </v-list-item-stub>
@@ -97,7 +97,7 @@ exports[`DeviceDetails Offline Device Renders the component 1`] = `
 </fragment-stub>
 `;
 
-exports[`DeviceDetails Online Device Renders the component 1`] = `
+exports[`DeviceDetails Online Device and owner Renders the component 1`] = `
 <fragment-stub>
   <div class="d-flex pa-0 align-center">
     <h1>
@@ -117,9 +117,9 @@ exports[`DeviceDetails Online Device Renders the component 1`] = `
           <v-list-item-stub activeclass="" tag="div">
             <devicerename-stub name="39-5e-2a" uid="a582b47a" data-test="deviceRename-component"></devicerename-stub>
           </v-list-item-stub>
-          <v-list-item-stub activeclass="" tag="div">
-            <tagformupdate-stub deviceuid="a582b47a" tagslist="device1,device2" data-test="tagFormUpdate-component"></tagformupdate-stub>
-          </v-list-item-stub>
+          <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" disabled="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+              You don't have this kind of authorization.
+            </span></v-tooltip-stub>
           <v-list-item-stub activeclass="" tag="div">
             <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
           </v-list-item-stub>
