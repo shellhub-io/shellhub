@@ -38,7 +38,11 @@ describe('DeviceDetails', () => {
 
   const tests = [
     {
-      description: 'Online Device',
+      description: 'Online Device and owner',
+      role: {
+        type: 'owner',
+        permission: true,
+      },
       variables: {
         device: deviceOnline,
       },
@@ -51,6 +55,9 @@ describe('DeviceDetails', () => {
         dialogError: false,
         deviceDeleteShow: false,
       },
+      computed: {
+        hasAuthorizationFormUpdate: true,
+      },
       components: {
         'deviceRename-component': true,
         'tagFormUpdate-component': true,
@@ -58,6 +65,12 @@ describe('DeviceDetails', () => {
         'deviceDelete-component': true,
       },
       template: {
+        'deviceUid-field': true,
+        'deviceMac-field': true,
+        'devicePrettyName-field': true,
+        'deviceConvertDate-field': true,
+      },
+      templateText: {
         'deviceUid-field': deviceOnline.uid,
         'deviceMac-field': deviceOnline.identity.mac,
         'devicePrettyName-field': deviceOnline.info.pretty_name,
@@ -66,6 +79,10 @@ describe('DeviceDetails', () => {
     },
     {
       description: 'Offline Device',
+      role: {
+        type: 'operator',
+        permission: false,
+      },
       variables: {
         device: deviceOffline,
       },
@@ -78,6 +95,9 @@ describe('DeviceDetails', () => {
         dialogError: false,
         deviceDeleteShow: false,
       },
+      computed: {
+        hasAuthorizationFormUpdate: true,
+      },
       components: {
         'deviceRename-component': true,
         'tagFormUpdate-component': true,
@@ -85,6 +105,12 @@ describe('DeviceDetails', () => {
         'deviceDelete-component': true,
       },
       template: {
+        'deviceUid-field': true,
+        'deviceMac-field': true,
+        'devicePrettyName-field': true,
+        'deviceConvertDate-field': true,
+      },
+      templateText: {
         'deviceUid-field': deviceOffline.uid,
         'deviceMac-field': deviceOffline.identity.mac,
         'devicePrettyName-field': deviceOffline.info.pretty_name,
@@ -93,13 +119,15 @@ describe('DeviceDetails', () => {
     },
   ];
 
-  const storeVuex = (device) => new Vuex.Store({
+  const storeVuex = (device, currentRole) => new Vuex.Store({
     namespaced: true,
     state: {
       device,
+      currentRole,
     },
     getters: {
       'devices/get': (state) => state.device,
+      'auth/role': (state) => state.currentRole,
     },
     actions: {
       'devices/get': () => {},
@@ -116,7 +144,10 @@ describe('DeviceDetails', () => {
         timezoneMock.register('UTC');
 
         wrapper = shallowMount(DeviceDetails, {
-          store: storeVuex(test.variables.device),
+          store: storeVuex(
+            test.variables.device,
+            test.role.type,
+          ),
           localVue,
           stubs: ['fragment'],
           vuetify,
@@ -152,19 +183,24 @@ describe('DeviceDetails', () => {
           expect(wrapper.vm[item]).toEqual(test.data[item]);
         });
       });
+      it('Process data in the computed', () => {
+        Object.keys(test.computed).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.computed[item]);
+        });
+      });
 
       //////
       // HTML validation
       //////
 
-      it('Renders the template with components', () => {
-        Object.keys(test.components).forEach((item) => {
-          expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.components[item]);
-        });
-      });
       it('Renders the template with data', () => {
         Object.keys(test.template).forEach((item) => {
-          expect(wrapper.find(`[data-test="${item}"]`).text()).toEqual(test.template[item]);
+          expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+        });
+      });
+      it('Renders template with expected text', () => {
+        Object.keys(test.templateText).forEach((item) => {
+          expect(wrapper.find(`[data-test="${item}"]`).text()).toContain(test.templateText[item]);
         });
       });
     });

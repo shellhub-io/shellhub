@@ -1,34 +1,20 @@
 <template>
   <fragment>
-    <v-tooltip
-      :disabled="hasAuthorization"
-      bottom
-    >
-      <template #activator="{ on }">
-        <span v-on="on">
-          <v-list-item-title
-            data-test="title-item"
-            v-on="on"
-          >
-            {{ hasTag ? 'Edit tags' : 'Add tags' }}
-          </v-list-item-title>
-        </span>
+    <v-list-item-icon class="mr-0">
+      <v-icon
+        left
+        data-test="edit-icon"
+        v-text="'mdi-tag'"
+      />
+    </v-list-item-icon>
 
-        <span v-on="on">
-          <v-icon
-            :disabled="!hasAuthorization"
-            left
-            data-test="tag-icon"
-            v-on="on"
-            v-text="'mdi-tag'"
-          />
-        </span>
-      </template>
-
-      <span v-if="!hasAuthorization">
-        You don't have this kind of authorization.
-      </span>
-    </v-tooltip>
+    <v-list-item-content>
+      <v-list-item-title
+        class="text-left"
+        data-test="edit-title"
+        v-text="hasTag ? 'Edit tags': 'Add tags'"
+      />
+    </v-list-item-content>
 
     <v-dialog
       v-model="showDialog"
@@ -82,12 +68,8 @@
 
 <script>
 
-import hasPermission from '@/components/filter/permission';
-
 export default {
   name: 'TagFormDialogComponent',
-
-  filters: { hasPermission },
 
   props: {
     deviceUid: {
@@ -111,15 +93,15 @@ export default {
       dialog: false,
       listTagLocal: [],
       errorMsg: '',
-      action: 'deviceUpdate',
     };
   },
 
   computed: {
     showDialog: {
       get() {
-        return this.show && this.hasAuthorization;
+        return this.show;
       },
+
       set(value) {
         this.$emit('update:show', value);
       },
@@ -127,18 +109,6 @@ export default {
 
     hasTag() {
       return this.tagsList.length > 0;
-    },
-
-    hasAuthorization() {
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.tag[this.action],
-        );
-      }
-
-      return false;
     },
   },
 

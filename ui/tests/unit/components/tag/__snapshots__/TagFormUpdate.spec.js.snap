@@ -1,59 +1,35 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TagFormUpdate Dialog observer Renders the component 1`] = `
-<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
-          Edit tags
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-tag theme--light"></i></span>
+exports[`TagFormUpdate Dialog closed with add Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-list-item__icon mr-0"><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></div>
+  <div class="v-list-item__content">
+    <div data-test="edit-title" class="v-list-item__title text-left">Add tags</div>
+  </div>
   <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
 `;
 
-exports[`TagFormUpdate Dialog owner Renders the component 1`] = `
-<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
-          Edit tags
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></span>
+exports[`TagFormUpdate Dialog closed with edit Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-list-item__icon mr-0"><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></div>
+  <div class="v-list-item__content">
+    <div data-test="edit-title" class="v-list-item__title text-left">Edit tags</div>
+  </div>
+  <div class="v-dialog__container">
+    <!---->
+  </div>
+</fragment-stub>
+`;
+
+exports[`TagFormUpdate Dialog opened Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-list-item__icon mr-0"><i aria-hidden="true" data-test="edit-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></div>
+  <div class="v-list-item__content">
+    <div data-test="edit-title" class="v-list-item__title text-left">Edit tags</div>
+  </div>
   <div class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`TagFormUpdate Icon add tag observer Renders the component 1`] = `
-<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
-          Add tags
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`TagFormUpdate Icon add tag owner Renders the component 1`] = `
-<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
-          Add tags
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`TagFormUpdate Icon edit tag observer Renders the component 1`] = `
-<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
-          Edit tags
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`TagFormUpdate Icon edit tag owner Renders the component 1`] = `
-<fragment-stub><span><div data-test="title-item" class="v-list-item__title">
-          Edit tags
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="tag-icon" class="v-icon notranslate v-icon--left mdi mdi-tag theme--light"></i></span>
-  <div class="v-dialog__container">
-    <!---->
-  </div>
 </fragment-stub>
 `;
