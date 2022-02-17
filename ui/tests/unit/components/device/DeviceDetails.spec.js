@@ -56,6 +56,7 @@ describe('DeviceDetails', () => {
         deviceDeleteShow: false,
       },
       computed: {
+        hasAuthorizationRename: true,
         hasAuthorizationFormUpdate: true,
       },
       components: {
@@ -80,7 +81,7 @@ describe('DeviceDetails', () => {
     {
       description: 'Offline Device',
       role: {
-        type: 'operator',
+        type: 'observer',
         permission: false,
       },
       variables: {
@@ -96,7 +97,8 @@ describe('DeviceDetails', () => {
         deviceDeleteShow: false,
       },
       computed: {
-        hasAuthorizationFormUpdate: true,
+        hasAuthorizationRename: false,
+        hasAuthorizationFormUpdate: false,
       },
       components: {
         'deviceRename-component': true,

@@ -231,11 +231,24 @@ export default {
       deviceRenameShow: false,
       tagFormUpdateShow: false,
       deviceDeleteShow: false,
+      renameAction: 'rename',
       updateAction: 'deviceUpdate',
     };
   },
 
   computed: {
+    hasAuthorizationRename() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.device[this.renameAction],
+        );
+      }
+
+      return false;
+    },
+
     hasAuthorizationFormUpdate() {
       const role = this.$store.getters['auth/role'];
       if (role !== '') {
