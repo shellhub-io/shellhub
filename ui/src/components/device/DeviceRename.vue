@@ -1,35 +1,20 @@
 <template>
   <fragment>
-    <v-tooltip
-      :disabled="hasAuthorization"
-      bottom
-    >
-      <template #activator="{ on }">
-        <span v-on="on">
-          <v-list-item-title
-            data-test="rename-item"
-            v-on="on"
-          >
-            Rename
-          </v-list-item-title>
-        </span>
+    <v-list-item-icon class="mr-0">
+      <v-icon
+        left
+        data-test="rename-icon"
+        v-text="'mdi-pencil'"
+      />
+    </v-list-item-icon>
 
-        <span v-on="on">
-          <v-icon
-            :disabled="!hasAuthorization"
-            left
-            data-test="rename-icon"
-            v-on="on"
-          >
-            mdi-pencil
-          </v-icon>
-        </span>
-      </template>
-
-      <span v-if="!hasAuthorization">
-        You don't have this kind of authorization.
-      </span>
-    </v-tooltip>
+    <v-list-item-content>
+      <v-list-item-title
+        class="text-left"
+        data-test="rename-title"
+        v-text="'Rename'"
+      />
+    </v-list-item-content>
 
     <v-dialog
       v-model="showDialog"
@@ -37,9 +22,12 @@
       @click:outside="close"
     >
       <v-card data-test="deviceRename-card">
-        <v-card-title class="headline primary">
-          Rename Device
-        </v-card-title>
+        <v-card-title
+          class="headline primary"
+          data-test="text-title"
+          v-text="'Rename Device'"
+        />
+
         <ValidationObserver
           ref="obs"
           v-slot="{ passes }"
@@ -58,28 +46,28 @@
                 :error-messages="errors"
                 require
                 :messages="messages"
+                data-test="hostname-field"
               />
             </ValidationProvider>
           </v-card-text>
 
           <v-card-actions>
             <v-spacer />
+
             <v-btn
               text
-              data-test="cancel-btn"
+              data-test="close-btn"
               @click="close()"
-            >
-              Close
-            </v-btn>
+              v-text="'Close'"
+            />
 
             <v-btn
               color="primary"
               text
               data-test="rename-btn"
               @click="passes(edit)"
-            >
-              Rename
-            </v-btn>
+              v-text="'Rename'"
+            />
           </v-card-actions>
         </ValidationObserver>
       </v-card>
@@ -94,12 +82,8 @@ import {
   ValidationProvider,
 } from 'vee-validate';
 
-import hasPermission from '@/components/filter/permission';
-
 export default {
   name: 'DeviceRenameComponent',
-
-  filters: { hasPermission },
 
   components: {
     ValidationProvider,
@@ -111,6 +95,7 @@ export default {
       type: String,
       required: true,
     },
+
     uid: {
       type: String,
       required: true,
@@ -127,7 +112,6 @@ export default {
       invalid: false,
       editName: '',
       messages: 'Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)',
-      action: 'rename',
     };
   },
 
@@ -143,23 +127,12 @@ export default {
 
     showDialog: {
       get() {
-        return this.show && this.hasAuthorization;
+        return this.show;
       },
+
       set(value) {
         this.$emit('update:show', value);
       },
-    },
-
-    hasAuthorization() {
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.device[this.action],
-        );
-      }
-
-      return false;
     },
   },
 
