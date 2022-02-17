@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 // getValidateTag gets the tag string from a structure field.
