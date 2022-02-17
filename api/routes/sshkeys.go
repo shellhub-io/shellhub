@@ -87,6 +87,10 @@ func (h *Handler) CreatePublicKey(c gateway.Context) error {
 			return c.NoContent(http.StatusConflict)
 		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
+		case services.ErrPublicKeyInvalid:
+			return c.NoContent(http.StatusBadRequest)
+		case services.ErrTagNameNotFound:
+			return c.NoContent(http.StatusBadRequest)
 		default:
 			return err
 		}
@@ -117,6 +121,10 @@ func (h *Handler) UpdatePublicKey(c gateway.Context) error {
 		switch err {
 		case guard.ErrForbidden:
 			return c.NoContent(http.StatusForbidden)
+		case services.ErrPublicKeyInvalid:
+			return c.NoContent(http.StatusBadRequest)
+		case services.ErrTagNameNotFound:
+			return c.NoContent(http.StatusBadRequest)
 		default:
 			return err
 		}
@@ -201,6 +209,8 @@ func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrPublicKeyNotFound:
 			return c.NoContent(http.StatusNotFound)
+		case services.ErrPublicKeyInvalid:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrTagNameNotFound:
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrMaxTagReached:
@@ -228,6 +238,8 @@ func (h *Handler) RemovePublicKeyTag(c gateway.Context) error {
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrPublicKeyNotFound:
 			return c.NoContent(http.StatusNotFound)
+		case services.ErrPublicKeyInvalid:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrTagNameNotFound:
 			return c.NoContent(http.StatusNotFound)
 		default:
