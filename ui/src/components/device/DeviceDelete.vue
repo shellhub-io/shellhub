@@ -1,35 +1,20 @@
 <template>
   <fragment>
-    <v-tooltip
-      :disabled="hasAuthorization"
-      bottom
-    >
-      <template #activator="{ on }">
-        <span v-on="on">
-          <v-list-item-title
-            data-test="close-item"
-            v-on="on"
-          >
-            Remove
-          </v-list-item-title>
-        </span>
+    <v-list-item-icon class="mr-0">
+      <v-icon
+        left
+        data-test="remove-icon"
+        v-text="'delete'"
+      />
+    </v-list-item-icon>
 
-        <span v-on="on">
-          <v-icon
-            :disabled="!hasAuthorization"
-            left
-            data-test="remove-icon"
-            v-on="on"
-          >
-            delete
-          </v-icon>
-        </span>
-      </template>
-
-      <span v-if="!hasAuthorization">
-        You don't have this kind of authorization.
-      </span>
-    </v-tooltip>
+    <v-list-item-content>
+      <v-list-item-title
+        class="text-left"
+        data-test="remove-title"
+        v-text="'Remove'"
+      />
+    </v-list-item-content>
 
     <v-dialog
       v-model="showDialog"
@@ -37,13 +22,17 @@
       @click:outside="close"
     >
       <v-card data-test="deviceDelete-card">
-        <v-card-title class="headline primary">
-          Are you sure?
-        </v-card-title>
+        <v-card-title
+          class="headline primary"
+          data-test="text-title"
+          v-text="'Are you sure?'"
+        />
 
-        <v-card-text class="mt-4 mb-3 pb-1">
-          You are about to remove this device.
-        </v-card-text>
+        <v-card-text
+          class="mt-4 mb-3 pb-1"
+          data-test="text-text"
+          v-text="'You are about to remove this device.'"
+        />
 
         <v-card-actions>
           <v-spacer />
@@ -52,18 +41,16 @@
             text
             data-test="close-btn"
             @click="close()"
-          >
-            Close
-          </v-btn>
+            v-text="'Close'"
+          />
 
           <v-btn
             color="red darken-1"
             text
             data-test="remove-btn"
-            @click="remove();"
-          >
-            Remove
-          </v-btn>
+            @click="remove()"
+            v-text="'Remove'"
+          />
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -72,12 +59,8 @@
 
 <script>
 
-import hasPermission from '@/components/filter/permission';
-
 export default {
   name: 'DeviceDeleteComponent',
-
-  filters: { hasPermission },
 
   props: {
     uid: {
@@ -95,32 +78,15 @@ export default {
     },
   },
 
-  data() {
-    return {
-      action: 'remove',
-    };
-  },
-
   computed: {
     showDialog: {
       get() {
-        return this.show && this.hasAuthorization;
+        return this.show;
       },
+
       set(value) {
         this.$emit('update:show', value);
       },
-    },
-
-    hasAuthorization() {
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.device[this.action],
-        );
-      }
-
-      return false;
     },
   },
 

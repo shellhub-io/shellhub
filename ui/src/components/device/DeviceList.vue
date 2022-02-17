@@ -139,14 +139,33 @@
                 </span>
               </v-tooltip>
 
-              <v-list-item @click="showDeviceDelete(getListDevices.indexOf(item))">
-                <DeviceDelete
-                  :uid="item.uid"
-                  :show.sync="deviceDeleteShow[getListDevices.indexOf(item)]"
-                  data-test="deviceDelete-component"
-                  @update="refresh"
-                />
-              </v-list-item>
+              <v-tooltip
+                bottom
+                :disabled="hasAuthorizationRemove"
+              >
+                <template #activator="{ on, attrs }">
+                  <div
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-list-item
+                      :disabled="!hasAuthorizationRemove"
+                      @click="showDeviceDelete(getListDevices.indexOf(item))"
+                    >
+                      <DeviceDelete
+                        :uid="item.uid"
+                        :show.sync="deviceDeleteShow[getListDevices.indexOf(item)]"
+                        data-test="deviceDelete-component"
+                        @update="refresh"
+                      />
+                    </v-list-item>
+                  </div>
+                </template>
+
+                <span>
+                  You don't have this kind of authorization.
+                </span>
+              </v-tooltip>
             </v-card>
           </v-menu>
         </template>
@@ -185,6 +204,7 @@ export default {
       deviceDeleteShow: [],
       selectedTags: [],
       updateAction: 'deviceUpdate',
+      removeAction: 'remove',
       headers: [
         {
           text: 'Online',
@@ -239,6 +259,18 @@ export default {
         return hasPermission(
           this.$authorizer.role[role],
           this.$actions.tag[this.updateAction],
+        );
+      }
+
+      return false;
+    },
+
+    hasAuthorizationRemove() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.device[this.removeAction],
         );
       }
 
