@@ -134,7 +134,11 @@ describe('SessionList', () => {
 
   const tests = [
     {
-      description: 'Sessions has enterprise version',
+      description: 'Sessions has enterprise version when user has owner role',
+      role: {
+        type: 'owner',
+        permission: true,
+      },
       variables: {
         sessions: sessionsGlobal,
         numberSessions: numberSessionsGlobal,
@@ -151,10 +155,40 @@ describe('SessionList', () => {
         getListSessions: sessionsGlobal,
         getNumberSessions: numberSessionsGlobal,
         isEnterprise: true,
+        hasAuthorizationPlay: true,
+      },
+    },
+    {
+      description: 'Sessions has enterprise version when user has observer role',
+      role: {
+        type: 'observer',
+        permission: false,
+      },
+      variables: {
+        sessions: sessionsGlobal,
+        numberSessions: numberSessionsGlobal,
+        enterprise: true,
+      },
+      data: {
+        menu: false,
+        pagination,
+        sessionPlayShow,
+        sessionCloseShow,
+        headers,
+      },
+      computed: {
+        getListSessions: sessionsGlobal,
+        getNumberSessions: numberSessionsGlobal,
+        isEnterprise: true,
+        hasAuthorizationPlay: false,
       },
     },
     {
       description: 'Sessions has no enterprise version',
+      role: {
+        type: 'owner',
+        permission: true,
+      },
       variables: {
         sessions: sessionsGlobal,
         numberSessions: numberSessionsGlobal,
@@ -171,19 +205,22 @@ describe('SessionList', () => {
         getListSessions: sessionsGlobal,
         getNumberSessions: numberSessionsGlobal,
         isEnterprise: false,
+        hasAuthorizationPlay: true,
       },
     },
   ];
 
-  const storeVuex = (sessions, numberSessions) => new Vuex.Store({
+  const storeVuex = (sessions, numberSessions, currentRole) => new Vuex.Store({
     namespaced: true,
     state: {
       sessions,
       numberSessions,
+      currentRole,
     },
     getters: {
       'sessions/list': (state) => state.sessions,
       'sessions/getNumberSessions': (state) => state.numberSessions,
+      'auth/role': (state) => state.currentRole,
     },
     actions: {
       'sessions/fetch': () => {},
@@ -199,6 +236,7 @@ describe('SessionList', () => {
         store: storeVuex(
           test.variables.sessions,
           test.variables.numberSessions,
+          test.role.type,
         ),
         localVue,
         stubs: ['fragment', 'router-link'],

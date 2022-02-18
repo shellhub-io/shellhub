@@ -61,17 +61,34 @@
           </template>
 
           <v-card>
-            <v-list-item
-              v-if="session.recorded && isEnterprise"
-              @click.stop="openDialog('sessionPlayDialog')"
+            <v-tooltip
+              bottom
+              :disabled="hasAuthorizationPlay"
             >
-              <SessionPlay
-                :uid="session.uid"
-                :recorded="session.authenticated && session.recorded"
-                :show.sync="sessionPlayDialog"
-                data-test="sessionPlay-component"
-              />
-            </v-list-item>
+              <template #activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-list-item
+                    v-if="session.recorded && isEnterprise"
+                    :disabled="!hasAuthorizationPlay"
+                    @click.stop="openDialog('sessionPlayDialog')"
+                  >
+                    <SessionPlay
+                      :uid="session.uid"
+                      :recorded="session.authenticated && session.recorded"
+                      :show.sync="sessionPlayDialog"
+                      data-test="sessionPlay-component"
+                    />
+                  </v-list-item>
+                </div>
+              </template>
+
+              <span>
+                You don't have this kind of authorization.
+              </span>
+            </v-tooltip>
 
             <v-list-item
               v-if="session.active"
@@ -229,6 +246,7 @@ import SessionPlay from '@/components/session/SessionPlay';
 import SessionClose from '@/components/session/SessionClose';
 import SessionDeleteRecord from '@/components/session/SessionDeleteRecord';
 import { formatDate, lastSeen } from '@/components/filter/date';
+import hasPermission from '@/components/filter/permission';
 
 export default {
   name: 'SessionDetailsComponent',
@@ -239,7 +257,7 @@ export default {
     SessionDeleteRecord,
   },
 
-  filters: { formatDate, lastSeen },
+  filters: { formatDate, lastSeen, hasPermission },
 
   data() {
     return {
@@ -250,12 +268,25 @@ export default {
       sessionCloseDialog: false,
       sessionDeleteRecord: false,
       hide: true,
+      playAction: 'play',
     };
   },
 
   computed: {
     isEnterprise() {
       return this.$env.isEnterprise;
+    },
+
+    hasAuthorizationPlay() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.session[this.playAction],
+        );
+      }
+
+      return false;
     },
   },
 

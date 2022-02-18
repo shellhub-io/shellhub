@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SessionDetails Session recorded is false and device is offline Renders the component 1`] = `
+exports[`SessionDetails Session recorded is false and device is offline when user has owner role Renders the component 1`] = `
 <fragment-stub>
   <div class="d-flex pa-0 align-center">
     <h1>
@@ -88,7 +88,7 @@ exports[`SessionDetails Session recorded is false and device is offline Renders 
 </fragment-stub>
 `;
 
-exports[`SessionDetails Session recorded is false and device is online Renders the component 1`] = `
+exports[`SessionDetails Session recorded is false and device is online when user has owner role Renders the component 1`] = `
 <fragment-stub>
   <div class="d-flex pa-0 align-center">
     <h1>
@@ -178,7 +178,7 @@ exports[`SessionDetails Session recorded is false and device is online Renders t
 </fragment-stub>
 `;
 
-exports[`SessionDetails Session recorded is true and device is online Renders the component 1`] = `
+exports[`SessionDetails Session recorded is true and device is online when user has observer role Renders the component 1`] = `
 <fragment-stub>
   <div class="d-flex pa-0 align-center">
     <h1>
@@ -198,9 +198,111 @@ exports[`SessionDetails Session recorded is true and device is online Renders th
       <v-spacer-stub tag="div"></v-spacer-stub>
       <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
         <v-card-stub loaderheight="4" tag="div">
+          <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+              You don't have this kind of authorization.
+            </span></v-tooltip-stub>
           <v-list-item-stub activeclass="" tag="div">
-            <sessionplay-stub uid="8c354a00" recorded="true" data-test="sessionPlay-component"></sessionplay-stub>
+            <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
           </v-list-item-stub>
+          <v-list-item-stub activeclass="" tag="div">
+            <sessiondeleterecord-stub uid="8c354a00" data-test="sessionDeleteRecord-component"></sessiondeleterecord-stub>
+          </v-list-item-stub>
+        </v-card-stub>
+      </v-menu-stub>
+    </v-toolbar-stub>
+    <v-divider-stub></v-divider-stub>
+    <v-card-text-stub tag="div">
+      <div class="mt-2">
+        <div class="overline">
+          Uid
+        </div>
+        <div data-test="sessionUid-field">
+          8c354a00
+        </div>
+      </div>
+      <div class="mt-2">
+        <div class="overline">
+          User
+        </div>
+        <div data-test="sessionUser-field">
+          user
+        </div>
+      </div>
+      <div class="mt-2">
+        <div class="overline">
+          Authenticated
+        </div>
+        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>User has been authenticated</span></v-tooltip-stub>
+      </div>
+      <div class="mt-2">
+        <div class="overline">
+          Ip Address
+        </div> <code data-test="sessionIpAddress-field">
+          00.00.00
+        </code>
+      </div>
+      <div class="mt-2">
+        <div class="overline">
+          Started
+        </div>
+        <div data-test="sessionStartedAt-field">
+          Monday, May 18th 2020, 12:30:28 pm
+        </div>
+      </div>
+      <div class="mt-2">
+        <div class="overline">
+          Last Seen
+        </div>
+        <div data-test="sessionLastSeen-field">
+          Monday, May 18th 2020, 12:30:30 pm
+        </div>
+      </div>
+    </v-card-text-stub>
+  </v-card-stub>
+  <div class="text-center">
+    <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+      <v-card-stub loaderheight="4" tag="div">
+        <v-card-title-stub tag="div" class="headline primary">
+          Session ID error
+        </v-card-title-stub>
+        <v-card-text-stub tag="div" class="mt-4 mb-3 pb-1">
+          You tried to access a non-existing session ID.
+        </v-card-text-stub>
+        <v-card-actions-stub tag="div">
+          <v-spacer-stub tag="div"></v-spacer-stub>
+          <v-btn-stub color="primary" tag="button" activeclass="" text="true" type="button">
+            Go back to sessions
+          </v-btn-stub>
+        </v-card-actions-stub>
+      </v-card-stub>
+    </v-dialog-stub>
+  </div>
+</fragment-stub>
+`;
+
+exports[`SessionDetails Session recorded is true and device is online when user has owner role Renders the component 1`] = `
+<fragment-stub>
+  <div class="d-flex pa-0 align-center">
+    <h1>
+      Session Details
+    </h1>
+    <v-spacer-stub tag="div"></v-spacer-stub>
+    <v-spacer-stub tag="div"></v-spacer-stub>
+  </div>
+  <v-card-stub loaderheight="4" tag="div" class="mt-2">
+    <v-toolbar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="">
+      <v-toolbar-title-stub tag="div">
+        <v-icon-stub color="success">
+          check_circle
+        </v-icon-stub>
+        39-5e-2a
+      </v-toolbar-title-stub>
+      <v-spacer-stub tag="div"></v-spacer-stub>
+      <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
+        <v-card-stub loaderheight="4" tag="div">
+          <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" disabled="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+              You don't have this kind of authorization.
+            </span></v-tooltip-stub>
           <v-list-item-stub activeclass="" tag="div">
             <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
           </v-list-item-stub>
@@ -300,7 +402,9 @@ exports[`SessionDetails Session recorded is true and device is online, but not e
       <v-spacer-stub tag="div"></v-spacer-stub>
       <v-menu-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" closeonclick="true" closeoncontentclick="true" maxheight="auto" offsety="true" origin="top left" transition="v-menu-transition">
         <v-card-stub loaderheight="4" tag="div">
-          <!---->
+          <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" disabled="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+              You don't have this kind of authorization.
+            </span></v-tooltip-stub>
           <v-list-item-stub activeclass="" tag="div">
             <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
           </v-list-item-stub>

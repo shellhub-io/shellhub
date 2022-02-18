@@ -1,51 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SessionPlay Dialog play not paused operator Renders the component 1`] = `
-<fragment-stub><span><div data-test="play-item" class="v-list-item__title">
-          Play
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-play-circle theme--light"></i></span>
-  <div class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`SessionPlay Dialog play not paused owner Renders the component 1`] = `
-<fragment-stub><span><div data-test="play-item" class="v-list-item__title">
-          Play
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--left mdi mdi-play-circle theme--light"></i></span>
-  <div class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`SessionPlay Dialog play paused operator Renders the component 1`] = `
-<fragment-stub><span><div data-test="play-item" class="v-list-item__title">
-          Play
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-play-circle theme--light"></i></span>
-  <div class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`SessionPlay Dialog play paused owner Renders the component 1`] = `
-<fragment-stub><span><div data-test="play-item" class="v-list-item__title">
-          Play
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--left mdi mdi-play-circle theme--light"></i></span>
-  <div class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`SessionPlay Icon operator Renders the component 1`] = `
+exports[`SessionPlay Dialog closed Renders the component 1`] = `
 <fragment-stub>
-  <!---->
+  <div class="v-list-item__icon mr-0"><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--left mdi mdi-play-circle theme--light"></i></div>
+  <div class="v-list-item__content">
+    <div data-test="play-title" class="v-list-item__title text-left">Play</div>
+  </div>
   <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
 `;
 
-exports[`SessionPlay Icon owner Renders the component 1`] = `
+exports[`SessionPlay Dialog opened with play not paused Renders the component 1`] = `
 <fragment-stub>
-  <!---->
-  <div class="v-dialog__container">
-    <!---->
+  <div class="v-list-item__icon mr-0"><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--left mdi mdi-play-circle theme--light"></i></div>
+  <div class="v-list-item__content">
+    <div data-test="play-title" class="v-list-item__title text-left">Play</div>
   </div>
+  <div class="v-dialog__container"></div>
+</fragment-stub>
+`;
+
+exports[`SessionPlay Dialog opened with play paused Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-list-item__icon mr-0"><i aria-hidden="true" data-test="play-icon" class="v-icon notranslate v-icon--left mdi mdi-play-circle theme--light"></i></div>
+  <div class="v-list-item__content">
+    <div data-test="play-title" class="v-list-item__title text-left">Play</div>
+  </div>
+  <div class="v-dialog__container"></div>
 </fragment-stub>
 `;

@@ -1,33 +1,20 @@
 <template>
   <fragment>
-    <v-tooltip
-      v-if="recorded"
-      :disabled="hasAuthorization"
-      bottom
-    >
-      <template #activator="{ on }">
-        <span v-on="on">
-          <v-list-item-title data-test="play-item">
-            Play
-          </v-list-item-title>
-        </span>
+    <v-list-item-icon class="mr-0">
+      <v-icon
+        left
+        data-test="play-icon"
+        v-text="'mdi-play-circle'"
+      />
+    </v-list-item-icon>
 
-        <span v-on="on">
-          <v-icon
-            :disabled="!hasAuthorization"
-            left
-            data-test="play-icon"
-            v-on="on"
-          >
-            mdi-play-circle
-          </v-icon>
-        </span>
-      </template>
-
-      <span v-if="!hasAuthorization">
-        You don't have this kind of authorization.
-      </span>
-    </v-tooltip>
+    <v-list-item-content>
+      <v-list-item-title
+        class="text-left"
+        data-test="play-title"
+        v-text="'Play'"
+      />
+    </v-list-item-content>
 
     <v-dialog
       v-model="dialog"
@@ -45,10 +32,13 @@
             data-test="close-btn"
             @click="close"
           >
-            <v-icon>close</v-icon>
+            <v-icon v-text="'close'" />
           </v-btn>
 
-          <v-toolbar-title>Watch Session</v-toolbar-title>
+          <v-toolbar-title
+            data-test="text-title"
+            v-text="'Watch Session'"
+          />
 
           <v-spacer />
         </v-toolbar>
@@ -74,9 +64,8 @@
                   color="primary"
                   data-test="pause-icon"
                   @click="pauseHandler"
-                >
-                  mdi-pause-circle
-                </v-icon>
+                  v-text="'mdi-pause-circle'"
+                />
 
                 <v-icon
                   v-else
@@ -85,9 +74,8 @@
                   color="primary"
                   data-test="play-icon"
                   @click="pauseHandler"
-                >
-                  mdi-play-circle
-                </v-icon>
+                  v-text="'mdi-play-circle'"
+                />
               </v-card>
             </v-col>
 
@@ -153,12 +141,8 @@ import moment from 'moment';
 import 'moment-duration-format';
 import 'xterm/css/xterm.css';
 
-import hasPermission from '@/components/filter/permission';
-
 export default {
   name: 'SessionPlayComponent',
-
-  filters: { hasPermission },
 
   props: {
     uid: {
@@ -191,7 +175,6 @@ export default {
       frames: [],
       defaultSpeed: 1,
       transition: false,
-      action: 'play',
     };
   },
 
@@ -203,18 +186,6 @@ export default {
     nowTimerDisplay() {
       return this.getTimerNow;
     },
-
-    hasAuthorization() {
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.session[this.action],
-        );
-      }
-
-      return false;
-    },
   },
 
   watch: {
@@ -222,7 +193,7 @@ export default {
       if (!value) {
         this.close();
         this.dialog = false;
-      } else if (this.hasAuthorization) {
+      } else {
         this.displayDialog();
       }
     },

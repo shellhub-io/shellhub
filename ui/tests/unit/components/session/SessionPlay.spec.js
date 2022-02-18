@@ -3,7 +3,6 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 import Vuetify from 'vuetify';
 import SessionPlay from '@/components/session/SessionPlay';
-import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('SessionPlay', () => {
   const localVue = createLocalVue();
@@ -13,13 +12,6 @@ describe('SessionPlay', () => {
   document.body.setAttribute('data-app', true);
 
   let wrapper;
-
-  const role = ['owner', 'operator'];
-
-  const hasAuthorization = {
-    owner: true,
-    operator: false,
-  };
 
   const sessionGlobal = [
     {
@@ -34,7 +26,7 @@ describe('SessionPlay', () => {
 
   const tests = [
     {
-      description: 'Icon',
+      description: 'Dialog closed',
       variables: {
         session: [],
         recorded: false,
@@ -60,23 +52,22 @@ describe('SessionPlay', () => {
         frames: [],
         defaultSpeed: 1,
         transition: false,
-        action: 'play',
       },
       computed: {
         length: 0,
         nowTimerDisplay: 0,
       },
       template: {
+        'play-icon': true,
+        'play-title': true,
         'sessionPlay-card': false,
-        'close-btn': false,
-        'pause-icon': false,
-        'play-icon': false,
-        'time-slider': false,
-        'speed-select': false,
+      },
+      templateText: {
+        'play-title': 'Play',
       },
     },
     {
-      description: 'Dialog play paused',
+      description: 'Dialog opened with play paused',
       variables: {
         session: sessionGlobal,
         recorded: true,
@@ -102,23 +93,28 @@ describe('SessionPlay', () => {
         frames: [],
         defaultSpeed: 1,
         transition: false,
-        action: 'play',
       },
       computed: {
         length: 1,
         nowTimerDisplay: '00:00',
       },
       template: {
+        'play-icon': true,
+        'play-title': true,
         'sessionPlay-card': true,
         'close-btn': true,
+        'text-title': true,
         'pause-icon': true,
-        'play-icon': true,
         'time-slider': true,
         'speed-select': true,
       },
+      templateText: {
+        'play-title': 'Play',
+        'text-title': 'Watch Session',
+      },
     },
     {
-      description: 'Dialog play not paused',
+      description: 'Dialog opened with play not paused',
       variables: {
         session: sessionGlobal,
         recorded: true,
@@ -145,32 +141,35 @@ describe('SessionPlay', () => {
         frames: [],
         defaultSpeed: 1,
         transition: false,
-        action: 'play',
       },
       computed: {
         length: 1,
         nowTimerDisplay: '00:00',
       },
       template: {
+        'play-icon': true,
+        'play-title': true,
         'sessionPlay-card': true,
         'close-btn': true,
+        'text-title': true,
         'pause-icon': false,
-        'play-icon': true,
         'time-slider': true,
         'speed-select': true,
+      },
+      templateText: {
+        'play-title': 'Play',
+        'text-title': 'Watch Session',
       },
     },
   ];
 
-  const storeVuex = (session, currentrole) => new Vuex.Store({
+  const storeVuex = (session) => new Vuex.Store({
     namespaced: true,
     state: {
       session,
-      currentrole,
     },
     getters: {
       'sessions/get': (state) => state.session,
-      'auth/role': (state) => state.currentrole,
     },
     actions: {
       'sessions/getLogSession': () => {},
@@ -179,80 +178,74 @@ describe('SessionPlay', () => {
   });
 
   tests.forEach((test) => {
-    role.forEach((currentrole) => {
-      describe(`${test.description} ${currentrole}`, () => {
-        beforeEach(async () => {
-          wrapper = mount(SessionPlay, {
-            store: storeVuex(test.variables.session, currentrole),
-            localVue,
-            stubs: ['fragment'],
-            propsData: {
-              uid: test.props.uid,
-              recorded: test.props.recorded,
-              show: test.props.show,
+    describe(`${test.description}`, () => {
+      beforeEach(async () => {
+        wrapper = mount(SessionPlay, {
+          store: storeVuex(test.variables.session),
+          localVue,
+          stubs: ['fragment'],
+          propsData: {
+            uid: test.props.uid,
+            recorded: test.props.recorded,
+            show: test.props.show,
+          },
+          vuetify,
+          mocks: {
+            $env: {
+              isEnterprise: true,
             },
-            vuetify,
-            mocks: {
-              $authorizer: authorizer,
-              $actions: actions,
-              $env: {
-                isEnterprise: true,
-              },
-            },
-          });
-          wrapper.setData({ logs: test.variables.session });
-          wrapper.setData({ paused: test.variables.paused });
-          wrapper.setData({ dialog: test.variables.dialog });
-
-          await flushPromises();
+          },
         });
+        wrapper.setData({ logs: test.variables.session });
+        wrapper.setData({ paused: test.variables.paused });
+        wrapper.setData({ dialog: test.variables.dialog });
 
-        ///////
-        // Component Rendering
-        //////
+        await flushPromises();
+      });
 
-        it('Is a Vue instance', () => {
-          expect(wrapper).toBeTruthy();
+      ///////
+      // Component Rendering
+      //////
+
+      it('Is a Vue instance', () => {
+        expect(wrapper).toBeTruthy();
+      });
+      it('Renders the component', () => {
+        expect(wrapper.html()).toMatchSnapshot();
+      });
+
+      ///////
+      // Data checking
+      //////
+
+      it('Receive data in props', () => {
+        Object.keys(test.props).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.props[item]);
         });
-        it('Renders the component', () => {
-          expect(wrapper.html()).toMatchSnapshot();
+      });
+      it('Compare data with default value', () => {
+        Object.keys(test.data).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.data[item]);
         });
-
-        ///////
-        // Data checking
-        //////
-
-        it('Receive data in props', () => {
-          Object.keys(test.props).forEach((item) => {
-            expect(wrapper.vm[item]).toEqual(test.props[item]);
-          });
+      });
+      it('Process data in the computed', () => {
+        Object.keys(test.computed).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.computed[item]);
         });
-        it('Compare data with default value', () => {
-          Object.keys(test.data).forEach((item) => {
-            expect(wrapper.vm[item]).toEqual(test.data[item]);
-          });
-        });
-        it('Process data in the computed', () => {
-          Object.keys(test.computed).forEach((item) => {
-            expect(wrapper.vm[item]).toEqual(test.computed[item]);
-          });
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
-        });
+      });
 
-        //////
-        // HTML validation
-        //////
+      //////
+      // HTML validation
+      //////
 
-        it('Renders the template with data', () => {
-          if (hasAuthorization[currentrole]) {
-            Object.keys(test.template).forEach((item) => {
-              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-            });
-          } else if (!test.props.show) {
-            Object.keys(test.template).forEach((item) => {
-              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-            });
-          }
+      it('Renders the template with data', () => {
+        Object.keys(test.template).forEach((item) => {
+          expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
+        });
+      });
+      it('Renders template with expected text', () => {
+        Object.keys(test.templateText).forEach((item) => {
+          expect(wrapper.find(`[data-test="${item}"]`).text()).toContain(test.templateText[item]);
         });
       });
     });
