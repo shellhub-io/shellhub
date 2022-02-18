@@ -62,9 +62,6 @@ describe('SessionDetails', () => {
         hasAuthorizationPlay: true,
         hasAuthorizationRemoveRecord: true,
       },
-      components: {
-        'sessionClose-component': true,
-      },
       template: {
         'sessionUid-field': true,
         'sessionUser-field': true,
@@ -235,9 +232,6 @@ describe('SessionDetails', () => {
         hasAuthorizationPlay: false,
         hasAuthorizationRemoveRecord: false,
       },
-      components: {
-        'sessionClose-component': true,
-      },
       template: {
         'sessionUid-field': true,
         'sessionUser-field': true,
@@ -327,11 +321,6 @@ describe('SessionDetails', () => {
       // HTML validation
       //////
 
-      it('Renders the template with components', () => {
-        Object.keys(test.components).forEach((item) => {
-          expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.components[item]);
-        });
-      });
       it('Renders the template with data', () => {
         Object.keys(test.template).forEach((item) => {
           expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
