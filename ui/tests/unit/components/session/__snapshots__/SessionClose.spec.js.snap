@@ -1,39 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SessionClose Dialog operator Renders the component 1`] = `
-<fragment-stub><span><div data-test="close-item" class="v-list-item__title">
-          Close
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="close-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-close-circle theme--light"></i></span>
+exports[`SessionClose Dialog closed Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-list-item__icon mr-0"><i aria-hidden="true" data-test="close-icon" class="v-icon notranslate v-icon--left mdi mdi-close-circle theme--light"></i></div>
+  <div class="v-list-item__content">
+    <div data-test="close-title" class="v-list-item__title text-left">Close</div>
+  </div>
   <div class="v-dialog__container">
     <!---->
   </div>
 </fragment-stub>
 `;
 
-exports[`SessionClose Dialog owner Renders the component 1`] = `
-<fragment-stub><span><div data-test="close-item" class="v-list-item__title">
-          Close
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="close-icon" class="v-icon notranslate v-icon--left mdi mdi-close-circle theme--light"></i></span>
+exports[`SessionClose Dialog opened Renders the component 1`] = `
+<fragment-stub>
+  <div class="v-list-item__icon mr-0"><i aria-hidden="true" data-test="close-icon" class="v-icon notranslate v-icon--left mdi mdi-close-circle theme--light"></i></div>
+  <div class="v-list-item__content">
+    <div data-test="close-title" class="v-list-item__title text-left">Close</div>
+  </div>
   <div class="v-dialog__container"></div>
-</fragment-stub>
-`;
-
-exports[`SessionClose Icon operator Renders the component 1`] = `
-<fragment-stub><span><div data-test="close-item" class="v-list-item__title">
-          Close
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="close-icon" class="v-icon notranslate v-icon--disabled v-icon--left mdi mdi-close-circle theme--light"></i></span>
-  <div class="v-dialog__container">
-    <!---->
-  </div>
-</fragment-stub>
-`;
-
-exports[`SessionClose Icon owner Renders the component 1`] = `
-<fragment-stub><span><div data-test="close-item" class="v-list-item__title">
-          Close
-        </div></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span><i aria-hidden="true" data-test="close-icon" class="v-icon notranslate v-icon--left mdi mdi-close-circle theme--light"></i></span>
-  <div class="v-dialog__container">
-    <!---->
-  </div>
 </fragment-stub>
 `;

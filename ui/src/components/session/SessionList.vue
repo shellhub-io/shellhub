@@ -158,18 +158,35 @@
                 </span>
               </v-tooltip>
 
-              <v-list-item
-                v-if="item.active"
-                @click="showSessionClose(getListSessions.indexOf(item))"
+              <v-tooltip
+                bottom
+                :disabled="hasAuthorizationClose"
               >
-                <SessionClose
-                  :uid="item.uid"
-                  :device="item.device_uid"
-                  :show.sync="sessionCloseShow[getListSessions.indexOf(item)]"
-                  data-test="sessionClose-component"
-                  @update="refresh"
-                />
-              </v-list-item>
+                <template #activator="{ on, attrs }">
+                  <div
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-list-item
+                      v-if="item.active"
+                      :disabled="!hasAuthorizationClose"
+                      @click.stop="showSessionClose(getListSessions.indexOf(item))"
+                    >
+                      <SessionClose
+                        :uid="item.uid"
+                        :device="item.device_uid"
+                        :show.sync="sessionCloseShow[getListSessions.indexOf(item)]"
+                        data-test="sessionClose-component"
+                        @update="refresh"
+                      />
+                    </v-list-item>
+                  </div>
+                </template>
+
+                <span>
+                  You don't have this kind of authorization.
+                </span>
+              </v-tooltip>
             </v-card>
           </v-menu>
         </template>
@@ -202,6 +219,7 @@ export default {
       sessionPlayShow: [],
       sessionCloseShow: [],
       playAction: 'play',
+      closeAction: 'close',
       headers: [
         {
           text: 'Active',
@@ -266,6 +284,18 @@ export default {
         return hasPermission(
           this.$authorizer.role[role],
           this.$actions.session[this.playAction],
+        );
+      }
+
+      return false;
+    },
+
+    hasAuthorizationClose() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.session[this.closeAction],
         );
       }
 

@@ -90,18 +90,35 @@
               </span>
             </v-tooltip>
 
-            <v-list-item
-              v-if="session.active"
-              @click.stop="openDialog('sessionCloseDialog')"
+            <v-tooltip
+              bottom
+              :disabled="hasAuthorizationClose"
             >
-              <SessionClose
-                :uid="session.uid"
-                :device="session.device_uid"
-                :show.sync="sessionCloseDialog"
-                data-test="sessionClose-component"
-                @update="refresh"
-              />
-            </v-list-item>
+              <template #activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-list-item
+                    v-if="session.active"
+                    :disabled="!hasAuthorizationClose"
+                    @click.stop="openDialog('sessionCloseDialog')"
+                  >
+                    <SessionClose
+                      :uid="session.uid"
+                      :device="session.device_uid"
+                      :show.sync="sessionCloseDialog"
+                      data-test="sessionClose-component"
+                      @update="refresh"
+                    />
+                  </v-list-item>
+                </div>
+              </template>
+
+              <span>
+                You don't have this kind of authorization.
+              </span>
+            </v-tooltip>
 
             <v-tooltip
               bottom
@@ -286,6 +303,7 @@ export default {
       sessionDeleteRecord: false,
       hide: true,
       playAction: 'play',
+      closeAction: 'close',
       removeRecordAction: 'removeRecord',
     };
   },
@@ -301,6 +319,18 @@ export default {
         return hasPermission(
           this.$authorizer.role[role],
           this.$actions.session[this.playAction],
+        );
+      }
+
+      return false;
+    },
+
+    hasAuthorizationClose() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.session[this.closeAction],
         );
       }
 
