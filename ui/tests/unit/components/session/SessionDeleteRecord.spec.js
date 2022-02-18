@@ -2,7 +2,6 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import SessionDeleteRecord from '@/components/session/SessionDeleteRecord';
-import { actions, authorizer } from '../../../../src/authorizer';
 
 describe('SessionDeleteRecord', () => {
   const localVue = createLocalVue();
@@ -13,54 +12,51 @@ describe('SessionDeleteRecord', () => {
 
   let wrapper;
 
-  const role = ['owner', 'operator'];
-
-  const hasAuthorization = {
-    owner: true,
-    operator: false,
-  };
-
   const tests = [
     {
-      description: 'Icon',
+      description: 'Dialog closed',
       props: {
         uid: '8c354a00',
         show: false,
       },
-      data: {
-        action: 'removeRecord',
-      },
       template: {
+        'removeRecord-icon': true,
+        'removeRecord-title': true,
         'sessionDeleteRecord-card': false,
-        'cancel-btn': false,
-        'delete-btn': false,
+      },
+      templateText: {
+        'removeRecord-title': 'Delete Session Record',
       },
     },
     {
-      description: 'Dialog',
+      description: 'Dialog opened',
       props: {
         uid: '8c354a00',
         show: true,
       },
-      data: {
-        action: 'removeRecord',
-      },
       template: {
+        'removeRecord-icon': true,
+        'removeRecord-title': true,
         'sessionDeleteRecord-card': true,
+        'text-title': true,
+        'text-text': true,
         'cancel-btn': true,
         'delete-btn': true,
+      },
+      templateText: {
+        'removeRecord-title': 'Delete Session Record',
+        'text-title': 'Are you sure?',
+        'text-text': 'You are going to delete the logs recorded for this session.',
+        'cancel-btn': 'Cancel',
+        'delete-btn': 'Delete',
       },
     },
   ];
 
-  const storeVuex = (currentrole) => new Vuex.Store({
+  const storeVuex = () => new Vuex.Store({
     namespaced: true,
-    state: {
-      currentrole,
-    },
-    getters: {
-      'auth/role': (state) => state.currentrole,
-    },
+    state: { },
+    getters: { },
     actions: {
       'sessions/deleteSessionLogs': () => {},
       'snackbar/showSnackbarSuccessAction': () => {},
@@ -69,63 +65,50 @@ describe('SessionDeleteRecord', () => {
   });
 
   tests.forEach((test) => {
-    role.forEach((currentrole) => {
-      describe(`${test.description} ${currentrole}`, () => {
-        beforeEach(() => {
-          wrapper = mount(SessionDeleteRecord, {
-            store: storeVuex(currentrole),
-            localVue,
-            stubs: ['fragment'],
-            propsData: { uid: test.props.uid, show: test.props.show },
-            vuetify,
-            mocks: {
-              $authorizer: authorizer,
-              $actions: actions,
-            },
-          });
+    describe(`${test.description}`, () => {
+      beforeEach(() => {
+        wrapper = mount(SessionDeleteRecord, {
+          store: storeVuex(),
+          localVue,
+          stubs: ['fragment'],
+          propsData: { uid: test.props.uid, show: test.props.show },
+          vuetify,
         });
+      });
 
-        ///////
-        // Component Rendering
-        //////
+      ///////
+      // Component Rendering
+      //////
 
-        it('Is a Vue instance', () => {
-          expect(wrapper).toBeTruthy();
+      it('Is a Vue instance', () => {
+        expect(wrapper).toBeTruthy();
+      });
+      it('Renders the component', () => {
+        expect(wrapper.html()).toMatchSnapshot();
+      });
+
+      ///////
+      // Data checking
+      //////
+
+      it('Receive data in props', () => {
+        Object.keys(test.props).forEach((item) => {
+          expect(wrapper.vm[item]).toEqual(test.props[item]);
         });
-        it('Renders the component', () => {
-          expect(wrapper.html()).toMatchSnapshot();
-        });
+      });
 
-        ///////
-        // Data checking
-        //////
+      //////
+      // HTML validation
+      //////
 
-        it('Receive data in props', () => {
-          Object.keys(test.props).forEach((item) => {
-            expect(wrapper.vm[item]).toEqual(test.props[item]);
-          });
+      it('Renders the template with data', () => {
+        Object.keys(test.template).forEach((item) => {
+          expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
         });
-        it('Compare data with default value', () => {
-          Object.keys(test.data).forEach((item) => {
-            expect(wrapper.vm[item]).toEqual(test.data[item]);
-          });
-        });
-        it('Process data in the computed', () => {
-          expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
-        });
-
-        //////
-        // HTML validation
-        //////
-
-        it('Renders the template with data', () => {
-          Object.keys(test.template).forEach((item) => {
-            if (!hasAuthorization[currentrole] && currentrole === 'operator' && test.props.show) {
-              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(!test.template[item]);
-            } else {
-              expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
-            }
-          });
+      });
+      it('Renders template with expected text', () => {
+        Object.keys(test.templateText).forEach((item) => {
+          expect(wrapper.find(`[data-test="${item}"]`).text()).toContain(test.templateText[item]);
         });
       });
     });

@@ -103,17 +103,34 @@
               />
             </v-list-item>
 
-            <v-list-item
-              v-if="session.recorded"
-              @click.stop="openDialog('sessionDeleteRecord')"
+            <v-tooltip
+              bottom
+              :disabled="hasAuthorizationRemoveRecord"
             >
-              <SessionDeleteRecord
-                :uid="session.uid"
-                :show.sync="sessionDeleteRecord"
-                data-test="sessionDeleteRecord-component"
-                @update="refresh"
-              />
-            </v-list-item>
+              <template #activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-list-item
+                    v-if="session.recorded"
+                    :disabled="!hasAuthorizationRemoveRecord"
+                    @click.stop="openDialog('sessionDeleteRecord')"
+                  >
+                    <SessionDeleteRecord
+                      :uid="session.uid"
+                      :show.sync="sessionDeleteRecord"
+                      data-test="sessionDeleteRecord-component"
+                      @update="refresh"
+                    />
+                  </v-list-item>
+                </div>
+              </template>
+
+              <span>
+                You don't have this kind of authorization.
+              </span>
+            </v-tooltip>
           </v-card>
         </v-menu>
       </v-toolbar>
@@ -269,6 +286,7 @@ export default {
       sessionDeleteRecord: false,
       hide: true,
       playAction: 'play',
+      removeRecordAction: 'removeRecord',
     };
   },
 
@@ -283,6 +301,18 @@ export default {
         return hasPermission(
           this.$authorizer.role[role],
           this.$actions.session[this.playAction],
+        );
+      }
+
+      return false;
+    },
+
+    hasAuthorizationRemoveRecord() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.session[this.removeRecordAction],
         );
       }
 

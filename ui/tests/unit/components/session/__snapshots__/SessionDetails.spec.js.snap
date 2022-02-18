@@ -204,9 +204,9 @@ exports[`SessionDetails Session recorded is true and device is online when user 
           <v-list-item-stub activeclass="" tag="div">
             <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
           </v-list-item-stub>
-          <v-list-item-stub activeclass="" tag="div">
-            <sessiondeleterecord-stub uid="8c354a00" data-test="sessionDeleteRecord-component"></sessiondeleterecord-stub>
-          </v-list-item-stub>
+          <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+              You don't have this kind of authorization.
+            </span></v-tooltip-stub>
         </v-card-stub>
       </v-menu-stub>
     </v-toolbar-stub>
@@ -306,9 +306,9 @@ exports[`SessionDetails Session recorded is true and device is online when user 
           <v-list-item-stub activeclass="" tag="div">
             <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
           </v-list-item-stub>
-          <v-list-item-stub activeclass="" tag="div">
-            <sessiondeleterecord-stub uid="8c354a00" data-test="sessionDeleteRecord-component"></sessiondeleterecord-stub>
-          </v-list-item-stub>
+          <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" disabled="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+              You don't have this kind of authorization.
+            </span></v-tooltip-stub>
         </v-card-stub>
       </v-menu-stub>
     </v-toolbar-stub>
@@ -408,9 +408,9 @@ exports[`SessionDetails Session recorded is true and device is online, but not e
           <v-list-item-stub activeclass="" tag="div">
             <sessionclose-stub uid="8c354a00" device="a582b47a" data-test="sessionClose-component"></sessionclose-stub>
           </v-list-item-stub>
-          <v-list-item-stub activeclass="" tag="div">
-            <sessiondeleterecord-stub uid="8c354a00" data-test="sessionDeleteRecord-component"></sessiondeleterecord-stub>
-          </v-list-item-stub>
+          <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" disabled="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+              You don't have this kind of authorization.
+            </span></v-tooltip-stub>
         </v-card-stub>
       </v-menu-stub>
     </v-toolbar-stub>
