@@ -1,32 +1,20 @@
 <template>
   <fragment>
-    <v-tooltip
-      :disabled="hasAuthorization"
-      bottom
-    >
-      <template #activator="{ on }">
-        <span v-on="on">
-          <v-list-item-title data-test="play-item">
-            Delete Session Record
-          </v-list-item-title>
-        </span>
+    <v-list-item-icon class="mr-0">
+      <v-icon
+        left
+        data-test="removeRecord-icon"
+        v-text="'mdi-playlist-remove'"
+      />
+    </v-list-item-icon>
 
-        <span v-on="on">
-          <v-icon
-            :disabled="!hasAuthorization"
-            left
-            data-test="play-icon"
-            v-on="on"
-          >
-            mdi-playlist-remove
-          </v-icon>
-        </span>
-      </template>
-
-      <span v-if="!hasAuthorization">
-        You don't have this kind of authorization.
-      </span>
-    </v-tooltip>
+    <v-list-item-content>
+      <v-list-item-title
+        class="text-left"
+        data-test="removeRecord-title"
+        v-text="'Delete Session Record'"
+      />
+    </v-list-item-content>
 
     <v-dialog
       v-model="showDialog"
@@ -34,13 +22,17 @@
       @click:outside="close"
     >
       <v-card data-test="sessionDeleteRecord-card">
-        <v-card-title class="headline primary">
-          Are you sure?
-        </v-card-title>
+        <v-card-title
+          class="headline primary"
+          data-test="text-title"
+          v-text="'Are you sure?'"
+        />
 
-        <v-card-text class="mt-4 mb-3 pb-1">
-          You are going to delete the logs recorded for this session.
-        </v-card-text>
+        <v-card-text
+          class="mt-4 mb-3 pb-1"
+          data-test="text-text"
+          v-text="'You are going to delete the logs recorded for this session.'"
+        />
 
         <v-card-actions>
           <v-spacer />
@@ -48,18 +40,16 @@
             text
             data-test="cancel-btn"
             @click="close()"
-          >
-            Cancel
-          </v-btn>
+            v-text="'Cancel'"
+          />
 
           <v-btn
             color="red darken-1"
             text
             data-test="delete-btn"
             @click="deleteRecord()"
-          >
-            Delete
-          </v-btn>
+            v-text="'Delete'"
+          />
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -68,12 +58,8 @@
 
 <script>
 
-import hasPermission from '@/components/filter/permission';
-
 export default {
   name: 'SessionDeleteRecordComponent',
-
-  filters: { hasPermission },
 
   props: {
     uid: {
@@ -87,32 +73,14 @@ export default {
     },
   },
 
-  data() {
-    return {
-      action: 'removeRecord',
-    };
-  },
-
   computed: {
     showDialog: {
       get() {
-        return this.show && this.hasAuthorization;
+        return this.show;
       },
       set(value) {
         this.$emit('update:show', value);
       },
-    },
-
-    hasAuthorization() {
-      const role = this.$store.getters['auth/role'];
-      if (role !== '') {
-        return hasPermission(
-          this.$authorizer.role[role],
-          this.$actions.session[this.action],
-        );
-      }
-
-      return false;
     },
   },
 

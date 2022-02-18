@@ -60,10 +60,10 @@ describe('SessionDetails', () => {
       computed: {
         isEnterprise: true,
         hasAuthorizationPlay: true,
+        hasAuthorizationRemoveRecord: true,
       },
       components: {
         'sessionClose-component': true,
-        'sessionDeleteRecord-component': true,
       },
       template: {
         'sessionUid-field': true,
@@ -101,6 +101,7 @@ describe('SessionDetails', () => {
       computed: {
         isEnterprise: true,
         hasAuthorizationPlay: true,
+        hasAuthorizationRemoveRecord: true,
       },
       components: {
         'sessionPlay-component': false,
@@ -147,6 +148,7 @@ describe('SessionDetails', () => {
       computed: {
         isEnterprise: true,
         hasAuthorizationPlay: true,
+        hasAuthorizationRemoveRecord: true,
       },
       components: {
         'sessionPlay-component': false,
@@ -189,11 +191,11 @@ describe('SessionDetails', () => {
       computed: {
         isEnterprise: false,
         hasAuthorizationPlay: true,
+        hasAuthorizationRemoveRecord: true,
       },
       components: {
         'sessionPlay-component': false,
         'sessionClose-component': true,
-        'sessionDeleteRecord-component': true,
       },
       template: {
         'sessionUid-field': true,
@@ -231,10 +233,10 @@ describe('SessionDetails', () => {
       computed: {
         isEnterprise: true,
         hasAuthorizationPlay: false,
+        hasAuthorizationRemoveRecord: false,
       },
       components: {
         'sessionClose-component': true,
-        'sessionDeleteRecord-component': true,
       },
       template: {
         'sessionUid-field': true,
