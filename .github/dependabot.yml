@@ -56,6 +56,8 @@ updates:
       update-types: ["version-update:semver-major"]
     - dependency-name: "webpack"
       update-types: ["version-update:semver-major"]
+    - dependency-name: "@vue/cli-service"
+      update-types: ["version-update:semver-major"]
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
