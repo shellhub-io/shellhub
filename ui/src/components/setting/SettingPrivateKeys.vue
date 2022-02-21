@@ -15,9 +15,7 @@
               <v-spacer />
 
               <span @click="privateKeyFormDialogAddShow = !privateKeyFormDialogAddShow">
-                <PrivateKeyFormDialog
-                  :create-key="true"
-                  action="private"
+                <PrivateKeyFormDialogAdd
                   :show.sync="privateKeyFormDialogAddShow"
                   data-test="privateKeyFormDialogFirst-component"
                 />
@@ -132,6 +130,7 @@
 
 <script>
 
+import PrivateKeyFormDialogAdd from '@/components/private_key/PrivateKeyFormDialogAdd';
 import PrivateKeyFormDialog from '@/components/public_key/KeyFormDialog';
 import PrivateKeyDelete from '@/components/private_key/PrivateKeyDelete';
 
@@ -141,6 +140,7 @@ export default {
   name: 'SettingPrivateKeysComponent',
 
   components: {
+    PrivateKeyFormDialogAdd,
     PrivateKeyFormDialog,
     PrivateKeyDelete,
   },
