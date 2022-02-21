@@ -133,7 +133,7 @@
 <script>
 
 import PrivateKeyFormDialog from '@/components/public_key/KeyFormDialog';
-import PrivateKeyDelete from '@/components/public_key/KeyDelete';
+import PrivateKeyDelete from '@/components/private_key/PrivateKeyDelete';
 
 import { parsePrivateKey } from '@/sshpk';
 
