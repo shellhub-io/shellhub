@@ -24,4 +24,8 @@ describe('Tags', () => {
     store.dispatch('tags/clearSelectedTags');
     expect(store.getters['tags/selected']).toEqual([]);
   });
+  it('Verify initial state change for setTags mutation', () => {
+    store.dispatch('tags/setTags', { data: tags, headers: { 'x-total-count': tags.length } });
+    expect(store.getters['tags/list']).toEqual(tags);
+  });
 });

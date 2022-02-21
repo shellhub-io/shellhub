@@ -153,6 +153,12 @@ export default {
       try {
         this.errorMsg = '';
         await this.$store.dispatch('devices/updateDeviceTag', data);
+        await this.$store.dispatch('tags/setTags', {
+          data: data.tags,
+          headers: {
+            'x-total-count': data.tags.length,
+          },
+        });
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceTagUpdate);
 
         this.update();

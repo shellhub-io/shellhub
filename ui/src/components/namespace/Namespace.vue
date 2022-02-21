@@ -1,7 +1,9 @@
 <template>
   <fragment>
     <v-list v-if="hasNamespace">
-      <v-list-group>
+      <v-list-group
+        v-model="listing"
+      >
         <template #activator>
           <v-list-item-content>
             <v-list-item-title class="primary--text primary--icon">
@@ -49,6 +51,7 @@ export default {
   data() {
     return {
       inANamespace: false,
+      listing: false,
     };
   },
 
@@ -74,6 +77,12 @@ export default {
     hasNamespace(status) {
       this.inANamespace = status;
       this.getNamespace();
+    },
+
+    listing(val) {
+      if (val) {
+        this.getNamespaces();
+      }
     },
   },
 

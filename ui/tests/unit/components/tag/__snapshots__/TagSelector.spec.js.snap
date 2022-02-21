@@ -18,7 +18,7 @@ exports[`TagSelector With tags Renders the component 1`] = `
 
 exports[`TagSelector Without tags Renders the component 1`] = `
 <fragment-stub>
-  <div class="mr-4"><span class="v-badge v-badge--bordered v-badge--overlap theme--light"><button type="button" class="v-btn v-btn--outlined theme--light v-size--default primary--text" data-test="tags-btn" role="button" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content">
+  <div class="mr-4"><span class="v-badge v-badge--bordered v-badge--overlap theme--light"><button type="button" disabled="disabled" class="v-btn v-btn--disabled v-btn--outlined theme--light v-size--default" data-test="tags-btn" role="button" aria-haspopup="true" aria-expanded="false"><span class="v-btn__content">
             Tags
             <i aria-hidden="true" class="v-icon notranslate v-icon--right mdi mdi-chevron-down theme--light"></i></span></button><span class="v-badge__wrapper"><transition-stub name="scale-rotate-transition"><span aria-atomic="true" aria-label="Badge" aria-live="polite" role="status" class="v-badge__badge primary" style="bottom: calc(100% - 12px); left: calc(100% - 12px); display: none;"></span></transition-stub></span></span>
     <div class="v-menu">

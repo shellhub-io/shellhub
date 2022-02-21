@@ -98,6 +98,8 @@ export default {
 
         if (this.redirect) {
           this.$router.push('/devices');
+        } else {
+          await this.$store.dispatch('tags/fetch');
         }
 
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.deviceDelete);
