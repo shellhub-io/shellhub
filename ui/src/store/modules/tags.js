@@ -46,6 +46,10 @@ export default {
       await apiDevice.updateTag(data);
     },
 
+    setTags: (context, data) => {
+      context.commit('setTags', data);
+    },
+
     remove: async (context, name) => {
       await apiDevice.removeTag(name);
     },

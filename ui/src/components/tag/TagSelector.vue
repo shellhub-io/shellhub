@@ -18,6 +18,7 @@
               v-bind="attrs"
               data-test="tags-btn"
               outlined
+              :disabled="getListTags.length==0"
               v-on="on"
               @click="getTags"
             >
