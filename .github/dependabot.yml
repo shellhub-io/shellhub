@@ -58,6 +58,8 @@ updates:
       update-types: ["version-update:semver-major"]
     - dependency-name: "@vue/cli-service"
       update-types: ["version-update:semver-major"]
+    - dependency-name: "@vue/cli-plugin-unit-jest"
+      update-types: ["version-update:semver-major"]
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
