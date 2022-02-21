@@ -62,12 +62,10 @@
                     <v-list-item
                       @click="showPrivateKeyFormDialog(getListPrivateKeys.indexOf(item))"
                     >
-                      <PrivateKeyFormDialog
+                      <PrivateKeyFormDialogEdit
                         :key-object="item"
-                        :create-key="false"
-                        action="private"
                         :show.sync="privateKeyFormDialogShow[getListPrivateKeys.indexOf(item)]"
-                        data-test="privateKeyFormDialogSecond-component"
+                        data-test="privateKeyFormDialogEdit-component"
                       />
                     </v-list-item>
 
@@ -131,7 +129,7 @@
 <script>
 
 import PrivateKeyFormDialogAdd from '@/components/private_key/PrivateKeyFormDialogAdd';
-import PrivateKeyFormDialog from '@/components/public_key/KeyFormDialog';
+import PrivateKeyFormDialogEdit from '@/components/private_key/PrivateKeyFormDialogEdit';
 import PrivateKeyDelete from '@/components/private_key/PrivateKeyDelete';
 
 import { parsePrivateKey } from '@/sshpk';
@@ -141,7 +139,7 @@ export default {
 
   components: {
     PrivateKeyFormDialogAdd,
-    PrivateKeyFormDialog,
+    PrivateKeyFormDialogEdit,
     PrivateKeyDelete,
   },
 
