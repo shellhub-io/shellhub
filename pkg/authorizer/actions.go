@@ -25,7 +25,7 @@ type firewallActions struct {
 }
 
 type publicKeyActions struct {
-	Create, Edit, Remove int
+	Create, Edit, Remove, AddTag, RemoveTag, UpdateTag int
 }
 
 type namespaceActions struct {
@@ -63,9 +63,12 @@ var Actions = actions{
 		Remove: FirewallRemove,
 	},
 	PublicKey: publicKeyActions{
-		Create: PublicKeyCreate,
-		Edit:   PublicKeyEdit,
-		Remove: PublicKeyRemove,
+		Create:    PublicKeyCreate,
+		Edit:      PublicKeyEdit,
+		Remove:    PublicKeyRemove,
+		AddTag:    PublicKeyAddTag,
+		RemoveTag: PublicKeyRemoveTag,
+		UpdateTag: PublicKeyUpdateTag,
 	},
 	Namespace: namespaceActions{
 		Rename:              NamespaceRename,
