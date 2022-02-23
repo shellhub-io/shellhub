@@ -49,15 +49,34 @@
           </template>
 
           <v-card>
-            <v-list-item @click.stop="openDialog('deviceRenameShow')">
-              <DeviceRename
-                :name="device.name"
-                :uid="device.uid"
-                :show.sync="deviceRenameShow"
-                data-test="deviceRename-component"
-                @newHostname="receiveName"
-              />
-            </v-list-item>
+            <v-tooltip
+              bottom
+              :disabled="hasAuthorizationRename"
+            >
+              <template #activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-list-item
+                    :disabled="!hasAuthorizationRename"
+                    @click.stop="openDialog('deviceRenameShow')"
+                  >
+                    <DeviceRename
+                      :name="device.name"
+                      :uid="device.uid"
+                      :show.sync="deviceRenameShow"
+                      data-test="deviceRename-component"
+                      @newHostname="receiveName"
+                    />
+                  </v-list-item>
+                </div>
+              </template>
+
+              <span>
+                You don't have this kind of authorization.
+              </span>
+            </v-tooltip>
 
             <v-tooltip
               bottom
