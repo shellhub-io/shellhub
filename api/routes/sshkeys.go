@@ -271,6 +271,8 @@ func (h *Handler) UpdatePublicKeyTags(c gateway.Context) error {
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrPublicKeyNotFound:
 			return c.NoContent(http.StatusNotFound)
+		case services.ErrPublicKeyInvalid:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrMaxTagReached:
 			return c.NoContent(http.StatusNotAcceptable)
 		case services.ErrTagNameNotFound:
