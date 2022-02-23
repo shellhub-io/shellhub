@@ -181,12 +181,12 @@ func (h *Handler) EvaluateKey(c gateway.Context) error {
 		return err
 	}
 
-	hostnameOk, err := h.service.EvaluateKeyHostname(c.Ctx(), pubKey, device)
+	filterOk, err := h.service.EvaluateKeyFilter(c.Ctx(), pubKey, device)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, usernameOk && hostnameOk)
+	return c.JSON(http.StatusOK, usernameOk && filterOk)
 }
 
 func (h *Handler) AddPublicKeyTag(c gateway.Context) error {

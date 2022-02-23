@@ -425,8 +425,8 @@ func (_m *Service) EditSessionRecordStatus(ctx context.Context, sessionRecord bo
 	return r0
 }
 
-// EvaluateKeyHostname provides a mock function with given fields: ctx, key, dev
-func (_m *Service) EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
+// EvaluateKeyFilter provides a mock function with given fields: ctx, key, dev
+func (_m *Service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
 	ret := _m.Called(ctx, key, dev)
 
 	var r0 bool
