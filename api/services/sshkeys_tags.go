@@ -38,6 +38,10 @@ func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag 
 		return ErrPublicKeyNotFound
 	}
 
+	if key.Filter.Hostname != "" {
+		return ErrPublicKeyInvalid
+	}
+
 	if len(key.Filter.Tags) == DeviceMaxTags {
 		return ErrMaxTagReached
 	}
@@ -86,6 +90,10 @@ func (s *service) RemovePublicKeyTag(ctx context.Context, tenant, fingerprint, t
 	key, err := s.GetPublicKey(ctx, fingerprint, tenant)
 	if err != nil || key == nil {
 		return ErrPublicKeyNotFound
+	}
+
+	if key.Filter.Hostname != "" {
+		return ErrPublicKeyInvalid
 	}
 
 	// Checks if the tag already exists in the device.
@@ -138,6 +146,10 @@ func (s *service) UpdatePublicKeyTags(ctx context.Context, tenant, fingerprint s
 	key, err := s.GetPublicKey(ctx, fingerprint, tenant)
 	if err != nil || key == nil {
 		return ErrPublicKeyNotFound
+	}
+
+	if key.Filter.Hostname != "" {
+		return ErrPublicKeyInvalid
 	}
 
 	if len(tags) > DeviceMaxTags {
