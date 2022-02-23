@@ -16,7 +16,7 @@ import (
 )
 
 type SSHKeysService interface {
-	EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
+	EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
 	EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error)
 	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
 	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
@@ -30,17 +30,35 @@ type Request struct {
 	Namespace string
 }
 
-func (s *service) EvaluateKeyHostname(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
-	if key.Filter.Hostname == "" {
-		return true, nil
+func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
+	exist := func(item string, list []string) bool {
+		for _, elem := range list {
+			if elem == item {
+				return true
+			}
+		}
+
+		return false
 	}
 
-	ok, err := regexp.MatchString(key.Filter.Hostname, dev.Name)
-	if err != nil {
-		return false, err
+	if key.Filter.Hostname != "" {
+		ok, err := regexp.MatchString(key.Filter.Hostname, dev.Name)
+		if err != nil {
+			return false, err
+		}
+
+		return ok, nil
+	} else if len(key.Filter.Tags) > 0 {
+		for _, tag := range dev.Tags {
+			if exist(tag, key.Filter.Tags) {
+				return true, nil
+			}
+		}
+
+		return false, nil
 	}
 
-	return ok, nil
+	return true, nil
 }
 
 func (s *service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error) {
