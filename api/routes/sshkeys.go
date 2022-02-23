@@ -202,9 +202,13 @@ func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
 		tenant = c.Tenant().ID
 	}
 
-	err := h.service.AddPublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tag)
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.AddTag, func() error {
+		return h.service.AddPublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tag)
+	})
 	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrPublicKeyNotFound:
@@ -231,9 +235,13 @@ func (h *Handler) RemovePublicKeyTag(c gateway.Context) error {
 		tenant = c.Tenant().ID
 	}
 
-	err := h.service.RemovePublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), c.Param(ParamTagName))
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.RemoveTag, func() error {
+		return h.service.RemovePublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), c.Param(ParamTagName))
+	})
 	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrPublicKeyNotFound:
@@ -264,9 +272,13 @@ func (h *Handler) UpdatePublicKeyTags(c gateway.Context) error {
 		tenant = c.Tenant().ID
 	}
 
-	err := h.service.UpdatePublicKeyTags(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tags)
+	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.UpdateTag, func() error {
+		return h.service.UpdatePublicKeyTags(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tags)
+	})
 	if err != nil {
 		switch err {
+		case guard.ErrForbidden:
+			return c.NoContent(http.StatusForbidden)
 		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		case services.ErrPublicKeyNotFound:

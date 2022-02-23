@@ -29,6 +29,10 @@ const (
 	PublicKeyEdit
 	PublicKeyRemove
 
+	PublicKeyAddTag
+	PublicKeyRemoveTag
+	PublicKeyUpdateTag
+
 	NamespaceRename
 	NamespaceAddMember
 	NamespaceRemoveMember
@@ -94,6 +98,9 @@ var adminPermissions = Permissions{
 	PublicKeyCreate,
 	PublicKeyEdit,
 	PublicKeyRemove,
+	PublicKeyAddTag,
+	PublicKeyRemoveTag,
+	PublicKeyUpdateTag,
 
 	NamespaceRename,
 	NamespaceAddMember,
@@ -128,6 +135,9 @@ var ownerPermissions = Permissions{
 	PublicKeyCreate,
 	PublicKeyEdit,
 	PublicKeyRemove,
+	PublicKeyAddTag,
+	PublicKeyRemoveTag,
+	PublicKeyUpdateTag,
 
 	NamespaceRename,
 	NamespaceAddMember,
