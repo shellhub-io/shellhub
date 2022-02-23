@@ -88,14 +88,33 @@
               </span>
             </v-tooltip>
 
-            <v-list-item @click.stop="openDialog('deviceDeleteShow')">
-              <DeviceDelete
-                :uid="device.uid"
-                :redirect="true"
-                :show.sync="deviceDeleteShow"
-                data-test="deviceDelete-component"
-              />
-            </v-list-item>
+            <v-tooltip
+              bottom
+              :disabled="hasAuthorizationRemove"
+            >
+              <template #activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-list-item
+                    :disabled="!hasAuthorizationRemove"
+                    @click.stop="openDialog('deviceDeleteShow')"
+                  >
+                    <DeviceDelete
+                      :uid="device.uid"
+                      :redirect="true"
+                      :show.sync="deviceDeleteShow"
+                      data-test="deviceDelete-component"
+                    />
+                  </v-list-item>
+                </div>
+              </template>
+
+              <span>
+                You don't have this kind of authorization.
+              </span>
+            </v-tooltip>
           </v-card>
         </v-menu>
       </v-toolbar>
@@ -233,6 +252,7 @@ export default {
       deviceDeleteShow: false,
       renameAction: 'rename',
       updateAction: 'deviceUpdate',
+      removeAction: 'remove',
     };
   },
 
@@ -255,6 +275,18 @@ export default {
         return hasPermission(
           this.$authorizer.role[role],
           this.$actions.tag[this.updateAction],
+        );
+      }
+
+      return false;
+    },
+
+    hasAuthorizationRemove() {
+      const role = this.$store.getters['auth/role'];
+      if (role !== '') {
+        return hasPermission(
+          this.$authorizer.role[role],
+          this.$actions.device[this.removeAction],
         );
       }
 

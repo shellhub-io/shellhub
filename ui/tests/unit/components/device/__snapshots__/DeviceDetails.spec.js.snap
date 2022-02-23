@@ -23,9 +23,9 @@ exports[`DeviceDetails Offline Device Renders the component 1`] = `
           <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
               You don't have this kind of authorization.
             </span></v-tooltip-stub>
-          <v-list-item-stub activeclass="" tag="div">
-            <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
-          </v-list-item-stub>
+          <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+              You don't have this kind of authorization.
+            </span></v-tooltip-stub>
         </v-card-stub>
       </v-menu-stub>
     </v-toolbar-stub>
@@ -120,9 +120,9 @@ exports[`DeviceDetails Online Device and owner Renders the component 1`] = `
           <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" disabled="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
               You don't have this kind of authorization.
             </span></v-tooltip-stub>
-          <v-list-item-stub activeclass="" tag="div">
-            <devicedelete-stub uid="a582b47a" redirect="true" data-test="deviceDelete-component"></devicedelete-stub>
-          </v-list-item-stub>
+          <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" disabled="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>
+              You don't have this kind of authorization.
+            </span></v-tooltip-stub>
         </v-card-stub>
       </v-menu-stub>
     </v-toolbar-stub>
