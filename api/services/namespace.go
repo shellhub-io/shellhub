@@ -46,6 +46,10 @@ func (s *service) HandleReportDelete(ns *models.Namespace) error {
 	return hp.HandleStatusResponse(status)
 }
 
+// ListNamespaces lists all namespace from a user.
+//
+// pagination is a paginator.Query defines how many namespaces will be returned, filterB64 is a JSON object encoded
+// in B64 used to make filter's operation and export is.
 func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
 	raw, err := base64.StdEncoding.DecodeString(filterB64)
 	if err != nil {
@@ -76,6 +80,9 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 	return namespaces, count, nil
 }
 
+// CreateNamespace creates a new namespace.
+//
+// namespace is the model what you want to add and userID is the models.User's ID who will get the namespace.
 func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespace, userID string) (*models.Namespace, error) {
 	user, _, err := s.store.UserGetByID(ctx, userID, false)
 	if user == nil {
@@ -132,6 +139,9 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	return ns, nil
 }
 
+// GetNamespace gets a namespace.
+//
+// tenantID is the models.Namespace's tenant what you want to get.
 func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
 	namespaces, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil || namespaces == nil {
@@ -159,6 +169,9 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 	return namespaces, nil
 }
 
+// DeleteNamespace deletes a namespace.
+//
+// tenantID is the models.Namespace's tenant what you want to delete.
 func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
@@ -171,6 +184,9 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	return s.store.NamespaceDelete(ctx, tenantID)
 }
 
+// ListMembers lists all members from a namespace.
+//
+// tenantID is the models.Namespace's tenant what you want the members.
 func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Member, error) {
 	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
@@ -199,6 +215,9 @@ func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Me
 	return members, nil
 }
 
+// EditNamespace changes the namespace's name.
+//
+// tenantID is the models.Namespace's tenant what will be the name changed and name is new name.
 func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*models.Namespace, error) {
 	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
@@ -219,6 +238,10 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*mo
 	return s.store.NamespaceRename(ctx, ns.TenantID, lowerName)
 }
 
+// AddNamespaceUser adds an user to a namespace.
+//
+// username is the models.User's name from the member what you want to add, role is member's role, tenantID is the
+// models.Namespace's tenant what will receive the member and userID is the models.User's ID who is adding this member.
 func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error) {
 	if _, err := validator.ValidateStruct(models.Member{Username: memberUsername, Role: memberRole}); err != nil {
 		return nil, ErrInvalidFormat
@@ -270,6 +293,10 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRo
 	return s.store.NamespaceAddMember(ctx, tenantID, memberPassive.ID, memberRole)
 }
 
+// RemoveNamespaceUser removes a user from a namespace.
+//
+// tenantID is the models.Namespace's tenant what will remove the member, mid is the member who will be removed and userID is
+// the models.User's ID from who is removing the member.
 func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error) {
 	namespace, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
@@ -311,6 +338,11 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 	return s.store.NamespaceRemoveMember(ctx, tenantID, memberPassive.ID)
 }
 
+// EditNamespaceUser changes user's role.
+//
+// tenantID is the models.Namespace's tenant from what namespace you want to edit, userID is the models.User's ID from who is
+// acting to change the role, mid is the models.Member's ID who will be the role changed and role is the new role to
+// member.
 func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error {
 	namespace, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
@@ -357,10 +389,17 @@ func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, membe
 	return s.store.NamespaceEditMember(ctx, tenantID, memberPassive.ID, memberNewRole)
 }
 
+// EditSessionRecordStatus defines if the session will be recorded.
+//
+// record is the state what define if there will session record in a namespace and tenantID is the models.Namespace's tenant
+// from what namespace you want to record.
 func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {
 	return s.store.NamespaceSetSessionRecord(ctx, sessionRecord, tenantID)
 }
 
+// GetSessionRecord gets the session record state.
+//
+// tenantID is the models.Namespace's tenant to get the session record status.
 func (s *service) GetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
 	if _, err := s.store.NamespaceGet(ctx, tenantID); err != nil {
 		if err == store.ErrNoDocuments {
