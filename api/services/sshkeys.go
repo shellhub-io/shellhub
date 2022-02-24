@@ -79,7 +79,7 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, tenant string) error {
-	exists := func(item string, list []string) bool {
+	exist := func(item string, list []string) bool {
 		for _, elem := range list {
 			if elem == item {
 				return true
@@ -89,9 +89,28 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, te
 		return false
 	}
 
-	err := key.Validate()
-	if err != nil {
+	if err := key.Validate(); err != nil {
 		return ErrPublicKeyInvalid
+	}
+
+	// Checks if there are tags on the public key.
+	if key.Filter.Tags != nil {
+		if len(key.Filter.Tags) == 0 {
+			return ErrPublicKeyInvalid
+		}
+
+		tags, _, err := s.store.DeviceGetTags(ctx, tenant)
+		if err != nil {
+			return err
+		}
+
+		// Check if tags are valid.
+		// Tags are valid when they exist in some device.
+		for _, tag := range key.Filter.Tags {
+			if !exist(tag, tags) {
+				return ErrTagNameNotFound
+			}
+		}
 	}
 
 	key.CreatedAt = clock.Now()
@@ -112,21 +131,6 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, te
 		return ErrDuplicateFingerprint
 	}
 
-	// Checks if the tags in public key are valid.
-	// The tags are valid when they exist in some device.
-	if key.Filter.Tags != nil {
-		tags, _, err := s.GetTags(ctx, tenant)
-		if err != nil {
-			return err
-		}
-
-		for _, tag := range key.Filter.Tags {
-			if !exists(tag, tags) {
-				return ErrTagNameNotFound
-			}
-		}
-	}
-
 	err = s.store.PublicKeyCreate(ctx, key)
 	if err != nil {
 		return err
@@ -140,7 +144,7 @@ func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query
 }
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	exists := func(item string, list []string) bool {
+	exist := func(item string, list []string) bool {
 		for _, elem := range list {
 			if elem == item {
 				return true
@@ -154,16 +158,21 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 		return nil, ErrPublicKeyInvalid
 	}
 
-	// Checks if the tags in public key are valid.
-	// The tags are valid when they exist in some device.
+	// Checks if there are tags on the public key.
 	if key.Filter.Tags != nil {
+		if len(key.Filter.Tags) == 0 {
+			return nil, ErrPublicKeyInvalid
+		}
+
 		tags, _, err := s.store.DeviceGetTags(ctx, tenant)
 		if err != nil {
 			return nil, err
 		}
 
+		// Check if tags are valid.
+		// Tags are valid when they exist in some device.
 		for _, tag := range key.Filter.Tags {
-			if !exists(tag, tags) {
+			if !exist(tag, tags) {
 				return nil, ErrTagNameNotFound
 			}
 		}
