@@ -69,6 +69,8 @@ func TestPublicKeyAddTag(t *testing.T) {
 		{
 			description: "fail to add tag to public key",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyAddTag(ctx, "invalidTenant", "fingerprintKeyTags", "tag")
 				assert.Error(t, err)
 			},
@@ -76,6 +78,8 @@ func TestPublicKeyAddTag(t *testing.T) {
 		{
 			description: "success to add tag to public key",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyAddTag(ctx, "tenant", "fingerprintKeyTags", "tag")
 				assert.NoError(t, err)
 			},
@@ -104,6 +108,8 @@ func TestPublicKeyRemoveTag(t *testing.T) {
 		{
 			description: "fail to remove a tag from a public key when tenant is invalid",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyRemoveTag(ctx, "invalidTenant", "fingerprintKeyTags", "tag1")
 				assert.Error(t, err)
 			},
@@ -111,6 +117,8 @@ func TestPublicKeyRemoveTag(t *testing.T) {
 		{
 			description: "fail to remove a tag from a public key when tag does not exist",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyRemoveTag(ctx, "tenant", "fingerprintKeyTags", "tag3")
 				assert.Error(t, err)
 			},
@@ -118,6 +126,8 @@ func TestPublicKeyRemoveTag(t *testing.T) {
 		{
 			description: "success to remove a tag from a public key",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyRemoveTag(ctx, "tenant", "fingerprintKeyTags", "tag1")
 				assert.NoError(t, err)
 			},
@@ -146,6 +156,8 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 		{
 			description: "fail to update tags to public key when tenant is not valid",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyUpdateTags(ctx, "invalidTenant", "fingerprintKeyTags", []string{"tag1", "tag2", "tag3"})
 				assert.Error(t, err)
 			},
@@ -153,6 +165,8 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 		{
 			description: "success to update tags to public key",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyUpdateTags(ctx, "tenant", "fingerprintKeyTags", []string{"tag1", "tag2", "tag3"})
 				assert.NoError(t, err)
 			},
@@ -181,6 +195,8 @@ func TestPublicKeyRenameTag(t *testing.T) {
 		{
 			description: "fail to rename a tags from public key when tenant is not valid",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyRenameTag(ctx, "invalidTenant", "tag2", "tag4")
 				assert.Error(t, err)
 			},
@@ -188,6 +204,8 @@ func TestPublicKeyRenameTag(t *testing.T) {
 		{
 			description: "fail to rename a tags from public key when tag does not exist",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyRenameTag(ctx, "tenant", "tag4", "tag5")
 				assert.Error(t, err)
 			},
@@ -195,6 +213,8 @@ func TestPublicKeyRenameTag(t *testing.T) {
 		{
 			description: "success to rename a tags from public key",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyRenameTag(ctx, "tenant", "tag2", "tag4")
 				assert.NoError(t, err)
 			},
@@ -223,6 +243,8 @@ func TestPublicKeyDeleteTag(t *testing.T) {
 		{
 			description: "fail to delete a tags from all public keys",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyDeleteTag(ctx, "invalidTenant", "tag2")
 				assert.Error(t, err)
 			},
@@ -230,6 +252,8 @@ func TestPublicKeyDeleteTag(t *testing.T) {
 		{
 			description: "fail to delete a tag from public key when tag does not exist",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyDeleteTag(ctx, "tenant", "tag4")
 				assert.Error(t, err)
 			},
@@ -237,6 +261,8 @@ func TestPublicKeyDeleteTag(t *testing.T) {
 		{
 			description: "success to delete a tags from all public keys",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				err := store.PublicKeyDeleteTag(ctx, "tenant", "tag2")
 				assert.NoError(t, err)
 			},
@@ -265,6 +291,8 @@ func TestPublicKeyGetTags(t *testing.T) {
 		{
 			description: "fail to get all tags from all public keys when tenant is not valid",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				tags, lines, _ := store.PublicKeyGetTags(ctx, "invalidTenant")
 				assert.Equal(t, []string{}, tags)
 				assert.Equal(t, 0, lines)
@@ -273,6 +301,8 @@ func TestPublicKeyGetTags(t *testing.T) {
 		{
 			description: "success to get all tags from all public keys",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				tags, lines, err := store.PublicKeyGetTags(ctx, "tenant")
 				assert.NoError(t, err)
 				assert.Equal(t, []string{"tag1", "tag2"}, tags)
