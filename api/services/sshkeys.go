@@ -31,16 +31,6 @@ type Request struct {
 }
 
 func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
-	exist := func(item string, list []string) bool {
-		for _, elem := range list {
-			if elem == item {
-				return true
-			}
-		}
-
-		return false
-	}
-
 	if key.Filter.Hostname != "" {
 		ok, err := regexp.MatchString(key.Filter.Hostname, dev.Name)
 		if err != nil {
@@ -50,7 +40,7 @@ func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, 
 		return ok, nil
 	} else if len(key.Filter.Tags) > 0 {
 		for _, tag := range dev.Tags {
-			if exist(tag, key.Filter.Tags) {
+			if !contains(key.Filter.Tags, tag) {
 				return true, nil
 			}
 		}
@@ -79,16 +69,6 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, tenant string) error {
-	exist := func(item string, list []string) bool {
-		for _, elem := range list {
-			if elem == item {
-				return true
-			}
-		}
-
-		return false
-	}
-
 	if err := key.Validate(); err != nil {
 		return ErrPublicKeyInvalid
 	}
@@ -107,7 +87,7 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, te
 		// Check if tags are valid.
 		// Tags are valid when they exist in some device.
 		for _, tag := range key.Filter.Tags {
-			if !exist(tag, tags) {
+			if !contains(tags, tag) {
 				return ErrTagNameNotFound
 			}
 		}
@@ -144,16 +124,6 @@ func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query
 }
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	exist := func(item string, list []string) bool {
-		for _, elem := range list {
-			if elem == item {
-				return true
-			}
-		}
-
-		return false
-	}
-
 	if err := key.Validate(); err != nil {
 		return nil, ErrPublicKeyInvalid
 	}
@@ -172,7 +142,7 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 		// Check if tags are valid.
 		// Tags are valid when they exist in some device.
 		for _, tag := range key.Filter.Tags {
-			if !exist(tag, tags) {
+			if !contains(tags, tag) {
 				return nil, ErrTagNameNotFound
 			}
 		}
