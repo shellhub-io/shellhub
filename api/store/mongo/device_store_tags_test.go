@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/cache"
@@ -199,6 +200,8 @@ func TestDeviceGetTags(t *testing.T) {
 	tags, count, err := mongostore.DeviceGetTags(ctx, "tenant1")
 	assert.NoError(t, err)
 	assert.Equal(t, count, 3)
+
+	sort.Strings(tags) // Guarantee the order for comparison.
 	assert.Equal(t, []string{"device1", "device3", "device5"}, tags)
 }
 
