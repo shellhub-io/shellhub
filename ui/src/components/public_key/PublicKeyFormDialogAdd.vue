@@ -23,7 +23,7 @@
 
     <v-dialog
       v-model="dialog"
-      max-width="400"
+      max-width="520"
       @click:outside="close"
     >
       <v-card data-test="publicKeyFormDialog-card">
