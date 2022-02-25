@@ -16,16 +16,6 @@ type SSHKeysTagsService interface {
 //
 // It checks if the models.Namespace and models.PublicKey exists and try to perform the addition action.
 func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag string) error {
-	exist := func(item string, list []string) bool {
-		for _, elem := range list {
-			if elem == item {
-				return true
-			}
-		}
-
-		return false
-	}
-
 	// Checks if the namespace exists.
 	namespace, err := s.GetNamespace(ctx, tenant)
 	if err != nil || namespace == nil {
@@ -51,7 +41,7 @@ func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag 
 		return err
 	}
 
-	if !exist(tag, tags) {
+	if !contains(tags, tag) {
 		return ErrTagNameNotFound
 	}
 
@@ -70,16 +60,6 @@ func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag 
 }
 
 func (s *service) RemovePublicKeyTag(ctx context.Context, tenant, fingerprint, tag string) error {
-	exist := func(item string, list []string) bool {
-		for _, elem := range list {
-			if elem == item {
-				return true
-			}
-		}
-
-		return false
-	}
-
 	// Checks if the namespace exists.
 	namespace, err := s.GetNamespace(ctx, tenant)
 	if err != nil || namespace == nil {
@@ -97,7 +77,7 @@ func (s *service) RemovePublicKeyTag(ctx context.Context, tenant, fingerprint, t
 	}
 
 	// Checks if the tag already exists in the device.
-	if !exist(tag, key.Filter.Tags) {
+	if !contains(key.Filter.Tags, tag) {
 		return ErrTagNameNotFound
 	}
 
@@ -114,15 +94,6 @@ func (s *service) RemovePublicKeyTag(ctx context.Context, tenant, fingerprint, t
 //
 // It checks if the models.Namespace and models.PublicKey exists and try to perform the update action.
 func (s *service) UpdatePublicKeyTags(ctx context.Context, tenant, fingerprint string, tags []string) error {
-	exist := func(item string, list []string) bool {
-		for _, elem := range list {
-			if elem == item {
-				return true
-			}
-		}
-
-		return false
-	}
 	set := func(list []string) []string {
 		state := make(map[string]bool)
 		helper := make([]string, 0)
@@ -164,7 +135,7 @@ func (s *service) UpdatePublicKeyTags(ctx context.Context, tenant, fingerprint s
 	}
 
 	for _, tag := range tags {
-		if !exist(tag, allTags) {
+		if !contains(allTags, tag) {
 			return ErrTagNameNotFound
 		}
 	}
