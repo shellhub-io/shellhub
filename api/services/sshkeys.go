@@ -40,7 +40,7 @@ func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, 
 		return ok, nil
 	} else if len(key.Filter.Tags) > 0 {
 		for _, tag := range dev.Tags {
-			if !contains(key.Filter.Tags, tag) {
+			if contains(key.Filter.Tags, tag) {
 				return true, nil
 			}
 		}

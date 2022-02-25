@@ -23,6 +23,129 @@ const (
 	InvalidFingerTenantStr = "Fails when the fingerprint and tenant is invalid"
 )
 
+func TestEvaluateKeyFilter(t *testing.T) {
+	mock := &mocks.Store{}
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
+	ctx := context.TODO()
+
+	type Expected struct {
+		bool
+		error
+	}
+
+	keyTagsNoExist := &models.PublicKey{
+		PublicKeyFields: models.PublicKeyFields{
+			Filter: models.PublicKeyFilter{
+				Tags: []string{"tag1", "tag2"},
+			},
+		},
+	}
+	deviceTagsNoExist := models.Device{
+		Tags: []string{"tag4"},
+	}
+
+	keyTags := &models.PublicKey{
+		PublicKeyFields: models.PublicKeyFields{
+			Filter: models.PublicKeyFilter{
+				Tags: []string{"tag1", "tag2"},
+			},
+		},
+	}
+	deviceTags := models.Device{
+		Tags: []string{"tag1"},
+	}
+
+	keyHostname := &models.PublicKey{
+		PublicKeyFields: models.PublicKeyFields{
+			Filter: models.PublicKeyFilter{
+				Hostname: ".*",
+			},
+		},
+	}
+	deviceHostname := models.Device{
+		Name: "device",
+	}
+
+	keyHostnameNoMatch := &models.PublicKey{
+		PublicKeyFields: models.PublicKeyFields{
+			Filter: models.PublicKeyFilter{
+				Hostname: "roo.*",
+			},
+		},
+	}
+	deviceHostnameNoMatch := models.Device{
+		Name: "device",
+	}
+
+	keyNoFilter := &models.PublicKey{
+		PublicKeyFields: models.PublicKeyFields{
+			Filter: models.PublicKeyFilter{},
+		},
+	}
+	deviceNoFilter := models.Device{}
+
+	cases := []struct {
+		description   string
+		key           *models.PublicKey
+		device        models.Device
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "fail to evaluate when filter hostname no match",
+			key:         keyHostnameNoMatch,
+			device:      deviceHostnameNoMatch,
+			requiredMocks: func() {
+			},
+			expected: Expected{false, nil},
+		},
+		{
+			description: "success to evaluate filter hostname",
+			key:         keyHostname,
+			device:      deviceHostname,
+			requiredMocks: func() {
+			},
+			expected: Expected{true, nil},
+		},
+		{
+			description: "fail to evaluate filter tags when tag does not exist in device",
+			key:         keyTagsNoExist,
+			device:      deviceTagsNoExist,
+			requiredMocks: func() {
+			},
+			expected: Expected{false, nil},
+		},
+		{
+			description: "success to evaluate filter tags",
+			key:         keyTags,
+			device:      deviceTags,
+			requiredMocks: func() {
+			},
+			expected: Expected{true, nil},
+		},
+		{
+			description: "success to evaluate when key has no filter",
+			key:         keyNoFilter,
+			device:      deviceNoFilter,
+			requiredMocks: func() {
+			},
+			expected: Expected{true, nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			ok, err := s.EvaluateKeyFilter(ctx, tc.key, tc.device)
+			assert.Equal(t, tc.expected, Expected{ok, err})
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
+
 func TestListPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
 
