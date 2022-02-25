@@ -70,7 +70,7 @@ func (s *Store) DeviceGetTags(ctx context.Context, tenantID string) ([]string, i
 	tagsSet.Add(tagsKey...)
 
 	tags := make([]string, tagsSet.Size())
-	for i, v := range tags {
+	for i, v := range tagsSet.Values() {
 		tags[i] = fmt.Sprint(v)
 	}
 

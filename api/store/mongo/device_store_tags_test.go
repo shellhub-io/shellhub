@@ -196,9 +196,10 @@ func TestDeviceGetTags(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device2)
 	assert.NoError(t, err)
 
-	_, count, err := mongostore.DeviceGetTags(ctx, "tenant1")
+	tags, count, err := mongostore.DeviceGetTags(ctx, "tenant1")
 	assert.NoError(t, err)
 	assert.Equal(t, count, 3)
+	assert.Equal(t, []string{"device1", "device3", "device5"}, tags)
 }
 
 func TestDeviceDeleteAllTags(t *testing.T) {
