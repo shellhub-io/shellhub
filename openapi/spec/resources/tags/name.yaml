@@ -4,11 +4,11 @@ parameters:
     schema:
       type: string
     in: path
+    example: tag1
 put:
   summary: Rename a tag name
-  description: Rename a tag name from a device
   tags:
-    - device
+    - tags
   security:
     - Auth: []
   requestBody:
@@ -20,6 +20,7 @@ put:
             name:
               description: New tag name
               type: string
+              example: tag2
   responses:
     '200':
       $ref: ../../shared/responses/ok.yaml
@@ -36,10 +37,9 @@ put:
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml
 delete:
-  summary: Remove a tag name
-  description: Remove a tag name from a device
+  summary: Delete a tag name
   tags:
-    - device
+    - tags
   security:
     - Auth: []
   responses:
