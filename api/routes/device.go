@@ -24,9 +24,6 @@ const (
 	CreateTagURL       = "/devices/:uid/tags"       // Add a tag to a device.
 	UpdateTagURL       = "/devices/:uid/tags"       // Update device's tags with a new set.
 	RemoveTagURL       = "/devices/:uid/tags/:name" // Delete a tag from a device.
-	GetTagsURL         = "/devices/tags"            // Get tags from all device.
-	RenameTagURL       = "/devices/tags/:name"      // Rename a tag inside all devices.
-	DeleteTagsURL      = "/devices/tags/:name"      // Delete all tag's occurrence inside all devices with a specif name.
 )
 
 const (
@@ -195,7 +192,7 @@ func (h *Handler) HeartbeatDevice(c gateway.Context) error {
 	return h.service.DeviceHeartbeat(c.Ctx(), models.UID(c.Param(ParamDeviceID)))
 }
 
-func (h *Handler) CreateTag(c gateway.Context) error {
+func (h *Handler) CreateDeviceTag(c gateway.Context) error {
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -205,7 +202,7 @@ func (h *Handler) CreateTag(c gateway.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.CreateTag, func() error {
-		return h.service.CreateTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Name)
+		return h.service.CreateDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Name)
 	})
 	if err != nil {
 		switch err {
@@ -227,9 +224,9 @@ func (h *Handler) CreateTag(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) RemoveTag(c gateway.Context) error {
+func (h *Handler) RemoveDeviceTag(c gateway.Context) error {
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.RemoveTag, func() error {
-		return h.service.RemoveTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), c.Param(ParamTagName))
+		return h.service.RemoveDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), c.Param(ParamTagName))
 	})
 	if err != nil {
 		switch err {
@@ -247,44 +244,7 @@ func (h *Handler) RemoveTag(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) RenameTag(c gateway.Context) error {
-	var req struct {
-		Name string `json:"name"`
-	}
-
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
-
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.RenameTag, func() error {
-		return h.service.RenameTag(c.Ctx(), tenant, c.Param(ParamTagName), req.Name)
-	})
-	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrInvalidFormat:
-			return c.NoContent(http.StatusBadRequest)
-		case services.ErrNoTags:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrTagNameNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrDuplicateTagName:
-			return c.NoContent(http.StatusConflict)
-		default:
-			return err
-		}
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handler) UpdateTag(c gateway.Context) error {
+func (h *Handler) UpdateDeviceTag(c gateway.Context) error {
 	var req struct {
 		Tags []string `json:"tags"`
 	}
@@ -294,7 +254,7 @@ func (h *Handler) UpdateTag(c gateway.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.UpdateTag, func() error {
-		return h.service.UpdateTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Tags)
+		return h.service.UpdateDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Tags)
 	})
 	if err != nil {
 		switch err {
@@ -305,50 +265,6 @@ func (h *Handler) UpdateTag(c gateway.Context) error {
 		case services.ErrMaxTagReached:
 			return c.NoContent(http.StatusNotAcceptable)
 		case services.ErrDeviceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		default:
-			return err
-		}
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handler) GetTags(c gateway.Context) error {
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
-
-	tags, count, err := h.service.GetTags(c.Ctx(), tenant)
-	if err != nil {
-		switch err {
-		case services.ErrNamespaceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		default:
-			return err
-		}
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, tags)
-}
-
-func (h *Handler) DeleteTags(c gateway.Context) error {
-	tenant := ""
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
-
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.DeleteTag, func() error {
-		return h.service.DeleteTags(c.Ctx(), tenant, c.Param(ParamTagName))
-	})
-	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrNamespaceNotFound:
 			return c.NoContent(http.StatusNotFound)
 		default:
 			return err

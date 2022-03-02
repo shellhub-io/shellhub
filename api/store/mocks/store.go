@@ -193,7 +193,7 @@ func (_m *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 }
 
 // DeviceDeleteTags provides a mock function with given fields: ctx, tenantID, tagName
-func (_m *Store) DeviceDeleteTags(ctx context.Context, tenantID string, tagName string) error {
+func (_m *Store) TagDelete(ctx context.Context, tenantID string, tagName string) error {
 	ret := _m.Called(ctx, tenantID, tagName)
 
 	var r0 error
@@ -299,7 +299,7 @@ func (_m *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID st
 }
 
 // DeviceGetTags provides a mock function with given fields: ctx, tenantID
-func (_m *Store) DeviceGetTags(ctx context.Context, tenantID string) ([]string, int, error) {
+func (_m *Store) TagsGet(ctx context.Context, tenantID string) ([]string, int, error) {
 	ret := _m.Called(ctx, tenantID)
 
 	var r0 []string
@@ -433,7 +433,7 @@ func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname stri
 }
 
 // DeviceRenameTag provides a mock function with given fields: ctx, tenantID, currentTagName, newTagName
-func (_m *Store) DeviceRenameTag(ctx context.Context, tenantID string, currentTagName string, newTagName string) error {
+func (_m *Store) TagRename(ctx context.Context, tenantID string, currentTagName string, newTagName string) error {
 	ret := _m.Called(ctx, tenantID, currentTagName, newTagName)
 
 	var r0 error
