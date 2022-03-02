@@ -8,18 +8,15 @@ import (
 )
 
 type DeviceTags interface {
-	CreateTag(ctx context.Context, uid models.UID, name string) error
-	RemoveTag(ctx context.Context, uid models.UID, name string) error
-	RenameTag(ctx context.Context, tenantID string, currentName string, newName string) error
-	UpdateTag(ctx context.Context, uid models.UID, tags []string) error
-	GetTags(ctx context.Context, tenant string) ([]string, int, error)
-	DeleteTags(ctx context.Context, tenant string, name string) error
+	CreateDeviceTag(ctx context.Context, uid models.UID, name string) error
+	RemoveDeviceTag(ctx context.Context, uid models.UID, name string) error
+	UpdateDeviceTag(ctx context.Context, uid models.UID, tags []string) error
 }
 
 // DeviceMaxTags is the number of tags that a device can have.
 const DeviceMaxTags = 3
 
-func (s *service) CreateTag(ctx context.Context, uid models.UID, name string) error {
+func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, name string) error {
 	if !validator.ValidateFieldTag(name) {
 		return ErrInvalidFormat
 	}
@@ -40,7 +37,7 @@ func (s *service) CreateTag(ctx context.Context, uid models.UID, name string) er
 	return s.store.DeviceCreateTag(ctx, uid, name)
 }
 
-func (s *service) RemoveTag(ctx context.Context, uid models.UID, name string) error {
+func (s *service) RemoveDeviceTag(ctx context.Context, uid models.UID, name string) error {
 	device, err := s.store.DeviceGet(ctx, uid)
 	if err != nil || device == nil {
 		return ErrDeviceNotFound
@@ -53,28 +50,7 @@ func (s *service) RemoveTag(ctx context.Context, uid models.UID, name string) er
 	return s.store.DeviceRemoveTag(ctx, uid, name)
 }
 
-func (s *service) RenameTag(ctx context.Context, tenantID string, currentName string, newName string) error {
-	if !validator.ValidateFieldTag(newName) {
-		return ErrInvalidFormat
-	}
-
-	tags, count, err := s.store.DeviceGetTags(ctx, tenantID)
-	if err != nil || count == 0 {
-		return ErrNoTags
-	}
-
-	if !contains(tags, currentName) {
-		return ErrTagNameNotFound
-	}
-
-	if contains(tags, newName) {
-		return ErrDuplicateTagName
-	}
-
-	return s.store.DeviceRenameTag(ctx, tenantID, currentName, newName)
-}
-
-func (s *service) UpdateTag(ctx context.Context, uid models.UID, tags []string) error {
+func (s *service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []string) error {
 	listToSet := func(list []string) []string {
 		s := make(map[string]bool)
 		l := make([]string, 0)
@@ -106,22 +82,4 @@ func (s *service) UpdateTag(ctx context.Context, uid models.UID, tags []string) 
 	}
 
 	return s.store.DeviceUpdateTag(ctx, uid, tagSet)
-}
-
-func (s *service) GetTags(ctx context.Context, tenant string) ([]string, int, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
-	if err != nil || namespace == nil {
-		return nil, 0, ErrNamespaceNotFound
-	}
-
-	return s.store.DeviceGetTags(ctx, namespace.TenantID)
-}
-
-func (s *service) DeleteTags(ctx context.Context, tenant string, name string) error {
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
-	if err != nil || namespace == nil {
-		return ErrNamespaceNotFound
-	}
-
-	return s.store.DeviceDeleteTags(ctx, namespace.TenantID, name)
 }

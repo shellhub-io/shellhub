@@ -23,7 +23,6 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 
 	query := []bson.M{
 		{
-
 			"$lookup": bson.M{
 				"from":         "connected_devices",
 				"localField":   "uid",

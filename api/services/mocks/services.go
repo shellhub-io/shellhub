@@ -277,7 +277,7 @@ func (_m *Service) CreateSession(ctx context.Context, session models.Session) (*
 }
 
 // CreateTag provides a mock function with given fields: ctx, uid, name
-func (_m *Service) CreateTag(ctx context.Context, uid models.UID, name string) error {
+func (_m *Service) CreateDeviceTag(ctx context.Context, uid models.UID, name string) error {
 	ret := _m.Called(ctx, uid, name)
 
 	var r0 error
@@ -347,7 +347,7 @@ func (_m *Service) DeletePublicKey(ctx context.Context, fingerprint string, tena
 }
 
 // DeleteTags provides a mock function with given fields: ctx, tenant, name
-func (_m *Service) DeleteTags(ctx context.Context, tenant string, name string) error {
+func (_m *Service) DeleteTag(ctx context.Context, tenant string, name string) error {
 	ret := _m.Called(ctx, tenant, name)
 
 	var r0 error
@@ -895,7 +895,7 @@ func (_m *Service) RemovePublicKeyTag(ctx context.Context, tenant string, finger
 }
 
 // RemoveTag provides a mock function with given fields: ctx, uid, name
-func (_m *Service) RemoveTag(ctx context.Context, uid models.UID, name string) error {
+func (_m *Service) RemoveDeviceTag(ctx context.Context, uid models.UID, name string) error {
 	ret := _m.Called(ctx, uid, name)
 
 	var r0 error
@@ -1067,7 +1067,7 @@ func (_m *Service) UpdatePublicKeyTags(ctx context.Context, tenant string, finge
 }
 
 // UpdateTag provides a mock function with given fields: ctx, uid, tags
-func (_m *Service) UpdateTag(ctx context.Context, uid models.UID, tags []string) error {
+func (_m *Service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []string) error {
 	ret := _m.Called(ctx, uid, tags)
 
 	var r0 error

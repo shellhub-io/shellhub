@@ -18,6 +18,7 @@ type service struct {
 }
 
 type Service interface {
+	TagsService
 	DeviceService
 	DeviceTags
 	UserService

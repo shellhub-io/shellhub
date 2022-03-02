@@ -79,7 +79,7 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, te
 			return ErrPublicKeyInvalid
 		}
 
-		tags, _, err := s.store.DeviceGetTags(ctx, tenant)
+		tags, _, err := s.store.TagsGet(ctx, tenant)
 		if err != nil {
 			return err
 		}
@@ -134,7 +134,7 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 			return nil, ErrPublicKeyInvalid
 		}
 
-		tags, _, err := s.store.DeviceGetTags(ctx, tenant)
+		tags, _, err := s.store.TagsGet(ctx, tenant)
 		if err != nil {
 			return nil, err
 		}

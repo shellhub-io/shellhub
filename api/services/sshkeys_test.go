@@ -412,7 +412,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 			tenantID:    "tenant",
 			keyUpdate:   keyUpdateWithTags,
 			requiredMocks: func() {
-				mock.On("DeviceGetTags", ctx, "tenant").Return([]string{"tag1", "tag4"}, 2, nil).Once()
+				mock.On("TagsGet", ctx, "tenant").Return([]string{"tag1", "tag4"}, 2, nil).Once()
 			},
 			expected: Expected{nil, ErrTagNameNotFound},
 		},
@@ -431,7 +431,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 			tenantID:    "tenant",
 			keyUpdate:   keyUpdateWithTags,
 			requiredMocks: func() {
-				mock.On("DeviceGetTags", ctx, "tenant").Return([]string{"tag1", "tag2"}, 2, nil).Once()
+				mock.On("TagsGet", ctx, "tenant").Return([]string{"tag1", "tag2"}, 2, nil).Once()
 				mock.On("PublicKeyUpdate", ctx, "fingerprint", "tenant", keyUpdateWithTags).Return(keyWithTags, nil).Once()
 			},
 			expected: Expected{keyWithTags, nil},
@@ -708,7 +708,7 @@ func TestCreatePublicKeys(t *testing.T) {
 			key:         keyWithTags,
 			requiredMocks: func() {
 				mock.On("PublicKeyGet", ctx, keyWithTags.Fingerprint, "tenant").Return(nil, nil).Once()
-				mock.On("DeviceGetTags", ctx, keyWithTags.TenantID).Return([]string{"tag1", "tag2"}, 2, nil).Once()
+				mock.On("TagsGet", ctx, keyWithTags.TenantID).Return([]string{"tag1", "tag2"}, 2, nil).Once()
 				mock.On("PublicKeyCreate", ctx, keyWithTags).Return(nil).Once()
 			},
 			expected: nil,

@@ -13,6 +13,7 @@ var (
 )
 
 type Store interface {
+	TagsStore
 	DeviceStore
 	DeviceTagsStore
 	SessionStore
