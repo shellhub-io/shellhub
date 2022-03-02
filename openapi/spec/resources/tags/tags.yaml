@@ -1,8 +1,7 @@
 get:
-  summary: Get all tags
-  description: Get all tags from all devices from a namespace.
+  summary: Get tags
   tags:
-    - device
+    - tags
   security:
     - Auth: []
   parameters:
@@ -13,13 +12,14 @@ get:
       in: header
   responses:
     '200':
-      description: Success get all tags
+      description: Success get tags
       content:
         application/json:
           schema:
             type: array
             items:
               type: string
+            example: [tag1, tag2, tag3, tag4]
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':
