@@ -24,8 +24,6 @@ export const fetchDevices = async (
 
 export const getDevice = async (uid) => http().get(`/devices/${uid}`);
 
-export const getTags = async () => http().get('/devices/tags');
-
 export const renameDevice = async (data) => http().patch(`/devices/${data.uid}`, { name: data.name });
 
 export const acceptDevice = async (uid) => http().patch(`/devices/${uid}/accept`);
@@ -34,8 +32,4 @@ export const rejectDevice = async (uid) => http().patch(`/devices/${uid}/reject`
 
 export const updateDeviceTag = async (data) => http().put(`/devices/${data.uid}/tags`, { tags: data.tags });
 
-export const updateTag = async (data) => http().put(`/devices/tags/${data.oldTag}`, { name: data.newTag });
-
 export const removeDevice = async (uid) => http().delete(`/devices/${uid}`);
-
-export const removeTag = async (name) => http().delete(`/devices/tags/${name}`);

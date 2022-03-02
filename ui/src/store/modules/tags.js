@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import * as apiTags from '@/store/api/tags';
 import * as apiDevice from '@/store/api/devices';
 
 export default {
@@ -37,13 +38,13 @@ export default {
     },
 
     fetch: async (context) => {
-      const res = await apiDevice.getTags();
+      const res = await apiTags.getTags();
 
       context.commit('setTags', res);
     },
 
     edit: async (context, data) => {
-      await apiDevice.updateTag(data);
+      await apiTags.updateTag(data);
     },
 
     setTags: (context, data) => {
@@ -51,7 +52,7 @@ export default {
     },
 
     remove: async (context, name) => {
-      await apiDevice.removeTag(name);
+      await apiTags.removeTag(name);
     },
 
     clearSelectedTags: (context) => {
