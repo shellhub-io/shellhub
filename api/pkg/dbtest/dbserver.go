@@ -62,14 +62,15 @@ func init() {
 // called between tests (before each of them) to clear stored data. After all tests
 // are done, the Stop method should be called to stop the test server.
 type DBServer struct {
-	Ctx     context.Context
-	timeout time.Duration
-	client  *mongo.Client
-	output  bytes.Buffer
-	server  *exec.Cmd
-	host    string
-	network string
-	tomb    tomb.Tomb
+	Ctx        context.Context
+	timeout    time.Duration
+	client     *mongo.Client
+	output     bytes.Buffer
+	server     *exec.Cmd
+	host       string
+	network    string
+	tomb       tomb.Tomb
+	Replicaset bool
 }
 
 func (dbs *DBServer) SetTimeout(timeout int) {
@@ -105,14 +106,25 @@ func (dbs *DBServer) start() {
 			dbs.network = fmt.Sprintf("container:%s", containerID)
 		}
 	}
-
-	args := []string{
-		"run", "--rm", fmt.Sprintf("--net=%s", dbs.network), "mongo:4.4.8",
-		"--replSet", "rs",
-		"--bind_ip", "127.0.0.1",
-		"--port", strconv.Itoa(addr.Port),
-	}
 	dbs.tomb = tomb.Tomb{}
+	var args []string
+
+	if dbs.Replicaset {
+		args = []string{
+			"run", "--rm", fmt.Sprintf("--net=%s", dbs.network), "mongo:4.4.8",
+			"--bind_ip", "127.0.0.1",
+			"--port", strconv.Itoa(addr.Port),
+			"--replSet", "rs0",
+		}
+	} else {
+		args = []string{
+			"run", "--rm", fmt.Sprintf("--net=%s", dbs.network), "mongo:4.4.8",
+			"--bind_ip", "127.0.0.1",
+			"--port", strconv.Itoa(addr.Port),
+			"--nojournal",
+		}
+	}
+
 	dbs.server = exec.Command("docker", args...)
 	dbs.server.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGTERM}
 	dbs.server.Stdout = &dbs.output
@@ -225,7 +237,6 @@ ticker:
 			}
 
 			break ticker
-
 		}
 	}
 
