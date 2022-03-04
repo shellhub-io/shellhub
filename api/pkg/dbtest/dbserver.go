@@ -108,9 +108,9 @@ func (dbs *DBServer) start() {
 
 	args := []string{
 		"run", "--rm", fmt.Sprintf("--net=%s", dbs.network), "mongo:4.4.8",
+		"--replSet", "rs",
 		"--bind_ip", "127.0.0.1",
 		"--port", strconv.Itoa(addr.Port),
-		"--nojournal",
 	}
 	dbs.tomb = tomb.Tomb{}
 	dbs.server = exec.Command("docker", args...)
@@ -202,21 +202,63 @@ func (dbs *DBServer) Client() *mongo.Client {
 		dbs.start()
 	}
 
-	if dbs.client == nil {
-		var err error
+	if dbs.client != nil {
+		return dbs.client
+	}
 
-		if dbs.timeout == 0 {
-			dbs.timeout = 8
+	var err error
+
+	if dbs.timeout == 0 {
+		dbs.timeout = 8 * time.Second
+	}
+
+	// Wait for mongodb to be available
+	ticker := time.NewTicker(time.Second)
+ticker:
+	for {
+		select {
+		case <-time.After(dbs.timeout):
+			panic("mongodb connection timeout")
+		case <-ticker.C:
+			if _, err := net.Dial("tcp", dbs.host); err != nil {
+				continue
+			}
+
+			break ticker
+
 		}
-		clientOptions := options.Client().ApplyURI("mongodb://" + dbs.host + "/test")
-		dbs.Ctx = context.Background() // context.WithTimeout(context.Background(), dbs.timeout*time.Second)
-		dbs.client, err = mongo.Connect(dbs.Ctx, clientOptions)
-		if err != nil {
-			panic(err)
-		}
-		if dbs.client == nil {
-			panic("cant connect")
-		}
+	}
+
+	args := []string{
+		"run", "--rm", fmt.Sprintf("--net=%s", dbs.network), "mongo:4.4.8",
+		"mongo",
+		"--host", dbs.host,
+		"--eval", "rs.initiate()",
+		"--quiet",
+	}
+
+	// Initiates mongodb replica set before anything else
+	cmd := exec.Command("docker", args...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", out)
+		panic(err)
+	}
+
+	clientOptions := options.Client().ApplyURI("mongodb://" + dbs.host + "/test")
+	dbs.Ctx = context.Background()
+
+	dbs.client, err = mongo.Connect(dbs.Ctx, clientOptions)
+	if err != nil {
+		panic(err)
+	}
+	if dbs.client == nil {
+		panic("cant connect")
+	}
+
+	// Verify that the server is accepting connections
+	if err := dbs.client.Ping(dbs.Ctx, nil); err != nil {
+		panic(err)
 	}
 
 	return dbs.client
