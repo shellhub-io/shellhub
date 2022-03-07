@@ -175,7 +175,9 @@ func initData() Data {
 				Active:   true,
 				SourceIP: ".*",
 				Username: ".*",
-				Hostname: ".*",
+				Filter: models.FirewallFilter{
+					Tags: []string{},
+				},
 			},
 		},
 		models.Device{

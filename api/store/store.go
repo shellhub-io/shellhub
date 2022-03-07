@@ -19,6 +19,7 @@ type Store interface {
 	SessionStore
 	UserStore
 	FirewallStore
+	FirewallTagsStore
 	NamespaceStore
 	PublicKeyStore
 	PublicKeyTagsStore

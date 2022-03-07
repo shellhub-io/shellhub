@@ -192,20 +192,6 @@ func (_m *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	return r0
 }
 
-// DeviceDeleteTags provides a mock function with given fields: ctx, tenantID, tagName
-func (_m *Store) TagDelete(ctx context.Context, tenantID string, tagName string) error {
-	ret := _m.Called(ctx, tenantID, tagName)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, tenantID, tagName)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeviceGet provides a mock function with given fields: ctx, uid
 func (_m *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error) {
 	ret := _m.Called(ctx, uid)
@@ -296,36 +282,6 @@ func (_m *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID st
 	}
 
 	return r0, r1
-}
-
-// DeviceGetTags provides a mock function with given fields: ctx, tenantID
-func (_m *Store) TagsGet(ctx context.Context, tenantID string) ([]string, int, error) {
-	ret := _m.Called(ctx, tenantID)
-
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
-		r0 = rf(ctx, tenantID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
-		r1 = rf(ctx, tenantID)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
-		r2 = rf(ctx, tenantID)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
 }
 
 // DeviceList provides a mock function with given fields: ctx, pagination, filters, status, sort, order
@@ -432,20 +388,6 @@ func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname stri
 	return r0
 }
 
-// DeviceRenameTag provides a mock function with given fields: ctx, tenantID, currentTagName, newTagName
-func (_m *Store) TagRename(ctx context.Context, tenantID string, currentTagName string, newTagName string) error {
-	ret := _m.Called(ctx, tenantID, currentTagName, newTagName)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, tenantID, currentTagName, newTagName)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeviceSetOnline provides a mock function with given fields: ctx, uid, online
 func (_m *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool) error {
 	ret := _m.Called(ctx, uid, online)
@@ -530,6 +472,20 @@ func (_m *Store) DeviceUpdateTag(ctx context.Context, uid models.UID, tags []str
 	return r0
 }
 
+// FirewallRuleAddTag provides a mock function with given fields: ctx, id, tag
+func (_m *Store) FirewallRuleAddTag(ctx context.Context, id string, tag string) error {
+	ret := _m.Called(ctx, id, tag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, tag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // FirewallRuleCreate provides a mock function with given fields: ctx, rule
 func (_m *Store) FirewallRuleCreate(ctx context.Context, rule *models.FirewallRule) error {
 	ret := _m.Called(ctx, rule)
@@ -558,6 +514,20 @@ func (_m *Store) FirewallRuleDelete(ctx context.Context, id string) error {
 	return r0
 }
 
+// FirewallRuleDeleteTag provides a mock function with given fields: ctx, tenant, tag
+func (_m *Store) FirewallRuleDeleteTag(ctx context.Context, tenant string, tag string) error {
+	ret := _m.Called(ctx, tenant, tag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, tenant, tag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // FirewallRuleGet provides a mock function with given fields: ctx, id
 func (_m *Store) FirewallRuleGet(ctx context.Context, id string) (*models.FirewallRule, error) {
 	ret := _m.Called(ctx, id)
@@ -579,6 +549,36 @@ func (_m *Store) FirewallRuleGet(ctx context.Context, id string) (*models.Firewa
 	}
 
 	return r0, r1
+}
+
+// FirewallRuleGetTags provides a mock function with given fields: ctx, tenant
+func (_m *Store) FirewallRuleGetTags(ctx context.Context, tenant string) ([]string, int, error) {
+	ret := _m.Called(ctx, tenant)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
+		r0 = rf(ctx, tenant)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
+		r1 = rf(ctx, tenant)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
+		r2 = rf(ctx, tenant)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // FirewallRuleList provides a mock function with given fields: ctx, pagination
@@ -611,6 +611,34 @@ func (_m *Store) FirewallRuleList(ctx context.Context, pagination paginator.Quer
 	return r0, r1, r2
 }
 
+// FirewallRuleRemoveTag provides a mock function with given fields: ctx, id, tag
+func (_m *Store) FirewallRuleRemoveTag(ctx context.Context, id string, tag string) error {
+	ret := _m.Called(ctx, id, tag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, tag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// FirewallRuleRenameTag provides a mock function with given fields: ctx, tenant, tagCurrent, tagNew
+func (_m *Store) FirewallRuleRenameTag(ctx context.Context, tenant string, tagCurrent string, tagNew string) error {
+	ret := _m.Called(ctx, tenant, tagCurrent, tagNew)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenant, tagCurrent, tagNew)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // FirewallRuleUpdate provides a mock function with given fields: ctx, id, rule
 func (_m *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error) {
 	ret := _m.Called(ctx, id, rule)
@@ -632,6 +660,20 @@ func (_m *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.
 	}
 
 	return r0, r1
+}
+
+// FirewallRuleUpdateTags provides a mock function with given fields: ctx, id, tags
+func (_m *Store) FirewallRuleUpdateTags(ctx context.Context, id string, tags []string) error {
+	ret := _m.Called(ctx, id, tags)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
+		r0 = rf(ctx, id, tags)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // GetStats provides a mock function with given fields: ctx
@@ -1405,6 +1447,64 @@ func (_m *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, 
 	}
 
 	return r0
+}
+
+// TagDelete provides a mock function with given fields: ctx, tenant, tag
+func (_m *Store) TagDelete(ctx context.Context, tenant string, tag string) error {
+	ret := _m.Called(ctx, tenant, tag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, tenant, tag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// TagRename provides a mock function with given fields: ctx, tenant, tag, newTag
+func (_m *Store) TagRename(ctx context.Context, tenant string, tag string, newTag string) error {
+	ret := _m.Called(ctx, tenant, tag, newTag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenant, tag, newTag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// TagsGet provides a mock function with given fields: ctx, tenant
+func (_m *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, error) {
+	ret := _m.Called(ctx, tenant)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
+		r0 = rf(ctx, tenant)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
+		r1 = rf(ctx, tenant)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
+		r2 = rf(ctx, tenant)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // UserCreate provides a mock function with given fields: ctx, user

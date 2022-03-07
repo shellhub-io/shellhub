@@ -29,7 +29,7 @@ func TestGetTags(t *testing.T) {
 		TenantID:  "tenant1",
 		Tags: []string{
 			"device1",
-			"device5",
+			"device2",
 			"device3",
 		},
 	}
@@ -45,10 +45,36 @@ func TestGetTags(t *testing.T) {
 		},
 	}
 
+	key1 := models.PublicKey{
+		Fingerprint: "fingerprint1",
+		TenantID:    "tenant1",
+		PublicKeyFields: models.PublicKeyFields{
+			Filter: models.PublicKeyFilter{
+				Tags: []string{"device1", "device2", "device4"},
+			},
+		},
+	}
+
+	rule1 := models.FirewallRule{
+		ID:       "rule1",
+		TenantID: "tenant1",
+		FirewallRuleFields: models.FirewallRuleFields{
+			Filter: models.FirewallFilter{
+				Tags: []string{"device2", "device5"},
+			},
+		},
+	}
+
 	_, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, &device1)
 	assert.NoError(t, err)
 
 	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device2)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, &key1)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, &rule1)
 	assert.NoError(t, err)
 
 	_, _, err = mongostoreStand.TagsGet(ctx, "tenant1")
@@ -56,10 +82,10 @@ func TestGetTags(t *testing.T) {
 
 	tags, count, err := mongostore.TagsGet(ctx, "tenant1")
 	assert.NoError(t, err)
-	assert.Equal(t, count, 3)
+	assert.Equal(t, 5, count)
 
 	sort.Strings(tags) // Guarantee the order for comparison.
-	assert.Equal(t, []string{"device1", "device3", "device5"}, tags)
+	assert.Equal(t, []string{"device1", "device2", "device3", "device4", "device5"}, tags)
 }
 
 func TestRenameTag(t *testing.T) {
@@ -104,6 +130,26 @@ func TestRenameTag(t *testing.T) {
 		},
 	}
 
+	key1 := models.PublicKey{
+		Fingerprint: "fingerprint1",
+		TenantID:    "tenant1",
+		PublicKeyFields: models.PublicKeyFields{
+			Filter: models.PublicKeyFilter{
+				Tags: []string{"device1", "device4", "device7"},
+			},
+		},
+	}
+
+	rule1 := models.FirewallRule{
+		ID:       "rule1",
+		TenantID: "tenant1",
+		FirewallRuleFields: models.FirewallRuleFields{
+			Filter: models.FirewallFilter{
+				Tags: []string{"device6", "device7", "device8"},
+			},
+		},
+	}
+
 	_, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, &device1)
 	assert.NoError(t, err)
 
@@ -113,26 +159,27 @@ func TestRenameTag(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device3)
 	assert.NoError(t, err)
 
-	err = mongostoreStand.TagRename(ctx, "tenant1", "device2", "device4")
+	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, &key1)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, &rule1)
+	assert.NoError(t, err)
+
+	err = mongostoreStand.TagRename(ctx, "tenant1", "device2", "device9")
 	assert.Error(t, err)
 
-	err = mongostore.TagRename(ctx, "tenant1", "device2", "device4")
+	err = mongostore.TagRename(ctx, "tenant1", "device2", "device9")
 	assert.NoError(t, err)
 
-	d1, err := mongostore.DeviceGetByUID(ctx, models.UID(device1.UID), "tenant1")
+	tags1, _, err := mongostore.TagsGet(ctx, "tenant1")
+	sort.Strings(tags1) // Guarantee the order for comparison.
 	assert.NoError(t, err)
-	assert.Equal(t, len(d1.Tags), 3)
-	assert.Equal(t, d1.Tags[1], "device4")
+	assert.Equal(t, []string{"device1", "device3", "device4", "device6", "device7", "device8", "device9"}, tags1)
 
-	d2, err := mongostore.DeviceGetByUID(ctx, models.UID(device2.UID), "tenant2")
+	tags2, _, err := mongostore.TagsGet(ctx, "tenant2")
+	sort.Strings(tags2) // Guarantee the order for comparison.
 	assert.NoError(t, err)
-	assert.Equal(t, len(d2.Tags), 3)
-	assert.Equal(t, d2.Tags[1], "device2")
-
-	d3, err := mongostore.DeviceGetByUID(ctx, models.UID(device3.UID), "tenant1")
-	assert.NoError(t, err)
-	assert.Equal(t, len(d3.Tags), 3)
-	assert.Equal(t, d3.Tags[1], "device4")
+	assert.Equal(t, []string{"device1", "device2", "device3"}, tags2)
 }
 
 func TestDeleteTag(t *testing.T) {
@@ -180,6 +227,26 @@ func TestDeleteTag(t *testing.T) {
 		},
 	}
 
+	key1 := models.PublicKey{
+		Fingerprint: "fingerprint1",
+		TenantID:    "tenant1",
+		PublicKeyFields: models.PublicKeyFields{
+			Filter: models.PublicKeyFilter{
+				Tags: []string{"device1", "device4", "device7"},
+			},
+		},
+	}
+
+	rule1 := models.FirewallRule{
+		ID:       "rule1",
+		TenantID: "tenant1",
+		FirewallRuleFields: models.FirewallRuleFields{
+			Filter: models.FirewallFilter{
+				Tags: []string{"device6", "device7", "device8"},
+			},
+		},
+	}
+
 	_, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, &device1)
 	assert.NoError(t, err)
 
@@ -189,24 +256,25 @@ func TestDeleteTag(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device3)
 	assert.NoError(t, err)
 
+	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, &key1)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, &rule1)
+	assert.NoError(t, err)
+
 	err = mongostoreStand.TagDelete(ctx, "tenant1", "device1")
 	assert.Error(t, err)
 
 	err = mongostore.TagDelete(ctx, "tenant1", "device1")
 	assert.NoError(t, err)
 
-	d1, err := mongostore.DeviceGetByUID(ctx, models.UID(device1.UID), "tenant1")
+	tags1, _, err := mongostore.TagsGet(ctx, "tenant1")
+	sort.Strings(tags1) // Guarantee the order for comparison.
 	assert.NoError(t, err)
-	assert.Equal(t, len(d1.Tags), 2)
-	assert.Equal(t, d1.Tags, []string{"device5", "device3"})
+	assert.Equal(t, []string{"device3", "device4", "device5", "device6", "device7", "device8"}, tags1)
 
-	d2, err := mongostore.DeviceGetByUID(ctx, models.UID(device2.UID), "tenant1")
+	tags2, _, err := mongostore.TagsGet(ctx, "tenant2")
+	sort.Strings(tags2) // Guarantee the order for comparison.
 	assert.NoError(t, err)
-	assert.Equal(t, len(d2.Tags), 2)
-	assert.Equal(t, d2.Tags, []string{"device5", "device6"})
-
-	d3, err := mongostore.DeviceGetByUID(ctx, models.UID(device3.UID), "tenant2")
-	assert.NoError(t, err)
-	assert.Equal(t, len(d3.Tags), 3)
-	assert.Equal(t, d3.Tags, device3.Tags)
+	assert.Equal(t, []string{"device1", "device5", "device6"}, tags2)
 }

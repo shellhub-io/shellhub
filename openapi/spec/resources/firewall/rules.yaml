@@ -9,14 +9,20 @@ post:
     content:
       application/json:
         schema:
-          $ref: model/firewall_rules.yaml
+          oneOf:
+              - $ref: model/firewall_rules_hostname.yaml
+              - $ref: model/firewall_rules_tags.yaml
   responses:
     '200':
       description: Success create firewall rule
       content:
         application/json:
           schema:
-            $ref: model/firewall_rules.yaml
+            oneOf:
+              - $ref: model/firewall_rules_hostname.yaml
+              - $ref: model/firewall_rules_tags.yaml
+    '400':
+      $ref: ../../shared/responses/bad_request.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':
@@ -25,7 +31,6 @@ post:
       $ref: ../../shared/responses/any_internal_error.yaml
 get:
   summary: Get firewall rules
-  description: ''
   tags:
     - firewall
   security:
@@ -49,7 +54,10 @@ get:
           schema:
             type: array
             items:
-              $ref: model/firewall_rules.yaml
+              type: object
+              oneOf:
+                - $ref: model/firewall_rules_hostname.yaml
+                - $ref: model/firewall_rules_tags.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':

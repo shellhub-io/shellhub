@@ -6,6 +6,8 @@ paths:
     $ref: spec/resources/firewall/rules.yaml
   '/api/firewall/rules/{id}':
     $ref: spec/resources/firewall/rules_id.yaml
+  '/api/firewall/rules/{id}/tags':
+    $ref: spec/resources/firewall/rules_id_tags.yaml
   '/api/sessions/{uid}/play':
     $ref: spec/resources/sessions/play.yaml
   '/api/sessions/{uid}/record':
