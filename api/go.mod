@@ -21,7 +21,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/undefinedlabs/go-mpatch v1.0.6
 	github.com/xakep666/mongo-migrate v0.2.1
-	go.mongodb.org/mongo-driver v1.8.3
+	go.mongodb.org/mongo-driver v1.8.4
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
 )
