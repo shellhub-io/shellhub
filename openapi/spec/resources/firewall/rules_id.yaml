@@ -17,7 +17,9 @@ get:
       content:
         application/json:
           schema:
-            $ref: model/firewall_rules.yaml
+            oneOf:
+              - $ref: model/firewall_rules_hostname.yaml
+              - $ref: model/firewall_rules_tags.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '500':
@@ -33,14 +35,20 @@ put:
     content:
       application/json:
         schema:
-          $ref: model/firewall_rules.yaml
+          oneOf:
+            - $ref: model/firewall_rules_hostname.yaml
+            - $ref: model/firewall_rules_tags.yaml
   responses:
     '200':
       description: Success update firewall rule
       content:
         application/json:
           schema:
-            $ref: model/firewall_rules.yaml
+            oneOf:
+              - $ref: model/firewall_rules_hostname.yaml
+              - $ref: model/firewall_rules_tags.yaml
+    '400':
+      $ref: ../../shared/responses/bad_request.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':

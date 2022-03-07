@@ -25,6 +25,10 @@ const (
 	FirewallEdit
 	FirewallRemove
 
+	FirewallAddTag
+	FirewallRemoveTag
+	FirewallUpdateTag
+
 	PublicKeyCreate
 	PublicKeyEdit
 	PublicKeyRemove
@@ -94,6 +98,9 @@ var adminPermissions = Permissions{
 	FirewallCreate,
 	FirewallEdit,
 	FirewallRemove,
+	FirewallAddTag,
+	FirewallRemoveTag,
+	FirewallUpdateTag,
 
 	PublicKeyCreate,
 	PublicKeyEdit,
@@ -131,6 +138,9 @@ var ownerPermissions = Permissions{
 	FirewallCreate,
 	FirewallEdit,
 	FirewallRemove,
+	FirewallAddTag,
+	FirewallRemoveTag,
+	FirewallUpdateTag,
 
 	PublicKeyCreate,
 	PublicKeyEdit,

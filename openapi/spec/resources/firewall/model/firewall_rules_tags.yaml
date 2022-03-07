@@ -21,6 +21,12 @@ properties:
   username:
     description: Firewall rule username
     type: string
-  hostname:
-    description: Firewall rule hostname
-    type: string
+  filter:
+    description: Firewall key filter
+    type: object
+    properties:
+      tags:
+        description: Firewall rule tags
+        type: array
+        items:
+          type: string

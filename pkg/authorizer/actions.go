@@ -21,7 +21,7 @@ type sessionActions struct {
 }
 
 type firewallActions struct {
-	Create, Edit, Remove int
+	Create, Edit, Remove, AddTag, UpdateTag, RemoveTag int
 }
 
 type publicKeyActions struct {
