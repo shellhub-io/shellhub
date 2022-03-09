@@ -22,7 +22,7 @@ exports[`FirewallRuleList List data when user has operator role Renders the comp
               <th role="columnheader" scope="col" aria-label="Action" class="text-center"><span>Action</span></th>
               <th role="columnheader" scope="col" aria-label="Source IP" class="text-center"><span>Source IP</span></th>
               <th role="columnheader" scope="col" aria-label="Username" class="text-center"><span>Username</span></th>
-              <th role="columnheader" scope="col" aria-label="Hostname" class="text-center"><span>Hostname</span></th>
+              <th role="columnheader" scope="col" aria-label="Filter" class="text-center"><span>Filter</span></th>
               <th role="columnheader" scope="col" aria-label="Actions" class="text-center"><span>Actions</span></th>
             </tr>
           </thead>
@@ -33,7 +33,7 @@ exports[`FirewallRuleList List data when user has operator role Renders the comp
                 4
               </td>
               <td class="text-center">
-                allow
+                Allow
               </td>
               <td class="text-center">
                 00.00.00
@@ -42,7 +42,9 @@ exports[`FirewallRuleList List data when user has operator role Renders the comp
                 shellhub
               </td>
               <td class="text-center">
-                shellhub
+                <div>
+                  shellhub
+                </div>
               </td>
               <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
                 <div class="v-menu">
@@ -56,7 +58,7 @@ exports[`FirewallRuleList List data when user has operator role Renders the comp
                 3
               </td>
               <td class="text-center">
-                allow
+                Allow
               </td>
               <td class="text-center">
                 00.00.00
@@ -65,7 +67,11 @@ exports[`FirewallRuleList List data when user has operator role Renders the comp
                 shellhub
               </td>
               <td class="text-center">
-                shellhub
+                <div><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                tag1
+              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                tag2
+              </span></span></div>
               </td>
               <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
                 <div class="v-menu">
@@ -79,10 +85,10 @@ exports[`FirewallRuleList List data when user has operator role Renders the comp
       <div class="v-data-footer">
         <div class="v-data-footer__select">Rows per page:<div class="v-input v-input--hide-details v-input--is-label-active v-input--is-dirty theme--light v-text-field v-select">
             <div class="v-input__control">
-              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-177" class="v-input__slot">
+              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-205" class="v-input__slot">
                 <div class="v-select__slot">
                   <div class="v-select__selections">
-                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-177" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
+                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-205" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
                   </div>
                   <div class="v-input__append-inner">
                     <div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div>
@@ -126,7 +132,7 @@ exports[`FirewallRuleList List data when user has owner role Renders the compone
               <th role="columnheader" scope="col" aria-label="Action" class="text-center"><span>Action</span></th>
               <th role="columnheader" scope="col" aria-label="Source IP" class="text-center"><span>Source IP</span></th>
               <th role="columnheader" scope="col" aria-label="Username" class="text-center"><span>Username</span></th>
-              <th role="columnheader" scope="col" aria-label="Hostname" class="text-center"><span>Hostname</span></th>
+              <th role="columnheader" scope="col" aria-label="Filter" class="text-center"><span>Filter</span></th>
               <th role="columnheader" scope="col" aria-label="Actions" class="text-center"><span>Actions</span></th>
             </tr>
           </thead>
@@ -137,7 +143,7 @@ exports[`FirewallRuleList List data when user has owner role Renders the compone
                 4
               </td>
               <td class="text-center">
-                allow
+                Allow
               </td>
               <td class="text-center">
                 00.00.00
@@ -146,7 +152,9 @@ exports[`FirewallRuleList List data when user has owner role Renders the compone
                 shellhub
               </td>
               <td class="text-center">
-                shellhub
+                <div>
+                  shellhub
+                </div>
               </td>
               <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
                 <div class="v-menu">
@@ -160,7 +168,7 @@ exports[`FirewallRuleList List data when user has owner role Renders the compone
                 3
               </td>
               <td class="text-center">
-                allow
+                Allow
               </td>
               <td class="text-center">
                 00.00.00
@@ -169,7 +177,11 @@ exports[`FirewallRuleList List data when user has owner role Renders the compone
                 shellhub
               </td>
               <td class="text-center">
-                shellhub
+                <div><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                tag1
+              </span></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="v-tooltip v-tooltip--bottom"><!----></span><span class="ml-1 mb-1 v-chip v-chip--no-color v-chip--outlined theme--light v-size--small" aria-haspopup="true" aria-expanded="false"><span class="v-chip__content">
+                tag2
+              </span></span></div>
               </td>
               <td class="text-center"><span class="v-chip v-chip--clickable theme--light v-size--default transparent"><span class="v-chip__content"><button type="button" role="button" aria-haspopup="true" aria-expanded="false" class="v-icon notranslate icons v-icon--link mdi mdi-dots-horizontal theme--light" style="font-size: 16px;"></button></span></span>
                 <div class="v-menu">
@@ -183,10 +195,10 @@ exports[`FirewallRuleList List data when user has owner role Renders the compone
       <div class="v-data-footer">
         <div class="v-data-footer__select">Rows per page:<div class="v-input v-input--hide-details v-input--is-label-active v-input--is-dirty theme--light v-text-field v-select">
             <div class="v-input__control">
-              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-47" class="v-input__slot">
+              <div role="button" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-55" class="v-input__slot">
                 <div class="v-select__slot">
                   <div class="v-select__selections">
-                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-47" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
+                    <div class="v-select__selection v-select__selection--comma">10</div><input aria-label="Rows per page:" id="input-55" readonly="readonly" type="text" aria-readonly="false" autocomplete="off">
                   </div>
                   <div class="v-input__append-inner">
                     <div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div>

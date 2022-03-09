@@ -23,7 +23,9 @@ describe('FirewallRuleList', () => {
       active: true,
       source_ip: '00.00.00',
       username: 'shellhub',
-      hostname: 'shellhub',
+      filter: {
+        hostname: 'shellhub',
+      },
     },
     {
       id: '5f1996c8',
@@ -33,7 +35,9 @@ describe('FirewallRuleList', () => {
       active: false,
       source_ip: '00.00.00',
       username: 'shellhub',
-      hostname: 'shellhub',
+      filter: {
+        tags: ['tag1', 'tag2'],
+      },
     },
   ];
 
@@ -64,8 +68,8 @@ describe('FirewallRuleList', () => {
       align: 'center',
     },
     {
-      text: 'Hostname',
-      value: 'hostname',
+      text: 'Filter',
+      value: 'filter',
       align: 'center',
     },
     {

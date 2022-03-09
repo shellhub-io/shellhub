@@ -2,6 +2,7 @@ import Vuex from 'vuex';
 import { mount, createLocalVue } from '@vue/test-utils';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import Vuetify from 'vuetify';
+import flushPromises from 'flush-promises';
 import FirewallRuleFormDialogAdd from '@/components/firewall_rule/FirewallRuleFormDialogAdd';
 import { actions, authorizer } from '../../../../src/authorizer';
 import '@/vee-validate';
@@ -17,21 +18,45 @@ describe('FirewallRuleFormDialog', () => {
 
   let wrapper;
 
+  const usernameFieldChoices = [
+    {
+      filterName: 'all',
+      filterText: 'Define rule to all users',
+    },
+    {
+      filterName: 'username',
+      filterText: 'Restrict access using a regexp for username',
+    },
+  ];
+
+  const filterFieldChoices = [
+    {
+      filterName: 'all',
+      filterText: 'Define rule to all devices',
+    },
+    {
+      filterName: 'hostname',
+      filterText: 'Restrict rule with a regexp for hostname',
+    },
+    {
+      filterName: 'tags',
+      filterText: 'Restrict rule by device tags',
+    },
+  ];
   const stateRuleFirewall = [
     {
       id: 'allow',
-      name: 'allow',
+      name: 'Allow',
     },
     {
       id: 'deny',
-      name: 'deny',
+      name: 'Deny',
     },
   ];
 
   const ruleFirewall = {
-    action: '',
-    active: true,
-    hostname: '',
+    policy: 'allow',
+    status: 'active',
     priority: '',
     source_ip: '',
     username: '',
@@ -47,6 +72,8 @@ describe('FirewallRuleFormDialog', () => {
       data: {
         dialog: false,
         action: 'create',
+        usernameFieldChoices,
+        filterFieldChoices,
         ruleFirewall,
         state: stateRuleFirewall,
       },
@@ -69,6 +96,8 @@ describe('FirewallRuleFormDialog', () => {
       },
       data: {
         dialog: false,
+        usernameFieldChoices,
+        filterFieldChoices,
         action: 'create',
         ruleFirewall,
         state: stateRuleFirewall,
@@ -91,6 +120,8 @@ describe('FirewallRuleFormDialog', () => {
         permission: true,
       },
       data: {
+        usernameFieldChoices,
+        filterFieldChoices,
         dialog: true,
         action: 'create',
         ruleFirewall,
@@ -108,7 +139,7 @@ describe('FirewallRuleFormDialog', () => {
       },
       templateText: {
         'add-btn': 'Add Rule',
-        'text-title': 'New Rule',
+        'text-title': 'New Firewall Rule',
         'cancel-btn': 'Cancel',
         'create-btn': 'Create',
       },
@@ -142,6 +173,11 @@ describe('FirewallRuleFormDialog', () => {
           mocks: {
             $authorizer: authorizer,
             $actions: actions,
+            $errors: {
+              snackbar: {
+                firewallRuleCreating: '',
+              },
+            },
           },
         });
 
@@ -183,11 +219,43 @@ describe('FirewallRuleFormDialog', () => {
           expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(test.template[item]);
         });
       });
+
       it('Renders template with expected text', () => {
         Object.keys(test.templateText).forEach((item) => {
           expect(wrapper.find(`[data-test="${item}"]`).text()).toContain(test.templateText[item]);
         });
       });
+    });
+  });
+
+  describe('Update data checks', () => {
+    it('Should construct filter object for hostname', async () => {
+      const rf = wrapper.vm.ruleFirewall;
+
+      await wrapper.setData({ choiceFilter: 'hostname', filterField: 'another' });
+      await flushPromises();
+      wrapper.vm.constructFilterObject();
+
+      expect(wrapper.vm.ruleFirewall).toStrictEqual({ ...rf, filter: { hostname: 'another' } });
+    });
+
+    it('Should construct filter object for tags', async () => {
+      const rf = wrapper.vm.ruleFirewall;
+
+      const tags = ['tag1', 'tag2'];
+      await wrapper.setData({ choiceFilter: 'tags', tagChoices: tags });
+      await flushPromises();
+
+      wrapper.vm.constructFilterObject();
+
+      expect(wrapper.vm.ruleFirewall).toStrictEqual({ ...rf, filter: { tags } });
+    });
+
+    it('Should create call constructFilterObject', async () => {
+      const constrMock = jest.spyOn(wrapper.vm, 'constructFilterObject');
+      wrapper.vm.create();
+
+      expect(constrMock).toHaveBeenCalled();
     });
   });
 });
