@@ -23,6 +23,14 @@ describe('FirewallRule', () => {
   const numberFirewallsEqualZero = 0;
   const numberFirewallsGreaterThanZero = 1;
 
+  const actionsMock = {
+    'boxs/setStatus': () => {},
+    'firewallrules/resetPagePerpage': () => {},
+    'firewallrules/refresh': () => {},
+    'snackbar/showSnackbarErrorLoading': () => {},
+    'tags/fetch': jest.fn(),
+  };
+
   const storeWithoutFirewalls = new Vuex.Store({
     namespaced: true,
     state: {
@@ -31,12 +39,7 @@ describe('FirewallRule', () => {
     getters: {
       'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
     },
-    actions: {
-      'boxs/setStatus': () => {},
-      'firewallrules/resetPagePerpage': () => {},
-      'firewallrules/refresh': () => {},
-      'snackbar/showSnackbarErrorLoading': () => {},
-    },
+    actions: actionsMock,
   });
 
   const storeWithFirewalls = new Vuex.Store({
@@ -47,12 +50,7 @@ describe('FirewallRule', () => {
     getters: {
       'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
     },
-    actions: {
-      'boxs/setStatus': () => {},
-      'firewallrules/resetPagePerpage': () => {},
-      'firewallrules/refresh': () => {},
-      'snackbar/showSnackbarErrorLoading': () => {},
-    },
+    actions: actionsMock,
   });
 
   ///////
@@ -162,6 +160,13 @@ describe('FirewallRule', () => {
     it('Renders the template with components', () => {
       expect(wrapper.find('[data-test="FirewallRuleFormDialogAdd-component"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="boxMessageFirewall-component"]').exists()).toBe(false);
+    });
+
+    ///////
+    // Call actions
+    //////
+    it('Calls dispatch on mount', () => {
+      expect(actionsMock['tags/fetch']).toHaveBeenCalled();
     });
   });
 });

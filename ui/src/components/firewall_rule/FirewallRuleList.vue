@@ -34,19 +34,48 @@
         </template>
 
         <template #[`item.action`]="{ item }">
-          {{ item.action }}
+          {{ toUpperCase(item.action) }}
         </template>
 
         <template #[`item.source_ip`]="{ item }">
-          {{ item.source_ip }}
+          {{ formatSourceIP(item.source_ip) }}
         </template>
 
         <template #[`item.username`]="{ item }">
-          {{ item.username }}
+          {{ formatUsername(item.username) }}
         </template>
 
-        <template #[`item.hostname`]="{ item }">
-          {{ item.hostname }}
+        <template #[`item.filter`]="{ item }">
+          <div
+            v-if="filterKey(item.filter)=='hostname'"
+          >
+            {{ formatHostnameFilter(item.filter) }}
+          </div>
+
+          <div v-else-if="filterKey(item.filter)=='tags'">
+            <v-tooltip
+              v-for="(tag, index) in item.filter.tags"
+              :key="index"
+              bottom
+              :disabled="!showTag(tag)"
+            >
+              <template #activator="{ on, attrs }">
+                <v-chip
+                  class="ml-1 mb-1"
+                  small
+                  outlined
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  {{ displayOnlyTenCharacters(tag) }}
+                </v-chip>
+              </template>
+
+              <span v-if="showTag(tag)">
+                {{ tag }}
+              </span>
+            </v-tooltip>
+          </div>
         </template>
 
         <template #[`item.actions`]="{ item }">
@@ -185,8 +214,8 @@ export default {
           align: 'center',
         },
         {
-          text: 'Hostname',
-          value: 'hostname',
+          text: 'Filter',
+          value: 'filter',
           align: 'center',
         },
         {
@@ -246,6 +275,42 @@ export default {
   methods: {
     refresh() {
       this.getFirewalls();
+    },
+
+    toUpperCase(str) {
+      return str.charAt(0).toUpperCase().concat(str.slice(1));
+    },
+
+    displayOnlyTenCharacters(str) {
+      if (str !== undefined) {
+        if (str.length > 10) return `${str.substr(0, 10)}...`;
+      }
+      return str;
+    },
+
+    filterKey(filter) {
+      return Reflect.ownKeys(filter)[0];
+    },
+
+    showTag(str) {
+      if (str !== undefined) {
+        if (str.length > 10) {
+          return true;
+        }
+      }
+      return false;
+    },
+
+    formatHostnameFilter(filter) {
+      return filter.hostname === '.*' ? 'All devices' : filter.hostname;
+    },
+
+    formatSourceIP(ip) {
+      return ip === '.*' ? 'Any IP' : ip;
+    },
+
+    formatUsername(username) {
+      return username === '.*' ? 'All users' : username;
     },
 
     async getFirewalls() {

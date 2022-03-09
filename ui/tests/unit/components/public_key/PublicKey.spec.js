@@ -158,6 +158,9 @@ describe('PublicKey', () => {
       expect(wrapper.find('[data-test="boxMessagePublicKey-component"]').exists()).toBe(false);
     });
 
+    ///////
+    // Call actions
+    //////
     it('Calls dispatch on mount', () => {
       expect(actionsMock['tags/fetch']).toHaveBeenCalled();
     });

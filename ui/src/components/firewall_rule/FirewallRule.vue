@@ -77,6 +77,7 @@ export default {
     this.$store.dispatch('firewallrules/resetPagePerpage');
 
     await this.refresh();
+    this.$store.dispatch('tags/fetch');
     this.show = true;
   },
 
