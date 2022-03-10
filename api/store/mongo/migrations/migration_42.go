@@ -31,7 +31,7 @@ var migration42 = migrate.Migration{
 					{"$unset", "hostname"},
 				},
 				{
-					{"$merge", bson.M{"into": "public_keys"}},
+					{"$merge", bson.M{"into": "public_keys", "whenMatched": "replace"}},
 				},
 			},
 		)
@@ -54,7 +54,7 @@ var migration42 = migrate.Migration{
 					{"$match", bson.M{}},
 				},
 				{
-					{"$set", bson.M{"hostname": "$hostname"}},
+					{"$set", bson.M{"hostname": "$filter.hostname"}},
 				},
 				{
 					{"$unset", "filter"},
