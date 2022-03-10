@@ -99,7 +99,7 @@ func startServer() error {
 	requestClient := requests.NewClient()
 
 	// apply dependency injection through project layers
-	store := mongo.NewStore(client.Database("main"), cache)
+	store := mongo.NewStore(client.Database(connStr.Database), cache)
 
 	var locator geoip.Locator
 	if cfg.GeoIP {
