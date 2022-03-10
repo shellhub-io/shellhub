@@ -33,7 +33,7 @@ func TestMigration42(t *testing.T) {
 		PublicKeyFields `bson:",inline"`
 	}
 
-	keyOld := PublicKey{
+	keyOld := &PublicKey{
 		Fingerprint: "fingerprint",
 		TenantID:    "tenant",
 		PublicKeyFields: PublicKeyFields{
@@ -43,7 +43,7 @@ func TestMigration42(t *testing.T) {
 		},
 	}
 
-	keyNew := models.PublicKey{
+	keyNew := &models.PublicKey{
 		Fingerprint: "fingerprint",
 		TenantID:    "tenant",
 		PublicKeyFields: models.PublicKeyFields{
@@ -79,7 +79,7 @@ func TestMigration42(t *testing.T) {
 				err = result.Decode(key)
 				assert.NoError(t, err)
 
-				assert.Equal(t, keyNew, *key)
+				assert.Equal(t, keyNew, key)
 			},
 		},
 		{
@@ -99,7 +99,7 @@ func TestMigration42(t *testing.T) {
 				err = result.Decode(key)
 				assert.NoError(t, err)
 
-				assert.Equal(t, keyOld, *key)
+				assert.Equal(t, keyOld, key)
 			},
 		},
 	}
