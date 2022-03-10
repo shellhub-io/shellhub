@@ -10,10 +10,11 @@ import (
 	"github.com/spf13/cobra"
 	mgo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 )
 
 type config struct {
-	MongoURI   string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+	MongoURI   string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
 	RedisURI   string `envconfig:"redis_uri" default:"redis://redis:6379"`
 	StoreCache bool   `envconfig:"store_cache" default:"false"`
 }
@@ -22,6 +23,11 @@ func main() {
 	var cfg config
 	if err := envconfig.Process("cli", &cfg); err != nil {
 		log.Error(err.Error())
+	}
+
+	connStr, err := connstring.ParseAndValidate(cfg.MongoURI)
+	if err != nil {
+		log.WithError(err).Fatal("Invalid Mongo URI format")
 	}
 
 	client, err := mgo.Connect(context.Background(), options.Client().ApplyURI(cfg.MongoURI))
@@ -39,7 +45,7 @@ func main() {
 		cache = storecache.NewNullCache()
 	}
 
-	services := NewService(mongo.NewStore(client.Database("main"), cache))
+	services := NewService(mongo.NewStore(client.Database(connStr.Database), cache))
 
 	rootCmd := &cobra.Command{Use: "cli"}
 	rootCmd.AddCommand(&cobra.Command{
