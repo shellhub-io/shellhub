@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 )
 
 // workerDeleteSessionRecord deletes session's records registers older than days defined by SHELLHUB_RECORD_RETENTION.
@@ -21,7 +22,7 @@ func workerDeleteSessionRecord() {
 	logrus.Info("Running worker to delete session's records...")
 
 	type config struct {
-		MongoURI               string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+		MongoURI               string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
 		SessionRecordRetention int    `envconfig:"record_retention" default:"0"`
 	}
 
@@ -47,6 +48,11 @@ func workerDeleteSessionRecord() {
 
 	logrus.Debug("Connecting to MongoDB...")
 
+	connStr, err := connstring.ParseAndValidate(envs.MongoURI)
+	if err != nil {
+		logrus.WithError(err).Fatal("Invalid Mongo URI format")
+	}
+
 	// Applying MongoDB URI to client options.
 	clientOptions := options.Client().ApplyURI(envs.MongoURI)
 	// Connecting to MongoDB.
@@ -64,12 +70,14 @@ func workerDeleteSessionRecord() {
 
 	logrus.Debug("Pinged! Deleting session's record data...")
 
+	db := client.Database(connStr.Database)
+
 	/*
 		This worker will delete all data inside recorded_session's collection older than a date limit and set the "recorded"
 		status from session's collection to false.
 	*/
 	// Deleting registers from recorded_session's collection.
-	deleted, err := client.Database("main").Collection("recorded_sessions").DeleteMany(context.Background(),
+	deleted, err := db.Collection("recorded_sessions").DeleteMany(context.Background(),
 		bson.M{"time": bson.D{{"$lte", dateLimit}}},
 	)
 	if err != nil {
@@ -78,7 +86,7 @@ func workerDeleteSessionRecord() {
 
 	logrus.Debug("Deleted! Updating the record status from sessions...")
 	// Setting session records that were deleted to correct status: no recorded.
-	updated, err := client.Database("main").Collection("sessions").UpdateMany(context.Background(),
+	updated, err := db.Collection("sessions").UpdateMany(context.Background(),
 		bson.M{"started_at": bson.D{{"$lte", dateLimit}}, "recorded": bson.M{"$eq": true}},
 		bson.M{"$set": bson.M{"recorded": false}})
 	if err != nil {

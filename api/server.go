@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 )
 
 var serverCmd = &cobra.Command{
@@ -33,7 +34,7 @@ var serverCmd = &cobra.Command{
 // The values are load from the system environment variables.
 type config struct {
 	// MongoDB connection string (URI format)
-	MongoURI string `envconfig:"mongo_uri" default:"mongodb://mongo:27017"`
+	MongoURI string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
 	// Redis connection stirng (URI format)
 	RedisURI string `envconfig:"redis_uri" default:"redis://redis:6379"`
 	// Enable store cache
@@ -61,6 +62,11 @@ func startServer() error {
 
 	logrus.Info("Connecting to MongoDB")
 
+	connStr, err := connstring.ParseAndValidate(cfg.MongoURI)
+	if err != nil {
+		logrus.WithError(err).Fatal("Invalid Mongo URI format")
+	}
+
 	clientOptions := options.Client().ApplyURI(cfg.MongoURI)
 	client, err := mongodriver.Connect(context.TODO(), clientOptions)
 	if err != nil {
@@ -73,7 +79,7 @@ func startServer() error {
 
 	logrus.Info("Running database migrations")
 
-	if err := mongo.ApplyMigrations(client.Database("main")); err != nil {
+	if err := mongo.ApplyMigrations(client.Database(connStr.Database)); err != nil {
 		logrus.WithError(err).Fatal("Failed to apply mongo migrations")
 	}
 
