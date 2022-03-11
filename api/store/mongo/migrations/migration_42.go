@@ -60,7 +60,7 @@ var migration42 = migrate.Migration{
 					{"$unset", "filter"},
 				},
 				{
-					{"$merge", bson.M{"into": "public_keys"}},
+					{"$merge", bson.M{"into": "public_keys", "whenMatched": "replace"}},
 				},
 			},
 		)
