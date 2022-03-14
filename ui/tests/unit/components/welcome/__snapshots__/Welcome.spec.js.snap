@@ -2,7 +2,7 @@
 
 exports[`Welcome Renders the component 1`] = `
 <v-card-stub loaderheight="4" tag="div">
-  <v-dialog-stub opendelay="0" closedelay="0" value="true" openonclick="true" contentclass="" maxwidth="800px" origin="center center" persistent="true" transition="dialog-transition">
+  <v-dialog-stub contentclass="" opendelay="0" closedelay="0" value="true" openonclick="true" maxwidth="800px" origin="center center" persistent="true" transition="dialog-transition">
     <v-stepper-stub tag="div" value="1">
       <v-stepper-header-stub tag="div">
         <v-stepper-step-stub color="primary" completeicon="$complete" editicon="$edit" erroricon="$error" rules="" step="1">

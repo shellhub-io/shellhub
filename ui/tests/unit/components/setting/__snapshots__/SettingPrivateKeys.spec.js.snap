@@ -15,7 +15,7 @@ exports[`SettingPrivateKeys Dialog is false Renders the component 1`] = `
       </v-col-stub>
     </v-row-stub>
   </v-container-stub>
-  <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+  <v-dialog-stub contentclass="" opendelay="0" closedelay="0" openonclick="true" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
     <v-card-stub loaderheight="4" tag="div">
       <v-card-title-stub tag="div" class="headline primary">
         Privacy Policy
@@ -52,7 +52,7 @@ exports[`SettingPrivateKeys Dialog is true Renders the component 1`] = `
       </v-col-stub>
     </v-row-stub>
   </v-container-stub>
-  <v-dialog-stub opendelay="0" closedelay="0" value="true" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+  <v-dialog-stub contentclass="" opendelay="0" closedelay="0" value="true" openonclick="true" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
     <v-card-stub loaderheight="4" tag="div">
       <v-card-title-stub tag="div" class="headline primary">
         Privacy Policy
