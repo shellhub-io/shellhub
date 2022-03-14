@@ -68,7 +68,7 @@ exports[`SessionDetails Session recorded is false and device is offline when use
     </v-card-text-stub>
   </v-card-stub>
   <div class="text-center">
-    <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+    <v-dialog-stub contentclass="" opendelay="0" closedelay="0" openonclick="true" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
         <v-card-title-stub tag="div" class="headline primary">
           Session ID error
@@ -158,7 +158,7 @@ exports[`SessionDetails Session recorded is false and device is online when user
     </v-card-text-stub>
   </v-card-stub>
   <div class="text-center">
-    <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+    <v-dialog-stub contentclass="" opendelay="0" closedelay="0" openonclick="true" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
         <v-card-title-stub tag="div" class="headline primary">
           Session ID error
@@ -260,7 +260,7 @@ exports[`SessionDetails Session recorded is true and device is online when user 
     </v-card-text-stub>
   </v-card-stub>
   <div class="text-center">
-    <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+    <v-dialog-stub contentclass="" opendelay="0" closedelay="0" openonclick="true" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
         <v-card-title-stub tag="div" class="headline primary">
           Session ID error
@@ -362,7 +362,7 @@ exports[`SessionDetails Session recorded is true and device is online when user 
     </v-card-text-stub>
   </v-card-stub>
   <div class="text-center">
-    <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+    <v-dialog-stub contentclass="" opendelay="0" closedelay="0" openonclick="true" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
         <v-card-title-stub tag="div" class="headline primary">
           Session ID error
@@ -464,7 +464,7 @@ exports[`SessionDetails Session recorded is true and device is online, but not e
     </v-card-text-stub>
   </v-card-stub>
   <div class="text-center">
-    <v-dialog-stub opendelay="0" closedelay="0" openonclick="true" contentclass="" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
+    <v-dialog-stub contentclass="" opendelay="0" closedelay="0" openonclick="true" origin="center center" persistent="true" retainfocus="true" transition="dialog-transition" width="500">
       <v-card-stub loaderheight="4" tag="div">
         <v-card-title-stub tag="div" class="headline primary">
           Session ID error
