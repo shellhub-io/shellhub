@@ -239,4 +239,28 @@ describe('PublicKeyFormDialogEdit', () => {
       }
     });
   });
+
+  describe('Update data checks', () => {
+    it('Should filter selection show field with data', async () => {
+      const pubKey = {
+        name: 'ShellHub',
+        username: 'ShellHub',
+        data: '',
+        filter: {
+          hostname: '.*',
+        },
+      };
+
+      await wrapper.setProps({ keyObject: pubKey });
+      await flushPromises();
+
+      wrapper.vm.handleUpdate();
+
+      await wrapper.setData({ choiceFilter: 'hostname' });
+      await flushPromises();
+
+      wrapper.vm.chooseFilter();
+      expect(wrapper.vm.hostname).toBe('');
+    });
+  });
 });
