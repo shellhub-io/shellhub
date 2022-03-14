@@ -291,8 +291,10 @@ export default {
           this.choiceFilter = 'tags';
         } else {
           const { hostname } = this.$props.keyObject.filter;
-          this.choiceFilter = ((!hostname || hostname === '.*' || hostname === '') ? 'all' : 'hostname');
-          this.hostname = hostname;
+          if (!!hostname && hostname !== '.*') {
+            this.choiceFilter = 'hostname';
+            this.hostname = hostname;
+          }
         }
 
         const { username } = this.$props.keyObject;

@@ -67,6 +67,12 @@
 export default {
   name: 'TagSelector',
 
+  data() {
+    return {
+      prevSelectedLength: 0,
+    };
+  },
+
   computed: {
     getListTags() {
       return this.$store.getters['tags/list'];
@@ -85,7 +91,12 @@ export default {
 
   watch: {
     selectedTags(item) {
-      this.getDevices(item);
+      if (item.length > 0) {
+        this.getDevices(item);
+        this.prevSelectedLength = item.length;
+      } else if (this.prevSelectedLength === 1 && item.length === 0) {
+        this.fetchDevices(item);
+      }
     },
   },
 
@@ -98,13 +109,25 @@ export default {
       await this.$store.dispatch('tags/fetch');
     },
 
+    async fetchDevices() {
+      const data = {
+        perPage: this.$store.getters['devices/getPerPage'],
+        page: this.$store.getters['devices/getPage'],
+        status: 'accepted',
+        search: null,
+        filter: '',
+        sortStatusField: null,
+      };
+
+      await this.$store.dispatch('devices/fetch', data);
+    },
+
     async getDevices(item) {
       let encodedFilter = null;
 
-      if (item.length > 0) {
-        const filter = [{ type: 'property', params: { name: 'tags', operator: 'contains', value: item } }];
-        encodedFilter = btoa(JSON.stringify(filter));
-      }
+      const filter = [{ type: 'property', params: { name: 'tags', operator: 'contains', value: item } }];
+      encodedFilter = btoa(JSON.stringify(filter));
+
       await this.$store.dispatch('devices/setFilter', encodedFilter);
 
       try {
@@ -119,4 +142,5 @@ export default {
     },
   },
 };
+
 </script>
