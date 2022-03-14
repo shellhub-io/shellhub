@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/emirpasic/gods v1.12.0
-	github.com/go-playground/validator/v10 v10.10.0
+	github.com/go-playground/validator/v10 v10.10.1
 	github.com/go-redis/cache/v8 v8.4.3
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -22,7 +22,7 @@ require (
 	github.com/undefinedlabs/go-mpatch v1.0.6
 	github.com/xakep666/mongo-migrate v0.2.1
 	go.mongodb.org/mongo-driver v1.8.4
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
 )
 
