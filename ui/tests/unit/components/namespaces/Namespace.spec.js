@@ -157,4 +157,66 @@ describe('Namespace', () => {
       expect(wrapper.find('[data-test="namespaceAddNoNamespace-component"]').exists()).toEqual(false);
     });
   });
+
+  describe('Request assertions', () => {
+    beforeEach(() => {
+      jest.spyOn(Storage.prototype, 'getItem').mockReturnValue('');
+    });
+
+    it('Should switch to a namespace when the current namespace is not found', async () => {
+      class NotFoundError extends Error {
+        constructor(message) {
+          super(message);
+          this.response = {
+            status: 404,
+          };
+        }
+      }
+
+      const tenant = 'e359bf484715';
+
+      const namespaces = [
+        {
+          name: 'namespace3',
+          owner: 'user1',
+          member_names: ['user6', 'user7', 'user8'],
+          tenant_id: tenant,
+        },
+      ];
+
+      const wrapperItem = shallowMount(Namespace, {
+        store: new Vuex.Store({
+          state: {
+            namespace: {},
+            namespaces,
+          },
+          getters: {
+            'namespaces/list': (state) => state.namespaces,
+            'namespaces/get': (state) => state.namespace,
+          },
+          actions: {
+            'namespaces/fetch': () => {},
+            'namespaces/get': () => { throw new NotFoundError('not found'); },
+            'namespaces/switchNamespace': () => {},
+            'namespaces/setOwnerStatus': () => {},
+            'snackbar/showSnackbarErrorLoading': () => {},
+            'snackbar/showSnackbarErrorAssociation': () => {},
+          },
+        }),
+        localVue,
+        stubs: ['fragment', 'router-link'],
+        propsData: { inANamespace: !inANamespace },
+        mocks: {
+          $env: {
+            isEnterprise: false,
+          },
+        },
+        vuetify,
+      });
+
+      const switchMock = jest.spyOn(wrapperItem.vm, 'switchIn');
+      await wrapperItem.vm.getNamespace();
+      expect(switchMock).toHaveBeenCalledWith(tenant);
+    });
+  });
 });

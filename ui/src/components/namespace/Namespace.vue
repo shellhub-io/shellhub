@@ -100,7 +100,7 @@ export default {
       } catch (error) {
         switch (true) {
         case (error.response.status === 404): { // detects namespace inserted
-          const namespaceFind = this.namespaces[0];
+          const namespaceFind = this.$store.getters['namespaces/list'][0];
           if (this.tenant === '' && namespaceFind !== undefined) {
             this.switchIn(namespaceFind.tenant_id);
           }
