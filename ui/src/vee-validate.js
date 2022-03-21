@@ -67,6 +67,20 @@ extend('tag', (value) => {
   return true;
 });
 
+extend('tagRequired', {
+  ...required,
+  message: 'You must choose at least one tag',
+});
+
+extend('tagsLength', {
+  validate(value) {
+    if (value.length > 3) {
+      return 'The maximum capacity has reached';
+    }
+    return true;
+  },
+});
+
 extend('comparePasswords', {
   validate(value, { currentPassword }) {
     if (value === currentPassword) {
