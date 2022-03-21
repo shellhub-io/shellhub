@@ -239,6 +239,7 @@ describe('FirewallRuleFormDialog', () => {
       expect(wrapper.vm.choiceIP).toBe('all');
       expect(wrapper.vm.usernameField).toBe('');
       expect(wrapper.vm.ipField).toBe('');
+      expect(wrapper.vm.tagChoices).toStrictEqual([]);
       expect(wrapper.vm.hostnameField).toStrictEqual('');
     });
 

@@ -163,8 +163,10 @@
 
             <ValidationProvider
               v-if="choiceFilter==='tags'"
+              v-slot="{ errors }"
               name="Tags"
-              rules="required"
+              vid="tagsLength"
+              rules="tagRequired|tagsLength"
             >
               <v-select
                 v-model="tagChoices"
@@ -173,11 +175,9 @@
                 attach
                 chips
                 label="Rule device tag restriction"
-                :rules="[validateLength]"
-                :error-messages="errMsg"
+                :error-messages="errors"
                 :menu-props="{ top: true, maxHeight: 150, offsetY: true }"
                 multiple
-                required
               />
             </ValidationProvider>
           </v-card-text>
@@ -238,12 +238,10 @@ export default {
       choiceUsername: 'all',
       choiceFilter: 'all',
       choiceIP: 'all',
-      validateLength: true,
       usernameField: '',
       hostnameField: '',
       ipField: '',
-      tagChoices: [''],
-      errMsg: '',
+      tagChoices: [],
       sourceIPFieldChoices: [
         {
           filterName: 'all',
@@ -327,20 +325,6 @@ export default {
     showDialog(val) {
       if (val) {
         this.setLocalVariable();
-      }
-    },
-
-    tagChoices(list) {
-      if (list.length > 3) {
-        this.validateLength = false;
-        this.$nextTick(() => this.tagChoices.pop());
-        this.errMsg = 'The maximum capacity has reached';
-      } else if (list.length === 0) {
-        this.validateLength = false;
-        this.errMsg = 'You must choose at least one tag';
-      } else if (list.length <= 2) {
-        this.validateLength = true;
-        this.errMsg = '';
       }
     },
   },
@@ -470,8 +454,6 @@ export default {
       this.choiceUsername = 'all';
       this.choiceFilter = 'all';
       this.choiceIP = 'all';
-      this.validateLength = true;
-      this.errMsg = '';
     },
 
     update() {
@@ -481,7 +463,6 @@ export default {
 
     close() {
       this.$emit('update:show', false);
-      this.tagChoices = [''];
       this.resetChoices();
       this.$refs.obs.reset();
     },
