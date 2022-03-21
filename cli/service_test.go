@@ -11,6 +11,8 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -291,6 +293,8 @@ func TestNamespaceCreate(t *testing.T) {
 			username:    userNotFound.Username,
 			tenantID:    namespace.TenantID,
 			requiredMocks: func() {
+				envMock := &env_mocks.Backend{}
+				envs.DefaultBackend = envMock
 				mock.On("UserGetByUsername", ctx, userNotFound.Username).Return(nil, Err).Once()
 			},
 			expected: Expected{nil, ErrUserNotFound},
@@ -301,6 +305,10 @@ func TestNamespaceCreate(t *testing.T) {
 			username:    user.Username,
 			tenantID:    namespaceInvalid.TenantID,
 			requiredMocks: func() {
+				envMock := &env_mocks.Backend{}
+				envs.DefaultBackend = envMock
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 			},
 			expected: Expected{nil, ErrNamespaceInvalid},
@@ -311,17 +319,57 @@ func TestNamespaceCreate(t *testing.T) {
 			username:    user.Username,
 			tenantID:    namespace.TenantID,
 			requiredMocks: func() {
+				envMock := &env_mocks.Backend{}
+				envs.DefaultBackend = envMock
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 				mock.On("NamespaceCreate", ctx, namespace).Return(nil, Err).Once()
 			},
 			expected: Expected{nil, ErrDuplicateNamespace},
 		},
 		{
-			description: "Success to create namespace",
+			description: "Success to create namespace - Community",
 			namespace:   namespace.Name,
 			username:    user.Username,
 			tenantID:    namespace.TenantID,
 			requiredMocks: func() {
+				envMock := &env_mocks.Backend{}
+				envs.DefaultBackend = envMock
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+			},
+			expected: Expected{namespace, nil},
+		},
+		{
+			description: "Success to create namespace - Cloud",
+			namespace:   namespace.Name,
+			username:    user.Username,
+			tenantID:    namespace.TenantID,
+			requiredMocks: func() {
+				envMock := &env_mocks.Backend{}
+				envs.DefaultBackend = envMock
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
+				namespace.MaxDevices = 3
+				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+			},
+			expected: Expected{namespace, nil},
+		},
+		{
+			description: "Success to create namespace - Enterprise",
+			namespace:   namespace.Name,
+			username:    user.Username,
+			tenantID:    namespace.TenantID,
+			requiredMocks: func() {
+				envMock := &env_mocks.Backend{}
+				envs.DefaultBackend = envMock
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				namespace.MaxDevices = -1
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
 			},
