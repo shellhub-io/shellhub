@@ -96,6 +96,9 @@ services:
       dockerfile: cli/Dockerfile
       target: development
     entrypoint: /entrypoint.sh
+    environment:
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
     volumes:
       - ./cli:/go/src/github.com/shellhub-io/shellhub/cli
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
