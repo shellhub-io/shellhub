@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -184,6 +185,15 @@ func (s *service) NamespaceCreate(namespace, username, tenant string) (*models.N
 		Name:     namespace,
 		Owner:    user.ID,
 		TenantID: tenant,
+		MaxDevices: func() int {
+			if envs.IsCloud() {
+				return 3
+			} else if envs.IsEnterprise() {
+				return -1
+			}
+
+			return 0
+		}(),
 		Members: []models.Member{
 			{
 				ID:   user.ID,
