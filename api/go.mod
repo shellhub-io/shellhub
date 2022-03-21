@@ -8,7 +8,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-playground/validator/v10 v10.10.1
 	github.com/go-redis/cache/v8 v8.4.3
-	github.com/go-redis/redis/v8 v8.11.4
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.4.0
 	github.com/golang/snappy v0.0.3 // indirect
@@ -26,7 +26,6 @@ require (
 	github.com/xakep666/mongo-migrate v0.2.1
 	go.mongodb.org/mongo-driver v1.8.4
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
-	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
 )
