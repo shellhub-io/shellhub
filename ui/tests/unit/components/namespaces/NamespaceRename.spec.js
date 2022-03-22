@@ -68,7 +68,7 @@ describe('SettingNamespace', () => {
         isEnterprise: false,
       },
       data: {
-        name: openNamespace.name,
+        name: '',
       },
       computed: {
         namespace: openNamespace,
@@ -87,7 +87,7 @@ describe('SettingNamespace', () => {
         isEnterprise: true,
       },
       data: {
-        name: hostedNamespace.name,
+        name: '',
       },
       computed: {
         namespace: hostedNamespace,
@@ -238,6 +238,13 @@ describe('SettingNamespace', () => {
           expect(validator.errors[0]).toBe('The name must not contain dots');
         });
       });
+    });
+  });
+  describe('Updating checks', () => {
+    it('Should update name when namespace watcher hook gets called', () => {
+      const name = 'newName';
+      wrapper.vm.$options.watch.namespace.call(wrapper.vm, { name });
+      expect(wrapper.vm.name).toBe('newName');
     });
   });
 });
