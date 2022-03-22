@@ -109,8 +109,10 @@ export default {
     },
   },
 
-  created() {
-    this.name = this.namespace.name;
+  watch: {
+    namespace(ns) {
+      this.name = ns.name;
+    },
   },
 
   methods: {
