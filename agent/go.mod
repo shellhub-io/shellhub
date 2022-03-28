@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/containerd/containerd v1.4.9 // indirect
-	github.com/creack/pty v1.1.17
+	github.com/creack/pty v1.1.18
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v20.10.13+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
