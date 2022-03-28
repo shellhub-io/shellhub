@@ -39,7 +39,7 @@
     "xterm-addon-fit": "^0.5.0"
   },
   "devDependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.36",
+    "@fortawesome/fontawesome-svg-core": "^6.1.1",
     "@fortawesome/free-solid-svg-icons": "^6.0.0",
     "@fortawesome/vue-fontawesome": "^2.0.6",
     "@mdi/font": "^6.5.95",
@@ -59,7 +59,7 @@
     "node-sass": "^6.0.1",
     "sass": "^1.44.0",
     "sass-loader": "~10.2.0",
-    "stylus": "^0.56.0",
+    "stylus": "^0.57.0",
     "stylus-loader": "^4.3.3",
     "vue-cli-plugin-vuetify": "^2.4.5",
     "vue-template-compiler": "^2.6.14",
