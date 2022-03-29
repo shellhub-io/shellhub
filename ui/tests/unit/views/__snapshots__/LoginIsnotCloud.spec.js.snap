@@ -4,6 +4,7 @@ exports[`Login Login screen Renders the component 1`] = `
 <div class="layout align-center justify-center">
   <div class="flex xs12 sm8 md4 lg3 xl2">
     <!---->
+    <!---->
     <div class="pa-6 v-card v-sheet theme--light">
       <div class="container">
         <div class="layout align-center justify-center column">
@@ -78,6 +79,7 @@ exports[`Login Login screen unknown reason Renders the component 1`] = `
         </div>
       </div>
     </div>
+    <!---->
     <!---->
     <!---->
   </div>

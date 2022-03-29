@@ -107,6 +107,7 @@ describe('Login', () => {
       expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="loadingToken-alert"]').exists()).toBe(false);
     });
   });
 
@@ -166,6 +167,7 @@ describe('Login', () => {
       expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="loadingToken-alert"]').exists()).toBe(false);
     });
   });
 });
