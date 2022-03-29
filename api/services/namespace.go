@@ -43,7 +43,7 @@ func (s *service) HandleReportDelete(ns *models.Namespace) error {
 		return err
 	}
 
-	return hp.HandleStatusResponse(status)
+	return handleStatusResponse(status)
 }
 
 // ListNamespaces lists all namespace from a user.
