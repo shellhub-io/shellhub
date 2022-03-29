@@ -10,7 +10,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
-	"errors"
 	"strings"
 	"time"
 
@@ -183,7 +182,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		}, nil
 	}
 
-	return nil, errors.New("unauthorized")
+	return nil, ErrUnauthorized
 }
 
 func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {

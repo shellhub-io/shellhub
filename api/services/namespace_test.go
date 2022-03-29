@@ -1054,7 +1054,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 			UserID:   user2.ID,
 			Expected: Expected{
 				namespace: nil,
-				err:       ErrForbidden,
+				err:       guard.ErrForbidden,
 			},
 		},
 		{
@@ -1205,7 +1205,7 @@ func TestEditNamespaceUser(t *testing.T) {
 				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
 			},
-			Expected: ErrForbidden,
+			Expected: guard.ErrForbidden,
 		},
 		{
 			Name:          "EditNamespaceUser fails when user can not act over the role",

@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"testing"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/undefinedlabs/go-mpatch"
@@ -143,7 +143,7 @@ func TestAuthUser(t *testing.T) {
 	authRes, err := s.AuthUser(ctx, *authReq)
 	assert.NoError(t, err)
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	type Expected struct {
 		userAuthResponse *models.UserAuthResponse
@@ -195,11 +195,13 @@ func TestAuthUser(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		t.Log("PASS:  ", test.description)
-		test.requiredMocks()
-		authRes, err := s.AuthUser(ctx, test.args)
-		assert.Equal(t, test.expected, Expected{authRes, err})
+	for _, tc := range tests {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			authRes, err := s.AuthUser(ctx, tc.args)
+			assert.Equal(t, tc.expected, Expected{authRes, err})
+		})
 	}
 
 	mock.AssertExpectations(t)
@@ -246,7 +248,7 @@ func TestAuthUserInfo(t *testing.T) {
 		},
 	}
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	type Expected struct {
 		userAuthResponse *models.UserAuthResponse
