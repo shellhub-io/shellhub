@@ -2,12 +2,12 @@ package services
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ func TestUpdateDataUser(t *testing.T) {
 
 	ctx := context.TODO()
 
-	Err := errors.New("conflict")
+	Err := errors.New("conflict", "", 0)
 
 	user1 := &models.User{UserData: models.UserData{Name: "name", Email: "user1@email.com", Username: "username1"}, UserPassword: models.UserPassword{Password: "hash1"}, ID: "id1"}
 
@@ -55,7 +55,7 @@ func TestUpdateDataUser(t *testing.T) {
 				mock.On("UserGetByUsername", ctx, user1.Username).Return(user2, nil).Once()
 				mock.On("UserGetByEmail", ctx, user1.Email).Return(user1, nil).Once()
 			},
-			expected: Expected{[]string{"username"}, Err},
+			expected: Expected{[]string{"username"}, ErrConflict},
 		},
 		{
 			description: "Fails conflict email and username",
@@ -66,7 +66,7 @@ func TestUpdateDataUser(t *testing.T) {
 				mock.On("UserGetByUsername", ctx, user1.Username).Return(user2, nil).Once()
 				mock.On("UserGetByEmail", ctx, user1.Email).Return(user2, nil).Once()
 			},
-			expected: Expected{[]string{"username", "email"}, Err},
+			expected: Expected{[]string{"username", "email"}, ErrConflict},
 		},
 		{
 			description: "Fails invalid username",
@@ -128,9 +128,12 @@ func TestUpdateDataUser(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc.requiredMocks()
-		returnedFields, err := s.UpdateDataUser(ctx, tc.user, tc.updateUser.ID)
-		assert.Equal(t, tc.expected, Expected{returnedFields, err})
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			returnedFields, err := s.UpdateDataUser(ctx, tc.user, tc.updateUser.ID)
+			assert.Equal(t, tc.expected, Expected{returnedFields, err})
+		})
 	}
 
 	mock.AssertExpectations(t)
@@ -181,7 +184,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 			data: updatePassword{currentPassword: "123456", newPassword: "123567"},
 			id:   "2",
 			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, "2", false).Return(nil, 0, errors.New("error"))
+				mock.On("UserGetByID", ctx, "2", false).Return(nil, 0, errors.New("error", "", 0))
 			},
 			expected: ErrUnauthorized,
 		},
