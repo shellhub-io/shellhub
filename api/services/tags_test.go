@@ -2,12 +2,12 @@ package services
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/errors"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -19,6 +19,8 @@ func TestGetTags(t *testing.T) {
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
 
 	ctx := context.TODO()
+
+	Err := errors.New("", "", 0)
 
 	device := &models.Device{UID: "uid", Namespace: "namespace", TenantID: "tenant", Tags: []string{"device1", "device2"}}
 
@@ -38,19 +40,32 @@ func TestGetTags(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			name:     "fail find the namespace",
+			name:     "fail when namespace is not found",
 			tenantID: "not_found_tenant",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, ErrNotFound).Once()
+				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, Err).Once()
 			},
 			expected: Expected{
 				Tags:  nil,
 				Count: 0,
-				Error: ErrNamespaceNotFound,
+				Error: NewErrNamespaceNotFound("not_found_tenant", Err),
 			},
 		},
 		{
-			name:     "successful get tags",
+			name:     "fail when store function to get tags fails",
+			tenantID: device.TenantID,
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("TagsGet", ctx, "tenant").Return(nil, 0, Err).Once()
+			},
+			expected: Expected{
+				Tags:  nil,
+				Count: 0,
+				Error: Err,
+			},
+		},
+		{
+			name:     "success to get tags",
 			tenantID: device.TenantID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
@@ -67,8 +82,9 @@ func TestGetTags(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			returnedTags, count, err := s.GetTags(ctx, tc.tenantID)
-			assert.Equal(t, tc.expected, Expected{returnedTags, count, err})
+
+			tags, count, err := s.GetTags(ctx, tc.tenantID)
+			assert.Equal(t, tc.expected, Expected{tags, count, err})
 		})
 	}
 
@@ -82,7 +98,7 @@ func TestRenameTag(t *testing.T) {
 
 	ctx := context.TODO()
 
-	Err := errors.New("")
+	Err := errors.New("", "", 0)
 
 	deviceWithTags := &models.Device{
 		UID:      "deviceWithTagsUID",
@@ -98,54 +114,67 @@ func TestRenameTag(t *testing.T) {
 	}
 
 	cases := []struct {
-		name              string
-		tenantID          string
-		currentDeviceName string
-		newDeviceName     string
-		requiredMocks     func()
-		expected          error
+		name          string
+		tenantID      string
+		currentTag    string
+		newTag        string
+		requiredMocks func()
+		expected      error
 	}{
 		{
-			name:          invalidFormat,
+			name:          "fail when tag is invalid",
 			tenantID:      "tenant",
+			currentTag:    "currentTag",
+			newTag:        "invalid_tag",
 			requiredMocks: func() {},
-			expected:      ErrInvalidFormat,
+			expected:      NewErrTagInvalid("invalid_tag", nil),
 		},
 		{
-			name:              "Fail when device has no tags",
-			tenantID:          "namespaceTenantIDNoTag",
-			currentDeviceName: "device3",
-			newDeviceName:     "device1",
+			name:       "fail when device has no tags",
+			tenantID:   "namespaceTenantIDNoTag",
+			currentTag: "device3",
+			newTag:     "device1",
 			requiredMocks: func() {
 				mock.On("TagsGet", ctx, "namespaceTenantIDNoTag").Return(nil, 0, Err)
 			},
-			expected: ErrNoTags,
+			expected: NewErrTagEmpty("namespaceTenantIDNoTag", Err),
 		},
 		{
-			name:              "Fail when device don't have a tag",
-			tenantID:          namespace.TenantID,
-			currentDeviceName: "device2",
-			newDeviceName:     "device1",
+			name:       "fail when device don't have the tag",
+			tenantID:   namespace.TenantID,
+			currentTag: "device2",
+			newTag:     "device1",
 			requiredMocks: func() {
 				mock.On("TagsGet", ctx, namespace.TenantID).Return(deviceWithTags.Tags, len(deviceWithTags.Tags), nil).Once()
 			},
-			expected: ErrTagNameNotFound,
+			expected: NewErrTagNotFound("device2", nil),
 		},
 		{
-			name:              "Fail when device already have a tag",
-			tenantID:          namespace.TenantID,
-			currentDeviceName: "device3",
-			newDeviceName:     "device5",
+			name:       "fail when device already have the tag",
+			tenantID:   namespace.TenantID,
+			currentTag: "device3",
+			newTag:     "device5",
 			requiredMocks: func() {
 				mock.On("TagsGet", ctx, namespace.TenantID).Return(deviceWithTags.Tags, len(deviceWithTags.Tags), nil).Once()
 			},
-			expected: ErrDuplicateTagName,
+			expected: NewErrTagDuplicated("device5", nil),
 		},
 		{
-			name:              "Successful rename a tag",
-			tenantID:          namespace.TenantID,
-			currentDeviceName: "device3",
-			newDeviceName:     "device1",
+			name:       "fail when the store function to rename the tag fails",
+			tenantID:   namespace.TenantID,
+			currentTag: "device3",
+			newTag:     "device1",
+			requiredMocks: func() {
+				mock.On("TagsGet", ctx, namespace.TenantID).Return(deviceWithTags.Tags, len(deviceWithTags.Tags), nil).Once()
+				mock.On("TagRename", ctx, namespace.TenantID, "device3", "device1").Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
+			name:       "success to rename the tag",
+			tenantID:   namespace.TenantID,
+			currentTag: "device3",
+			newTag:     "device1",
 			requiredMocks: func() {
 				mock.On("TagsGet", ctx, namespace.TenantID).Return(deviceWithTags.Tags, len(deviceWithTags.Tags), nil).Once()
 				mock.On("TagRename", ctx, namespace.TenantID, "device3", "device1").Return(nil).Once()
@@ -157,7 +186,8 @@ func TestRenameTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.RenameTag(ctx, tc.tenantID, tc.currentDeviceName, tc.newDeviceName)
+
+			err := s.RenameTag(ctx, tc.tenantID, tc.currentTag, tc.newTag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -172,30 +202,42 @@ func TestDeleteTag(t *testing.T) {
 
 	ctx := context.TODO()
 
+	Err := errors.New("", "", 0)
+
 	device := &models.Device{UID: "uid", Namespace: "namespace", TenantID: "tenant", Tags: []string{"device1", "device2"}}
 
 	namespace := &models.Namespace{Name: "namespace", TenantID: "tenant"}
 
 	cases := []struct {
 		name          string
-		deviceName    string
-		tenantID      string
+		tag           string
+		tenant        string
 		requiredMocks func()
 		expected      error
 	}{
 		{
-			name:       "fail find the namespace",
-			deviceName: "device1",
-			tenantID:   "not_found_tenant",
+			name:   "fail find the namespace",
+			tag:    "device1",
+			tenant: "not_found_tenant",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, ErrNotFound).Once()
+				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, Err).Once()
 			},
-			expected: ErrNamespaceNotFound,
+			expected: NewErrNamespaceNotFound("not_found_tenant", Err),
 		},
 		{
-			name:       "successful get tags",
-			deviceName: "device1",
-			tenantID:   device.TenantID,
+			name:   "fail when the store function to delete the tag fails",
+			tag:    "device1",
+			tenant: device.TenantID,
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("TagDelete", ctx, "tenant", "device1").Return(Err).Once()
+			},
+			expected: Err,
+		},
+		{
+			name:   "success to delete tags",
+			tag:    "device1",
+			tenant: device.TenantID,
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("TagDelete", ctx, "tenant", "device1").Return(nil).Once()
@@ -207,7 +249,8 @@ func TestDeleteTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.DeleteTag(ctx, tc.tenantID, tc.deviceName)
+
+			err := s.DeleteTag(ctx, tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

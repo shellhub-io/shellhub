@@ -8,7 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-var ErrForbidden = errors.New("forbidden")
+var ErrForbidden = errors.New("resource forbidden")
 
 // CheckMember checks if a user is a namespace's member.
 func CheckMember(namespace *models.Namespace, id string) (*models.Member, bool) {

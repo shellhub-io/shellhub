@@ -10,6 +10,7 @@ import (
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/routes"
+	"github.com/shellhub-io/shellhub/api/routes/handlers"
 	apiMiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
@@ -53,6 +54,7 @@ func startServer() error {
 	e := echo.New()
 	e.Use(middleware.Log)
 	e.Use(echoMiddleware.RequestID())
+	e.HTTPErrorHandler = handlers.Errors
 
 	// Populates configuration based on environment variables prefixed with 'API_'
 	var cfg config
