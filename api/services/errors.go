@@ -44,8 +44,9 @@ type ErrDataLimit struct {
 
 // ErrDataInvalid structure should be used to add errors.Data to an error when the resource is invalid.
 type ErrDataInvalid struct {
-	// Values is used to identify the invalid resource.
-	Values []string
+	// Data is a key-value map of the invalid fields. key must be the field name what is invalid and value must be the
+	// value of the field.
+	Data map[string]string
 }
 
 var (
@@ -62,6 +63,7 @@ var (
 	ErrMaxTagReached             = errors.New("tag limit reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicateTagName          = errors.New("tag duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrTagNameNotFound           = errors.New("tag not found", ErrLayer, ErrCodeNotFound)
+	ErrTagInvalid                = errors.New("tag invalid", ErrLayer, ErrCodeInvalid)
 	ErrNoTags                    = errors.New("no tags has found", ErrLayer, ErrCodeNotFound)
 	ErrConflictName              = errors.New("name duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInvalidFormat             = errors.New("invalid format", ErrLayer, ErrCodeInvalid)
@@ -73,3 +75,43 @@ var (
 	ErrPublicKeyInvalid          = errors.New("public key invalid", ErrLayer, ErrCodeInvalid)
 	ErrTypeAssertion             = errors.New("type assertion failed", ErrLayer, ErrCodeInvalid)
 )
+
+// NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
+func NewErrNotFound(err error, id string, next error) error {
+	return errors.Wrap(errors.WithData(err, ErrDataNotFound{ID: id}), next)
+}
+
+// NewErrInvalid returns an error with the ErrDataInvalid and wrap an error.
+func NewErrInvalid(err error, data map[string]string, next error) error {
+	return errors.Wrap(errors.WithData(err, ErrDataInvalid{Data: data}), next)
+}
+
+// NewErrDuplicated returns an error with the ErrDataDuplicated and wrap an error.
+func NewErrDuplicated(err error, values []string, next error) error {
+	return errors.Wrap(errors.WithData(err, ErrDataDuplicated{Values: values}), next)
+}
+
+// NewErrNamespaceNotFound returns an error when the namespace is not found.
+func NewErrNamespaceNotFound(id string, next error) error {
+	return NewErrNotFound(ErrNamespaceNotFound, id, next)
+}
+
+// NewErrTagInvalid returns an error when the tag is invalid.
+func NewErrTagInvalid(tag string, next error) error {
+	return NewErrInvalid(ErrTagInvalid, map[string]string{"name": tag}, next)
+}
+
+// NewErrTagEmpty returns an error when the none tag is found.
+func NewErrTagEmpty(tenant string, next error) error {
+	return NewErrNotFound(ErrNoTags, tenant, next)
+}
+
+// NewErrTagNotFound returns an error when the tag is not found.
+func NewErrTagNotFound(tag string, next error) error {
+	return NewErrNotFound(ErrTagNameNotFound, tag, next)
+}
+
+// NewErrTagDuplicated returns an error when the tag is duplicated.
+func NewErrTagDuplicated(tag string, next error) error {
+	return NewErrDuplicated(ErrDuplicateTagName, []string{tag}, next)
+}

@@ -15,7 +15,7 @@ type TagsService interface {
 func (s *service) GetTags(ctx context.Context, tenant string) ([]string, int, error) {
 	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil || namespace == nil {
-		return nil, 0, ErrNamespaceNotFound
+		return nil, 0, NewErrNamespaceNotFound(tenant, err)
 	}
 
 	return s.store.TagsGet(ctx, namespace.TenantID)
@@ -23,20 +23,20 @@ func (s *service) GetTags(ctx context.Context, tenant string) ([]string, int, er
 
 func (s *service) RenameTag(ctx context.Context, tenant string, oldTag string, newTag string) error {
 	if !validator.ValidateFieldTag(newTag) {
-		return ErrInvalidFormat
+		return NewErrTagInvalid(newTag, nil)
 	}
 
 	tags, count, err := s.store.TagsGet(ctx, tenant)
 	if err != nil || count == 0 {
-		return ErrNoTags
+		return NewErrTagEmpty(tenant, err)
 	}
 
 	if !contains(tags, oldTag) {
-		return ErrTagNameNotFound
+		return NewErrTagNotFound(oldTag, nil)
 	}
 
 	if contains(tags, newTag) {
-		return ErrDuplicateTagName
+		return NewErrTagDuplicated(newTag, nil)
 	}
 
 	return s.store.TagRename(ctx, tenant, oldTag, newTag)
@@ -45,7 +45,7 @@ func (s *service) RenameTag(ctx context.Context, tenant string, oldTag string, n
 func (s *service) DeleteTag(ctx context.Context, tenant string, tag string) error {
 	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil || namespace == nil {
-		return ErrNamespaceNotFound
+		return NewErrNamespaceNotFound(tenant, err)
 	}
 
 	return s.store.TagDelete(ctx, namespace.TenantID, tag)
