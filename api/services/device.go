@@ -51,7 +51,7 @@ func (s *service) HandleReportUsage(ns *models.Namespace, uid models.UID, inc bo
 		return err
 	}
 
-	return hp.HandleStatusResponse(status)
+	return handleStatusResponse(status)
 }
 
 func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filterB64 string, status string, sort string, order string) ([]models.Device, int, error) {

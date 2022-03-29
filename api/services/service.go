@@ -41,3 +41,11 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 
 	return &service{store, privKey, pubKey, cache, c, l}
 }
+
+func handleStatusResponse(status int) error {
+	if status == 200 || status == 402 || status == 400 {
+		return nil
+	}
+
+	return ErrReport
+}
