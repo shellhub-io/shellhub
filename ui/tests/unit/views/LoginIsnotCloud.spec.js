@@ -103,6 +103,7 @@ describe('Login', () => {
       expect(wrapper.find('[data-test="unknownReason-card"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="loadingToken-alert"]').exists()).toBe(false);
     });
   });
 
@@ -158,6 +159,7 @@ describe('Login', () => {
       expect(wrapper.find('[data-test="unknownReason-card"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="loadingToken-alert"]').exists()).toBe(false);
     });
   });
 });

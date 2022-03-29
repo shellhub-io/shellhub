@@ -25,6 +25,24 @@
         </v-card-text>
       </v-card>
 
+      <v-alert
+        v-if="loadingToken"
+        data-test="loadingToken-alert"
+      >
+        <div
+          class="text-center"
+        >
+          <p>
+            Logging the token in...
+          </p>
+
+          <v-progress-linear
+            indeterminate
+            color="cyan"
+          />
+        </div>
+      </v-alert>
+
       <v-card
         v-if="!showMessage"
         class="pa-6"
@@ -145,6 +163,7 @@ export default {
       username: '',
       password: '',
       error: false,
+      loginToken: false,
       showPassword: false,
       showMessage: false,
     };
@@ -159,11 +178,12 @@ export default {
   async created() {
     if (this.$route.query.token) {
       this.$store.dispatch('layout/setLayout', 'simpleLayout');
-
+      this.loadingToken = true;
       await this.$store.dispatch('auth/logout');
       await this.$store.dispatch('auth/loginToken', this.$route.query.token);
 
-      this.$store.dispatch('auth/loginToken', this.$route.query.token).then(() => {
+      await this.$store.dispatch('auth/loginToken', this.$route.query.token).then(() => {
+        this.loadingToken = false;
         this.$store.dispatch('layout/setLayout', 'appLayout');
         this.$router.push({ name: 'dashboard' }).catch(() => {});
       });
