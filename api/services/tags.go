@@ -43,9 +43,22 @@ func (s *service) RenameTag(ctx context.Context, tenant string, oldTag string, n
 }
 
 func (s *service) DeleteTag(ctx context.Context, tenant string, tag string) error {
+	if !validator.ValidateFieldTag(tag) {
+		return NewErrTagInvalid(tag, nil)
+	}
+
 	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil || namespace == nil {
 		return NewErrNamespaceNotFound(tenant, err)
+	}
+
+	tags, count, err := s.store.TagsGet(ctx, namespace.TenantID)
+	if err != nil || count == 0 {
+		return NewErrTagEmpty(tenant, err)
+	}
+
+	if !contains(tags, tag) {
+		return NewErrTagNotFound(tag, nil)
 	}
 
 	return s.store.TagDelete(ctx, namespace.TenantID, tag)
