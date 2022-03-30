@@ -5,6 +5,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -26,10 +27,18 @@ func (h *Handler) UpdateUserData(c gateway.Context) error {
 	}
 
 	if fields, err := h.service.UpdateDataUser(c.Ctx(), &user, c.Param(ParamUserID)); err != nil {
-		switch {
-		case err == services.ErrBadRequest:
+		// FIXME: API compatibility
+		//
+		// The UI uses the fields with error messages to identify if it is invalid or duplicated.
+		e, ok := err.(errors.Error)
+		if !ok {
+			return err
+		}
+
+		switch e.Code {
+		case services.ErrCodeInvalid:
 			return c.JSON(http.StatusBadRequest, fields)
-		case err == services.ErrConflict:
+		case services.ErrCodeDuplicated:
 			return c.JSON(http.StatusConflict, fields)
 		default:
 			return err
@@ -49,14 +58,7 @@ func (h *Handler) UpdateUserPassword(c gateway.Context) error {
 	}
 
 	if err := h.service.UpdatePasswordUser(c.Ctx(), req.CurrentPassword, req.NewPassword, c.Param(ParamUserID)); err != nil {
-		switch {
-		case err == services.ErrBadRequest:
-			return c.NoContent(http.StatusBadRequest)
-		case err == services.ErrUnauthorized:
-			return c.NoContent(http.StatusUnauthorized)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
