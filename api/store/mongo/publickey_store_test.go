@@ -70,14 +70,19 @@ func TestPublicKeyUpdate(t *testing.T) {
 	err := mongostore.PublicKeyCreate(data.Context, &data.PublicKey)
 	assert.NoError(t, err)
 
+	err = mongostore.PublicKeyCreate(data.Context, &models.PublicKey{
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant2", PublicKeyFields: models.PublicKeyFields{Name: "teste2", Filter: models.PublicKeyFilter{Hostname: ".*"}},
+	})
+	assert.NoError(t, err)
+
 	update := &models.PublicKeyUpdate{
 		PublicKeyFields: models.PublicKeyFields{Name: "teste2", Filter: models.PublicKeyFilter{Hostname: ".*"}},
 	}
 
-	k, err := mongostore.PublicKeyUpdate(data.Context, data.PublicKey.Fingerprint, data.PublicKey.TenantID, update)
+	k, err := mongostore.PublicKeyUpdate(data.Context, data.PublicKey.Fingerprint, "tenant2", update)
 	assert.NoError(t, err)
 	assert.Equal(t, k, &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste2", Filter: models.PublicKeyFilter{Hostname: ".*"}},
+		Data: []byte("teste"), Fingerprint: "fingerprint", TenantID: "tenant2", PublicKeyFields: models.PublicKeyFields{Name: "teste2", Filter: models.PublicKeyFilter{Hostname: ".*"}},
 	})
 
 	_, err = mongostore.PublicKeyUpdate(data.Context, "fingerprint2", "tenant1", update)

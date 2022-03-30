@@ -166,13 +166,13 @@ func (h *Handler) CreatePrivateKey(c gateway.Context) error {
 }
 
 func (h *Handler) EvaluateKey(c gateway.Context) error {
-	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), c.Param(ParamNamespaceTenant))
-	if err != nil {
+	var device models.Device
+	if err := c.Bind(&device); err != nil {
 		return c.JSON(http.StatusForbidden, err)
 	}
 
-	var device models.Device
-	if err := c.Bind(&device); err != nil {
+	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), device.TenantID)
+	if err != nil {
 		return c.JSON(http.StatusForbidden, err)
 	}
 
