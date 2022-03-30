@@ -12,14 +12,8 @@ import (
 
 func (s *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
 	pubKey := new(models.PublicKey)
-	if tenantID != "" {
-		if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}).Decode(&pubKey); err != nil {
-			return nil, fromMongoError(err)
-		}
-	} else {
-		if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint}).Decode(&pubKey); err != nil {
-			return nil, fromMongoError(err)
-		}
+	if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}).Decode(&pubKey); err != nil {
+		return nil, fromMongoError(err)
 	}
 
 	return pubKey, nil
@@ -79,7 +73,7 @@ func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) erro
 }
 
 func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint}, bson.M{"$set": key}); err != nil {
+	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}, bson.M{"$set": key}); err != nil {
 		if err != nil {
 			return nil, fromMongoError(err)
 		}
