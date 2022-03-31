@@ -12,18 +12,18 @@ type SSHKeysTagsService interface {
 	UpdatePublicKeyTags(ctx context.Context, tenant, fingerprint string, tags []string) error
 }
 
-// AddPublicKeyTag trys a tag to the tag's list in models.PublicKey.
+// AddPublicKeyTag trys to add a tag to the models.PublicKey, when its filter is from Tags type.
 //
 // It checks if the models.Namespace and models.PublicKey exists and try to perform the addition action.
 func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag string) error {
 	// Checks if the namespace exists.
-	namespace, err := s.GetNamespace(ctx, tenant)
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil || namespace == nil {
 		return ErrNamespaceNotFound
 	}
 
 	// Checks if the public key exists.
-	key, err := s.GetPublicKey(ctx, fingerprint, tenant)
+	key, err := s.store.PublicKeyGet(ctx, fingerprint, tenant)
 	if err != nil || key == nil {
 		return ErrPublicKeyNotFound
 	}
@@ -36,7 +36,7 @@ func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag 
 		return ErrMaxTagReached
 	}
 
-	tags, _, err := s.GetTags(ctx, tenant)
+	tags, _, err := s.store.TagsGet(ctx, tenant)
 	if err != nil {
 		return err
 	}
@@ -59,15 +59,16 @@ func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag 
 	return nil
 }
 
+// RemovePublicKeyTag trys to remove a tag from the models.PublicKey, when its filter is from Tags type.
 func (s *service) RemovePublicKeyTag(ctx context.Context, tenant, fingerprint, tag string) error {
 	// Checks if the namespace exists.
-	namespace, err := s.GetNamespace(ctx, tenant)
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil || namespace == nil {
 		return ErrNamespaceNotFound
 	}
 
 	// Checks if the public key exists.
-	key, err := s.GetPublicKey(ctx, fingerprint, tenant)
+	key, err := s.store.PublicKeyGet(ctx, fingerprint, tenant)
 	if err != nil || key == nil {
 		return ErrPublicKeyNotFound
 	}
@@ -90,7 +91,7 @@ func (s *service) RemovePublicKeyTag(ctx context.Context, tenant, fingerprint, t
 	return nil
 }
 
-// UpdatePublicKeyTags trys to add a new set of tags to the tag's list in models.PublicKey.
+// UpdatePublicKeyTags trys to update the tags of the models.PublicKey, when its filter is from Tags type.
 //
 // It checks if the models.Namespace and models.PublicKey exists and try to perform the update action.
 func (s *service) UpdatePublicKeyTags(ctx context.Context, tenant, fingerprint string, tags []string) error {
@@ -108,13 +109,13 @@ func (s *service) UpdatePublicKeyTags(ctx context.Context, tenant, fingerprint s
 	}
 
 	// Checks if the namespace exists.
-	namespace, err := s.GetNamespace(ctx, tenant)
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil || namespace == nil {
 		return ErrNamespaceNotFound
 	}
 
 	// Checks if the public key exists.
-	key, err := s.GetPublicKey(ctx, fingerprint, tenant)
+	key, err := s.store.PublicKeyGet(ctx, fingerprint, tenant)
 	if err != nil || key == nil {
 		return ErrPublicKeyNotFound
 	}
@@ -129,7 +130,7 @@ func (s *service) UpdatePublicKeyTags(ctx context.Context, tenant, fingerprint s
 
 	tags = set(tags)
 
-	allTags, _, err := s.GetTags(ctx, tenant)
+	allTags, _, err := s.store.TagsGet(ctx, tenant)
 	if err != nil {
 		return err
 	}

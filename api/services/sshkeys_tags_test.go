@@ -95,7 +95,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Twice()
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 			},
@@ -120,7 +120,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 						},
 					},
 				}
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Twice()
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 				mock.On("PublicKeyAddTag", ctx, "tenant", "fingerprint", "tag").Return(err).Once()
@@ -146,7 +146,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 						},
 					},
 				}
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Twice()
+				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 				mock.On("PublicKeyAddTag", ctx, "tenant", "fingerprint", "tag").Return(nil).Once()
