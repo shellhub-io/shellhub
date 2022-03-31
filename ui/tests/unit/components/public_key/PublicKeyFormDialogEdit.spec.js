@@ -255,6 +255,7 @@ describe('PublicKeyFormDialogEdit', () => {
       await flushPromises();
 
       wrapper.vm.handleUpdate();
+      expect(wrapper.vm.choiceFilter).toBe('all');
 
       await wrapper.setData({ choiceFilter: 'hostname' });
       await flushPromises();
