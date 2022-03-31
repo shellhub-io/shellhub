@@ -294,6 +294,8 @@ export default {
           if (!!hostname && hostname !== '.*') {
             this.choiceFilter = 'hostname';
             this.hostname = hostname;
+          } else if (!!hostname && hostname === '.*') {
+            this.choiceFilter = 'all';
           }
         }
 
