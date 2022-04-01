@@ -1,4 +1,6 @@
 // Package authorizer is a hard coded package that contains the roles, actions, permissions and function related to ShellHub's API.
+//
+// Deprecated: Use guard package in API instead.
 package authorizer
 
 const (

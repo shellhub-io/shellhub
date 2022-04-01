@@ -1,13 +1,88 @@
 package guard
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestEvaluateRole(t *testing.T) {
+	cases := []struct {
+		name string
+		exec func(t *testing.T)
+	}{
+		{
+			name: "Fail when the first role is not great than the second one",
+			exec: func(t *testing.T) {
+				t.Helper()
+				assert.False(t, CheckRole(RoleAdministrator, RoleOwner))
+			},
+		},
+		{
+			name: "Fail when a role is not valid",
+			exec: func(t *testing.T) {
+				t.Helper()
+				assert.False(t, CheckRole("invalidRole", RoleOperator))
+			},
+		},
+		{
+			name: "Fail when both roles are equals",
+			exec: func(t *testing.T) {
+				t.Helper()
+				assert.False(t, CheckRole(RoleOperator, RoleOperator))
+			},
+		},
+		{
+			name: "Success when the first role is great than the second one",
+			exec: func(t *testing.T) {
+				t.Helper()
+				assert.True(t, CheckRole(RoleAdministrator, RoleOperator))
+			},
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, test.exec)
+	}
+}
+
+func TestEvaluatePermission(t *testing.T) {
+	cases := []struct {
+		name string
+		exec func(t *testing.T)
+	}{
+		{
+			name: "Fails when member's role has no permission",
+			exec: func(t *testing.T) {
+				t.Helper()
+
+				role := RoleObserver
+				action := Actions.Firewall.Create
+				assert.Error(t, EvaluatePermission(role, action, nil))
+			},
+		},
+		{
+			name: "Success when member's role has permission",
+			exec: func(t *testing.T) {
+				t.Helper()
+
+				role := RoleOwner
+				action := Actions.Firewall.Create
+				assert.NoError(t, EvaluatePermission(role, action, func() error {
+					return nil
+				}))
+			},
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, test.exec)
+	}
+}
 
 func TestEvaluateSubject(t *testing.T) {
 	mock := &mocks.Store{}
@@ -15,25 +90,25 @@ func TestEvaluateSubject(t *testing.T) {
 	memberOperator := models.Member{
 		ID:       "memberOperatorID",
 		Username: "memberOperatorUsername",
-		Role:     authorizer.MemberRoleOperator,
+		Role:     RoleOperator,
 	}
 
 	memberAdministrator := models.Member{
 		ID:       "memberAdministratorID",
 		Username: "memberAdministratorUsername",
-		Role:     authorizer.MemberRoleAdministrator,
+		Role:     RoleAdministrator,
 	}
 
 	memberOwner := models.Member{
 		ID:       "memberOwnerID",
 		Username: "memberOwnerUsername",
-		Role:     authorizer.MemberRoleOwner,
+		Role:     RoleOwner,
 	}
 
-	passiveRoleOperator := authorizer.MemberRoleOperator
-	passiveRoleObserver := authorizer.MemberRoleObserver
-	passiveRoleAdministrator := authorizer.MemberRoleAdministrator
-	passiveRoleOwner := authorizer.MemberRoleOwner
+	passiveRoleOperator := RoleOperator
+	passiveRoleObserver := RoleObserver
+	passiveRoleAdministrator := RoleAdministrator
+	passiveRoleOwner := RoleOwner
 
 	cases := []struct {
 		description  string
@@ -162,19 +237,19 @@ func TestEvaluateNamespace(t *testing.T) {
 		Members: []models.Member{
 			{
 				ID:   userOwner.ID,
-				Role: authorizer.MemberRoleOwner,
+				Role: RoleOwner,
 			},
 			{
 				ID:   userObserver.ID,
-				Role: authorizer.MemberRoleObserver,
+				Role: RoleObserver,
 			},
 			{
 				ID:   userOperator.ID,
-				Role: authorizer.MemberRoleOperator,
+				Role: RoleOperator,
 			},
 			{
 				ID:   userAdministrator.ID,
-				Role: authorizer.MemberRoleAdministrator,
+				Role: RoleAdministrator,
 			},
 		},
 	}
@@ -226,7 +301,7 @@ func TestEvaluateNamespace(t *testing.T) {
 	}
 }
 
-func TestEvaluatePermission(t *testing.T) {
+func TestCheckPermission(t *testing.T) {
 	mock := &mocks.Store{}
 
 	cases := []struct {
@@ -238,11 +313,11 @@ func TestEvaluatePermission(t *testing.T) {
 	}{
 		{
 			description: "CheckPermission success when user is the observer",
-			role:        authorizer.MemberRoleObserver,
+			role:        RoleObserver,
 			actions: []int{
-				authorizer.Actions.Device.Connect,
+				Actions.Device.Connect,
 
-				authorizer.Actions.Session.Details,
+				Actions.Session.Details,
 			},
 			requiredMocks: func() {
 			},
@@ -250,20 +325,20 @@ func TestEvaluatePermission(t *testing.T) {
 		},
 		{
 			description: "CheckPermission success when user is the operator",
-			role:        authorizer.MemberRoleOperator,
+			role:        RoleOperator,
 			actions: []int{
-				authorizer.Actions.Device.Accept,
-				authorizer.Actions.Device.Reject,
-				authorizer.Actions.Device.Connect,
-				authorizer.Actions.Device.Rename,
+				Actions.Device.Accept,
+				Actions.Device.Reject,
+				Actions.Device.Connect,
+				Actions.Device.Rename,
 
-				authorizer.Actions.Device.CreateTag,
-				authorizer.Actions.Device.UpdateTag,
-				authorizer.Actions.Device.RemoveTag,
-				authorizer.Actions.Device.RenameTag,
-				authorizer.Actions.Device.DeleteTag,
+				Actions.Device.CreateTag,
+				Actions.Device.UpdateTag,
+				Actions.Device.RemoveTag,
+				Actions.Device.RenameTag,
+				Actions.Device.DeleteTag,
 
-				authorizer.Actions.Session.Details,
+				Actions.Session.Details,
 			},
 			requiredMocks: func() {
 			},
@@ -271,38 +346,38 @@ func TestEvaluatePermission(t *testing.T) {
 		},
 		{
 			description: "CheckPermission success when user is the administrator",
-			role:        authorizer.MemberRoleAdministrator,
+			role:        RoleAdministrator,
 			actions: []int{
-				authorizer.Actions.Device.Accept,
-				authorizer.Actions.Device.Reject,
-				authorizer.Actions.Device.Remove,
-				authorizer.Actions.Device.Connect,
-				authorizer.Actions.Device.Rename,
+				Actions.Device.Accept,
+				Actions.Device.Reject,
+				Actions.Device.Remove,
+				Actions.Device.Connect,
+				Actions.Device.Rename,
 
-				authorizer.Actions.Device.CreateTag,
-				authorizer.Actions.Device.UpdateTag,
-				authorizer.Actions.Device.RemoveTag,
-				authorizer.Actions.Device.RenameTag,
-				authorizer.Actions.Device.DeleteTag,
+				Actions.Device.CreateTag,
+				Actions.Device.UpdateTag,
+				Actions.Device.RemoveTag,
+				Actions.Device.RenameTag,
+				Actions.Device.DeleteTag,
 
-				authorizer.Actions.Session.Play,
-				authorizer.Actions.Session.Close,
-				authorizer.Actions.Session.Remove,
-				authorizer.Actions.Session.Details,
+				Actions.Session.Play,
+				Actions.Session.Close,
+				Actions.Session.Remove,
+				Actions.Session.Details,
 
-				authorizer.Actions.Firewall.Create,
-				authorizer.Actions.Firewall.Edit,
-				authorizer.Actions.Firewall.Remove,
+				Actions.Firewall.Create,
+				Actions.Firewall.Edit,
+				Actions.Firewall.Remove,
 
-				authorizer.Actions.PublicKey.Create,
-				authorizer.Actions.PublicKey.Edit,
-				authorizer.Actions.PublicKey.Remove,
+				Actions.PublicKey.Create,
+				Actions.PublicKey.Edit,
+				Actions.PublicKey.Remove,
 
-				authorizer.Actions.Namespace.Rename,
-				authorizer.Actions.Namespace.AddMember,
-				authorizer.Actions.Namespace.RemoveMember,
-				authorizer.Actions.Namespace.EditMember,
-				authorizer.Actions.Namespace.EnableSessionRecord,
+				Actions.Namespace.Rename,
+				Actions.Namespace.AddMember,
+				Actions.Namespace.RemoveMember,
+				Actions.Namespace.EditMember,
+				Actions.Namespace.EnableSessionRecord,
 			},
 			requiredMocks: func() {
 			},
@@ -310,47 +385,47 @@ func TestEvaluatePermission(t *testing.T) {
 		},
 		{
 			description: "CheckPermission success when user is the owner",
-			role:        authorizer.MemberRoleOwner,
+			role:        RoleOwner,
 			actions: []int{
-				authorizer.Actions.Device.Accept,
-				authorizer.Actions.Device.Reject,
-				authorizer.Actions.Device.Remove,
-				authorizer.Actions.Device.Connect,
-				authorizer.Actions.Device.Rename,
+				Actions.Device.Accept,
+				Actions.Device.Reject,
+				Actions.Device.Remove,
+				Actions.Device.Connect,
+				Actions.Device.Rename,
 
-				authorizer.Actions.Device.CreateTag,
-				authorizer.Actions.Device.UpdateTag,
-				authorizer.Actions.Device.RemoveTag,
-				authorizer.Actions.Device.RenameTag,
-				authorizer.Actions.Device.DeleteTag,
+				Actions.Device.CreateTag,
+				Actions.Device.UpdateTag,
+				Actions.Device.RemoveTag,
+				Actions.Device.RenameTag,
+				Actions.Device.DeleteTag,
 
-				authorizer.Actions.Session.Play,
-				authorizer.Actions.Session.Close,
-				authorizer.Actions.Session.Remove,
-				authorizer.Actions.Session.Details,
+				Actions.Session.Play,
+				Actions.Session.Close,
+				Actions.Session.Remove,
+				Actions.Session.Details,
 
-				authorizer.Actions.Firewall.Create,
-				authorizer.Actions.Firewall.Edit,
-				authorizer.Actions.Firewall.Remove,
+				Actions.Firewall.Create,
+				Actions.Firewall.Edit,
+				Actions.Firewall.Remove,
 
-				authorizer.Actions.PublicKey.Create,
-				authorizer.Actions.PublicKey.Edit,
-				authorizer.Actions.PublicKey.Remove,
+				Actions.PublicKey.Create,
+				Actions.PublicKey.Edit,
+				Actions.PublicKey.Remove,
 
-				authorizer.Actions.Namespace.Rename,
-				authorizer.Actions.Namespace.AddMember,
-				authorizer.Actions.Namespace.RemoveMember,
-				authorizer.Actions.Namespace.EditMember,
-				authorizer.Actions.Namespace.EnableSessionRecord,
-				authorizer.Actions.Namespace.Delete,
+				Actions.Namespace.Rename,
+				Actions.Namespace.AddMember,
+				Actions.Namespace.RemoveMember,
+				Actions.Namespace.EditMember,
+				Actions.Namespace.EnableSessionRecord,
+				Actions.Namespace.Delete,
 
-				authorizer.Actions.Billing.AddPaymentMethod,
-				authorizer.Actions.Billing.UpdatePaymentMethod,
-				authorizer.Actions.Billing.RemovePaymentMethod,
-				authorizer.Actions.Billing.ChooseDevices,
-				authorizer.Actions.Billing.CancelSubscription,
-				authorizer.Actions.Billing.CreateSubscription,
-				authorizer.Actions.Billing.GetSubscription,
+				Actions.Billing.AddPaymentMethod,
+				Actions.Billing.UpdatePaymentMethod,
+				Actions.Billing.RemovePaymentMethod,
+				Actions.Billing.ChooseDevices,
+				Actions.Billing.CancelSubscription,
+				Actions.Billing.CreateSubscription,
+				Actions.Billing.GetSubscription,
 			},
 			requiredMocks: func() {
 			},
@@ -370,4 +445,61 @@ func TestEvaluatePermission(t *testing.T) {
 	}
 
 	mock.AssertExpectations(t)
+}
+
+func ExampleCheckRole_observer_and_observer() {
+	// If members have the same role, they cannot act over each other.
+	active := RoleObserver
+	passive := RoleObserver
+	fmt.Println(CheckRole(active, passive))
+	// Output: false
+}
+
+func ExampleCheckRole_operator_and_observer() {
+	// If active member has a great roles, it can act over passive one.
+	active := RoleOperator
+	passive := RoleObserver
+	fmt.Println(CheckRole(active, passive))
+	// Output: true
+}
+
+func ExampleCheckRole_owner_and_observer() {
+	// If active member is owner, it can act over everyone.
+	active := RoleOwner
+	passive := RoleObserver
+	fmt.Println(CheckRole(active, passive))
+	// Output: true
+}
+
+func ExampleEvaluatePermission_callback() {
+	// RoleObserver can connect to device.
+	err := EvaluatePermission(RoleObserver, Actions.Device.Connect, func() error {
+		return errors.New("something went wrong")
+	})
+	fmt.Println(err)
+	// Output: something went wrong
+}
+
+func ExampleEvaluatePermission_no_callback() {
+	// RoleObserver cannot accept a device, so Forbidden is returned from EvaluatePermission.
+	err := EvaluatePermission(RoleObserver, Actions.Device.Accept, func() error {
+		// As RoleObserver has no permission to accept a device, this function will never be called.
+		return errors.New("something went wrong")
+	})
+	fmt.Println(err)
+	// Output: forbidden
+}
+
+func ExampleGetRoleCode() {
+	fmt.Println(GetRoleCode(RoleObserver))
+	fmt.Println(GetRoleCode(RoleOperator))
+	fmt.Println(GetRoleCode(RoleAdministrator))
+	fmt.Println(GetRoleCode(""))
+	fmt.Println(GetRoleCode("developer"))
+	// Output:
+	// 1
+	// 2
+	// 3
+	// -1
+	// -1
 }
