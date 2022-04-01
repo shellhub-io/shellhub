@@ -74,9 +74,12 @@ var (
 	ErrDeviceNotFound            = errors.New("device not found", ErrLayer, ErrCodeNotFound)
 	ErrMaxDeviceCountReached     = errors.New("maximum number of accepted devices reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicatedDeviceName      = errors.New("device name duplicated", ErrLayer, ErrCodeDuplicated)
-	ErrDuplicateFingerprint      = errors.New("fingerprint duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrPublicKeyDuplicated       = errors.New("public key duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrPublicKeyNotFound         = errors.New("public key not found", ErrLayer, ErrCodeNotFound)
 	ErrPublicKeyInvalid          = errors.New("public key invalid", ErrLayer, ErrCodeInvalid)
+	ErrPublicKeyNoTags           = errors.New("public key has no tags", ErrLayer, ErrCodeInvalid)
+	ErrPublicKeyDataInvalid      = errors.New("public key data invalid", ErrLayer, ErrCodeInvalid)
+	ErrPublicKeyFilter           = errors.New("public key cannot have more than one filter at same time", ErrLayer, ErrCodeInvalid)
 	ErrTypeAssertion             = errors.New("type assertion failed", ErrLayer, ErrCodeInvalid)
 )
 
@@ -93,6 +96,11 @@ func NewErrInvalid(err error, data map[string]interface{}, next error) error {
 // NewErrDuplicated returns an error with the ErrDataDuplicated and wrap an error.
 func NewErrDuplicated(err error, values []string, next error) error {
 	return errors.Wrap(errors.WithData(err, ErrDataDuplicated{Values: values}), next)
+}
+
+// NewErrLimit returns an error with the ErrDataLimit and wrap an error.
+func NewErrLimit(err error, limit int, next error) error {
+	return errors.Wrap(errors.WithData(err, ErrDataLimit{Limit: limit}), next)
 }
 
 // NewErrNamespaceNotFound returns an error when the namespace is not found.
@@ -148,4 +156,50 @@ func NewErrUserPasswordDuplicated(next error) error {
 // NewErrUserPasswordNotMatch returns an error when the user's password doesn't match with the current password.
 func NewErrUserPasswordNotMatch(next error) error {
 	return NewErrInvalid(ErrUserPasswordNotMatch, nil, next)
+}
+
+// NewErrPublicKeyNotFound returns an error when the public key is not found.
+func NewErrPublicKeyNotFound(id string, next error) error {
+	return NewErrNotFound(ErrPublicKeyNotFound, id, next)
+}
+
+// NewErrPublicKeyInvalid returns an error when the public key is invalid.
+func NewErrPublicKeyInvalid(data map[string]interface{}, next error) error {
+	return NewErrInvalid(ErrPublicKeyInvalid, data, next)
+}
+
+// NewErrTagLimit returns an error when the tag limit is reached.
+func NewErrTagLimit(limit int, next error) error {
+	return NewErrLimit(ErrMaxTagReached, limit, next)
+}
+
+// NewErrPublicKeyDuplicated returns an error when the public key is duplicated.
+func NewErrPublicKeyDuplicated(values []string, next error) error {
+	return NewErrDuplicated(ErrPublicKeyDuplicated, values, next)
+}
+
+// NewErrPublicKeyTagsEmpty returns an error when the public key has no tags.
+func NewErrPublicKeyTagsEmpty(next error) error {
+	return NewErrNotFound(ErrPublicKeyNoTags, "", next)
+}
+
+// NewErrPublicKeyDataInvalid returns an error when the public key data is invalid.
+func NewErrPublicKeyDataInvalid(value []byte, next error) error {
+	// FIXME: literal assignment.
+	//
+	// The literal assignment of value to a map's key "Data" is required because the service doesn't have conscious about
+	// the models.PublicKey field when it validate the public key data. When validating other fields, the validation
+	// function return the field and value what is invalid, but in this case, the validation occur by the check of
+	// ssh.ParseAuthorizedKey result.
+	//
+	// To fix this, I believe that all extra validation could be set as structure methods, centralizing the structure
+	// value agreement.
+	//
+	// For now, there are a test to check if the models.PublicKey has the "Data" field.
+	return NewErrInvalid(ErrPublicKeyDataInvalid, map[string]interface{}{"Data": value}, next)
+}
+
+// NewErrPublicKeyFilter returns an error when the public key has more than one filter.
+func NewErrPublicKeyFilter(next error) error {
+	return NewErrInvalid(ErrPublicKeyFilter, nil, next)
 }

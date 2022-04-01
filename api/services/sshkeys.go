@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -65,30 +66,36 @@ func (s *service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKey
 }
 
 func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
+	_, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(tenant, err)
+	}
+
 	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, tenant string) error {
 	if err := key.Validate(); err != nil {
-		return ErrPublicKeyInvalid
+		data, _ := validator.GetInvalidFieldsValues(err)
+
+		return NewErrPublicKeyInvalid(data, nil)
 	}
 
-	// Checks if there are tags on the public key.
+	// Checks if public key filter type is Tags.
+	// If it is, checks if there are, at least, one tag on the public key filter and if the all tags exist on database.
 	if key.Filter.Tags != nil {
 		if len(key.Filter.Tags) == 0 {
-			return ErrPublicKeyInvalid
+			return NewErrPublicKeyTagsEmpty(nil)
 		}
 
 		tags, _, err := s.store.TagsGet(ctx, tenant)
 		if err != nil {
-			return err
+			return NewErrTagEmpty(tenant, err)
 		}
 
-		// Check if tags are valid.
-		// Tags are valid when they exist in some device.
 		for _, tag := range key.Filter.Tags {
 			if !contains(tags, tag) {
-				return ErrTagNameNotFound
+				return NewErrTagNotFound(tag, nil)
 			}
 		}
 	}
@@ -97,18 +104,18 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, te
 
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint:dogsled
 	if err != nil {
-		return ErrInvalidFormat
+		return NewErrPublicKeyDataInvalid(key.Data, nil)
 	}
 
 	key.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
 	returnedKey, err := s.store.PublicKeyGet(ctx, key.Fingerprint, tenant)
 	if err != nil && err != store.ErrNoDocuments {
-		return err
+		return NewErrPublicKeyNotFound(key.Fingerprint, err)
 	}
 
 	if returnedKey != nil {
-		return ErrDuplicateFingerprint
+		return NewErrPublicKeyDuplicated([]string{key.Fingerprint}, err)
 	}
 
 	err = s.store.PublicKeyCreate(ctx, key)
@@ -125,25 +132,26 @@ func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
 	if err := key.Validate(); err != nil {
-		return nil, ErrPublicKeyInvalid
+		data, _ := validator.GetInvalidFieldsValues(err)
+
+		return nil, NewErrPublicKeyInvalid(data, nil)
 	}
 
-	// Checks if there are tags on the public key.
+	// Checks if public key filter type is Tags. If it is, checks if there are, at least, one tag on the public key
+	// filter and if the all tags exist on database.
 	if key.Filter.Tags != nil {
 		if len(key.Filter.Tags) == 0 {
-			return nil, ErrPublicKeyInvalid
+			return nil, NewErrPublicKeyTagsEmpty(nil)
 		}
 
 		tags, _, err := s.store.TagsGet(ctx, tenant)
 		if err != nil {
-			return nil, err
+			return nil, NewErrTagEmpty(tenant, err)
 		}
 
-		// Check if tags are valid.
-		// Tags are valid when they exist in some device.
 		for _, tag := range key.Filter.Tags {
 			if !contains(tags, tag) {
-				return nil, ErrTagNameNotFound
+				return nil, NewErrTagNotFound(tag, nil)
 			}
 		}
 	}

@@ -19,30 +19,30 @@ func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag 
 	// Checks if the namespace exists.
 	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil || namespace == nil {
-		return ErrNamespaceNotFound
+		return NewErrNamespaceNotFound(tenant, err)
 	}
 
 	// Checks if the public key exists.
 	key, err := s.store.PublicKeyGet(ctx, fingerprint, tenant)
 	if err != nil || key == nil {
-		return ErrPublicKeyNotFound
+		return NewErrPublicKeyNotFound(fingerprint, err)
 	}
 
 	if key.Filter.Hostname != "" {
-		return ErrPublicKeyInvalid
+		return NewErrPublicKeyFilter(nil)
 	}
 
 	if len(key.Filter.Tags) == DeviceMaxTags {
-		return ErrMaxTagReached
+		return NewErrTagLimit(DeviceMaxTags, nil)
 	}
 
 	tags, _, err := s.store.TagsGet(ctx, tenant)
 	if err != nil {
-		return err
+		return NewErrTagEmpty(tenant, err)
 	}
 
 	if !contains(tags, tag) {
-		return ErrTagNameNotFound
+		return NewErrTagNotFound(tag, nil)
 	}
 
 	// Trys to add a public key.
@@ -64,22 +64,22 @@ func (s *service) RemovePublicKeyTag(ctx context.Context, tenant, fingerprint, t
 	// Checks if the namespace exists.
 	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil || namespace == nil {
-		return ErrNamespaceNotFound
+		return NewErrNamespaceNotFound(tenant, nil)
 	}
 
 	// Checks if the public key exists.
 	key, err := s.store.PublicKeyGet(ctx, fingerprint, tenant)
 	if err != nil || key == nil {
-		return ErrPublicKeyNotFound
+		return NewErrPublicKeyNotFound(fingerprint, err)
 	}
 
 	if key.Filter.Hostname != "" {
-		return ErrPublicKeyInvalid
+		return NewErrPublicKeyFilter(nil)
 	}
 
 	// Checks if the tag already exists in the device.
 	if !contains(key.Filter.Tags, tag) {
-		return ErrTagNameNotFound
+		return NewErrTagNotFound(tag, nil)
 	}
 
 	// Trys to remove a public key.
@@ -111,33 +111,33 @@ func (s *service) UpdatePublicKeyTags(ctx context.Context, tenant, fingerprint s
 	// Checks if the namespace exists.
 	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil || namespace == nil {
-		return ErrNamespaceNotFound
+		return NewErrNamespaceNotFound(tenant, nil)
 	}
 
 	// Checks if the public key exists.
 	key, err := s.store.PublicKeyGet(ctx, fingerprint, tenant)
 	if err != nil || key == nil {
-		return ErrPublicKeyNotFound
+		return NewErrPublicKeyNotFound(fingerprint, err)
 	}
 
 	if key.Filter.Hostname != "" {
-		return ErrPublicKeyInvalid
+		return NewErrPublicKeyNotFound(fingerprint, nil)
 	}
 
 	if len(tags) > DeviceMaxTags {
-		return ErrMaxTagReached
+		return NewErrTagLimit(DeviceMaxTags, nil)
 	}
 
 	tags = set(tags)
 
 	allTags, _, err := s.store.TagsGet(ctx, tenant)
 	if err != nil {
-		return err
+		return NewErrTagEmpty(tenant, err)
 	}
 
 	for _, tag := range tags {
 		if !contains(allTags, tag) {
-			return ErrTagNameNotFound
+			return NewErrTagNotFound(tag, nil)
 		}
 	}
 

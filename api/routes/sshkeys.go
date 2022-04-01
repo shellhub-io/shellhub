@@ -6,7 +6,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
@@ -80,20 +79,7 @@ func (h *Handler) CreatePublicKey(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case services.ErrInvalidFormat:
-			return c.NoContent(http.StatusUnprocessableEntity)
-		case services.ErrDuplicateFingerprint:
-			return c.NoContent(http.StatusConflict)
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrPublicKeyInvalid:
-			return c.NoContent(http.StatusBadRequest)
-		case services.ErrTagNameNotFound:
-			return c.NoContent(http.StatusBadRequest)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.JSON(http.StatusOK, key)
@@ -118,16 +104,7 @@ func (h *Handler) UpdatePublicKey(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrPublicKeyInvalid:
-			return c.NoContent(http.StatusBadRequest)
-		case services.ErrTagNameNotFound:
-			return c.NoContent(http.StatusBadRequest)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.JSON(http.StatusOK, key)
@@ -145,12 +122,7 @@ func (h *Handler) DeletePublicKey(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -206,24 +178,7 @@ func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
 		return h.service.AddPublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tag)
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrNamespaceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrPublicKeyNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrPublicKeyInvalid:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrTagNameNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrMaxTagReached:
-			return c.NoContent(http.StatusNotAcceptable)
-		case services.ErrDuplicateTagName:
-			return c.NoContent(http.StatusConflict)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -239,20 +194,7 @@ func (h *Handler) RemovePublicKeyTag(c gateway.Context) error {
 		return h.service.RemovePublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), c.Param(ParamTagName))
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrNamespaceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrPublicKeyNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrPublicKeyInvalid:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrTagNameNotFound:
-			return c.NoContent(http.StatusNotFound)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -276,24 +218,7 @@ func (h *Handler) UpdatePublicKeyTags(c gateway.Context) error {
 		return h.service.UpdatePublicKeyTags(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tags)
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrNamespaceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrPublicKeyNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrPublicKeyInvalid:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrMaxTagReached:
-			return c.NoContent(http.StatusNotAcceptable)
-		case services.ErrTagNameNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrDuplicateTagName:
-			return c.NoContent(http.StatusConflict)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
