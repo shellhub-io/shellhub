@@ -205,20 +205,7 @@ func (h *Handler) CreateDeviceTag(c gateway.Context) error {
 		return h.service.CreateDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Name)
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrInvalidFormat:
-			return c.NoContent(http.StatusBadRequest)
-		case services.ErrDeviceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrMaxTagReached:
-			return c.NoContent(http.StatusNotAcceptable)
-		case services.ErrDuplicateTagName:
-			return c.NoContent(http.StatusConflict)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -229,16 +216,7 @@ func (h *Handler) RemoveDeviceTag(c gateway.Context) error {
 		return h.service.RemoveDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), c.Param(ParamTagName))
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrDeviceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrTagNameNotFound:
-			return c.NoContent(http.StatusNotFound)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -257,18 +235,7 @@ func (h *Handler) UpdateDeviceTag(c gateway.Context) error {
 		return h.service.UpdateDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Tags)
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrInvalidFormat:
-			return c.NoContent(http.StatusBadRequest)
-		case services.ErrMaxTagReached:
-			return c.NoContent(http.StatusNotAcceptable)
-		case services.ErrDeviceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)

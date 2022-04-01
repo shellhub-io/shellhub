@@ -18,20 +18,20 @@ const DeviceMaxTags = 3
 
 func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, name string) error {
 	if !validator.ValidateFieldTag(name) {
-		return ErrInvalidFormat
+		return NewErrTagInvalid(name, nil)
 	}
 
 	device, err := s.store.DeviceGet(ctx, uid)
 	if err != nil || device == nil {
-		return ErrDeviceNotFound
+		return NewErrDeviceNotFound(uid, err)
 	}
 
 	if len(device.Tags) == DeviceMaxTags {
-		return ErrMaxTagReached
+		return NewErrTagLimit(DeviceMaxTags, nil)
 	}
 
 	if contains(device.Tags, name) {
-		return ErrDuplicateTagName
+		return NewErrTagDuplicated(name, nil)
 	}
 
 	return s.store.DeviceCreateTag(ctx, uid, name)
@@ -40,11 +40,11 @@ func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, name stri
 func (s *service) RemoveDeviceTag(ctx context.Context, uid models.UID, name string) error {
 	device, err := s.store.DeviceGet(ctx, uid)
 	if err != nil || device == nil {
-		return ErrDeviceNotFound
+		return NewErrDeviceNotFound(uid, err)
 	}
 
 	if !contains(device.Tags, name) {
-		return ErrTagNameNotFound
+		return NewErrTagNotFound(name, nil)
 	}
 
 	return s.store.DeviceRemoveTag(ctx, uid, name)
@@ -65,20 +65,20 @@ func (s *service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []st
 	}
 
 	if len(tags) > DeviceMaxTags {
-		return ErrMaxTagReached
+		return NewErrTagLimit(DeviceMaxTags, nil)
 	}
 
 	tagSet := listToSet(tags)
 
 	for _, tag := range tagSet {
 		if !validator.ValidateFieldTag(tag) {
-			return ErrInvalidFormat
+			return NewErrTagInvalid(tag, nil)
 		}
 	}
 
 	device, err := s.store.DeviceGet(ctx, uid)
 	if err != nil || device == nil {
-		return ErrDeviceNotFound
+		return NewErrDeviceNotFound(uid, err)
 	}
 
 	return s.store.DeviceUpdateTag(ctx, uid, tagSet)
