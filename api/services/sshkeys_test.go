@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	storecache "github.com/shellhub-io/shellhub/api/cache"
@@ -10,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/ssh"
@@ -163,7 +163,7 @@ func TestListPublicKeys(t *testing.T) {
 	validQuery := paginator.Query{Page: 1, PerPage: 10}
 	invalidQuery := paginator.Query{Page: -1, PerPage: 10}
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	type Expected struct {
 		returnedKeys []models.PublicKey
@@ -221,11 +221,13 @@ func TestGetPublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 
+	namespace := models.Namespace{TenantID: "tenant1"}
+
 	key := models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	type Expected struct {
 		returnedKey *models.PublicKey
@@ -248,9 +250,9 @@ func TestGetPublicKeys(t *testing.T) {
 			fingerprint: key.Fingerprint,
 			tenantID:    InvalidTenantID,
 			requiredMocks: func() {
-				mock.On("PublicKeyGet", ctx, key.Fingerprint, InvalidTenantID).Return(nil, Err).Once()
+				mock.On("NamespaceGet", ctx, InvalidTenantID).Return(nil, Err).Once()
 			},
-			expected: Expected{nil, Err},
+			expected: Expected{nil, NewErrNamespaceNotFound(InvalidTenantID, Err)},
 		},
 		{
 			description: InvalidFingerprintStr,
@@ -259,18 +261,8 @@ func TestGetPublicKeys(t *testing.T) {
 			fingerprint: InvalidFingerprint,
 			tenantID:    key.TenantID,
 			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(&namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, InvalidFingerprint, key.TenantID).Return(nil, Err).Once()
-			},
-			expected: Expected{nil, Err},
-		},
-		{
-			description: InvalidFingerTenantStr,
-			ctx:         ctx,
-			key:         nil,
-			fingerprint: InvalidFingerprint,
-			tenantID:    InvalidTenantID,
-			requiredMocks: func() {
-				mock.On("PublicKeyGet", ctx, InvalidFingerprint, InvalidTenantID).Return(nil, Err).Once()
 			},
 			expected: Expected{nil, Err},
 		},
@@ -281,6 +273,7 @@ func TestGetPublicKeys(t *testing.T) {
 			fingerprint: key.Fingerprint,
 			tenantID:    key.TenantID,
 			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(&namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, key.Fingerprint, key.TenantID).Return(&key, nil).Once()
 			},
 			expected: Expected{&key, nil},
@@ -376,7 +369,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 			tenantID:      "tenant",
 			keyUpdate:     keyInvalidUpdateNoHostnameTags,
 			requiredMocks: func() {},
-			expected:      Expected{key: nil, err: ErrPublicKeyInvalid},
+			expected:      Expected{key: nil, err: NewErrPublicKeyInvalid(map[string]interface{}{"Hostname": keyInvalidUpdateNoHostnameTags.Filter.Hostname, "Tags": keyInvalidUpdateNoHostnameTags.Filter.Tags}, nil)},
 		},
 		{
 			description: "fails to update a public key when filter has hostname and tags",
@@ -385,7 +378,8 @@ func TestUpdatePublicKeys(t *testing.T) {
 			keyUpdate:   keyInvalidUpdateTwoFilters,
 			requiredMocks: func() {
 			},
-			expected: Expected{nil, ErrPublicKeyInvalid},
+			expected: Expected{key: nil, err: NewErrPublicKeyInvalid(map[string]interface{}{"Hostname": keyInvalidUpdateTwoFilters.Filter.Hostname, "Tags": keyInvalidUpdateTwoFilters.Filter.Tags}, nil)},
+			//expected: Expected{key: nil, err: NewErrPublicKeyInvalid([]string{"hostname", "tags"}, nil)},
 		},
 		{
 			description: "fail update the key when filter hostname is empty",
@@ -394,7 +388,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 			keyUpdate:   keyInvalidUpdateHostnameEmpty,
 			requiredMocks: func() {
 			},
-			expected: Expected{nil, ErrPublicKeyInvalid},
+			expected: Expected{key: nil, err: NewErrPublicKeyInvalid(map[string]interface{}{"Hostname": keyInvalidUpdateHostnameEmpty.Filter.Hostname, "Tags": keyInvalidUpdateHostnameEmpty.Filter.Tags}, nil)},
 		},
 		{
 			description: "successful update the key when filter is hostname",
@@ -414,7 +408,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("TagsGet", ctx, "tenant").Return([]string{"tag1", "tag4"}, 2, nil).Once()
 			},
-			expected: Expected{nil, ErrTagNameNotFound},
+			expected: Expected{nil, NewErrTagNotFound("tag2", nil)},
 		},
 		{
 			description: "fail update the key when filter tags is empty",
@@ -423,7 +417,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 			keyUpdate:   keyInvalidUpdateTagsEmpty,
 			requiredMocks: func() {
 			},
-			expected: Expected{nil, ErrPublicKeyInvalid},
+			expected: Expected{nil, NewErrPublicKeyTagsEmpty(nil)},
 		},
 		{
 			description: "Successful update the key when filter is tags",
@@ -459,11 +453,13 @@ func TestDeletePublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 
+	namespace := &models.Namespace{TenantID: "tenant1"}
+
 	key := &models.PublicKey{
 		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 	}
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	type Expected struct {
 		err error
@@ -483,9 +479,9 @@ func TestDeletePublicKeys(t *testing.T) {
 			fingerprint: key.Fingerprint,
 			tenantID:    InvalidTenantID,
 			requiredMocks: func() {
-				mock.On("PublicKeyDelete", ctx, key.Fingerprint, InvalidTenantID).Return(Err).Once()
+				mock.On("NamespaceGet", ctx, InvalidTenantID).Return(nil, Err).Once()
 			},
-			expected: Expected{Err},
+			expected: Expected{NewErrNamespaceNotFound(InvalidTenantID, Err)},
 		},
 		{
 			description: InvalidFingerprintStr,
@@ -493,26 +489,31 @@ func TestDeletePublicKeys(t *testing.T) {
 			fingerprint: InvalidFingerprint,
 			tenantID:    key.TenantID,
 			requiredMocks: func() {
-				mock.On("PublicKeyDelete", ctx, InvalidFingerprint, key.TenantID).Return(Err).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("PublicKeyGet", ctx, InvalidFingerprint, namespace.TenantID).Return(nil, Err).Once()
 			},
-			expected: Expected{Err},
+			expected: Expected{NewErrPublicKeyNotFound(InvalidFingerprint, Err)},
 		},
 		{
-			description: InvalidFingerTenantStr,
-			ctx:         ctx,
-			fingerprint: InvalidFingerprint,
-			tenantID:    InvalidTenantID,
-			requiredMocks: func() {
-				mock.On("PublicKeyDelete", ctx, InvalidFingerprint, InvalidTenantID).Return(Err).Once()
-			},
-			expected: Expected{Err},
-		},
-		{
-			description: "Successful delete the key",
+			description: "fail to delete the key",
 			ctx:         ctx,
 			fingerprint: key.Fingerprint,
 			tenantID:    key.TenantID,
 			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("PublicKeyGet", ctx, key.Fingerprint, namespace.TenantID).Return(key, nil).Once()
+				mock.On("PublicKeyDelete", ctx, key.Fingerprint, key.TenantID).Return(Err).Once()
+			},
+			expected: Expected{Err},
+		},
+		{
+			description: "Successful to delete the key",
+			ctx:         ctx,
+			fingerprint: key.Fingerprint,
+			tenantID:    key.TenantID,
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("PublicKeyGet", ctx, key.Fingerprint, namespace.TenantID).Return(key, nil).Once()
 				mock.On("PublicKeyDelete", ctx, key.Fingerprint, key.TenantID).Return(nil).Once()
 			},
 			expected: Expected{nil},
@@ -537,7 +538,7 @@ func TestCreatePublicKeys(t *testing.T) {
 
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
-	err := errors.New("")
+	err := errors.New("error", "", 0)
 
 	ctx := context.TODO()
 
@@ -630,7 +631,7 @@ func TestCreatePublicKeys(t *testing.T) {
 			key:         keyInvalidNoFilter,
 			requiredMocks: func() {
 			},
-			expected: ErrPublicKeyInvalid,
+			expected: NewErrPublicKeyInvalid(map[string]interface{}{"Hostname": keyInvalidNoFilter.Filter.Hostname, "Tags": keyInvalidNoFilter.Filter.Tags}, nil),
 		},
 		{
 			description: "fail when public key has hostname and tags filter",
@@ -638,7 +639,7 @@ func TestCreatePublicKeys(t *testing.T) {
 			key:         keyInvalidBothFilter,
 			requiredMocks: func() {
 			},
-			expected: ErrPublicKeyInvalid,
+			expected: NewErrPublicKeyInvalid(map[string]interface{}{"Hostname": keyInvalidBothFilter.Filter.Hostname, "Tags": keyInvalidBothFilter.Filter.Tags}, nil),
 		},
 		{
 			description: "fail when data in public key is not valid",
@@ -646,7 +647,7 @@ func TestCreatePublicKeys(t *testing.T) {
 			key:         keyInvalidData,
 			requiredMocks: func() {
 			},
-			expected: ErrInvalidFormat,
+			expected: NewErrPublicKeyDataInvalid(keyInvalidData.Data, nil),
 		},
 		{
 			description: "fail when can not get the public key",
@@ -655,7 +656,7 @@ func TestCreatePublicKeys(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("PublicKeyGet", ctx, keyWithHostname.Fingerprint, "tenant").Return(nil, err).Once()
 			},
-			expected: err,
+			expected: NewErrPublicKeyNotFound(keyWithHostname.Fingerprint, err),
 		},
 		{
 			description: "fail when public key is duplicated",
@@ -664,7 +665,7 @@ func TestCreatePublicKeys(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("PublicKeyGet", ctx, keyWithHostname.Fingerprint, "tenant").Return(keyWithHostname, nil).Once()
 			},
-			expected: ErrDuplicateFingerprint,
+			expected: NewErrPublicKeyDuplicated([]string{keyWithHostname.Fingerprint}, nil),
 		},
 		{
 			description: "fail when can not create the public key",
@@ -682,7 +683,7 @@ func TestCreatePublicKeys(t *testing.T) {
 			key:         keyInvalidHostnameEmpty,
 			requiredMocks: func() {
 			},
-			expected: ErrPublicKeyInvalid,
+			expected: NewErrPublicKeyInvalid(map[string]interface{}{"Hostname": keyInvalidHostnameEmpty.Filter.Hostname, "Tags": keyInvalidHostnameEmpty.Filter.Tags}, nil),
 		},
 		{
 			description: "success create a public key when filter is hostname",
@@ -700,7 +701,7 @@ func TestCreatePublicKeys(t *testing.T) {
 			key:         keyInvalidEmptyTags,
 			requiredMocks: func() {
 			},
-			expected: ErrPublicKeyInvalid,
+			expected: NewErrPublicKeyTagsEmpty(nil),
 		},
 		{
 			description: "success create a public key when filter is tags",
