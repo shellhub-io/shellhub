@@ -2,12 +2,12 @@ package services
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +17,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 	services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
-	err := errors.New("generic errors")
+	err := errors.New("generic errors", "", 0)
 
 	cases := []struct {
 		description   string
@@ -35,7 +35,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "tenant").Return(nil, err).Once()
 			},
-			expected: ErrNamespaceNotFound,
+			expected: NewErrNamespaceNotFound("tenant", err),
 		},
 		{
 			description: "fail when public key was not found",
@@ -48,7 +48,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, err).Once()
 			},
-			expected: ErrPublicKeyNotFound,
+			expected: NewErrPublicKeyNotFound("fingerprint", err),
 		},
 		{
 			description: "fail when the tag limit on public key has reached",
@@ -73,7 +73,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 			},
-			expected: ErrMaxTagReached,
+			expected: NewErrTagLimit(DeviceMaxTags, nil),
 		},
 		{
 			description: "fail when the tag does not exist in a device",
@@ -99,7 +99,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 			},
-			expected: ErrTagNameNotFound,
+			expected: NewErrTagNotFound("tag", nil),
 		},
 		{
 			description: "fail when cannot add tag to public key",
@@ -171,7 +171,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 	services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
-	err := errors.New("generic errors")
+	err := errors.New("generic errors", "", 0)
 
 	cases := []struct {
 		description   string
@@ -189,7 +189,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "tenant").Return(nil, err).Once()
 			},
-			expected: ErrNamespaceNotFound,
+			expected: NewErrNamespaceNotFound("tenant", nil),
 		},
 		{
 			description: "fail when public key was not found",
@@ -202,7 +202,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, err).Once()
 			},
-			expected: ErrPublicKeyNotFound,
+			expected: NewErrPublicKeyNotFound("fingerprint", err),
 		},
 		{
 			description: "fail when the tag does not exist in public key",
@@ -227,7 +227,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 			},
-			expected: ErrTagNameNotFound,
+			expected: NewErrTagNotFound("tag", nil),
 		},
 		{
 			description: "fail when remove the tag from public key",
@@ -297,7 +297,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 	services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
-	err := errors.New("generic errors")
+	err := errors.New("generic errors", "", 0)
 
 	cases := []struct {
 		description   string
@@ -315,7 +315,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "tenant").Return(nil, err).Once()
 			},
-			expected: ErrNamespaceNotFound,
+			expected: NewErrNamespaceNotFound("tenant", nil),
 		},
 		{
 			description: "fail when public key was not found",
@@ -328,7 +328,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, err).Once()
 			},
-			expected: ErrPublicKeyNotFound,
+			expected: NewErrPublicKeyNotFound("fingerprint", err),
 		},
 		{
 			description: "fail when tags are great the tag limit",
@@ -352,7 +352,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Twice()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 			},
-			expected: ErrMaxTagReached,
+			expected: NewErrTagLimit(DeviceMaxTags, nil),
 		},
 		{
 			description: "fail when a tag does not exist in a device",
@@ -378,7 +378,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 			},
-			expected: ErrTagNameNotFound,
+			expected: NewErrTagNotFound("tag2", nil),
 		},
 		{
 			description: "fail when update tags in public key fails",
