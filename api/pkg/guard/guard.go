@@ -1,41 +1,122 @@
-// Package guard is a helper package to evaluate question about members in ShellHub.
+// Package guard is a helper to work around permissions on ShellHub API.
 package guard
 
 import (
 	"errors"
 
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-var ErrForbidden = errors.New("resource forbidden")
+const (
+	RoleObserver      = "observer"
+	RoleOperator      = "operator"
+	RoleAdministrator = "administrator"
+	RoleOwner         = "owner"
+)
 
-// CheckMember checks if a user is a namespace's member.
+const (
+	// RoleObserverCode is a role code for observer.
+	RoleObserverCode = iota + 1
+	// RoleOperatorCode is a role code for operator.
+	RoleOperatorCode
+	// RoleAdministratorCode is a role code for administrator.
+	RoleAdministratorCode
+	// RoleOwnerCode is a role code for owner.
+	RoleOwnerCode
+)
+
+// Roles maps all roles to its code.
+var Roles = map[string]int{
+	RoleObserver:      RoleObserverCode,
+	RoleOperator:      RoleOperatorCode,
+	RoleAdministrator: RoleAdministratorCode,
+	RoleOwner:         RoleOwnerCode,
+}
+
+// RolePermissions maps roles to its Permissions. It is used to check if a models.Member has permission to do something.
+var RolePermissions = map[string]Permissions{
+	RoleObserver:      observerPermissions,
+	RoleOperator:      operatorPermissions,
+	RoleAdministrator: adminPermissions,
+	RoleOwner:         ownerPermissions,
+}
+
+var ErrForbidden = errors.New("forbidden")
+
+// CheckMember checks if a models.User's ID is a models.Namespace's member. A models.User is a member if its ID is in
+// the models.Namespace's members list.
 func CheckMember(namespace *models.Namespace, id string) (*models.Member, bool) {
-	var memberFound models.Member
-	for _, memberSearch := range namespace.Members {
-		if memberSearch.ID == id {
-			memberFound = memberSearch
+	var found models.Member
+	for _, member := range namespace.Members {
+		if member.ID == id {
+			found = member
 
 			break
 		}
 	}
 
-	if memberFound.ID == "" || memberFound.Role == "" {
+	if found.ID == "" || found.Role == "" {
 		return nil, false
 	}
 
-	return &memberFound, true
+	return &found, true
 }
 
-// CheckRole checks if a member from a namespace can act over other with a specif role.
-func CheckRole(roleActive, rolePassive string) bool {
-	return authorizer.CheckRole(roleActive, rolePassive)
+// GetRoleCode converts a models.Member's role string to a role code. If the role is not found in Roles, it returns -1.
+func GetRoleCode(role string) int {
+	code, ok := Roles[role]
+	if !ok {
+		// return -1 when member role is not valid.
+		return -1
+	}
+
+	return code
 }
 
-// EvaluatePermission checks if a namespace's member has the role that allows an action.
+// CheckRole checks if a models.Member's role from a models.Namespace can act over the other. Active is the member's role
+// from who is acting, and passive is the member who is being acted. Active and passive roles must be members of the
+// same models.Namespace.
+//
+// If active or passive is an invalid member, it returns false. If active and passive are equal, it returns false too.
+//
+// Active and passive must be one of the following: RoleObserver, RoleOperator,RoleAdmin or RoleOwner.
+func CheckRole(active, passive string) bool {
+	first := GetRoleCode(active)
+	second := GetRoleCode(passive)
+
+	if first == -1 || second == -1 {
+		return false
+	}
+
+	if first == second {
+		return false
+	}
+
+	return first > second
+}
+
+// EvaluatePermission checks if a models.Namespace's member has the role that allows an action. Each role has a list of
+// allowed actions.
+//
+// Role is the member's role from who is acting, Action is the action that is being performed and callback is a function
+// to be called if the action is allowed.
 func EvaluatePermission(role string, action int, callback func() error) error {
-	if !authorizer.CheckPermission(role, action) {
+	check := func(action int, permissions Permissions) bool {
+		for _, permission := range permissions {
+			if permission == action {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	permission, ok := RolePermissions[role]
+	if !ok {
+		return ErrForbidden
+	}
+
+	if !check(action, permission) {
 		return ErrForbidden
 	}
 
@@ -43,14 +124,10 @@ func EvaluatePermission(role string, action int, callback func() error) error {
 }
 
 func EvaluateNamespace(namespace *models.Namespace, userID string, action int, callback func() error) error {
-	mb, ok := CheckMember(namespace, userID)
+	member, ok := CheckMember(namespace, userID)
 	if !ok {
 		return ErrForbidden
 	}
 
-	if !authorizer.CheckPermission(mb.Role, action) {
-		return ErrForbidden
-	}
-
-	return callback()
+	return EvaluatePermission(member.Role, action, callback)
 }
