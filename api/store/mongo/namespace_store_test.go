@@ -1,12 +1,12 @@
 package mongo
 
 import (
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -152,7 +152,7 @@ func TestNamespaceAddMember(t *testing.T) {
 	u, err := mongostore.UserGetByUsername(data.Context, "username")
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID, authorizer.MemberRoleObserver)
+	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID, guard.RoleObserver)
 	assert.NoError(t, err)
 }
 

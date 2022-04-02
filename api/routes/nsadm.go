@@ -6,7 +6,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -95,7 +94,7 @@ func (h *Handler) DeleteNamespace(c gateway.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	err = guard.EvaluateNamespace(ns, uid, authorizer.Actions.Namespace.Delete, func() error {
+	err = guard.EvaluateNamespace(ns, uid, guard.Actions.Namespace.Delete, func() error {
 		err := h.service.DeleteNamespace(c.Ctx(), ns.TenantID)
 
 		return err
@@ -127,7 +126,7 @@ func (h *Handler) EditNamespace(c gateway.Context) error {
 	}
 
 	var nns *models.Namespace
-	err = guard.EvaluateNamespace(ns, uid, authorizer.Actions.Namespace.Rename, func() error {
+	err = guard.EvaluateNamespace(ns, uid, guard.Actions.Namespace.Rename, func() error {
 		var err error
 		nns, err = h.service.EditNamespace(c.Ctx(), ns.TenantID, req.Name)
 
@@ -161,7 +160,7 @@ func (h *Handler) AddNamespaceUser(c gateway.Context) error {
 	}
 
 	var namespace *models.Namespace
-	err = guard.EvaluateNamespace(ns, uid, authorizer.Actions.Namespace.AddMember, func() error {
+	err = guard.EvaluateNamespace(ns, uid, guard.Actions.Namespace.AddMember, func() error {
 		var err error
 		namespace, err = h.service.AddNamespaceUser(c.Ctx(), member.Username, member.Role, ns.TenantID, uid)
 
@@ -186,7 +185,7 @@ func (h *Handler) RemoveNamespaceUser(c gateway.Context) error {
 	}
 
 	var nns *models.Namespace
-	err = guard.EvaluateNamespace(ns, uid, authorizer.Actions.Namespace.RemoveMember, func() error {
+	err = guard.EvaluateNamespace(ns, uid, guard.Actions.Namespace.RemoveMember, func() error {
 		var err error
 		nns, err = h.service.RemoveNamespaceUser(c.Ctx(), ns.TenantID, c.Param(ParamNamespaceMemberID), uid)
 
@@ -218,7 +217,7 @@ func (h *Handler) EditNamespaceUser(c gateway.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	err = guard.EvaluateNamespace(ns, uid, authorizer.Actions.Namespace.EditMember, func() error {
+	err = guard.EvaluateNamespace(ns, uid, guard.Actions.Namespace.EditMember, func() error {
 		err := h.service.EditNamespaceUser(c.Ctx(), ns.TenantID, uid, c.Param(ParamNamespaceMemberID), member.Role)
 
 		return err
@@ -248,7 +247,7 @@ func (h *Handler) EditSessionRecordStatus(c gateway.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	err = guard.EvaluateNamespace(ns, uid, authorizer.Actions.Namespace.EnableSessionRecord, func() error {
+	err = guard.EvaluateNamespace(ns, uid, guard.Actions.Namespace.EnableSessionRecord, func() error {
 		err := h.service.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, ns.TenantID)
 
 		return err

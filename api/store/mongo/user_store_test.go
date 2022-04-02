@@ -6,8 +6,8 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
@@ -407,7 +407,7 @@ func TestUserDetachInfo(t *testing.T) {
 			Members: []models.Member{
 				{
 					ID:   user.ID,
-					Role: authorizer.MemberRoleOwner,
+					Role: guard.RoleOwner,
 				},
 			},
 		},
@@ -417,7 +417,7 @@ func TestUserDetachInfo(t *testing.T) {
 			Members: []models.Member{
 				{
 					ID:   user.ID,
-					Role: authorizer.MemberRoleOwner,
+					Role: guard.RoleOwner,
 				},
 			},
 		},
@@ -430,7 +430,7 @@ func TestUserDetachInfo(t *testing.T) {
 			Members: []models.Member{
 				{
 					ID:   user.ID,
-					Role: authorizer.MemberRoleObserver,
+					Role: guard.RoleObserver,
 				},
 			},
 		},
@@ -440,7 +440,7 @@ func TestUserDetachInfo(t *testing.T) {
 			Members: []models.Member{
 				{
 					ID:   user.ID,
-					Role: authorizer.MemberRoleObserver,
+					Role: guard.RoleObserver,
 				},
 			},
 		},
@@ -450,7 +450,7 @@ func TestUserDetachInfo(t *testing.T) {
 			Members: []models.Member{
 				{
 					ID:   user.ID,
-					Role: authorizer.MemberRoleObserver,
+					Role: guard.RoleObserver,
 				},
 			},
 		},

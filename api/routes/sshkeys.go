@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -73,7 +72,7 @@ func (h *Handler) CreatePublicKey(c gateway.Context) error {
 		key.TenantID = tenantID
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.Create, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.Create, func() error {
 		err := h.service.CreatePublicKey(c.Ctx(), &key, tenantID)
 
 		return err
@@ -97,7 +96,7 @@ func (h *Handler) UpdatePublicKey(c gateway.Context) error {
 	}
 
 	var key *models.PublicKey
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.Edit, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.Edit, func() error {
 		var err error
 		key, err = h.service.UpdatePublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), tenantID, &params)
 
@@ -116,7 +115,7 @@ func (h *Handler) DeletePublicKey(c gateway.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.Remove, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.Remove, func() error {
 		err := h.service.DeletePublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), tenantID)
 
 		return err
@@ -174,7 +173,7 @@ func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
 		tenant = c.Tenant().ID
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.AddTag, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.AddTag, func() error {
 		return h.service.AddPublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tag)
 	})
 	if err != nil {
@@ -190,7 +189,7 @@ func (h *Handler) RemovePublicKeyTag(c gateway.Context) error {
 		tenant = c.Tenant().ID
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.RemoveTag, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.RemoveTag, func() error {
 		return h.service.RemovePublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), c.Param(ParamTagName))
 	})
 	if err != nil {
@@ -214,7 +213,7 @@ func (h *Handler) UpdatePublicKeyTags(c gateway.Context) error {
 		tenant = c.Tenant().ID
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.PublicKey.UpdateTag, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.UpdateTag, func() error {
 		return h.service.UpdatePublicKeyTags(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tags)
 	})
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/cnf/structhash"
 	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -162,7 +162,7 @@ func initData() Data {
 			Members: []models.Member{
 				{
 					ID:   "owner",
-					Role: authorizer.MemberRoleOwner,
+					Role: guard.RoleOwner,
 				},
 			},
 			MaxDevices: -1,
