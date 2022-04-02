@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -73,7 +72,7 @@ func (h *Handler) DeleteDevice(c gateway.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.Remove, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Remove, func() error {
 		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param(ParamDeviceID)), tenantID)
 
 		return err
@@ -99,7 +98,7 @@ func (h *Handler) RenameDevice(c gateway.Context) error {
 		tenantID = c.Tenant().ID
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.Rename, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Rename, func() error {
 		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Name, tenantID)
 
 		return err
@@ -153,7 +152,7 @@ func (h *Handler) UpdatePendingStatus(c gateway.Context) error {
 		"pending": "pending",
 		"unused":  "unused",
 	}
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.Accept, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Accept, func() error {
 		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param(ParamDeviceID)), status[c.Param(ParamDeviceStatus)], tenantID)
 
 		return err
@@ -178,7 +177,7 @@ func (h *Handler) CreateDeviceTag(c gateway.Context) error {
 		return err
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.CreateTag, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.CreateTag, func() error {
 		return h.service.CreateDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Name)
 	})
 	if err != nil {
@@ -189,7 +188,7 @@ func (h *Handler) CreateDeviceTag(c gateway.Context) error {
 }
 
 func (h *Handler) RemoveDeviceTag(c gateway.Context) error {
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.RemoveTag, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.RemoveTag, func() error {
 		return h.service.RemoveDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), c.Param(ParamTagName))
 	})
 	if err != nil {
@@ -208,7 +207,7 @@ func (h *Handler) UpdateDeviceTag(c gateway.Context) error {
 		return err
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.UpdateTag, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.UpdateTag, func() error {
 		return h.service.UpdateDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Tags)
 	})
 	if err != nil {

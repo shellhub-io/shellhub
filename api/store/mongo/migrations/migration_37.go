@@ -4,13 +4,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 )
 
 var migration37 = migrate.Migration{
@@ -60,14 +59,14 @@ var migration37 = migrate.Migration{
 				if owner != member {
 					m := models.Member{
 						ID:   member.(string),
-						Role: authorizer.MemberRoleObserver,
+						Role: guard.RoleObserver,
 					}
 
 					memberList = append(memberList, m)
 				} else if owner == member {
 					m := models.Member{
 						ID:   member.(string),
-						Role: authorizer.MemberRoleOwner,
+						Role: guard.RoleOwner,
 					}
 
 					memberList = append(memberList, m)

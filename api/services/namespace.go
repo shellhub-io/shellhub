@@ -10,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	hp "github.com/shellhub-io/shellhub/pkg/requests"
@@ -101,7 +100,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		Members: []models.Member{
 			{
 				ID:   user.ID,
-				Role: authorizer.MemberRoleOwner,
+				Role: guard.RoleOwner,
 			},
 		},
 		Settings: &models.NamespaceSettings{SessionRecord: true},

@@ -6,7 +6,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 )
 
 const (
@@ -48,7 +47,7 @@ func (h *Handler) RenameTag(c gateway.Context) error {
 		return err
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.RenameTag, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.RenameTag, func() error {
 		return h.service.RenameTag(c.Ctx(), tenant, c.Param(ParamTagName), req.Name)
 	})
 	if err != nil {
@@ -64,7 +63,7 @@ func (h *Handler) DeleteTag(c gateway.Context) error {
 		tenant = v.ID
 	}
 
-	err := guard.EvaluatePermission(c.Role(), authorizer.Actions.Device.DeleteTag, func() error {
+	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.DeleteTag, func() error {
 		return h.service.DeleteTag(c.Ctx(), tenant, c.Param(ParamTagName))
 	})
 	if err != nil {

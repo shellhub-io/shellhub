@@ -6,13 +6,12 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
-
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 )
 
 func TestMigration37(t *testing.T) {
@@ -61,13 +60,13 @@ func TestMigration37(t *testing.T) {
 	migratedNamespace := &models.Namespace{}
 	err = db.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.D{{"tenant_id", "tenant"}}).Decode(migratedNamespace)
 	assert.NoError(t, err)
-	assert.Equal(t, []models.Member{{ID: user.ID, Role: authorizer.MemberRoleOwner}}, migratedNamespace.Members)
+	assert.Equal(t, []models.Member{{ID: user.ID, Role: guard.RoleOwner}}, migratedNamespace.Members)
 
 	namespace := models.Namespace{
 		Name:     "userspace",
 		Owner:    user.ID,
 		TenantID: "tenant",
-		Members:  []models.Member{{ID: user.ID, Role: authorizer.MemberRoleOwner}},
+		Members:  []models.Member{{ID: user.ID, Role: guard.RoleOwner}},
 		Devices:  -1,
 	}
 
