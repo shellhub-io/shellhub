@@ -169,10 +169,9 @@
 import { Terminal } from 'xterm';
 import { AttachAddon } from 'xterm-addon-attach';
 import { FitAddon } from 'xterm-addon-fit';
-
-import 'xterm/css/xterm.css';
-
 import RSAKey from 'node-rsa';
+import { genSignature } from '@/helpers/keyauth/ed25519';
+import 'xterm/css/xterm.css';
 import { parsePrivateKey } from '@/sshpk';
 
 export default {
@@ -302,11 +301,18 @@ export default {
       return Object.entries(params).map(([k, v]) => `${k}=${v}`).join('&');
     },
 
-    connectWithPrivateKey() {
-      const key = new RSAKey(this.privateKey);
-      key.setOptions({ signingScheme: 'pkcs1-sha1' });
+    async connectWithPrivateKey() {
+      const pk = parsePrivateKey(this.privateKey);
+      let signature;
 
-      const signature = encodeURIComponent(key.sign(this.username, 'base64'));
+      if (pk.type === 'ed25519') {
+        signature = encodeURIComponent(await genSignature(this.privateKey, this.username));
+      } else {
+        const key = new RSAKey(this.privateKey);
+        key.setOptions({ signingScheme: 'pkcs1-sha1' });
+        signature = encodeURIComponent(key.sign(this.username, 'base64'));
+      }
+
       const fingerprint = parsePrivateKey(this.privateKey).fingerprint('md5');
 
       this.connect({ signature, fingerprint });
