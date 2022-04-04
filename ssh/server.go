@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -20,6 +19,7 @@ import (
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/webhook"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
+	"github.com/shellhub-io/shellhub/ssh/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
@@ -66,7 +66,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			"session": session.Context().Value(sshserver.ContextKeySessionID),
 		}).Error(err)
 
-		if _, err = io.WriteString(session, fmt.Sprintf("%s\n", getExternalError(err))); err != nil {
+		if _, err = io.WriteString(session, fmt.Sprintf("%s\n", errors.GetExternal(err))); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"session": session.Context().Value(sshserver.ContextKeySessionID),
 			}).Error(err)
