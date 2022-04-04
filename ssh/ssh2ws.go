@@ -22,9 +22,13 @@ func copyWorker(dst io.Writer, src io.Reader, doneCh chan<- bool) {
 }
 
 func HandlerWebsocket(ws *websocket.Conn) {
+	// user is who is logging in the device.
 	user := ws.Request().URL.Query().Get("user")
+	// passwd is the password of the user. It should be empty if signature is set.
 	passwd := ws.Request().URL.Query().Get("passwd")
+	// fingerprint is the fingerprint of the public key.
 	fingerprint := ws.Request().URL.Query().Get("fingerprint")
+	// signature is the private key signature. It should empty if passwd is set.
 	signature := ws.Request().URL.Query().Get("signature")
 	cols, _ := strconv.Atoi(ws.Request().URL.Query().Get("cols"))
 	rows, _ := strconv.Atoi(ws.Request().URL.Query().Get("rows"))
@@ -34,6 +38,8 @@ func HandlerWebsocket(ws *websocket.Conn) {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 	}
 
+	// if fingerprint and signature is set, it is connection by public key, splitting the user into two parts. The first
+	// part is the username and the second part is the device ID.
 	if fingerprint != "" && signature != "" { //nolint:nestif
 		parts := strings.SplitN(user, "@", 2)
 		if len(parts) != 2 {
@@ -101,6 +107,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 
 		config.Auth = []ssh.AuthMethod{ssh.PublicKeys(signer)}
 	} else {
+		// if fingerprint and signature is not set, it is connection by password.
 		config.Auth = []ssh.AuthMethod{ssh.Password(passwd)}
 	}
 
