@@ -13,6 +13,7 @@ jobs:
   validate:
     name: validate
     if: ${{ github.event.pull_request.draft == false }}
+    runs-on: self-hosted
 
     strategy:
       fail-fast: false

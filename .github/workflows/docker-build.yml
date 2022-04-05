@@ -15,6 +15,7 @@ jobs:
 
   build:
     name: Build '${{ matrix.project }}' Docker container
+    runs-on: self-hosted
 
     strategy:
       fail-fast: false
