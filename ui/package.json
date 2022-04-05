@@ -11,8 +11,6 @@
   },
   "dependencies": {
     "@fortawesome/free-brands-svg-icons": "^6.0.0",
-    "@noble/ed25519": "^1.6.0",
-    "@noble/hashes": "^1.0.0",
     "@vue-stripe/vue-stripe": "^4.2.9",
     "axios": "^0.26.0",
     "browserify": "^17.0.0",
