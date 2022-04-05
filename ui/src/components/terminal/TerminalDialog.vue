@@ -170,7 +170,6 @@ import { Terminal } from 'xterm';
 import { AttachAddon } from 'xterm-addon-attach';
 import { FitAddon } from 'xterm-addon-fit';
 import RSAKey from 'node-rsa';
-import { genSignature } from '@/helpers/keyauth/ed25519';
 import 'xterm/css/xterm.css';
 import { parsePrivateKey } from '@/sshpk';
 
@@ -306,14 +305,16 @@ export default {
       let signature;
 
       if (pk.type === 'ed25519') {
-        signature = encodeURIComponent(await genSignature(this.privateKey, this.username));
+        const signer = pk.createSign('sha512');
+        signer.update(this.username);
+        signature = encodeURIComponent(signer.sign().toString());
       } else {
         const key = new RSAKey(this.privateKey);
         key.setOptions({ signingScheme: 'pkcs1-sha1' });
         signature = encodeURIComponent(key.sign(this.username, 'base64'));
       }
 
-      const fingerprint = parsePrivateKey(this.privateKey).fingerprint('md5');
+      const fingerprint = pk.fingerprint('md5');
 
       this.connect({ signature, fingerprint });
     },
