@@ -42,7 +42,10 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 	return &service{store, privKey, pubKey, cache, c, l}
 }
 
-func handleStatusResponse(status int) error {
+// FIXME: private function.
+//
+// Cloud needs to be able to access this function to convert some status to a API ErrReport.
+func HandleStatusResponse(status int) error {
 	if status == 200 || status == 402 || status == 400 {
 		return nil
 	}
