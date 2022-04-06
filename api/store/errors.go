@@ -17,3 +17,9 @@ var (
 	ErrNoDocuments = errors.New("no documents", ErrLayer, ErrCodeNoDocument)
 	ErrInvalidHex  = errors.New("the provided hex string is not a valid ObjectID", ErrLayer, ErrCodeInvalid)
 )
+
+// Errors used by Cloud.
+var (
+	ErrDuplicateUser  = errors.New("user already exists", ErrLayer, ErrCodeDuplicated)
+	ErrDuplicateEmail = errors.New("email address is already in use", ErrLayer, ErrCodeDuplicated)
+)
