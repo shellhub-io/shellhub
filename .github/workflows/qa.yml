@@ -103,7 +103,7 @@ jobs:
 
       - name: Code linting [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3
         with:
           working-directory: ${{ matrix.project }}
           version: v1.37
