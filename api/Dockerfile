@@ -53,7 +53,7 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
-FROM alpine:3.15.2 AS production
+FROM alpine:3.15.4 AS production
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/api/api /api
 
