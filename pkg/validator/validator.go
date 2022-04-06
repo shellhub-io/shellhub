@@ -33,6 +33,19 @@ func getInvalidFields(err error) ([]string, error) {
 	return f, ErrInvalidFields
 }
 
+func ValidateStructFields(data interface{}) (map[string]interface{}, error) {
+	if err := validator.New().Struct(data); err != nil {
+		d := make(map[string]interface{})
+		for _, e := range err.(validator.ValidationErrors) {
+			d[e.Field()] = e.Value()
+		}
+
+		return d, ErrInvalidFields
+	}
+
+	return nil, nil
+}
+
 func ValidateStruct(data interface{}) ([]string, error) {
 	if err := validator.New().Struct(data); err != nil {
 		return getInvalidFields(err)
