@@ -11,7 +11,7 @@ import (
 // A FirewallFilter can contain either Hostname, string, or Tags, slice of strings never both.
 type FirewallFilter struct {
 	Hostname string   `json:"hostname,omitempty" bson:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
-	Tags     []string `json:"tags,omitempty" bson:"tags,omitempty" validate:"required_without=Hostname,excluded_with=Hostname,max=3,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
+	Tags     []string `json:"tags,omitempty" bson:"tags,omitempty" validate:"required_without=Hostname,excluded_with=Hostname,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
 type FirewallRuleFields struct {
