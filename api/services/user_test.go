@@ -75,7 +75,7 @@ func TestUpdateDataUser(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 			},
-			expected: Expected{[]string{"username"}, NewErrUserInvalid(map[string]string{"Username": "invalid_name"}, validator.ErrInvalidFields)},
+			expected: Expected{[]string{"username"}, NewErrUserInvalid(map[string]interface{}{"Username": "invalid_name"}, validator.ErrInvalidFields)},
 		},
 		{
 			description: "Fails invalid email",
@@ -84,7 +84,7 @@ func TestUpdateDataUser(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 			},
-			expected: Expected{[]string{"email"}, NewErrUserInvalid(map[string]string{"Email": "invalid.email"}, validator.ErrInvalidFields)},
+			expected: Expected{[]string{"email"}, NewErrUserInvalid(map[string]interface{}{"Email": "invalid.email"}, validator.ErrInvalidFields)},
 		},
 		{
 			description: "Fails invalid email and username",
@@ -93,7 +93,7 @@ func TestUpdateDataUser(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 			},
-			expected: Expected{[]string{"email", "username"}, NewErrUserInvalid(map[string]string{"Email": "invalid.email", "Username": "us"}, validator.ErrInvalidFields)},
+			expected: Expected{[]string{"email", "username"}, NewErrUserInvalid(map[string]interface{}{"Email": "invalid.email", "Username": "us"}, validator.ErrInvalidFields)},
 		},
 		{
 			description: "Fails empty username",
@@ -102,7 +102,7 @@ func TestUpdateDataUser(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 			},
-			expected: Expected{[]string{"name"}, NewErrUserInvalid(map[string]string{"Name": ""}, validator.ErrInvalidFields)},
+			expected: Expected{[]string{"name"}, NewErrUserInvalid(map[string]interface{}{"Name": ""}, validator.ErrInvalidFields)},
 		},
 		{
 			description: "Fails empty email",
@@ -111,7 +111,7 @@ func TestUpdateDataUser(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
 			},
-			expected: Expected{[]string{"email"}, NewErrUserInvalid(map[string]string{"Email": ""}, validator.ErrInvalidFields)},
+			expected: Expected{[]string{"email"}, NewErrUserInvalid(map[string]interface{}{"Email": ""}, validator.ErrInvalidFields)},
 		},
 		{
 			description: "Successful update user data",
