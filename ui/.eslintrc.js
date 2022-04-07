@@ -8,9 +8,10 @@ module.exports = {
     jest: true,
   },
   parserOptions: {
-    parser: 'babel-eslint',
+    parser: '@babel/eslint-parser',
     // specifying a module sourcetype prevent eslint from marking import statements as errors
     sourceType: 'module',
+    requireConfigFile: false,
   },
   extends: [
     // use the recommended rule set for both plain javascript and vue
