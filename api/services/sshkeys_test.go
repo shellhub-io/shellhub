@@ -298,6 +298,11 @@ func TestUpdatePublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 
+	keyDuplicatedTags := &models.PublicKeyUpdate{
+		PublicKeyFields: models.PublicKeyFields{
+			Filter: models.PublicKeyFilter{Tags: []string{"tag1", "tag2", "tag2"}},
+		},
+	}
 	keyWithTags := &models.PublicKey{
 		Fingerprint: "fingerprint",
 		TenantID:    "tenant",
@@ -363,6 +368,14 @@ func TestUpdatePublicKeys(t *testing.T) {
 		requiredMocks func()
 		expected      Expected
 	}{
+		{
+			description:   "fail when public does contains duplicated tags",
+			fingerprint:   "fingerprint",
+			tenantID:      "tenant",
+			keyUpdate:     keyDuplicatedTags,
+			requiredMocks: func() {},
+			expected:      Expected{key: nil, err: NewErrPublicKeyInvalid(map[string]interface{}{"Tags": []string{"tag1", "tag2", "tag2"}}, nil)},
+		},
 		{
 			description:   "fail when public does not contains hostname neither tags",
 			fingerprint:   "fingerprint",
@@ -545,6 +558,14 @@ func TestCreatePublicKeys(t *testing.T) {
 	data := ssh.MarshalAuthorizedKey(pubKey)
 	fingerprint := ssh.FingerprintLegacyMD5(pubKey)
 
+	keyDuplicatedTags := &models.PublicKey{
+		Data:        data,
+		Fingerprint: fingerprint,
+		TenantID:    "tenant",
+		PublicKeyFields: models.PublicKeyFields{
+			Filter: models.PublicKeyFilter{Tags: []string{"tag1", "tag2", "tag2"}},
+		},
+	}
 	keyInvalidNoFilter := &models.PublicKey{
 		Data:        data,
 		Fingerprint: fingerprint,
@@ -624,6 +645,13 @@ func TestCreatePublicKeys(t *testing.T) {
 		requiredMocks func()
 		expected      error
 	}{
+		{
+			description:   "fail when public does contains duplicated tags",
+			tenantID:      "tenant",
+			key:           keyDuplicatedTags,
+			requiredMocks: func() {},
+			expected:      NewErrPublicKeyInvalid(map[string]interface{}{"Tags": []string{"tag1", "tag2", "tag2"}}, nil),
+		},
 		{
 			description: "fail when public key has no filter",
 			tenantID:    "tenant",
