@@ -33,14 +33,19 @@ func getInvalidFields(err error) ([]string, error) {
 	return f, ErrInvalidFields
 }
 
+// GetInvalidFieldsValues receive a structure validation error and return a map with invalid fields and values.
+func GetInvalidFieldsValues(err error) (map[string]interface{}, error) {
+	d := make(map[string]interface{})
+	for _, e := range err.(validator.ValidationErrors) {
+		d[e.Field()] = e.Value()
+	}
+
+	return d, ErrInvalidFields
+}
+
 func ValidateStructFields(data interface{}) (map[string]interface{}, error) {
 	if err := validator.New().Struct(data); err != nil {
-		d := make(map[string]interface{})
-		for _, e := range err.(validator.ValidationErrors) {
-			d[e.Field()] = e.Value()
-		}
-
-		return d, ErrInvalidFields
+		return GetInvalidFieldsValues(err)
 	}
 
 	return nil, nil
