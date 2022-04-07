@@ -46,7 +46,7 @@ type ErrDataLimit struct {
 type ErrDataInvalid struct {
 	// Data is a key-value map of the invalid fields. key must be the field name what is invalid and value must be the
 	// value of the field.
-	Data map[string]string
+	Data map[string]interface{}
 }
 
 var (
@@ -86,7 +86,7 @@ func NewErrNotFound(err error, id string, next error) error {
 }
 
 // NewErrInvalid returns an error with the ErrDataInvalid and wrap an error.
-func NewErrInvalid(err error, data map[string]string, next error) error {
+func NewErrInvalid(err error, data map[string]interface{}, next error) error {
 	return errors.Wrap(errors.WithData(err, ErrDataInvalid{Data: data}), next)
 }
 
@@ -102,7 +102,7 @@ func NewErrNamespaceNotFound(id string, next error) error {
 
 // NewErrTagInvalid returns an error when the tag is invalid.
 func NewErrTagInvalid(tag string, next error) error {
-	return NewErrInvalid(ErrTagInvalid, map[string]string{"name": tag}, next)
+	return NewErrInvalid(ErrTagInvalid, map[string]interface{}{"name": tag}, next)
 }
 
 // NewErrTagEmpty returns an error when the none tag is found.
@@ -126,7 +126,7 @@ func NewErrUserNotFound(id string, next error) error {
 }
 
 // NewErrUserInvalid returns an error when the user is invalid.
-func NewErrUserInvalid(data map[string]string, next error) error {
+func NewErrUserInvalid(data map[string]interface{}, next error) error {
 	return NewErrInvalid(ErrUserInvalid, data, next)
 }
 
