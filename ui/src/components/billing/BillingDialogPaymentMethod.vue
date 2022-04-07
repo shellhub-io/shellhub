@@ -141,8 +141,10 @@ export default {
       const ks = [3, 2.91, 2.82, 2.74, 2.66, 2.58, 2.50,
         2.42, 2.35, 2.28, 2.21, 2.15, 2.08, 2.02, 2.00];
 
-      const tiers = Array.from({ length: ks.length - 1 },
-        (_, i) => ({ begin: ranges[i], upTo: ranges[i + 1], k: ks[i] }));
+      const tiers = Array.from(
+        { length: ks.length - 1 },
+        (_, i) => ({ begin: ranges[i], upTo: ranges[i + 1], k: ks[i] }),
+      );
 
       tiers.forEach((t) => {
         if (n > t.begin) {
