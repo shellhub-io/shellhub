@@ -140,6 +140,13 @@ func HandlerWebsocket(ws *websocket.Conn) {
 		return
 	}
 
+	if err = session.Setenv("WS", "true"); err != nil {
+		session.Close()
+		ws.Close()
+
+		return
+	}
+
 	sshOut, err := session.StdoutPipe()
 	if err != nil {
 		session.Close()
@@ -156,7 +163,7 @@ func HandlerWebsocket(ws *websocket.Conn) {
 		return
 	}
 
-	if err := session.RequestPty("xterm", rows, cols, modes); err != nil {
+	if err := session.RequestPty("xterm.js", rows, cols, modes); err != nil {
 		session.Close()
 		ws.Close()
 

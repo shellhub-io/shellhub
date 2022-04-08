@@ -28,6 +28,8 @@ type Session struct {
 	Target        string `json:"device_uid"`
 	UID           string `json:"uid"`
 	IPAddress     string `json:"ip_address"`
+	Type          string `json:"type"`
+	Term          string `json:"term"`
 	Authenticated bool   `json:"authenticated"`
 	Lookup        map[string]string
 	Pty           bool
@@ -35,6 +37,50 @@ type Session struct {
 
 type ConfigOptions struct {
 	RecordURL string `envconfig:"record_url"`
+}
+
+const (
+	Web  = "web"     // webterminal
+	Term = "term"    // iterative pty
+	Exec = "exec"    // non iterative pty
+	SCP  = "scp"     // scp
+	Unk  = "unknown" // unknown
+)
+
+func handlePty(s *Session) {
+	pty, _, isPty := s.session.Pty()
+	if isPty {
+		s.Term = pty.Term
+		s.Type = Unk
+	}
+
+	s.Pty = isPty
+
+	env := loadEnv(s.session.Environ())
+
+	if value, ok := env["WS"]; ok && value == "true" {
+		env["WS"] = "false"
+		s.Type = Web
+
+		return
+	}
+
+	commands := s.session.Command()
+
+	var cmd string
+
+	if len(commands) != 0 {
+		cmd = commands[0]
+	}
+
+	switch {
+	case !isPty && strings.HasPrefix(cmd, "scp"):
+		s.Type = SCP
+	case !isPty && cmd != "":
+		s.Type = Exec
+	case isPty:
+		s.Type = Term
+	}
 }
 
 func NewSession(target string, session sshserver.Session) (*Session, error) {
@@ -60,6 +106,8 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	handlePty(s)
 
 	if host == "127.0.0.1" || host == "::1" {
 		env := loadEnv(session.Environ())
@@ -132,9 +180,6 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 
 	end:
 	}
-
-	_, _, isPty := s.session.Pty()
-	s.Pty = isPty
 
 	return s, nil
 }

@@ -17,6 +17,8 @@ type Session struct {
 	Closed        bool      `json:"-" bson:"closed"`
 	Authenticated bool      `json:"authenticated" bson:"authenticated"`
 	Recorded      bool      `json:"recorded" bson:"recorded"`
+	Type          string    `json:"type" bson:"type"`
+	Term          string    `json:"term" bson:"term"`
 }
 
 type ActiveSession struct {
