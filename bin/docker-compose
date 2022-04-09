@@ -32,7 +32,11 @@ cd $WORKDIR
 
 set -o allexport
 
-[ -f .env.override ] && . ./.env.override
+env_override=${ENV_OVERRIDE:-./.env.override}
+if [ -f "$env_override" ]; then
+    echo "INFO: Loading $env_override"
+    . "$env_override"
+fi
 
 set +o allexport
 
