@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -87,12 +86,7 @@ func (h *Handler) CreateSession(c gateway.Context) error {
 }
 
 func (h *Handler) FinishSession(c gateway.Context) error {
-	err := h.service.DeactivateSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
-	if err == services.ErrNotFound {
-		return c.NoContent(http.StatusNotFound)
-	}
-
-	return err
+	return h.service.DeactivateSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
 }
 
 func (h *Handler) KeepAliveSession(c gateway.Context) error {

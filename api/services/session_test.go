@@ -212,6 +212,15 @@ func TestDeactivateSession(t *testing.T) {
 		expected      error
 	}{
 		{
+			name: "DeactivateSession fails when session is not found",
+			uid:  models.UID("_uid"),
+			requiredMocks: func() {
+				mock.On("SessionDeleteActives", ctx, models.UID("_uid")).
+					Return(store.ErrNoDocuments).Once()
+			},
+			expected: NewErrSessionNotFound("_uid", store.ErrNoDocuments),
+		},
+		{
 			name: "DeactivateSession fails",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
