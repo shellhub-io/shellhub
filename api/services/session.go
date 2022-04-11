@@ -32,7 +32,7 @@ func (s *service) CreateSession(ctx context.Context, session models.Session) (*m
 func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
 	err := s.store.SessionDeleteActives(ctx, uid)
 	if err == store.ErrNoDocuments {
-		return ErrNotFound
+		return NewErrSessionNotFound(uid, err)
 	}
 
 	return err

@@ -82,6 +82,7 @@ var (
 	ErrPublicKeyDataInvalid      = errors.New("public key data invalid", ErrLayer, ErrCodeInvalid)
 	ErrPublicKeyFilter           = errors.New("public key cannot have more than one filter at same time", ErrLayer, ErrCodeInvalid)
 	ErrTypeAssertion             = errors.New("type assertion failed", ErrLayer, ErrCodeInvalid)
+	ErrSessionNotFound           = errors.New("session not found", ErrLayer, ErrCodeNotFound)
 )
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
@@ -208,4 +209,9 @@ func NewErrPublicKeyFilter(next error) error {
 // NewErrDeviceNotFound returns an error when the device is not found.
 func NewErrDeviceNotFound(id models.UID, next error) error {
 	return NewErrNotFound(ErrDeviceNotFound, string(id), next)
+}
+
+// NewErrSessionNotFound returns an error when the session is not found.
+func NewErrSessionNotFound(id models.UID, next error) error {
+	return NewErrNotFound(ErrSessionNotFound, string(id), next)
 }
