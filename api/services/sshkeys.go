@@ -160,6 +160,16 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 }
 
 func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
+	_, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil {
+		return NewErrNamespaceNotFound(tenant, err)
+	}
+
+	_, err = s.store.PublicKeyGet(ctx, fingerprint, tenant)
+	if err != nil {
+		return NewErrPublicKeyNotFound(fingerprint, err)
+	}
+
 	return s.store.PublicKeyDelete(ctx, fingerprint, tenant)
 }
 
