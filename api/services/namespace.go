@@ -27,7 +27,7 @@ type NamespaceService interface {
 	AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error)
 	EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error
-	ListMembers(ctx context.Context, tenantID string) ([]models.Member, error)
+	FillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error)
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
 	GetSessionRecord(ctx context.Context, tenantID string) (bool, error)
 	HandleReportDelete(ns *models.Namespace) error
@@ -46,10 +46,14 @@ func (s *service) HandleReportDelete(ns *models.Namespace) error {
 	return HandleStatusResponse(status)
 }
 
-// ListNamespaces lists all namespace from a user.
+// ListNamespaces lists selected namespaces from a user.
 //
-// pagination is a paginator.Query defines how many namespaces will be returned, filterB64 is a JSON object encoded
-// in B64 used to make filter's operation and export is.
+// It receives a context, used to "control" the request flow, a pagination query, that indicate how many registers are
+// requested per page, a filter string, a base64 encoded value what is converted to a slice of models.Filter and an
+// export flag.
+//
+// ListNamespaces returns a slice of models.Namespace, the total of namespaces and an error. When error is not nil, the
+// slice of models.Namespace is nil, total is zero.
 func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
 	raw, err := base64.StdEncoding.DecodeString(filterB64)
 	if err != nil {
@@ -64,17 +68,16 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 
 	namespaces, count, err := s.store.NamespaceList(ctx, pagination, filter, export)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, NewErrNamespaceList(err)
 	}
 
-	for count, namespace := range namespaces {
-		members, err := s.ListMembers(ctx, namespace.TenantID)
+	for index, namespace := range namespaces {
+		members, err := s.FillMembersData(ctx, namespace.Members)
 		if err != nil {
-			return nil, 0, err
+			return nil, 0, NewErrNamespaceMemberFillData(err)
 		}
 
-		namespaces[count].Members = []models.Member{}
-		namespaces[count].Members = append(namespaces[count].Members, members...)
+		namespaces[index].Members = members
 	}
 
 	return namespaces, count, nil
@@ -82,15 +85,14 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 
 // CreateNamespace creates a new namespace.
 //
-// namespace is the model what you want to add and userID is the models.User's ID who will get the namespace.
+// It receives a context, used to "control" the request flow, the models.Namespace to be created and the userID from
+// who is creating the namespace.
+//
+// CreateNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespace, userID string) (*models.Namespace, error) {
 	user, _, err := s.store.UserGetByID(ctx, userID, false)
-	if user == nil {
-		return nil, ErrForbidden
-	}
-
-	if err != nil {
-		return nil, err
+	if err != nil || user == nil {
+		return nil, NewErrUserNotFound(userID, err)
 	}
 
 	ns := &models.Namespace{
@@ -107,7 +109,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	}
 
 	if _, err := validator.ValidateStruct(ns); err != nil {
-		return nil, ErrInvalidFormat
+		return nil, NewErrNamespaceInvalid(err)
 	}
 
 	if namespace.TenantID == "" {
@@ -125,15 +127,15 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 
 	otherNamespace, err := s.store.NamespaceGetByName(ctx, ns.Name)
 	if err != nil && err != store.ErrNoDocuments {
-		return nil, err
+		return nil, NewErrNamespaceNotFound(ns.Name, err)
 	}
 
 	if otherNamespace != nil {
-		return nil, ErrConflictName
+		return nil, NewErrNamespaceDuplicated(nil)
 	}
 
 	if _, err := s.store.NamespaceCreate(ctx, ns); err != nil {
-		return nil, err
+		return nil, NewErrNamespaceCreateStore(err)
 	}
 
 	return ns, nil
@@ -141,41 +143,34 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 
 // GetNamespace gets a namespace.
 //
-// tenantID is the models.Namespace's tenant what you want to get.
+// It receives a context, used to "control" the request flow and the tenant ID from models.Namespace.
+//
+// GetNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
-	namespaces, err := s.store.NamespaceGet(ctx, tenantID)
-	if err != nil || namespaces == nil {
-		return nil, ErrNamespaceNotFound
+	namespace, err := s.store.NamespaceGet(ctx, tenantID)
+	if err != nil || namespace == nil {
+		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	members := []models.Member{}
-	for _, member := range namespaces.Members {
-		user, _, err := s.store.UserGetByID(ctx, member.ID, false)
-		if err != nil {
-			if err == store.ErrNoDocuments {
-				return nil, ErrUserNotFound
-			}
-
-			return nil, err
-		}
-
-		member := models.Member{ID: user.ID, Username: user.Username, Role: member.Role}
-		members = append(members, member)
+	members, err := s.FillMembersData(ctx, namespace.Members)
+	if err != nil {
+		return nil, NewErrNamespaceMemberFillData(err)
 	}
 
-	namespaces.Members = []models.Member{}
-	namespaces.Members = append(namespaces.Members, members...)
+	namespace.Members = members
 
-	return namespaces, nil
+	return namespace, nil
 }
 
 // DeleteNamespace deletes a namespace.
 //
-// tenantID is the models.Namespace's tenant what you want to delete.
+// It receives a context, used to "control" the request flow and the tenant ID from models.Namespace.
+//
+// DeleteNamespace returns an error.
 func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
-		return err
+		return NewErrNamespaceNotFound(tenantID, err)
 	}
 	if err := s.HandleReportDelete(ns); err != nil {
 		return err
@@ -184,229 +179,218 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	return s.store.NamespaceDelete(ctx, tenantID)
 }
 
-// ListMembers lists all members from a namespace.
+// FillMembersData fill the member data with the user data.
 //
-// tenantID is the models.Namespace's tenant what you want the members.
-func (s *service) ListMembers(ctx context.Context, tenantID string) ([]models.Member, error) {
-	ns, err := s.store.NamespaceGet(ctx, tenantID)
-	if err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrNamespaceNotFound
-		}
-
-		return nil, err
-	}
-
-	members := []models.Member{}
-	for _, member := range ns.Members {
+// This method exist because the namespace stores only the user ID and the role from its member as a list of models.Member.
+// To avoid unnecessary calls to store for member information, member username, this "conversion" is ony made when
+// required by the service.
+//
+// It receives a context, used to "control" the request flow and a slice of models.Member with just ID and return an
+// other slice with ID, username and role set.
+//
+// FillMembersData returns a slice of models.Member and an error. When error is not nil, the slice of models.Member is nil.
+func (s *service) FillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error) {
+	for index, member := range members {
 		user, _, err := s.store.UserGetByID(ctx, member.ID, false)
-		if err != nil {
-			if err == store.ErrNoDocuments {
-				return nil, ErrUserNotFound
-			}
-
-			return nil, err
+		if err != nil || user == nil {
+			return nil, NewErrUserNotFound(member.ID, err)
 		}
 
-		member := models.Member{ID: user.ID, Username: user.Username, Role: member.Role}
-		members = append(members, member)
+		members[index] = models.Member{ID: user.ID, Username: user.Username, Role: member.Role}
 	}
 
 	return members, nil
 }
 
-// EditNamespace changes the namespace's name.
+// EditNamespace edits the namespace name.
 //
-// tenantID is the models.Namespace's tenant what will be the name changed and name is new name.
+// It receives a context, used to "control" the request flow,  tenant ID from models.Namespace and the new name to
+// namespace. Name is set to lowercase.
+//
+// EditNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*models.Namespace, error) {
-	ns, err := s.store.NamespaceGet(ctx, tenantID)
+	namespace, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
-		return nil, err
+		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	lowerName := strings.ToLower(name)
-	if _, err := validator.ValidateStruct(&models.Namespace{
-		Name: lowerName,
-	}); err != nil {
-		return nil, ErrInvalidFormat
+	name = strings.ToLower(name)
+	if _, err := validator.ValidateStruct(&models.Namespace{Name: name}); err != nil {
+		return nil, NewErrNamespaceInvalid(err)
 	}
 
-	if ns.Name == lowerName {
-		return nil, ErrBadRequest
+	if namespace.Name == name {
+		return nil, NewErrNamespaceDuplicated(nil)
 	}
 
-	return s.store.NamespaceRename(ctx, ns.TenantID, lowerName)
+	return s.store.NamespaceRename(ctx, namespace.TenantID, name)
 }
 
-// AddNamespaceUser adds an user to a namespace.
+// AddNamespaceUser adds a member to a namespace.
 //
-// username is the models.User's name from the member what you want to add, role is member's role, tenantID is the
-// models.Namespace's tenant what will receive the member and userID is the models.User's ID who is adding this member.
+// It receives a context, used to "control" the request flow, the member's name, the member's role, the tenant ID from
+// models.Namespace what receive the member and the user ID from models.User who is adding the new member.
+//
+// If user from user's ID has a role what does not allow to add a new member or the member's role is the same as the user
+// one, AddNamespaceUser will return error.
+//
+// AddNamespaceUser returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error) {
 	if _, err := validator.ValidateStruct(models.Member{Username: memberUsername, Role: memberRole}); err != nil {
-		return nil, ErrInvalidFormat
+		return nil, NewErrNamespaceMemberInvalid(err)
 	}
 
 	namespace, err := s.store.NamespaceGet(ctx, tenantID)
-	if err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrNamespaceNotFound
-		}
-
-		return nil, err
+	if err != nil || namespace == nil {
+		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	memberActive, _, err := s.store.UserGetByID(ctx, userID, false)
-	if err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrUserNotFound
-		}
-
-		return nil, err
+	// user is the user who is adding the new member.
+	user, _, err := s.store.UserGetByID(ctx, userID, false)
+	if err != nil || user == nil {
+		return nil, NewErrUserNotFound(userID, err)
 	}
 
-	// Checks if the active member is in the namespace.
-	memberActiveFound, ok := guard.CheckMember(namespace, memberActive.ID)
+	// checks if the active member is in the namespace. user is the active member.
+	active, ok := guard.CheckMember(namespace, user.ID)
 	if !ok {
-		return nil, ErrBadRequest
+		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
 	}
 
-	memberPassive, err := s.store.UserGetByUsername(ctx, memberUsername)
+	passive, err := s.store.UserGetByUsername(ctx, memberUsername)
 	if err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrUserNotFound
-		}
-
-		return nil, err
+		return nil, NewErrUserNotFound(memberUsername, err)
 	}
 
-	// Checks if the passive member is in the namespace.
-	_, ok = guard.CheckMember(namespace, memberPassive.ID)
+	// checks if the passive member is in the namespace.
+	_, ok = guard.CheckMember(namespace, passive.ID)
 	if ok {
-		return nil, ErrNamespaceDuplicatedMember
+		return nil, NewErrNamespaceMemberDuplicated(passive.ID, nil)
 	}
 
-	if !guard.CheckRole(memberActiveFound.Role, memberRole) {
+	if !guard.CheckRole(active.Role, memberRole) {
 		return nil, guard.ErrForbidden
 	}
 
-	return s.store.NamespaceAddMember(ctx, tenantID, memberPassive.ID, memberRole)
+	return s.store.NamespaceAddMember(ctx, tenantID, passive.ID, memberRole)
 }
 
-// RemoveNamespaceUser removes a user from a namespace.
+// RemoveNamespaceUser removes member from a namespace.
 //
-// tenantID is the models.Namespace's tenant what will remove the member, mid is the member who will be removed and userID is
-// the models.User's ID from who is removing the member.
+// It receives a context, used to "control" the request flow, the tenant ID from models.Namespace, member ID to remove
+// and the user ID from models.User who is removing the member.
+//
+// If user from user's ID has a role what does not allow to remove a member or the member's role is the same as the user
+// one, RemoveNamespaceUser will return error.
+//
+// RemoveNamespaceUser returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error) {
 	namespace, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrNamespaceNotFound
-		}
-
-		return nil, err
+		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	memberActive, _, err := s.store.UserGetByID(ctx, userID, false)
+	// checks if the user exist.
+	// user is the user who is removing the member.
+	user, _, err := s.store.UserGetByID(ctx, userID, false)
 	if err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrUserNotFound
-		}
-
-		return nil, err
+		return nil, NewErrUserNotFound(userID, err)
 	}
 
-	memberPassive, _, err := s.store.UserGetByID(ctx, memberID, false)
+	// checks if the member exist.
+	// member is the member who will be removed.
+	member, _, err := s.store.UserGetByID(ctx, memberID, false)
 	if err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrUserNotFound
-		}
-
-		return nil, err
+		return nil, NewErrUserNotFound(memberID, err)
 	}
 
-	memberActiveFound, okActive := guard.CheckMember(namespace, memberActive.ID)
-	memberPassiveFound, okPassive := guard.CheckMember(namespace, memberPassive.ID)
-	if !okActive || !okPassive {
-		return nil, ErrNamespaceMemberNotFound
+	// checks if the active member is in the namespace. user is the active member.
+	active, ok := guard.CheckMember(namespace, user.ID)
+	if !ok {
+		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
 	}
 
-	if !guard.CheckRole(memberActiveFound.Role, memberPassiveFound.Role) {
+	// checks if the passive member is in the namespace. member is the passive member.
+	passive, ok := guard.CheckMember(namespace, member.ID)
+	if !ok {
+		return nil, NewErrNamespaceMemberNotFound(member.ID, err)
+	}
+
+	// checks if the active member can act over the passive member.
+	if !guard.CheckRole(active.Role, passive.Role) {
 		return nil, guard.ErrForbidden
 	}
 
-	return s.store.NamespaceRemoveMember(ctx, tenantID, memberPassive.ID)
+	return s.store.NamespaceRemoveMember(ctx, tenantID, member.ID)
 }
 
-// EditNamespaceUser changes user's role.
+// EditNamespaceUser edits a member's role.
 //
-// tenantID is the models.Namespace's tenant from what namespace you want to edit, userID is the models.User's ID from who is
-// acting to change the role, mid is the models.Member's ID who will be the role changed and role is the new role to
-// member.
+// It receives a context, used to "control" the request flow, the tenant ID from models.Namespace, user ID from
+// models.User who is editing the member and the member's new role.
+//
+// If user from user's ID has a role what does not allow to edit a member or the member's role is the same as the user
+// one, EditNamespaceUser will return error.
 func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error {
 	namespace, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
-		if err == store.ErrNoDocuments {
-			return ErrNamespaceNotFound
-		}
-
-		return err
+		return NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	memberActive, _, err := s.store.UserGetByID(ctx, userID, false)
+	// user is the user who is editing the member.
+	user, _, err := s.store.UserGetByID(ctx, userID, false)
 	if err != nil {
-		if err == store.ErrNoDocuments {
-			return ErrUserNotFound
-		}
-
-		return err
+		return NewErrUserNotFound(userID, err)
 	}
 
-	memberPassive, _, err := s.store.UserGetByID(ctx, memberID, false)
+	// member is the member who will be edited.
+	member, _, err := s.store.UserGetByID(ctx, memberID, false)
 	if err != nil {
-		if err == store.ErrNoDocuments {
-			return ErrUserNotFound
-		}
-
-		return err
+		return NewErrUserNotFound(memberID, err)
 	}
 
-	memberActiveFound, okActive := guard.CheckMember(namespace, memberActive.ID)
-	memberPassiveFound, okPassive := guard.CheckMember(namespace, memberPassive.ID)
-	if !okActive || !okPassive {
-		return ErrNamespaceMemberNotFound
+	// checks if the active member is in the namespace. user is the active member.
+	active, ok := guard.CheckMember(namespace, user.ID)
+	if !ok {
+		return NewErrNamespaceMemberNotFound(user.ID, err)
+	}
+
+	// checks if the passive member is in the namespace. member is the passive member.
+	passive, ok := guard.CheckMember(namespace, member.ID)
+	if !ok {
+		return NewErrNamespaceMemberNotFound(member.ID, err)
 	}
 
 	// Blocks if the active member's role is equal to the passive one.
-	if memberPassiveFound.Role == memberActiveFound.Role {
+	if passive.Role == active.Role {
 		return guard.ErrForbidden
 	}
 
-	if !guard.CheckRole(memberActiveFound.Role, memberNewRole) {
+	// checks if the active member can act over the passive member.
+	if !guard.CheckRole(active.Role, memberNewRole) {
 		return guard.ErrForbidden
 	}
 
-	return s.store.NamespaceEditMember(ctx, tenantID, memberPassive.ID, memberNewRole)
+	return s.store.NamespaceEditMember(ctx, tenantID, member.ID, memberNewRole)
 }
 
-// EditSessionRecordStatus defines if the session will be recorded.
+// EditSessionRecordStatus defines if the sessions will be recorded.
 //
-// record is the state what define if there will session record in a namespace and tenantID is the models.Namespace's tenant
-// from what namespace you want to record.
+// It receives a context, used to "control" the request flow, a boolean to define if the sessions will be recorded and
+// the tenant ID from models.Namespace.
 func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {
 	return s.store.NamespaceSetSessionRecord(ctx, sessionRecord, tenantID)
 }
 
-// GetSessionRecord gets the session record state.
+// GetSessionRecord gets the session record data.
 //
-// tenantID is the models.Namespace's tenant to get the session record status.
+// It receives a context, used to "control" the request flow, the tenant ID from models.Namespace.
+//
+// GetSessionRecord returns a boolean indicating the session record status and an error. When error is not nil,
+// the boolean is false.
 func (s *service) GetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
 	if _, err := s.store.NamespaceGet(ctx, tenantID); err != nil {
-		if err == store.ErrNoDocuments {
-			return false, ErrNamespaceNotFound
-		}
-
-		return false, err
+		return false, NewErrNamespaceNotFound(tenantID, err)
 	}
 
 	return s.store.NamespaceGetSessionRecord(ctx, tenantID)
