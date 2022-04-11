@@ -48,5 +48,7 @@ delete:
       description: Success delete public key
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
+    '404':
+      $ref: ../../shared/responses/not_found.yaml
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml
