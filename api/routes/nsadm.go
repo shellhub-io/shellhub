@@ -6,7 +6,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -58,16 +57,7 @@ func (h *Handler) CreateNamespace(c gateway.Context) error {
 
 	namespace, err := h.service.CreateNamespace(c.Ctx(), &req, userID)
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrConflictName:
-			return c.NoContent(http.StatusConflict)
-		case services.ErrInvalidFormat:
-			return c.NoContent(http.StatusBadRequest)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.JSON(http.StatusOK, namespace)
@@ -111,14 +101,7 @@ func (h *Handler) DeleteNamespace(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrNamespaceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -151,16 +134,7 @@ func (h *Handler) EditNamespace(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrInvalidFormat:
-			return c.NoContent(http.StatusBadRequest)
-		case services.ErrNamespaceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.JSON(http.StatusOK, nns)
@@ -194,20 +168,7 @@ func (h *Handler) AddNamespaceUser(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case services.ErrInvalidFormat:
-			return c.NoContent(http.StatusBadRequest)
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrUserNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrNamespaceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrNamespaceDuplicatedMember:
-			return c.NoContent(http.StatusConflict)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.JSON(http.StatusOK, namespace)
@@ -232,18 +193,7 @@ func (h *Handler) RemoveNamespaceUser(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrUserNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrNamespaceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrNamespaceMemberNotFound:
-			return c.NoContent(http.StatusNotFound)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.JSON(http.StatusOK, nns)
@@ -274,18 +224,7 @@ func (h *Handler) EditNamespaceUser(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrUserNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrNamespaceNotFound:
-			return c.NoContent(http.StatusNotFound)
-		case services.ErrNamespaceMemberNotFound:
-			return c.NoContent(http.StatusNotFound)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)

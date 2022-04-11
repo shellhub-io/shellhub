@@ -63,8 +63,14 @@ var (
 	ErrUserPasswordDuplicated    = errors.New("user password is equal to new password", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordNotMatch      = errors.New("user password does not match to the current password", ErrLayer, ErrCodeInvalid)
 	ErrNamespaceNotFound         = errors.New("namespace not found", ErrLayer, ErrCodeNotFound)
+	ErrNamespaceInvalid          = errors.New("namespace invalid", ErrLayer, ErrCodeInvalid)
+	ErrNamespaceList             = errors.New("namespace member list", ErrLayer, ErrCodeNotFound)
+	ErrNamespaceDuplicated       = errors.New("namespace duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrNamespaceMemberNotFound   = errors.New("member not found", ErrLayer, ErrCodeNotFound)
-	ErrNamespaceDuplicatedMember = errors.New("member duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrNamespaceMemberInvalid    = errors.New("member invalid", ErrLayer, ErrCodeInvalid)
+	ErrNamespaceMemberFillData   = errors.New("member fill data", ErrLayer, ErrCodeInvalid)
+	ErrNamespaceMemberDuplicated = errors.New("member duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrNamespaceCreateStore      = errors.New("namespace create store", ErrLayer, ErrCodeStore)
 	ErrMaxTagReached             = errors.New("tag limit reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicateTagName          = errors.New("tag duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrTagNameNotFound           = errors.New("tag not found", ErrLayer, ErrCodeNotFound)
@@ -103,6 +109,14 @@ func NewErrDuplicated(err error, values []string, next error) error {
 // NewErrLimit returns an error with the ErrDataLimit and wrap an error.
 func NewErrLimit(err error, limit int, next error) error {
 	return errors.Wrap(errors.WithData(err, ErrDataLimit{Limit: limit}), next)
+}
+
+// NewErrStore return an error to be used when the main store function fails.
+//
+// A service can make n calls to store's function, but each service has your main action; what it was made to do. For
+// this case, to use when the main store's function fails, this error was intended to be used.
+func NewErrStore(err error, next error) error {
+	return errors.Wrap(err, next)
 }
 
 // NewErrNamespaceNotFound returns an error when the namespace is not found.
@@ -214,4 +228,45 @@ func NewErrDeviceNotFound(id models.UID, next error) error {
 // NewErrSessionNotFound returns an error when the session is not found.
 func NewErrSessionNotFound(id models.UID, next error) error {
 	return NewErrNotFound(ErrSessionNotFound, string(id), next)
+}
+
+// NewErrNamespaceList return an error to be used when cannot list namespaces.
+func NewErrNamespaceList(next error) error {
+	return NewErrInvalid(ErrNamespaceList, nil, next)
+}
+
+// NewErrNamespaceInvalid returns an error to be used when the namespace is invalid.
+func NewErrNamespaceInvalid(next error) error {
+	return NewErrInvalid(ErrNamespaceInvalid, nil, next)
+}
+
+// NewErrNamespaceDuplicated returns an error to be used when the namespace is duplicated.
+func NewErrNamespaceDuplicated(next error) error {
+	return NewErrDuplicated(ErrNamespaceDuplicated, nil, next)
+}
+
+// NewErrNamespaceCreateStore returns an error to be used when the store function that create a namespace fails.
+func NewErrNamespaceCreateStore(next error) error {
+	return NewErrStore(ErrNamespaceCreateStore, next)
+}
+
+// NewErrNamespaceMemberInvalid returns an error to be used when the namespace member is invalid.
+func NewErrNamespaceMemberInvalid(next error) error {
+	return NewErrInvalid(ErrNamespaceMemberInvalid, nil, next)
+}
+
+// NewErrNamespaceMemberNotFound returns an error to be used when the namespace member is not found.
+func NewErrNamespaceMemberNotFound(id string, next error) error {
+	return NewErrNotFound(ErrNamespaceMemberNotFound, id, next)
+}
+
+// NewErrNamespaceMemberFillData returns an error to be used when the conversion of models.Member, with only the ID and
+// role set, to a complete structure, fails.
+func NewErrNamespaceMemberFillData(next error) error {
+	return NewErrInvalid(ErrNamespaceMemberFillData, nil, next)
+}
+
+// NewErrNamespaceMemberDuplicated returns an error to be used when the namespace member already exist in the namespace.
+func NewErrNamespaceMemberDuplicated(id string, next error) error {
+	return NewErrDuplicated(ErrNamespaceMemberDuplicated, []string{id}, next)
 }

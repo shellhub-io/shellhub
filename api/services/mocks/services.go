@@ -705,13 +705,13 @@ func (_m *Service) ListDevices(ctx context.Context, pagination paginator.Query, 
 	return r0, r1, r2
 }
 
-// ListMembers provides a mock function with given fields: ctx, tenantID
-func (_m *Service) ListMembers(ctx context.Context, tenantID string) ([]models.Member, error) {
-	ret := _m.Called(ctx, tenantID)
+// FillMembersData provides a mock function with given fields: ctx, members
+func (_m *Service) FillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error) {
+	ret := _m.Called(ctx, members)
 
 	var r0 []models.Member
-	if rf, ok := ret.Get(0).(func(context.Context, string) []models.Member); ok {
-		r0 = rf(ctx, tenantID)
+	if rf, ok := ret.Get(0).(func(context.Context, []models.Member) []models.Member); ok {
+		r0 = rf(ctx, members)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Member)
@@ -719,8 +719,8 @@ func (_m *Service) ListMembers(ctx context.Context, tenantID string) ([]models.M
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenantID)
+	if rf, ok := ret.Get(1).(func(context.Context, []models.Member) error); ok {
+		r1 = rf(ctx, members)
 	} else {
 		r1 = ret.Error(1)
 	}
