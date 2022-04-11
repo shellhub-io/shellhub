@@ -379,7 +379,6 @@ func TestUpdatePublicKeys(t *testing.T) {
 			requiredMocks: func() {
 			},
 			expected: Expected{key: nil, err: NewErrPublicKeyInvalid(map[string]interface{}{"Hostname": keyInvalidUpdateTwoFilters.Filter.Hostname, "Tags": keyInvalidUpdateTwoFilters.Filter.Tags}, nil)},
-			//expected: Expected{key: nil, err: NewErrPublicKeyInvalid([]string{"hostname", "tags"}, nil)},
 		},
 		{
 			description: "fail update the key when filter hostname is empty",
