@@ -4,8 +4,13 @@ import (
 	"encoding/json"
 )
 
+// Filter is a helper struct to filter results from the database.
+// TODO: Gives a better explanation about the filter and how to use it.
 type Filter struct {
-	Type   string      `json:"type,omitempty"`
+	// Type os the filter. Type can be "property" or "operator". When Type is "property", the Params field must is set
+	// to PropertyParams structure and when set "operator", the Params field must be set to OperatorParams structure.
+	Type string `json:"type,omitempty"`
+	// Params is the filter params. Params can be either PropertyParams or OperatorParams.
 	Params interface{} `json:"params,omitempty"`
 }
 
