@@ -487,7 +487,7 @@ func ExampleEvaluatePermission_no_callback() {
 		return errors.New("something went wrong")
 	})
 	fmt.Println(err)
-	// Output: forbidden
+	// Output: access forbidden
 }
 
 func ExampleGetRoleCode() {
