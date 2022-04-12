@@ -98,6 +98,8 @@ services:
     depends_on:
       - api
     command: daemon --docker
+    networks:
+      - shellhub
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
