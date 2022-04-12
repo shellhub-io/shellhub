@@ -2,8 +2,6 @@
 package guard
 
 import (
-	"errors"
-
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -13,6 +11,9 @@ const (
 	RoleAdministrator = "administrator"
 	RoleOwner         = "owner"
 )
+
+// RoleInvalidCode is a role code for invalid role.
+const RoleInvalidCode = -1
 
 const (
 	// RoleObserverCode is a role code for observer.
@@ -41,8 +42,6 @@ var RolePermissions = map[string]Permissions{
 	RoleOwner:         ownerPermissions,
 }
 
-var ErrForbidden = errors.New("forbidden")
-
 // CheckMember checks if a models.User's ID is a models.Namespace's member. A models.User is a member if its ID is in
 // the models.Namespace's members list.
 func CheckMember(namespace *models.Namespace, id string) (*models.Member, bool) {
@@ -62,29 +61,30 @@ func CheckMember(namespace *models.Namespace, id string) (*models.Member, bool) 
 	return &found, true
 }
 
-// GetRoleCode converts a models.Member's role string to a role code. If the role is not found in Roles, it returns -1.
+// GetRoleCode converts a models.Member's role string to a role code. If the role is not found in Roles, it returns RoleInvalidCode.
 func GetRoleCode(role string) int {
 	code, ok := Roles[role]
 	if !ok {
-		// return -1 when member role is not valid.
-		return -1
+		// return RoleInvalidCode when member's role is not valid.
+		return RoleInvalidCode
 	}
 
 	return code
 }
 
 // CheckRole checks if a models.Member's role from a models.Namespace can act over the other. Active is the member's role
-// from who is acting, and passive is the member who is being acted. Active and passive roles must be members of the
+// from who is acting, and passive is the member who is receiving. Active and passive roles must be members of the
 // same models.Namespace.
 //
-// If active or passive is an invalid member, it returns false. If active and passive are equal, it returns false too.
+// If active or passive is an invalid member, a member with a role no mapped, it returns false. If active and passive are
+// equal, it returns false too.
 //
-// Active and passive must be one of the following: RoleObserver, RoleOperator,RoleAdmin or RoleOwner.
+// The valid roles are: RoleObserver, RoleOperator, RoleAdmin or RoleOwner.
 func CheckRole(active, passive string) bool {
 	first := GetRoleCode(active)
 	second := GetRoleCode(passive)
 
-	if first == -1 || second == -1 {
+	if first == RoleInvalidCode || second == RoleInvalidCode {
 		return false
 	}
 
