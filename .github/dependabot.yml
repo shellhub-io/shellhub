@@ -49,7 +49,7 @@ updates:
     - dependency-name: "sass-loader"
       update-types: ["version-update:semver-major","version-update:semver-minor"]
     - dependency-name: "sass"
-      update-types: ["version-update:semver-major"]
+      update-types: ["version-update:semver-major","version-update:semver-minor"]
     - dependency-name: "stylus-loader"
       update-types: ["version-update:semver-major"]
     - dependency-name: "eslint"
