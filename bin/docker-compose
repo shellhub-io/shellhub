@@ -2,26 +2,26 @@
 
 readlink_f() {
     (if uname | grep -q 'Darwin'; then
-	# Use greadlink if available, otherwise it behaves like "readlink -f" option
-        if command -v greadlink >/dev/null 2>&1; then
-            greadlink -f "$1"
-        else
-	    target_file="$1"
-	    cd "$(dirname "$target_file")"
-	    target_file=$(basename "$target_file")
+	     # Use greadlink if available, otherwise it behaves like "readlink -f" option
+         if command -v greadlink >/dev/null 2>&1; then
+             greadlink -f "$1"
+         else
+	         target_file="$1"
+	         cd "$(dirname "$target_file")"
+	         target_file=$(basename "$target_file")
 
-	    while [ -L "$target_file" ]
-	    do
-		target_file=$(readlink "$target_file")
-		cd "$(dirname "$target_file")"
-		target_file=$(basename "$target_file")
-	    done
+	         while [ -L "$target_file" ]
+	         do
+		         target_file=$(readlink "$target_file")
+		         cd "$(dirname "$target_file")"
+		         target_file=$(basename "$target_file")
+	         done
 
-	    echo "$(pwd -P)/$target_file"
-        fi
-    else
-        readlink -f "$1"
-    fi)
+	         echo "$(pwd -P)/$target_file"
+         fi
+     else
+         readlink -f "$1"
+     fi)
 }
 
 command -v docker-compose >/dev/null 2>&1 || { echo >&2 "ERROR: Please install docker-compose."; exit 1; }
@@ -48,10 +48,10 @@ COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.${SSL_COMPOSE_FILE}.yml"
 
 if [ "$SHELLHUB_REDIRECT_TO_HTTPS" = "true" ]; then
     if [ "$SHELLHUB_AUTO_SSL" != "true" ]; then
-	cat <<EOF >&2
+	    cat <<EOF >&2
 ERROR: In order to enable HTTPS redirection, you need to have HTTPS enabled
 EOF
-	exit 1
+	    exit 1
     fi
 
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.httptohttps.yml"
