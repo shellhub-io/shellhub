@@ -16,7 +16,7 @@ type Device struct {
 	LastSeen   time.Time       `json:"last_seen" bson:"last_seen"`
 	Online     bool            `json:"online" bson:",omitempty"`
 	Namespace  string          `json:"namespace" bson:",omitempty"`
-	Status     string          `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused`
+	Status     string          `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
 	CreatedAt  time.Time       `json:"created_at" bson:"created_at,omitempty"`
 	RemoteAddr string          `json:"remote_addr" bson:"remote_addr"`
 	Position   *DevicePosition `json:"position" bson:"position"`
