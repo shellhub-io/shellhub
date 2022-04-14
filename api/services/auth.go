@@ -14,11 +14,11 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
-	"github.com/go-playground/validator/v10"
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type AuthService interface {
@@ -32,6 +32,10 @@ type AuthService interface {
 }
 
 func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAddr string) (*models.DeviceAuthResponse, error) {
+	if _, err := validator.ValidateStruct(req); err != nil {
+		return nil, err
+	}
+
 	uid := sha256.Sum256(structhash.Dump(req.DeviceAuth, 1))
 
 	key := hex.EncodeToString(uid[:])
@@ -79,10 +83,6 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 		return nil, err
 	}
 
-	validate := validator.New()
-	if err := validate.Struct(req); err != nil {
-		return nil, err
-	}
 	hostname := strings.ToLower(req.DeviceAuth.Hostname)
 
 	if err := s.store.DeviceCreate(ctx, device, hostname); err != nil {
