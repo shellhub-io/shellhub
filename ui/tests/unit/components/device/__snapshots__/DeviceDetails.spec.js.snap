@@ -57,6 +57,14 @@ exports[`DeviceDetails Offline Device Renders the component 1`] = `
       </div>
       <div class="mt-2">
         <div class="overline">
+          Agent Version
+        </div>
+        <div data-test="deviceVersion-field">
+          latest
+        </div>
+      </div>
+      <div class="mt-2">
+        <div class="overline">
           Tags
         </div>
         <v-chip-stub small="true" activeclass="" tag="span" active="true" closeicon="$delete" closelabel="$vuetify.close" filtericon="$complete" outlined="true" class="ml-1 mb-1">
@@ -150,6 +158,14 @@ exports[`DeviceDetails Online Device and owner Renders the component 1`] = `
         <div data-test="devicePrettyName-field">
           <deviceicon-stub iconname="arch"></deviceicon-stub>
           Linux
+        </div>
+      </div>
+      <div class="mt-2">
+        <div class="overline">
+          Agent Version
+        </div>
+        <div data-test="deviceVersion-field">
+          latest
         </div>
       </div>
       <div class="mt-2">

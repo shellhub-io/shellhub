@@ -179,6 +179,18 @@
 
         <div class="mt-2">
           <div class="overline">
+            Agent Version
+          </div>
+          <div
+            v-if="device.info"
+            data-test="deviceVersion-field"
+          >
+            {{ device.info.version }}
+          </div>
+        </div>
+
+        <div class="mt-2">
+          <div class="overline">
             Tags
           </div>
 
