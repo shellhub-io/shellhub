@@ -308,7 +308,7 @@ func TestRenameDevice(t *testing.T) {
 
 	user := &models.User{UserData: models.UserData{Name: "name", Email: "email", Username: "username"}, ID: "id"}
 	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Role: authorizer.MemberRoleOwner}, {ID: "id2", Role: authorizer.MemberRoleObserver}}}
-	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant"}
+	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
 	device2 := &models.Device{UID: "uid2", Name: "newname", TenantID: "tenant2"}
 	Err := errors.New("error")
 
