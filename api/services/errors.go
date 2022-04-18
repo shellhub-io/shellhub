@@ -20,6 +20,10 @@ const (
 	ErrCodeInvalid
 	// ErrCodePayment is the error code for when a resource required payment.
 	ErrCodePayment
+	// ErrCodeUnauthorized is the error code for when the access to resource is unauthorized.
+	ErrCodeUnauthorized
+	// ErrCodeForbidden is the error code for when the access to resource is forbidden.
+	ErrCodeForbidden
 	// ErrCodeStore is the error code for when the store function fails. The store function is responsible for execute
 	// the main service action.
 	ErrCodeStore
@@ -62,6 +66,8 @@ var (
 	ErrUserPasswordInvalid       = errors.New("user password invalid", ErrLayer, ErrCodeInvalid)
 	ErrUserPasswordDuplicated    = errors.New("user password is equal to new password", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordNotMatch      = errors.New("user password does not match to the current password", ErrLayer, ErrCodeInvalid)
+	ErrUserNotConfirmed          = errors.New("user not confirmed", ErrLayer, ErrCodeForbidden)
+	ErrUserUpdate                = errors.New("user update", ErrLayer, ErrCodeStore)
 	ErrNamespaceNotFound         = errors.New("namespace not found", ErrLayer, ErrCodeNotFound)
 	ErrNamespaceInvalid          = errors.New("namespace invalid", ErrLayer, ErrCodeInvalid)
 	ErrNamespaceList             = errors.New("namespace member list", ErrLayer, ErrCodeNotFound)
@@ -85,6 +91,8 @@ var (
 	ErrDeviceLimit               = errors.New("device limit reached", ErrLayer, ErrCodePayment)
 	ErrDeviceStatusInvalid       = errors.New("device status invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceStatusAccepted      = errors.New("device status accepted", ErrLayer, ErrCodeInvalid)
+	ErrDeviceCreate              = errors.New("device create", ErrLayer, ErrCodeStore)
+	ErrDeviceSetOnline           = errors.New("device set online", ErrLayer, ErrCodeStore)
 	ErrMaxDeviceCountReached     = errors.New("maximum number of accepted devices reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicatedDeviceName      = errors.New("device name duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrPublicKeyDuplicated       = errors.New("public key duplicated", ErrLayer, ErrCodeDuplicated)
@@ -93,8 +101,11 @@ var (
 	ErrPublicKeyNoTags           = errors.New("public key has no tags", ErrLayer, ErrCodeInvalid)
 	ErrPublicKeyDataInvalid      = errors.New("public key data invalid", ErrLayer, ErrCodeInvalid)
 	ErrPublicKeyFilter           = errors.New("public key cannot have more than one filter at same time", ErrLayer, ErrCodeInvalid)
+	ErrTokenSigned               = errors.New("token signed", ErrLayer, ErrCodeInvalid)
 	ErrTypeAssertion             = errors.New("type assertion failed", ErrLayer, ErrCodeInvalid)
 	ErrSessionNotFound           = errors.New("session not found", ErrLayer, ErrCodeNotFound)
+	ErrAuthInvalid               = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
+	ErrAuthUnathorized           = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
 )
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
@@ -123,6 +134,16 @@ func NewErrLimit(err error, limit int, next error) error {
 // this case, to use when the main store's function fails, this error was intended to be used.
 func NewErrStore(err error, data interface{}, next error) error {
 	return errors.Wrap(errors.WithData(err, data), next)
+}
+
+// NewErrUnathorized returns a error to be used when the access to a resource is not authorized.
+func NewErrUnathorized(err error, next error) error {
+	return errors.Wrap(err, next)
+}
+
+// NewErrForbidden return a error to be used when the access to a resource is forbidden.
+func NewErrForbidden(err error, next error) error {
+	return errors.Wrap(err, next)
 }
 
 // NewErrNamespaceNotFound returns an error when the namespace is not found.
@@ -307,4 +328,39 @@ func NewErrDeviceStatusAccepted(next error) error {
 	// This error is so tied to the device status, that it is not possible to use the NewErrInvalid function without this
 	// literal assignment.
 	return NewErrInvalid(ErrDeviceStatusAccepted, map[string]interface{}{"status": "accepted"}, next)
+}
+
+// NewErrTokenSigned returns an error to be used when the token signed fails.
+func NewErrTokenSigned(err error) error {
+	return NewErrInvalid(ErrTokenSigned, nil, err)
+}
+
+// NewErrUserNotConfirmed returns an error to be used when the user is not confirmed.
+func NewErrUserNotConfirmed(err error) error {
+	return NewErrForbidden(ErrUserNotConfirmed, err)
+}
+
+// NewErrAuthInvalid returns a error to be used when the auth data is invalid.
+func NewErrAuthInvalid(data map[string]interface{}, err error) error {
+	return NewErrInvalid(ErrAuthInvalid, data, err)
+}
+
+// NewErrUserUpdate returns a error to be used when the user update fails.
+func NewErrUserUpdate(user *models.User, err error) error {
+	return NewErrStore(ErrUserUpdate, user, err)
+}
+
+// NewErrDeviceCreate returns a error to be used when the device create fails.
+func NewErrDeviceCreate(device models.Device, err error) error {
+	return NewErrStore(ErrDeviceCreate, device, err)
+}
+
+// NewErrDeviceSetOnline returns a error to be used when the device set online fails.
+func NewErrDeviceSetOnline(id models.UID, err error) error {
+	return NewErrStore(ErrDeviceSetOnline, id, err)
+}
+
+// NewErrAuthUnathorized returns a error to be used when the auth is unauthorized.
+func NewErrAuthUnathorized(err error) error {
+	return NewErrUnathorized(ErrAuthUnathorized, err)
 }
