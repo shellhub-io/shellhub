@@ -7,6 +7,7 @@ import (
 )
 
 type Device struct {
+	// UID is the unique identifier for a device.
 	UID        string          `json:"uid"`
 	Name       string          `json:"name" bson:"name,omitempty" validate:"required,hostname_rfc1123,excludes=."`
 	Identity   *DeviceIdentity `json:"identity"`

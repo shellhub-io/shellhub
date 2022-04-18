@@ -72,15 +72,23 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 	return s.store.DeviceGet(ctx, uid)
 }
 
+// DeleteDevice deletes a device from a namespace.
+//
+// It receives a context, used to "control" the request flow and, the device UID from models.Device and the tenant ID
+// from models.Namespace.
+//
+// It can return an error if the device is not found, NewErrDeviceNotFound(uid, err), if the namespace is not found,
+// NewErrNamespaceNotFound(tenant, err), if the usage cannot be reported, ErrReport or if the store function that
+// delete the device fails.
 func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if err != nil {
-		return err
+		return NewErrDeviceNotFound(uid, err)
 	}
 
 	ns, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil {
-		return err
+		return NewErrNamespaceNotFound(tenant, err)
 	}
 
 	if err = s.HandleReportUsage(ns, uid, false, device); err != nil {
@@ -93,7 +101,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if err != nil {
-		return err
+		return NewErrDeviceNotFound(uid, err)
 	}
 
 	updatedDevice := &models.Device{
@@ -109,8 +117,8 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		Status:    device.Status,
 	}
 
-	if _, err = validator.ValidateStruct(updatedDevice); err != nil {
-		return ErrInvalidFormat
+	if data, err := validator.ValidateStructFields(updatedDevice); err != nil {
+		return NewErrDeviceInvalid(data, err)
 	}
 
 	if device.Name == updatedDevice.Name {
@@ -119,23 +127,27 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 
 	otherDevice, err := s.store.DeviceGetByName(ctx, updatedDevice.Name, tenant)
 	if err != nil && err != store.ErrNoDocuments {
-		return err
+		return NewErrDeviceNotFound(models.UID(updatedDevice.UID), err)
 	}
 
 	if otherDevice != nil {
-		return ErrDuplicatedDeviceName
+		return NewErrDeviceDuplicated(otherDevice.Name, err)
 	}
 
 	return s.store.DeviceRename(ctx, uid, name)
 }
 
+// LookupDevice looks for a device in a namespace.
+//
+// It receives a context, used to "control" the request flow and, the namespace name from a models.Namespace and a
+// device name from models.Device.
 func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
 	device, err := s.store.DeviceLookup(ctx, namespace, name)
-	if err != nil && err == store.ErrNoDocuments {
-		return nil, ErrNotFound
+	if err != nil || device == nil {
+		return nil, NewErrDeviceLookUpStore(namespace, name, err)
 	}
 
-	return device, err
+	return device, nil
 }
 
 func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
@@ -150,16 +162,16 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 	}
 
 	if _, ok := validateStatus[status]; !ok {
-		return ErrBadRequest
+		return NewErrDeviceStatusInvalid(status, nil)
 	}
 
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if err != nil {
-		return err
+		return NewErrDeviceNotFound(uid, err)
 	}
 
 	if device.Status == StatusAccepted {
-		return ErrForbidden
+		return NewErrDeviceStatusAccepted(nil)
 	}
 
 	if status != StatusAccepted {
@@ -168,10 +180,11 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 
 	sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
 	if err != nil && err != store.ErrNoDocuments {
-		return err
+		return NewErrDeviceNotFound(models.UID(device.UID), err)
 	}
 
 	if sameMacDev != nil && sameMacDev.UID != device.UID { //nolint:nestif
+		// TODO: decide what to do with these errors.
 		if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil {
 			return err
 		}
@@ -184,7 +197,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 	} else {
 		ns, err := s.store.NamespaceGet(ctx, device.TenantID)
 		if err != nil {
-			return err
+			return NewErrNamespaceNotFound(device.TenantID, err)
 		}
 
 		if err := s.HandleReportUsage(ns, uid, true, device); err != nil {
@@ -192,13 +205,14 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 		}
 
 		if ns.MaxDevices > 0 && ns.MaxDevices <= ns.DevicesCount {
-			return ErrMaxDeviceCountReached
+			return NewErrDeviceLimit(ns.MaxDevices, nil)
 		}
 	}
 
 	return s.store.DeviceUpdateStatus(ctx, uid, status)
 }
 
+// SetDevicePosition sets the position to a device from its IP.
 func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip string) error {
 	ipParsed := net.ParseIP(ip)
 	position, err := s.locator.GetPosition(ipParsed)
