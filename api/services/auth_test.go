@@ -163,7 +163,7 @@ func TestAuthUser(t *testing.T) {
 				mock.On("UserGetByUsername", ctx, authReq.Username).Return(nil, Err).Once()
 				mock.On("UserGetByEmail", ctx, authReq.Username).Return(nil, Err).Once()
 			},
-			expected: Expected{nil, Err},
+			expected: Expected{nil, NewErrUserNotFound(authReq.Username, Err)},
 		},
 		{
 			description: "Fails when user has account but wrong password",
@@ -172,7 +172,7 @@ func TestAuthUser(t *testing.T) {
 				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userWithWrongPassword, nil).Once()
 				mock.On("NamespaceGetFirst", ctx, userWithWrongPassword.ID).Return(namespace, nil).Once()
 			},
-			expected: Expected{nil, ErrUnauthorized},
+			expected: Expected{nil, NewErrAuthUnathorized(nil)},
 		},
 		{
 			description: "Fails when user has account but not activated",
@@ -180,7 +180,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userNotActivatedAccount, nil).Once()
 			},
-			expected: Expected{nil, ErrForbidden},
+			expected: Expected{nil, NewErrUserNotConfirmed(nil)},
 		},
 		{
 			description: "Successful authentication",
@@ -268,7 +268,7 @@ func TestAuthUserInfo(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, "notuser").Return(nil, Err).Once()
 			},
-			expected: Expected{nil, Err},
+			expected: Expected{nil, NewErrUserNotFound("notuser", Err)},
 		},
 		{
 			description: "Successful auth login",

@@ -62,7 +62,7 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 
-	return echo.ErrUnauthorized
+	return svc.NewErrAuthUnathorized(nil)
 }
 
 func (h *Handler) AuthDevice(c gateway.Context) error {
@@ -95,12 +95,7 @@ func (h *Handler) AuthUser(c gateway.Context) error {
 
 	res, err := h.service.AuthUser(c.Ctx(), req)
 	if err != nil {
-		switch err {
-		case svc.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		default:
-			return echo.ErrUnauthorized
-		}
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -113,12 +108,7 @@ func (h *Handler) AuthUserInfo(c gateway.Context) error {
 
 	res, err := h.service.AuthUserInfo(c.Ctx(), username, tenant, token)
 	if err != nil {
-		switch err {
-		case svc.ErrUnauthorized:
-			return echo.ErrUnauthorized
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -127,7 +117,7 @@ func (h *Handler) AuthUserInfo(c gateway.Context) error {
 func (h *Handler) AuthGetToken(c gateway.Context) error {
 	res, err := h.service.AuthGetToken(c.Ctx(), c.Param(ParamNamespaceTenant))
 	if err != nil {
-		return echo.ErrUnauthorized
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -141,7 +131,7 @@ func (h *Handler) AuthSwapToken(c gateway.Context) error {
 
 	res, err := h.service.AuthSwapToken(c.Ctx(), id, c.Param(ParamNamespaceTenant))
 	if err != nil {
-		return echo.ErrUnauthorized
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -156,7 +146,7 @@ func (h *Handler) AuthPublicKey(c gateway.Context) error {
 
 	res, err := h.service.AuthPublicKey(c.Ctx(), &req)
 	if err != nil {
-		return echo.ErrUnauthorized
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)

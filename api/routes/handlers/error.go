@@ -10,7 +10,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/errors"
 )
 
-// Errors maps errors code to http status code.
+// Errors is a centrlaized echo error handling for all API resonses. When a route returns a generic error, this handler
+// evaluates the error and returns a specific HTTP status code and error message.
 func Errors(err error, c echo.Context) {
 	if err == guard.ErrForbidden {
 		_ = c.NoContent(http.StatusForbidden)
@@ -20,8 +21,8 @@ func Errors(err error, c echo.Context) {
 
 	e, ok := err.(errors.Error)
 	if !ok {
-		// If err is not errors.Error type, return its error with an internal error status.
-		// Generally, this is happening in an inferior layer and was not checked by the service.
+		// If err is not from the errors.Error type, return its error with an internal error status.
+		// Generally, this happen when the service layer does not deal with the error.
 		_ = c.NoContent(http.StatusInternalServerError)
 
 		return
@@ -29,6 +30,7 @@ func Errors(err error, c echo.Context) {
 
 	switch e.Layer {
 	case services.ErrLayer:
+		// When the error layer is from the service layer, return a specific HTTP status code and error message.
 		_ = c.NoContent(converter.FromErrServiceToHTTPStatus(e.Code))
 
 		return

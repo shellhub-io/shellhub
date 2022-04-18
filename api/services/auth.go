@@ -15,7 +15,6 @@ import (
 
 	"github.com/cnf/structhash"
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -49,7 +48,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 
 	tokenStr, err := token.SignedString(s.privKey)
 	if err != nil {
-		return nil, err
+		return nil, NewErrTokenSigned(err)
 	}
 
 	type Device struct {
@@ -80,17 +79,21 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 	// The order here is critical as we don't want to register devices if the tenant id is invalid
 	namespace, err := s.store.NamespaceGet(ctx, device.TenantID)
 	if err != nil {
-		return nil, err
+		return nil, NewErrNamespaceNotFound(device.TenantID, err)
+	}
+
+	if invalid, err := validator.ValidateStructFields(req); err != nil {
+		return nil, NewErrAuthInvalid(invalid, err)
 	}
 
 	hostname := strings.ToLower(req.DeviceAuth.Hostname)
 
 	if err := s.store.DeviceCreate(ctx, device, hostname); err != nil {
-		return nil, err
+		return nil, NewErrDeviceCreate(device, err)
 	}
 
 	if err := s.store.DeviceSetOnline(ctx, models.UID(device.UID), true); err != nil {
-		return nil, err
+		return nil, NewErrDeviceSetOnline(models.UID(device.UID), err)
 	}
 
 	for _, uid := range req.Sessions {
@@ -101,7 +104,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 
 	dev, err := s.store.DeviceGetByUID(ctx, models.UID(device.UID), device.TenantID)
 	if err != nil {
-		return nil, err
+		return nil, NewErrDeviceNotFound(models.UID(device.UID), err)
 	}
 	if err := s.cache.Set(ctx, strings.Join([]string{"auth_device", key}, "/"), &Device{Name: dev.Name, Namespace: namespace.Name}, time.Second*30); err != nil {
 		return nil, err
@@ -120,18 +123,18 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 	if err != nil {
 		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(req.Username))
 		if err != nil {
-			return nil, err
+			return nil, NewErrUserNotFound(req.Username, err)
 		}
 	}
 
 	if !user.Confirmed {
-		return nil, ErrForbidden
+		return nil, NewErrUserNotConfirmed(nil)
 	}
 
 	namespace, _ := s.store.NamespaceGetFirst(ctx, user.ID)
 
-	role := ""
-	tenant := ""
+	var role string
+	var tenant string
 	if namespace != nil {
 		tenant = namespace.TenantID
 
@@ -162,13 +165,13 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 
 		tokenStr, err := token.SignedString(s.privKey)
 		if err != nil {
-			return nil, err
+			return nil, NewErrTokenSigned(err)
 		}
 
 		user.LastLogin = clock.Now()
 
 		if err := s.store.UserUpdateData(ctx, user, user.ID); err != nil {
-			return nil, err
+			return nil, NewErrUserUpdate(user, err)
 		}
 
 		return &models.UserAuthResponse{
@@ -182,19 +185,19 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		}, nil
 	}
 
-	return nil, ErrUnauthorized
+	return nil, NewErrAuthUnathorized(nil)
 }
 
 func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {
 	user, _, err := s.store.UserGetByID(ctx, id, false)
 	if err != nil {
-		return nil, err
+		return nil, NewErrUserNotFound(id, err)
 	}
 
 	namespace, _ := s.store.NamespaceGetFirst(ctx, user.ID)
 
-	role := ""
-	tenant := ""
+	var role string
+	var tenant string
 	if namespace != nil {
 		tenant = namespace.TenantID
 
@@ -223,7 +226,7 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 
 	tokenStr, err := token.SignedString(s.privKey)
 	if err != nil {
-		return nil, err
+		return nil, NewErrTokenSigned(err)
 	}
 
 	return &models.UserAuthResponse{
@@ -240,7 +243,7 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 func (s *service) AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error) {
 	privKey, err := s.store.PrivateKeyGet(ctx, req.Fingerprint)
 	if err != nil {
-		return nil, err
+		return nil, NewErrPublicKeyNotFound(req.Fingerprint, err)
 	}
 
 	block, _ := pem.Decode(privKey.Data)
@@ -267,12 +270,12 @@ func (s *service) AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRe
 func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models.UserAuthResponse, error) {
 	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil {
-		return nil, err
+		return nil, NewErrNamespaceNotFound(tenant, err)
 	}
 
 	user, _, err := s.store.UserGetByID(ctx, id, false)
 	if err != nil {
-		return nil, err
+		return nil, NewErrUserNotFound(id, err)
 	}
 
 	var role string
@@ -284,8 +287,8 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 		}
 	}
 
-	for _, i := range namespace.Members {
-		if user.ID == i.ID {
+	for _, member := range namespace.Members {
+		if user.ID == member.ID {
 			token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 				Username: user.Username,
 				Admin:    true,
@@ -302,7 +305,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 
 			tokenStr, err := token.SignedString(s.privKey)
 			if err != nil {
-				return nil, err
+				return nil, NewErrTokenSigned(err)
 			}
 
 			return &models.UserAuthResponse{
@@ -322,17 +325,13 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 
 func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error) {
 	user, err := s.store.UserGetByUsername(ctx, username)
-	if err != nil {
-		if err == store.ErrNoDocuments {
-			return nil, ErrUnauthorized
-		}
-
-		return nil, err
+	if err != nil || user == nil {
+		return nil, NewErrUserNotFound(username, err)
 	}
 
 	namespace, _ := s.store.NamespaceGet(ctx, tenant)
 
-	role := ""
+	var role string
 	if namespace != nil {
 		for _, member := range namespace.Members {
 			if member.ID == user.ID {
