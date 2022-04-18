@@ -79,6 +79,12 @@ var (
 	ErrConflictName              = errors.New("name duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInvalidFormat             = errors.New("invalid format", ErrLayer, ErrCodeInvalid)
 	ErrDeviceNotFound            = errors.New("device not found", ErrLayer, ErrCodeNotFound)
+	ErrDeviceInvalid             = errors.New("device invalid", ErrLayer, ErrCodeInvalid)
+	ErrDeviceDuplicated          = errors.New("device duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrDeviceLookUpStore         = errors.New("device look up store", ErrLayer, ErrCodeStore)
+	ErrDeviceLimit               = errors.New("device limit reached", ErrLayer, ErrCodePayment)
+	ErrDeviceStatusInvalid       = errors.New("device status invalid", ErrLayer, ErrCodeInvalid)
+	ErrDeviceStatusAccepted      = errors.New("device status accepted", ErrLayer, ErrCodeInvalid)
 	ErrMaxDeviceCountReached     = errors.New("maximum number of accepted devices reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicatedDeviceName      = errors.New("device name duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrPublicKeyDuplicated       = errors.New("public key duplicated", ErrLayer, ErrCodeDuplicated)
@@ -115,8 +121,8 @@ func NewErrLimit(err error, limit int, next error) error {
 //
 // A service can make n calls to store's function, but each service has your main action; what it was made to do. For
 // this case, to use when the main store's function fails, this error was intended to be used.
-func NewErrStore(err error, next error) error {
-	return errors.Wrap(err, next)
+func NewErrStore(err error, data interface{}, next error) error {
+	return errors.Wrap(errors.WithData(err, data), next)
 }
 
 // NewErrNamespaceNotFound returns an error when the namespace is not found.
@@ -247,7 +253,7 @@ func NewErrNamespaceDuplicated(next error) error {
 
 // NewErrNamespaceCreateStore returns an error to be used when the store function that create a namespace fails.
 func NewErrNamespaceCreateStore(next error) error {
-	return NewErrStore(ErrNamespaceCreateStore, next)
+	return NewErrStore(ErrNamespaceCreateStore, nil, next)
 }
 
 // NewErrNamespaceMemberInvalid returns an error to be used when the namespace member is invalid.
@@ -269,4 +275,36 @@ func NewErrNamespaceMemberFillData(next error) error {
 // NewErrNamespaceMemberDuplicated returns an error to be used when the namespace member already exist in the namespace.
 func NewErrNamespaceMemberDuplicated(id string, next error) error {
 	return NewErrDuplicated(ErrNamespaceMemberDuplicated, []string{id}, next)
+}
+
+// NewErrDeviceInvalid returns an error to be used when the device data is invalid.
+func NewErrDeviceInvalid(data map[string]interface{}, next error) error {
+	return NewErrInvalid(ErrDeviceInvalid, data, next)
+}
+
+// NewErrDeviceDuplicated returns an error to be used when the device already exist in the namespace.
+func NewErrDeviceDuplicated(name string, next error) error {
+	return NewErrDuplicated(ErrDeviceDuplicated, []string{name}, next)
+}
+
+// NewErrDeviceLookUpStore returns an error to be used when the store function that look up to a device fails.
+func NewErrDeviceLookUpStore(namespace, name string, next error) error {
+	return NewErrStore(ErrDeviceLookUpStore, map[string]interface{}{"namespace": namespace, "name": name}, next)
+}
+
+// NewErrDeviceLimit returns an error to be used when the device limit is reached.
+func NewErrDeviceLimit(limit int, next error) error {
+	return NewErrLimit(ErrDeviceLimit, limit, next)
+}
+
+// NewErrDeviceStatusInvalid returns an error to be used when the device's status is invalid.
+func NewErrDeviceStatusInvalid(status string, next error) error {
+	return NewErrInvalid(ErrDeviceStatusInvalid, map[string]interface{}{"status": status}, next)
+}
+
+// NewErrDeviceStatusAccepted returns an error to be used when the device's status is accepted.
+func NewErrDeviceStatusAccepted(next error) error {
+	// This error is so tied to the device status, that it is not possible to use the NewErrInvalid function without this
+	// literal assignment.
+	return NewErrInvalid(ErrDeviceStatusAccepted, map[string]interface{}{"status": "accepted"}, next)
 }

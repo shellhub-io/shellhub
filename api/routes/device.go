@@ -79,12 +79,7 @@ func (h *Handler) DeleteDevice(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -110,16 +105,7 @@ func (h *Handler) RenameDevice(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrDuplicatedDeviceName:
-			return c.NoContent(http.StatusConflict)
-		case services.ErrInvalidFormat:
-			return c.NoContent(http.StatusBadRequest)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -173,15 +159,6 @@ func (h *Handler) UpdatePendingStatus(c gateway.Context) error {
 		return err
 	})
 	if err != nil {
-		switch err {
-		case guard.ErrForbidden:
-			return c.NoContent(http.StatusForbidden)
-		case services.ErrBadRequest:
-			return c.NoContent(http.StatusBadRequest)
-		case services.ErrMaxDeviceCountReached:
-			return c.NoContent(http.StatusPaymentRequired)
-		}
-
 		return err
 	}
 

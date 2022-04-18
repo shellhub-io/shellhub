@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"net"
 	"strconv"
 	"testing"
@@ -15,9 +14,11 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +28,7 @@ func TestListDevices(t *testing.T) {
 
 	ctx := context.TODO()
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	devices := []models.Device{
 		{UID: "uid"},
@@ -117,7 +118,7 @@ func TestGetDevice(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	ctx := context.TODO()
 
@@ -181,7 +182,7 @@ func TestDeleteDevice(t *testing.T) {
 	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Role: authorizer.MemberRoleOwner}, {ID: "id2", Role: authorizer.MemberRoleObserver}}}
 	device := &models.Device{UID: "uid", TenantID: "tenant", CreatedAt: time.Time{}}
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	cases := []struct {
 		name          string
@@ -199,7 +200,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(nil, Err).Once()
 			},
 			id:       user.ID,
-			expected: Err,
+			expected: NewErrDeviceNotFound(models.UID("_uid"), Err),
 		},
 		{
 			name:   "DeleteDevice fails when the store device delete fails",
@@ -310,7 +311,7 @@ func TestRenameDevice(t *testing.T) {
 	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Role: authorizer.MemberRoleOwner}, {ID: "id2", Role: authorizer.MemberRoleObserver}}}
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
 	device2 := &models.Device{UID: "uid2", Name: "newname", TenantID: "tenant2"}
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	cases := []struct {
 		name          string
@@ -329,7 +330,7 @@ func TestRenameDevice(t *testing.T) {
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(device, Err).Once()
 			},
-			expected: Err,
+			expected: NewErrDeviceNotFound(models.UID(device.UID), Err),
 		},
 		{
 			name:          "RenameDevice fails when the name is invalid",
@@ -341,7 +342,7 @@ func TestRenameDevice(t *testing.T) {
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(device, nil).Once()
 			},
-			expected: ErrInvalidFormat,
+			expected: NewErrDeviceInvalid(map[string]interface{}{"Name": "---invalid..."}, validator.ErrInvalidFields),
 		},
 		{
 			name:          "RenameDevice returns nil if the name is the same",
@@ -366,7 +367,7 @@ func TestRenameDevice(t *testing.T) {
 				mock.On("DeviceGetByName", ctx, "newname", namespace.TenantID).
 					Return(device2, Err).Once()
 			},
-			expected: Err,
+			expected: NewErrDeviceNotFound(models.UID(device.UID), Err),
 		},
 		{
 			name:          "RenameDevice fails when the name already exists",
@@ -379,7 +380,7 @@ func TestRenameDevice(t *testing.T) {
 				mock.On("DeviceGetByName", ctx, "newname", namespace.TenantID).
 					Return(device2, nil).Once()
 			},
-			expected: ErrDuplicatedDeviceName,
+			expected: NewErrDeviceDuplicated("newname", nil),
 		},
 		{
 			name:          "RenameDevice fails when the store device rename fails",
@@ -432,7 +433,7 @@ func TestLookupDevice(t *testing.T) {
 
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant"}
 	namespace := &models.Namespace{Name: "namespace"}
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	type Expected struct {
 		device *models.Device
@@ -456,7 +457,7 @@ func TestLookupDevice(t *testing.T) {
 			},
 			expected: Expected{
 				nil,
-				Err,
+				NewErrDeviceLookUpStore(namespace.Name, device.Name, Err),
 			},
 		},
 		{
@@ -469,7 +470,7 @@ func TestLookupDevice(t *testing.T) {
 			},
 			expected: Expected{
 				nil,
-				ErrNotFound,
+				NewErrDeviceLookUpStore(namespace.Name, device.Name, store.ErrNoDocuments),
 			},
 		},
 		{
@@ -501,7 +502,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	ctx := context.TODO()
 
@@ -554,7 +555,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 	identity := &models.DeviceIdentity{MAC: "mac"}
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: identity, CreatedAt: time.Time{}}
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	ctx := context.TODO()
 
@@ -573,7 +574,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			id:     user.ID,
 			requiredMocks: func() {
 			},
-			expected: ErrBadRequest,
+			expected: NewErrDeviceStatusInvalid("invalid", nil),
 		},
 		{
 			name:   "UpdatePendingStatus fails when the store get by uid fails",
@@ -585,7 +586,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
 					Return(nil, Err).Once()
 			},
-			expected: Err,
+			expected: NewErrDeviceNotFound("uid", Err),
 		},
 		{
 			name:   "UpdatePendingStatus fails when device already accepted",
@@ -597,7 +598,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
 					Return(&models.Device{Status: "accepted"}, nil).Once()
 			},
-			expected: ErrForbidden,
+			expected: NewErrDeviceStatusAccepted(nil),
 		},
 		{
 			name:   "UpdatePendingStatus fails to update accept",
@@ -608,7 +609,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).Return(&models.Device{Status: "accepted"}, nil).Once()
 			},
-			expected: ErrForbidden,
+			expected: NewErrDeviceStatusAccepted(nil),
 		},
 		{
 			name:   "UpdatePendingStatus fails when the limit is exceeded",
@@ -626,7 +627,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				mock.On("DeviceGetByMac", ctx, "mac", deviceExceed.TenantID, "accepted").
 					Return(nil, nil).Once()
 			},
-			expected: ErrMaxDeviceCountReached,
+			expected: NewErrDeviceLimit(3, nil),
 		},
 		{
 			name:   "UpdatePendingStatus succeeds",
@@ -727,7 +728,7 @@ func TestSetDevicePosition(t *testing.T) {
 
 	device := &models.Device{UID: "uid"}
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	positionGeoIP := geoip.Position{Longitude: 0, Latitude: 0}
 	positionDeviceModel := models.DevicePosition{Longitude: 0, Latitude: 0}
