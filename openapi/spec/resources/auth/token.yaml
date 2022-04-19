@@ -20,7 +20,11 @@ get:
         application/json:
           schema:
             $ref: ../../shared/models/user_auth.yaml
+    '400':
+      $ref: ../../shared/responses/bad_request.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
+    '404':
+      $ref: ../../shared/responses/not_found.yaml
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml
