@@ -87,8 +87,8 @@ func BuildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 			}
 
 			// Trys to get a function that returns the query through operator.
-			fn := properties[params.Operator]
-			if fn == nil {
+			fn, ok := properties[params.Operator]
+			if !ok {
 				// If the operator is not found, jump to next iteration.
 				continue
 			}
@@ -108,8 +108,8 @@ func BuildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 			}
 
 			// Trys to get a function that returns the query through param's name.
-			fn := operations[params.Name]
-			if fn == nil {
+			fn, ok := operations[params.Name]
+			if !ok {
 				// If the operation's name is not found, jump to next iteration.
 				continue
 			}
@@ -122,6 +122,7 @@ func BuildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 			queryMatcher = append(queryMatcher, bson.M{
 				"$match": bson.M{operation: queryFilter},
 			})
+
 			queryFilter = nil
 		default:
 			return nil, ErrFilterInvalid
