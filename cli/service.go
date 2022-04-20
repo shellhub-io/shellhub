@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -187,7 +187,7 @@ func (s *service) NamespaceCreate(namespace, username, tenant string) (*models.N
 		Members: []models.Member{
 			{
 				ID:   user.ID,
-				Role: authorizer.MemberRoleOwner,
+				Role: guard.RoleOwner,
 			},
 		},
 		Settings: &models.NamespaceSettings{

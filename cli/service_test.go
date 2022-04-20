@@ -6,8 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/authorizer"
-
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -65,7 +64,7 @@ func TestDelUser(t *testing.T) {
 			Name:     "namespace3",
 			Owner:    "ownerID",
 			TenantID: "tenantID3",
-			Members:  []models.Member{{ID: "ownerID", Role: authorizer.MemberRoleObserver}, {ID: user.ID, Role: authorizer.MemberRoleObserver}},
+			Members:  []models.Member{{ID: "ownerID", Role: guard.RoleObserver}, {ID: user.ID, Role: guard.RoleObserver}},
 			Settings: &models.NamespaceSettings{
 				SessionRecord: true,
 			},
@@ -75,7 +74,7 @@ func TestDelUser(t *testing.T) {
 			Name:     "namespace1",
 			Owner:    "ownerID",
 			TenantID: "tenantID1",
-			Members:  []models.Member{{ID: "ownerID", Role: authorizer.MemberRoleObserver}, {ID: user.ID, Role: authorizer.MemberRoleObserver}},
+			Members:  []models.Member{{ID: "ownerID", Role: guard.RoleObserver}, {ID: user.ID, Role: guard.RoleObserver}},
 			Settings: &models.NamespaceSettings{
 				SessionRecord: true,
 			},
@@ -403,7 +402,7 @@ func TestAddUserNamespace(t *testing.T) {
 			description: "Fails to find the user",
 			username:    userNotFound.Username,
 			namespace:   namespace.Name,
-			role:        authorizer.MemberRoleObserver,
+			role:        guard.RoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, userNotFound.Username).Return(nil, Err).Once()
 			},
@@ -413,7 +412,7 @@ func TestAddUserNamespace(t *testing.T) {
 			description: "Fails to find the namespace",
 			username:    user.Username,
 			namespace:   namespaceNotFound.Name,
-			role:        authorizer.MemberRoleObserver,
+			role:        guard.RoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 				mock.On("NamespaceGetByName", ctx, namespaceNotFound.Name).Return(nil, Err).Once()
@@ -424,11 +423,11 @@ func TestAddUserNamespace(t *testing.T) {
 			description: "Successfully add user to the Namespace",
 			username:    user.Username,
 			namespace:   namespace.Name,
-			role:        authorizer.MemberRoleObserver,
+			role:        guard.RoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 				mock.On("NamespaceGetByName", ctx, namespace.Name).Return(namespace, nil).Once()
-				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user.ID, authorizer.MemberRoleObserver).Return(namespace, nil).Once()
+				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user.ID, guard.RoleObserver).Return(namespace, nil).Once()
 			},
 			expected: Expected{namespace, nil},
 		},
