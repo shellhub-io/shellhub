@@ -2,23 +2,26 @@ package main
 
 import (
 	"context"
+	"net/url"
+	"runtime"
 	"time"
 
+	"github.com/hibiken/asynq"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 )
 
-// workerDeleteSessionRecord deletes session's records registers older than days defined by SHELLHUB_RECORD_RETENTION.
+// sessionRecordCleanup deletes session's records registers older than days defined by SHELLHUB_RECORD_RETENTION.
 // When SHELLHUB_RECORD_RETENTION is equals to zero, records will never be deleted.
 // When SHELLHUB_RECORD_RETENTION is less than zero, nothing happen.
 //
 // If something inside the function does not work properly, it should panic.
-func workerDeleteSessionRecord() {
+func sessionRecordCleanup() error {
 	logrus.Info("Running worker to delete session's records...")
 
 	type config struct {
@@ -29,18 +32,18 @@ func workerDeleteSessionRecord() {
 	// Loading env variables.
 	var envs config
 	if err := envconfig.Process("api", &envs); err != nil {
-		logrus.WithError(err).Fatal("Failed to load environment variables")
+		return errors.Wrap(err, "Failed to load environment variables")
 	}
 
 	// Session record retention time was not defined.
 	if envs.SessionRecordRetention == 0 {
-		logrus.Info("A time to clean the session's record was not defined. Skipping...")
+		logrus.Warn("A time to clean the session's record was not defined. Skipping...")
 
-		return
+		return nil
 	}
 
 	if envs.SessionRecordRetention < 0 {
-		logrus.Fatal("Invalid time interval")
+		return errors.New("Invalid time interval")
 	}
 
 	// Registers older than that date will be deleted.
@@ -50,7 +53,7 @@ func workerDeleteSessionRecord() {
 
 	connStr, err := connstring.ParseAndValidate(envs.MongoURI)
 	if err != nil {
-		logrus.WithError(err).Fatal("Invalid Mongo URI format")
+		return errors.Wrap(err, "Invalid Mongo URI format")
 	}
 
 	// Applying MongoDB URI to client options.
@@ -58,14 +61,14 @@ func workerDeleteSessionRecord() {
 	// Connecting to MongoDB.
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to connect to MongoDB")
+		return errors.Wrap(err, "Failed to connect to MongoDB")
 	}
 
 	logrus.Debug("Connected! Pinging...")
 
 	// Testing if MongoDB is connected.
 	if err = client.Ping(context.TODO(), nil); err != nil {
-		logrus.WithError(err).Fatal("Failed to ping MongoDB")
+		return errors.Wrap(err, "Failed to ping MongoDB")
 	}
 
 	logrus.Debug("Pinged! Deleting session's record data...")
@@ -81,7 +84,7 @@ func workerDeleteSessionRecord() {
 		bson.M{"time": bson.D{{"$lte", dateLimit}}},
 	)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to delete the session's records from MongoDB")
+		return errors.Wrap(err, "Failed to delete the session's records from MongoDB")
 	}
 
 	logrus.Debug("Deleted! Updating the record status from sessions...")
@@ -90,23 +93,54 @@ func workerDeleteSessionRecord() {
 		bson.M{"started_at": bson.D{{"$lte", dateLimit}}, "recorded": bson.M{"$eq": true}},
 		bson.M{"$set": bson.M{"recorded": false}})
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to set the sessions from MongoDB to no recorded")
+		return errors.Wrap(err, "Failed to set the sessions from MongoDB to no recorded")
 	}
 
 	logrus.Info(deleted.DeletedCount, " session's records deleted")
 	logrus.Info(updated.ModifiedCount, " sessions set to no recorded")
 
 	logrus.Info("Closing worker to delete session's records...")
+
+	return nil
 }
 
-var workerCmd = &cobra.Command{
-	Use: "worker",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		logrus.Info("Initializing workers...")
-		// Running worker to clean the session recorded from a defined time interval.
-		workerDeleteSessionRecord()
-		logrus.Info("Successfully ran all workers!")
+func startWorker(cfg *config) error {
+	addr, err := url.Parse(cfg.RedisURI)
+	if err != nil {
+		return err
+	}
+
+	srv := asynq.NewServer(
+		asynq.RedisClientOpt{Addr: addr.Host},
+		asynq.Config{
+			Concurrency: runtime.NumCPU(),
+		},
+	)
+
+	mux := asynq.NewServeMux()
+
+	// Handle session_record:cleanup task
+	mux.HandleFunc("session_record:cleanup", func(ctx context.Context, task *asynq.Task) error {
+		if err := sessionRecordCleanup(); err != nil {
+			logrus.Error(err)
+		}
 
 		return nil
-	},
+	})
+
+	go func() {
+		if err := srv.Run(mux); err != nil {
+			logrus.Fatal(err)
+		}
+	}()
+
+	scheduler := asynq.NewScheduler(asynq.RedisClientOpt{Addr: addr.Host}, nil)
+
+	// Schedule session_record:cleanup to run once a day
+	if _, err := scheduler.Register(cfg.SessionRecordCleanupSchedule,
+		asynq.NewTask("session_record:cleanup", nil, asynq.TaskID("session_record:cleanup"))); err != nil {
+		logrus.Error(err)
+	}
+
+	return scheduler.Run()
 }

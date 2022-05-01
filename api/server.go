@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	storecache "github.com/shellhub-io/shellhub/api/cache"
@@ -27,7 +26,18 @@ import (
 var serverCmd = &cobra.Command{
 	Use: "server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return startServer()
+		cfg, ok := cmd.Context().Value("cfg").(*config)
+		if !ok {
+			logrus.Fatal("Failed to retrieve environment config from context")
+		}
+
+		go func() {
+			if err := startWorker(cfg); err != nil {
+				logrus.Fatal(err)
+			}
+		}()
+
+		return startServer(cfg)
 	},
 }
 
@@ -42,9 +52,11 @@ type config struct {
 	StoreCache bool `envconfig:"store_cache" default:"false"`
 	// Enable geoip feature
 	GeoIP bool `envconfig:"geoip" default:"false"`
+	// Session record cleanup worker schedule
+	SessionRecordCleanupSchedule string `envconfig:"session_record_cleanup_schedule" default:"@daily"`
 }
 
-func startServer() error {
+func startServer(cfg *config) error {
 	if os.Getenv("SHELLHUB_ENV") == "development" {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
@@ -55,12 +67,6 @@ func startServer() error {
 	e.Use(middleware.Log)
 	e.Use(echoMiddleware.RequestID())
 	e.HTTPErrorHandler = handlers.Errors
-
-	// Populates configuration based on environment variables prefixed with 'API_'
-	var cfg config
-	if err := envconfig.Process("api", &cfg); err != nil {
-		logrus.WithError(err).Fatal("Failed to load environment variables")
-	}
 
 	logrus.Info("Connecting to MongoDB")
 

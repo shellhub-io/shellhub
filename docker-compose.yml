@@ -33,10 +33,9 @@ services:
       - GEOIP=${SHELLHUB_GEOIP}
       - MAXMIND_LICENSE=${SHELLHUB_MAXMIND_LICENSE}
       - RECORD_RETENTION=${SHELLHUB_RECORD_RETENTION}
-    labels:
-      ofelia.enabled: "true"
-      ofelia.job-exec.api_worker.schedule: "${SHELLHUB_WORKER_SCHEDULE}"
-      ofelia.job-exec.api_worker.command: "/api worker"
+      - TELEMETRY=${SHELLHUB_TELEMETRY}
+      - TELEMETRY_SCHEDULE=${SHELLHUB_TELEMETRY_SCHEDULE}
+      - SESSION_RECORD_CLEANUP_SCHEDULE=${SHELLHUB_SESSION_RECORD_CLEANUP_SCHEDULE}
     depends_on:
       - mongo
     links:
@@ -93,15 +92,6 @@ services:
     command: ["--replSet", "rs", "--bind_ip_all"]
     networks:
       - shellhub
-  scheduler:
-    image: mcuadros/ofelia:v0.3.4
-    depends_on:
-      - api
-    command: daemon --docker
-    networks:
-      - shellhub
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 secrets:
   ssh_private_key:
