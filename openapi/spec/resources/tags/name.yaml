@@ -1,14 +1,16 @@
 parameters:
   - name: name
-    description: Tag name
+    description: Tag's name
     schema:
-      type: string
+      $ref: model/tag.yaml
+    required: true
     in: path
-    example: tag1
 put:
-  summary: Rename a tag name
+  operationId: renameTag
+  summary: Rename a tag
+  description: Rename a tag
   tags:
-    - tags
+    - tag
   security:
     - Auth: []
   requestBody:
@@ -18,12 +20,11 @@ put:
           type: object
           properties:
             name:
-              description: New tag name
-              type: string
-              example: tag2
+              description: Tag's new name
+              $ref: model/tag.yaml
   responses:
     '200':
-      $ref: ../../shared/responses/ok.yaml
+      description: Success to rename a tag
     '400':
       $ref: ../../shared/responses/bad_request.yaml
     '401':
@@ -37,14 +38,16 @@ put:
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml
 delete:
-  summary: Delete a tag name
+  operationId: deleteTag
+  summary: Delete a tag
+  description: Delete a tag
   tags:
     - tags
   security:
     - Auth: []
   responses:
     '200':
-      $ref: ../../shared/responses/ok.yaml
+      description: Success to delete a tag
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':
