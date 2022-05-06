@@ -15,8 +15,10 @@ post:
   parameters:
     - name: X-Real-IP
       schema:
-        description: Device IP
+        description: Device's IP
         type: string
+        pattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
+        example: 127.0.0.1
       in: header
   requestBody:
     content:
@@ -24,43 +26,62 @@ post:
         schema:
           type: object
           properties:
-            uid:
-              description: Device UID
+            info:
+              $ref: ../devices/model/info.yaml
+            sessions:
+              # TODO: What is a session?
+              # TODO: Add description and more information.
+              type: array
+              items:
+                type: string
+            # TODO: hostname or identity
+            hostname:
               type: string
-            token:
-              description: Device token
-              type: string
-            name:
-              description: Device name
-              type: string
-            namespace:
-              description: Device owner namespace
-              type: string
+              # TODO: add an example.
+              pattern: ([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*
+            identity:
+              $ref: ../devices/model/identity.yaml
+            public_key:
+              $ref: ../devices/model/public_key.yaml
+            tenant_id:
+              $ref: ../devices/model/tenant_id.yaml
+          required:
+            - info
+            - session
+            - hostname
+            - public_key
+            - tenant_id
   responses:
     '200':
-      description: Success get auth device
+      description: Success to auth device
       content:
         application/json:
           schema:
             type: object
             properties:
-              UID:
-                description: Device UID
+              uid:
+                description: Device's UID
                 type: string
-              Token:
-                description: Device token
+                pattern: ^[0-9a-fA-F]{64}$
+                example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+              token:
+                # TODO: improve description
+                description: Device's token
                 type: string
-              Name:
-                description: Device name
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.iUCROHt6JHANdtzT6aOuUgOqVFRalOW20SbzRsn5SkI
+              name:
+                description: |
+                  Device's name
+                  
+                  
+                  By default, the name is the device's MAC address when it just added.
                 type: string
-              Namespace:
-                description: Device owner namespace
+                example: example
+              namespace:
+                description: Device's namespace name
                 type: string
-    '400':
-      $ref: ../../shared/responses/bad_request.yaml
+                example: examplespace
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
-    '404':
-      $ref: ../../shared/responses/not_found.yaml
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml
