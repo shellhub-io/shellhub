@@ -1,24 +1,34 @@
 parameters:
   - name: uid
-    description: Device UID
+    description: Device's UID
     schema:
       type: string
-    in: header
+      pattern: ^[0-9a-fA-F]{64}$
+      example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+    required: true
+    in: path
   - name: name
-    description: Tag name
+    description: Tag's name
     schema:
       type: string
-    in: header
+      minLength: 3
+      # FIXME: 255 is too long
+      maxLength: 255
+      example: tag
+    required: true
+    in: path
 delete:
-  summary: Delete a tag
-  description: Delete a tag from a device
+  operationId: deleteDeviceTag
+  summary: Delete a tag from device
+  description: Delete a tag from device
   tags:
     - device
+    - tag
   security:
     - Auth: []
   responses:
     '200':
-      $ref: ../../shared/responses/ok.yaml
+      description: Success to delete from device
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':

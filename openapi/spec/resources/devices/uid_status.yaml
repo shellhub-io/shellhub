@@ -1,44 +1,40 @@
 patch:
-  summary: Update device status
-  description: |
-    Update a device status from its allowed list.
-    The allowed status are:
-      - accept
-      - reject
-      - pending
-      - unused
+  operationId: updateDeviceStatus
+  summary: Update device's status
+  description: Update device's status
   tags:
     - device
   security:
     - Auth: []
   parameters:
     - name: uid
-      description: Device UID
+      description: Device's UID
       schema:
         type: string
+        pattern: ^[0-9a-fA-F]{64}$
+        example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+      required: true
       in: path
     - name: status
       schema:
         type: string
         enum:
-          - accept
-          - reject
+          - accepted
+          - rejected
           - pending
           - unused
+        example: accepted
+      required: true
       in: path
   responses:
     '200':
-      $ref: ../../shared/responses/ok.yaml
+      description: Success to update device status
     '400':
       $ref: ../../shared/responses/bad_request.yaml
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '402':
       description: Payment required
-      content:
-        application/json:
-          schema:
-            type: null
     '403':
       $ref: ../../shared/responses/forbidden.yaml
     '500':

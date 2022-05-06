@@ -1,26 +1,40 @@
 get:
   summary: Get Lookup
-  description: ''
+  # TODO: What is lookup?
+  description: Get Lookup
   tags:
     - device
   security:
     - Auth: []
   parameters:
     - name: domain
+      description: Namespace's name
       schema:
         type: string
+        example: examplespace
+      required: true
       in: query
     - name: name
+      description: Device's name
       schema:
         type: string
+        example: example
+      required: true
       in: query
     - name: username
+      description: User's name
       schema:
         type: string
+        example: example
+      required: true
       in: query
-    - name: id_address
+    - name: ip_address
+      description: Device's IP Address
       schema:
         type: string
+        pattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
+        example: 127.0.0.1
+      required: true
       in: query
   responses:
     '200':

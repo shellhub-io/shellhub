@@ -1,10 +1,14 @@
 parameters:
   - name: uid
     schema:
-      description: Device UID
+      description: Device's UID
       type: string
+      pattern: ^[0-9a-fA-F]{64}$
+      example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+    required: true
     in: path
 get:
+  operationId: getDevice
   summary: Get a device
   description: Get a device from `UID`.
   tags:
@@ -23,15 +27,16 @@ get:
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml
 delete:
+  operationId: deleteDevice
   summary: Delete a device
-  description: Delete a device from its `UID`.
+  description: Delete a device
   tags:
     - device
   security:
     - Auth: []
   responses:
     '200':
-      $ref: ../../shared/responses/ok.yaml
+      description: Success delete a device
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':
@@ -39,8 +44,9 @@ delete:
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml
 patch:
-  summary: Update device name
-  description: Update a device name from its `UID` to `name` in request body.
+  operationId: updateDevice
+  summary: Update device's name
+  description: Update device's name
   tags:
     - device
   security:
@@ -52,11 +58,14 @@ patch:
           type: object
           properties:
             name:
-              description: Device new name
+              description: Device's new name
               type: string
+              example: example
+          required:
+            - name
   responses:
     '200':
-      $ref: ../../shared/responses/ok.yaml
+      description: Success update device's name
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '403':

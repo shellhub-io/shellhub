@@ -1,6 +1,7 @@
 put:
+  operationId: acceptDevice
   summary: Accept device
-  description: Change device status to `accept`.
+  description: Change device status to `accepted`.
   tags:
     - device
   security:
@@ -8,20 +9,15 @@ put:
   parameters:
     - name: uid
       schema:
-        description: Device UID
+        description: Device's UID
         type: string
+        pattern: ^[0-9a-fA-F]{64}$
+        example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        required: true
       in: path
   responses:
     '200':
-      description: Success accept device
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                description: Device accepted status
+      description: Success to accept the device
     '401':
       $ref: ../../shared/responses/unauthorized.yaml
     '500':

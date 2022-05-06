@@ -1,14 +1,19 @@
 parameters:
   - name: uid
-    description: Device UID
+    description: Device's UID
     schema:
       type: string
+      pattern: ^[0-9a-fA-F]{64}$
+      example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+    required: true
     in: header
 post:
+  operationId: createTag
   summary: Create a tag
-  description: Create a tag to a device
+  description: Create a tag
   tags:
     - device
+    - tag
   security:
     - Auth: []
   requestBody:
@@ -18,11 +23,18 @@ post:
           type: object
           properties:
             name:
-              description: Tag name
+              description: Tag's name
               type: string
+              minLength: 3
+              # FIXME: 255 is too long
+              maxLength: 255
+          required:
+            - name
+          example:
+            name: tag1
   responses:
     '200':
-      $ref: ../../shared/responses/ok.yaml
+      description: Success create a tag
     '400':
       $ref: ../../shared/responses/bad_request.yaml
     '401':
@@ -38,10 +50,12 @@ post:
     '500':
       $ref: ../../shared/responses/any_internal_error.yaml
 put:
-  summary: Update all tags
-  description: Update all tags from a device
+  operationId: updateDeviceTags
+  summary: Update tags to device
+  description: Update tags to device
   tags:
     - device
+    - tag
   security:
     - Auth: []
   requestBody:
@@ -51,13 +65,25 @@ put:
           type: object
           properties:
             tags:
-              description: List of tags
+              description: Tags' list
               type: array
               items:
                 type: string
+                minLength: 3
+                # FIXME: 255 is too long
+                maxLength: 255
+              minItems: 1
+              maxItems: 3
+          required:
+            - tags
+          example:
+            tags:
+              - tag1
+              - tag2
+              - tag3
   responses:
     '200':
-      $ref: ../../shared/responses/ok.yaml
+      description: Success to update tags to device
     '400':
       $ref: ../../shared/responses/bad_request.yaml
     '401':

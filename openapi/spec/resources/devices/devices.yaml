@@ -1,49 +1,97 @@
 get:
+  operationId: getDevices
   summary: Get device list
-  description: Get a list from all devices.
+  description: Get device list
   tags:
     - device
   security:
     - Auth: []
   parameters:
-    - name: X-Total-Count
-      description: Device max returned number
-      schema:
-        type: string
-      in: header
     - name: filter
-      description: Device filter
+      description: >-
+        Device's filter
+        
+        
+        Device's Filter field receives a base64 encoded JSON object.
+        
+        If you want get only Devices name as `Linux`, the JSON object will looks like this 
+        
+        ```json
+          [
+            {
+              "type":"property",
+              "params":
+                {
+                  "name":"name",
+                  "operator":"contains",
+                  "value":"linux"
+                }
+            }
+          ]
+        ```
+
+        So, the output encoded string will result on:
+        `W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoiZDAifX1d`
       schema:
         type: string
+        pattern: ^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$
+        example: W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoiZDAifX1d
+      required: false
       in: query
     - name: page
-      description: Device page
+      description: Devices list page
       schema:
         type: integer
+        minimum: 1
+        example: 1
+      required: true
       in: query
     - name: per_page
-      description: Device number by page
+      description: Devices list per page
       schema:
         type: integer
+        minimum: 1
+        example: 10
+      required: true
       in: query
     - name: status
-      description: Device status
+      description: Device's status
       schema:
         type: string
+        enum:
+          - accepted
+          - rejected
+          - pending
+          - unused
+        example: accepted
+      required: false
       in: query
     - name: sort_by
-      description: Device sort
+      description: Device's property to sort of
       schema:
         type: string
+        example: name
+      required: false
       in: query
     - name: order_by
       schema:
-        description: Device list order
+        description: Device's list order
         type: string
+        enum:
+          - asc
+          - desc
+        example: asc
+      required: false
       in: query
   responses:
     '200':
       description: Success get device list
+      headers:
+        X-Total-Count:
+          description: Device's total number
+          schema:
+            type: string
+            minimum: 0
       content:
         application/json:
           schema:

@@ -1,5 +1,16 @@
 openapi: 3.0.2
 $ref: spec/shared/common-openapi.yaml
+tags:
+  - name: device
+    description: >
+      Routes related to device resources.
+      
+      
+      From it, you can act on devices, such as getting a list of them, a single one, update its data or delete it.
+      You can also create a tag adding it to a device, within a limit of **three tags** per device, update all tags
+      of a device or delete all tags of a device.
+  - name: tag
+    description: Routes related to tag resources.
 paths:
   /api/login:
     $ref: spec/resources/users/login.yaml

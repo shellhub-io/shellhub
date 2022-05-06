@@ -1,68 +1,121 @@
 type: object
 properties:
   uid:
-    description: Device UID
+    description: Device's UID
     type: string
+    pattern: ^[0-9a-fA-F]{64}$
+    example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
   name:
-    description: Device name
+    description: |
+      Device's name
+      
+      
+      By default, the name is the device's MAC address when it just added.
     type: string
+    example: example
   identity:
-    description: Device identity
+    description: Device's identity
     type: object
     properties:
       mac:
-        description: Device MAC
+        description: Device's MAC
         type: string
+        example: 00:00:00:00:00:00
+        pattern: ^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$
   info:
-    description: Device info
+    description: Device's info
     type: object
     properties:
       id:
-        description: Device ID
+        description: Device's OS name
         type: string
+        example: example
       pretty_name:
-        description: Device OS pretty name
+        description: Device's OS pretty name
         type: string
+        example: linux
       version:
-        description: Device OS version
+        description: Device's OS version
         type: string
+        example: latest
       arch:
-        description: Device OS arch
+        description: Device's OS arch
         type: string
+        # TODO: add more compatible arches.
+        enum:
+          - x86_64
+          - amd64
+          - arm64
+        example: x86_64
       platform:
-        description: Device OS platform
+        description: Device's OS platform
         type: string
+        # TODO: What are valid platforms?
+        example: docker
   public_key:
-    description: Device public key
+    description: Device's public key
     type: string
+    example: -----BEGIN PUBLIC KEY-----\nAAAAB3NzaC1yc2EAAAADAQABAAABAQCpGJLEIHeai6JvKt5/cJ1Z+g9ntvnRIwbTW2NL6ceLcaV37r/bQkWqF3jQcaE6chLn/JHonteC/FFCp+HaXrmzL4/z03aK4KJ/Tplap1+OC+J6CClnx1Pjx7prJXeJbvb2iGgIhcXqJ9QNCNbRdYkSeGAR/8mMwG5nhkPU/ToPgsGbvCrEXRv5HvXKR/UZVps98uJ9j7dfjtRoPG4r5QDin4tHx7bLirmpuv5+7T9wSRwlUrxmPDHcsud1naaOQmw8pOb2f/5enjRx80INLt6riMSDYitdo+IVy0VUFnzWFP4SgnoZGaSxyAdd5BvoXuFN2xrwPl4/rB521hRTPM/j\n-----END PUBLIC KEY-----\n
   tenant_id:
-    description: Device tenant
+    description: Device's namespace tenant
     type: string
+    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+    pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
   last_seen:
-    description: Device last seen
+    description: Device's last seen date
     type: string
+    format: date-time
+    example: 2020-01-01T00:00:00Z
   online:
-    description: Device availability status
+    description: Device's availability status
     type: boolean
+    example: true
   namespace:
-    description: Device namespace
+    description: Device's namespace
     type: string
+    # TODO: What is min and max length of namespace's name?
+    example: examplespace
   status:
-    description: Device status
+    description: Device's status
     type: string
+    enum:
+      - accepted
+      - rejected
+      - pending
+      - unused
+    example: accepted
   created_at:
-    description: Device creation date
+    description: Device's creation date
     type: string
+    format: date-time
+    example: 2020-01-01T00:00:00Z
   remote_addr:
-    description: Device remote address
+    description: Device's remote address
     type: string
+    example: 127.0.0.1
   position:
-    description: Device geolocation position
+    description: Device's geolocation position
     type: object
     properties:
-      longitude:
-        description: Device longitude position
-        type: integer
       latitude:
-        description: Device latitude position
-        type: integer
+        description: Device's latitude position
+        type: number
+        example: -31.7566628
+      longitude:
+        description: Device's longitude position
+        type: number
+        example: -52.3224742
+  tags:
+    description: Device's Tags list
+    type: array
+    items:
+      type: string
+      minLength: 3
+      # FIXME: 255 is too long
+      maxLength: 255
+    minItems: 1
+    maxItems: 3
+    example:
+      - tag1
+      - tag2
+      - tag3

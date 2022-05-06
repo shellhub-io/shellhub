@@ -7,8 +7,11 @@ post:
   parameters:
     - name: uid
       schema:
-        description: Device UID
+        description: Device's UID
         type: string
+        pattern: ^[0-9a-fA-F]{64}$
+        example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+      required: true
       in: path
   responses:
     '200':
