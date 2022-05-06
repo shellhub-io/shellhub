@@ -27,62 +27,24 @@ post:
           type: object
           properties:
             info:
-              type: object
-              properties:
-                id:
-                  description: Device's OS name
-                  type: string
-                  example: example
-                pretty_name:
-                  description: Device's OS pretty name
-                  type: string
-                  example: linux
-                version:
-                  description: Device's OS version
-                  type: string
-                  example: latest
-                arch:
-                  description: Device's OS arch
-                  type: string
-                  # TODO: add more compatible arches.
-                  enum:
-                    - x86_64
-                    - amd64
-                    - arm64
-                  example: x86_64
-                platform:
-                  description: Device's OS platform
-                  type: string
-                  # TODO: What are valid platforms?
-                  example: docker
+              $ref: model/info.yaml
             sessions:
               # TODO: What is a session?
               # TODO: Add description and more information.
               type: array
               items:
                 type: string
+            # TODO: hostname or identity
             hostname:
               type: string
               # TODO: add an example.
               pattern: ([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*
             identity:
-              description: Device's identity
-              type: object
-              properties:
-                mac:
-                  description: Device's MAC
-                  type: string
-                  example: 00:00:00:00:00:00
-                  pattern: ^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$
+              $ref: model/identity.yaml
             public_key:
-              description: Device's public key
-              type: string
-              example: -----BEGIN PUBLIC KEY-----\nAAAAB3NzaC1yc2EAAAADAQABAAABAQCpGJLEIHeai6JvKt5/cJ1Z+g9ntvnRIwbTW2NL6ceLcaV37r/bQkWqF3jQcaE6chLn/JHonteC/FFCp+HaXrmzL4/z03aK4KJ/Tplap1+OC+J6CClnx1Pjx7prJXeJbvb2iGgIhcXqJ9QNCNbRdYkSeGAR/8mMwG5nhkPU/ToPgsGbvCrEXRv5HvXKR/UZVps98uJ9j7dfjtRoPG4r5QDin4tHx7bLirmpuv5+7T9wSRwlUrxmPDHcsud1naaOQmw8pOb2f/5enjRx80INLt6riMSDYitdo+IVy0VUFnzWFP4SgnoZGaSxyAdd5BvoXuFN2xrwPl4/rB521hRTPM/j\n-----END PUBLIC KEY-----\n
+              $ref: model/public_key.yaml
             tenant_id:
-              description: Device's namespace tenant
-              type: string
-              example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
-              pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+              $ref: model/tenant_id.yaml
           required:
             - info
             - session

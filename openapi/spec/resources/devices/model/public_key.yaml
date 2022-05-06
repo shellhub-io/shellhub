@@ -1,0 +1,3 @@
+description: Device's public key
+type: string
+example: -----BEGIN PUBLIC KEY-----\nAAAAB3NzaC1yc2EAAAADAQABAAABAQCpGJLEIHeai6JvKt5/cJ1Z+g9ntvnRIwbTW2NL6ceLcaV37r/bQkWqF3jQcaE6chLn/JHonteC/FFCp+HaXrmzL4/z03aK4KJ/Tplap1+OC+J6CClnx1Pjx7prJXeJbvb2iGgIhcXqJ9QNCNbRdYkSeGAR/8mMwG5nhkPU/ToPgsGbvCrEXRv5HvXKR/UZVps98uJ9j7dfjtRoPG4r5QDin4tHx7bLirmpuv5+7T9wSRwlUrxmPDHcsud1naaOQmw8pOb2f/5enjRx80INLt6riMSDYitdo+IVy0VUFnzWFP4SgnoZGaSxyAdd5BvoXuFN2xrwPl4/rB521hRTPM/j\n-----END PUBLIC KEY-----\n

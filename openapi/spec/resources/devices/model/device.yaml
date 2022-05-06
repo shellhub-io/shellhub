@@ -1,10 +1,7 @@
 type: object
 properties:
   uid:
-    description: Device's UID
-    type: string
-    pattern: ^[0-9a-fA-F]{64}$
-    example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+    $ref: uid.yaml
   name:
     description: |
       Device's name
@@ -14,53 +11,14 @@ properties:
     type: string
     example: example
   identity:
-    description: Device's identity
-    type: object
-    properties:
-      mac:
-        description: Device's MAC
-        type: string
-        example: 00:00:00:00:00:00
-        pattern: ^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$
+    $ref: identity.yaml
   info:
     description: Device's info
-    type: object
-    properties:
-      id:
-        description: Device's OS name
-        type: string
-        example: example
-      pretty_name:
-        description: Device's OS pretty name
-        type: string
-        example: linux
-      version:
-        description: Device's OS version
-        type: string
-        example: latest
-      arch:
-        description: Device's OS arch
-        type: string
-        # TODO: add more compatible arches.
-        enum:
-          - x86_64
-          - amd64
-          - arm64
-        example: x86_64
-      platform:
-        description: Device's OS platform
-        type: string
-        # TODO: What are valid platforms?
-        example: docker
+    $ref: info.yaml
   public_key:
-    description: Device's public key
-    type: string
-    example: -----BEGIN PUBLIC KEY-----\nAAAAB3NzaC1yc2EAAAADAQABAAABAQCpGJLEIHeai6JvKt5/cJ1Z+g9ntvnRIwbTW2NL6ceLcaV37r/bQkWqF3jQcaE6chLn/JHonteC/FFCp+HaXrmzL4/z03aK4KJ/Tplap1+OC+J6CClnx1Pjx7prJXeJbvb2iGgIhcXqJ9QNCNbRdYkSeGAR/8mMwG5nhkPU/ToPgsGbvCrEXRv5HvXKR/UZVps98uJ9j7dfjtRoPG4r5QDin4tHx7bLirmpuv5+7T9wSRwlUrxmPDHcsud1naaOQmw8pOb2f/5enjRx80INLt6riMSDYitdo+IVy0VUFnzWFP4SgnoZGaSxyAdd5BvoXuFN2xrwPl4/rB521hRTPM/j\n-----END PUBLIC KEY-----\n
+    $ref: public_key.yaml
   tenant_id:
-    description: Device's namespace tenant
-    type: string
-    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
-    pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+    $ref: tenant_id.yaml
   last_seen:
     description: Device's last seen date
     type: string
@@ -76,13 +34,7 @@ properties:
     # TODO: What is min and max length of namespace's name?
     example: examplespace
   status:
-    description: Device's status
-    type: string
-    enum:
-      - accepted
-      - rejected
-      - pending
-      - unused
+    $ref: status.yaml
     example: accepted
   created_at:
     description: Device's creation date
@@ -104,18 +56,6 @@ properties:
       longitude:
         description: Device's longitude position
         type: number
-        example: -52.3224742
+        example: -52.322474
   tags:
-    description: Device's Tags list
-    type: array
-    items:
-      type: string
-      minLength: 3
-      # FIXME: 255 is too long
-      maxLength: 255
-    minItems: 1
-    maxItems: 3
-    example:
-      - tag1
-      - tag2
-      - tag3
+    $ref: tags.yaml

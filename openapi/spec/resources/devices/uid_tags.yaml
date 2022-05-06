@@ -1,12 +1,5 @@
 parameters:
-  - name: uid
-    description: Device's UID
-    schema:
-      type: string
-      pattern: ^[0-9a-fA-F]{64}$
-      example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
-    required: true
-    in: header
+  - $ref: parameter/uid.yaml
 post:
   operationId: createTag
   summary: Create a tag
@@ -23,11 +16,7 @@ post:
           type: object
           properties:
             name:
-              description: Tag's name
-              type: string
-              minLength: 3
-              # FIXME: 255 is too long
-              maxLength: 255
+              $ref: model/tag.yaml
           required:
             - name
           example:
@@ -62,25 +51,7 @@ put:
     content:
       application/json:
         schema:
-          type: object
-          properties:
-            tags:
-              description: Tags' list
-              type: array
-              items:
-                type: string
-                minLength: 3
-                # FIXME: 255 is too long
-                maxLength: 255
-              minItems: 1
-              maxItems: 3
-          required:
-            - tags
-          example:
-            tags:
-              - tag1
-              - tag2
-              - tag3
+          $ref: model/tags.yaml
   responses:
     '200':
       description: Success to update tags to device

@@ -1,22 +1,6 @@
 parameters:
-  - name: uid
-    description: Device's UID
-    schema:
-      type: string
-      pattern: ^[0-9a-fA-F]{64}$
-      example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
-    required: true
-    in: path
-  - name: name
-    description: Tag's name
-    schema:
-      type: string
-      minLength: 3
-      # FIXME: 255 is too long
-      maxLength: 255
-      example: tag
-    required: true
-    in: path
+  - $ref: parameter/uid.yaml
+  - $ref: parameter/tag.yaml
 delete:
   operationId: deleteDeviceTag
   summary: Delete a tag from device

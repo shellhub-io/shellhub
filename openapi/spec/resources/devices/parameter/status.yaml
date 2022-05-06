@@ -1,0 +1,5 @@
+name: status
+schema:
+  $ref: ../model/status.yaml
+required: true
+in: path

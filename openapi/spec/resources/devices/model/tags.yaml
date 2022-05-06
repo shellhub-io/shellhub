@@ -1,0 +1,10 @@
+description: Device's Tags list
+type: array
+items:
+  $ref: tag.yaml
+minItems: 1
+maxItems: 3
+example:
+  - tag1
+  - tag2
+  - tag3
