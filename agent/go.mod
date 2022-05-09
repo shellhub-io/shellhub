@@ -6,10 +6,9 @@ require (
 	github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962
 	github.com/Masterminds/semver v1.5.0
 	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/containerd/containerd v1.4.9 // indirect
 	github.com/creack/pty v1.1.18
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v20.10.14+incompatible
+	github.com/docker/docker v20.10.15+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/gliderlabs/ssh v0.3.3
@@ -30,8 +29,6 @@ require (
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
-	google.golang.org/grpc v1.42.0 // indirect
 )
 
 replace github.com/shellhub-io/shellhub => ../
