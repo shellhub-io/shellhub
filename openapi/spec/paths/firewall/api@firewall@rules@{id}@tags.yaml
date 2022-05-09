@@ -1,0 +1,121 @@
+parameters:
+  - name: id
+    schema:
+      type: string
+      description: Firewall rule's ID
+    required: true
+    in: path
+post:
+  operationId: ruleAddTag
+  summary: Add a single tag to Firewall rule
+  description: Add a single tag to Firewall rule
+  tags:
+    - cloud
+    - rules
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tag:
+              type: string
+              example: tag1
+          required:
+            - tag
+  responses:
+    '200':
+      description: Success to add tag to Firewall rule
+    '400':
+      $ref: ../../components/responses/badRequest.yaml
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../../components/responses/forbidden.yaml
+    '404':
+      $ref: ../../components/responses/notFound.yaml
+    '406':
+      $ref: ../../components/responses/notAcceptable.yaml
+    '409':
+      $ref: ../../components/responses/conflictCloud.yaml
+    '500':
+      $ref: ../../components/responses/internalError.yaml
+delete:
+  operationId: ruleDeleteTag
+  summary: Remove a single tag from Firewall rule
+  description: Remove a single tag from Firewall rule
+  tags:
+    - cloud
+    - rules
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tag:
+              type: string
+              example: tag1
+          required:
+            - tag
+  responses:
+    '200':
+      description: Success to remove tag from Firewall rule
+    '400':
+      $ref: ../../components/responses/badRequest.yaml
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../../components/responses/forbidden.yaml
+    '404':
+      $ref: ../../components/responses/notFound.yaml
+    '500':
+      $ref: ../../components/responses/internalError.yaml
+put:
+  operationId: ruleUpdateTags
+  summary: Update tags in Firewall rule
+  description: Update tags in Firewall rule
+  tags:
+    - tags
+    - rules
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tags:
+              type: array
+              items:
+                type: string
+              minItems: 1
+              maxItems: 3
+              example:
+                - tag1
+                - tag2
+                - tag3
+          required:
+            - tags
+  responses:
+    '200':
+      description: Success to update tags in Firewall rule
+    '400':
+      $ref: ../../components/responses/badRequest.yaml
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../../components/responses/forbidden.yaml
+    '404':
+      $ref: ../../components/responses/notFound.yaml
+    '406':
+      $ref: ../../components/responses/notAcceptable.yaml
+    '409':
+      $ref: ../../components/responses/conflictCloud.yaml
+    '500':
+      $ref: ../../components/responses/internalError.yaml

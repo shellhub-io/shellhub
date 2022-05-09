@@ -1,0 +1,41 @@
+get:
+  operationId: getTags
+  summary: Get tags
+  description: >
+    Returns all tags from devices, public keys and firewall rules, when using
+    ShellHub Cloud.
+  tags:
+    - tags
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success get tags
+      headers:
+        X-Total-Count:
+          description: Tags' total number
+          schema:
+            type: string
+            minimum: 0
+          example: 3
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              description: Tags' list
+              $ref: ../../components/schemas/tag.yaml
+            minItems: 1
+            maxItems: 3
+            example:
+              - tag1
+              - tag2
+              - tag3
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../../components/responses/forbidden.yaml
+    '404':
+      $ref: ../../components/responses/notFound.yaml
+    '500':
+      $ref: ../../components/responses/anyInternalError.yaml

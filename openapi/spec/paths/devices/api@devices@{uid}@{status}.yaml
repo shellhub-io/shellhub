@@ -1,0 +1,24 @@
+patch:
+  operationId: updateDeviceStatus
+  summary: Update device's status
+  description: Update device's status
+  tags:
+    - devices
+  security:
+    - Auth: []
+  parameters:
+    - $ref: ../../components/parameters/deviceUIDPath.yaml
+    - $ref: ../../components/parameters/deviceStatusPath.yaml
+  responses:
+    '200':
+      description: Success to update device status
+    '400':
+      $ref: ../../components/responses/badRequest.yaml
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '402':
+      description: Payment required
+    '403':
+      $ref: ../../components/responses/forbidden.yaml
+    '500':
+      $ref: ../../components/responses/anyInternalError.yaml

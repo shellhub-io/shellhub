@@ -1,0 +1,42 @@
+get:
+  operationId: getValidateAccount
+  summary: Validate activation link user
+  description: Validate the activation link for  user
+  tags:
+
+
+    - users
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            email:
+              description: User's email
+              type: string
+              format: email
+            token:
+              description: |-
+                User's recovery token
+
+
+                 It is the token from the email sent to user when the user request password reset
+              type: string
+          required:
+            - email
+            - token
+          example:
+            email: example@example.com
+            token: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  responses:
+    '200':
+      description: Success to validate user
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../../components/responses/forbidden.yaml
+    '500':
+      $ref: ../../components/responses/internalError.yaml

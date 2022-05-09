@@ -1,0 +1,54 @@
+type: object
+properties:
+  action:
+    description: Firewall rule's action
+    type: string
+    enum:
+      - allow
+      - deny
+  active:
+    description: Firewall rule active's status
+    type: boolean
+  filter:
+    description: Firewall rule's filter
+    oneOf:
+      - type: object
+        properties:
+          hostname:
+            description: Firewall rule's hostname
+            type: string
+            example: .*
+        required:
+          - hostname
+      - type: object
+        properties:
+          tags:
+            description: Firewall's rule tags
+            type: array
+            items:
+              type: string
+            minItems: 1
+            maxItems: 3
+            example:
+              - tag1
+              - tag2
+              - tag3
+        required:
+          - tags
+  priority:
+    description: Firewall rule's priority
+    type: integer
+    minimum: 0
+  source_ip:
+    description: Firewall rule's source IP regexp
+    type: string
+  username:
+    description: Firewall rule's username regexp
+    type: string
+required:
+  - action
+  - active
+  - filter
+  - priority
+  - source_ip
+  - username

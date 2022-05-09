@@ -1,74 +1,77 @@
 openapi: 3.0.2
-$ref: spec/shared/common-openapi.yaml
+$ref: common-openapi.yaml
 tags:
-  - name: device
+  - name: devices
     description: >
       Routes related to device resources.
       
       
-      From it, you can act on devices, such as getting a list of them, a single one, update its data or delete it.
-      You can also create a tag adding it to a device, within a limit of **three tags** per device, update all tags
-      of a device or delete all tags of a device.
+      From that routes, you can act on devices, such as getting a list of them, a single one, update its data or delete 
+      it.
+      
+      
+      On that route, you can also create a tag adding it to a device, within a limit of **three tags** per device, 
+      update all tags of a device or delete all items.
   - name: tag
     description: Routes related to tag resources.
 paths:
   /api/login:
-    $ref: spec/resources/users/login.yaml
-  /api/auth/user:
-    $ref: spec/resources/users/login.yaml
+    $ref: spec/paths/api@login.yaml
   /api/devices/auth:
-    $ref: spec/resources/devices/auth.yaml
-  /api/auth/device:
-    $ref: spec/resources/auth/device.yaml
-  /api/auth/ssh:
-    $ref: spec/resources/auth/ssh.yaml
-  '/api/auth/token/{tenant}':
-    $ref: spec/resources/auth/token.yaml
-  '/api/token/{tenant}':
-    $ref: spec/resources/users/token_tenant.yaml
+    $ref: spec/paths/devices/api@devices@auth.yaml
   '/api/devices/{uid}/accept':
-    $ref: spec/resources/devices/uid_accept.yaml
-  '/api/users/{id}/data':
-    $ref: spec/resources/users/id_data.yaml
-  '/api/users/{id}/password':
-    $ref: spec/resources/users/id_password.yaml
-  '/api/users/security/{id}':
-    $ref: spec/resources/users/security_id.yaml
-  /api/users/security:
-    $ref: spec/resources/users/security.yaml
+    $ref: spec/paths/devices/api@devices@{uid}@accept.yaml
   /api/devices:
-    $ref: spec/resources/devices/devices.yaml
+    $ref: spec/paths/devices/api@devices.yaml
   '/api/devices/{uid}':
-    $ref: spec/resources/devices/uid.yaml
+    $ref: spec/paths/devices/api@devices@{uid}.yaml
   '/api/devices/{uid}/{status}':
-    $ref: spec/resources/devices/uid_status.yaml
-  /api/sessions:
-    $ref: spec/resources/sessions/sessions.yaml
-  '/api/sessions/{uid}':
-    $ref: spec/resources/sessions/uid.yaml
-  /api/sshkeys/public-keys:
-    $ref: spec/resources/sshkeys/public-keys.yaml
-  '/api/sshkeys/public-keys/{fingerprint}':
-    $ref: spec/resources/sshkeys/public-keys_fingerprint.yaml
-  '/api/sshkeys/public-keys/{fingerprint}/tags':
-    $ref: spec/resources/sshkeys/public-keys_fingerprint_tags.yaml
-  '/api/sshkeys/public-keys/{fingerprint}/tags/{name}':
-    $ref: spec/resources/sshkeys/public-keys_fingerprint_tags_name.yaml
-  /api/stats:
-    $ref: spec/resources/devices/stats.yaml
-  /api/namespaces:
-    $ref: spec/resources/namespaces/namespaces.yaml
-  '/api/namespaces/{tenant}':
-    $ref: spec/resources/namespaces/tenant.yaml
-  '/api/namespaces/{tenant}/members':
-    $ref: spec/resources/namespaces/tenant_members.yaml
-  '/api/namespaces/{tenant}/members/{uid}':
-    $ref: spec/resources/namespaces/tenant_members_uid.yaml
+    $ref: spec/paths/devices/api@devices@{uid}@{status}.yaml
   '/api/devices/{uid}/tags':
-    $ref: spec/resources/devices/uid_tags.yaml
+    $ref: spec/paths/devices/api@devices@{uid}@tags.yaml
   '/api/devices/{uid}/tags/{name}':
-    $ref: spec/resources/devices/uid_tags_name.yaml
+    $ref: spec/paths/devices/api@devices@{uid}@tags@{name}.yaml
+  /api/auth/user:
+    $ref: spec/paths/auth/api@auth@user.yaml
+  /api/auth/device:
+    $ref: spec/paths/auth/api@auth@device.yaml
+  /api/auth/ssh:
+    $ref: spec/paths/auth/api@auth@ssh.yaml
+  '/api/auth/token/{tenant}':
+    $ref: spec/paths/auth/api@auth@token@{tenant}.yaml
+  /api/sessions:
+    $ref: spec/paths/sessions/api@sessions.yaml
+  '/api/sessions/{uid}':
+    $ref: spec/paths/sessions/api@sessions@{uid}.yaml
+  /api/sshkeys/public-keys:
+    $ref: spec/paths/sshkeys/api@sshkeys@public-keys.yaml
+  '/api/sshkeys/public-keys/{fingerprint}':
+    $ref: spec/paths/sshkeys/api@sshkeys@public-keys@{fingerprint}.yaml
+  '/api/sshkeys/public-keys/{fingerprint}/tags':
+    $ref: spec/paths/sshkeys/api@sshkeys@public-keys@{fingerprint}@tags.yaml
+  '/api/sshkeys/public-keys/{fingerprint}/tags/{name}':
+    $ref: spec/paths/sshkeys/api@sshkeys@public-keys@{fingerprint}@tags@{name}.yaml
   '/api/tags':
-    $ref: spec/resources/tags/tags.yaml
+    $ref: spec/paths/tags/api@tags.yaml
   '/api/tags/{name}':
-    $ref: spec/resources/tags/name.yaml
+    $ref: spec/paths/tags/api@tags@{name}.yaml
+  /api/namespaces:
+    $ref: spec/paths/namespaces/api@namespaces.yaml
+  '/api/namespaces/{tenant}':
+    $ref: spec/paths/namespaces/api@namespaces@{tenant}.yaml
+  '/api/namespaces/{tenant}/members':
+    $ref: spec/paths/namespaces/api@namespaces@{tenant}@members.yaml
+  '/api/namespaces/{tenant}/members/{uid}':
+    $ref: spec/paths/namespaces/api@namespaces@{tenant}@members@{uid}.yaml
+  '/api/token/{tenant}':
+    $ref: spec/paths/token/api@token@{tenant}.yaml
+  '/api/users/{id}/data':
+    $ref: spec/paths/users/api@users@{id}@data.yaml
+  '/api/users/{id}/password':
+    $ref: spec/paths/users/api@users@{id}@password.yaml
+  '/api/users/security/{id}':
+    $ref: spec/paths/users/api@users@security@{id}.yaml
+  /api/users/security:
+    $ref: spec/paths/users/api@users@security.yaml
+  /api/stats:
+    $ref: spec/paths/api@stats.yaml

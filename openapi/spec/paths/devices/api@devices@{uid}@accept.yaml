@@ -1,0 +1,17 @@
+put:
+  operationId: putAcceptDevice
+  summary: Accept device
+  description: Change device status to `accepted`.
+  tags:
+    - devices
+  security:
+    - Auth: []
+  parameters:
+    - $ref: ../../components/parameters/deviceUIDPath.yaml
+  responses:
+    '200':
+      description: Success to accept the device
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '500':
+      $ref: ../../components/responses/anyInternalError.yaml

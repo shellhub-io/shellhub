@@ -1,0 +1,67 @@
+get:
+  summary: Get public keys list
+  description: Get a list from all public keys.
+  tags:
+    - ssh
+  security:
+    - Auth: []
+  parameters:
+    - name: X-Total-Count
+      description: Public key max returned number
+      schema:
+        type: integer
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/query.yaml
+  responses:
+    '200':
+      description: Success get public key
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: ../../components/schemas/publicKeyHostname.yaml
+              - $ref: ../../components/schemas/publicKeyTags.yaml
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '500':
+      $ref: ../../components/responses/anyInternalError.yaml
+post:
+  summary: Create public key
+  description: Create a new public key.
+  tags:
+    - ssh
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - $ref: ../../components/schemas/publicKeyHostname.yaml
+            - $ref: ../../components/schemas/publicKeyTags.yaml
+  responses:
+    '200':
+      description: Success create public key
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: ../../components/schemas/publicKeyHostname.yaml
+              - $ref: ../../components/schemas/publicKeyTags.yaml
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '409':
+      $ref: ../../components/responses/conflict.yaml
+    '422':
+      description: UnprocessableEntity
+      content:
+        application/json:
+          schema:
+            description: Invalid format
+            type: null
+    '500':
+      $ref: ../../components/responses/anyInternalError.yaml

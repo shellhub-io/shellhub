@@ -1,0 +1,58 @@
+parameters:
+  - name: name
+    description: Tag's name
+    schema:
+      $ref: ../../components/schemas/tag.yaml
+    required: true
+    in: path
+put:
+  operationId: renameTag
+  summary: Rename a tag
+  description: Rename a tag
+  tags:
+    - tags
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Tag's new name
+              $ref: ../../components/schemas/tag.yaml
+  responses:
+    '200':
+      description: Success to rename a tag
+    '400':
+      $ref: ../../components/responses/badRequest.yaml
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../../components/responses/forbidden.yaml
+    '404':
+      $ref: ../../components/responses/notFound.yaml
+    '409':
+      $ref: ../../components/responses/conflict.yaml
+    '500':
+      $ref: ../../components/responses/anyInternalError.yaml
+delete:
+  operationId: deleteTag
+  summary: Delete a tag
+  description: Delete a tag
+  tags:
+    - tags
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success to delete a tag
+    '401':
+      $ref: ../../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../../components/responses/forbidden.yaml
+    '404':
+      $ref: ../../components/responses/notFound.yaml
+    '500':
+      $ref: ../../components/responses/anyInternalError.yaml

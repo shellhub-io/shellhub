@@ -1,0 +1,17 @@
+info:
+  title: ShellHub
+  description: ShellHub's API documentation.
+  contact:
+    email: contato@ossystems.com.br
+  license:
+    name: Apache License 2.0
+    url: 'https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md'
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:80'
+components:
+  securitySchemes:
+    Auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

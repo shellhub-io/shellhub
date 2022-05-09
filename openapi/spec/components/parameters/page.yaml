@@ -1,0 +1,6 @@
+name: page
+description: Page number
+schema:
+  $ref: ../../schemas/page.yaml
+required: true
+in: query

@@ -1,0 +1,28 @@
+post:
+  operationId: resendEmail
+  summary: Resend confirmation to user
+  description: Resend confirmation to user
+  tags:
+
+
+    - users
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            username:
+              description: User's name
+              type: string
+              minLength: 3
+              maxLength: 20
+          required:
+            - username
+          example:
+            username: example
+  responses:
+    '200':
+      description: Success to resend confirmation to user
+    '500':
+      $ref: ../../components/responses/internalError.yaml

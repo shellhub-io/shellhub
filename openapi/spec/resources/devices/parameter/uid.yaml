@@ -1,5 +1,0 @@
-name: uid
-schema:
-  $ref: ../model/uid.yaml
-required: true
-in: path

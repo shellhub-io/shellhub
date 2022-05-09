@@ -1,0 +1,6 @@
+name: per_page
+description: The number of results to return per page.
+schema:
+  $ref: ../../schemas/perPage.yaml
+required: true
+in: query

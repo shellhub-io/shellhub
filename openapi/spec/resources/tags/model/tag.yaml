@@ -1,5 +1,0 @@
-type: string
-minLength: 3
-# FIXME: 255 is too long
-maxLength: 255
-example: tag
