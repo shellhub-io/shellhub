@@ -1,0 +1,67 @@
+parameters:
+  - name: uid
+    schema:
+      description: Device UID
+      type: string
+    in: path
+get:
+  summary: Get a device
+  description: Get a device from `UID`.
+  tags:
+    - device
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success get a device
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/device.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml
+delete:
+  summary: Delete a device
+  description: Delete a device from its `UID`.
+  tags:
+    - device
+  security:
+    - jwt: []
+  responses:
+    '200':
+      $ref: ../components/responses/ok.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml
+patch:
+  summary: Update device name
+  description: Update a device name from its `UID` to `name` in request body.
+  tags:
+    - device
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Device new name
+              type: string
+  responses:
+    '200':
+      $ref: ../components/responses/ok.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '409':
+      $ref: ../components/responses/conflict.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml

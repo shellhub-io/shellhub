@@ -1,0 +1,54 @@
+parameters:
+  - name: fingerprint
+    description: Public key fingerprint
+    schema:
+      type: string
+    in: path
+patch:
+  summary: Update public key
+  description: Update public key.
+  tags:
+    - ssh
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Public key name
+              type: string
+            username:
+              description: Public key username
+              type: string
+  responses:
+    '200':
+      description: Success update public key
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: ../components/schemas/publicKeyHostname.yaml
+              - $ref: ../components/schemas/publicKeyTags.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml
+delete:
+  summary: Delete public key
+  description: Delete public key.
+  tags:
+    - ssh
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success delete public key
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '404':
+      $ref: ../components/responses/notFound.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml

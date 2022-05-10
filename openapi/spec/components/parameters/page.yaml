@@ -1,0 +1,7 @@
+name: page
+schema:
+  type: integer
+  minimum: 1
+  default: 1
+required: true
+in: query

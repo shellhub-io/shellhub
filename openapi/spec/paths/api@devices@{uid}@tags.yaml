@@ -1,0 +1,72 @@
+parameters:
+  - name: uid
+    description: Device UID
+    schema:
+      type: string
+    in: header
+post:
+  summary: Create a tag
+  description: Create a tag to a device
+  tags:
+    - device
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Tag name
+              type: string
+  responses:
+    '200':
+      $ref: ../components/responses/ok.yaml
+    '400':
+      $ref: ../components/responses/badRequest.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '404':
+      $ref: ../components/responses/notFound.yaml
+    '406':
+      $ref: ../components/responses/notAcceptable.yaml
+    '409':
+      $ref: ../components/responses/conflict.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml
+put:
+  summary: Update all tags
+  description: Update all tags from a device
+  tags:
+    - device
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tags:
+              description: List of tags
+              type: array
+              items:
+                type: string
+  responses:
+    '200':
+      $ref: ../components/responses/ok.yaml
+    '400':
+      $ref: ../components/responses/badRequest.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '404':
+      $ref: ../components/responses/notFound.yaml
+    '406':
+      $ref: ../components/responses/notAcceptable.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml

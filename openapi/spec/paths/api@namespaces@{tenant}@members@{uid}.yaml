@@ -1,0 +1,77 @@
+delete:
+  summary: Delete a user from a namespace
+  description: Delete a user from a namespace
+  tags:
+    - namespace
+  security:
+    - jwt: []
+  parameters:
+    - name: tenant
+      description: Namespace Tenant
+      schema:
+        type: string
+      in: path
+    - name: uid
+      description: User ID
+      schema:
+        type: string
+      in: path
+  requestBody:
+    content:
+      application/json: null
+  responses:
+    '200':
+      description: Success delete user from namespace
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '404':
+      $ref: ../components/responses/notFound.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml
+patch:
+  summary: Update a user from a namespace
+  description: Update a user type from a namespace
+  tags:
+    - namespace
+  security:
+    - jwt: []
+  parameters:
+    - name: tenant
+      description: Namespace Tenant
+      schema:
+        type: string
+      in: path
+    - name: uid
+      description: User ID
+      schema:
+        type: string
+      in: path
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            type:
+              description: User type
+              enum:
+                - observer
+                - operator
+                - admin
+  responses:
+    '200':
+      $ref: ../components/responses/ok.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '404':
+      $ref: ../components/responses/notFound.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml

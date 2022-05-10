@@ -1,0 +1,45 @@
+post:
+  summary: Add a user to a namespace
+  description: Add a user to a namespace
+  tags:
+    - namespace
+  security:
+    - jwt: []
+  parameters:
+    - name: tenant
+      description: Namespace Tenant
+      schema:
+        type: string
+      in: path
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            username:
+              description: User name
+              type: string
+            type:
+              description: User type
+              enum:
+                - observer
+                - operator
+                - admin
+  responses:
+    '200':
+      description: Success add namespace to user
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '400':
+      $ref: ../components/responses/badRequest.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '409':
+      $ref: ../components/responses/conflict.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml

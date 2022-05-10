@@ -1,0 +1,55 @@
+parameters:
+  - name: name
+    description: Tag name
+    schema:
+      type: string
+    in: path
+    example: tag1
+put:
+  summary: Rename a tag name
+  tags:
+    - tags
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: New tag name
+              type: string
+              example: tag2
+  responses:
+    '200':
+      $ref: ../components/responses/ok.yaml
+    '400':
+      $ref: ../components/responses/badRequest.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '404':
+      $ref: ../components/responses/notFound.yaml
+    '409':
+      $ref: ../components/responses/conflict.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml
+delete:
+  summary: Delete a tag name
+  tags:
+    - tags
+  security:
+    - jwt: []
+  responses:
+    '200':
+      $ref: ../components/responses/ok.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '404':
+      $ref: ../components/responses/notFound.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml

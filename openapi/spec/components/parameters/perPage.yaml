@@ -1,0 +1,7 @@
+name: per_page
+schema:
+  type: integer
+  minimum: 1
+  default: 10
+required: true
+in: query

@@ -1,0 +1,45 @@
+patch:
+  summary: Update device status
+  description: |
+    Update a device status from its allowed list.
+    The allowed status are:
+      - accept
+      - reject
+      - pending
+      - unused
+  tags:
+    - device
+  security:
+    - jwt: []
+  parameters:
+    - name: uid
+      description: Device UID
+      schema:
+        type: string
+      in: path
+    - name: status
+      schema:
+        type: string
+        enum:
+          - accept
+          - reject
+          - pending
+          - unused
+      in: path
+  responses:
+    '200':
+      $ref: ../components/responses/ok.yaml
+    '400':
+      $ref: ../components/responses/badRequest.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '402':
+      description: Payment required
+      content:
+        application/json:
+          schema:
+            type: null
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml

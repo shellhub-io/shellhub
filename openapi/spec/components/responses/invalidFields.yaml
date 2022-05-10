@@ -1,0 +1,10 @@
+description: Invalid Fields
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        type: string
+    example:
+      - username
+      - email

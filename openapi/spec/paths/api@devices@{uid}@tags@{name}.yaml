@@ -1,0 +1,29 @@
+parameters:
+  - name: uid
+    description: Device UID
+    schema:
+      type: string
+    in: header
+  - name: name
+    description: Tag name
+    schema:
+      type: string
+    in: header
+delete:
+  summary: Delete a tag
+  description: Delete a tag from a device
+  tags:
+    - device
+  security:
+    - jwt: []
+  responses:
+    '200':
+      $ref: ../components/responses/ok.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbidden.yaml
+    '404':
+      $ref: ../components/responses/notFound.yaml
+    '500':
+      $ref: ../components/responses/anyInternalError.yaml
