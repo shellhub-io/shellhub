@@ -1,0 +1,29 @@
+post:
+  operationId: registerUser
+  summary: Register user
+  description: Register user
+  tags:
+    - cloud
+    - external
+    - users
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/user.yaml
+        example:
+          name: example
+          email: example@example.com
+          username: example
+          password: example
+  responses:
+    '200':
+      description: Success to register user
+    '400':
+      $ref: ../components/responses/invalidFields.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '409':
+      $ref: ../components/responses/conflictFields.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

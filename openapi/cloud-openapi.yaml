@@ -1,24 +1,112 @@
-openapi: 3.0.2
-$ref: spec/shared/common-openapi.yaml
+openapi: 3.0.3
+info:
+  title: ShellHub Cloud
+  description: |
+    ShellHub Cloud documentation.
+
+    It documents all routes provided by ShellHub Cloud.
+  contact:
+    email: contato@ossystems.com.br
+  license:
+    name: Apache License 2.0
+    url: https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md
+  version: 1.0.0
+servers:
+  - url: http://localhost
+    description: ShellHub API server
+components:
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+  - name: external
+    description: Requests made by the end user
+  - name: cloud
+    description: Routes provide by Cloud API
+  - name: sessions
+    description: Routes related to session resource
+  - name: users
+    description: Routes related to users resource
+  - name: rules
+    description: Routes related to firewall rules resource
 paths:
-  $ref: community-openapi.yaml#/paths
+  /api/login:
+    $ref: spec/paths/api@login.yaml
+  /api/auth/user:
+    $ref: spec/paths/api@login.yaml
+  /api/devices/auth:
+    $ref: spec/paths/api@devices@auth.yaml
+  /api/auth/device:
+    $ref: spec/paths/api@auth@device.yaml
+  /api/auth/ssh:
+    $ref: spec/paths/api@auth@ssh.yaml
+  /api/auth/token/{tenant}:
+    $ref: spec/paths/api@auth@token@{tenant}.yaml
+  /api/token/{tenant}:
+    $ref: spec/paths/api@token@{tenant}.yaml
+  /api/devices/{uid}/accept:
+    $ref: spec/paths/api@devices@{uid}@accept.yaml
+  /api/users/{id}/data:
+    $ref: spec/paths/api@users@{id}@data.yaml
+  /api/users/{id}/password:
+    $ref: spec/paths/api@users@{id}@password.yaml
+  /api/users/security/{id}:
+    $ref: spec/paths/api@users@security@{id}.yaml
+  /api/users/security:
+    $ref: spec/paths/api@users@security.yaml
+  /api/devices:
+    $ref: spec/paths/api@devices.yaml
+  /api/devices/{uid}:
+    $ref: spec/paths/api@devices@{uid}.yaml
+  /api/devices/{uid}/{status}:
+    $ref: spec/paths/api@devices@{uid}@{status}.yaml
+  /api/sessions:
+    $ref: spec/paths/api@sessions.yaml
+  /api/sessions/{uid}:
+    $ref: spec/paths/api@sessions@{uid}.yaml
+  /api/sshkeys/public-keys:
+    $ref: spec/paths/api@sshkeys@public-keys.yaml
+  /api/sshkeys/public-keys/{fingerprint}:
+    $ref: spec/paths/api@sshkeys@public-keys@{fingerprint}.yaml
+  /api/sshkeys/public-keys/{fingerprint}/tags:
+    $ref: spec/paths/api@sshkeys@public-keys@{fingerprint}@tags.yaml
+  /api/sshkeys/public-keys/{fingerprint}/tags/{name}:
+    $ref: spec/paths/api@sshkeys@public-keys@{fingerprint}@tags@{name}.yaml
+  /api/stats:
+    $ref: spec/paths/api@stats.yaml
+  /api/namespaces:
+    $ref: spec/paths/api@namespaces.yaml
+  /api/namespaces/{tenant}:
+    $ref: spec/paths/api@namespaces@{tenant}.yaml
+  /api/namespaces/{tenant}/members:
+    $ref: spec/paths/api@namespaces@{tenant}@members.yaml
+  /api/namespaces/{tenant}/members/{uid}:
+    $ref: spec/paths/api@namespaces@{tenant}@members@{uid}.yaml
+  /api/devices/{uid}/tags:
+    $ref: spec/paths/api@devices@{uid}@tags.yaml
+  /api/devices/{uid}/tags/{name}:
+    $ref: spec/paths/api@devices@{uid}@tags@{name}.yaml
+  /api/tags:
+    $ref: spec/paths/api@tags.yaml
+  /api/tags/{name}:
+    $ref: spec/paths/api@tags@{name}.yaml
+  /api/sessions/{uid}/play:
+    $ref: spec/paths/api@sessions@{uid}@play.yaml
   /api/firewall/rules:
-    $ref: spec/resources/firewall/rules.yaml
-  '/api/firewall/rules/{id}':
-    $ref: spec/resources/firewall/rules_id.yaml
-  '/api/firewall/rules/{id}/tags':
-    $ref: spec/resources/firewall/rules_id_tags.yaml
-  '/api/sessions/{uid}/play':
-    $ref: spec/resources/sessions/play.yaml
-  '/api/sessions/{uid}/record':
-    $ref: spec/resources/sessions/record_del.yaml
+    $ref: spec/paths/api@firewall@rules.yaml
+  /api/firewall/rules/{id}:
+    $ref: spec/paths/api@firewall@rules@{id}.yaml
+  /api/firewall/rules/{id}/tags:
+    $ref: spec/paths/api@firewall@rules@{id}@tags.yaml
   /api/register:
-    $ref: spec/resources/user/register.yaml
+    $ref: spec/paths/api@register.yaml
   /api/user/resend_email:
-    $ref: spec/resources/user/resend_email.yaml
-  '/api/user/{uid}/update_password':
-    $ref: spec/resources/user/uid_update_password.yaml
+    $ref: spec/paths/api@user@resend_email.yaml
+  /api/user/{uid}/update_password:
+    $ref: spec/paths/api@user@{uid}@update_password.yaml
   /api/user/validation_account:
-    $ref: spec/resources/user/validation_account.yaml
+    $ref: spec/paths/api@user@validation_account.yaml
   /api/user/recover_password:
-    $ref: spec/resources/user/recover_password.yaml
+    $ref: spec/paths/api@user@recover_password.yaml

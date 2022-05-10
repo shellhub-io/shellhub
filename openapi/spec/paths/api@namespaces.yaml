@@ -1,0 +1,58 @@
+get:
+  summary: Get namespace list
+  description: Get a list from all namespaces.
+  tags:
+    - namespace
+  security:
+    - jwt: []
+  parameters:
+    - name: X-Total-Count
+      schema:
+        description: Namespace max returned number
+        type: integer
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/query.yaml
+  responses:
+    '200':
+      description: Success get namespace list
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+post:
+  summary: Create namespace
+  description: Create a namespace.
+  tags:
+    - namespace
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/namespace.yaml
+  responses:
+    '200':
+      description: Success create namespace
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '400':
+      $ref: ../components/responses/badRequestEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '409':
+      $ref: ../components/responses/conflictEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

@@ -1,0 +1,31 @@
+get:
+  operationId: getSessionStatus
+  summary: Get session record status
+  description: Get session record status
+  security:
+    - jwt: []
+  parameters:
+    - name: uid
+      description: Session's UID
+      schema:
+        type: string
+      example: 600d28a8fc447d4e661a109878641dd01f335228da3788e059aaa2c807773510
+      required: true
+      in: path
+  tags:
+    - cloud
+    - external
+    - sessions
+  responses:
+    '200':
+      description: Success to get session status
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/recordedSessionResponse.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

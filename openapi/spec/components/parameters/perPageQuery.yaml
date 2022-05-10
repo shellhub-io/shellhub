@@ -1,0 +1,8 @@
+name: per_page
+description: The number of results to return per page
+schema:
+  type: integer
+  minimum: 1
+  default: 10
+required: true
+in: query

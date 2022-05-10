@@ -1,0 +1,38 @@
+type: array
+items:
+  type: object
+  properties:
+    uid:
+      description: Session's ID
+      type: string
+      minLength: 64
+      maxLength: 64
+      example: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
+    message:
+      description: Session's Data
+      type: string
+    tenant_id:
+      type: string
+      example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+    time:
+      description: Session time
+      type: string
+      format: date-time
+      example: 2020-05-01T00:00:00.000Z
+    width:
+      description: Session terminal width
+      type: integer
+      minimum: 0
+      example: 24
+    height:
+      description: Session terminal height
+      type: integer
+      minimum: 0
+      example: 111
+  required:
+    - uid
+    - message
+    - tenant_id
+    - time
+    - width
+    - height

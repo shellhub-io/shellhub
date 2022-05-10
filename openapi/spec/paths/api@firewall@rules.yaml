@@ -1,0 +1,133 @@
+post:
+  operationId: createFirewallRule
+  summary: Create firewall rule
+  description: Create firewall rule
+  tags:
+    - cloud
+    - external
+    - rules
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/firewallRulesRequest.yaml
+        examples:
+          with_hostname:
+            value:
+              action: allow
+              active: true
+              filter:
+                hostname: .*
+              priority: 1
+              source_ip: .*
+              username: .*
+          with_tags:
+            value:
+              action: allow
+              active: true
+              filter:
+                tags:
+                  - tag1
+                  - tag2
+                  - tag3
+              priority: 1
+              source_ip: .*
+              username: .*
+  responses:
+    '200':
+      description: Success create firewall rule
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/firewallRulesResponse.yaml
+          examples:
+            with_hostname:
+              value:
+                tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+                action: allow
+                active: true
+                filter:
+                  hostname: .*
+                priority: 1
+                source_ip: .*
+                username: .*
+            with_tags:
+              value:
+                tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+                action: allow
+                active: true
+                filter:
+                  tags:
+                    - tag1
+                    - tag2
+                    - tag3
+                priority: 1
+                source_ip: .*
+                username: .*
+    '400':
+      $ref: ../components/responses/badRequestEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+get:
+  operationId: getFirewallRules
+  summary: Get firewall rules
+  description: Get firewall rules
+  tags:
+    - cloud
+    - external
+    - rules
+  security:
+    - jwt: []
+  parameters:
+    - name: X-Total-Count
+      schema:
+        description: Total number of Firewall rules
+        type: integer
+      in: header
+    - $ref: ../components/parameters/pageQuery.yaml
+    - $ref: ../components/parameters/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success get firewall rules
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/firewallRulesResponse.yaml
+          examples:
+            with_hostname:
+              value:
+                id: 507f1f77bcf86cd799439011
+                tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+                action: allow
+                active: true
+                filter:
+                  hostname: test
+                priority: 1
+                source_ip: .*
+                username: .*
+            with_tags:
+              value:
+                id: 507f1f77bcf86cd799439011
+                tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+                action: allow
+                active: true
+                filter:
+                  tags:
+                    - tag1
+                    - tag2
+                    - tag3
+                priority: 1
+                source_ip: .*
+                username: .*
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

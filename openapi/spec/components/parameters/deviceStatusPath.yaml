@@ -1,0 +1,6 @@
+name: status
+description: Device's status
+schema:
+  $ref: ../schemas/deviceStatus.yaml
+required: true
+in: path

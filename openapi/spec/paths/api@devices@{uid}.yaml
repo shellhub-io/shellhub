@@ -1,0 +1,69 @@
+parameters:
+  - $ref: ../components/parameters/deviceUIDPath.yaml
+get:
+  operationId: getSingleDevice
+  summary: Get single device
+  description: Get single device
+  tags:
+    - devices
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success get a single device
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/device.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+delete:
+  operationId: deleteSingleDevice
+  summary: Delete a single device
+  description: Delete a single device
+  tags:
+    - devices
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success delete a single device
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+patch:
+  operationId: updateDeviceName
+  summary: Update device's name
+  description: Update device's name
+  tags:
+    - devices
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Device's new name
+              type: string
+              example: example
+          required:
+            - name
+  responses:
+    '200':
+      description: Success update device's name
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '409':
+      $ref: ../components/responses/conflictEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

@@ -1,0 +1,108 @@
+parameters:
+  - name: tenant
+    description: Namespace Tenant
+    schema:
+      type: integer
+    in: path
+get:
+  summary: Get namespace
+  description: Get a namespace from its `tenant`.
+  tags:
+    - namespace
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success get namespace
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+post:
+  summary: Create namespace
+  description: Create a namespace from its `tenant`.
+  tags:
+    - namespace
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Namespace name
+              type: string
+  responses:
+    '200':
+      description: Success create namespace
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '400':
+      $ref: ../components/responses/badRequestEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '409':
+      $ref: ../components/responses/conflictEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+put:
+  summary: Edit namespace
+  description: Edit a namespace from its `tenant`.
+  tags:
+    - namespace
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Namespace name
+              type: string
+  responses:
+    '200':
+      description: Success edit namespace
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '400':
+      $ref: ../components/responses/badRequestEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '404':
+      $ref: ../components/responses/notFoundEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+delete:
+  summary: Delete namespace
+  description: Delete a namespace from its `tenant`.
+  tags:
+    - namespace
+  security:
+    - jwt: []
+  responses:
+    '200':
+      $ref: ../components/responses/okEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '404':
+      $ref: ../components/responses/notFoundEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

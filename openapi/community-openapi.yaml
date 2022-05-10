@@ -1,63 +1,83 @@
 openapi: 3.0.2
-$ref: spec/shared/common-openapi.yaml
+info:
+  title: ShellHub Community
+  description: |
+    ShellHub Community documentation.
+    
+    It documents all routes provided by ShellHub Community.
+  contact:
+    email: contato@ossystems.com.br
+  license:
+    name: Apache License 2.0
+    url: https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md
+  version: 1.0.0
+servers:
+  - url: http://localhost
+    description: ShellHub API server
+components:
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 paths:
   /api/login:
-    $ref: spec/resources/users/login.yaml
+    $ref: spec/paths/api@login.yaml
   /api/auth/user:
-    $ref: spec/resources/users/login.yaml
+    $ref: spec/paths/api@login.yaml
   /api/devices/auth:
-    $ref: spec/resources/devices/auth.yaml
+    $ref: spec/paths/api@devices@auth.yaml
   /api/auth/device:
-    $ref: spec/resources/auth/device.yaml
+    $ref: spec/paths/api@auth@device.yaml
   /api/auth/ssh:
-    $ref: spec/resources/auth/ssh.yaml
-  '/api/auth/token/{tenant}':
-    $ref: spec/resources/auth/token.yaml
-  '/api/token/{tenant}':
-    $ref: spec/resources/users/token_tenant.yaml
-  '/api/devices/{uid}/accept':
-    $ref: spec/resources/devices/uid_accept.yaml
-  '/api/users/{id}/data':
-    $ref: spec/resources/users/id_data.yaml
-  '/api/users/{id}/password':
-    $ref: spec/resources/users/id_password.yaml
-  '/api/users/security/{id}':
-    $ref: spec/resources/users/security_id.yaml
+    $ref: spec/paths/api@auth@ssh.yaml
+  /api/auth/token/{tenant}:
+    $ref: spec/paths/api@auth@token@{tenant}.yaml
+  /api/token/{tenant}:
+    $ref: spec/paths/api@token@{tenant}.yaml
+  /api/devices/{uid}/accept:
+    $ref: spec/paths/api@devices@{uid}@accept.yaml
+  /api/users/{id}/data:
+    $ref: spec/paths/api@users@{id}@data.yaml
+  /api/users/{id}/password:
+    $ref: spec/paths/api@users@{id}@password.yaml
+  /api/users/security/{id}:
+    $ref: spec/paths/api@users@security@{id}.yaml
   /api/users/security:
-    $ref: spec/resources/users/security.yaml
+    $ref: spec/paths/api@users@security.yaml
   /api/devices:
-    $ref: spec/resources/devices/devices.yaml
-  '/api/devices/{uid}':
-    $ref: spec/resources/devices/uid.yaml
-  '/api/devices/{uid}/{status}':
-    $ref: spec/resources/devices/uid_status.yaml
+    $ref: spec/paths/api@devices.yaml
+  /api/devices/{uid}:
+    $ref: spec/paths/api@devices@{uid}.yaml
+  /api/devices/{uid}/{status}:
+    $ref: spec/paths/api@devices@{uid}@{status}.yaml
   /api/sessions:
-    $ref: spec/resources/sessions/sessions.yaml
-  '/api/sessions/{uid}':
-    $ref: spec/resources/sessions/uid.yaml
+    $ref: spec/paths/api@sessions.yaml
+  /api/sessions/{uid}:
+    $ref: spec/paths/api@sessions@{uid}.yaml
   /api/sshkeys/public-keys:
-    $ref: spec/resources/sshkeys/public-keys.yaml
-  '/api/sshkeys/public-keys/{fingerprint}':
-    $ref: spec/resources/sshkeys/public-keys_fingerprint.yaml
-  '/api/sshkeys/public-keys/{fingerprint}/tags':
-    $ref: spec/resources/sshkeys/public-keys_fingerprint_tags.yaml
-  '/api/sshkeys/public-keys/{fingerprint}/tags/{name}':
-    $ref: spec/resources/sshkeys/public-keys_fingerprint_tags_name.yaml
+    $ref: spec/paths/api@sshkeys@public-keys.yaml
+  /api/sshkeys/public-keys/{fingerprint}:
+    $ref: spec/paths/api@sshkeys@public-keys@{fingerprint}.yaml
+  /api/sshkeys/public-keys/{fingerprint}/tags:
+    $ref: spec/paths/api@sshkeys@public-keys@{fingerprint}@tags.yaml
+  /api/sshkeys/public-keys/{fingerprint}/tags/{name}:
+    $ref: spec/paths/api@sshkeys@public-keys@{fingerprint}@tags@{name}.yaml
   /api/stats:
-    $ref: spec/resources/devices/stats.yaml
+    $ref: spec/paths/api@stats.yaml
   /api/namespaces:
-    $ref: spec/resources/namespaces/namespaces.yaml
-  '/api/namespaces/{tenant}':
-    $ref: spec/resources/namespaces/tenant.yaml
-  '/api/namespaces/{tenant}/members':
-    $ref: spec/resources/namespaces/tenant_members.yaml
-  '/api/namespaces/{tenant}/members/{uid}':
-    $ref: spec/resources/namespaces/tenant_members_uid.yaml
-  '/api/devices/{uid}/tags':
-    $ref: spec/resources/devices/uid_tags.yaml
-  '/api/devices/{uid}/tags/{name}':
-    $ref: spec/resources/devices/uid_tags_name.yaml
-  '/api/tags':
-    $ref: spec/resources/tags/tags.yaml
-  '/api/tags/{name}':
-    $ref: spec/resources/tags/name.yaml
+    $ref: spec/paths/api@namespaces.yaml
+  /api/namespaces/{tenant}:
+    $ref: spec/paths/api@namespaces@{tenant}.yaml
+  /api/namespaces/{tenant}/members:
+    $ref: spec/paths/api@namespaces@{tenant}@members.yaml
+  /api/namespaces/{tenant}/members/{uid}:
+    $ref: spec/paths/api@namespaces@{tenant}@members@{uid}.yaml
+  /api/devices/{uid}/tags:
+    $ref: spec/paths/api@devices@{uid}@tags.yaml
+  /api/devices/{uid}/tags/{name}:
+    $ref: spec/paths/api@devices@{uid}@tags@{name}.yaml
+  /api/tags:
+    $ref: spec/paths/api@tags.yaml
+  /api/tags/{name}:
+    $ref: spec/paths/api@tags@{name}.yaml

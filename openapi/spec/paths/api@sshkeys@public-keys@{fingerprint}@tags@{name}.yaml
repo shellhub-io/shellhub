@@ -1,0 +1,31 @@
+parameters:
+  - name: fingerprint
+    description: Public key fingerprint
+    schema:
+      type: string
+    in: path
+    example: '00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00'
+  - name: name
+    description: Tag's name
+    schema:
+      type: string
+    in: path
+    example: tag1
+delete:
+  summary: Remove a tag from public key
+  description: Remove a tag from public key.
+  tags:
+    - ssh
+  security:
+    - jwt: []
+  responses:
+    '200':
+      $ref: ../components/responses/okEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '404':
+      $ref: ../components/responses/notFoundEmpty.yaml
+    '409':
+      $ref: ../components/responses/conflictEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

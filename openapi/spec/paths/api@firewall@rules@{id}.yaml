@@ -1,0 +1,123 @@
+parameters:
+  - name: id
+    schema:
+      description: Firewall rule's ID
+      type: integer
+    in: path
+    required: true
+get:
+  operationId: getFirewallRule
+  summary: Get Firewall rule
+  description: Get Firewall rule
+  tags:
+    - cloud
+    - external
+    - rules
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success get firewall rule
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/firewallRulesResponse.yaml
+          examples:
+            with_hostname:
+              value:
+                tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+                action: allow
+                active: true
+                filter:
+                  hostname: .*
+                priority: 1
+                source_ip: .*
+                username: .*
+            with_tags:
+              value:
+                tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+                action: allow
+                active: true
+                filter:
+                  tags:
+                    - tag1
+                    - tag2
+                    - tag3
+                priority: 1
+                source_ip: .*
+                username: .*
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+put:
+  operationId: updateFirewallRule
+  summary: Update Firewall rule
+  description: Update Firewall rule
+  tags:
+    - cloud
+    - external
+    - rules
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/firewallRulesRequest.yaml
+        examples:
+          with_hostname:
+            value:
+              action: allow
+              active: true
+              filter:
+                hostname: .*
+              priority: 1
+              source_ip: .*
+              username: .*
+          with_tags:
+            value:
+              action: allow
+              active: true
+              filter:
+                tags:
+                  - tag1
+                  - tag2
+                  - tag3
+              priority: 1
+              source_ip: .*
+              username: .*
+  responses:
+    '200':
+      description: Success update firewall rule
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/firewallRulesResponse.yaml
+    '400':
+      $ref: ../components/responses/badRequestEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+delete:
+  operationId: deleteFirewallRule
+  summary: Delete firewall rule
+  description: Delete firewall rule
+  tags:
+    - cloud
+    - external
+    - rules
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success delete firewall rule
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

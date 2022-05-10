@@ -1,0 +1,26 @@
+type: object
+properties:
+  name:
+    description: User's name
+    type: string
+    minLength: 3
+    maxLength: 20
+  email:
+    description: User's e-mail
+    type: string
+    format: email
+  username:
+    description: User's name
+    type: string
+    minLength: 3
+    maxLength: 20
+  password:
+    description: User's password
+    type: string
+    minLength: 5
+    maxLength: 30
+required:
+  - name
+  - email
+  - username
+  - password

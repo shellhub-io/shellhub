@@ -1,0 +1,23 @@
+parameters:
+  - $ref: ../components/parameters/deviceUIDPath.yaml
+  - $ref: ../components/parameters/deviceTagPath.yaml
+delete:
+  operationId: deleteDeviceTag
+  summary: Delete a tag from device
+  description: Delete a tag from device.
+  tags:
+    - devices
+    - tags
+  security:
+    - Auth: []
+  responses:
+    '200':
+      description: Success to delete from device
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '404':
+      $ref: ../components/responses/notFoundEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

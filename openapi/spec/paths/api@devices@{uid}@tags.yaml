@@ -1,0 +1,69 @@
+parameters:
+  - $ref: ../components/parameters/deviceUIDPath.yaml
+post:
+  operationId: createDeviceTag
+  summary: Create a tag
+  description: Create a tag
+  tags:
+    - devices
+    - tags
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              $ref: ../components/schemas/tag.yaml
+          required:
+            - name
+          example:
+            name: tag
+  responses:
+    '200':
+      description: Success create a tag
+    '400':
+      $ref: ../components/responses/badRequestEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '404':
+      $ref: ../components/responses/notFoundEmpty.yaml
+    '406':
+      $ref: ../components/responses/notAcceptableEmpty.yaml
+    '409':
+      $ref: ../components/responses/conflictEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+put:
+  operationId: updateTagsDevice
+  summary: Update tags to device
+  description: Update tags to device
+  tags:
+    - devices
+    - tags
+  security:
+    - Auth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/deviceTags.yaml
+  responses:
+    '200':
+      description: Success to update tags to device
+    '400':
+      $ref: ../components/responses/badRequestEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '404':
+      $ref: ../components/responses/notFoundEmpty.yaml
+    '406':
+      $ref: ../components/responses/notAcceptableEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

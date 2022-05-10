@@ -1,0 +1,8 @@
+description: Device's identity
+type: object
+properties:
+  mac:
+    description: Device's MAC
+    type: string
+    example: '00:00:00:00:00:00'
+    pattern: ^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$

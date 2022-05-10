@@ -1,0 +1,124 @@
+parameters:
+  - name: id
+    schema:
+      type: string
+      description: Firewall rule's ID
+    required: true
+    in: path
+post:
+  operationId: ruleAddTag
+  summary: Add a tag to firewall rule
+  description: Add a tag to firewall rule
+  tags:
+    - external
+    - cloud
+    - rules
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tag:
+              type: string
+              example: tag1
+          required:
+            - tag
+  responses:
+    '200':
+      description: Success to add tag to firewall rule
+    '400':
+      $ref: ../components/responses/badRequestEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '404':
+      $ref: ../components/responses/notFoundEmpty.yaml
+    '406':
+      $ref: ../components/responses/notAcceptableEmpty.yaml
+    '409':
+      $ref: ../components/responses/conflictEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+delete:
+  operationId: ruleDeleteTag
+  summary: Remove a tag from firewall rule
+  description: Remove a tag from firewall rule
+  tags:
+    - external
+    - cloud
+    - rules
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tag:
+              type: string
+              example: tag1
+          required:
+            - tag
+  responses:
+    '200':
+      description: Success to remove tag from Firewall rule
+    '400':
+      $ref: ../components/responses/badRequestEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '404':
+      $ref: ../components/responses/notFoundEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml
+put:
+  operationId: ruleUpdateTags
+  summary: Update tags in firewall rule
+  description: Update tags in firewall rule
+  tags:
+    - external
+    - cloud
+    - rules
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tags:
+              type: array
+              items:
+                type: string
+              minItems: 1
+              maxItems: 3
+              example:
+                - tag1
+                - tag2
+                - tag3
+          required:
+            - tags
+  responses:
+    '200':
+      description: Success to update tags in Firewall rule
+    '400':
+      $ref: ../components/responses/badRequestEmpty.yaml
+    '401':
+      $ref: ../components/responses/unauthorized.yaml
+    '403':
+      $ref: ../components/responses/forbiddenEmpty.yaml
+    '404':
+      $ref: ../components/responses/notFoundEmpty.yaml
+    '406':
+      $ref: ../components/responses/notAcceptableEmpty.yaml
+    '409':
+      $ref: ../components/responses/conflictEmpty.yaml
+    '500':
+      $ref: ../components/responses/internalError.yaml

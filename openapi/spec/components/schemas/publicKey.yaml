@@ -1,0 +1,35 @@
+type: object
+properties:
+  data:
+    description: Public key's data
+    type: string
+  fingerprint:
+    description: Public key's fingerprint
+    type: string
+  created_at:
+    description: Public key's creation date
+    type: string
+  tenant_id:
+    description: Public key's namespace tenant
+    type: string
+  name:
+    description: Public key's name
+    type: string
+  filter:
+    description: Public key's filter rule
+    oneOf:
+      - type: object
+        properties:
+          hostname:
+            description: Public key's hostname
+            type: string
+      - type: object
+        properties:
+          tags:
+            description: Public key's tags
+            type: array
+            items:
+              type: string
+  username:
+    description: Public key's username
+    type: string
