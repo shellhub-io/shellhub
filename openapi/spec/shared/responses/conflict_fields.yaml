@@ -1,7 +1,0 @@
-description: Conflict Fields
-content:
-  application/json:
-    schema:
-      type: array
-      items:
-        type: string
