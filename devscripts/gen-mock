@@ -22,3 +22,6 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
 
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
 	exec api mockery --name Client --dir ../pkg/api/client --output ../pkg/api/client/mocks --filename client.go
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
+	exec ssh mockery --name Session --output ./mocks --filename session.go --srcpkg github.com/gliderlabs/ssh
