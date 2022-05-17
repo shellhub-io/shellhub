@@ -3,12 +3,10 @@
 package mocks
 
 import (
-	context "context"
 	io "io"
+	net "net"
 
 	mock "github.com/stretchr/testify/mock"
-
-	net "net"
 
 	ssh "github.com/gliderlabs/ssh"
 )
@@ -68,15 +66,15 @@ func (_m *Session) Command() []string {
 }
 
 // Context provides a mock function with given fields:
-func (_m *Session) Context() context.Context {
+func (_m *Session) Context() ssh.Context {
 	ret := _m.Called()
 
-	var r0 context.Context
-	if rf, ok := ret.Get(0).(func() context.Context); ok {
+	var r0 ssh.Context
+	if rf, ok := ret.Get(0).(func() ssh.Context); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(context.Context)
+			r0 = ret.Get(0).(ssh.Context)
 		}
 	}
 
