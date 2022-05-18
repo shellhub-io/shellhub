@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	resty "github.com/go-resty/resty/v2"
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
@@ -48,6 +49,9 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
 	var res *models.DeviceAuthResponse
 	_, err := c.http.R().
+		AddRetryCondition(func(r *resty.Response, err error) bool {
+			return r.IsError()
+		}).
 		SetBody(req).
 		SetResult(&res).
 		Post(buildURL(c, "/api/devices/auth"))
