@@ -1,0 +1,637 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This file documents all routes provided by ShellHub Community instance.",
+        "title": "ShellHub Community Swagger specification",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "email": "contato@ossystems.com.br"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:80",
+    "basePath": "/api",
+    "paths": {
+        "/devices": {
+            "get": {
+                "security": [
+                    {
+                        "jwt": []
+                    }
+                ],
+                "description": "Return a list of devices between a defined range. You can also set a filter, sort by, order by and get only devices with a specific status.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community",
+                    "devices"
+                ],
+                "summary": "Get a list of devices.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoiZDAifX1d",
+                        "description": "Device's Filter field receives a base64 encoded JSON object",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "accepted",
+                            "rejected",
+                            "pending",
+                            "unused"
+                        ],
+                        "type": "string",
+                        "example": "accepted",
+                        "description": "Device's status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device's property to sort of",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "Device's list order",
+                        "name": "order_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "description": "Number of items per page",
+                        "name": "perPage",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Device"
+                            }
+                        },
+                        "headers": {
+                            "X-Total-Count": {
+                                "type": "string",
+                                "description": "Device's total number"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/devices/lookup": {
+            "get": {
+                "description": "Lookup for device.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community",
+                    "devices"
+                ],
+                "summary": "Lookup for device.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device's domain.",
+                        "name": "domain",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device's name.",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device's username.",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device's IP address.",
+                        "name": "ip_address",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Device"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/devices/{uid}": {
+            "get": {
+                "security": [
+                    {
+                        "jwt": []
+                    }
+                ],
+                "description": "Return a device by its ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community",
+                    "devices"
+                ],
+                "summary": "Get a device.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a",
+                        "description": "Device's UID.",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Device"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "jwt": []
+                    }
+                ],
+                "description": "Delete a device by its ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community",
+                    "devices"
+                ],
+                "summary": "Delete a device.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a",
+                        "description": "Device's UID.",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "jwt": []
+                    }
+                ],
+                "description": "Rename a device by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community",
+                    "devices"
+                ],
+                "summary": "Rename a device.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a",
+                        "description": "Device's UID.",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Device's new name.",
+                        "name": "_",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/devices/{uid}/offline": {
+            "post": {
+                "security": [
+                    {
+                        "jwt": []
+                    }
+                ],
+                "description": "Update a device's status to online.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community",
+                    "devices"
+                ],
+                "summary": "Update a device's status to online.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a",
+                        "description": "Device's UID.",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/devices/{uid}/{status}": {
+            "patch": {
+                "description": "Update a device's status.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community",
+                    "devices"
+                ],
+                "summary": "Update a device's status.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a",
+                        "description": "Device's UID.",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "accepted",
+                            "rejected",
+                            "pending",
+                            "unused"
+                        ],
+                        "type": "string",
+                        "description": "Device's status.",
+                        "name": "status",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "402": {
+                        "description": "Payment Required"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/stats": {
+            "get": {
+                "security": [
+                    {
+                        "jwt": []
+                    }
+                ],
+                "description": "returns data about the ShellHub instance like how many devices are registed, online, pending, rejected and how many active sessions are connected.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community"
+                ],
+                "summary": "Get ShellHub stats",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Stats"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Device": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "created_at": {
+                    "description": "Device's created date.",
+                    "type": "string",
+                    "example": "2020-01-01T00:00:00Z"
+                },
+                "identity": {
+                    "$ref": "#/definitions/models.DeviceIdentity"
+                },
+                "info": {
+                    "description": "Device's information.",
+                    "$ref": "#/definitions/models.DeviceInfo"
+                },
+                "last_seen": {
+                    "description": "Device's last seen date.",
+                    "type": "string",
+                    "example": "2020-01-01T00:00:00Z"
+                },
+                "name": {
+                    "description": "Device's name.",
+                    "type": "string",
+                    "example": "d0-94-00-b4-25-bc "
+                },
+                "namespace": {
+                    "description": "Device's namespace name.",
+                    "type": "string",
+                    "example": "examplespace"
+                },
+                "online": {
+                    "description": "Device's online status.",
+                    "type": "boolean"
+                },
+                "position": {
+                    "$ref": "#/definitions/models.DevicePosition"
+                },
+                "public_key": {
+                    "description": "Device's public key.",
+                    "type": "string"
+                },
+                "remote_addr": {
+                    "description": "Device's remove address.",
+                    "type": "string",
+                    "example": "127.0.0.1"
+                },
+                "status": {
+                    "description": "Device's status.",
+                    "type": "string",
+                    "enum": [
+                        "accepted",
+                        "rejected",
+                        "pending",
+                        "unused"
+                    ],
+                    "example": "accepted"
+                },
+                "tags": {
+                    "description": "Device's tags.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tenant_id": {
+                    "description": "Device's namespace tenant id.",
+                    "type": "string",
+                    "example": "3dd0d1f8-8246-4519-b11a-a3dd33717f65"
+                },
+                "uid": {
+                    "description": "Device's UID.",
+                    "type": "string",
+                    "example": "13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a"
+                }
+            }
+        },
+        "models.DeviceIdentity": {
+            "type": "object",
+            "properties": {
+                "mac": {
+                    "description": "Device's MAC",
+                    "type": "string",
+                    "example": "00:00:00:00:00:00"
+                }
+            }
+        },
+        "models.DeviceInfo": {
+            "type": "object",
+            "properties": {
+                "arch": {
+                    "description": "Device's OS arch.",
+                    "type": "string",
+                    "example": "x86_64"
+                },
+                "id": {
+                    "description": "Device's OS name.",
+                    "type": "string",
+                    "example": "linux"
+                },
+                "platform": {
+                    "description": "Device's OS platform.",
+                    "type": "string",
+                    "enum": [
+                        "linux",
+                        "docker"
+                    ],
+                    "example": "docker"
+                },
+                "pretty_name": {
+                    "description": "Device's OS pretty name.",
+                    "type": "string",
+                    "example": "Linux"
+                },
+                "version": {
+                    "description": "Device's OS version.",
+                    "type": "string",
+                    "example": "latest"
+                }
+            }
+        },
+        "models.DevicePosition": {
+            "type": "object",
+            "properties": {
+                "latitude": {
+                    "description": "Device's latitude position.",
+                    "type": "number",
+                    "example": -31.7566628
+                },
+                "longitude": {
+                    "description": "Device's longitude position.",
+                    "type": "number",
+                    "example": -52.322474
+                }
+            }
+        },
+        "models.Stats": {
+            "type": "object",
+            "properties": {
+                "active_sessions": {
+                    "description": "Number of active sessions.",
+                    "type": "integer"
+                },
+                "online_devices": {
+                    "description": "Number of online devices.",
+                    "type": "integer"
+                },
+                "pending_devices": {
+                    "description": "Number of pending devices.",
+                    "type": "integer"
+                },
+                "registered_devices": {
+                    "description": "Number of registered devices.",
+                    "type": "integer"
+                },
+                "rejected_devices": {
+                    "description": "Number of rejected devices.",
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "jwt": {
+            "description": "To use apiKey as a JWT Bearer token, just pass ahead of the token the word \"Bearer\" and the token itself.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

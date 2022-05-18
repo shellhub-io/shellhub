@@ -1,0 +1,437 @@
+basePath: /api
+definitions:
+  models.Device:
+    properties:
+      created_at:
+        description: Device's created date.
+        example: "2020-01-01T00:00:00Z"
+        type: string
+      identity:
+        $ref: '#/definitions/models.DeviceIdentity'
+      info:
+        $ref: '#/definitions/models.DeviceInfo'
+        description: Device's information.
+      last_seen:
+        description: Device's last seen date.
+        example: "2020-01-01T00:00:00Z"
+        type: string
+      name:
+        description: Device's name.
+        example: 'd0-94-00-b4-25-bc '
+        type: string
+      namespace:
+        description: Device's namespace name.
+        example: examplespace
+        type: string
+      online:
+        description: Device's online status.
+        type: boolean
+      position:
+        $ref: '#/definitions/models.DevicePosition'
+      public_key:
+        description: Device's public key.
+        type: string
+      remote_addr:
+        description: Device's remove address.
+        example: 127.0.0.1
+        type: string
+      status:
+        description: Device's status.
+        enum:
+        - accepted
+        - rejected
+        - pending
+        - unused
+        example: accepted
+        type: string
+      tags:
+        description: Device's tags.
+        items:
+          type: string
+        type: array
+      tenant_id:
+        description: Device's namespace tenant id.
+        example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+        type: string
+      uid:
+        description: Device's UID.
+        example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        type: string
+    required:
+    - name
+    type: object
+  models.DeviceIdentity:
+    properties:
+      mac:
+        description: Device's MAC
+        example: "00:00:00:00:00:00"
+        type: string
+    type: object
+  models.DeviceInfo:
+    properties:
+      arch:
+        description: Device's OS arch.
+        example: x86_64
+        type: string
+      id:
+        description: Device's OS name.
+        example: linux
+        type: string
+      platform:
+        description: Device's OS platform.
+        enum:
+        - linux
+        - docker
+        example: docker
+        type: string
+      pretty_name:
+        description: Device's OS pretty name.
+        example: Linux
+        type: string
+      version:
+        description: Device's OS version.
+        example: latest
+        type: string
+    type: object
+  models.DevicePosition:
+    properties:
+      latitude:
+        description: Device's latitude position.
+        example: -31.7566628
+        type: number
+      longitude:
+        description: Device's longitude position.
+        example: -52.322474
+        type: number
+    type: object
+  models.Stats:
+    properties:
+      active_sessions:
+        description: Number of active sessions.
+        type: integer
+      online_devices:
+        description: Number of online devices.
+        type: integer
+      pending_devices:
+        description: Number of pending devices.
+        type: integer
+      registered_devices:
+        description: Number of registered devices.
+        type: integer
+      rejected_devices:
+        description: Number of rejected devices.
+        type: integer
+    type: object
+host: localhost:80
+info:
+  contact:
+    email: contato@ossystems.com.br
+  description: This file documents all routes provided by ShellHub Community instance.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: ShellHub Community Swagger specification
+  version: "1.0"
+paths:
+  /devices:
+    get:
+      description: Return a list of devices between a defined range. You can also
+        set a filter, sort by, order by and get only devices with a specific status.
+      parameters:
+      - description: Device's Filter field receives a base64 encoded JSON object
+        example: W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoiZDAifX1d
+        in: query
+        name: filter
+        type: string
+      - description: Device's status
+        enum:
+        - accepted
+        - rejected
+        - pending
+        - unused
+        example: accepted
+        in: query
+        name: status
+        type: string
+      - description: Device's property to sort of
+        in: query
+        name: sort_by
+        type: string
+      - description: Device's list order
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order_by
+        type: string
+      - description: Page number
+        example: 1
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Number of items per page
+        example: 10
+        in: query
+        name: perPage
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Total-Count:
+              description: Device's total number
+              type: string
+          schema:
+            items:
+              $ref: '#/definitions/models.Device'
+            type: array
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - jwt: []
+      summary: Get a list of devices.
+      tags:
+      - community
+      - devices
+  /devices/{uid}:
+    delete:
+      description: Delete a device by its ID.
+      parameters:
+      - description: Device's UID.
+        example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      security:
+      - jwt: []
+      summary: Delete a device.
+      tags:
+      - community
+      - devices
+    get:
+      description: Return a device by its ID.
+      parameters:
+      - description: Device's UID.
+        example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Device'
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - jwt: []
+      summary: Get a device.
+      tags:
+      - community
+      - devices
+    patch:
+      consumes:
+      - application/json
+      description: Rename a device by its ID.
+      parameters:
+      - description: Device's UID.
+        example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: Device's new name.
+        in: body
+        name: _
+        required: true
+        schema:
+          allOf:
+          - type: object
+          - properties:
+              name:
+                type: string
+            type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+      security:
+      - jwt: []
+      summary: Rename a device.
+      tags:
+      - community
+      - devices
+  /devices/{uid}/{status}:
+    patch:
+      description: Update a device's status.
+      parameters:
+      - description: Device's UID.
+        example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: Device's status.
+        enum:
+        - accepted
+        - rejected
+        - pending
+        - unused
+        in: query
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "402":
+          description: Payment Required
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Update a device's status.
+      tags:
+      - community
+      - devices
+  /devices/{uid}/offline:
+    post:
+      description: Update a device's status to online.
+      parameters:
+      - description: Device's UID.
+        example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - jwt: []
+      summary: Update a device's status to online.
+      tags:
+      - community
+      - devices
+  /devices/lookup:
+    get:
+      description: Lookup for device.
+      parameters:
+      - description: Device's domain.
+        in: query
+        name: domain
+        type: string
+      - description: Device's name.
+        in: query
+        name: name
+        type: string
+      - description: Device's username.
+        in: query
+        name: username
+        type: string
+      - description: Device's IP address.
+        in: query
+        name: ip_address
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Device'
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Lookup for device.
+      tags:
+      - community
+      - devices
+  /stats:
+    get:
+      description: returns data about the ShellHub instance like how many devices
+        are registed, online, pending, rejected and how many active sessions are connected.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Stats'
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - jwt: []
+      summary: Get ShellHub stats
+      tags:
+      - community
+securityDefinitions:
+  jwt:
+    description: To use apiKey as a JWT Bearer token, just pass ahead of the token
+      the word "Bearer" and the token itself.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

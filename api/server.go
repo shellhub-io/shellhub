@@ -16,6 +16,7 @@ import (
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/middleware"
+	_ "github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
@@ -56,6 +57,22 @@ type config struct {
 	SessionRecordCleanupSchedule string `envconfig:"session_record_cleanup_schedule" default:"@daily"`
 }
 
+// @title ShellHub Community Swagger specification
+// @version 1.0
+// @description This file documents all routes provided by ShellHub Community instance.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.email contato@ossystems.com.br
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:80
+// @basePath /api
+
+// @securityDefinitions.apiKey jwt
+// @in header
+// @name Authorization
+// @description To use apiKey as a JWT Bearer token, just pass ahead of the token the word "Bearer" and the token itself. 
 func startServer(cfg *config) error {
 	if os.Getenv("SHELLHUB_ENV") == "development" {
 		logrus.SetLevel(logrus.DebugLevel)
