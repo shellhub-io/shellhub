@@ -12,7 +12,7 @@
     <img src="https://badges.gitter.im/shellhub-io/shellhub.svg">
   </a>
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors-"><img src="https://img.shields.io/badge/all_contributors-16-orange.svg?style=flat-square"></a>
+<a href="#contributors-"><img src="https://img.shields.io/badge/all_contributors-17-orange.svg?style=flat-square"></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -127,6 +127,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="http://xevo.com"><img src="https://avatars.githubusercontent.com/u/7035152?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sam McKelvie</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=sammck" title="Code">💻</a></td>
     <td align="center"><a href="http://henrybarreto.dev"><img src="https://avatars.githubusercontent.com/u/23109089?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Henry Barreto</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=henrybarreto" title="Code">💻</a></td>
+    <td align="center"><a href="https://www.linkedin.com/in/antony-rafael-9924511a9/"><img src="https://avatars.githubusercontent.com/u/21010565?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Antony Rafael</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=AntonyRafael" title="Code">💻</a></td>
   </tr>
 </table>
 
