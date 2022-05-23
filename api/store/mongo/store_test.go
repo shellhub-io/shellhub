@@ -133,7 +133,7 @@ func TestStoreSaveLicense(t *testing.T) {
 func initData() Data {
 	authReq := models.DeviceAuthRequest{
 		DeviceAuth: &models.DeviceAuth{
-			TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			TenantID: "00000000-0000-4000-0000-000000000000",
 			Identity: &models.DeviceIdentity{
 				MAC: "mac",
 			},
@@ -158,7 +158,7 @@ func initData() Data {
 		models.Namespace{
 			Name:     "namespace",
 			Owner:    "owner",
-			TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			TenantID: "00000000-0000-4000-0000-000000000000",
 			Members: []models.Member{
 				{
 					ID:   "owner",
@@ -202,7 +202,7 @@ func initData() Data {
 		models.Session{
 			Username:      "username",
 			UID:           "uid",
-			TenantID:      "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			TenantID:      "00000000-0000-4000-0000-000000000000",
 			DeviceUID:     models.UID(hex.EncodeToString(uid[:])),
 			IPAddress:     "0.0.0.0",
 			Authenticated: true,
@@ -210,7 +210,7 @@ func initData() Data {
 		models.RecordedSession{
 			UID:      models.UID("uid"),
 			Message:  "message",
-			TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			TenantID: "00000000-0000-4000-0000-000000000000",
 			Time:     clock.Now(),
 			Width:    0,
 			Height:   0,

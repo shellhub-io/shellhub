@@ -163,7 +163,7 @@ func TestDeviceGetByMac(t *testing.T) {
 	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	d, err := mongostore.DeviceGetByMac(data.Context, "mac", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "pending")
+	d, err := mongostore.DeviceGetByMac(data.Context, "mac", "00000000-0000-4000-0000-000000000000", "pending")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
@@ -182,7 +182,7 @@ func TestDeviceGetByName(t *testing.T) {
 	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	d, err := mongostore.DeviceGetByName(data.Context, "hostname", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	d, err := mongostore.DeviceGetByName(data.Context, "hostname", "00000000-0000-4000-0000-000000000000")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
@@ -201,7 +201,7 @@ func TestDeviceGetByUID(t *testing.T) {
 	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	d, err := mongostore.DeviceGetByUID(data.Context, models.UID(data.Device.UID), "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	d, err := mongostore.DeviceGetByUID(data.Context, models.UID(data.Device.UID), "00000000-0000-4000-0000-000000000000")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d)
 }
@@ -247,7 +247,7 @@ func TestDeviceListByUsage(t *testing.T) {
 	for i, q := range quantities {
 		for j := 0; j < q; j++ {
 			sessions = append(sessions, models.Session{
-				TenantID:  "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+				TenantID:  "00000000-0000-4000-0000-000000000000",
 				DeviceUID: models.UID(fmt.Sprintf("%s%d", "uid", i+1)),
 			})
 		}
@@ -290,7 +290,7 @@ func TestDeviceChooser(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		devices = append(devices, models.Device{
 			UID:      fmt.Sprintf("%s%d", "uid", i+1),
-			TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			TenantID: "00000000-0000-4000-0000-000000000000",
 			Status:   "accepted",
 		})
 	}

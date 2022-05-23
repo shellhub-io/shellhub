@@ -74,7 +74,7 @@ services:
     environment:
       - SHELLHUB_SERVER_ADDRESS=http://localhost:${SHELLHUB_HTTP_PORT}
       - SHELLHUB_PRIVATE_KEY=/go/src/github.com/shellhub-io/shellhub/agent/shellhub.key
-      - SHELLHUB_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      - SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
     volumes:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent

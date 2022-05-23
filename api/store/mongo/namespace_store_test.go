@@ -83,7 +83,7 @@ func TestNamespaceDelete(t *testing.T) {
 	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	err = mongostore.NamespaceDelete(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	err = mongostore.NamespaceDelete(data.Context, "00000000-0000-4000-0000-000000000000")
 	assert.NoError(t, err)
 }
 
@@ -101,7 +101,7 @@ func TestNamespaceGet(t *testing.T) {
 	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceGet(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	_, err = mongostore.NamespaceGet(data.Context, "00000000-0000-4000-0000-000000000000")
 	assert.NoError(t, err)
 }
 
@@ -152,7 +152,7 @@ func TestNamespaceAddMember(t *testing.T) {
 	u, err := mongostore.UserGetByUsername(data.Context, "username")
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID, guard.RoleObserver)
+	_, err = mongostore.NamespaceAddMember(data.Context, "00000000-0000-4000-0000-000000000000", u.ID, guard.RoleObserver)
 	assert.NoError(t, err)
 }
 
@@ -170,7 +170,7 @@ func TestNamespaceUpdate(t *testing.T) {
 	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	err = mongostore.NamespaceUpdate(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", &models.Namespace{
+	err = mongostore.NamespaceUpdate(data.Context, "00000000-0000-4000-0000-000000000000", &models.Namespace{
 		Name:       "name",
 		Settings:   &models.NamespaceSettings{SessionRecord: false},
 		MaxDevices: 3,
@@ -202,10 +202,10 @@ func TestNamespaceRemoveMember(t *testing.T) {
 	u, err := mongostore.UserGetByUsername(data.Context, "username")
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceAddMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID, "")
+	_, err = mongostore.NamespaceAddMember(data.Context, "00000000-0000-4000-0000-000000000000", u.ID, "")
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceRemoveMember(data.Context, "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", u.ID)
+	_, err = mongostore.NamespaceRemoveMember(data.Context, "00000000-0000-4000-0000-000000000000", u.ID)
 	assert.NoError(t, err)
 }
 

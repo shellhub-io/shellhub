@@ -6,7 +6,7 @@ describe('Firewalls', () => {
   const firewalls = [
     {
       id: '5f1996c84d2190a22d5857bb',
-      tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+      tenant_id: '00000000-0000-4000-0000-000000000000',
       priority: 4,
       action: 'allow',
       active: true,
@@ -16,7 +16,7 @@ describe('Firewalls', () => {
     },
     {
       id: '5f1996c84d2190a22d5857cc',
-      tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+      tenant_id: '00000000-0000-4000-0000-000000000000',
       priority: 3,
       action: 'allow',
       active: false,
@@ -28,7 +28,7 @@ describe('Firewalls', () => {
 
   const firewallRule = {
     id: '5f1996c84d2190a22d5857bb',
-    tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    tenant_id: '00000000-0000-4000-0000-000000000000',
     priority: 4,
     action: 'allow',
     active: true,
