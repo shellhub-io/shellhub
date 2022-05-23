@@ -85,7 +85,7 @@ $ ./bin/add-user <username> <password> <email>
 Create a namespace for grouping devices and set user as owner:
 
 ```
-$ TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx ./bin/add-namespace <namespace> <owner>
+$ TENANT_ID=00000000-0000-4000-0000-000000000000 ./bin/add-namespace <namespace> <owner>
 ```
 
 > Don't change the value of `TENANT_ID`, this value is hardcoded during agent initialization in development mode.

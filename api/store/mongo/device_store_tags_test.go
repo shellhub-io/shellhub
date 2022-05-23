@@ -30,7 +30,7 @@ func TestDeviceCreateTag(t *testing.T) {
 	err = mongostore.DeviceCreateTag(data.Context, models.UID(data.Device.UID), "device2")
 	assert.NoError(t, err)
 
-	d, err := mongostore.DeviceGetByUID(data.Context, models.UID(data.Device.UID), "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	d, err := mongostore.DeviceGetByUID(data.Context, models.UID(data.Device.UID), "00000000-0000-4000-0000-000000000000")
 	assert.NoError(t, err)
 	assert.Equal(t, d.Tags, []string{"device1", "device2"})
 }
@@ -61,7 +61,7 @@ func TestDeviceDeleteTag(t *testing.T) {
 	err = mongostore.DeviceRemoveTag(data.Context, models.UID(data.Device.UID), "device2")
 	assert.NoError(t, err)
 
-	d, err := mongostore.DeviceGetByUID(data.Context, models.UID(data.Device.UID), "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	d, err := mongostore.DeviceGetByUID(data.Context, models.UID(data.Device.UID), "00000000-0000-4000-0000-000000000000")
 	assert.NoError(t, err)
 	assert.Equal(t, len(d.Tags), 2)
 	assert.Equal(t, d.Tags, []string{"device1", "device3"})

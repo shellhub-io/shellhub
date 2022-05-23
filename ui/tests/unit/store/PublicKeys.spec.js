@@ -8,14 +8,14 @@ describe('PublicKeys', () => {
       data: 'BBGVvbmFyZG8=',
       fingerprint: 'b8:26:d5',
       created_at: '2020-11-23T20:59:13.323Z',
-      tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+      tenant_id: '00000000-0000-4000-0000-000000000000',
       name: 'shellhub',
     },
     {
       data: 'AbGVvbmFyZG8=',
       fingerprint: 'b7:25:f8',
       created_at: '2020-11-23T20:59:13.323Z',
-      tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+      tenant_id: '00000000-0000-4000-0000-000000000000',
       name: 'shellhub',
     },
   ];
@@ -24,7 +24,7 @@ describe('PublicKeys', () => {
     data: 'AbGVvbmFyZG8=',
     fingerprint: 'b7:25:f8',
     created_at: '2020-11-23T20:59:13.323Z',
-    tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    tenant_id: '00000000-0000-4000-0000-000000000000',
     name: 'shellhub',
   };
 

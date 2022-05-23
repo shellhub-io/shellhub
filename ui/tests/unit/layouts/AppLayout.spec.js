@@ -22,7 +22,7 @@ describe('AppLayout', () => {
 
   let wrapper;
 
-  const tenant = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+  const tenant = '00000000-0000-4000-0000-000000000000';
   const isLoggedIn = true;
   const isMobile = false;
   const numberNamespaces = 0;

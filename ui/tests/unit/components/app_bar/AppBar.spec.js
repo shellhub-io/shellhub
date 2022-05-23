@@ -11,7 +11,7 @@ describe('AppBar', () => {
 
   let wrapper;
 
-  const tenant = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+  const tenant = '00000000-0000-4000-0000-000000000000';
   const isLoggedIn = true;
   const numberNamespaces = 1;
   const isMobile = false;
