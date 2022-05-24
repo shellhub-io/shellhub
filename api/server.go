@@ -46,7 +46,7 @@ var serverCmd = &cobra.Command{
 type config struct {
 	// MongoDB connection string (URI format)
 	MongoURI string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
-	// Redis connection stirng (URI format)
+	// Redis connection string (URI format)
 	RedisURI string `envconfig:"redis_uri" default:"redis://redis:6379"`
 	// Enable store cache
 	StoreCache bool `envconfig:"store_cache" default:"false"`
