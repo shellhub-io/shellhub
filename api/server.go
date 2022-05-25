@@ -66,6 +66,7 @@ func startServer(cfg *config) error {
 	e := echo.New()
 	e.Use(middleware.Log)
 	e.Use(echoMiddleware.RequestID())
+	e.Validator = handlers.NewValidator()
 	e.HTTPErrorHandler = handlers.Errors
 
 	logrus.Info("Connecting to MongoDB")

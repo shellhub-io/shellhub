@@ -50,10 +50,21 @@ func (h *Handler) UpdateUserData(c gateway.Context) error {
 
 func (h *Handler) UpdateUserPassword(c gateway.Context) error {
 	var req struct {
-		CurrentPassword string `json:"current_password"`
-		NewPassword     string `json:"new_password"`
+		// NIST 800-53.
+		// https://davintechgroup.com/toolkit/password-requirements-gdpr-iso-27001-27002-pci-dss-nist-800-53/
+		// https://pages.nist.gov/800-63-3/sp800-63b.html
+
+		// The current should contains 8 to 64 characters,be an alphanumeric/ascii and contains, at least, one special character.
+		CurrentPassword string `json:"current_password" validate:"required,min=8,max=64,nefield=NewPassword,alphanum,ascii,containsany=!@#$%^&*()_+-=[]{}<>?"`
+		// The new password should contains 8 to 64 characters, don't be equal to the current password, be an alphanumeric/ascii and contains, at least, one special character.
+		NewPassword string `json:"new_password" validate:"required,min=8,max=64,nefield=CurrentPassword,alphanum,ascii,containsany=!@#$%^&*()_+-=[]{}<>?"`
 	}
+
 	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
 		return err
 	}
 

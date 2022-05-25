@@ -3,10 +3,11 @@ package converter
 import (
 	"net/http"
 
+	"github.com/shellhub-io/shellhub/api/routes"
 	"github.com/shellhub-io/shellhub/api/services"
 )
 
-// FromErrServiceToHTTPStatus converts an service error code to http status.
+// FromErrServiceToHTTPStatus converts a service error code to http status.
 func FromErrServiceToHTTPStatus(code int) int {
 	switch code {
 	case services.ErrCodeNotFound:
@@ -23,6 +24,16 @@ func FromErrServiceToHTTPStatus(code int) int {
 		return http.StatusUnauthorized
 	case services.ErrCodeForbidden:
 		return http.StatusForbidden
+	default:
+		return http.StatusInternalServerError
+	}
+}
+
+// FromErrRouteToHTTPStatus converts a route error code to http status.
+func FromErrRouteToHTTPStatus(code int) int {
+	switch code {
+	case routes.ErrCodeInvalidEntity:
+		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
 	}
