@@ -3,7 +3,6 @@ package validator
 
 import (
 	"reflect"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -27,7 +26,7 @@ func getValidateTag(s interface{}, name string) (string, bool) {
 func getInvalidFields(err error) ([]string, error) {
 	f := []string{}
 	for _, err := range err.(validator.ValidationErrors) {
-		f = append(f, strings.ToLower(err.Field()))
+		f = append(f, err.Field())
 	}
 
 	return f, ErrInvalidFields

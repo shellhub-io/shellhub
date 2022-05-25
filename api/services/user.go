@@ -45,28 +45,18 @@ func (s *service) UpdateDataUser(ctx context.Context, user *models.User, id stri
 }
 
 func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, id string) error {
-	if _, err := validator.ValidateStruct(models.UserPassword{Password: currentPassword}); err != nil {
-		return NewErrUserPasswordInvalid(err)
-	}
-
-	if _, err := validator.ValidateStruct(models.UserPassword{Password: newPassword}); err != nil {
-		return NewErrUserPasswordInvalid(err)
-	}
-
-	currentPassword = validator.HashPassword(currentPassword)
-	newPassword = validator.HashPassword(newPassword)
-	if currentPassword == newPassword {
-		return NewErrUserPasswordDuplicated(nil)
-	}
-
 	user, _, err := s.store.UserGetByID(ctx, id, false)
 	if user == nil {
 		return NewErrUserNotFound(id, err)
 	}
 
+	currentPassword = validator.HashPassword(currentPassword)
+
 	if user.Password != currentPassword {
 		return NewErrUserPasswordNotMatch(nil)
 	}
+
+	newPassword = validator.HashPassword(newPassword)
 
 	return s.store.UserUpdatePassword(ctx, newPassword, id)
 }
