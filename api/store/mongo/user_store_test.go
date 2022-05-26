@@ -75,7 +75,7 @@ func TestUserUpdateData(t *testing.T) {
 		},
 	}
 
-	err = mongostore.UserUpdateData(data.Context, &userNewData, objID)
+	err = mongostore.UserUpdateData(data.Context, objID, userNewData)
 	assert.NoError(t, err)
 
 	us, _, err := mongostore.UserGetByID(data.Context, objID, false)

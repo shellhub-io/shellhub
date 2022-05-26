@@ -1752,13 +1752,13 @@ func (_m *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
 	return r0
 }
 
-// UserUpdateData provides a mock function with given fields: ctx, data, id
-func (_m *Store) UserUpdateData(ctx context.Context, data *models.User, id string) error {
-	ret := _m.Called(ctx, data, id)
+// UserUpdateData provides a mock function with given fields: ctx, id, user
+func (_m *Store) UserUpdateData(ctx context.Context, id string, user models.User) error {
+	ret := _m.Called(ctx, id, user)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.User, string) error); ok {
-		r0 = rf(ctx, data, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.User) error); ok {
+		r0 = rf(ctx, id, user)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -3,48 +3,54 @@ package services
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type UserService interface {
-	UpdateDataUser(ctx context.Context, user *models.User, id string) ([]string, error)
-	UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, id string) error
+	UpdateDataUser(ctx context.Context, id string, userData request.UserDataUpdate) ([]string, error)
+	UpdatePasswordUser(ctx context.Context, id string, currentPassword, newPassword string) error
 }
 
-func (s *service) UpdateDataUser(ctx context.Context, user *models.User, id string) ([]string, error) {
+// UpdateDataUser update user data.
+//
+// It receives a context, used to "control" the request flow, the user's ID, and a request.UserDataUpdate struct with
+// fields to update in the models.User.
+//
+// It returns a slice of strings with the fields that contains data duplicated in the database, and an error.
+func (s *service) UpdateDataUser(ctx context.Context, id string, userData request.UserDataUpdate) ([]string, error) {
 	if _, _, err := s.store.UserGetByID(ctx, id, false); err != nil {
-		return nil, NewErrUserNotFound(id, err)
+		return nil, NewErrUserNotFound(id, nil)
 	}
 
-	if invalidFields, err := validator.ValidateStruct(user.UserData); err != nil {
-		return invalidFields, NewErrUserInvalid(validator.ValidateStructFields(user.UserData))
-	}
-
-	validator.FormatUser(user)
-
-	var conflictFields []string
-	var duplicatedValues []string
-	existentUser, _ := s.store.UserGetByUsername(ctx, user.Username)
+	conflictFields := make([]string, 0)
+	existentUser, _ := s.store.UserGetByUsername(ctx, userData.Username)
 	if existentUser != nil && existentUser.ID != id {
 		conflictFields = append(conflictFields, "username")
-		duplicatedValues = append(duplicatedValues, user.Username)
 	}
 
-	existentUser, _ = s.store.UserGetByEmail(ctx, user.Email)
+	existentUser, _ = s.store.UserGetByEmail(ctx, userData.Email)
 	if existentUser != nil && existentUser.ID != id {
 		conflictFields = append(conflictFields, "email")
-		duplicatedValues = append(duplicatedValues, user.Email)
 	}
 
 	if len(conflictFields) > 0 {
-		return conflictFields, NewErrUserDuplicated(duplicatedValues, nil)
+		return conflictFields, NewErrUserDuplicated(conflictFields, nil)
 	}
 
-	return nil, s.store.UserUpdateData(ctx, user, id)
+	user := models.User{
+		UserData: models.UserData{
+			Name:     userData.Name,
+			Username: userData.Username,
+			Email:    userData.Email,
+		},
+	}
+
+	return nil, s.store.UserUpdateData(ctx, id, user)
 }
 
-func (s *service) UpdatePasswordUser(ctx context.Context, currentPassword, newPassword, id string) error {
+func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, newPassword string) error {
 	user, _, err := s.store.UserGetByID(ctx, id, false)
 	if user == nil {
 		return NewErrUserNotFound(id, err)

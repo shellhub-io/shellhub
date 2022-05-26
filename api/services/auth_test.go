@@ -137,7 +137,7 @@ func TestAuthUser(t *testing.T) {
 
 	mock.On("UserGetByUsername", ctx, authReq.Username).Return(userConfirmed, nil).Once()
 	mock.On("NamespaceGetFirst", ctx, userConfirmed.ID).Return(namespace, nil).Once()
-	mock.On("UserUpdateData", ctx, userConfirmed, userConfirmed.ID).Return(nil).Once()
+	mock.On("UserUpdateData", ctx, userConfirmed.ID, *userConfirmed).Return(nil).Once()
 	clockMock.On("Now").Return(now).Twice()
 
 	authRes, err := s.AuthUser(ctx, *authReq)
@@ -188,7 +188,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userConfirmed, nil).Once()
 				mock.On("NamespaceGetFirst", ctx, userConfirmed.ID).Return(namespace, nil).Once()
-				mock.On("UserUpdateData", ctx, userConfirmed, userConfirmed.ID).Return(nil).Once()
+				mock.On("UserUpdateData", ctx, userConfirmed.ID, *userConfirmed).Return(nil).Once()
 				clockMock.On("Now").Return(now).Twice()
 			},
 			expected: Expected{authRes, nil},

@@ -170,7 +170,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 
 		user.LastLogin = clock.Now()
 
-		if err := s.store.UserUpdateData(ctx, user, user.ID); err != nil {
+		if err := s.store.UserUpdateData(ctx, user.ID, *user); err != nil {
 			return nil, NewErrUserUpdate(user, err)
 		}
 

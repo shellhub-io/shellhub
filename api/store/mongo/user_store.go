@@ -183,7 +183,7 @@ func (s *Store) UserGetByID(ctx context.Context, id string, ns bool) (*models.Us
 	return user, nss.NamespacesOwned, nil
 }
 
-func (s *Store) UserUpdateData(ctx context.Context, data *models.User, id string) error {
+func (s *Store) UserUpdateData(ctx context.Context, id string, data models.User) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return fromMongoError(err)
