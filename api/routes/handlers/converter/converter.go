@@ -32,6 +32,8 @@ func FromErrServiceToHTTPStatus(code int) int {
 // FromErrRouteToHTTPStatus converts a route error code to http status.
 func FromErrRouteToHTTPStatus(code int) int {
 	switch code {
+	case routes.ErrCodeUnprocessableEntity:
+		return http.StatusUnprocessableEntity
 	case routes.ErrCodeInvalidEntity:
 		return http.StatusBadRequest
 	default:
