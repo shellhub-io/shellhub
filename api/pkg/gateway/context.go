@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -58,4 +59,13 @@ func (c *Context) ID() *models.ID {
 
 func (c *Context) Ctx() context.Context {
 	return c.Request().Context()
+}
+
+func (c *Context) ParamValidate(name, rule string) (string, error) {
+	err := validator.New().Var(c.Param(name), rule)
+	if err != nil {
+		return "", err
+	}
+
+	return c.Param(name), nil
 }

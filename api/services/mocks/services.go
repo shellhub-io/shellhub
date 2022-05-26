@@ -10,6 +10,8 @@ import (
 
 	paginator "github.com/shellhub-io/shellhub/pkg/api/paginator"
 
+	request "github.com/shellhub-io/shellhub/pkg/api/request"
+
 	rsa "crypto/rsa"
 )
 
@@ -467,6 +469,29 @@ func (_m *Service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKe
 	return r0, r1
 }
 
+// FillMembersData provides a mock function with given fields: ctx, members
+func (_m *Service) FillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error) {
+	ret := _m.Called(ctx, members)
+
+	var r0 []models.Member
+	if rf, ok := ret.Get(0).(func(context.Context, []models.Member) []models.Member); ok {
+		r0 = rf(ctx, members)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Member)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, []models.Member) error); ok {
+		r1 = rf(ctx, members)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetDevice provides a mock function with given fields: ctx, uid
 func (_m *Service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	ret := _m.Called(ctx, uid)
@@ -705,29 +730,6 @@ func (_m *Service) ListDevices(ctx context.Context, pagination paginator.Query, 
 	return r0, r1, r2
 }
 
-// FillMembersData provides a mock function with given fields: ctx, members
-func (_m *Service) FillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error) {
-	ret := _m.Called(ctx, members)
-
-	var r0 []models.Member
-	if rf, ok := ret.Get(0).(func(context.Context, []models.Member) []models.Member); ok {
-		r0 = rf(ctx, members)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.Member)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, []models.Member) error); ok {
-		r1 = rf(ctx, members)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // ListNamespaces provides a mock function with given fields: ctx, pagination, filterB64, export
 func (_m *Service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
 	ret := _m.Called(ctx, pagination, filterB64, export)
@@ -964,13 +966,13 @@ func (_m *Service) SetSessionAuthenticated(ctx context.Context, uid models.UID, 
 	return r0
 }
 
-// UpdateDataUser provides a mock function with given fields: ctx, user, id
-func (_m *Service) UpdateDataUser(ctx context.Context, user *models.User, id string) ([]string, error) {
-	ret := _m.Called(ctx, user, id)
+// UpdateDataUser provides a mock function with given fields: ctx, id, userData
+func (_m *Service) UpdateDataUser(ctx context.Context, id string, userData request.UserDataUpdate) ([]string, error) {
+	ret := _m.Called(ctx, id, userData)
 
 	var r0 []string
-	if rf, ok := ret.Get(0).(func(context.Context, *models.User, string) []string); ok {
-		r0 = rf(ctx, user, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, request.UserDataUpdate) []string); ok {
+		r0 = rf(ctx, id, userData)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
@@ -978,8 +980,8 @@ func (_m *Service) UpdateDataUser(ctx context.Context, user *models.User, id str
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *models.User, string) error); ok {
-		r1 = rf(ctx, user, id)
+	if rf, ok := ret.Get(1).(func(context.Context, string, request.UserDataUpdate) error); ok {
+		r1 = rf(ctx, id, userData)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1015,13 +1017,13 @@ func (_m *Service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []s
 	return r0
 }
 
-// UpdatePasswordUser provides a mock function with given fields: ctx, currentPassword, newPassword, id
-func (_m *Service) UpdatePasswordUser(ctx context.Context, currentPassword string, newPassword string, id string) error {
-	ret := _m.Called(ctx, currentPassword, newPassword, id)
+// UpdatePasswordUser provides a mock function with given fields: ctx, id, currentPassword, newPassword
+func (_m *Service) UpdatePasswordUser(ctx context.Context, id string, currentPassword string, newPassword string) error {
+	ret := _m.Called(ctx, id, currentPassword, newPassword)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, currentPassword, newPassword, id)
+		r0 = rf(ctx, id, currentPassword, newPassword)
 	} else {
 		r0 = ret.Error(0)
 	}
