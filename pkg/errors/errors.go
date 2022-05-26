@@ -7,11 +7,11 @@ import (
 
 type Data interface{}
 
-// Error is a custom error that carry attributes to specify error's text, resource, layer, code and data.
+// Error is a custom error that carry attributes to specify error's message, resource, layer, code and data.
 // Error implements error and unwrap interfaces.
 type Error struct {
-	// Text is the error message.
-	Text string `json:"text"`
+	// message is the error message.
+	Message string `json:"message"`
 	// Layer is the error layer.
 	Layer string `json:"layer,omitempty"`
 	// Code is the error code.
@@ -24,15 +24,15 @@ type Error struct {
 
 // New creates a new Error.
 //
-// An Error contains a text, message that will be showed when Error() method is called, a layer, where the error
+// An Error contains a message, message that will be showed when Error() method is called, a layer, where the error
 // happened and a code, that should be unique in the layer.
-func New(text, layer string, code int) error {
+func New(message, layer string, code int) error {
 	return Error{
-		Text:  text,
-		Layer: layer,
-		Code:  code,
-		Data:  nil,
-		Next:  nil,
+		Message: message,
+		Layer:   layer,
+		Code:    code,
+		Data:    nil,
+		Next:    nil,
 	}
 }
 
@@ -44,11 +44,11 @@ func WithData(parent error, data Data) error {
 
 	if err, ok := parent.(Error); ok {
 		return Error{
-			Text:  err.Text,
-			Layer: err.Layer,
-			Code:  err.Code,
-			Data:  data,
-			Next:  err.Next,
+			Message: err.Message,
+			Layer:   err.Layer,
+			Code:    err.Code,
+			Data:    data,
+			Next:    err.Next,
 		}
 	}
 
@@ -57,14 +57,14 @@ func WithData(parent error, data Data) error {
 
 // Error returns a message aggregating all errors' messages in the chain.
 func (e Error) Error() string {
-	text := e.Text
+	message := e.Message
 
 	if e.Next != nil {
 		// Recursively, get and join all messages in the chain.
-		text = strings.Join([]string{text, e.Next.Error()}, ": ")
+		message = strings.Join([]string{message, e.Next.Error()}, ": ")
 	}
 
-	return text
+	return message
 }
 
 // Unwrap returns the next error in the error's chain. If there is no next error, returns nil.
@@ -90,16 +90,16 @@ func Wrap(err error, next error) error {
 	err = nil
 	n, ok := next.(Error)
 	if !ok {
-		err = Error{Text: next.Error()}
+		err = Error{Message: next.Error()}
 	} else {
 		err = n
 	}
 
 	return Error{
-		Text:  e.Text,
-		Layer: e.Layer,
-		Code:  e.Code,
-		Data:  e.Data,
-		Next:  err,
+		Message: e.Message,
+		Layer:   e.Layer,
+		Code:    e.Code,
+		Data:    e.Data,
+		Next:    err,
 	}
 }
