@@ -10,9 +10,9 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -21,8 +21,8 @@ type SSHKeysService interface {
 	EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error)
 	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
 	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
-	CreatePublicKey(ctx context.Context, key *models.PublicKey, tenant string) error
-	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error)
+	CreatePublicKey(ctx context.Context, key request.PublicKeyCreate, tenant string) error
+	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key request.PublicKeyUpdate) (*models.PublicKey, error)
 	DeletePublicKey(ctx context.Context, fingerprint, tenant string) error
 	CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error)
 }
@@ -74,20 +74,10 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
 }
 
-func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, tenant string) error {
-	if err := key.Validate(); err != nil {
-		data, _ := validator.GetInvalidFieldsValues(err)
-
-		return NewErrPublicKeyInvalid(data, nil)
-	}
-
+func (s *service) CreatePublicKey(ctx context.Context, key request.PublicKeyCreate, tenant string) error {
 	// Checks if public key filter type is Tags.
 	// If it is, checks if there are, at least, one tag on the public key filter and if the all tags exist on database.
 	if key.Filter.Tags != nil {
-		if len(key.Filter.Tags) == 0 {
-			return NewErrPublicKeyTagsEmpty(nil)
-		}
-
 		tags, _, err := s.store.TagsGet(ctx, tenant)
 		if err != nil {
 			return NewErrTagEmpty(tenant, err)
@@ -99,8 +89,6 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, te
 			}
 		}
 	}
-
-	key.CreatedAt = clock.Now()
 
 	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint:dogsled
 	if err != nil {
@@ -118,32 +106,32 @@ func (s *service) CreatePublicKey(ctx context.Context, key *models.PublicKey, te
 		return NewErrPublicKeyDuplicated([]string{key.Fingerprint}, err)
 	}
 
-	err = s.store.PublicKeyCreate(ctx, key)
-	if err != nil {
-		return err
+	model := models.PublicKey{
+		Data:        ssh.MarshalAuthorizedKey(pubKey),
+		Fingerprint: key.Fingerprint,
+		CreatedAt:   clock.Now(),
+		TenantID:    key.TenantID,
+		PublicKeyFields: models.PublicKeyFields{
+			Name:     key.Name,
+			Username: key.Username,
+			Filter: models.PublicKeyFilter{
+				Hostname: key.Filter.Hostname,
+				Tags:     key.Filter.Tags,
+			},
+		},
 	}
 
-	return err
+	return s.store.PublicKeyCreate(ctx, &model)
 }
 
 func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
 	return s.store.PublicKeyList(ctx, pagination)
 }
 
-func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	if err := key.Validate(); err != nil {
-		data, _ := validator.GetInvalidFieldsValues(err)
-
-		return nil, NewErrPublicKeyInvalid(data, nil)
-	}
-
+func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key request.PublicKeyUpdate) (*models.PublicKey, error) {
 	// Checks if public key filter type is Tags. If it is, checks if there are, at least, one tag on the public key
 	// filter and if the all tags exist on database.
 	if key.Filter.Tags != nil {
-		if len(key.Filter.Tags) == 0 {
-			return nil, NewErrPublicKeyTagsEmpty(nil)
-		}
-
 		tags, _, err := s.store.TagsGet(ctx, tenant)
 		if err != nil {
 			return nil, NewErrTagEmpty(tenant, err)
@@ -156,7 +144,18 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 		}
 	}
 
-	return s.store.PublicKeyUpdate(ctx, fingerprint, tenant, key)
+	model := models.PublicKeyUpdate{
+		PublicKeyFields: models.PublicKeyFields{
+			Name:     key.Name,
+			Username: key.Username,
+			Filter: models.PublicKeyFilter{
+				Hostname: key.Filter.Hostname,
+				Tags:     key.Filter.Tags,
+			},
+		},
+	}
+
+	return s.store.PublicKeyUpdate(ctx, fingerprint, tenant, &model)
 }
 
 func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {

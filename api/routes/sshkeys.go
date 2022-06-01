@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -19,9 +20,9 @@ const (
 	DeletePublicKeyURL     = "/sshkeys/public-keys/:fingerprint"
 	CreatePrivateKeyURL    = "/sshkeys/private-keys"
 	EvaluateKeyURL         = "/sshkeys/public-keys/evaluate/:fingerprint/:username"
-	AddPublicKeyTagURL     = "/sshkeys/public-keys/:fingerprint/tags"       // Add a tag to a public key.
-	RemovePublicKeyTagURL  = "/sshkeys/public-keys/:fingerprint/tags/:name" // Remove a tag to a public key.
-	UpdatePublicKeyTagsURL = "/sshkeys/public-keys/:fingerprint/tags"       // Update all tags from a public key.
+	AddPublicKeyTagURL     = "/sshkeys/public-keys/:fingerprint/tags"      // Add a tag to a public key.
+	RemovePublicKeyTagURL  = "/sshkeys/public-keys/:fingerprint/tags/:tag" // Remove a tag to a public key.
+	UpdatePublicKeyTagsURL = "/sshkeys/public-keys/:fingerprint/tags"      // Update all tags from a public key.
 )
 
 const (
@@ -48,7 +49,18 @@ func (h *Handler) GetPublicKeys(c gateway.Context) error {
 }
 
 func (h *Handler) GetPublicKey(c gateway.Context) error {
-	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), c.Param(ParamNamespaceTenant))
+	var req request.PublicKeyGet
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+
+	err = c.Validate(&req)
+	if err != nil {
+		return err
+	}
+
+	pubKey, err := h.service.GetPublicKey(c.Ctx(), req.Fingerprint, req.Tenant)
 	if err != nil {
 		if err == store.ErrNoDocuments {
 			return c.NoContent(http.StatusNotFound)
@@ -61,19 +73,23 @@ func (h *Handler) GetPublicKey(c gateway.Context) error {
 }
 
 func (h *Handler) CreatePublicKey(c gateway.Context) error {
-	var key models.PublicKey
-	if err := c.Bind(&key); err != nil {
+	var req request.PublicKeyCreate
+	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	tenantID := ""
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	var tenant string
 	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
-		key.TenantID = tenantID
+		tenant = c.Tenant().ID
+		req.TenantID = tenant
 	}
 
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.Create, func() error {
-		err := h.service.CreatePublicKey(c.Ctx(), &key, tenantID)
+		err := h.service.CreatePublicKey(c.Ctx(), req, tenant)
 
 		return err
 	})
@@ -81,24 +97,28 @@ func (h *Handler) CreatePublicKey(c gateway.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, key)
+	return c.JSON(http.StatusOK, req)
 }
 
 func (h *Handler) UpdatePublicKey(c gateway.Context) error {
-	var params models.PublicKeyUpdate
-	if err := c.Bind(&params); err != nil {
+	var req request.PublicKeyUpdate
+	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	tenantID := ""
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	var tenant string
 	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
+		tenant = c.Tenant().ID
 	}
 
 	var key *models.PublicKey
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.Edit, func() error {
 		var err error
-		key, err = h.service.UpdatePublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), tenantID, &params)
+		key, err = h.service.UpdatePublicKey(c.Ctx(), req.Fingerprint, tenant, req)
 
 		return err
 	})
@@ -110,13 +130,22 @@ func (h *Handler) UpdatePublicKey(c gateway.Context) error {
 }
 
 func (h *Handler) DeletePublicKey(c gateway.Context) error {
-	tenantID := ""
+	var req request.PublicKeyDelete
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	var tenant string
 	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
+		tenant = c.Tenant().ID
 	}
 
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.Remove, func() error {
-		err := h.service.DeletePublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), tenantID)
+		err := h.service.DeletePublicKey(c.Ctx(), req.Fingerprint, tenant)
 
 		return err
 	})
@@ -161,10 +190,12 @@ func (h *Handler) EvaluateKey(c gateway.Context) error {
 }
 
 func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
-	var req struct {
-		Tag string `json:"tag"`
-	}
+	var req request.PublicKeyTagAdd
 	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
 		return err
 	}
 
@@ -174,7 +205,7 @@ func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.AddTag, func() error {
-		return h.service.AddPublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tag)
+		return h.service.AddPublicKeyTag(c.Ctx(), tenant, req.Fingerprint, req.Tag)
 	})
 	if err != nil {
 		return err
@@ -184,13 +215,22 @@ func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
 }
 
 func (h *Handler) RemovePublicKeyTag(c gateway.Context) error {
+	var req request.PublicKeyTagRemove
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
 	var tenant string
 	if c.Tenant() != nil {
 		tenant = c.Tenant().ID
 	}
 
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.RemoveTag, func() error {
-		return h.service.RemovePublicKeyTag(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), c.Param(ParamTagName))
+		return h.service.RemovePublicKeyTag(c.Ctx(), tenant, req.Fingerprint, req.Tag)
 	})
 	if err != nil {
 		return err
@@ -200,11 +240,12 @@ func (h *Handler) RemovePublicKeyTag(c gateway.Context) error {
 }
 
 func (h *Handler) UpdatePublicKeyTags(c gateway.Context) error {
-	var req struct {
-		Tags []string `json:"tags"`
+	var req request.PublicKeyTagsUpdate
+	if err := c.Bind(&req); err != nil {
+		return err
 	}
 
-	if err := c.Bind(&req); err != nil {
+	if err := c.Validate(&req); err != nil {
 		return err
 	}
 
@@ -214,7 +255,7 @@ func (h *Handler) UpdatePublicKeyTags(c gateway.Context) error {
 	}
 
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.UpdateTag, func() error {
-		return h.service.UpdatePublicKeyTags(c.Ctx(), tenant, c.Param(ParamPublicKeyFingerprint), req.Tags)
+		return h.service.UpdatePublicKeyTags(c.Ctx(), tenant, req.Fingerprint, req.Tags)
 	})
 	if err != nil {
 		return err
