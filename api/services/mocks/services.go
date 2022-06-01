@@ -256,11 +256,11 @@ func (_m *Service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, er
 }
 
 // CreatePublicKey provides a mock function with given fields: ctx, key, tenant
-func (_m *Service) CreatePublicKey(ctx context.Context, key *models.PublicKey, tenant string) error {
+func (_m *Service) CreatePublicKey(ctx context.Context, key request.PublicKeyCreate, tenant string) error {
 	ret := _m.Called(ctx, key, tenant)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.PublicKey, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, request.PublicKeyCreate, string) error); ok {
 		r0 = rf(ctx, key, tenant)
 	} else {
 		r0 = ret.Error(0)
@@ -1046,11 +1046,11 @@ func (_m *Service) UpdatePendingStatus(ctx context.Context, uid models.UID, stat
 }
 
 // UpdatePublicKey provides a mock function with given fields: ctx, fingerprint, tenant, key
-func (_m *Service) UpdatePublicKey(ctx context.Context, fingerprint string, tenant string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
+func (_m *Service) UpdatePublicKey(ctx context.Context, fingerprint string, tenant string, key request.PublicKeyUpdate) (*models.PublicKey, error) {
 	ret := _m.Called(ctx, fingerprint, tenant, key)
 
 	var r0 *models.PublicKey
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.PublicKeyUpdate) *models.PublicKey); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, request.PublicKeyUpdate) *models.PublicKey); ok {
 		r0 = rf(ctx, fingerprint, tenant, key)
 	} else {
 		if ret.Get(0) != nil {
@@ -1059,7 +1059,7 @@ func (_m *Service) UpdatePublicKey(ctx context.Context, fingerprint string, tena
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, *models.PublicKeyUpdate) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, request.PublicKeyUpdate) error); ok {
 		r1 = rf(ctx, fingerprint, tenant, key)
 	} else {
 		r1 = ret.Error(1)
