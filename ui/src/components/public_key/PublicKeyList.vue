@@ -56,7 +56,7 @@
         </template>
 
         <template #[`item.username`]="{ item }">
-          {{ item.username === '' ? 'All users' : item.username }}
+          {{ item.username === '.*' ? 'All users' : item.username }}
         </template>
 
         <template #[`item.created_at`]="{ item }">
