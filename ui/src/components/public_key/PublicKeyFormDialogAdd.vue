@@ -264,7 +264,7 @@ export default {
     chooseUsername() {
       switch (this.choiceUsername) {
       case 'all': {
-        this.keyLocal = { ...this.keyLocal, username: '' };
+        this.keyLocal = { ...this.keyLocal, username: '.*' };
         break;
       }
       case 'username': {

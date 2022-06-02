@@ -300,7 +300,7 @@ export default {
         }
 
         const { username } = this.$props.keyObject;
-        this.choiceUsername = (username === '' ? 'all' : 'username');
+        this.choiceUsername = (username === '.*' ? 'all' : 'username');
         this.username = username;
       }
     },
@@ -326,7 +326,7 @@ export default {
     chooseUsername() {
       switch (this.choiceUsername) {
       case 'all': {
-        this.keyLocal = { ...this.keyLocal, username: '' };
+        this.keyLocal = { ...this.keyLocal, username: '.*' };
         break;
       }
       case 'username': {
