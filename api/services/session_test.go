@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -150,21 +151,22 @@ func TestCreateSession(t *testing.T) {
 		err     error
 	}
 
-	session := models.Session{UID: "uid"}
+	req := request.SessionCreate{UID: "uid"}
+	model := models.Session{UID: "uid"}
 
 	Err := errors.New("error")
 
 	cases := []struct {
 		name          string
-		session       models.Session
+		session       request.SessionCreate
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			name:    "CreateSession fails",
-			session: session,
+			session: req,
 			requiredMocks: func() {
-				mock.On("SessionCreate", ctx, session).
+				mock.On("SessionCreate", ctx, model).
 					Return(nil, Err).Once()
 			},
 			expected: Expected{
@@ -174,13 +176,13 @@ func TestCreateSession(t *testing.T) {
 		},
 		{
 			name:    "CreateSession succeeds",
-			session: session,
+			session: req,
 			requiredMocks: func() {
-				mock.On("SessionCreate", ctx, session).
-					Return(&session, nil).Once()
+				mock.On("SessionCreate", ctx, model).
+					Return(&model, nil).Once()
 			},
 			expected: Expected{
-				session: &session,
+				session: &model,
 				err:     nil,
 			},
 		},

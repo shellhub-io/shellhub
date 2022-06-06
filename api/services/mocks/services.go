@@ -270,11 +270,11 @@ func (_m *Service) CreatePublicKey(ctx context.Context, key request.PublicKeyCre
 }
 
 // CreateSession provides a mock function with given fields: ctx, session
-func (_m *Service) CreateSession(ctx context.Context, session models.Session) (*models.Session, error) {
+func (_m *Service) CreateSession(ctx context.Context, session request.SessionCreate) (*models.Session, error) {
 	ret := _m.Called(ctx, session)
 
 	var r0 *models.Session
-	if rf, ok := ret.Get(0).(func(context.Context, models.Session) *models.Session); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, request.SessionCreate) *models.Session); ok {
 		r0 = rf(ctx, session)
 	} else {
 		if ret.Get(0) != nil {
@@ -283,7 +283,7 @@ func (_m *Service) CreateSession(ctx context.Context, session models.Session) (*
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, models.Session) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, request.SessionCreate) error); ok {
 		r1 = rf(ctx, session)
 	} else {
 		r1 = ret.Error(1)
