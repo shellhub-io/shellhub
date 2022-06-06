@@ -5,13 +5,14 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type SessionService interface {
 	ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error)
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
-	CreateSession(ctx context.Context, session models.Session) (*models.Session, error)
+	CreateSession(ctx context.Context, session request.SessionCreate) (*models.Session, error)
 	DeactivateSession(ctx context.Context, uid models.UID) error
 	KeepAliveSession(ctx context.Context, uid models.UID) error
 	SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error
@@ -25,8 +26,17 @@ func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Sessi
 	return s.store.SessionGet(ctx, uid)
 }
 
-func (s *service) CreateSession(ctx context.Context, session models.Session) (*models.Session, error) {
-	return s.store.SessionCreate(ctx, session)
+func (s *service) CreateSession(ctx context.Context, session request.SessionCreate) (*models.Session, error) {
+	model := models.Session{
+		UID:       session.UID,
+		DeviceUID: models.UID(session.DeviceUID),
+		Username:  session.Username,
+		IPAddress: session.IPAddress,
+		Type:      session.Type,
+		Term:      session.Term,
+	}
+
+	return s.store.SessionCreate(ctx, model)
 }
 
 func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {

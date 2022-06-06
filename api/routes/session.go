@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -44,7 +45,16 @@ func (h *Handler) GetSessionList(c gateway.Context) error {
 }
 
 func (h *Handler) GetSession(c gateway.Context) error {
-	session, err := h.service.GetSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
+	var req request.SessionGet
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	session, err := h.service.GetSession(c.Ctx(), models.UID(req.UID))
 	if err != nil {
 		return err
 	}
@@ -53,25 +63,29 @@ func (h *Handler) GetSession(c gateway.Context) error {
 }
 
 func (h *Handler) SetSessionAuthenticated(c gateway.Context) error {
-	var req struct {
-		Authenticated bool `json:"authenticated"`
-	}
-
+	var req request.SessionAuthenticatedSet
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	return h.service.SetSessionAuthenticated(c.Ctx(), models.UID(c.Param(ParamSessionID)), req.Authenticated)
-}
-
-func (h *Handler) CreateSession(c gateway.Context) error {
-	session := new(models.Session)
-
-	if err := c.Bind(&session); err != nil {
+	if err := c.Validate(&req); err != nil {
 		return err
 	}
 
-	session, err := h.service.CreateSession(c.Ctx(), *session)
+	return h.service.SetSessionAuthenticated(c.Ctx(), models.UID(req.UID), req.Authenticated)
+}
+
+func (h *Handler) CreateSession(c gateway.Context) error {
+	var req request.SessionCreate
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	session, err := h.service.CreateSession(c.Ctx(), req)
 	if err != nil {
 		return err
 	}
@@ -86,11 +100,29 @@ func (h *Handler) CreateSession(c gateway.Context) error {
 }
 
 func (h *Handler) FinishSession(c gateway.Context) error {
-	return h.service.DeactivateSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
+	var req request.SessionFinish
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	return h.service.DeactivateSession(c.Ctx(), models.UID(req.UID))
 }
 
 func (h *Handler) KeepAliveSession(c gateway.Context) error {
-	return h.service.KeepAliveSession(c.Ctx(), models.UID(c.Param(ParamSessionID)))
+	var req request.SessionKeepAlive
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	return h.service.KeepAliveSession(c.Ctx(), models.UID(req.UID))
 }
 
 func (h *Handler) RecordSession(c gateway.Context) error {
