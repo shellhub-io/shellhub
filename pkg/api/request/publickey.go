@@ -6,12 +6,6 @@ type FingerprintParam struct {
 	Fingerprint string `param:"fingerprint" validate:"required"`
 }
 
-// TagParam is a parameter that can be used to validate a tag.
-type TagParam struct {
-	// Tag is the public key's tag.
-	Tag string `param:"tag" validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
-}
-
 // TenantParam is a parameter that is used to validate a tenant ID.
 type TenantParam struct {
 	// Tenant is the tenant ID.
