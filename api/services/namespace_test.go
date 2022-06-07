@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuid_mocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
@@ -299,7 +300,12 @@ func TestCreateNamespace(t *testing.T) {
 
 	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
 
-	namespace := &models.Namespace{
+	namespace := request.NamespaceCreate{
+		Name:     "namespace",
+		TenantID: "xxxxx",
+	}
+
+	model := &models.Namespace{
 		Name:  strings.ToLower("namespace"),
 		Owner: user.ID,
 		Members: []models.Member{
@@ -314,7 +320,7 @@ func TestCreateNamespace(t *testing.T) {
 		requiredMocks func()
 		ownerID       string
 		expected      Expected
-		namespace     *models.Namespace
+		namespace     request.NamespaceCreate
 	}{
 		{
 			name:      "CreateNamespace fails when store user get has no documents",
@@ -343,7 +349,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			name:    "CreateNamespace fails when a namespace field is invalid",
 			ownerID: user.ID,
-			namespace: &models.Namespace{
+			namespace: request.NamespaceCreate{
 				Name: "name.with.dot",
 			},
 			requiredMocks: func() {
@@ -362,7 +368,7 @@ func TestCreateNamespace(t *testing.T) {
 				var isCloud bool
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
-				mock.On("NamespaceGetByName", ctx, namespace.Name).Return(namespace, nil).Once()
+				mock.On("NamespaceGetByName", ctx, namespace.Name).Return(model, nil).Once()
 			},
 			expected: Expected{
 				nil,
@@ -377,7 +383,7 @@ func TestCreateNamespace(t *testing.T) {
 				var isCloud bool
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
-				mock.On("NamespaceGetByName", ctx, namespace.Name).Return(namespace, Err).Once()
+				mock.On("NamespaceGetByName", ctx, namespace.Name).Return(model, Err).Once()
 			},
 			expected: Expected{
 				nil,
@@ -412,15 +418,8 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			name:    "CreateNamespace generates namespace with random tenant",
 			ownerID: user.ID,
-			namespace: &models.Namespace{
-				Name:  strings.ToLower("namespace"),
-				Owner: user.ID,
-				Members: []models.Member{
-					{ID: user.ID, Role: guard.RoleOwner},
-				},
-				Settings:   &models.NamespaceSettings{SessionRecord: true},
-				TenantID:   "",
-				MaxDevices: -1,
+			namespace: request.NamespaceCreate{
+				Name: "namespace",
 			},
 			requiredMocks: func() {
 				var isCloud bool

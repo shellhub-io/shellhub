@@ -6,12 +6,6 @@ type FingerprintParam struct {
 	Fingerprint string `param:"fingerprint" validate:"required"`
 }
 
-// TenantParam is a parameter that is used to validate a tenant ID.
-type TenantParam struct {
-	// Tenant is the tenant ID.
-	Tenant string `param:"tenant" validate:"required,min=3,max=255,ascii,excludes=/@&:"`
-}
-
 // PublicKeyGet is the structure for the request data at get public key endpoint.
 type PublicKeyGet struct {
 	FingerprintParam
