@@ -210,11 +210,11 @@ func (_m *Service) CreateDeviceTag(ctx context.Context, uid models.UID, name str
 }
 
 // CreateNamespace provides a mock function with given fields: ctx, namespace, userID
-func (_m *Service) CreateNamespace(ctx context.Context, namespace *models.Namespace, userID string) (*models.Namespace, error) {
+func (_m *Service) CreateNamespace(ctx context.Context, namespace request.NamespaceCreate, userID string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, namespace, userID)
 
 	var r0 *models.Namespace
-	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace, string) *models.Namespace); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, request.NamespaceCreate, string) *models.Namespace); ok {
 		r0 = rf(ctx, namespace, userID)
 	} else {
 		if ret.Get(0) != nil {
@@ -223,7 +223,7 @@ func (_m *Service) CreateNamespace(ctx context.Context, namespace *models.Namesp
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *models.Namespace, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, request.NamespaceCreate, string) error); ok {
 		r1 = rf(ctx, namespace, userID)
 	} else {
 		r1 = ret.Error(1)
