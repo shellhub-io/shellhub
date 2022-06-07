@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shellhub-io/shellhub/api/converter"
+	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	svc "github.com/shellhub-io/shellhub/api/services"
@@ -19,30 +21,10 @@ import (
 
 func TestUpdatePendingStatus(t *testing.T) {
 	e := echo.New()
+	e.Validator = handlers.NewValidator()
 	mock := new(mocks.Service)
 	ctx := context.TODO()
 	h := NewHandler(mock)
-
-	fromErrServiceToHTTPStatus := func(code int) int {
-		switch code {
-		case svc.ErrCodeNotFound:
-			return http.StatusNotFound
-		case svc.ErrCodeInvalid:
-			return http.StatusBadRequest
-		case svc.ErrCodeLimit:
-			return http.StatusForbidden
-		case svc.ErrCodePayment:
-			return http.StatusPaymentRequired
-		case svc.ErrCodeDuplicated:
-			return http.StatusConflict
-		case svc.ErrCodeUnauthorized:
-			return http.StatusUnauthorized
-		case svc.ErrCodeForbidden:
-			return http.StatusForbidden
-		default:
-			return http.StatusInternalServerError
-		}
-	}
 
 	t.Run("Return payment required when the max count is reached", func(t *testing.T) {
 		rec := httptest.NewRecorder()
@@ -61,6 +43,6 @@ func TestUpdatePendingStatus(t *testing.T) {
 		err, ok := output.(errors.Error)
 		assert.True(t, ok)
 
-		assert.Equal(t, http.StatusPaymentRequired, fromErrServiceToHTTPStatus(err.Code))
+		assert.Equal(t, http.StatusPaymentRequired, converter.FromErrServiceToHTTPStatus(err.Code))
 	})
 }
