@@ -35,7 +35,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		echoContext := e.NewContext(req, rec)
 		echoContext.SetParamNames("uid", "status")
 		echoContext.SetParamValues("123", "pending")
-		mock.On("UpdatePendingStatus", ctx, models.UID("123"), "pending", "").Return(svc.ErrDeviceLimit)
+		mock.On("UpdatePendingStatus", ctx, models.UID("123"), "pending", "00000000-0000-4000-0000-000000000000").Return(svc.ErrDeviceLimit)
 
 		apictx := gateway.NewContext(mock, echoContext)
 
