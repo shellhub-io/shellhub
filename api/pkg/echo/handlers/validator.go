@@ -4,7 +4,7 @@ import (
 	"regexp"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/shellhub-io/shellhub/api/routes"
+	errors "github.com/shellhub-io/shellhub/api/routes/errors"
 )
 
 type Validator struct {
@@ -12,14 +12,14 @@ type Validator struct {
 }
 
 func NewValidator() *Validator {
-	v := validator.New()
-	_ = v.RegisterValidation("regexp", func(fl validator.FieldLevel) bool {
+	validate := validator.New()
+	_ = validate.RegisterValidation("regexp", func(fl validator.FieldLevel) bool {
 		_, err := regexp.Compile(fl.Field().String())
 
 		return err == nil
 	})
 
-	return &Validator{validator: v}
+	return &Validator{validator: validate}
 }
 
 func (v *Validator) Validate(s interface{}) error {
@@ -29,7 +29,7 @@ func (v *Validator) Validate(s interface{}) error {
 			fields[err.Field()] = err.Tag()
 		}
 
-		return routes.NewErrInvalidEntity(fields)
+		return errors.NewErrInvalidEntity(fields)
 	}
 
 	return nil

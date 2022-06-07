@@ -7,9 +7,9 @@ import (
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	storecache "github.com/shellhub-io/shellhub/api/cache"
+	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/routes"
-	"github.com/shellhub-io/shellhub/api/routes/handlers"
 	apiMiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
@@ -68,7 +68,7 @@ func startServer(cfg *config) error {
 	e.Use(echoMiddleware.RequestID())
 	e.Binder = handlers.NewBinder()
 	e.Validator = handlers.NewValidator()
-	e.HTTPErrorHandler = handlers.Errors
+	e.HTTPErrorHandler = handlers.NewErrors()
 
 	logrus.Info("Connecting to MongoDB")
 
