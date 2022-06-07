@@ -3,8 +3,8 @@ package converter
 import (
 	"net/http"
 
-	"github.com/shellhub-io/shellhub/api/routes"
-	"github.com/shellhub-io/shellhub/api/services"
+	routes "github.com/shellhub-io/shellhub/api/routes/errors"
+	services "github.com/shellhub-io/shellhub/api/services"
 )
 
 // FromErrServiceToHTTPStatus converts a service error code to http status.
