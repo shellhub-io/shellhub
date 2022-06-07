@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -20,9 +21,9 @@ const (
 	HeartbeatDeviceURL = "/devices/:uid/heartbeat"
 	LookupDeviceURL    = "/lookup"
 	UpdateStatusURL    = "/devices/:uid/:status"
-	CreateTagURL       = "/devices/:uid/tags"       // Add a tag to a device.
-	UpdateTagURL       = "/devices/:uid/tags"       // Update device's tags with a new set.
-	RemoveTagURL       = "/devices/:uid/tags/:name" // Delete a tag from a device.
+	CreateTagURL       = "/devices/:uid/tags"      // Add a tag to a device.
+	UpdateTagURL       = "/devices/:uid/tags"      // Update device's tags with a new set.
+	RemoveTagURL       = "/devices/:uid/tags/:tag" // Delete a tag from a device.
 )
 
 const (
@@ -58,7 +59,16 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 }
 
 func (h *Handler) GetDevice(c gateway.Context) error {
-	device, err := h.service.GetDevice(c.Ctx(), models.UID(c.Param(ParamDeviceID)))
+	var req request.DeviceGet
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	device, err := h.service.GetDevice(c.Ctx(), models.UID(req.UID))
 	if err != nil {
 		return err
 	}
@@ -67,13 +77,22 @@ func (h *Handler) GetDevice(c gateway.Context) error {
 }
 
 func (h *Handler) DeleteDevice(c gateway.Context) error {
-	tenantID := ""
+	var req request.DeviceDelete
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	var tenant string
 	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
+		tenant = c.Tenant().ID
 	}
 
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Remove, func() error {
-		err := h.service.DeleteDevice(c.Ctx(), models.UID(c.Param(ParamDeviceID)), tenantID)
+		err := h.service.DeleteDevice(c.Ctx(), models.UID(req.UID), tenant)
 
 		return err
 	})
@@ -85,21 +104,22 @@ func (h *Handler) DeleteDevice(c gateway.Context) error {
 }
 
 func (h *Handler) RenameDevice(c gateway.Context) error {
-	var req struct {
-		Name string `json:"name"`
-	}
-
+	var req request.DeviceRename
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	tenantID := ""
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	var tenant string
 	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
+		tenant = c.Tenant().ID
 	}
 
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Rename, func() error {
-		err := h.service.RenameDevice(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Name, tenantID)
+		err := h.service.RenameDevice(c.Ctx(), models.UID(req.UID), req.Name, tenant)
 
 		return err
 	})
@@ -111,7 +131,16 @@ func (h *Handler) RenameDevice(c gateway.Context) error {
 }
 
 func (h *Handler) OfflineDevice(c gateway.Context) error {
-	if err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(c.Param(ParamDeviceID)), false); err != nil {
+	var req request.DeviceOffline
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	if err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(req.UID), false); err != nil {
 		return err
 	}
 
@@ -119,18 +148,16 @@ func (h *Handler) OfflineDevice(c gateway.Context) error {
 }
 
 func (h *Handler) LookupDevice(c gateway.Context) error {
-	var query struct {
-		Domain    string `query:"domain"`
-		Name      string `query:"name"`
-		Username  string `query:"username"`
-		IPAddress string `query:"ip_address"`
-	}
-
-	if err := c.Bind(&query); err != nil {
+	var req request.DeviceLookup
+	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	device, err := h.service.LookupDevice(c.Ctx(), query.Domain, query.Name)
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	device, err := h.service.LookupDevice(c.Ctx(), req.Domain, req.Name)
 	if err == services.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
 	} else if err != nil {
@@ -141,9 +168,18 @@ func (h *Handler) LookupDevice(c gateway.Context) error {
 }
 
 func (h *Handler) UpdatePendingStatus(c gateway.Context) error {
-	tenantID := ""
+	var req request.DevicePendingStatus
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	var tenant string
 	if c.Tenant() != nil {
-		tenantID = c.Tenant().ID
+		tenant = c.Tenant().ID
 	}
 
 	status := map[string]string{
@@ -153,7 +189,7 @@ func (h *Handler) UpdatePendingStatus(c gateway.Context) error {
 		"unused":  "unused",
 	}
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Accept, func() error {
-		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(c.Param(ParamDeviceID)), status[c.Param(ParamDeviceStatus)], tenantID)
+		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(req.UID), status[req.Status], tenant)
 
 		return err
 	})
@@ -165,20 +201,30 @@ func (h *Handler) UpdatePendingStatus(c gateway.Context) error {
 }
 
 func (h *Handler) HeartbeatDevice(c gateway.Context) error {
-	return h.service.DeviceHeartbeat(c.Ctx(), models.UID(c.Param(ParamDeviceID)))
-}
-
-func (h *Handler) CreateDeviceTag(c gateway.Context) error {
-	var req struct {
-		Name string `json:"name"`
-	}
-
+	var req request.DeviceHeartbeat
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	return h.service.DeviceHeartbeat(c.Ctx(), models.UID(req.UID))
+}
+
+func (h *Handler) CreateDeviceTag(c gateway.Context) error {
+	var req request.DeviceCreateTag
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.CreateTag, func() error {
-		return h.service.CreateDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Name)
+		return h.service.CreateDeviceTag(c.Ctx(), models.UID(req.UID), req.Tag)
 	})
 	if err != nil {
 		return err
@@ -188,8 +234,17 @@ func (h *Handler) CreateDeviceTag(c gateway.Context) error {
 }
 
 func (h *Handler) RemoveDeviceTag(c gateway.Context) error {
+	var req request.DeviceRemoveTag
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.RemoveTag, func() error {
-		return h.service.RemoveDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), c.Param(ParamTagName))
+		return h.service.RemoveDeviceTag(c.Ctx(), models.UID(req.UID), req.Tag)
 	})
 	if err != nil {
 		return err
@@ -199,16 +254,17 @@ func (h *Handler) RemoveDeviceTag(c gateway.Context) error {
 }
 
 func (h *Handler) UpdateDeviceTag(c gateway.Context) error {
-	var req struct {
-		Tags []string `json:"tags"`
-	}
-
+	var req request.DeviceUpdateTag
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.UpdateTag, func() error {
-		return h.service.UpdateDeviceTag(c.Ctx(), models.UID(c.Param(ParamDeviceID)), req.Tags)
+		return h.service.UpdateDeviceTag(c.Ctx(), models.UID(req.UID), req.Tags)
 	})
 	if err != nil {
 		return err
