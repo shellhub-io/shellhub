@@ -1,12 +1,11 @@
 package request
 
-// FingerprintParam is a parameter that can be used to validate a fingerprint .
+// FingerprintParam is a structure to represent and validate a public key fingerprint as path param.
 type FingerprintParam struct {
-	// Fingerprint is the public key's fingerprint.
 	Fingerprint string `param:"fingerprint" validate:"required"`
 }
 
-// PublicKeyGet is the structure for the request data at get public key endpoint.
+// PublicKeyGet is the structure to represent the request data for get public key endpoint.
 type PublicKeyGet struct {
 	FingerprintParam
 	TenantParam
@@ -21,7 +20,7 @@ type PublicKeyFilter struct {
 	Tags []string `json:"tags,omitempty" validate:"required_without=Hostname,excluded_with=Hostname,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
-// PublicKeyCreate is the structure for the request data at create public key endpoint.
+// PublicKeyCreate is the structure to represent the request data for create public key endpoint.
 type PublicKeyCreate struct {
 	Data        []byte          `json:"data" validate:"required"`
 	Filter      PublicKeyFilter `json:"filter" validate:"required"`
@@ -31,7 +30,7 @@ type PublicKeyCreate struct {
 	Fingerprint string          `json:"-"`
 }
 
-// PublicKeyUpdate is the structure for the request data at update public key endpoint.
+// PublicKeyUpdate is the structure to represent the request data for update public key endpoint.
 type PublicKeyUpdate struct {
 	FingerprintParam
 	// Name is the public key's name.
@@ -42,30 +41,30 @@ type PublicKeyUpdate struct {
 	Filter PublicKeyFilter `json:"filter" validate:"required"`
 }
 
-// PublicKeyDelete is the structure for the request data at delete public key endpoint.
+// PublicKeyDelete is the structure to represent the request data for delete public key endpoint.
 type PublicKeyDelete struct {
 	FingerprintParam
 }
 
-// PublicKeyTagAdd is the structure for the request data at add tag to public key endpoint.
+// PublicKeyTagAdd is the structure to represent the request data for add tag to public key endpoint.
 type PublicKeyTagAdd struct {
 	FingerprintParam
 	TagParam
 }
 
-// PublicKeyTagRemove is the structure for the request data at remove tag from public key endpoint.
+// PublicKeyTagRemove is the structure to represent the request data for remove tag from public key endpoint.
 type PublicKeyTagRemove struct {
 	FingerprintParam
 	TagParam
 }
 
-// PublicKeyTagsUpdate is the structure for the request data at update tags from public key endpoint.
+// PublicKeyTagsUpdate is the structure to represent the request data for update tags from public key endpoint.
 type PublicKeyTagsUpdate struct {
 	FingerprintParam
 	Tags []string `json:"tags" validate:"required,min=1,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
-// PublicKeyAuth is the structure for the request data at public key auth endpoint.
+// PublicKeyAuth is the structure to represent the request data for public key auth endpoint.
 type PublicKeyAuth struct {
 	Fingerprint string `json:"fingerprint" validate:"required"`
 	Data        string `json:"data" validate:"required"`
