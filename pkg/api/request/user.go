@@ -1,30 +1,26 @@
-// Package requests defines structures for the requests' bodies.
+// Package requests defines structures to represent requests' bodies from API.
 package request
 
-// UserDataUpdate is the structure for the request body for the update user data endpoint.
+type UserParam struct {
+	ID string `param:"id" validate:"required"`
+}
+
+// UserDataUpdate is the structure to represent the request body of the update user data endpoint.
 type UserDataUpdate struct {
-	// ID is the user's ID.
-	ID string `param:"id" validate:"required"`
-	// TODO: add validation rules.
-	// Name is the user's name.
-	Name string `json:"name" validate:"required"`
-	// Username is the user's username.
+	UserParam
+	Name     string `json:"name" validate:"required"`
 	Username string `json:"username" validate:"required"`
-	// Email is the user's email.
-	Email string `json:"email" validate:"required"`
+	Email    string `json:"email" validate:"required"`
 }
 
-// UserPasswordUpdate is the structure for the request body for the update user password endpoint.
+// UserPasswordUpdate is the structure to represent the request body for the update user password endpoint.
 type UserPasswordUpdate struct {
-	// ID is the user's ID.
-	ID string `param:"id" validate:"required"`
-	// CurrentPassword is the user's current password.
+	UserParam
 	CurrentPassword string `json:"current_password" validate:"required,min=5,max=30,nefield=NewPassword"`
-	// NewPassword is the user's new password.
-	NewPassword string `json:"new_password" validate:"required,min=5,max=30,nefield=CurrentPassword"`
+	NewPassword     string `json:"new_password" validate:"required,min=5,max=30,nefield=CurrentPassword"`
 }
 
-// UserAuth is the structure for the request body for the user auth endpoint.
+// UserAuth is the structure to represent the request body for the user auth endpoint.
 type UserAuth struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`

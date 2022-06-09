@@ -1,11 +1,11 @@
 package request
 
-// AuthTokenGet is the structure for the request data at get auth token endpoint.
+// AuthTokenGet is the structure to represent the request data for get auth token endpoint.
 type AuthTokenGet struct {
 	TenantParam
 }
 
-// AuthTokenSwap is the structure for the request data at swap auth token endpoint.
+// AuthTokenSwap is the structure to represent the request data for swap auth token endpoint.
 type AuthTokenSwap struct {
 	TenantParam
 }
