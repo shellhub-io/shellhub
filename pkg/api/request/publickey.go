@@ -64,3 +64,9 @@ type PublicKeyTagsUpdate struct {
 	FingerprintParam
 	Tags []string `json:"tags" validate:"required,min=1,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
+
+// PublicKeyAuth is the structure for the request data at public key auth endpoint.
+type PublicKeyAuth struct {
+	Fingerprint string `json:"fingerprint" validate:"required"`
+	Data        string `json:"data" validate:"required"`
+}

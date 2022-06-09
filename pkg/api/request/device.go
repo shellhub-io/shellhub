@@ -67,3 +67,24 @@ type DeviceUpdateTag struct {
 	DeviceParam
 	Tags []string `json:"tags" validate:"required,min=1,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
+
+type DeviceIdentity struct {
+	MAC string `json:"mac"`
+}
+
+type DeviceInfo struct {
+	ID         string `json:"id"`
+	PrettyName string `json:"pretty_name"`
+	Version    string `json:"version"`
+	Arch       string `json:"arch"`
+	Platform   string `json:"platform"`
+}
+
+type DeviceAuth struct {
+	Info      *DeviceInfo     `json:"info" validate:"required"`
+	Sessions  []string        `json:"sessions,omitempty"`
+	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,hostname_rfc1123" hash:"-"`
+	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
+	PublicKey string          `json:"public_key" validate:"required"`
+	TenantID  string          `json:"tenant_id" validate:"required"`
+}

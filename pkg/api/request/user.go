@@ -23,3 +23,9 @@ type UserPasswordUpdate struct {
 	// NewPassword is the user's new password.
 	NewPassword string `json:"new_password" validate:"required,min=5,max=30,nefield=CurrentPassword"`
 }
+
+// UserAuth is the structure for the request body for the user auth endpoint.
+type UserAuth struct {
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}

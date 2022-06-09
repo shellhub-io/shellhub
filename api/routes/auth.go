@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -66,14 +67,17 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 }
 
 func (h *Handler) AuthDevice(c gateway.Context) error {
-	var req models.DeviceAuthRequest
-
+	var req request.DeviceAuth
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
 	ip := c.Request().Header.Get("X-Real-IP")
-	res, err := h.service.AuthDevice(c.Ctx(), &req, ip)
+	res, err := h.service.AuthDevice(c.Ctx(), req, ip)
 	if err != nil {
 		return err
 	}
@@ -87,9 +91,12 @@ func (h *Handler) AuthDevice(c gateway.Context) error {
 }
 
 func (h *Handler) AuthUser(c gateway.Context) error {
-	var req models.UserAuthRequest
-
+	var req request.UserAuth
 	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
 		return err
 	}
 
@@ -115,7 +122,16 @@ func (h *Handler) AuthUserInfo(c gateway.Context) error {
 }
 
 func (h *Handler) AuthGetToken(c gateway.Context) error {
-	res, err := h.service.AuthGetToken(c.Ctx(), c.Param(ParamNamespaceTenant))
+	var req request.AuthTokenGet
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	res, err := h.service.AuthGetToken(c.Ctx(), req.Tenant)
 	if err != nil {
 		return err
 	}
@@ -124,12 +140,21 @@ func (h *Handler) AuthGetToken(c gateway.Context) error {
 }
 
 func (h *Handler) AuthSwapToken(c gateway.Context) error {
-	id := ""
+	var req request.AuthTokenSwap
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	var id string
 	if v := c.ID(); v != nil {
 		id = v.ID
 	}
 
-	res, err := h.service.AuthSwapToken(c.Ctx(), id, c.Param(ParamNamespaceTenant))
+	res, err := h.service.AuthSwapToken(c.Ctx(), id, req.Tenant)
 	if err != nil {
 		return err
 	}
@@ -138,13 +163,16 @@ func (h *Handler) AuthSwapToken(c gateway.Context) error {
 }
 
 func (h *Handler) AuthPublicKey(c gateway.Context) error {
-	var req models.PublicKeyAuthRequest
-
+	var req request.PublicKeyAuth
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
-	res, err := h.service.AuthPublicKey(c.Ctx(), &req)
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	res, err := h.service.AuthPublicKey(c.Ctx(), req)
 	if err != nil {
 		return err
 	}

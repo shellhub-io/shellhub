@@ -15,27 +15,36 @@ import (
 
 	"github.com/cnf/structhash"
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type AuthService interface {
-	AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAddr string) (*models.DeviceAuthResponse, error)
-	AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error)
+	AuthDevice(ctx context.Context, req request.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
+	AuthUser(ctx context.Context, req request.UserAuth) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
-	AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error)
+	AuthPublicKey(ctx context.Context, req request.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
 	AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }
 
-func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAddr string) (*models.DeviceAuthResponse, error) {
-	if _, err := validator.ValidateStruct(req); err != nil {
-		return nil, err
+func (s *service) AuthDevice(ctx context.Context, req request.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
+	var identity *models.DeviceIdentity
+	if req.Identity != nil {
+		identity = &models.DeviceIdentity{
+			MAC: req.Identity.MAC,
+		}
+	}
+	auth := models.DeviceAuth{
+		Hostname:  req.Hostname,
+		Identity:  identity,
+		PublicKey: req.PublicKey,
+		TenantID:  req.TenantID,
 	}
 
-	uid := sha256.Sum256(structhash.Dump(req.DeviceAuth, 1))
+	uid := sha256.Sum256(structhash.Dump(auth, 1))
 
 	key := hex.EncodeToString(uid[:])
 
@@ -66,10 +75,20 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 			Namespace: value.Namespace,
 		}, nil
 	}
+	var info *models.DeviceInfo
+	if req.Info != nil {
+		info = &models.DeviceInfo{
+			ID:         req.Info.ID,
+			PrettyName: req.Info.PrettyName,
+			Version:    req.Info.Version,
+			Arch:       req.Info.Arch,
+			Platform:   req.Info.Platform,
+		}
+	}
 	device := models.Device{
 		UID:        key,
-		Identity:   req.Identity,
-		Info:       req.Info,
+		Identity:   identity,
+		Info:       info,
 		PublicKey:  req.PublicKey,
 		TenantID:   req.TenantID,
 		LastSeen:   clock.Now(),
@@ -82,11 +101,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 		return nil, NewErrNamespaceNotFound(device.TenantID, err)
 	}
 
-	if invalid, err := validator.ValidateStructFields(req); err != nil {
-		return nil, NewErrAuthInvalid(invalid, err)
-	}
-
-	hostname := strings.ToLower(req.DeviceAuth.Hostname)
+	hostname := strings.ToLower(req.Hostname)
 
 	if err := s.store.DeviceCreate(ctx, device, hostname); err != nil {
 		return nil, NewErrDeviceCreate(device, err)
@@ -118,7 +133,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest,
 	}, nil
 }
 
-func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error) {
+func (s *service) AuthUser(ctx context.Context, req request.UserAuth) (*models.UserAuthResponse, error) {
 	user, err := s.store.UserGetByUsername(ctx, strings.ToLower(req.Username))
 	if err != nil {
 		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(req.Username))
@@ -240,7 +255,7 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 	}, nil
 }
 
-func (s *service) AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error) {
+func (s *service) AuthPublicKey(ctx context.Context, req request.PublicKeyAuth) (*models.PublicKeyAuthResponse, error) {
 	privKey, err := s.store.PrivateKeyGet(ctx, req.Fingerprint)
 	if err != nil {
 		return nil, NewErrPublicKeyNotFound(req.Fingerprint, err)

@@ -13,6 +13,7 @@ import (
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -29,20 +30,28 @@ func TestAuthDevice(t *testing.T) {
 
 	ctx := context.TODO()
 
-	authReq := &models.DeviceAuthRequest{
-		DeviceAuth: &models.DeviceAuth{
-			TenantID: "tenant",
-			Identity: &models.DeviceIdentity{
-				MAC: "mac",
-			},
+	authReq := request.DeviceAuth{
+		TenantID: "tenant",
+		Identity: &request.DeviceIdentity{
+			MAC: "mac",
 		},
 		Sessions: []string{"session"},
 	}
 
-	uid := sha256.Sum256(structhash.Dump(authReq.DeviceAuth, 1))
+	auth := models.DeviceAuth{
+		Hostname: authReq.Hostname,
+		Identity: &models.DeviceIdentity{
+			MAC: authReq.Identity.MAC,
+		},
+		PublicKey: authReq.PublicKey,
+		TenantID:  authReq.TenantID,
+	}
+	uid := sha256.Sum256(structhash.Dump(auth, 1))
 	device := &models.Device{
-		UID:        hex.EncodeToString(uid[:]),
-		Identity:   authReq.Identity,
+		UID: hex.EncodeToString(uid[:]),
+		Identity: &models.DeviceIdentity{
+			MAC: authReq.Identity.MAC,
+		},
 		TenantID:   authReq.TenantID,
 		LastSeen:   now,
 		RemoteAddr: "0.0.0.0",
@@ -89,7 +98,7 @@ func TestAuthUser(t *testing.T) {
 
 	ctx := context.TODO()
 
-	authReq := &models.UserAuthRequest{
+	authReq := request.UserAuth{
 		Username: "user",
 		Password: "passwd",
 	}
@@ -140,7 +149,7 @@ func TestAuthUser(t *testing.T) {
 	mock.On("UserUpdateData", ctx, userConfirmed.ID, *userConfirmed).Return(nil).Once()
 	clockMock.On("Now").Return(now).Twice()
 
-	authRes, err := s.AuthUser(ctx, *authReq)
+	authRes, err := s.AuthUser(ctx, authReq)
 	assert.NoError(t, err)
 
 	Err := errors.New("error", "", 0)
@@ -152,13 +161,13 @@ func TestAuthUser(t *testing.T) {
 
 	tests := []struct {
 		description   string
-		args          models.UserAuthRequest
+		args          request.UserAuth
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "Fails when user has no account",
-			args:        *authReq,
+			args:        authReq,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, authReq.Username).Return(nil, Err).Once()
 				mock.On("UserGetByEmail", ctx, authReq.Username).Return(nil, Err).Once()
@@ -167,7 +176,7 @@ func TestAuthUser(t *testing.T) {
 		},
 		{
 			description: "Fails when user has account but wrong password",
-			args:        *authReq,
+			args:        authReq,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userWithWrongPassword, nil).Once()
 				mock.On("NamespaceGetFirst", ctx, userWithWrongPassword.ID).Return(namespace, nil).Once()
@@ -176,7 +185,7 @@ func TestAuthUser(t *testing.T) {
 		},
 		{
 			description: "Fails when user has account but not activated",
-			args:        *authReq,
+			args:        authReq,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userNotActivatedAccount, nil).Once()
 			},
@@ -184,7 +193,7 @@ func TestAuthUser(t *testing.T) {
 		},
 		{
 			description: "Successful authentication",
-			args:        *authReq,
+			args:        authReq,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userConfirmed, nil).Once()
 				mock.On("NamespaceGetFirst", ctx, userConfirmed.ID).Return(namespace, nil).Once()
