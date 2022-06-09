@@ -58,11 +58,11 @@ func (_m *Service) AddPublicKeyTag(ctx context.Context, tenant string, fingerpri
 }
 
 // AuthDevice provides a mock function with given fields: ctx, req, remoteAddr
-func (_m *Service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest, remoteAddr string) (*models.DeviceAuthResponse, error) {
+func (_m *Service) AuthDevice(ctx context.Context, req request.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
 	ret := _m.Called(ctx, req, remoteAddr)
 
 	var r0 *models.DeviceAuthResponse
-	if rf, ok := ret.Get(0).(func(context.Context, *models.DeviceAuthRequest, string) *models.DeviceAuthResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, request.DeviceAuth, string) *models.DeviceAuthResponse); ok {
 		r0 = rf(ctx, req, remoteAddr)
 	} else {
 		if ret.Get(0) != nil {
@@ -71,7 +71,7 @@ func (_m *Service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *models.DeviceAuthRequest, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, request.DeviceAuth, string) error); ok {
 		r1 = rf(ctx, req, remoteAddr)
 	} else {
 		r1 = ret.Error(1)
@@ -104,11 +104,11 @@ func (_m *Service) AuthGetToken(ctx context.Context, tenant string) (*models.Use
 }
 
 // AuthPublicKey provides a mock function with given fields: ctx, req
-func (_m *Service) AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error) {
+func (_m *Service) AuthPublicKey(ctx context.Context, req request.PublicKeyAuth) (*models.PublicKeyAuthResponse, error) {
 	ret := _m.Called(ctx, req)
 
 	var r0 *models.PublicKeyAuthResponse
-	if rf, ok := ret.Get(0).(func(context.Context, *models.PublicKeyAuthRequest) *models.PublicKeyAuthResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, request.PublicKeyAuth) *models.PublicKeyAuthResponse); ok {
 		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
@@ -117,7 +117,7 @@ func (_m *Service) AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthR
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *models.PublicKeyAuthRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, request.PublicKeyAuth) error); ok {
 		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
@@ -150,11 +150,11 @@ func (_m *Service) AuthSwapToken(ctx context.Context, ID string, tenant string) 
 }
 
 // AuthUser provides a mock function with given fields: ctx, req
-func (_m *Service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error) {
+func (_m *Service) AuthUser(ctx context.Context, req request.UserAuth) (*models.UserAuthResponse, error) {
 	ret := _m.Called(ctx, req)
 
 	var r0 *models.UserAuthResponse
-	if rf, ok := ret.Get(0).(func(context.Context, models.UserAuthRequest) *models.UserAuthResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, request.UserAuth) *models.UserAuthResponse); ok {
 		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
@@ -163,7 +163,7 @@ func (_m *Service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*m
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, models.UserAuthRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, request.UserAuth) error); ok {
 		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
