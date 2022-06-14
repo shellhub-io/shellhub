@@ -1,0 +1,3179 @@
+openapi: 3.0.2
+info:
+  contact:
+    email: contato@ossystems.com.br
+  description: "ShellHub Community documentation.\n\nIt documents all routes provided\
+    \ by ShellHub Community.\n\n\nNOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES\
+    \ MAY OCCUR.\n"
+  license:
+    name: Apache License 2.0
+    url: https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md
+  title: ShellHub Community
+  version: 0.1.0
+servers:
+- description: ShellHub API server
+  url: http://localhost
+paths:
+  /info:
+    get:
+      description: Get info about ShellHub instance.
+      operationId: GetInfo
+      parameters:
+      - description: Agent's version.
+        explode: true
+        in: query
+        name: agent_version
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/info'
+          description: Success to get ShellHub instance info.
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      summary: Get info
+  /api/login:
+    post:
+      description: Get data about a user
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/login'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userAuth'
+          description: Success to login
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      summary: Login
+      tags:
+      - users
+  /api/auth/user:
+    post:
+      description: Get data about a user
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/login'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userAuth'
+          description: Success to login
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      summary: Login
+      tags:
+      - users
+  /api/devices/auth:
+    post:
+      description: "Auth a device.\n\nEvery 30 seconds, this route is hit by internal\
+        \ ShellHub to check device\navailability.\n"
+      operationId: postAuthDevice
+      parameters:
+      - explode: false
+        in: header
+        name: X-Real-IP
+        required: false
+        schema:
+          description: |
+            Device's IP address.
+
+
+            `X-Real-IP` header is used to set a geolocation position to device when
+            `geoip` feature is enable.
+          example: 127.0.0.1
+          pattern: "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postAuthDevice_request'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/postAuthDevice_200_response'
+          description: Success to auth device
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Auth device
+      tags:
+      - devices
+  /api/auth/device:
+    post:
+      description: "Auth a device.\n\nEvery 30 seconds, this route is hit by internal\
+        \ ShellHub to check device\navailability.\n"
+      operationId: postAuthDevice
+      parameters:
+      - explode: false
+        in: header
+        name: X-Real-IP
+        required: false
+        schema:
+          description: |
+            Device's IP address.
+
+
+            `X-Real-IP` header is used to set a geolocation position to device when
+            `geoip` feature is enable.
+          example: 127.0.0.1
+          pattern: "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postAuthDevice_request'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/postAuthDevice_200_response'
+          description: Success to auth device
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Auth device
+      tags:
+      - devices
+  /api/auth/ssh:
+    post:
+      description: Set a SSH public key.
+      operationId: setSSHKey
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/setSSHKey_request'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/setSSHKey_200_response'
+          description: Success set SSH key
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      summary: Set SSH key
+      tags:
+      - ssh
+  /api/auth/token/{tenant}:
+    get:
+      description: |
+        This route works like a login's one; returns a JWT token and extra
+        information about namespace.
+
+        You can use this route to swap between namespaces.
+      operationId: getNamespaceToken
+      parameters:
+      - description: Namespace Tenant
+        explode: false
+        in: path
+        name: tenant
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userAuth'
+          description: Success to get namespace's token
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get a new namespace's token
+      tags:
+      - namespaces
+  /api/token/{tenant}:
+    get:
+      description: Get a token from its tenant.
+      operationId: getToken
+      parameters:
+      - description: Tenant
+        explode: false
+        in: path
+        name: tenant
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userAuth'
+          description: Success get token
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get token
+      tags:
+      - users
+  /api/users/{id}/data:
+    patch:
+      description: Update user's data.
+      operationId: updateUserData
+      parameters:
+      - description: User's ID.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateUserData_request'
+      responses:
+        "200":
+          description: Success Empty body
+        "400":
+          content:
+            application/json:
+              example:
+              - username
+              - email
+              schema:
+                items:
+                  type: string
+                type: array
+          description: Invalid Fields
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "404":
+          description: Not found
+        "409":
+          content:
+            application/json:
+              example:
+              - username
+              - email
+              schema:
+                items:
+                  type: string
+                type: array
+          description: Conflict Fields
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Update user data
+      tags:
+      - users
+  /api/users/{id}/password:
+    patch:
+      description: Update only the user password.
+      operationId: updateUserPassword
+      parameters:
+      - description: User ID
+        explode: false
+        in: path
+        name: id
+        required: false
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateUserPassword_request'
+      responses:
+        "200":
+          description: Success Empty body
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Update user password
+      tags:
+      - users
+  /api/users/security/{tenant}:
+    put:
+      description: Define if sessions will be recorded.
+      operationId: setSessionRecord
+      parameters:
+      - description: Namespace's tenant ID
+        explode: false
+        in: path
+        name: tenant
+        required: true
+        schema:
+          $ref: '#/components/schemas/namespaceTenantID'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/setSessionRecord_request'
+      responses:
+        "200":
+          description: Success to set session record status.
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Set session record
+      tags:
+      - users
+      - sessions
+  /api/users/security:
+    get:
+      description: Get status from if `session record` feature is enable.
+      operationId: getSessionRecord
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Session record status
+                type: boolean
+          description: Success get session record status
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get session record
+      tags:
+      - users
+      - sessions
+  /api/devices:
+    get:
+      description: Get a list of devices.
+      operationId: getDevices
+      parameters:
+      - description: "Device's filter\n\n\nFilter field receives a base64 enconded\
+          \ JSON object for limit a search.\nThe JSON object should have a property\
+          \ called `type`, it will filter by a `property` called `name` where the\
+          \ value should `contains` `linux`.\n\nIf you want get only Devices name\
+          \ as `Linux`, the JSON object will looks\nlike this \n\n```json\n  [\n \
+          \   {\n      \"type\":\"property\",\n      \"params\":\n        {\n    \
+          \      \"name\":\"name\",\n          \"operator\":\"contains\",\n      \
+          \    \"value\":\"linux\"\n        }\n    }\n  ]\n```\n\nSo, the output encoded\
+          \ string will result on:\n`W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoiZDAifX1d`\n"
+        explode: true
+        in: query
+        name: filter
+        required: false
+        schema:
+          example: |
+            W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoiZDAifX1d
+          pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+          type: string
+        style: form
+      - description: Pagination page number
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          type: integer
+        style: form
+      - description: Pagination items per page
+        explode: true
+        in: query
+        name: per_page
+        required: false
+        schema:
+          default: 10
+          minimum: 1
+          type: integer
+        style: form
+      - description: Device's status
+        explode: true
+        in: query
+        name: status
+        required: false
+        schema:
+          $ref: '#/components/schemas/deviceStatus'
+        style: form
+      - description: Device's property to sort of
+        explode: true
+        in: query
+        name: sort_by
+        required: false
+        schema:
+          example: name
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: order_by
+        required: false
+        schema:
+          description: Device's list order
+          enum:
+          - asc
+          - desc
+          example: asc
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/device'
+                type: array
+          description: Success to get a list of devices.
+          headers:
+            X-Total-Count:
+              description: Devices' total number.
+              explode: false
+              schema:
+                minimum: 0
+                readOnly: true
+                type: string
+              style: simple
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get devices
+      tags:
+      - devices
+  /api/devices/{uid}:
+    delete:
+      description: Delete a device.
+      operationId: deleteDevice
+      parameters:
+      - description: Device's UID
+        explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          $ref: '#/components/schemas/deviceUID'
+        style: simple
+      responses:
+        "200":
+          description: Success to delete a device.
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Delete device
+      tags:
+      - devices
+    get:
+      description: Get a device.
+      operationId: getDevice
+      parameters:
+      - description: Device's UID
+        explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          $ref: '#/components/schemas/deviceUID'
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/device'
+          description: Success get a device.
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get device
+      tags:
+      - devices
+    patch:
+      description: Update device's name.
+      operationId: updateDeviceName
+      parameters:
+      - description: Device's UID
+        explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          $ref: '#/components/schemas/deviceUID'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateDeviceName_request'
+      responses:
+        "200":
+          description: Success to update device's name.
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "409":
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Update device name
+      tags:
+      - devices
+  /api/devices/{uid}/{status}:
+    patch:
+      description: Update device's status.
+      operationId: updateDeviceStatus
+      parameters:
+      - description: Device's UID
+        explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          $ref: '#/components/schemas/deviceUID'
+        style: simple
+      - description: Device's status
+        explode: false
+        in: path
+        name: status
+        required: true
+        schema:
+          enum:
+          - accept
+          - reject
+          - pending
+          - unused
+          example: accept
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: Success to update device status.
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "402":
+          description: Payment required.
+        "403":
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Update device status
+      tags:
+      - devices
+  /api/sessions:
+    get:
+      description: Get a list sessions.
+      operationId: getSessions
+      parameters:
+      - description: Pagination page number
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          type: integer
+        style: form
+      - description: Pagination items per page
+        explode: true
+        in: query
+        name: per_page
+        required: false
+        schema:
+          default: 10
+          minimum: 1
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/session'
+                type: array
+          description: Success to get list of sessions.
+          headers:
+            X-Total-Count:
+              description: Sessions' total number.
+              explode: false
+              schema:
+                minimum: 0
+                readOnly: true
+                type: string
+              style: simple
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get sessions
+      tags:
+      - sessions
+  /api/sessions/{uid}:
+    get:
+      description: Get a session.
+      operationId: getSession
+      parameters:
+      - explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          $ref: '#/components/schemas/sessionUID'
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/session'
+          description: Success to get a session.
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get session
+      tags:
+      - sessions
+    post:
+      description: Set session authentication status.
+      operationId: setSessionAuthenticationStatus
+      parameters:
+      - explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          $ref: '#/components/schemas/sessionUID'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/setSessionAuthenticationStatus_request'
+      responses:
+        "200":
+          description: Success Empty body
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Set session authentication status
+      tags:
+      - sessions
+  /api/sshkeys/public-keys:
+    get:
+      description: Get a list from all public keys.
+      operationId: getPublicKeys
+      parameters:
+      - description: "Filter field receives a base64 enconded JSON object for limit\
+          \ a search.\nThe JSON object should have a property called `type`, it will\
+          \ filter by a `property` called `confirmed` where the value is `eq` to `true`.\
+          \ \n\nThis is a example to filter and get only the confirmed users.\n```json\n\
+          \n[\n  {\n  \"type\": \"property\",\n  \"params\": {\n      \"name\": \"\
+          confirmed\",\n      \"operator\": \"eq\",\n      \"value\": true\n     \
+          \ }\n  }\n]\n\n```\n\n\n\nSo, the output enconded string will result on:\
+          \  \n\n\n```WwogICAgewogICAgInR5cGUiOiAicHJvcGVydHkiLAogICAgInBhcmFtcyI6IHsKICAgICAgICAibmFtZSI6ICJjb25maXJtZWQiLAogICAgICAgICJvcGVyYXRvciI6ICJlcSIsCiAgICAgICAgInZhbHVlIjogdHJ1ZQogICAgICAgIH0KICAgIH0KXQ==```\n"
+        explode: true
+        in: query
+        name: filter
+        required: false
+        schema:
+          format: byte
+          type: string
+        style: form
+      - description: Pagination page number
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          type: integer
+        style: form
+      - description: Pagination items per page
+        explode: true
+        in: query
+        name: per_page
+        required: false
+        schema:
+          default: 10
+          minimum: 1
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/publicKeyResponse'
+                type: array
+          description: Success to get a list of public keys.
+          headers:
+            X-Total-Count:
+              description: Public keys' total number.
+              explode: false
+              schema:
+                minimum: 0
+                readOnly: true
+                type: string
+              style: simple
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get public keys
+      tags:
+      - ssh
+    post:
+      description: Create a new public key.
+      operationId: createPublicKey
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/publicKeyRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/publicKeyResponse'
+          description: Success to create a public key.
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "409":
+          description: Conflict
+        "422":
+          description: UnprocessableEntity
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Create public key
+      tags:
+      - ssh
+  /api/sshkeys/public-keys/{fingerprint}:
+    delete:
+      description: Delete a public key.
+      operationId: deletePublicKey
+      parameters:
+      - description: Public key's fingerprint.
+        explode: false
+        in: path
+        name: fingerprint
+        required: true
+        schema:
+          $ref: '#/components/schemas/publickKeyFingerprint'
+        style: simple
+      responses:
+        "200":
+          description: Success to delete a public key.
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Delete public key
+      tags:
+      - ssh
+    put:
+      description: Update a public key.
+      operationId: updatePublicKey
+      parameters:
+      - description: Public key's fingerprint.
+        explode: false
+        in: path
+        name: fingerprint
+        required: true
+        schema:
+          $ref: '#/components/schemas/publickKeyFingerprint'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updatePublicKey_request'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/publicKeyResponse'
+          description: Success to update a public key.
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Update public key
+      tags:
+      - ssh
+  /api/sshkeys/public-keys/{fingerprint}/tags:
+    post:
+      description: Add a tag to a public key.
+      operationId: addTagPublicKey
+      parameters:
+      - description: Public key's fingerprint.
+        explode: false
+        in: path
+        name: fingerprint
+        required: true
+        schema:
+          $ref: '#/components/schemas/publickKeyFingerprint'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addTagPublicKey_request'
+      responses:
+        "200":
+          description: Success Empty body
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "409":
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Add tag public key
+      tags:
+      - tags
+      - ssh
+    put:
+      description: Update all tags in a public key.
+      operationId: updateTagsPublicKey
+      parameters:
+      - description: Public key's fingerprint.
+        explode: false
+        in: path
+        name: fingerprint
+        required: true
+        schema:
+          $ref: '#/components/schemas/publickKeyFingerprint'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateTagsPublicKey_request'
+      responses:
+        "200":
+          description: Success Empty body
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "409":
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Update tags public key
+      tags:
+      - tags
+      - ssh
+  /api/sshkeys/public-keys/{fingerprint}/tags/{tag}:
+    delete:
+      description: Remove a tag from public key.
+      operationId: removeTagPublicKey
+      parameters:
+      - description: Public key's fingerprint.
+        explode: false
+        in: path
+        name: fingerprint
+        required: true
+        schema:
+          $ref: '#/components/schemas/publickKeyFingerprint'
+        style: simple
+      - description: Tag's name.
+        explode: false
+        in: path
+        name: tag
+        required: true
+        schema:
+          $ref: '#/components/schemas/tag'
+        style: simple
+      responses:
+        "200":
+          description: Success Empty body
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "409":
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Remove tag public key
+      tags:
+      - tags
+      - ssh
+  /api/stats:
+    get:
+      description: Get stats ShellHub instance.
+      operationId: getStatusDevices
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getStatusDevices_200_response'
+          description: Success get stats from ShellHub instance.
+        "401":
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      summary: Get stats ShellHub instance
+      tags:
+      - devices
+  /api/namespaces:
+    get:
+      description: Returns a list of namespaces.
+      operationId: getNamespaces
+      parameters:
+      - description: "Namespaces's filter.\n\n\nFilter field receives a base64 enconded\
+          \ JSON object for limit a search.\nThe JSON object should have a property\
+          \ called `type`, it will filter by a `property` called `name` where the\
+          \ value should `contains` `examplespace`.\n\nIf you want get only Namespaces\
+          \ name as `examplespace`, the JSON object will looks\nlike this \n\n```json\n\
+          [\n  {\n    \"type\":\"property\",\n    \"params\":{\n      \"name\":\"\
+          name\",\n      \"operator\":\"contains\",\n      \"value\":\"examplespace\"\
+          \n    }\n  }\n]\n```\n\nSo, the output encoded string will result on:\n\
+          `W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoiZXhhbXBsZXNwYWNlIn19XQ==`\n"
+        explode: true
+        in: query
+        name: filter
+        required: false
+        schema:
+          example: W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoiZXhhbXBsZXNwYWNlIn19XQ==
+          pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+          type: string
+        style: form
+      - description: Pagination page number
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          type: integer
+        style: form
+      - description: Pagination items per page
+        explode: true
+        in: query
+        name: per_page
+        required: false
+        schema:
+          default: 10
+          minimum: 1
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/namespace'
+                type: array
+          description: Success to get a namespace list.
+          headers:
+            X-Total-Count:
+              description: Namespaces' total number.
+              explode: false
+              schema:
+                minimum: 0
+                type: string
+              style: simple
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get namespaces list
+      tags:
+      - namespaces
+  /api/namespaces/{tenant}:
+    delete:
+      description: Delete a namespace.
+      operationId: deleteNamespace
+      parameters:
+      - description: Namespace's tenant ID
+        explode: false
+        in: path
+        name: tenant
+        required: true
+        schema:
+          $ref: '#/components/schemas/namespaceTenantID'
+        style: simple
+      responses:
+        "200":
+          description: Success to delete a namespace.
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Delete namespace
+      tags:
+      - namespaces
+    get:
+      description: Get a namespace.
+      operationId: getNamespace
+      parameters:
+      - description: Namespace's tenant ID
+        explode: false
+        in: path
+        name: tenant
+        required: true
+        schema:
+          $ref: '#/components/schemas/namespaceTenantID'
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/namespace'
+          description: Success to get a namespace.
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get a namespace
+      tags:
+      - namespaces
+    post:
+      description: Create a namespace.
+      operationId: createNamespace
+      parameters:
+      - description: Namespace's tenant ID
+        explode: false
+        in: path
+        name: tenant
+        required: true
+        schema:
+          $ref: '#/components/schemas/namespaceTenantID'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/editNamespace_request'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/namespace'
+          description: Success to create a namespace.
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "409":
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Create namespace
+      tags:
+      - namespaces
+    put:
+      description: Edit a namespace.
+      operationId: editNamespace
+      parameters:
+      - description: Namespace's tenant ID
+        explode: false
+        in: path
+        name: tenant
+        required: true
+        schema:
+          $ref: '#/components/schemas/namespaceTenantID'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/editNamespace_request'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/namespace'
+          description: Success to edit a namespace.
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "409":
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Edit namespace
+      tags:
+      - namespaces
+  /api/namespaces/{tenant}/members:
+    post:
+      description: Add a member to a namespace.
+      operationId: addNamespaceMember
+      parameters:
+      - description: Namespace's tenant ID
+        explode: false
+        in: path
+        name: tenant
+        required: true
+        schema:
+          $ref: '#/components/schemas/namespaceTenantID'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addNamespaceMember_request'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/namespace'
+          description: Success to add a member to a namespace.
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "409":
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Add a member to a namespace
+      tags:
+      - namespaces
+  /api/namespaces/{tenant}/members/{uid}:
+    delete:
+      description: Remove a member from a namespace.
+      operationId: removeNamespaceMember
+      parameters:
+      - description: Namespace's tenant ID
+        explode: false
+        in: path
+        name: tenant
+        required: true
+        schema:
+          $ref: '#/components/schemas/namespaceTenantID'
+        style: simple
+      - description: Member's ID
+        explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/namespace'
+          description: Success to delete a member from namespace.
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Remove a member from a namespace
+      tags:
+      - namespaces
+    patch:
+      description: Update a member role from a namespace.
+      operationId: updateNamespaceMember
+      parameters:
+      - description: Namespace's tenant ID
+        explode: false
+        in: path
+        name: tenant
+        required: true
+        schema:
+          $ref: '#/components/schemas/namespaceTenantID'
+        style: simple
+      - description: Member's ID
+        explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateNamespaceMember_request'
+      responses:
+        "200":
+          description: Success to update member role from a namespace.
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Update a member from a namespace
+      tags:
+      - namespaces
+  /api/devices/{uid}/tags:
+    post:
+      description: Create a tag
+      operationId: createDeviceTag
+      parameters:
+      - description: Device's UID
+        explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          $ref: '#/components/schemas/deviceUID'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createDeviceTag_request'
+      responses:
+        "200":
+          description: Success create a tag
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "406":
+          description: Not Acceptable
+        "409":
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Create a tag
+      tags:
+      - devices
+      - tags
+    put:
+      description: Update tags to device
+      operationId: updateTagsDevice
+      parameters:
+      - description: Device's UID
+        explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          $ref: '#/components/schemas/deviceUID'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateTagsDevice_request'
+      responses:
+        "200":
+          description: Success to update tags to device
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "406":
+          description: Not Acceptable
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Update tags to device
+      tags:
+      - devices
+      - tags
+  /api/devices/{uid}/tags/{tag}:
+    delete:
+      description: Delete a tag from device.
+      operationId: deleteDeviceTag
+      parameters:
+      - description: Device's UID
+        explode: false
+        in: path
+        name: uid
+        required: true
+        schema:
+          $ref: '#/components/schemas/deviceUID'
+        style: simple
+      - description: Device's tag name
+        explode: false
+        in: path
+        name: tag
+        required: true
+        schema:
+          $ref: '#/components/schemas/tag'
+        style: simple
+      responses:
+        "200":
+          description: Success to delete from device
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Delete a tag from device
+      tags:
+      - devices
+      - tags
+  /api/tags:
+    get:
+      operationId: getTags
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                example:
+                - tag1
+                - tag2
+                - tag3
+                - tag4
+                items:
+                  type: string
+                type: array
+          description: Success to get tag list.
+          headers:
+            X-Total-Count:
+              description: Tags' total number.
+              explode: false
+              schema:
+                minimum: 0
+                type: string
+              style: simple
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Get tags
+      tags:
+      - tags
+  /api/tags/{tag}:
+    delete:
+      operationId: deleteTag
+      parameters:
+      - description: Tag's name.
+        explode: false
+        in: path
+        name: tag
+        required: true
+        schema:
+          $ref: '#/components/schemas/tag'
+        style: simple
+      responses:
+        "200":
+          description: Success to delete a tag name.
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Delete a tag name.
+      tags:
+      - tags
+    put:
+      operationId: renameTag
+      parameters:
+      - description: Tag's name.
+        explode: false
+        in: path
+        name: tag
+        required: true
+        schema:
+          $ref: '#/components/schemas/tag'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/renameTag_request'
+      responses:
+        "200":
+          description: Success to update a tag name.
+        "400":
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                message: missing or malformated jwt
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+        "409":
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              example:
+                message: Internal Server Error
+              schema:
+                $ref: '#/components/schemas/GetInfo_500_response'
+          description: Internal error
+      security:
+      - jwt: []
+      summary: Rename a tag name.
+      tags:
+      - tags
+components:
+  parameters:
+    namespaceTenantIDPath:
+      description: Namespace's tenant ID
+      explode: false
+      in: path
+      name: tenant
+      required: true
+      schema:
+        $ref: '#/components/schemas/namespaceTenantID'
+      style: simple
+    pageQuery:
+      description: Pagination page number
+      explode: true
+      in: query
+      name: page
+      required: false
+      schema:
+        default: 1
+        minimum: 1
+        type: integer
+      style: form
+    perPageQuery:
+      description: Pagination items per page
+      explode: true
+      in: query
+      name: per_page
+      required: false
+      schema:
+        default: 10
+        minimum: 1
+        type: integer
+      style: form
+    deviceUIDPath:
+      description: Device's UID
+      explode: false
+      in: path
+      name: uid
+      required: true
+      schema:
+        $ref: '#/components/schemas/deviceUID'
+      style: simple
+    sessionUIDPath:
+      explode: false
+      in: path
+      name: uid
+      required: true
+      schema:
+        $ref: '#/components/schemas/sessionUID'
+      style: simple
+    filterQuery:
+      description: "Filter field receives a base64 enconded JSON object for limit\
+        \ a search.\nThe JSON object should have a property called `type`, it will\
+        \ filter by a `property` called `confirmed` where the value is `eq` to `true`.\
+        \ \n\nThis is a example to filter and get only the confirmed users.\n```json\n\
+        \n[\n  {\n  \"type\": \"property\",\n  \"params\": {\n      \"name\": \"confirmed\"\
+        ,\n      \"operator\": \"eq\",\n      \"value\": true\n      }\n  }\n]\n\n\
+        ```\n\n\n\nSo, the output enconded string will result on:  \n\n\n```WwogICAgewogICAgInR5cGUiOiAicHJvcGVydHkiLAogICAgInBhcmFtcyI6IHsKICAgICAgICAibmFtZSI6ICJjb25maXJtZWQiLAogICAgICAgICJvcGVyYXRvciI6ICJlcSIsCiAgICAgICAgInZhbHVlIjogdHJ1ZQogICAgICAgIH0KICAgIH0KXQ==```\n"
+      explode: true
+      in: query
+      name: filter
+      required: false
+      schema:
+        format: byte
+        type: string
+      style: form
+    publicKeyFingerprintPath:
+      description: Public key's fingerprint.
+      explode: false
+      in: path
+      name: fingerprint
+      required: true
+      schema:
+        $ref: '#/components/schemas/publickKeyFingerprint'
+      style: simple
+    tagPath:
+      description: Tag's name.
+      explode: false
+      in: path
+      name: tag
+      required: true
+      schema:
+        $ref: '#/components/schemas/tag'
+      style: simple
+    namespaceMemberIDPath:
+      description: Member's ID
+      explode: false
+      in: path
+      name: uid
+      required: true
+      schema:
+        type: string
+      style: simple
+    deviceTagPath:
+      description: Device's tag name
+      explode: false
+      in: path
+      name: tag
+      required: true
+      schema:
+        $ref: '#/components/schemas/tag'
+      style: simple
+  responses:
+    internalError:
+      content:
+        application/json:
+          example:
+            message: Internal Server Error
+          schema:
+            $ref: '#/components/schemas/GetInfo_500_response'
+      description: Internal error
+    badRequestEmpty:
+      description: Bad request
+    unauthorized:
+      content:
+        application/json:
+          example:
+            message: missing or malformated jwt
+          schema:
+            $ref: '#/components/schemas/GetInfo_500_response'
+      description: Unauthorized
+    forbiddenEmpty:
+      description: Forbidden
+    notFoundEmpty:
+      description: Not found
+    okEmpty:
+      description: Success Empty body
+    invalidFields:
+      content:
+        application/json:
+          example:
+          - username
+          - email
+          schema:
+            items:
+              type: string
+            type: array
+      description: Invalid Fields
+    conflictFields:
+      content:
+        application/json:
+          example:
+          - username
+          - email
+          schema:
+            items:
+              type: string
+            type: array
+      description: Conflict Fields
+    conflictEmpty:
+      description: Conflict
+    notAcceptableEmpty:
+      description: Not Acceptable
+  schemas:
+    info:
+      example:
+        endpoints:
+          ssh: localhost:22
+          api: localhost
+        version: latest
+      properties:
+        version:
+          description: ShellHub instance version.
+          example: latest
+          type: string
+        endpoints:
+          $ref: '#/components/schemas/info_endpoints'
+      type: object
+    login:
+      properties:
+        username:
+          description: Username
+          example: example
+          maxLength: 30
+          minLength: 3
+          type: string
+        password:
+          description: Password
+          example: example
+          maxLength: 30
+          minLength: 5
+          type: string
+      required:
+      - password
+      - username
+      type: object
+    jwt:
+      description: JWT Token
+      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleGFtcGxlIiwibmFtZSI6ImV4YW1wbGUiLCJpYXQiOjE1MTYyMzkwMjJ9.zqCt70KspnNnitZlv89hDbFZ5iGMMRUn0wFEmmlY-to
+      pattern: "^[A-Za-z0-9-_]*\\.[A-Za-z0-9-_]*\\.[A-Za-z0-9-_]*$"
+      type: string
+    userUsername:
+      description: User's name.
+      example: example
+      maxLength: 20
+      minLength: 3
+      type: string
+    userID:
+      description: User's ID.
+      example: 507f1f77bcf86cd799439011
+      pattern: "^[0-9a-fA-F]{24}$"
+      type: string
+    namespaceTenantID:
+      description: Namespace's tenant ID
+      example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+      pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[0-9a-fA-F]{4}\\\
+        -[0-9a-fA-F]{12}$"
+      type: string
+    namespaceMemberRole:
+      description: Namespace's member role
+      enum:
+      - administrator
+      - operator
+      - observer
+      - owner
+      type: string
+    userEmail:
+      description: User's E-mail.
+      example: example@example.com
+      format: email
+      type: string
+    userAuth:
+      example:
+        role: null
+        name: Example
+        id: 507f1f77bcf86cd799439011
+        user: example
+        tenant: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+        email: example@example.com
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleGFtcGxlIiwibmFtZSI6ImV4YW1wbGUiLCJpYXQiOjE1MTYyMzkwMjJ9.zqCt70KspnNnitZlv89hDbFZ5iGMMRUn0wFEmmlY-to
+      properties:
+        token:
+          description: JWT Token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleGFtcGxlIiwibmFtZSI6ImV4YW1wbGUiLCJpYXQiOjE1MTYyMzkwMjJ9.zqCt70KspnNnitZlv89hDbFZ5iGMMRUn0wFEmmlY-to
+          pattern: "^[A-Za-z0-9-_]*\\.[A-Za-z0-9-_]*\\.[A-Za-z0-9-_]*$"
+          type: string
+        user:
+          description: User's name.
+          example: example
+          maxLength: 20
+          minLength: 3
+          type: string
+        name:
+          description: User's display name.
+          example: Example
+          type: string
+        id:
+          description: User's ID.
+          example: 507f1f77bcf86cd799439011
+          pattern: "^[0-9a-fA-F]{24}$"
+          type: string
+        tenant:
+          description: Namespace's tenant ID
+          example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+          pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[0-9a-fA-F]{4}\\\
+            -[0-9a-fA-F]{12}$"
+          type: string
+        role:
+          $ref: '#/components/schemas/namespaceMemberRole'
+        email:
+          description: User's E-mail.
+          example: example@example.com
+          format: email
+          type: string
+      type: object
+    deviceInfo:
+      description: Device's info
+      example:
+        pretty_name: linux
+        id: example
+        arch: x86_64
+        version: latest
+        platform: docker
+      properties:
+        id:
+          description: Device's OS name
+          example: example
+          type: string
+        pretty_name:
+          description: Device's OS pretty name
+          example: linux
+          type: string
+        version:
+          description: Device's OS version
+          example: latest
+          type: string
+        arch:
+          description: Device's OS arch
+          example: x86_64
+          type: string
+        platform:
+          description: Device's OS platform
+          enum:
+          - docker
+          - native
+          example: docker
+          type: string
+      type: object
+    deviceIdentity:
+      description: Device's identity
+      example:
+        mac: 00:00:00:00:00:00
+      properties:
+        mac:
+          description: Device's MAC
+          example: 00:00:00:00:00:00
+          pattern: "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+          type: string
+      type: object
+    deviceUID:
+      description: Device's UID
+      example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+      pattern: "^[0-9a-fA-F]{64}$"
+      type: string
+    deviceToken:
+      description: Device's token
+      example: |
+        eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.iUCROHt6JHANdtzT6aOuUgOqVFRalOW20SbzRsn5SkI
+      type: string
+    deviceName:
+      description: "Device's name\n\n\nBy default, the name is the device's MAC address\
+        \ when it just\nadded.\n"
+      example: example
+      type: string
+    deviceNamespaceName:
+      description: Device's namespace name
+      example: examplespace
+      type: string
+    deviceStatus:
+      description: Device's status
+      enum:
+      - accepted
+      - rejected
+      - pending
+      - unused
+      example: accepted
+      type: string
+    namespaceName:
+      description: Namespace's name
+      example: examplespace
+      type: string
+    tag:
+      description: Tag's name.
+      example: tag
+      maxLength: 255
+      minLength: 3
+      type: string
+    deviceTags:
+      description: Device's Tags list
+      example:
+      - tag1
+      - tag2
+      - tag3
+      items:
+        $ref: '#/components/schemas/tag'
+      maxItems: 3
+      minItems: 1
+      type: array
+    device:
+      example:
+        public_key: '-----BEGIN RSA PUBLIC KEY-----MIIBCgKCAQEA0vH2Bob3mn+uWVaHlOoZD8ai01W6VnRTnXlnHVF7Ny1Vb7pl1Hc4D8bsBhb1vt7aZOYHbCyDR2r5lsrWXCELE8pY8vzfFDA+jNrLbBCJ66E1BcmTqfXCJcLospWD2lIAwU2O7IPxwZujuVkHrF8nYuEFsKeG60QTWNS++RTqydqe2KmFMEdWCQmYPm/ykN871fSR9+PzoRJMYWidY6Szn+X2ardGmS/Ldhl/PEu9h7xjcQXANWz6yV/RVReGVkLcK6TxlfuxgdpbsWAx+cS52P7xWrshNefHqjpdlm3KNbo6vqfTpU8Ld/FFISXXaa1Md5GyAHF+jzuRzQ5z5aKBGwIDAQAB-----END
+          RSA PUBLIC KEY-----'
+        tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+        remote_addr: 127.0.0.1
+        last_seen: 2020-01-01T00:00:00Z
+        created_at: 2020-01-01T00:00:00Z
+        tags:
+        - tag1
+        - tag2
+        - tag3
+        uid: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        identity:
+          mac: 00:00:00:00:00:00
+        name: example
+        namespace: examplespace
+        online: true
+        position:
+          latitude: -31.7566628
+          longitude: -52.322474
+        info:
+          pretty_name: linux
+          id: example
+          arch: x86_64
+          version: latest
+          platform: docker
+        status: accepted
+      properties:
+        uid:
+          description: Device's UID
+          example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+          pattern: "^[0-9a-fA-F]{64}$"
+          type: string
+        name:
+          description: "Device's name\n\n\nBy default, the name is the device's MAC\
+            \ address when it just added.\n"
+          example: example
+          type: string
+        identity:
+          $ref: '#/components/schemas/deviceIdentity'
+        info:
+          $ref: '#/components/schemas/deviceInfo'
+        public_key:
+          description: Device's public key.
+          example: '-----BEGIN RSA PUBLIC KEY-----MIIBCgKCAQEA0vH2Bob3mn+uWVaHlOoZD8ai01W6VnRTnXlnHVF7Ny1Vb7pl1Hc4D8bsBhb1vt7aZOYHbCyDR2r5lsrWXCELE8pY8vzfFDA+jNrLbBCJ66E1BcmTqfXCJcLospWD2lIAwU2O7IPxwZujuVkHrF8nYuEFsKeG60QTWNS++RTqydqe2KmFMEdWCQmYPm/ykN871fSR9+PzoRJMYWidY6Szn+X2ardGmS/Ldhl/PEu9h7xjcQXANWz6yV/RVReGVkLcK6TxlfuxgdpbsWAx+cS52P7xWrshNefHqjpdlm3KNbo6vqfTpU8Ld/FFISXXaa1Md5GyAHF+jzuRzQ5z5aKBGwIDAQAB-----END
+            RSA PUBLIC KEY-----'
+          type: string
+        tenant_id:
+          description: Namespace's tenant ID
+          example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+          pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[0-9a-fA-F]{4}\\\
+            -[0-9a-fA-F]{12}$"
+          type: string
+        last_seen:
+          description: Device's last seen date
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        online:
+          description: Device's availability status
+          example: true
+          type: boolean
+        namespace:
+          description: Namespace's name
+          example: examplespace
+          type: string
+        status:
+          $ref: '#/components/schemas/deviceStatus'
+        created_at:
+          description: Device's creation date
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        remote_addr:
+          description: Device's remote address
+          example: 127.0.0.1
+          type: string
+        position:
+          $ref: '#/components/schemas/device_position'
+        tags:
+          description: Device's Tags list
+          example:
+          - tag1
+          - tag2
+          - tag3
+          items:
+            $ref: '#/components/schemas/tag'
+          maxItems: 3
+          minItems: 1
+          type: array
+      type: object
+    sessionUID:
+      description: Session's UID
+      example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+      pattern: "^[0-9a-fA-F]{64}$"
+      type: string
+    session:
+      example:
+        tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+        authenticated: true
+        last_seen: 2020-01-01T00:00:00Z
+        active: true
+        ip_address: 127.0.0.1
+        recorded: true
+        type: web
+        uid: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        device_uid: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        started_at: 2020-01-01T00:00:00Z
+        term: xterm.js
+        device:
+          public_key: '-----BEGIN RSA PUBLIC KEY-----MIIBCgKCAQEA0vH2Bob3mn+uWVaHlOoZD8ai01W6VnRTnXlnHVF7Ny1Vb7pl1Hc4D8bsBhb1vt7aZOYHbCyDR2r5lsrWXCELE8pY8vzfFDA+jNrLbBCJ66E1BcmTqfXCJcLospWD2lIAwU2O7IPxwZujuVkHrF8nYuEFsKeG60QTWNS++RTqydqe2KmFMEdWCQmYPm/ykN871fSR9+PzoRJMYWidY6Szn+X2ardGmS/Ldhl/PEu9h7xjcQXANWz6yV/RVReGVkLcK6TxlfuxgdpbsWAx+cS52P7xWrshNefHqjpdlm3KNbo6vqfTpU8Ld/FFISXXaa1Md5GyAHF+jzuRzQ5z5aKBGwIDAQAB-----END
+            RSA PUBLIC KEY-----'
+          tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+          remote_addr: 127.0.0.1
+          last_seen: 2020-01-01T00:00:00Z
+          created_at: 2020-01-01T00:00:00Z
+          tags:
+          - tag1
+          - tag2
+          - tag3
+          uid: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+          identity:
+            mac: 00:00:00:00:00:00
+          name: example
+          namespace: examplespace
+          online: true
+          position:
+            latitude: -31.7566628
+            longitude: -52.322474
+          info:
+            pretty_name: linux
+            id: example
+            arch: x86_64
+            version: latest
+            platform: docker
+          status: accepted
+        username: username
+      properties:
+        uid:
+          description: Session's UID
+          example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+          pattern: "^[0-9a-fA-F]{64}$"
+          type: string
+        device_uid:
+          description: Device's UID
+          example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+          pattern: "^[0-9a-fA-F]{64}$"
+          type: string
+        device:
+          $ref: '#/components/schemas/device'
+        tenant_id:
+          description: Namespace's tenant ID
+          example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+          pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[0-9a-fA-F]{4}\\\
+            -[0-9a-fA-F]{12}$"
+          type: string
+        username:
+          description: Session's username
+          type: string
+        ip_address:
+          description: Session's IP address
+          example: 127.0.0.1
+          pattern: "^[0-9]{1,3}(\\.[0-9]{1,3}){3}$"
+          type: string
+        started_at:
+          description: Session's started date
+          example: 2020-01-01T00:00:00Z
+          type: string
+        last_seen:
+          description: Session's last seen date
+          example: 2020-01-01T00:00:00Z
+          type: string
+        active:
+          description: Session's active status
+          type: boolean
+        authenticated:
+          description: Session's authenticated status
+          type: boolean
+        recorded:
+          description: Session's recorded status
+          type: boolean
+        type:
+          description: Session's type
+          enum:
+          - web
+          - term
+          example: web
+          type: string
+        term:
+          description: Session's terminal
+          example: xterm.js
+          type: string
+      type: object
+    publicKeyData:
+      description: |
+        Public key's data.
+
+        The `data` field receives the public key enconded as `base64` string.
+      example: c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFDWWdqRkNQUWdPejBEZ0VQQUh3blEyMGYzRUlGYjd2SkNtd1YxR25uRTU2K0htaGgyY295c3o5MnZqMW9GeElxQUlKZUZxU3lQNWwzbDZjbkFUVmxhZ2MxR21OQm5vQ0NZSlpicXdOVUFiM3RMTXdiOXBaSGVWMFczWVl4OERBSVVsL2ZYaVVhQTNpQk5BcTFrczFzYjZjbVN1VmYwTVNTSjdoOXU3c2Y2RnkyVmQ0U1FqSGd3YmNvSUY1Q0kyWkZlMEx6NTNWeGQwVlZRZG5ISGNBeldRVFlTMDIxcmVXeG5QR2RRdytmWXpCRWdRMG5sTmFzQXBRc1pVUXRPZ0t4TlNFcVJ0VnJiRUR4WisrTllQaWFuNUdSZ0huZWNUUzBaVGNjZjM4SDZYTms1Qm5XWGlEN2RCWlJBRnZ1UjBkWEF1cU9mYUM3SVl5MVJnS1lkdEsrUnY=
+      pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+      type: string
+    publickKeyFingerprint:
+      description: Public key's fingerprint.
+      example: 48:6e:fc:94:01:01:74:57:eb:57:49:91:15:e4:9c:7a
+      pattern: "^([0-9a-f]{2}:){15}[0-9a-f]{2}$"
+      type: string
+    publicKeyFilter:
+      description: "Public key's filter rule.\n\n\nThe `filter`` rule defines how\
+        \ if the public key is valid to a device.\n\n- When `hostname` object is set,\
+        \ the public key will be used in a device what matches with hostname.\n- When\
+        \ `tags` object is set, it matches the device what contains at least one of\
+        \ that tags. \n"
+      oneOf:
+      - $ref: '#/components/schemas/publicKeyFilter_oneOf'
+      - $ref: '#/components/schemas/publicKeyFilter_oneOf_1'
+    publicKeyUsername:
+      description: "Public key's regex username.\n\n\nThe `username` field define\
+        \ which user, in the device, may be access through this public key.\n"
+      example: .*
+      type: string
+    publicKeyResponse:
+      example:
+        tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+        filter: null
+        data: c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFDWWdqRkNQUWdPejBEZ0VQQUh3blEyMGYzRUlGYjd2SkNtd1YxR25uRTU2K0htaGgyY295c3o5MnZqMW9GeElxQUlKZUZxU3lQNWwzbDZjbkFUVmxhZ2MxR21OQm5vQ0NZSlpicXdOVUFiM3RMTXdiOXBaSGVWMFczWVl4OERBSVVsL2ZYaVVhQTNpQk5BcTFrczFzYjZjbVN1VmYwTVNTSjdoOXU3c2Y2RnkyVmQ0U1FqSGd3YmNvSUY1Q0kyWkZlMEx6NTNWeGQwVlZRZG5ISGNBeldRVFlTMDIxcmVXeG5QR2RRdytmWXpCRWdRMG5sTmFzQXBRc1pVUXRPZ0t4TlNFcVJ0VnJiRUR4WisrTllQaWFuNUdSZ0huZWNUUzBaVGNjZjM4SDZYTms1Qm5XWGlEN2RCWlJBRnZ1UjBkWEF1cU9mYUM3SVl5MVJnS1lkdEsrUnY=
+        fingerprint: 48:6e:fc:94:01:01:74:57:eb:57:49:91:15:e4:9c:7a
+        name: example
+        created_at: 2020-05-01T00:00:00Z
+        username: .*
+      properties:
+        data:
+          description: |
+            Public key's data.
+
+            The `data` field receives the public key enconded as `base64` string.
+          example: c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFDWWdqRkNQUWdPejBEZ0VQQUh3blEyMGYzRUlGYjd2SkNtd1YxR25uRTU2K0htaGgyY295c3o5MnZqMW9GeElxQUlKZUZxU3lQNWwzbDZjbkFUVmxhZ2MxR21OQm5vQ0NZSlpicXdOVUFiM3RMTXdiOXBaSGVWMFczWVl4OERBSVVsL2ZYaVVhQTNpQk5BcTFrczFzYjZjbVN1VmYwTVNTSjdoOXU3c2Y2RnkyVmQ0U1FqSGd3YmNvSUY1Q0kyWkZlMEx6NTNWeGQwVlZRZG5ISGNBeldRVFlTMDIxcmVXeG5QR2RRdytmWXpCRWdRMG5sTmFzQXBRc1pVUXRPZ0t4TlNFcVJ0VnJiRUR4WisrTllQaWFuNUdSZ0huZWNUUzBaVGNjZjM4SDZYTms1Qm5XWGlEN2RCWlJBRnZ1UjBkWEF1cU9mYUM3SVl5MVJnS1lkdEsrUnY=
+          pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+          type: string
+        fingerprint:
+          description: Public key's fingerprint.
+          example: 48:6e:fc:94:01:01:74:57:eb:57:49:91:15:e4:9c:7a
+          pattern: "^([0-9a-f]{2}:){15}[0-9a-f]{2}$"
+          type: string
+        created_at:
+          description: Public key's creation date.
+          example: 2020-05-01T00:00:00Z
+          format: date-time
+          type: string
+        tenant_id:
+          description: Namespace's tenant ID
+          example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+          pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[0-9a-fA-F]{4}\\\
+            -[0-9a-fA-F]{12}$"
+          type: string
+        name:
+          description: Public key's name.
+          example: example
+          type: string
+        filter:
+          $ref: '#/components/schemas/publicKeyFilter'
+        username:
+          description: "Public key's regex username.\n\n\nThe `username` field define\
+            \ which user, in the device, may be access through this public key.\n"
+          example: .*
+          type: string
+      type: object
+    publicKeyRequest:
+      properties:
+        data:
+          description: |
+            Public key's data.
+
+            The `data` field receives the public key enconded as `base64` string.
+          example: c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFDWWdqRkNQUWdPejBEZ0VQQUh3blEyMGYzRUlGYjd2SkNtd1YxR25uRTU2K0htaGgyY295c3o5MnZqMW9GeElxQUlKZUZxU3lQNWwzbDZjbkFUVmxhZ2MxR21OQm5vQ0NZSlpicXdOVUFiM3RMTXdiOXBaSGVWMFczWVl4OERBSVVsL2ZYaVVhQTNpQk5BcTFrczFzYjZjbVN1VmYwTVNTSjdoOXU3c2Y2RnkyVmQ0U1FqSGd3YmNvSUY1Q0kyWkZlMEx6NTNWeGQwVlZRZG5ISGNBeldRVFlTMDIxcmVXeG5QR2RRdytmWXpCRWdRMG5sTmFzQXBRc1pVUXRPZ0t4TlNFcVJ0VnJiRUR4WisrTllQaWFuNUdSZ0huZWNUUzBaVGNjZjM4SDZYTms1Qm5XWGlEN2RCWlJBRnZ1UjBkWEF1cU9mYUM3SVl5MVJnS1lkdEsrUnY=
+          pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+          type: string
+        filter:
+          $ref: '#/components/schemas/publicKeyFilter'
+        name:
+          description: Public key's name.
+          example: example
+          type: string
+        username:
+          description: "Public key's regex username.\n\n\nThe `username` field define\
+            \ which user, in the device, may be access through this public key.\n"
+          example: .*
+          type: string
+      required:
+      - data
+      - filter
+      - name
+      - username
+      type: object
+    namespace:
+      example:
+        owner: 507f1f77bcf86cd799439011
+        tenant_id: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+        settings:
+          session_record: true
+        max_devices: 3
+        members:
+        - role: null
+          id: 507f1f77bcf86cd799439011
+        - role: null
+          id: 507f1f77bcf86cd799439011
+        name: examplespace
+        created_at: 2020-05-01T00:00:00Z
+        device_count: 0
+        billing: "{}"
+      properties:
+        name:
+          description: Namespace's name
+          example: examplespace
+          type: string
+        owner:
+          description: User's ID.
+          example: 507f1f77bcf86cd799439011
+          pattern: "^[0-9a-fA-F]{24}$"
+          type: string
+        tenant_id:
+          description: Namespace's tenant ID
+          example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+          pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[0-9a-fA-F]{4}\\\
+            -[0-9a-fA-F]{12}$"
+          type: string
+        members:
+          description: Namespace's members
+          items:
+            $ref: '#/components/schemas/namespace_members_inner'
+          type: array
+        settings:
+          $ref: '#/components/schemas/namespace_settings'
+        max_devices:
+          default: 3
+          description: Namespace's max device numbers
+          minimum: 3
+          type: integer
+        device_count:
+          description: Namespace's total devices
+          minimum: 0
+          type: integer
+        created_at:
+          description: Namespace's creation date
+          example: 2020-05-01T00:00:00Z
+          format: date-time
+          type: string
+        billing:
+          description: Namespace's billing
+          type: object
+      type: object
+    GetInfo_500_response:
+      properties:
+        message:
+          description: Error message
+          type: string
+      type: object
+    postAuthDevice_request:
+      properties:
+        info:
+          $ref: '#/components/schemas/deviceInfo'
+        sessions:
+          items:
+            type: string
+          type: array
+        hostname:
+          pattern: "([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*"
+          type: string
+        identity:
+          $ref: '#/components/schemas/deviceIdentity'
+        public_key:
+          description: Device's public key.
+          type: string
+        tenant_id:
+          description: Namespace's tenant ID
+          example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+          pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[0-9a-fA-F]{4}\\\
+            -[0-9a-fA-F]{12}$"
+          type: string
+      required:
+      - hostname
+      - info
+      - public_key
+      - session
+      - tenant_id
+      type: object
+    postAuthDevice_200_response:
+      example:
+        uid: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+        name: example
+        namespace: examplespace
+        token: |
+          eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.iUCROHt6JHANdtzT6aOuUgOqVFRalOW20SbzRsn5SkI
+      properties:
+        uid:
+          description: Device's UID
+          example: 13b0c8ea878e61ff849db69461795006a9594c8f6a6390ce0000100b0c9d7d0a
+          pattern: "^[0-9a-fA-F]{64}$"
+          type: string
+        token:
+          description: Device's token
+          example: |
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.iUCROHt6JHANdtzT6aOuUgOqVFRalOW20SbzRsn5SkI
+          type: string
+        name:
+          description: "Device's name\n\n\nBy default, the name is the device's MAC\
+            \ address when it just\nadded.\n"
+          example: example
+          type: string
+        namespace:
+          description: Device's namespace name
+          example: examplespace
+          type: string
+      type: object
+    setSSHKey_request:
+      properties:
+        fingerprint:
+          description: Device fingerprint
+          type: string
+        data:
+          description: Device SSH public key
+          type: string
+      type: object
+    setSSHKey_200_response:
+      example:
+        signature: signature
+      properties:
+        signature:
+          description: Device signature
+          type: string
+      type: object
+    updateUserData_request:
+      properties:
+        name:
+          description: User's name.
+          type: string
+        email:
+          description: User's e-mail.
+          format: email
+          type: string
+        username:
+          description: User's username.
+          type: string
+      required:
+      - email
+      - name
+      - username
+      type: object
+    updateUserPassword_request:
+      properties:
+        current_password:
+          description: User current password
+          type: string
+        new_password:
+          description: User new password
+          type: string
+      type: object
+    setSessionRecord_request:
+      properties:
+        session_record:
+          default: false
+          description: Session's record status.
+          type: boolean
+      type: object
+    updateDeviceName_request:
+      properties:
+        name:
+          description: Device's new name.
+          example: example
+          type: string
+      required:
+      - name
+      type: object
+    setSessionAuthenticationStatus_request:
+      properties:
+        authenticated:
+          description: Session's authentication status.
+          type: boolean
+      type: object
+    updatePublicKey_request:
+      properties:
+        name:
+          description: Public key's name.
+          example: example
+          type: string
+        username:
+          description: Public key's username.
+          example: example
+          type: string
+        filter:
+          $ref: '#/components/schemas/publicKeyFilter'
+      required:
+      - filter
+      - name
+      - username
+      type: object
+    updateTagsPublicKey_request:
+      example:
+        tags:
+        - tag1
+        - tag2
+        - tag3
+      properties:
+        tags:
+          description: Public key's new tags.
+          items:
+            $ref: '#/components/schemas/tag'
+          maxItems: 3
+          minItems: 1
+          type: array
+          uniqueItems: true
+      type: object
+    addTagPublicKey_request:
+      properties:
+        tag:
+          description: Tag's name.
+          example: tag
+          maxLength: 255
+          minLength: 3
+          type: string
+      required:
+      - tag
+      type: object
+    getStatusDevices_200_response:
+      example:
+        rejected_devices: 0
+        registered_devices: 0
+        pending_devices: 0
+        active_sessions: 0
+        online_devices: 0
+      properties:
+        registered_devices:
+          description: Number of registered devices
+          minimum: 0
+          type: integer
+        online_devices:
+          description: Number of online devices
+          minimum: 0
+          type: integer
+        pending_devices:
+          description: Number of pending devices
+          minimum: 0
+          type: integer
+        rejected_devices:
+          description: Number of rejected devices
+          minimum: 0
+          type: integer
+        active_sessions:
+          description: Active sessions
+          minimum: 0
+          type: integer
+      type: object
+    editNamespace_request:
+      properties:
+        name:
+          description: Namespace's name
+          example: examplespace
+          type: string
+      required:
+      - name
+      type: object
+    addNamespaceMember_request:
+      properties:
+        username:
+          description: Member's username.
+          type: string
+        role:
+          $ref: '#/components/schemas/namespaceMemberRole'
+      required:
+      - role
+      - username
+      type: object
+    updateNamespaceMember_request:
+      properties:
+        role:
+          $ref: '#/components/schemas/namespaceMemberRole'
+      type: object
+    updateTagsDevice_request:
+      properties:
+        tags:
+          description: Device's Tags list
+          example:
+          - tag1
+          - tag2
+          - tag3
+          items:
+            $ref: '#/components/schemas/tag'
+          maxItems: 3
+          minItems: 1
+          type: array
+      required:
+      - tags
+    createDeviceTag_request:
+      example:
+        tag: tag1
+      properties:
+        tag:
+          description: Tag's name.
+          example: tag
+          maxLength: 255
+          minLength: 3
+          type: string
+      required:
+      - tag
+      type: object
+    renameTag_request:
+      properties:
+        tag:
+          description: Tag's name.
+          example: tag
+          maxLength: 255
+          minLength: 3
+          type: string
+      required:
+      - name
+      type: object
+    info_endpoints:
+      example:
+        ssh: localhost:22
+        api: localhost
+      properties:
+        ssh:
+          description: SSH endpoint.
+          example: localhost:22
+          type: string
+        api:
+          description: API endpoint.
+          example: localhost
+          type: string
+      type: object
+    device_position:
+      description: Device's geolocation position
+      example:
+        latitude: -31.7566628
+        longitude: -52.322474
+      properties:
+        latitude:
+          description: Device's latitude position
+          example: -31.7566628
+          type: number
+        longitude:
+          description: Device's longitude position
+          example: -52.322474
+          type: number
+      type: object
+    publicKeyFilter_oneOf:
+      properties:
+        hostname:
+          description: Public key's regex hostname.
+          example: .*
+          type: string
+      required:
+      - hostname
+      type: object
+    publicKeyFilter_oneOf_1:
+      properties:
+        tags:
+          description: Public key's tags.
+          items:
+            $ref: '#/components/schemas/tag'
+          maxItems: 3
+          minItems: 1
+          type: array
+          uniqueItems: true
+      required:
+      - tags
+      type: object
+    namespace_members_inner:
+      example:
+        role: null
+        id: 507f1f77bcf86cd799439011
+      properties:
+        id:
+          description: User's ID.
+          example: 507f1f77bcf86cd799439011
+          pattern: "^[0-9a-fA-F]{24}$"
+          type: string
+        role:
+          $ref: '#/components/schemas/namespaceMemberRole'
+      type: object
+    namespace_settings:
+      description: Namespace's settings
+      example:
+        session_record: true
+      properties:
+        session_record:
+          default: true
+          description: Namespace's session record status
+          type: boolean
+      type: object
+  securitySchemes:
+    jwt:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
