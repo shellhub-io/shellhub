@@ -16,7 +16,7 @@ import (
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
-	"github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/api/openapi"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -38,7 +38,7 @@ func (c *sshConn) Close() error {
 
 type Server struct {
 	sshd               *sshserver.Server
-	api                client.Client
+	api                *openapi.APIClient
 	authData           *models.DeviceAuthResponse
 	cmds               map[string]*exec.Cmd
 	Sessions           map[string]net.Conn
@@ -48,7 +48,7 @@ type Server struct {
 	singleUserPassword string
 }
 
-func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, singleUserPassword string) *Server {
+func NewServer(api *openapi.APIClient, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, singleUserPassword string) *Server {
 	s := &Server{
 		api:               api,
 		authData:          authData,
@@ -244,15 +244,14 @@ func (s *Server) publicKeyHandler(ctx sshserver.Context, key sshserver.PublicKey
 
 	sigHash := sha256.Sum256(sigBytes)
 
-	res, err := s.api.AuthPublicKey(&models.PublicKeyAuthRequest{
-		Fingerprint: ssh.FingerprintLegacyMD5(key),
-		Data:        string(sigBytes),
-	}, s.authData.Token)
+	data := openapi.SetSSHKeyRequest{}
+	req := s.api.SshApi.SetSSHKey(ctx)
+	pub, _, err := req.SetSSHKeyRequest(data).Execute()
 	if err != nil {
 		return false
 	}
 
-	digest, err := base64.StdEncoding.DecodeString(res.Signature)
+	digest, err := base64.StdEncoding.DecodeString(*pub.Signature)
 	if err != nil {
 		return false
 	}

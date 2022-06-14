@@ -1,18 +1,24 @@
 package main
 
 import (
+	"context"
 	"crypto/rsa"
+	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/Masterminds/semver"
+	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
 	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
-	"github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/api/openapi"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
+	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 )
 
 type Agent struct {
@@ -21,7 +27,7 @@ type Agent struct {
 	Identity      *models.DeviceIdentity
 	Info          *models.DeviceInfo
 	authData      *models.DeviceAuthResponse
-	cli           client.Client
+	cli           *openapi.APIClient
 	serverInfo    *models.Info
 	serverAddress *url.URL
 	sessions      []string
@@ -29,6 +35,7 @@ type Agent struct {
 
 func NewAgent(opts *ConfigOptions) (*Agent, error) {
 	a := &Agent{}
+	config := openapi.NewConfiguration()
 
 	serverAddress, err := url.Parse(opts.ServerAddress)
 	if err != nil {
@@ -39,7 +46,7 @@ func NewAgent(opts *ConfigOptions) (*Agent, error) {
 
 	return &Agent{
 		opts: opts,
-		cli:  client.NewClient(client.WithURL(serverAddress)),
+		cli:  openapi.NewAPIClient(config),
 	}, nil
 }
 
@@ -134,39 +141,88 @@ func (a *Agent) loadDeviceInfo() error {
 
 // checkUpdate check for agent updates.
 func (a *Agent) checkUpdate() (*semver.Version, error) {
-	info, err := a.cli.GetInfo(AgentVersion)
+	ctx := context.Background()
+
+	req := a.cli.DefaultApi.GetInfo(ctx)
+	info, _, err := req.Execute()
 	if err != nil {
 		return nil, err
 	}
 
-	return semver.NewVersion(info.Version)
+	return semver.NewVersion(*info.Version)
 }
 
 // probeServerInfo probe server information.
 func (a *Agent) probeServerInfo() error {
-	info, err := a.cli.GetInfo(AgentVersion)
-	a.serverInfo = info
+	ctx := context.Background()
+
+	req := a.cli.DefaultApi.GetInfo(ctx)
+	info, _, err := req.Execute()
+	if err != nil {
+		return err
+	}
+
+	a.serverInfo = &models.Info{
+		Version: *info.Version,
+		Endpoints: models.Endpoints{
+			API: *info.Endpoints.Api,
+			SSH: *info.Endpoints.Ssh,
+		},
+	}
 
 	return err
 }
 
 // authorize send auth request to the server.
 func (a *Agent) authorize() error {
-	authData, err := a.cli.AuthDevice(&models.DeviceAuthRequest{
-		Info: a.Info,
-		DeviceAuth: &models.DeviceAuth{
-			Hostname:  a.opts.PreferredHostname,
-			Identity:  a.Identity,
-			TenantID:  a.opts.TenantID,
-			PublicKey: string(keygen.EncodePublicKeyToPem(a.pubKey)),
-		},
-	})
+	ctx := context.Background()
 
-	a.authData = authData
+	data := openapi.PostAuthDeviceRequest{
+		Info: openapi.DeviceInfo{
+			Id:         &a.Info.ID,
+			PrettyName: &a.Info.PrettyName,
+			Version:    &a.Info.Version,
+			Arch:       &a.Info.Arch,
+			Platform:   &a.Info.Platform,
+		},
+		Hostname: a.opts.PreferredHostname,
+		Identity: &openapi.DeviceIdentity{
+			Mac: &a.Identity.MAC,
+		},
+		PublicKey: string(keygen.EncodePublicKeyToPem(a.pubKey)),
+		TenantId:  a.opts.TenantID,
+	}
+
+	req := a.cli.DevicesApi.PostAuthDevice(ctx)
+	auth, _, err := req.PostAuthDeviceRequest(data).Execute()
+	if err != nil {
+		return err
+	}
+
+	a.authData = &models.DeviceAuthResponse{
+		UID:       *auth.Uid,
+		Token:     *auth.Token,
+		Name:      *auth.Name,
+		Namespace: *auth.Namespace,
+	}
 
 	return err
 }
 
 func (a *Agent) newReverseListener() (*revdial.Listener, error) {
-	return a.cli.NewReverseListener(a.authData.Token)
+	req, _ := http.NewRequest("GET", "", nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.authData.Token))
+
+	conn, _, err := websocket.DefaultDialer.Dial(strings.Join([]string{fmt.Sprintf("%s://%s", "ws", a.serverInfo.Endpoints.API), "/ssh/connection"}, ""), req.Header)
+	if err != nil {
+		return nil, err
+	}
+
+	lis := revdial.NewListener(wsconnadapter.New(conn),
+		func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
+			return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s", "ws", a.serverInfo.Endpoints.API), path}, ""), nil)
+		},
+	)
+
+	return lis, nil
 }

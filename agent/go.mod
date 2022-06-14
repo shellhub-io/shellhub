@@ -15,6 +15,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/websocket v1.5.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
@@ -22,7 +23,8 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/shellhub-io/shellhub v0.5.2
+	github.com/shellhub-io/shellhub v0.9.3-rc.1.0.20220615195307-a7a3173dee27
+	github.com/shellhub-io/shellhub/pkg/api/openapi v0.0.0-20220617135915-d2e130ee1ebd
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.2

@@ -1,5 +1,4 @@
 .gitignore
-.openapi-generator-ignore
 .travis.yml
 README.md
 api/openapi.yaml
@@ -59,8 +58,6 @@ docs/UpdateUserPasswordRequest.md
 docs/UserAuth.md
 docs/UsersApi.md
 git_push.sh
-go.mod
-go.sum
 model_add_namespace_member_request.go
 model_add_tag_public_key_request.go
 model_create_device_tag_request.go
