@@ -1,0 +1,62 @@
+#!/bin/sh
+
+usage() {
+    cat <<EOF
+Run operations related to OpenAPI.
+
+Usage:
+    $0 <command>
+
+Commands:
+    generate  Generating a Go API client from the OpenAPI spec 
+
+Options:
+    --help  Display this help message
+
+EOF
+    exit 1
+}
+
+generate() {
+    option=$1
+    
+    case $option in
+        -h|--help)
+            echo "Usage: $0 generate"
+            echo "Generating a Go API client from the OpenAPI spec"
+            return
+            ;;
+    esac
+
+    ./bin/docker-compose \
+        exec api \
+        rm -rf pkg/api/openapi && \
+    ./bin/docker-compose \
+        exec api \
+        openapi-generator-cli generate \
+            --skip-validate-spec \
+            -i http://openapi:8080/openapi.json \
+            -g go \ -p structPrefix=true \
+            -o ../pkg/api/openapi
+}
+
+main() {
+    command=$1
+    case $command in
+        generate)
+            shift
+            $command $@
+            exit $?
+            ;;
+        -h|--help)
+            usage
+            return
+            ;;
+        *)
+            echo "$command is not a valid command"
+            usage
+            exit 1
+    esac
+}
+
+main $@

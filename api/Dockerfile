@@ -34,6 +34,14 @@ RUN go build
 # development stage
 FROM base AS development
 
+RUN apk add openjdk11-jre
+
+RUN apk add nodejs npm 
+
+RUN npm install -g @openapitools/openapi-generator-cli
+
+RUN openapi-generator-cli version-manager set 6.0.0
+
 ARG GOPROXY
 ENV GOPROXY ${GOPROXY}
 
