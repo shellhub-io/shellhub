@@ -158,6 +158,17 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		utmpEndSession(ut)
 	} else {
 		u := osauth.LookupUser(session.User())
+		if len(session.Command()) == 0 {
+			logrus.WithFields(logrus.Fields{
+				"user":      session.User(),
+				"localaddr": session.LocalAddr(),
+			}).Errorln("None command was received")
+			logrus.Infoln("Session ended")
+			_ = session.Exit(1)
+
+			return
+		}
+
 		cmd := newCmd(u, "", "", s.deviceName, session.Command()...)
 
 		stdout, _ := cmd.StdoutPipe()
