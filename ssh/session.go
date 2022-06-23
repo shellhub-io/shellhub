@@ -184,7 +184,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	return s, nil
 }
 
-func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn, c client.Client, opts ConfigOptions) error {
+func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn, c client.Client, opts ConfigOptions) error { //nolint: gocyclo
 	ctx, cancel := context.WithCancel(session.Context())
 	defer cancel()
 
@@ -232,8 +232,10 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 	go handleRequests(ctx, reqs, c)
 
 	pty, winCh, isPty := s.session.Pty()
+	requestType := session.Context().Value("request_type").(string)
 
-	if isPty { //nolint:nestif
+	switch {
+	case isPty:
 		err = client.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, ssh.TerminalModes{})
 		if err != nil {
 			return err
@@ -343,7 +345,47 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		serverConn.Close()
 		conn.Close()
 		session.Close()
-	} else {
+	case !isPty && requestType == "shell":
+		// When an user try to connect and execute command through heredoc pattern, Pty is set to true, but
+		// request type is set to "shell".
+		stdin, _ := client.StdinPipe()
+		stdout, _ := client.StdoutPipe()
+		stderr, _ := client.StderrPipe()
+
+		go func() {
+			if _, err = io.Copy(stdin, session); err != nil {
+				logrus.WithFields(logrus.Fields{
+					"session": s.UID,
+					"err":     err,
+				}).Error("Failed to copy to stdin in raw session")
+			}
+
+			// Closes data input after find EOF.
+			stdin.Close()
+		}()
+
+		go func() {
+			combinedOutput := io.MultiReader(stdout, stderr)
+			if _, err = io.Copy(session, combinedOutput); err != nil && err != io.EOF {
+				logrus.WithFields(logrus.Fields{
+					"session": s.UID,
+					"err":     err,
+				}).Error("Failed to copy from stdout in raw session")
+			}
+		}()
+
+		// Opens a Shell and execute what comes from stdin.
+		if err = client.Shell(); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"session": s.UID,
+				"err":     err,
+			}).Error("Failed to start a new shell")
+		}
+
+		client.Wait() // nolint:errcheck
+		client.Close()
+		session.Close()
+	default:
 		if errs := c.PatchSessions(s.UID); len(errs) > 0 {
 			return errs[0]
 		}
