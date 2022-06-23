@@ -49,7 +49,7 @@ type Server struct {
 }
 
 func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, singleUserPassword string) *Server {
-	s := &Server{
+	server := &Server{
 		api:               api,
 		authData:          authData,
 		cmds:              make(map[string]*exec.Cmd),
@@ -57,20 +57,21 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		keepAliveInterval: keepAliveInterval,
 	}
 
-	s.sshd = &sshserver.Server{
-		PasswordHandler:  s.passwordHandler,
-		PublicKeyHandler: s.publicKeyHandler,
-		Handler:          s.sessionHandler,
-		RequestHandlers:  sshserver.DefaultRequestHandlers,
-		ChannelHandlers:  sshserver.DefaultChannelHandlers,
+	server.sshd = &sshserver.Server{
+		PasswordHandler:        server.passwordHandler,
+		PublicKeyHandler:       server.publicKeyHandler,
+		Handler:                server.sessionHandler,
+		SessionRequestCallback: server.sessionRequestCallback,
+		RequestHandlers:        sshserver.DefaultRequestHandlers,
+		ChannelHandlers:        sshserver.DefaultChannelHandlers,
 		ConnCallback: func(ctx sshserver.Context, conn net.Conn) net.Conn {
 			closeCallback := func(id string) {
-				s.mu.Lock()
-				defer s.mu.Unlock()
+				server.mu.Lock()
+				defer server.mu.Unlock()
 
-				if v, ok := s.cmds[id]; ok {
+				if v, ok := server.cmds[id]; ok {
 					v.Process.Kill() // nolint:errcheck
-					delete(s.cmds, id)
+					delete(server.cmds, id)
 				}
 			}
 
@@ -78,12 +79,12 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		},
 	}
 
-	err := s.sshd.SetOption(sshserver.HostKeyFile(privateKey))
+	err := server.sshd.SetOption(sshserver.HostKeyFile(privateKey))
 	if err != nil {
 		logrus.Warn(err)
 	}
 
-	return s
+	return server
 }
 
 func (s *Server) ListenAndServe() error {
@@ -109,8 +110,10 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 	log.Info("New session request")
 
 	go StartKeepAliveLoop(time.Second*time.Duration(s.keepAliveInterval), session)
+	requestType := session.Context().Value("request_type").(string)
 
-	if isPty { //nolint:nestif
+	switch {
+	case isPty:
 		scmd := newShellCmd(s, session.User(), sspty.Term)
 
 		pts, err := startPty(scmd, session, winCh)
@@ -156,7 +159,51 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		}).Info("Session ended")
 
 		utmpEndSession(ut)
-	} else {
+	case !isPty && requestType == "shell":
+		cmd := exec.Command("sh")
+		stdout, _ := cmd.StdoutPipe()
+		stdin, _ := cmd.StdinPipe()
+		stderr, _ := cmd.StderrPipe()
+
+		logrus.WithFields(logrus.Fields{
+			"user":        session.User(),
+			"remoteaddr":  session.RemoteAddr(),
+			"localaddr":   session.LocalAddr(),
+			"Raw command": session.RawCommand(),
+		}).Info("Command started")
+
+		err := cmd.Start()
+		if err != nil {
+			logrus.Warn(err)
+		}
+
+		go func() {
+			if _, err := io.Copy(stdin, session); err != nil {
+				fmt.Println(err) //nolint:forbidigo
+			}
+
+			stdin.Close()
+		}()
+
+		go func() {
+			combinedOutput := io.MultiReader(stdout, stderr)
+			if _, err := io.Copy(session, combinedOutput); err != nil {
+				fmt.Println(err) //nolint:forbidigo
+			}
+		}()
+
+		err = cmd.Wait()
+		if err != nil {
+			logrus.Warn(err)
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"user":        session.User(),
+			"remoteaddr":  session.RemoteAddr(),
+			"localaddr":   session.LocalAddr(),
+			"Raw command": session.RawCommand(),
+		}).Info("Command ended")
+	default:
 		u := osauth.LookupUser(session.User())
 		if len(session.Command()) == 0 {
 			logrus.WithFields(logrus.Fields{
@@ -292,6 +339,12 @@ func (s *Server) CloseSession(id string) {
 		session.Close()
 		delete(s.Sessions, id)
 	}
+}
+
+func (s *Server) sessionRequestCallback(session sshserver.Session, requestType string) bool {
+	session.Context().SetValue("request_type", requestType)
+
+	return true
 }
 
 func newShellCmd(s *Server, username, term string) *exec.Cmd {

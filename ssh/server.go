@@ -31,27 +31,28 @@ type Server struct {
 }
 
 func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
-	s := &Server{
+	server := &Server{
 		opts:   opts,
 		tunnel: tunnel,
 	}
 
-	s.sshd = &sshserver.Server{
-		Addr:             opts.Addr,
-		PasswordHandler:  s.passwordHandler,
-		PublicKeyHandler: s.publicKeyHandler,
-		Handler:          s.sessionHandler,
+	server.sshd = &sshserver.Server{
+		Addr:                   opts.Addr,
+		PasswordHandler:        server.passwordHandler,
+		PublicKeyHandler:       server.publicKeyHandler,
+		Handler:                server.sessionHandler,
+		SessionRequestCallback: server.sessionRequestCallback,
 	}
 
 	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) {
 		logrus.Fatal("Private key not found!")
 	}
 
-	if err := s.sshd.SetOption(sshserver.HostKeyFile(os.Getenv("PRIVATE_KEY"))); err != nil {
+	if err := server.sshd.SetOption(sshserver.HostKeyFile(os.Getenv("PRIVATE_KEY"))); err != nil {
 		logrus.Fatal("Host key not found!")
 	}
 
-	return s
+	return server
 }
 
 func (s *Server) sessionHandler(session sshserver.Session) {
@@ -282,4 +283,10 @@ func (s *Server) ListenAndServe() error {
 	defer proxyListener.Close()
 
 	return s.sshd.Serve(proxyListener)
+}
+
+func (s *Server) sessionRequestCallback(session sshserver.Session, requestType string) bool {
+	session.Context().SetValue("request_type", requestType)
+
+	return true
 }
