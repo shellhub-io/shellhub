@@ -346,7 +346,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		conn.Close()
 		session.Close()
 	case !isPty && requestType == "shell":
-		// When an user try to connect and execute command through heredoc pattern, Pty is set to true, but
+		// When an user try to connect and execute command through heredoc pattern, Pty is set to false, but
 		// request type is set to "shell".
 		stdin, _ := client.StdinPipe()
 		stdout, _ := client.StdoutPipe()
