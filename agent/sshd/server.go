@@ -160,7 +160,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		utmpEndSession(ut)
 	case !isPty && requestType == "shell":
-		cmd := exec.Command("sh")
+		cmd := newShellCmd(s, session.User(), "")
+
 		stdout, _ := cmd.StdoutPipe()
 		stdin, _ := cmd.StdinPipe()
 		stderr, _ := cmd.StderrPipe()
@@ -197,6 +198,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			logrus.Warn(err)
 		}
 
+		session.Exit(cmd.ProcessState.ExitCode()) //nolint:errcheck
+
 		logrus.WithFields(logrus.Fields{
 			"user":        session.User(),
 			"remoteaddr":  session.RemoteAddr(),
@@ -220,6 +223,7 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 
 		stdout, _ := cmd.StdoutPipe()
 		stdin, _ := cmd.StdinPipe()
+		stderr, _ := cmd.StderrPipe()
 
 		logrus.WithFields(logrus.Fields{
 			"user":        session.User(),
@@ -240,7 +244,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		}()
 
 		go func() {
-			if _, err := io.Copy(session, stdout); err != nil {
+			combinedOutput := io.MultiReader(stdout, stderr)
+			if _, err := io.Copy(session, combinedOutput); err != nil {
 				fmt.Println(err) //nolint:forbidigo
 			}
 		}()
@@ -249,6 +254,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		if err != nil {
 			logrus.Warn(err)
 		}
+
+		session.Exit(cmd.ProcessState.ExitCode()) //nolint:errcheck
 
 		logrus.WithFields(logrus.Fields{
 			"user":        session.User(),

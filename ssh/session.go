@@ -344,7 +344,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 
 		serverConn.Close()
 		conn.Close()
-		session.Close()
+		session.Exit(0) // nolint:errcheck
 	case !isPty && requestType == "shell":
 		// When an user try to connect and execute command through heredoc pattern, Pty is set to false, but
 		// request type is set to "shell".
@@ -382,9 +382,19 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			}).Error("Failed to start a new shell")
 		}
 
-		client.Wait() // nolint:errcheck
-		client.Close()
-		session.Close()
+		err, _ := client.Wait().(*ssh.ExitError)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"session": s.UID,
+				"err":     err,
+			}).Error("Command returned a non zero exit code")
+
+			client.Close()
+			session.Exit(err.ExitStatus()) // nolint:errcheck
+		} else {
+			client.Close()
+			session.Exit(0) // nolint:errcheck
+		}
 	default:
 		if errs := c.PatchSessions(s.UID); len(errs) > 0 {
 			return errs[0]
@@ -426,6 +436,20 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		}
 
 		<-done
+
+		err, _ := client.Wait().(*ssh.ExitError)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"session": s.UID,
+				"err":     err,
+			}).Error("Command returned a non zero exit code")
+
+			client.Close()
+			session.Exit(err.ExitStatus()) // nolint:errcheck
+		} else {
+			client.Close()
+			session.Exit(0) // nolint:errcheck
+		}
 	}
 
 	return nil
