@@ -7,7 +7,7 @@ require (
 	github.com/shellhub-io/shellhub v0.5.2
 	github.com/shellhub-io/shellhub/api v0.8.2
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.7.5
 	go.mongodb.org/mongo-driver v1.9.1
 )
