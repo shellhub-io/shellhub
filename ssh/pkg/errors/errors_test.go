@@ -9,7 +9,7 @@ func ExampleNew() {
 	err := New(internal, external)
 
 	fmt.Println(err)
-	// Output: invalid signature
+	// Output: SSH connection failed due to unknown character in the signature
 }
 
 func ExampleGetInternal_from_error_type() {
