@@ -2,6 +2,7 @@ package errors
 
 import (
 	"errors"
+	"fmt"
 )
 
 // Error is the structure that represents an error in the SSH connection. It is a composition of two errors, an internal
@@ -22,9 +23,9 @@ func New(internal, external error) error {
 	}
 }
 
-// Error returns the error message from external error only.
+// Error returns the error message from internal error only.
 func (e Error) Error() string {
-	return e.External.Error()
+	return e.Internal.Error()
 }
 
 // GetInternal returns a internal error if error is from Error type. if error is nil, it returns nil, and if error is
@@ -68,4 +69,13 @@ func Is(err, target error) bool {
 	}
 
 	return errors.Is(GetInternal(e), target) || errors.Is(GetExternal(e), target)
+}
+
+// Wrap wraps two errors into a new one.
+func Wrap(err, next error) error {
+	if next == nil {
+		return err
+	}
+
+	return fmt.Errorf("%s: %w", err, next)
 }
