@@ -35,6 +35,7 @@ services:
     environment:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
+      - SHELLHUB_ENV=${SHELLHUB_ENV}
   ui:
     image: ui
     build:
