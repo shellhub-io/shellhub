@@ -83,105 +83,162 @@ func handlePty(s *Session) {
 	}
 }
 
-func NewSession(target string, session sshserver.Session) (*Session, error) {
-	// Splits the target into a user, 0, and  the true target, 1.
-	// Example: username@shellhub.00-00-00-00-00-00@localhost.
-	// 'username' is the user on the device.
-	// 'shellhub' is the user's namespace in ShellHub.
+type Target struct {
+	Username string
+	Data     string
+}
+
+func NewTarget(target string) (*Target, error) {
+	// Target could be a either device id or a SSHID.
+	//
+	// Example: namespace.00-00-00-00-00-00
+	// 'namespace' is the user's namespace in ShellHub.
 	// '00-00-00-00-00' is the device's hostname in ShellHub.
+	//
+	// Example: username@namespace.00-00-00-00-00-00@localhost.
+	// 'username' is the user on the device.
+	// 'namespace' is the user's namespace in ShellHub.
+	// '00-00-00-00-00' is the device's hostname in ShellHub.
+	// 'localhost' is the server's address.
+	const USERNAME = 0
+	const DATA = 1
+
 	parts := strings.SplitN(target, "@", 2)
 	if len(parts) != 2 {
-		return nil, ErrInvalidSessionTarget // Cloud not split user and the target to connect.
+		return nil, fmt.Errorf("cloud not split the target into two parts")
 	}
 
-	s := &Session{
-		session: session,
-		UID:     session.Context().Value(sshserver.ContextKeySessionID).(string),
-		User:    parts[0], // username.
-		Target:  parts[1], // shellhub.00-00-00-00-00-00@localhost.
+	return &Target{Username: parts[USERNAME], Data: parts[DATA]}, nil
+}
+
+// isSSHID checks if target is a SSHID.
+func (t *Target) isSSHID() bool {
+	return strings.Contains(t.Data, ".")
+}
+
+// isID checks if target is a ID.
+func (t *Target) isID() bool {
+	return !strings.Contains(t.Data, ".")
+}
+
+// splitSSHID splits the SSHID target into namespace and hostname into lower strings.
+// Namespace is the device's namespace and hostname is the device's name.
+func (t *Target) splitSSHID() (string, string, error) {
+	if t.isID() {
+		return "", "", fmt.Errorf("target is not from SSHID type")
 	}
 
-	// Splits a string "localhost:port" into localhost and port.
-	host, _, err := net.SplitHostPort(session.RemoteAddr().String())
+	const NAMESPACE = 0
+	const HOSTNAME = 1
+
+	parts := strings.SplitN(t.Data, ".", 2)
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("cloud not split the target into two parts")
+	}
+
+	return strings.ToLower(parts[NAMESPACE]), strings.ToLower(parts[HOSTNAME]), nil
+}
+
+type Host struct {
+	Host string
+}
+
+func NewHost(address string) (*Host, error) {
+	host, _, err := net.SplitHostPort(address)
 	if err != nil {
 		return nil, err
 	}
 
-	handlePty(s)
+	return &Host{Host: host}, nil
+}
 
-	if host == "127.0.0.1" || host == "::1" {
+// isLocal checks if host address is local.
+func (h *Host) isLocal() bool {
+	return h.Host == "127.0.0.1" || h.Host == "::1"
+}
+
+// NewSession creates a new session from a client to device, validating data, instance and payment.
+// It receives a target, a device which it is desirable to connect, what could be either a device id or a SSHID,
+// and a instance of sshserver.Session.
+func NewSession(target string, session sshserver.Session) (*Session, error) {
+	tag, err := NewTarget(target)
+	if err != nil {
+		return nil, ErrInvalidSessionTarget
+	}
+
+	hos, err := NewHost(session.RemoteAddr().String())
+	if err != nil {
+		return nil, ErrHost
+	}
+
+	if hos.isLocal() {
 		env := loadEnv(session.Environ())
 		if value, ok := env["IP_ADDRESS"]; ok {
-			s.IPAddress = value
+			hos.Host = value
 		}
-	} else {
-		s.IPAddress = host
 	}
 
-	var lookup map[string]string
+	cli := client.NewClient()
 
-	c := client.NewClient()
-
-	if !strings.Contains(s.Target, ".") {
-		device, err := c.GetDevice(s.Target) // `s.Target` is the device's UID.
+	// When session's target doesn't has a dot, it is a connection from web terminal, but it has, session's
+	// target is the `SSHID`, what has that dot.
+	var namespace string
+	var hostname string
+	if tag.isSSHID() {
+		namespace, hostname, err = tag.splitSSHID()
 		if err != nil {
-			return nil, ErrFindDevice // Could find device.
-		}
-
-		lookup = map[string]string{
-			"domain":     device.Namespace,
-			"name":       device.Name,
-			"username":   s.User,
-			"ip_address": s.IPAddress,
+			return nil, ErrInvalidSessionTarget
 		}
 	} else {
-		// parts[1]: shellhub.00-00-00-00-00-00@localhost.
-		// Splits the target into domain, namespace, and name, username.
-		parts = strings.SplitN(parts[1], ".", 2)
-		if len(parts) < 2 {
-			return nil, ErrInvalidSessionTarget // Could not split the target into namespace and username.
-		}
-
-		lookup = map[string]string{
-			"domain":     strings.ToLower(parts[0]), // namespace's name; 'shellhub'.
-			"name":       strings.ToLower(parts[1]), // device's hostname; '00-00-00-00-00-00'.
-			"username":   s.User,
-			"ip_address": s.IPAddress,
-		}
-	}
-
-	uid, errs := c.Lookup(lookup)
-	if len(errs) > 0 || uid == "" {
-		return nil, ErrLookupDevice // Cloud not lookup for device's data.
-	}
-
-	s.Target = uid
-	s.Lookup = lookup
-
-	if envs.IsEnterprise() || envs.IsCloud() { // Avoid firewall evaluation in community instance.
-		if err := c.FirewallEvaluate(lookup); err != nil {
-			return nil, ErrFirewallBlock // A firewall rule block this action.
-		}
-	}
-
-	if envs.IsCloud() && envs.HasBilling() {
-		device, err := c.GetDevice(s.Target)
+		device, err := cli.GetDevice(tag.Data)
 		if err != nil {
 			return nil, ErrFindDevice
 		}
 
-		_, status, _ := c.BillingEvaluate(device.TenantID)
-
-		if status == 200 || status == 402 {
-			goto end
-		}
-
-		return nil, ErrBillingBlock // A billing rule blocks this action.
-
-	end:
+		namespace = device.Namespace
+		hostname = device.Name
 	}
 
-	return s, nil
+	lookup := map[string]string{
+		"domain":     namespace,
+		"name":       hostname,
+		"username":   tag.Username,
+		"ip_address": hos.Host,
+	}
+
+	uid, errs := cli.Lookup(lookup)
+	if len(errs) > 0 || uid == "" {
+		return nil, ErrLookupDevice
+	}
+
+	if envs.IsCloud() || envs.IsEnterprise() {
+		if err := cli.FirewallEvaluate(lookup); err != nil {
+			return nil, ErrFirewallBlock
+		}
+	}
+
+	if envs.IsCloud() && envs.HasBilling() {
+		device, err := cli.GetDevice(uid)
+		if err != nil {
+			return nil, ErrFindDevice
+		}
+
+		if _, status, _ := cli.BillingEvaluate(device.TenantID); status != 200 && status != 402 {
+			return nil, ErrBillingBlock
+		}
+	}
+
+	sess := &Session{
+		session: session,
+		UID:     session.Context().Value(sshserver.ContextKeySessionID).(string),
+		User:    tag.Username,
+		Target:  uid,
+		Lookup:  lookup,
+	}
+
+	handlePty(sess)
+
+	return sess, nil
 }
 
 func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn, c client.Client, opts ConfigOptions) error { //nolint: gocyclo
