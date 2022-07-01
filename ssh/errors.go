@@ -28,4 +28,5 @@ var (
 	ErrPipeStdout           = errors.New(fmt.Errorf("could not pipe session stdout"), fmt.Errorf("it could not pipe session stdout from client to agent"))
 	ErrPty                  = errors.New(fmt.Errorf("could not request the pty"), fmt.Errorf("it could not request the pty from agent"))
 	ErrShell                = errors.New(fmt.Errorf("could not get the shell"), fmt.Errorf("it could not get the shell from agent"))
+	ErrHost                 = errors.New(fmt.Errorf("cloud not split the host into address and port"), fmt.Errorf("it could not get the device address"))
 )
