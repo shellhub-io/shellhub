@@ -159,6 +159,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "gessecarneiro",
+      "name": "Gessé Carneiro",
+      "avatar_url": "https://avatars.githubusercontent.com/u/55324790?v=4",
+      "profile": "https://github.com/gessecarneiro",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
