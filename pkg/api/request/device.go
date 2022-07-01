@@ -30,8 +30,8 @@ type DeviceOffline struct {
 type DeviceLookup struct {
 	Domain    string `query:"domain" validate:"required"`
 	Name      string `query:"name" validate:"required"`
-	Username  string `query:"username" validate:"required"`
-	IPAddress string `query:"ip_address" validate:"required"`
+	Username  string `query:"username" validate:""`
+	IPAddress string `query:"ip_address" validate:""`
 }
 
 // DeviceUpdateStatus is the structure to represent the request data for device update status endpoint.
