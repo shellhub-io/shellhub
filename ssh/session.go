@@ -116,15 +116,10 @@ func (t *Target) isSSHID() bool {
 	return strings.Contains(t.Data, ".")
 }
 
-// isID checks if target is a ID.
-func (t *Target) isID() bool {
-	return !strings.Contains(t.Data, ".")
-}
-
 // splitSSHID splits the SSHID target into namespace and hostname into lower strings.
 // Namespace is the device's namespace and hostname is the device's name.
 func (t *Target) splitSSHID() (string, string, error) {
-	if t.isID() {
+	if !t.isSSHID() {
 		return "", "", fmt.Errorf("target is not from SSHID type")
 	}
 
@@ -152,8 +147,8 @@ func NewHost(address string) (*Host, error) {
 	return &Host{Host: host}, nil
 }
 
-// isLocal checks if host address is local.
-func (h *Host) isLocal() bool {
+// isLocalhost checks if host address is local.
+func (h *Host) isLocalhost() bool {
 	return h.Host == "127.0.0.1" || h.Host == "::1"
 }
 
@@ -171,7 +166,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 		return nil, ErrHost
 	}
 
-	if hos.isLocal() {
+	if hos.isLocalhost() {
 		env := loadEnv(session.Environ())
 		if value, ok := env["IP_ADDRESS"]; ok {
 			hos.Host = value
