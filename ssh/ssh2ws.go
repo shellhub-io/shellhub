@@ -3,10 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"strconv"
-	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -18,102 +16,20 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-func createSigner(user, fingerprint, signature string) (ssh.Signer, error) {
-	// split splits the user into two parts.
-	// The first part is the username and the second part is the device identifier.
-	split := func(user string) (string, string, error) {
-		const USERNAME = 0
-		const IDENTIFIER = 1
-
-		parts := strings.SplitN(user, "@", 2)
-		if len(parts) != 2 {
-			return "", "", fmt.Errorf("the user does not have two parts")
-		}
-
-		return parts[USERNAME], parts[IDENTIFIER], nil
-	}
-
-	username, identifier, err := split(user)
-	if err != nil {
-		return nil, errors.Wrap(fmt.Errorf("not split the user into username and device id"), err)
-	}
-
-	// Creates a HTTP client to request the API.
-	cli := client.NewClient()
-
-	// Trys to get a device from the API.
-	device, err := cli.GetDevice(identifier)
-	if err != nil {
-		return nil, errors.Wrap(ErrFindDevice, err)
-	}
-
-	// Trys to get a public key from the API.
-	key, err := cli.GetPublicKey(fingerprint, device.TenantID)
-	if err != nil {
-		return nil, errors.Wrap(ErrFindPublicKey, err)
-	}
-
-	// Trys to evaluate the public key from the API.
-	ok, err := cli.EvaluateKey(fingerprint, device, username)
-	if err != nil {
-		return nil, errors.Wrap(ErrEvaluatePublicKey, err)
-	}
-
-	if !ok {
-		return nil, errors.Wrap(ErrForbiddenPublicKey, err)
-	}
-
-	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint: dogsled
-	if err != nil {
-		return nil, errors.Wrap(ErrDataPublicKey, err)
-	}
-
-	digest, err := base64.StdEncoding.DecodeString(signature)
-	if err != nil {
-		return nil, errors.Wrap(ErrSignaturePublicKey, err)
-	}
-
-	if err := pubKey.Verify([]byte(username), &ssh.Signature{
-		Format: pubKey.Type(),
-		Blob:   digest,
-	}); err != nil {
-		return nil, errors.Wrap(ErrVerifyPublicKey, err)
-	}
-
-	signer, err := ssh.NewSignerFromKey(magicKey)
-	if err != nil {
-		return nil, errors.Wrap(ErrSignerPublicKey, err)
-	}
-
-	return signer, nil
+type Connection struct {
+	User        string
+	Password    string
+	Fingerprint string
+	Signature   string
+	Columns     int
+	Rows        int
 }
 
-func HandlerWebsocket(socket *websocket.Conn) {
-	// finish closes the ssh's session and/or websocket's connection.
-	finish := func(session *ssh.Session, socket *websocket.Conn) {
-		if session != nil {
-			session.Close()
-		}
-
-		if socket != nil {
-			socket.Close()
-		}
-	}
-
-	// respond sends back to the websocket user the external error message when error is from errors.Error.
-	respond := func(socket *websocket.Conn, err error) {
-		_, err = socket.Write([]byte(errors.GetExternal(err).Error()))
-		if err != nil {
-			log.WithError(err).Errorln("could not write the error to the socket")
-		}
-	}
-
-	// get gets the query variable passed by websocket connection.
+func NewConnection(socket *websocket.Conn) *Connection {
 	get := func(socket *websocket.Conn, key string) string {
 		return socket.Request().URL.Query().Get(key)
 	}
 
-	// toInt converts a string to int. If the conversion return a error, toInt return 0 and log the error.
 	toInt := func(text string) int {
 		integer, err := strconv.Atoi(text)
 		if err != nil {
@@ -123,123 +39,176 @@ func HandlerWebsocket(socket *websocket.Conn) {
 		return integer
 	}
 
-	// user is the user in the device system.
-	user := get(socket, "user")
-	// passwd is the password of the user in the device system.
-	// passwd is empty when the user want to connect to device through a prublic key.
-	passwd := get(socket, "passwd")
-	// fingerprint is the fingerprint of the public key.
-	// fingerprint is empty when the user's password is set.
-	fingerprint := get(socket, "fingerprint")
-	// signature is the private key signature. It should empty if passwd is set.
-	// signature is empty when the user's password is set.
-	signature := get(socket, "signature")
+	return &Connection{
+		User:        get(socket, "user"),
+		Password:    get(socket, "passwd"),
+		Fingerprint: get(socket, "fingerprint"),
+		Signature:   get(socket, "signature"),
+		Columns:     toInt(get(socket, "cols")),
+		Rows:        toInt(get(socket, "rows")),
+	}
+}
 
-	// cols and rows are the terminal's dimentation.
-	cols := toInt(get(socket, "cols"))
-	rows := toInt(get(socket, "rows"))
+// isPublicKey checks if connection is using public key method.
+func (c *Connection) isPublicKey() bool { // nolint: unused
+	return c.Fingerprint != "" && c.Signature != ""
+}
 
-	config := &ssh.ClientConfig{
-		User:            user,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+// isPassword checks if connection is using password method.
+func (c *Connection) isPassword() bool {
+	return c.Password != ""
+}
+
+// getAuth gets the authentication methods from connection.
+func (c *Connection) getAuth() ([]ssh.AuthMethod, error) {
+	if c.isPassword() {
+		return []ssh.AuthMethod{ssh.Password(c.Password)}, nil
 	}
 
-	// checks if fingerprint and signature is set, it is connection from public key.
-	if fingerprint != "" && signature != "" {
-		signer, err := createSigner(user, fingerprint, signature)
-		if err != nil {
-			log.WithError(err).Errorln(ErrSigner)
+	tag, err := NewTarget(c.User)
+	if err != nil {
+		return nil, ErrInvalidSessionTarget
+	}
 
-			respond(socket, ErrSigner)
-			finish(nil, socket)
+	cli := client.NewClient()
 
-			return
+	// Trys to get a device from the API.
+	device, err := cli.GetDevice(tag.Data)
+	if err != nil {
+		return nil, ErrFindDevice
+	}
+
+	// Trys to get a public key from the API.
+	key, err := cli.GetPublicKey(c.Fingerprint, device.TenantID)
+	if err != nil {
+		return nil, ErrFindPublicKey
+	}
+
+	// Trys to evaluate the public key from the API.
+	ok, err := cli.EvaluateKey(c.Fingerprint, device, tag.Username)
+	if err != nil {
+		return nil, ErrEvaluatePublicKey
+	}
+
+	if !ok {
+		return nil, ErrForbiddenPublicKey
+	}
+
+	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint: dogsled
+	if err != nil {
+		return nil, ErrDataPublicKey
+	}
+
+	digest, err := base64.StdEncoding.DecodeString(c.Signature)
+	if err != nil {
+		return nil, ErrSignaturePublicKey
+	}
+
+	if err := pubKey.Verify([]byte(tag.Username), &ssh.Signature{
+		Format: pubKey.Type(),
+		Blob:   digest,
+	}); err != nil {
+		return nil, ErrVerifyPublicKey
+	}
+
+	signer, err := ssh.NewSignerFromKey(magicKey)
+	if err != nil {
+		return nil, ErrSignerPublicKey
+	}
+
+	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
+}
+
+func HandlerWebsocket(socket *websocket.Conn) {
+	exit := func(session *ssh.Session, socket *websocket.Conn, internal, external error) {
+		finish := func(session *ssh.Session, socket *websocket.Conn) {
+			if session != nil {
+				session.Close()
+			}
+
+			if socket != nil {
+				socket.Close()
+			}
 		}
 
-		config.Auth = []ssh.AuthMethod{ssh.PublicKeys(signer)}
-	} else {
-		// if fingerprint and signature is not set, it is connection by password.
-		config.Auth = []ssh.AuthMethod{ssh.Password(passwd)}
+		respond := func(socket *websocket.Conn, err error) {
+			_, err = socket.Write([]byte(errors.GetExternal(err).Error()))
+			if err != nil {
+				log.WithError(err).Errorln("could not write the error to the socket")
+			}
+		}
+
+		log.WithError(internal).Errorln(external)
+
+		respond(socket, external)
+		finish(session, socket)
 	}
 
-	cli, err := ssh.Dial("tcp", "localhost:2222", config)
-	if err != nil {
-		log.WithError(err).Errorln(ErrDialSSH)
+	connection := NewConnection(socket)
 
-		respond(socket, ErrDialSSH)
-		finish(nil, socket)
+	auth, err := connection.getAuth()
+	if err != nil {
+		exit(nil, socket, nil, err)
 
 		return
 	}
 
-	modes := ssh.TerminalModes{
-		ssh.ECHO:          1,
-		ssh.TTY_OP_ISPEED: 14400,
-		ssh.TTY_OP_OSPEED: 14400,
+	cli, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{
+		User:            connection.User,
+		Auth:            auth,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+	})
+	if err != nil {
+		exit(nil, socket, err, ErrDialSSH)
+
+		return
 	}
 
 	session, err := cli.NewSession()
 	if err != nil {
-		log.WithError(err).Errorln(ErrSession)
-
-		respond(socket, ErrSession)
-		finish(session, socket)
+		exit(session, socket, err, ErrSession)
 
 		return
 	}
 
 	if err = session.Setenv("IP_ADDRESS", socket.Request().Header.Get("X-Real-Ip")); err != nil {
-		log.WithError(err).Errorln(ErrEnvIPAddress)
-
-		respond(socket, ErrEnvIPAddress)
-		finish(session, socket)
+		exit(session, socket, err, ErrEnvIPAddress)
 
 		return
 	}
 
 	if err = session.Setenv("WS", "true"); err != nil {
-		log.WithError(err).Errorln(ErrEnvWS)
-
-		respond(socket, ErrEnvWS)
-		finish(session, socket)
+		exit(session, socket, err, ErrEnvWS)
 
 		return
 	}
 
 	sshIn, err := session.StdinPipe()
 	if err != nil {
-		log.WithError(err).Errorln(ErrPipeStdin)
-
-		respond(socket, ErrPipeStdin)
-		finish(session, socket)
+		exit(session, socket, err, ErrPipeStdin)
 
 		return
 	}
 
 	sshOut, err := session.StdoutPipe()
 	if err != nil {
-		log.WithError(err).Errorln(ErrPipeStdout)
-
-		respond(socket, ErrPipeStdout)
-		finish(session, socket)
+		exit(session, socket, err, ErrPipeStdout)
 
 		return
 	}
 
-	if err := session.RequestPty("xterm.js", rows, cols, modes); err != nil {
-		log.WithError(err).Errorln(ErrPty)
-
-		respond(socket, ErrPty)
-		finish(session, socket)
+	if err := session.RequestPty("xterm.js", connection.Rows, connection.Columns, ssh.TerminalModes{
+		ssh.ECHO:          1,
+		ssh.TTY_OP_ISPEED: 14400,
+		ssh.TTY_OP_OSPEED: 14400,
+	}); err != nil {
+		exit(session, socket, err, ErrPty)
 
 		return
 	}
 
 	if err := session.Shell(); err != nil {
-		log.WithError(err).Errorln(ErrShell)
-
-		respond(socket, ErrShell)
-		finish(session, socket)
+		exit(session, socket, err, ErrShell)
 
 		return
 	}
