@@ -241,6 +241,8 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 			if _, err := io.Copy(stdin, session); err != nil {
 				fmt.Println(err) //nolint:forbidigo
 			}
+
+			stdin.Close()
 		}()
 
 		go func() {
