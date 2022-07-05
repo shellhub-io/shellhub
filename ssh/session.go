@@ -413,6 +413,8 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 				}).Error("Failed to copy to stdin in raw session")
 			}
 
+			client.Close()
+
 			done <- true
 		}()
 
