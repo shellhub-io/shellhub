@@ -352,6 +352,21 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		stdout, _ := client.StdoutPipe()
 		stderr, _ := client.StderrPipe()
 
+		serverConn, ok := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
+		if !ok {
+			logrus.WithFields(logrus.Fields{
+				"session": s.UID,
+			}).Warning("Type assertion failed")
+
+			return errors.New("type assertion failed")
+		}
+
+		go func() {
+			serverConn.Wait() // nolint:errcheck
+			client.Close()
+			conn.Close()
+		}()
+
 		go func() {
 			if _, err = io.Copy(stdin, session); err != nil {
 				logrus.WithFields(logrus.Fields{
@@ -404,6 +419,22 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		stdout, _ := client.StdoutPipe()
 
 		done := make(chan bool)
+
+		serverConn, ok := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
+		if !ok {
+			logrus.WithFields(logrus.Fields{
+				"session": s.UID,
+			}).Warning("Type assertion failed")
+
+			return errors.New("type assertion failed")
+		}
+
+		go func() {
+			serverConn.Wait() // nolint:errcheck
+			client.Close()
+			conn.Close()
+			done <- true
+		}()
 
 		go func() {
 			if _, err = io.Copy(stdin, session); err != nil {

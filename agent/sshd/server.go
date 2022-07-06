@@ -166,6 +166,16 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		stdin, _ := cmd.StdinPipe()
 		stderr, _ := cmd.StderrPipe()
 
+		serverConn, ok := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
+		if !ok {
+			return
+		}
+
+		go func() {
+			serverConn.Wait()  // nolint:errcheck
+			cmd.Process.Kill() // nolint:errcheck
+		}()
+
 		logrus.WithFields(logrus.Fields{
 			"user":        session.User(),
 			"remoteaddr":  session.RemoteAddr(),
@@ -224,6 +234,16 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		stdout, _ := cmd.StdoutPipe()
 		stdin, _ := cmd.StdinPipe()
 		stderr, _ := cmd.StderrPipe()
+
+		serverConn, ok := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
+		if !ok {
+			return
+		}
+
+		go func() {
+			serverConn.Wait()  // nolint:errcheck
+			cmd.Process.Kill() // nolint:errcheck
+		}()
 
 		logrus.WithFields(logrus.Fields{
 			"user":        session.User(),
