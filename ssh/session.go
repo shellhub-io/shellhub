@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/rsa"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -236,6 +235,84 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	return sess, nil
 }
 
+const (
+	SHELL   = 1
+	EXEC    = 2
+	HEREDOC = 3
+)
+
+type Kind struct {
+	Kind int
+}
+
+func NewKind(ctx sshserver.Context, isPty bool) *Kind {
+	requestType := ctx.Value("request_type").(string)
+
+	var kind int
+	switch {
+	case isPty:
+		kind = SHELL
+	case !isPty && requestType == "exec":
+		kind = EXEC
+	case !isPty && requestType == "shell":
+		kind = HEREDOC
+	default:
+		kind = -1
+	}
+
+	return &Kind{Kind: kind}
+}
+
+// Get gets the connection's kind.
+func (k *Kind) Get() int {
+	return k.Kind
+}
+
+type Flow struct {
+	Stdin  io.WriteCloser
+	Stdout io.Reader
+	Stderr io.Reader
+}
+
+func NewFlow(client *ssh.Session) (*Flow, error) {
+	stdin, err := client.StdinPipe()
+	if err != nil {
+		return nil, err
+	}
+
+	stdout, err := client.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+
+	stderr, err := client.StderrPipe()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Flow{Stdin: stdin, Stdout: stdout, Stderr: stderr}, nil
+}
+
+// PipeIn pipes the session's user stdin to the agent's stdin.
+func (f *Flow) PipeIn(session io.Reader) {
+	if _, err := io.Copy(f.Stdin, session); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("Failed to copy to from session to agent in raw session")
+	}
+
+	f.Stdin.Close()
+}
+
+// PipeOut pipes the agent's stdout and stderr to the session's user.
+func (f *Flow) PipeOut(session sshserver.Session) {
+	if _, err := io.Copy(session, io.MultiReader(f.Stdout, f.Stderr)); err != nil && err != io.EOF {
+		logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("Failed to copy to from stdout and stderr to client in raw session")
+	}
+}
+
 func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.Session, conn net.Conn, c client.Client, opts ConfigOptions) error { //nolint: gocyclo
 	ctx, cancel := context.WithCancel(session.Context())
 	defer cancel()
@@ -263,7 +340,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		}
 	}
 
-	sshConn, reqs, err := NewClientConnWithDeadline(conn, "tcp", config)
+	connection, reqs, err := NewClientConnWithDeadline(conn, "tcp", config)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"session": s.UID,
@@ -273,7 +350,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		return err
 	}
 
-	client, err := sshConn.NewSession()
+	client, err := connection.NewSession()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"session": s.UID,
@@ -283,13 +360,61 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 
 	go handleRequests(ctx, reqs, c)
 
-	pty, winCh, isPty := s.session.Pty()
-	requestType := session.Context().Value("request_type").(string)
+	pty, winCh, isPty := session.Pty()
 
-	switch {
-	case isPty:
-		err = client.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, ssh.TerminalModes{})
-		if err != nil {
+	kind := NewKind(session.Context(), isPty)
+
+	// status gets the exit status from the client when a error happens. If error is nil, the status is zero
+	// meaing there is not error. If none exit code is returned, it return 255.
+	status := func(err error) int {
+		if err == nil {
+			return 0
+		}
+
+		fault, ok := err.(*ssh.ExitError)
+		if !ok {
+			return 255
+		}
+
+		return fault.ExitStatus()
+	}
+
+	// Gets the ssh's server connection from the context to kill the process initialized by the session.
+	server, ok := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
+	if !ok {
+		logrus.WithFields(logrus.Fields{
+			"session": s.UID,
+		}).Warning("Type assertion failed")
+
+		return fmt.Errorf("type assertion failed")
+	}
+
+	go func() {
+		// Waits until the connection send no more data, and so kill the process opened by this connection.
+		server.Wait() // nolint:errcheck
+		client.Close()
+	}()
+
+	flow, err := NewFlow(client)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"session": s.UID,
+			"err":     err,
+		}).Error("Failed to create a flow of data from client to agent")
+
+		return err
+	}
+
+	go flow.PipeIn(session)
+	go flow.PipeOut(session)
+
+	switch kind.Get() {
+	case SHELL:
+		if errs := c.PatchSessions(s.UID); len(errs) > 0 {
+			return errs[0]
+		}
+
+		if err = client.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, ssh.TerminalModes{}); err != nil {
 			return err
 		}
 
@@ -304,27 +429,9 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 			}
 		}()
 
-		stdin, err := client.StdinPipe()
-		if err != nil {
-			return err
-		}
-		stdout, err := client.StdoutPipe()
-		if err != nil {
-			return err
-		}
-
-		go func() {
-			if _, err = io.Copy(stdin, s.session); err != nil {
-				logrus.WithFields(logrus.Fields{
-					"session": s.UID,
-					"err":     err,
-				}).Error("Failed to copy to stdin in pty session")
-			}
-		}()
-
 		go func() {
 			buf := make([]byte, 1024)
-			n, err := stdout.Read(buf)
+			n, err := flow.Stdout.Read(buf)
 			waitingString := ""
 			if err == nil {
 				waitingString = string(buf[:n])
@@ -346,7 +453,7 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 						"err":     err,
 					}).Error("Failed to copy from stdout in pty session")
 				}
-				n, err = stdout.Read(buf)
+				n, err = flow.Stdout.Read(buf)
 				if err != nil {
 					break
 				}
@@ -364,177 +471,83 @@ func (s *Session) connect(passwd string, key *rsa.PrivateKey, session sshserver.
 		}()
 
 		if err = client.Shell(); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"session": s.UID,
+				"err":     err,
+			}).Error("Failed to start a new shell")
+
 			return err
 		}
 
-		disconnected := make(chan bool)
-
-		serverConn, ok := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
-		if !ok {
+		err = client.Wait()
+		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"session": s.UID,
-			}).Warning("Type assertion failed")
-
-			return errors.New("type assertion failed")
+				"err":     err,
+			}).Warning("Client remote command returned a error")
 		}
 
+		session.Exit(0) // nolint:errcheck
+	case EXEC:
 		if errs := c.PatchSessions(s.UID); len(errs) > 0 {
 			return errs[0]
 		}
 
-		go func() {
-			serverConn.Wait() // nolint:errcheck
-			disconnected <- true
-		}()
-
-		go func() {
-			client.Wait() // nolint:errcheck
-			disconnected <- true
-		}()
-
-		<-disconnected
-
-		serverConn.Close()
-		conn.Close()
-		session.Exit(0) // nolint:errcheck
-	case !isPty && requestType == "shell":
-		// When an user try to connect and execute command through heredoc pattern, Pty is set to false, but
-		// request type is set to "shell".
-		stdin, _ := client.StdinPipe()
-		stdout, _ := client.StdoutPipe()
-		stderr, _ := client.StderrPipe()
-
-		serverConn, ok := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
-		if !ok {
+		if err = client.Start(session.RawCommand()); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"session": s.UID,
-			}).Warning("Type assertion failed")
+				"err":     err,
+			}).Error("Failed to start session raw command")
 
-			return errors.New("type assertion failed")
+			return err
 		}
 
-		go func() {
-			serverConn.Wait() // nolint:errcheck
-			client.Close()
-			conn.Close()
-		}()
+		err = client.Wait()
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"session": s.UID,
+				"err":     err,
+			}).Warning("Client remote command returned a error")
+		}
 
-		go func() {
-			if _, err = io.Copy(stdin, session); err != nil {
-				logrus.WithFields(logrus.Fields{
-					"session": s.UID,
-					"err":     err,
-				}).Error("Failed to copy to stdin in raw session")
-			}
+		session.Exit(status(err)) // nolint:errcheck
+	case HEREDOC:
+		if errs := c.PatchSessions(s.UID); len(errs) > 0 {
+			return errs[0]
+		}
 
-			// Closes data input after find EOF.
-			stdin.Close()
-		}()
-
-		go func() {
-			combinedOutput := io.MultiReader(stdout, stderr)
-			if _, err = io.Copy(session, combinedOutput); err != nil && err != io.EOF {
-				logrus.WithFields(logrus.Fields{
-					"session": s.UID,
-					"err":     err,
-				}).Error("Failed to copy from stdout in raw session")
-			}
-		}()
-
-		// Opens a Shell and execute what comes from stdin.
 		if err = client.Shell(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"session": s.UID,
 				"err":     err,
 			}).Error("Failed to start a new shell")
+
+			return err
 		}
 
-		err, _ := client.Wait().(*ssh.ExitError)
+		err = client.Wait()
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"session": s.UID,
 				"err":     err,
-			}).Error("Command returned a non zero exit code")
-
-			client.Close()
-			session.Exit(err.ExitStatus()) // nolint:errcheck
-		} else {
-			client.Close()
-			session.Exit(0) // nolint:errcheck
+			}).Warning("Client remote command returned a error")
 		}
+
+		session.Exit(status(err)) // nolint:errcheck
 	default:
-		if errs := c.PatchSessions(s.UID); len(errs) > 0 {
-			return errs[0]
-		}
+		logrus.Errorln("Kind of connection isn't supported")
 
-		stdin, _ := client.StdinPipe()
-		stdout, _ := client.StdoutPipe()
+		session.Exit(0) // nolint:errcheck //TODO: Exit with the right exit code.
+	}
 
-		done := make(chan bool)
+	err = conn.Close()
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"session": s.UID,
+			"err":     err,
+		}).Error("Failed to close the connection")
 
-		serverConn, ok := session.Context().Value(sshserver.ContextKeyConn).(*ssh.ServerConn)
-		if !ok {
-			logrus.WithFields(logrus.Fields{
-				"session": s.UID,
-			}).Warning("Type assertion failed")
-
-			return errors.New("type assertion failed")
-		}
-
-		go func() {
-			serverConn.Wait() // nolint:errcheck
-			client.Close()
-			conn.Close()
-			done <- true
-		}()
-
-		go func() {
-			if _, err = io.Copy(stdin, session); err != nil {
-				logrus.WithFields(logrus.Fields{
-					"session": s.UID,
-					"err":     err,
-				}).Error("Failed to copy to stdin in raw session")
-			}
-
-			client.Close()
-
-			done <- true
-		}()
-
-		go func() {
-			if _, err = io.Copy(session, stdout); err != nil {
-				logrus.WithFields(logrus.Fields{
-					"session": s.UID,
-					"err":     err,
-				}).Error("Failed to copy from stdout in raw session")
-			}
-
-			done <- true
-		}()
-
-		err = client.Start(s.session.RawCommand())
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"session": s.UID,
-				"err":     err,
-			}).Error("Failed to start session raw command")
-		}
-
-		<-done
-
-		err, _ := client.Wait().(*ssh.ExitError)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"session": s.UID,
-				"err":     err,
-			}).Error("Command returned a non zero exit code")
-
-			client.Close()
-			session.Exit(err.ExitStatus()) // nolint:errcheck
-		} else {
-			client.Close()
-			session.Exit(0) // nolint:errcheck
-		}
+		return err
 	}
 
 	return nil
