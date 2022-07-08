@@ -1,0 +1,21 @@
+// Place SASS variable overrides here
+$font-size-root: 36px;
+$v-theme-surface: #667acc;
+$v-theme-background: #1E2127;
+
+// $material-dark: map-merge(
+//   $material-dark,
+//   (
+//     "background": #18191b,
+//     "navigation-drawer": rgb(30, 33, 39),
+//     "cards": rgb(30, 33, 39),
+//     "v-theme-surface": #667acc,
+//     "app-bar": rgb(24, 25, 27),
+//     "text": (
+//       "primary": map-get($grey, "lighten-2"),
+//     ),
+//     "calendar": (
+//       background-color: red,
+//     ),
+//   )
+// );

@@ -1,0 +1,117 @@
+// Vitest Snapshot v1
+
+exports[`TagList > List data when user has operator role > Renders the component 1`] = `
+"<div class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\" data-test=\\"tagListList-dataTable\\">
+  <!---->
+  <div class=\\"v-table__wrapper\\">
+    <table>
+      <thead>
+        <tr>
+          <th class=\\"text-center\\"><span>Name</span></th>
+          <th class=\\"text-center\\"><span>Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class=\\"text-center\\">{
+            \\"name\\": \\"tag1\\"
+            }</td>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+            <!---->
+            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+        <tr>
+          <td class=\\"text-center\\">{
+            \\"name\\": \\"tag2\\"
+            }</td>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+            <!---->
+            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+        <tr>
+          <td class=\\"text-center\\">{
+            \\"name\\": \\"tag3\\"
+            }</td>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-4\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+            <!---->
+            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!---->
+</div>"
+`;
+
+exports[`TagList > List data when user has owner role > Renders the component 1`] = `
+"<div class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\" data-test=\\"tagListList-dataTable\\">
+  <!---->
+  <div class=\\"v-table__wrapper\\">
+    <table>
+      <thead>
+        <tr>
+          <th class=\\"text-center\\"><span>Name</span></th>
+          <th class=\\"text-center\\"><span>Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class=\\"text-center\\">{
+            \\"name\\": \\"tag1\\"
+            }</td>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+            <!---->
+            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+        <tr>
+          <td class=\\"text-center\\">{
+            \\"name\\": \\"tag2\\"
+            }</td>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+            <!---->
+            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+        <tr>
+          <td class=\\"text-center\\">{
+            \\"name\\": \\"tag3\\"
+            }</td>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-4\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+            <!---->
+            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!---->
+</div>"
+`;

@@ -1,0 +1,29 @@
+// Vitest Snapshot v1
+
+exports[`NamespaceRename > Hosted version operator > Renders the component 1`] = `
+"<v-row-stub dense=\\"false\\" nogutters=\\"false\\" tag=\\"div\\"></v-row-stub>
+<div class=\\"mt-4 mb-2\\">
+  <v-text-field-stub modelvalue=\\"\\" label=\\"Name\\" autofocus=\\"false\\" counter=\\"false\\" persistenthint=\\"false\\" persistentplaceholder=\\"false\\" persistentcounter=\\"false\\" type=\\"text\\" hidedetails=\\"false\\" messages=\\"\\" direction=\\"horizontal\\" density=\\"default\\" disabled=\\"false\\" error=\\"false\\" errormessages=\\"\\" maxerrors=\\"1\\" rules=\\"\\" focused=\\"false\\" clearable=\\"false\\" clearicon=\\"$clear\\" active=\\"false\\" dirty=\\"false\\" persistentclear=\\"false\\" reverse=\\"false\\" singleline=\\"false\\" variant=\\"underlined\\" loading=\\"false\\" class=\\"ml-3\\" required=\\"\\" data-test=\\"name-text\\"></v-text-field-stub>
+</div>"
+`;
+
+exports[`NamespaceRename > Hosted version owner > Renders the component 1`] = `
+"<v-row-stub dense=\\"false\\" nogutters=\\"false\\" tag=\\"div\\"></v-row-stub>
+<div class=\\"mt-4 mb-2\\">
+  <v-text-field-stub modelvalue=\\"\\" label=\\"Name\\" autofocus=\\"false\\" counter=\\"false\\" persistenthint=\\"false\\" persistentplaceholder=\\"false\\" persistentcounter=\\"false\\" type=\\"text\\" hidedetails=\\"false\\" messages=\\"\\" direction=\\"horizontal\\" density=\\"default\\" disabled=\\"false\\" error=\\"false\\" errormessages=\\"\\" maxerrors=\\"1\\" rules=\\"\\" focused=\\"false\\" clearable=\\"false\\" clearicon=\\"$clear\\" active=\\"false\\" dirty=\\"false\\" persistentclear=\\"false\\" reverse=\\"false\\" singleline=\\"false\\" variant=\\"underlined\\" loading=\\"false\\" class=\\"ml-3\\" required=\\"\\" data-test=\\"name-text\\"></v-text-field-stub>
+</div>"
+`;
+
+exports[`NamespaceRename > Open version operator > Renders the component 1`] = `
+"<v-row-stub dense=\\"false\\" nogutters=\\"false\\" tag=\\"div\\"></v-row-stub>
+<div class=\\"mt-4 mb-2\\">
+  <v-text-field-stub modelvalue=\\"\\" label=\\"Name\\" autofocus=\\"false\\" counter=\\"false\\" persistenthint=\\"false\\" persistentplaceholder=\\"false\\" persistentcounter=\\"false\\" type=\\"text\\" hidedetails=\\"false\\" messages=\\"\\" direction=\\"horizontal\\" density=\\"default\\" disabled=\\"false\\" error=\\"false\\" errormessages=\\"\\" maxerrors=\\"1\\" rules=\\"\\" focused=\\"false\\" clearable=\\"false\\" clearicon=\\"$clear\\" active=\\"false\\" dirty=\\"false\\" persistentclear=\\"false\\" reverse=\\"false\\" singleline=\\"false\\" variant=\\"underlined\\" loading=\\"false\\" class=\\"ml-3\\" required=\\"\\" data-test=\\"name-text\\"></v-text-field-stub>
+</div>"
+`;
+
+exports[`NamespaceRename > Open version owner > Renders the component 1`] = `
+"<v-row-stub dense=\\"false\\" nogutters=\\"false\\" tag=\\"div\\"></v-row-stub>
+<div class=\\"mt-4 mb-2\\">
+  <v-text-field-stub modelvalue=\\"\\" label=\\"Name\\" autofocus=\\"false\\" counter=\\"false\\" persistenthint=\\"false\\" persistentplaceholder=\\"false\\" persistentcounter=\\"false\\" type=\\"text\\" hidedetails=\\"false\\" messages=\\"\\" direction=\\"horizontal\\" density=\\"default\\" disabled=\\"false\\" error=\\"false\\" errormessages=\\"\\" maxerrors=\\"1\\" rules=\\"\\" focused=\\"false\\" clearable=\\"false\\" clearicon=\\"$clear\\" active=\\"false\\" dirty=\\"false\\" persistentclear=\\"false\\" reverse=\\"false\\" singleline=\\"false\\" variant=\\"underlined\\" loading=\\"false\\" class=\\"ml-3\\" required=\\"\\" data-test=\\"name-text\\"></v-text-field-stub>
+</div>"
+`;

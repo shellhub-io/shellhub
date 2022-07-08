@@ -1,0 +1,10 @@
+// Vitest Snapshot v1
+
+exports[`Device Icon > Renders the component 1`] = `
+"<!--teleport start-->
+<!--teleport end-->
+<!--teleport start-->
+<!--teleport end-->
+<!--teleport start-->
+<!--teleport end-->"
+`;

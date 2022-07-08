@@ -1,0 +1,33 @@
+// Vitest Snapshot v1
+
+exports[`TagSelector > With tags > Renders the component 1`] = `
+"<div class=\\"mr-4\\">
+  <div class=\\"v-badge v-badge--bordered\\" value=\\"0\\">
+    <div class=\\"v-badge__wrapper\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\" data-test=\\"tags-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Tags <i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" right=\\"\\"></i></span>
+        <!---->
+        <!---->
+      </button>
+      <transition-stub name=\\"scale-rotate-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\"><span class=\\"v-badge__badge v-theme--light bg-primary\\" aria-atomic=\\"true\\" aria-label=\\"Badge\\" aria-live=\\"polite\\" role=\\"status\\">0</span></transition-stub>
+    </div>
+  </div>
+  <!--teleport start-->
+  <!--teleport end-->
+</div>"
+`;
+
+exports[`TagSelector > Without tags > Renders the component 1`] = `
+"<div class=\\"mr-4\\">
+  <div class=\\"v-badge v-badge--bordered\\" value=\\"0\\">
+    <div class=\\"v-badge__wrapper\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\" data-test=\\"tags-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Tags <i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" right=\\"\\"></i></span>
+        <!---->
+        <!---->
+      </button>
+      <transition-stub name=\\"scale-rotate-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\"><span class=\\"v-badge__badge v-theme--light bg-primary\\" aria-atomic=\\"true\\" aria-label=\\"Badge\\" aria-live=\\"polite\\" role=\\"status\\">0</span></transition-stub>
+    </div>
+  </div>
+  <!--teleport start-->
+  <!--teleport end-->
+</div>"
+`;

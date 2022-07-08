@@ -1,0 +1,5 @@
+// Vitest Snapshot v1
+
+exports[`Namespace > Enterprise version > Renders the component 1`] = `"<v-list-stub disabled=\\"false\\" lines=\\"one\\" nav=\\"false\\" selectstrategy=\\"single-leaf\\" openstrategy=\\"list\\" mandatory=\\"false\\" border=\\"false\\" density=\\"default\\" itemtype=\\"type\\" items=\\"\\" itemtitle=\\"title\\" itemvalue=\\"value\\" itemchildren=\\"children\\" itemprops=\\"props\\" returnobject=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-stub>"`;
+
+exports[`Namespace > Open version > Renders the component 1`] = `"<v-list-stub disabled=\\"false\\" lines=\\"one\\" nav=\\"false\\" selectstrategy=\\"single-leaf\\" openstrategy=\\"list\\" mandatory=\\"false\\" border=\\"false\\" density=\\"default\\" itemtype=\\"type\\" items=\\"\\" itemtitle=\\"title\\" itemvalue=\\"value\\" itemchildren=\\"children\\" itemprops=\\"props\\" returnobject=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-stub>"`;

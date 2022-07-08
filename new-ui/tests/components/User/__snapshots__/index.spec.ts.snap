@@ -1,0 +1,29 @@
+// Vitest Snapshot v1
+
+exports[`With devices and active billing > Renders the component 1`] = `
+"<!--v-if-->
+<welcome-stub show=\\"false\\" data-test=\\"welcome-component\\"></welcome-stub>
+<namespace-instructions-stub show=\\"false\\" data-test=\\"namespaceInstructions-component\\"></namespace-instructions-stub>
+<billing-warning-stub data-test=\\"billingWarning-component\\"></billing-warning-stub>"
+`;
+
+exports[`With devices and inactive billing > Renders the component 1`] = `
+"<device-chooser-stub data-test=\\"deviceChooser-component\\"></device-chooser-stub>
+<welcome-stub show=\\"false\\" data-test=\\"welcome-component\\"></welcome-stub>
+<namespace-instructions-stub show=\\"false\\" data-test=\\"namespaceInstructions-component\\"></namespace-instructions-stub>
+<billing-warning-stub data-test=\\"billingWarning-component\\"></billing-warning-stub>"
+`;
+
+exports[`Without devices > Renders the component 1`] = `
+"<!--v-if-->
+<welcome-stub show=\\"false\\" data-test=\\"welcome-component\\"></welcome-stub>
+<namespace-instructions-stub show=\\"true\\" data-test=\\"namespaceInstructions-component\\"></namespace-instructions-stub>
+<billing-warning-stub data-test=\\"billingWarning-component\\"></billing-warning-stub>"
+`;
+
+exports[`Without devices and billing disabled > Renders the component 1`] = `
+"<!--v-if-->
+<welcome-stub show=\\"false\\" data-test=\\"welcome-component\\"></welcome-stub>
+<namespace-instructions-stub show=\\"true\\" data-test=\\"namespaceInstructions-component\\"></namespace-instructions-stub>
+<!--v-if-->"
+`;

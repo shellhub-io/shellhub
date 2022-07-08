@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "useDefineForClassFields": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "lib": ["es5", "es6", "es7", "esnext", "dom"],
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["vitest/globals", "node"]
+  },
+  "typeAcquisition": { "enable": true },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "tests/*.ts",
+    "src/router/index.js",
+    "src/sshpk.js",
+    "example.ts",
+    "src/sshpk.Js"
+  ],
+  "extensions": [
+    ".vue"
+  ],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
