@@ -1,0 +1,95 @@
+// Vitest Snapshot v1
+
+exports[`WelcomeThirdScreen > Renders the component 1`] = `
+"<div class=\\"pa-4\\">
+  <p class=\\"ml-4 pt-4 text-subtitle-2\\"> A device connection has been detected. </p>
+  <p class=\\"ml-4 pt-4 text-subtitle-2\\"> Please confirm that this device is yours to enroll into your account. After confirmation, you will go to the last step of introducing <strong>ShellHub</strong>. </p>
+  <div class=\\"v-row v-row--no-gutters mt-4\\">
+    <div class=\\"v-col\\">
+      <div class=\\"v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated pa-2\\" tile=\\"\\">
+        <!---->
+        <div class=\\"v-card__loader\\">
+          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <!----><strong>Hostname</strong>
+        <!---->
+        <!----><span class=\\"v-card__underlay\\"></span>
+      </div>
+      <div class=\\"v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated pa-2\\" tile=\\"\\" data-test=\\"deviceName-field\\">
+        <!---->
+        <div class=\\"v-card__loader\\">
+          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <!---->39-5e-2a
+        <!---->
+        <!----><span class=\\"v-card__underlay\\"></span>
+      </div>
+    </div>
+    <div class=\\"v-col\\">
+      <div class=\\"v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated pa-2\\" tile=\\"\\">
+        <!---->
+        <div class=\\"v-card__loader\\">
+          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <!----><strong>Operation System</strong>
+        <!---->
+        <!----><span class=\\"v-card__underlay\\"></span>
+      </div>
+      <div class=\\"v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated pa-2\\" tile=\\"\\" data-test=\\"devicePrettyName-field\\">
+        <!---->
+        <div class=\\"v-card__loader\\">
+          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <!---->
+        <div><i data-test=\\"type-icon\\" class=\\"fl-archlinux\\" style=\\"font-size: 20px;\\"></i> Linux</div>
+        <!---->
+        <!----><span class=\\"v-card__underlay\\"></span>
+      </div>
+    </div>
+  </div>
+</div>"
+`;

@@ -1,0 +1,61 @@
+// Vitest Snapshot v1
+
+exports[`SettingSecurity > SettingSecurity operator > Renders the component 1`] = `
+"<form class=\\"v-form\\" novalidate=\\"\\">
+  <div class=\\"v-row\\">
+    <div class=\\"v-col mb-3\\">
+      <h3 class=\\"mb-3\\">Security</h3>
+      <div class=\\"ml-3\\">
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-input--disabled v-checkbox\\">
+          <!---->
+          <div class=\\"v-input__control\\">
+            <div class=\\"v-selection-control v-selection-control--disabled v-selection-control--inline v-selection-control--density-default v-checkbox-btn\\">
+              <div class=\\"v-selection-control__wrapper\\">
+                <!---->
+                <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input disabled=\\"\\" id=\\"checkbox-0\\" aria-readonly=\\"false\\" type=\\"checkbox\\" indeterminateicon=\\"$checkboxIndeterminate\\" value=\\"true\\">
+                  <!---->
+                </div>
+              </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-0\\">
+                <!---->Enable session record
+              </label>
+            </div>
+          </div>
+          <!---->
+          <!---->
+        </div>
+        <p> Session record is a feature that allows you to check logged activity when connecting to a device. </p>
+      </div>
+    </div>
+  </div>
+</form>"
+`;
+
+exports[`SettingSecurity > SettingSecurity owner > Renders the component 1`] = `
+"<form class=\\"v-form\\" novalidate=\\"\\">
+  <div class=\\"v-row\\">
+    <div class=\\"v-col mb-3\\">
+      <h3 class=\\"mb-3\\">Security</h3>
+      <div class=\\"ml-3\\">
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-checkbox\\">
+          <!---->
+          <div class=\\"v-input__control\\">
+            <div class=\\"v-selection-control v-selection-control--inline v-selection-control--density-default v-checkbox-btn\\">
+              <div class=\\"v-selection-control__wrapper\\">
+                <!---->
+                <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-0\\" aria-readonly=\\"false\\" type=\\"checkbox\\" indeterminateicon=\\"$checkboxIndeterminate\\" value=\\"true\\">
+                  <!---->
+                </div>
+              </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-0\\">
+                <!---->Enable session record
+              </label>
+            </div>
+          </div>
+          <!---->
+          <!---->
+        </div>
+        <p> Session record is a feature that allows you to check logged activity when connecting to a device. </p>
+      </div>
+    </div>
+  </div>
+</form>"
+`;

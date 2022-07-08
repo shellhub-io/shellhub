@@ -1,0 +1,3 @@
+// Vitest Snapshot v1
+
+exports[`SettingTags > Renders the component 1`] = `"<v-container-stub fluid=\\"false\\" tag=\\"div\\"></v-container-stub>"`;

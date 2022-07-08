@@ -1,0 +1,5 @@
+// Vitest Snapshot v1
+
+exports[`NamespaceMemberList > List data when user has observer role > Renders the component 1`] = `"<v-table-stub fixedheader=\\"false\\" fixedfooter=\\"false\\" hover=\\"false\\" density=\\"default\\" tag=\\"div\\" class=\\"bg-v-theme-surface\\"></v-table-stub>"`;
+
+exports[`NamespaceMemberList > List data when user has owner role > Renders the component 1`] = `"<v-table-stub fixedheader=\\"false\\" fixedfooter=\\"false\\" hover=\\"false\\" density=\\"default\\" tag=\\"div\\" class=\\"bg-v-theme-surface\\"></v-table-stub>"`;

@@ -1,0 +1,6 @@
+// Vitest Snapshot v1
+
+exports[`Welcome > Renders the component 1`] = `
+"<!--teleport start-->
+<!--teleport end-->"
+`;

@@ -1,0 +1,177 @@
+// Vitest Snapshot v1
+
+exports[`DetailsDevice > Offline Device > Renders the component 1`] = `
+"<div class=\\"d-flex pa-0 align-center\\">
+  <h1>Device Details</h1>
+</div>
+<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-card__loader\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <!---->
+      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <div class=\\"v-progress-linear__indeterminate\\">
+          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
+    <div class=\\"d-flex align-center\\">
+      <!--v-if--><span class=\\"ml-2\\">39-5e-2a</span>
+    </div>
+    <div><span class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+      <!---->
+      <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"></i>
+      <!---->
+      <!----></span>
+      <!--teleport start-->
+      <!--teleport end-->
+    </div>
+  </div>
+  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+  <div class=\\"v-card-text pa-4 pt-0\\">
+    <div>
+      <div class=\\"text-overline mt-3\\">uid:</div>
+      <div data-test=\\"deviceUid-field\\">
+        <p>a582b47a</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">mac:</div>
+      <div data-test=\\"deviceMac-field\\"><code>00:00:00</code></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Operating System:</div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-2\\" style=\\"font-size: 20px;\\"></i><span>Linux</span></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Agent Version:</div>
+      <div data-test=\\"deviceVersion-field\\">
+        <p>latest</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Tags:</div>
+      <div data-test=\\"deviceTags-field\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-2\\"><!----><span class=\\"v-chip__underlay\\"></span>
+        <!---->
+        <!---->device1
+        <!---->
+        <!----></span>
+        <!--teleport start-->
+        <!--teleport end--><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-4\\"><!----><span class=\\"v-chip__underlay\\"></span>
+        <!---->
+        <!---->device2
+        <!---->
+        <!----></span>
+        <!--teleport start-->
+        <!--teleport end-->
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Last Seen:</div>
+      <div data-test=\\"deviceConvertDate-field\\">
+        <p>Wednesday, May 20th 2020, 3:58:53 pm</p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>"
+`;
+
+exports[`DetailsDevice > Online Device and owner > Renders the component 1`] = `
+"<div class=\\"d-flex pa-0 align-center\\">
+  <h1>Device Details</h1>
+</div>
+<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-card__loader\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <!---->
+      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <div class=\\"v-progress-linear__indeterminate\\">
+          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
+    <div class=\\"d-flex align-center\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\" data-v-abcb598c=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Connect </span>
+        <!---->
+        <!---->
+      </button>
+      <!---->
+      <!--teleport start-->
+      <!--teleport end--><span class=\\"ml-2\\">39-5e-2a</span>
+    </div>
+    <div><span class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+      <!---->
+      <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"></i>
+      <!---->
+      <!----></span>
+      <!--teleport start-->
+      <!--teleport end-->
+    </div>
+  </div>
+  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+  <div class=\\"v-card-text pa-4 pt-0\\">
+    <div>
+      <div class=\\"text-overline mt-3\\">uid:</div>
+      <div data-test=\\"deviceUid-field\\">
+        <p>a582b47a</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">mac:</div>
+      <div data-test=\\"deviceMac-field\\"><code>00:00:00</code></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Operating System:</div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-2\\" style=\\"font-size: 20px;\\"></i><span>Linux</span></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Agent Version:</div>
+      <div data-test=\\"deviceVersion-field\\">
+        <p>latest</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Tags:</div>
+      <div data-test=\\"deviceTags-field\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-3\\"><!----><span class=\\"v-chip__underlay\\"></span>
+        <!---->
+        <!---->device1
+        <!---->
+        <!----></span>
+        <!--teleport start-->
+        <!--teleport end--><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-5\\"><!----><span class=\\"v-chip__underlay\\"></span>
+        <!---->
+        <!---->device2
+        <!---->
+        <!----></span>
+        <!--teleport start-->
+        <!--teleport end-->
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Last Seen:</div>
+      <div data-test=\\"deviceConvertDate-field\\">
+        <p>Wednesday, May 20th 2020, 3:58:53 pm</p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>"
+`;

@@ -1,0 +1,3 @@
+// Vitest Snapshot v1
+
+exports[`BillingInvoiceList > Renders the component 1`] = `"<v-table-stub fixedheader=\\"false\\" fixedfooter=\\"false\\" hover=\\"false\\" density=\\"default\\" tag=\\"div\\" class=\\"bg-v-theme-surface\\"></v-table-stub>"`;

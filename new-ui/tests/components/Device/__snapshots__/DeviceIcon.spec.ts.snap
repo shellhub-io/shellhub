@@ -1,0 +1,3 @@
+// Vitest Snapshot v1
+
+exports[`DeviceIcon > Renders the component 1`] = `"<i data-test=\\"type-icon\\" class=\\"fl-alpine\\" style=\\"font-size: 20px;\\"></i>"`;

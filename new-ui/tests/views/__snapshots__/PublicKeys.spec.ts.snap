@@ -1,0 +1,190 @@
+// Vitest Snapshot v1
+
+exports[`Publickeys > With public key > Renders the component 1`] = `
+"<div class=\\"d-flex flex-column justify-space-between align-center flex-sm-row mb-2\\">
+  <h1>Public Keys</h1>
+  <div class=\\"flex-grow-1\\"></div>
+  <div class=\\"flex-grow-1\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" disabled=\\"\\" aria-describedby=\\"v-tooltip-0\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Public Key\\" data-test=\\"public-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+    <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Public Key </span>
+    <!---->
+    <!---->
+  </button>
+  <!--teleport start-->
+  <!--teleport end-->
+  <!---->
+  <!--teleport start-->
+  <!--teleport end-->
+</div>
+<div>
+  <div>
+    <div class=\\"bg-v-theme-surface\\" data-test=\\"publicKeys-list\\" data-v-046d4556=\\"\\">
+      <div class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\" data-v-046d4556=\\"\\">
+        <!---->
+        <div class=\\"v-table__wrapper\\">
+          <table>
+            <thead data-v-046d4556=\\"\\">
+              <tr data-v-046d4556=\\"\\">
+                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Name</span></th>
+                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Fingerprint</span></th>
+                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Filter</span></th>
+                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Username</span></th>
+                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Created At</span></th>
+                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Actions</span></th>
+              </tr>
+            </thead>
+            <div class=\\"pa-4 text-subtitle-2\\" data-v-046d4556=\\"\\">
+              <p data-v-046d4556=\\"\\">No data available</p>
+            </div>
+          </table>
+        </div>
+        <!---->
+      </div>
+      <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\" data-v-046d4556=\\"\\">
+      <!--v-if-->
+      <div class=\\"d-flex w-100 justify-end align-center\\" data-v-046d4556=\\"\\"><span class=\\"text-subtitle-2 mr-4\\" data-v-046d4556=\\"\\">Items per page:</span>
+        <div data-v-046d4556=\\"\\">
+          <div class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-text-field v-text-field--flush-details v-combobox v-combobox--single mb-4\\" data-v-046d4556=\\"\\">
+            <!---->
+            <div class=\\"v-input__control\\">
+              <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light\\" role=\\"textbox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-4\\">
+                <div class=\\"v-field__overlay\\"></div>
+                <div class=\\"v-field__loader\\">
+                  <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                    <!---->
+                    <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                    <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                      <div class=\\"v-progress-linear__indeterminate\\">
+                        <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                        <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                      </div>
+                    </transition-stub>
+                    <!---->
+                  </div>
+                </div>
+                <!---->
+                <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                  <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
+                    <!---->
+                    <!---->
+                  </label>
+                  <!---->
+                  <div class=\\"v-field__input\\" data-no-activator=\\"\\">
+                    <!---->
+                    <!--teleport start-->
+                    <!--teleport end-->
+                    <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-2\\" outlined=\\"\\">
+                  </div>
+                  <!---->
+                </div>
+                <!---->
+                <div class=\\"v-field__append-inner\\">
+                  <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+                </div>
+                <div class=\\"v-field__outline\\">
+                  <!---->
+                  <!---->
+                </div>
+              </div>
+            </div>
+            <!---->
+            <!---->
+          </div>
+        </div>
+        <div class=\\"d-flex align-center\\" data-v-046d4556=\\"\\"><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" data-v-046d4556=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+            <!---->
+            <!---->
+          </button><span class=\\"text-subtitle-2\\" data-v-046d4556=\\"\\">1 of 1</span><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" data-v-046d4556=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+            <!---->
+            <!---->
+          </button></div>
+      </div>
+    </div>
+  </div>
+  <!--v-if-->
+</div>"
+`;
+
+exports[`Publickeys > Without public key > Renders the component 1`] = `
+"<div class=\\"d-flex flex-column justify-space-between align-center flex-sm-row mb-2\\">
+  <h1>Public Keys</h1>
+  <div class=\\"flex-grow-1\\"></div>
+  <div class=\\"flex-grow-1\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" disabled=\\"\\" aria-describedby=\\"v-tooltip-0\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Public Key\\" data-test=\\"public-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+    <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Public Key </span>
+    <!---->
+    <!---->
+  </button>
+  <!--teleport start-->
+  <!--teleport end-->
+  <!---->
+  <!--teleport start-->
+  <!--teleport end-->
+</div>
+<div>
+  <!--v-if-->
+  <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border\\" data-test=\\"BoxMessagePublicKey-component\\">
+    <!---->
+    <div class=\\"v-card__loader\\">
+      <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+        <!---->
+        <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+          <div class=\\"v-progress-linear__indeterminate\\">
+            <div class=\\"v-progress-linear__indeterminate long\\"></div>
+            <div class=\\"v-progress-linear__indeterminate short\\"></div>
+          </div>
+        </transition-stub>
+        <!---->
+      </div>
+    </div>
+    <!---->
+    <!---->
+    <div class=\\"v-card-title text-center d-flex justify-center pa-5\\">
+      <div><i class=\\"mdi-key mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" data-test=\\"boxMessage-icon\\"></i></div>
+    </div>
+    <div class=\\"v-card-title d-flex justify-center\\">
+      <div class=\\"text-h5\\" data-test=\\"boxMessage-title\\"> Looks like you don't have any Public Keys</div>
+    </div>
+    <div class=\\"d-flex justify-center flex-column\\">
+      <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">
+        <!----><span class=\\"v-list-item__underlay\\"></span>
+        <!---->
+        <div class=\\"v-list-item__content\\">
+          <!---->
+          <!---->
+          <div data-test=\\"0-boxMessage-text\\">You can connect to your devices using password-based logins, but we strongly recommend using SSH key pairs instead.</div>
+        </div>
+        <!---->
+      </div>
+      <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">
+        <!----><span class=\\"v-list-item__underlay\\"></span>
+        <!---->
+        <div class=\\"v-list-item__content\\">
+          <!---->
+          <!---->
+          <div data-test=\\"1-boxMessage-text\\">SSH keys are more secure than passwords and can help you log in without having to remember long passwords.</div>
+        </div>
+        <!---->
+      </div>
+    </div>
+    <div class=\\"d-flex justify-center flex-column\\">
+      <!-- eslint-disable vue/no-v-html -->
+      <!-- eslint-enable vue/no-v-html-->
+    </div>
+    <div class=\\"v-card-actions justify-center pt-8 pb-0\\">
+      <!--v-if--><span><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" disabled=\\"\\" aria-describedby=\\"v-tooltip-4\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Public Key\\" data-test=\\"public-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Public Key </span>
+      <!---->
+      <!----></button>
+      <!--teleport start-->
+      <!--teleport end-->
+      <!---->
+      <!--teleport start-->
+      <!--teleport end--></span>
+    </div>
+    <!---->
+    <!----><span class=\\"v-card__underlay\\"></span>
+  </div>
+</div>"
+`;

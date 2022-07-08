@@ -1,0 +1,48 @@
+// Vitest Snapshot v1
+
+exports[`Card > Renders the component 1`] = `
+"<div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-card__loader\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <!---->
+      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <div class=\\"v-progress-linear__indeterminate\\">
+          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"viewUsers-btn\\">
+    <!----><span class=\\"v-list-item__underlay\\"></span>
+    <!---->
+    <div class=\\"v-list-item__content\\">
+      <!---->
+      <!---->
+      <div>
+        <p class=\\"text-overline mb-1\\" title-test=\\"Registered Users\\">Registered Users</p>
+        <div class=\\"v-list-item-title text-h5 mb-1\\" stats-test=\\"10\\">10</div>
+        <div class=\\"v-list-item-subtitle\\" content-test=\\"Registered users\\">Registered users</div>
+      </div>
+      <div class=\\"flex-grow-1\\"></div>
+    </div>
+    <div class=\\"v-list-item__append\\">
+      <div class=\\"mt-4\\"><i class=\\"mdi-account-group mdi v-icon notranslate v-theme--light v-icon--size-x-large text-white\\" aria-hidden=\\"true\\" iconname-test=\\"mdi-account-group\\"></i></div>
+      <!---->
+      <!---->
+    </div>
+  </div>
+  <div class=\\"v-card-actions\\"><a class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle\\" tabindex=\\"0\\" buttonname-test=\\"View all Users\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">View all Users</span>
+      <!---->
+      <!---->
+    </a></div>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>"
+`;

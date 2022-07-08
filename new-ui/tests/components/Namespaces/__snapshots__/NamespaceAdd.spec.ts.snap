@@ -1,0 +1,15 @@
+// Vitest Snapshot v1
+
+exports[`NamespaceAdd > Dialog > Renders the component 1`] = `
+"<!--v-if-->
+<v-list-item-title-stub tag=\\"div\\"></v-list-item-title-stub>"
+`;
+
+exports[`NamespaceAdd > Doesn't render the dialog > Renders the component 1`] = `
+"<!--v-if-->
+<div class=\\"v-list-item-title\\">
+  <!---->
+  <!--teleport start-->
+  <!--teleport end-->
+</div>"
+`;

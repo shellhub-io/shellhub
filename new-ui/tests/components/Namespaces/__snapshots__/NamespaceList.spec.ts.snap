@@ -1,0 +1,51 @@
+// Vitest Snapshot v1
+
+exports[`Namespace > Enterprise version > Renders the component 1`] = `
+"<div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default v-list-item--variant-text\\" tabindex=\\"0\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+  <!---->
+  <div class=\\"v-list-item__content\\">
+    <!---->
+    <!---->
+    <div>
+      <div class=\\"v-list-item-title\\" data-test=\\"namespace1-namespace\\">namespace1</div>
+    </div>
+  </div>
+  <!---->
+</div>
+<div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default v-list-item--variant-text\\" tabindex=\\"0\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+  <!---->
+  <div class=\\"v-list-item__content\\">
+    <!---->
+    <!---->
+    <div>
+      <div class=\\"v-list-item-title\\" data-test=\\"namespace2-namespace\\">namespace2</div>
+    </div>
+  </div>
+  <!---->
+</div>"
+`;
+
+exports[`Namespace > Open version > Renders the component 1`] = `
+"<div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default v-list-item--variant-text\\" tabindex=\\"0\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+  <!---->
+  <div class=\\"v-list-item__content\\">
+    <!---->
+    <!---->
+    <div>
+      <div class=\\"v-list-item-title\\" data-test=\\"namespace1-namespace\\">namespace1</div>
+    </div>
+  </div>
+  <!---->
+</div>
+<div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default v-list-item--variant-text\\" tabindex=\\"0\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+  <!---->
+  <div class=\\"v-list-item__content\\">
+    <!---->
+    <!---->
+    <div>
+      <div class=\\"v-list-item-title\\" data-test=\\"namespace2-namespace\\">namespace2</div>
+    </div>
+  </div>
+  <!---->
+</div>"
+`;

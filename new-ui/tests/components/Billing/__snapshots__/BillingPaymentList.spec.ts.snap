@@ -1,0 +1,70 @@
+// Vitest Snapshot v1
+
+exports[`BillingPaymentList > Renders the component 1`] = `
+"<div class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-table__wrapper\\">
+    <table>
+      <thead>
+        <tr>
+          <th class=\\"text-center\\"><span>Brand</span></th>
+          <th class=\\"text-center\\"><span>Exp. Date</span></th>
+          <th class=\\"text-center\\"><span>Ends with</span></th>
+          <th class=\\"text-center\\"><span>Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-test=\\"dataTable-field\\">
+          <td>
+            <!--v-if-->
+            <font-awesome-icon icon=\\"fab,cc-visa\\" size=\\"lg\\" data-test=\\"type-icon\\"></font-awesome-icon>
+          </td>
+          <td>4042</td>
+          <td>4 / 2024</td>
+          <td><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+            <!---->
+            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+        <tr data-test=\\"dataTable-field\\">
+          <td>
+            <!--v-if-->
+            <font-awesome-icon icon=\\"fab,cc-visa\\" size=\\"lg\\" data-test=\\"type-icon\\"></font-awesome-icon>
+          </td>
+          <td>4042</td>
+          <td>4 / 2028</td>
+          <td><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+            <!---->
+            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+        <tr data-test=\\"dataTable-field\\">
+          <td>
+            <!--v-if-->
+            <font-awesome-icon icon=\\"fab,cc-visa\\" size=\\"lg\\" data-test=\\"type-icon\\"></font-awesome-icon>
+          </td>
+          <td>4042</td>
+          <td>4 / 2029</td>
+          <td><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-4\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+            <!---->
+            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!---->
+</div>"
+`;
