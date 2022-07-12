@@ -2,90 +2,74 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
+	sshTunnel "github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
+	"github.com/shellhub-io/shellhub/ssh/server"
+	"github.com/shellhub-io/shellhub/ssh/session"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
-
-	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/httptunnel"
-	"github.com/sirupsen/logrus"
 )
 
-var magicKey *rsa.PrivateKey
-
-type Options struct {
-	Addr           string
-	Broker         string
-	ConnectTimeout time.Duration
-}
+const (
+	ServerRouterAddress = ":8080"
+	ServerSSHAddress    = "tcp://emq:1883"
+	ServerSSHBroker     = ":2222"
+)
 
 func main() {
-	tunnel := httptunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
-	tunnel.ConnectionHandler = func(r *http.Request) (string, error) {
-		return r.Header.Get(client.DeviceUIDHeader), nil
-	}
-	tunnel.CloseHandler = func(id string) {
-		if err := client.NewClient().DevicesOffline(id); err != nil {
-			logrus.Error(err)
-		}
-	}
-	tunnel.KeepAliveHandler = func(id string) {
-		if err := client.NewClient().DevicesHeartbeat(id); err != nil {
-			logrus.Error(err)
-		}
-	}
+	tunnel := sshTunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
+	tunnel.SetConnectionHandler()
+	tunnel.SetCloseHandler()
+	tunnel.SetKeepAliveHandler()
 
-	router, ok := tunnel.Router().(*mux.Router)
-	if !ok {
-		logrus.Error("type assertion failed")
-	}
+	router := tunnel.GetRouter()
+	router.HandleFunc("/sessions/{uid}/close", func(response http.ResponseWriter, request *http.Request) {
+		exit := func(response http.ResponseWriter, status int, err error) {
+			log.WithError(err).WithFields(log.Fields{
+				"status": status,
+			}).Error("Failed to close the session")
 
-	router.HandleFunc("/sessions/{uid}/close", func(res http.ResponseWriter, req *http.Request) {
-		vars := mux.Vars(req)
-		decoder := json.NewDecoder(req.Body)
+			http.Error(response, err.Error(), status)
+		}
+
+		vars := mux.Vars(request)
+		decoder := json.NewDecoder(request.Body)
 		var closeRequest struct {
 			Device string `json:"device"`
 		}
 
 		if err := decoder.Decode(&closeRequest); err != nil {
-			http.Error(res, err.Error(), http.StatusBadRequest)
+			exit(response, http.StatusBadRequest, err)
 
 			return
 		}
 
 		conn, err := tunnel.Dial(context.Background(), closeRequest.Device)
 		if err != nil {
-			http.Error(res, err.Error(), http.StatusInternalServerError)
+			exit(response, http.StatusInternalServerError, err)
 
 			return
 		}
 
-		req, _ = http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", vars["uid"]), nil)
-		if err := req.Write(conn); err != nil {
-			http.Error(res, err.Error(), http.StatusInternalServerError)
+		request, _ = http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", vars["uid"]), nil)
+		if err := request.Write(conn); err != nil {
+			exit(response, http.StatusInternalServerError, err)
 
 			return
 		}
 	})
-	router.Handle("/ws/ssh", websocket.Handler(HandlerWebsocket))
+	router.Handle("/ws/ssh", websocket.Handler(session.WebSession))
 
-	go http.ListenAndServe(":8080", router) // nolint:errcheck
+	go http.ListenAndServe(ServerRouterAddress, router) // nolint:errcheck
 
-	var err error
-	magicKey, err = rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	logrus.Fatal(NewServer(&Options{
-		Addr:           ":2222",
-		Broker:         "tcp://emq:1883",
+	log.Fatal(server.NewServer(&server.Options{
+		Addr:           ServerSSHBroker,
+		Broker:         ServerSSHAddress,
 		ConnectTimeout: 30 * time.Second,
-	}, tunnel).ListenAndServe())
+	}, tunnel.Tunnel).ListenAndServe())
 }

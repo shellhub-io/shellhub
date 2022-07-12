@@ -1,22 +1,45 @@
-package main
+package session
 
 import (
 	"bytes"
+	"crypto/rsa"
 	"encoding/base64"
+	"fmt"
 	"io"
 	"strconv"
 	"time"
 	"unicode/utf8"
 
-	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/ssh/pkg/errors"
+	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
+	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
+	"github.com/shellhub-io/shellhub/ssh/pkg/target"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/websocket"
 )
 
-type Connection struct {
+var (
+	ErrFindPublicKey        = fmt.Errorf("it could not possible to get the public key from the server")
+	ErrEvaluatePublicKey    = fmt.Errorf("it could not evaluate the public key in the server")
+	ErrForbiddenPublicKey   = fmt.Errorf("this public key could not be used to this action")
+	ErrDataPublicKey        = fmt.Errorf("it could not parse the public key data")
+	ErrSignaturePublicKey   = fmt.Errorf("it could not decode the public key signature")
+	ErrVerifyPublicKey      = fmt.Errorf("it could not verify the public key")
+	ErrInvalidSessionTarget = fmt.Errorf("invalid session target")
+	ErrFindDevice           = fmt.Errorf("it cloud not find the device")
+	ErrSignerPublicKey      = fmt.Errorf("it could not signer the public key")
+	ErrDialSSH              = fmt.Errorf("it could not dial to connect to SSH server")
+	ErrSession              = fmt.Errorf("it could not create the SSH session")
+	ErrEnvIPAddress         = fmt.Errorf("it could not set the env virable of ip address to session")
+	ErrEnvWS                = fmt.Errorf("it could not set the env virable of web socket to session")
+	ErrPipe                 = fmt.Errorf("it could not pipe session data from client to agent")
+	ErrPty                  = fmt.Errorf("it could not request the pty from agent")
+	ErrShell                = fmt.Errorf("it could not get the shell from agent")
+)
+
+type WebConnection struct {
 	User        string
 	Password    string
 	Fingerprint string
@@ -25,7 +48,7 @@ type Connection struct {
 	Rows        int
 }
 
-func NewConnection(socket *websocket.Conn) *Connection {
+func NewWebConnection(socket *websocket.Conn) *WebConnection {
 	get := func(socket *websocket.Conn, key string) string {
 		return socket.Request().URL.Query().Get(key)
 	}
@@ -39,7 +62,7 @@ func NewConnection(socket *websocket.Conn) *Connection {
 		return integer
 	}
 
-	return &Connection{
+	return &WebConnection{
 		User:        get(socket, "user"),
 		Password:    get(socket, "passwd"),
 		Fingerprint: get(socket, "fingerprint"),
@@ -50,27 +73,27 @@ func NewConnection(socket *websocket.Conn) *Connection {
 }
 
 // isPublicKey checks if connection is using public key method.
-func (c *Connection) isPublicKey() bool { // nolint: unused
+func (c *WebConnection) isPublicKey() bool { // nolint: unused
 	return c.Fingerprint != "" && c.Signature != ""
 }
 
 // isPassword checks if connection is using password method.
-func (c *Connection) isPassword() bool {
+func (c *WebConnection) isPassword() bool {
 	return c.Password != ""
 }
 
-// getAuth gets the authentication methods from connection.
-func (c *Connection) getAuth() ([]ssh.AuthMethod, error) {
+// GetAuth gets the authentication methods from connection.
+func (c *WebConnection) GetAuth(magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
 	if c.isPassword() {
 		return []ssh.AuthMethod{ssh.Password(c.Password)}, nil
 	}
 
-	tag, err := NewTarget(c.User)
+	tag, err := target.NewTarget(c.User)
 	if err != nil {
 		return nil, ErrInvalidSessionTarget
 	}
 
-	cli := client.NewClient()
+	cli := internalclient.NewClient()
 
 	// Trys to get a device from the API.
 	device, err := cli.GetDevice(tag.Data)
@@ -104,7 +127,7 @@ func (c *Connection) getAuth() ([]ssh.AuthMethod, error) {
 		return nil, ErrSignaturePublicKey
 	}
 
-	if err := pubKey.Verify([]byte(tag.Username), &ssh.Signature{
+	if err := pubKey.Verify([]byte(tag.Username), &ssh.Signature{ //nolint: exhaustruct
 		Format: pubKey.Type(),
 		Blob:   digest,
 	}); err != nil {
@@ -119,8 +142,16 @@ func (c *Connection) getAuth() ([]ssh.AuthMethod, error) {
 	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
 }
 
-func HandlerWebsocket(socket *websocket.Conn) {
+// WebSession is the session's handler for connection coming from the web terminal.
+func WebSession(socket *websocket.Conn) {
+	log.Info("Handling web session request started")
+
 	exit := func(session *ssh.Session, socket *websocket.Conn, internal, external error) {
+		log.WithFields(log.Fields{
+			"internal": internal,
+			"external": external,
+		}).Error("Failed to handler the web session")
+
 		finish := func(session *ssh.Session, socket *websocket.Conn) {
 			if session != nil {
 				session.Close()
@@ -132,28 +163,26 @@ func HandlerWebsocket(socket *websocket.Conn) {
 		}
 
 		respond := func(socket *websocket.Conn, err error) {
-			_, err = socket.Write([]byte(errors.GetExternal(err).Error()))
+			_, err = socket.Write([]byte(err.Error()))
 			if err != nil {
-				log.WithError(err).Errorln("could not write the error to the socket")
+				log.WithError(err).Error("could not write the error to the socket")
 			}
 		}
-
-		log.WithError(internal).Errorln(external)
 
 		respond(socket, external)
 		finish(session, socket)
 	}
 
-	connection := NewConnection(socket)
+	connection := NewWebConnection(socket)
 
-	auth, err := connection.getAuth()
+	auth, err := connection.GetAuth(magickey.GetRerefence())
 	if err != nil {
 		exit(nil, socket, nil, err)
 
 		return
 	}
 
-	cli, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{
+	cli, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
 		User:            connection.User,
 		Auth:            auth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
@@ -183,16 +212,9 @@ func HandlerWebsocket(socket *websocket.Conn) {
 		return
 	}
 
-	sshIn, err := session.StdinPipe()
+	flow, _ := flow.NewFlow(session)
 	if err != nil {
-		exit(session, socket, err, ErrPipeStdin)
-
-		return
-	}
-
-	sshOut, err := session.StdoutPipe()
-	if err != nil {
-		exit(session, socket, err, ErrPipeStdout)
+		exit(session, socket, err, ErrPipe)
 
 		return
 	}
@@ -216,12 +238,14 @@ func HandlerWebsocket(socket *websocket.Conn) {
 	done := make(chan bool)
 
 	go func() {
-		io.Copy(sshIn, socket) // nolint:errcheck
+		io.Copy(flow.Stdin, socket) // nolint:errcheck
+
 		done <- true
 	}()
 
 	go func() {
-		redirToWs(sshOut, socket) // nolint:errcheck
+		redirToWs(flow.Stdout, socket) // nolint:errcheck
+
 		done <- true
 	}()
 
@@ -239,6 +263,8 @@ func HandlerWebsocket(socket *websocket.Conn) {
 	socket.Close()
 
 	<-done
+
+	log.Info("Handling web session request closed")
 }
 
 func redirToWs(rd io.Reader, ws *websocket.Conn) error {
