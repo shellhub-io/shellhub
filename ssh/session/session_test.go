@@ -1,10 +1,10 @@
-package main
+package session
 
 import (
 	"testing"
 
 	"github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/ssh/mocks"
+	"github.com/shellhub-io/shellhub/ssh/session/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
