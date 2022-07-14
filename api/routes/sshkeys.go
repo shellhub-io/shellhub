@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/response"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -88,8 +89,10 @@ func (h *Handler) CreatePublicKey(c gateway.Context) error {
 		req.TenantID = tenant
 	}
 
+	var res *response.PublicKeyCreate
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.Create, func() error {
-		err := h.service.CreatePublicKey(c.Ctx(), req, tenant)
+		var err error
+		res, err = h.service.CreatePublicKey(c.Ctx(), req, tenant)
 
 		return err
 	})
@@ -97,7 +100,7 @@ func (h *Handler) CreatePublicKey(c gateway.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, req)
+	return c.JSON(http.StatusOK, res)
 }
 
 func (h *Handler) UpdatePublicKey(c gateway.Context) error {
