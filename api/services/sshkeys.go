@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/response"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"golang.org/x/crypto/ssh"
@@ -21,7 +22,7 @@ type SSHKeysService interface {
 	EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error)
 	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
 	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
-	CreatePublicKey(ctx context.Context, key request.PublicKeyCreate, tenant string) error
+	CreatePublicKey(ctx context.Context, req request.PublicKeyCreate, tenant string) (*response.PublicKeyCreate, error)
 	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key request.PublicKeyUpdate) (*models.PublicKey, error)
 	DeletePublicKey(ctx context.Context, fingerprint, tenant string) error
 	CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error)
@@ -74,54 +75,66 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
 }
 
-func (s *service) CreatePublicKey(ctx context.Context, key request.PublicKeyCreate, tenant string) error {
+func (s *service) CreatePublicKey(ctx context.Context, req request.PublicKeyCreate, tenant string) (*response.PublicKeyCreate, error) {
 	// Checks if public key filter type is Tags.
 	// If it is, checks if there are, at least, one tag on the public key filter and if the all tags exist on database.
-	if key.Filter.Tags != nil {
+	if req.Filter.Tags != nil {
 		tags, _, err := s.store.TagsGet(ctx, tenant)
 		if err != nil {
-			return NewErrTagEmpty(tenant, err)
+			return nil, NewErrTagEmpty(tenant, err)
 		}
 
-		for _, tag := range key.Filter.Tags {
+		for _, tag := range req.Filter.Tags {
 			if !contains(tags, tag) {
-				return NewErrTagNotFound(tag, nil)
+				return nil, NewErrTagNotFound(tag, nil)
 			}
 		}
 	}
 
-	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint:dogsled
+	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(req.Data) //nolint:dogsled
 	if err != nil {
-		return NewErrPublicKeyDataInvalid(key.Data, nil)
+		return nil, NewErrPublicKeyDataInvalid(req.Data, nil)
 	}
 
-	key.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
+	req.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
-	returnedKey, err := s.store.PublicKeyGet(ctx, key.Fingerprint, tenant)
+	returnedKey, err := s.store.PublicKeyGet(ctx, req.Fingerprint, tenant)
 	if err != nil && err != store.ErrNoDocuments {
-		return NewErrPublicKeyNotFound(key.Fingerprint, err)
+		return nil, NewErrPublicKeyNotFound(req.Fingerprint, err)
 	}
 
 	if returnedKey != nil {
-		return NewErrPublicKeyDuplicated([]string{key.Fingerprint}, err)
+		return nil, NewErrPublicKeyDuplicated([]string{req.Fingerprint}, err)
 	}
 
 	model := models.PublicKey{
 		Data:        ssh.MarshalAuthorizedKey(pubKey),
-		Fingerprint: key.Fingerprint,
+		Fingerprint: req.Fingerprint,
 		CreatedAt:   clock.Now(),
-		TenantID:    key.TenantID,
+		TenantID:    req.TenantID,
 		PublicKeyFields: models.PublicKeyFields{
-			Name:     key.Name,
-			Username: key.Username,
+			Name:     req.Name,
+			Username: req.Username,
 			Filter: models.PublicKeyFilter{
-				Hostname: key.Filter.Hostname,
-				Tags:     key.Filter.Tags,
+				Hostname: req.Filter.Hostname,
+				Tags:     req.Filter.Tags,
 			},
 		},
 	}
 
-	return s.store.PublicKeyCreate(ctx, &model)
+	err = s.store.PublicKeyCreate(ctx, &model)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.PublicKeyCreate{
+		Data:        model.Data,
+		Filter:      response.PublicKeyFilter(model.Filter),
+		Name:        model.Name,
+		Username:    model.Username,
+		TenantID:    model.TenantID,
+		Fingerprint: model.Fingerprint,
+	}, nil
 }
 
 func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {

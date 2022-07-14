@@ -12,6 +12,8 @@ import (
 
 	request "github.com/shellhub-io/shellhub/pkg/api/request"
 
+	response "github.com/shellhub-io/shellhub/pkg/api/response"
+
 	rsa "crypto/rsa"
 )
 
@@ -255,18 +257,27 @@ func (_m *Service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, er
 	return r0, r1
 }
 
-// CreatePublicKey provides a mock function with given fields: ctx, key, tenant
-func (_m *Service) CreatePublicKey(ctx context.Context, key request.PublicKeyCreate, tenant string) error {
-	ret := _m.Called(ctx, key, tenant)
+// CreatePublicKey provides a mock function with given fields: ctx, req, tenant
+func (_m *Service) CreatePublicKey(ctx context.Context, req request.PublicKeyCreate, tenant string) (*response.PublicKeyCreate, error) {
+	ret := _m.Called(ctx, req, tenant)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, request.PublicKeyCreate, string) error); ok {
-		r0 = rf(ctx, key, tenant)
+	var r0 *response.PublicKeyCreate
+	if rf, ok := ret.Get(0).(func(context.Context, request.PublicKeyCreate, string) *response.PublicKeyCreate); ok {
+		r0 = rf(ctx, req, tenant)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*response.PublicKeyCreate)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, request.PublicKeyCreate, string) error); ok {
+		r1 = rf(ctx, req, tenant)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // CreateSession provides a mock function with given fields: ctx, session
