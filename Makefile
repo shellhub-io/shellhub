@@ -34,7 +34,7 @@ keygen: api_private_key api_public_key ssh_private_key
 
 .PHONY: start
 ## Start services
-start:
+start: keygen
 ifeq ($(SHELLHUB_ENV),development)
 	@echo Starting ShellHub in development mode...
 	@echo
