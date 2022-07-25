@@ -48,7 +48,7 @@ func getWrappedCommand(nsArgs []string, uid, gid uint32, home string) []string {
 		[]string{
 			"-S",
 			strconv.Itoa(int(uid)),
-			fmt.Sprintf("--wd=%s", home),
+			fmt.Sprintf("--wdns=%s", home),
 		}...,
 	)
 
