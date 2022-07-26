@@ -212,11 +212,12 @@ func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 	}
 
 	sess := &Session{ // nolint:exhaustruct
-		session: session,
-		UID:     session.Context().Value(gliderssh.ContextKeySessionID).(string),
-		User:    tag.Username,
-		Target:  uid,
-		Lookup:  lookup,
+		session:   session,
+		UID:       session.Context().Value(gliderssh.ContextKeySessionID).(string),
+		User:      tag.Username,
+		IPAddress: hos.Host,
+		Target:    uid,
+		Lookup:    lookup,
 	}
 
 	handlePty(sess)
