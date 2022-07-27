@@ -65,8 +65,8 @@ type ConfigOptions struct {
 	RecordURL string `envconfig:"record_url"`
 }
 
-func (k *Kind) Shell(c internalclient.Client, uid string, client *ssh.Session, session sshserver.Session, pty sshserver.Pty, winCh <-chan sshserver.Window, opts ConfigOptions) error {
-	if errs := c.PatchSessions(uid); len(errs) > 0 {
+func (k *Kind) Shell(api internalclient.Client, uid string, client *ssh.Session, session sshserver.Session, pty sshserver.Pty, winCh <-chan sshserver.Window, opts ConfigOptions) error {
+	if errs := api.PatchSessions(uid); len(errs) > 0 {
 		return errs[0]
 	}
 
@@ -112,7 +112,7 @@ func (k *Kind) Shell(c internalclient.Client, uid string, client *ssh.Session, s
 			if envs.IsEnterprise() || envs.IsCloud() {
 				message := string(buffer[:read])
 
-				c.RecordSession(&models.SessionRecorded{
+				api.RecordSession(&models.SessionRecorded{
 					UID:     uid,
 					Message: message,
 					Width:   pty.Window.Height,
@@ -141,8 +141,8 @@ func (k *Kind) Shell(c internalclient.Client, uid string, client *ssh.Session, s
 	return nil
 }
 
-func (k *Kind) Heredoc(c internalclient.Client, uid string, client *ssh.Session, session sshserver.Session) error {
-	if errs := c.PatchSessions(uid); len(errs) > 0 {
+func (k *Kind) Heredoc(api internalclient.Client, uid string, client *ssh.Session, session sshserver.Session) error {
+	if errs := api.PatchSessions(uid); len(errs) > 0 {
 		return errs[0]
 	}
 
@@ -179,8 +179,8 @@ func (k *Kind) Heredoc(c internalclient.Client, uid string, client *ssh.Session,
 	return nil
 }
 
-func (k *Kind) Exec(c internalclient.Client, uid string, client *ssh.Session, session sshserver.Session) error {
-	if errs := c.PatchSessions(uid); len(errs) > 0 {
+func (k *Kind) Exec(api internalclient.Client, uid string, client *ssh.Session, session sshserver.Session) error {
+	if errs := api.PatchSessions(uid); len(errs) > 0 {
 		return errs[0]
 	}
 

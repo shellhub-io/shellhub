@@ -191,7 +191,7 @@ func (s *Server) SessionHandler(glidersession ssh.Session) {
 		return
 	}
 
-	cli := internalclient.NewClient()
+	api := internalclient.NewClient()
 	opts := kind.ConfigOptions{}
 	if err := envconfig.Process("", &opts); err != nil {
 		exit(glidersession, err, nil)
@@ -199,7 +199,7 @@ func (s *Server) SessionHandler(glidersession ssh.Session) {
 		return
 	}
 
-	if err = sess.Connect(passwd, privKey, glidersession, conn, cli, opts); err != nil {
+	if err = sess.Connect(passwd, privKey, glidersession, conn, api, opts); err != nil {
 		exit(glidersession, err, ErrConnect)
 
 		return
