@@ -65,7 +65,7 @@ type ConfigOptions struct {
 	RecordURL string `envconfig:"record_url"`
 }
 
-func (k *Kind) Shell(c internalclient.Client, uid string, client *ssh.Session, session sshserver.Session, flow *flow.Flow, pty sshserver.Pty, winCh <-chan sshserver.Window, opts ConfigOptions) error {
+func (k *Kind) Shell(c internalclient.Client, uid string, client *ssh.Session, session sshserver.Session, pty sshserver.Pty, winCh <-chan sshserver.Window, opts ConfigOptions) error {
 	if errs := c.PatchSessions(uid); len(errs) > 0 {
 		return errs[0]
 	}
@@ -84,43 +84,41 @@ func (k *Kind) Shell(c internalclient.Client, uid string, client *ssh.Session, s
 		}
 	}()
 
+	flw, err := flow.NewFlow(client)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"session": uid,
+		}).Error("Failed to create a flow of data from client to agent")
+
+		return err
+	}
+
+	go flw.PipeIn(session)
+
 	go func() {
-		buf := make([]byte, 1024)
-		n, err := flow.Stdout.Read(buf)
-		waitingString := ""
-		if err == nil {
-			waitingString = string(buf[:n])
-			if envs.IsEnterprise() || envs.IsCloud() {
-				c.RecordSession(&models.SessionRecorded{
-					UID:     uid,
-					Message: waitingString,
-					Width:   pty.Window.Height,
-					Height:  pty.Window.Width,
-				}, opts.RecordURL)
-			}
-			waitingString = ""
-		}
+		buffer := make([]byte, 1024)
 		for {
-			bufReader := bytes.NewReader(buf[:n])
-			if _, err = io.Copy(session, bufReader); err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"session": uid,
-				}).Error("Failed to copy from stdout in pty session")
-			}
-			n, err = flow.Stdout.Read(buf)
+			read, err := flw.Stdout.Read(buffer)
 			if err != nil {
 				break
 			}
-			waitingString += string(buf[:n])
+
+			if _, err = io.Copy(session, bytes.NewReader(buffer[:read])); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"UID": uid,
+				}).Error("Failed to copy from stdout in pty session")
+			}
+
 			if envs.IsEnterprise() || envs.IsCloud() {
+				message := string(buffer[:read])
+
 				c.RecordSession(&models.SessionRecorded{
 					UID:     uid,
-					Message: waitingString,
+					Message: message,
 					Width:   pty.Window.Height,
 					Height:  pty.Window.Width,
 				}, opts.RecordURL)
 			}
-			waitingString = ""
 		}
 	}()
 
@@ -148,6 +146,19 @@ func (k *Kind) Heredoc(c internalclient.Client, uid string, client *ssh.Session,
 		return errs[0]
 	}
 
+	flw, err := flow.NewFlow(client)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"session": uid,
+		}).Error("Failed to create a flow of data from client to agent")
+
+		return err
+	}
+
+	go flw.PipeIn(session)
+	go flw.PipeOut(session)
+	go flw.PipeErr(session)
+
 	if err := client.Shell(); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
@@ -156,7 +167,7 @@ func (k *Kind) Heredoc(c internalclient.Client, uid string, client *ssh.Session,
 		return err
 	}
 
-	err := client.Wait()
+	err = client.Wait()
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
@@ -173,6 +184,19 @@ func (k *Kind) Exec(c internalclient.Client, uid string, client *ssh.Session, se
 		return errs[0]
 	}
 
+	flw, err := flow.NewFlow(client)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"session": uid,
+		}).Error("Failed to create a flow of data from client to agent")
+
+		return err
+	}
+
+	go flw.PipeIn(session)
+	go flw.PipeOut(session)
+	go flw.PipeErr(session)
+
 	if err := client.Start(session.RawCommand()); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
@@ -181,7 +205,7 @@ func (k *Kind) Exec(c internalclient.Client, uid string, client *ssh.Session, se
 		return err
 	}
 
-	err := client.Wait()
+	err = client.Wait()
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": uid,

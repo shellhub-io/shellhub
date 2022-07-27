@@ -14,7 +14,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
 	"github.com/shellhub-io/shellhub/ssh/pkg/host"
 	"github.com/shellhub-io/shellhub/ssh/pkg/kind"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
@@ -290,18 +289,6 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 
 	kid := kind.NewKind(session.Context(), isPty)
 
-	flw, err := flow.NewFlow(client)
-	if err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"session": s.UID,
-		}).Error("Failed to create a flow of data from client to agent")
-
-		return ErrFlow
-	}
-
-	go flw.PipeIn(session)
-	go flw.PipeOut(session)
-
 	// Gets the ssh's server connection from the context to kill the process initialized by the session.
 	server, ok := session.Context().Value(gliderssh.ContextKeyConn).(*ssh.ServerConn)
 	if !ok {
@@ -324,7 +311,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 
 	switch kid.Get() {
 	case kind.SHELL:
-		err = kid.Shell(c, s.UID, client, session, flw, pty, winCh, opts)
+		err = kid.Shell(c, s.UID, client, session, pty, winCh, opts)
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": s.UID,
