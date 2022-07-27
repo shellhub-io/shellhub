@@ -138,7 +138,7 @@ func (s *Server) SessionHandler(glidersession ssh.Session) {
 			"target":   sess.Target,
 			"username": sess.User,
 			"session":  glidersession.Context().Value(ssh.ContextKeySessionID),
-		}).Info("Session deleted")
+		}).Info("Session closed")
 	}()
 
 	log.WithFields(log.Fields{
