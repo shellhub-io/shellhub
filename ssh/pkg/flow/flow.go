@@ -3,7 +3,7 @@ package flow
 import (
 	"io"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -35,7 +35,7 @@ func NewFlow(session *ssh.Session) (*Flow, error) {
 // PipeIn pipes the session's user stdin to the agent's stdin.
 func (f *Flow) PipeIn(session io.Reader) {
 	if _, err := io.Copy(f.Stdin, session); err != nil {
-		logrus.WithError(err).Error("Failed to copy to from session to agent in raw session")
+		log.WithError(err).Error("Failed to copy to from session to agent in raw session")
 	}
 
 	f.Stdin.Close()
@@ -44,6 +44,6 @@ func (f *Flow) PipeIn(session io.Reader) {
 // PipeOut pipes the agent's stdout and stderr to the session's user.
 func (f *Flow) PipeOut(session io.Writer) {
 	if _, err := io.Copy(session, io.MultiReader(f.Stdout, f.Stderr)); err != nil && err != io.EOF {
-		logrus.WithError(err).Error("Failed to copy to from stdout and stderr to client in raw session")
+		log.WithError(err).Error("Failed to copy to from stdout and stderr to client in raw session")
 	}
 }
