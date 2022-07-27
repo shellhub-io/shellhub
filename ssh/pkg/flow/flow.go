@@ -32,18 +32,22 @@ func NewFlow(session *ssh.Session) (*Flow, error) {
 	return &Flow{Stdin: stdin, Stdout: stdout, Stderr: stderr}, nil
 }
 
-// PipeIn pipes the session's user stdin to the agent's stdin.
 func (f *Flow) PipeIn(session io.Reader) {
 	if _, err := io.Copy(f.Stdin, session); err != nil {
-		log.WithError(err).Error("Failed to copy to from session to agent in raw session")
+		log.WithError(err).Error("Failed to copy from session to Stdin")
 	}
 
 	f.Stdin.Close()
 }
 
-// PipeOut pipes the agent's stdout and stderr to the session's user.
 func (f *Flow) PipeOut(session io.Writer) {
-	if _, err := io.Copy(session, io.MultiReader(f.Stdout, f.Stderr)); err != nil && err != io.EOF {
-		log.WithError(err).Error("Failed to copy to from stdout and stderr to client in raw session")
+	if _, err := io.Copy(session, f.Stdout); err != nil && err != io.EOF {
+		log.WithError(err).Error("Failed to copy from Stdout to session")
+	}
+}
+
+func (f *Flow) PipeErr(session io.Writer) {
+	if _, err := io.Copy(session, f.Stderr); err != nil && err != io.EOF {
+		log.WithError(err).Error("Failed to copy from Stderr to session")
 	}
 }
