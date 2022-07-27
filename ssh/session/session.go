@@ -232,7 +232,7 @@ func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 // Connect trys to connect a client to the device what he or she wants to access. It receives a possible
 // session's password or public key, the SSH session opened from client to the server a network connection,
 // our API client for internal routes and configurations about connection's kind.
-func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.Session, conn net.Conn, c internalclient.Client, opts kind.ConfigOptions) error {
+func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.Session, conn net.Conn, api internalclient.Client, opts kind.ConfigOptions) error {
 	log.WithFields(log.Fields{
 		"session": s.UID,
 	}).Trace("A connection between a client and agent was initialized")
@@ -283,7 +283,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 		}).Error("Failed to create session for SSH Client")
 	}
 
-	go handleRequests(ctx, reqs, c)
+	go handleRequests(ctx, reqs, api)
 
 	pty, winCh, isPty := session.Pty()
 
@@ -311,7 +311,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 
 	switch kid.Get() {
 	case kind.SHELL:
-		err = kid.Shell(c, s.UID, client, session, pty, winCh, opts)
+		err = kid.Shell(api, s.UID, client, session, pty, winCh, opts)
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": s.UID,
@@ -320,7 +320,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 			return ErrKindShell
 		}
 	case kind.EXEC:
-		err = kid.Exec(c, s.UID, client, session)
+		err = kid.Exec(api, s.UID, client, session)
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": s.UID,
@@ -329,7 +329,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 			return ErrKindExec
 		}
 	case kind.HEREDOC:
-		err = kid.Heredoc(c, s.UID, client, session)
+		err = kid.Heredoc(api, s.UID, client, session)
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": s.UID,
