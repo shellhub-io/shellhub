@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type Tunnel struct {
@@ -28,7 +28,7 @@ func (t *Tunnel) SetConnectionHandler() {
 func (t *Tunnel) SetCloseHandler() {
 	t.Tunnel.CloseHandler = func(id string) {
 		if err := internalclient.NewClient().DevicesOffline(id); err != nil {
-			logrus.Error(err)
+			log.Error(err)
 		}
 	}
 }
@@ -36,7 +36,7 @@ func (t *Tunnel) SetCloseHandler() {
 func (t *Tunnel) SetKeepAliveHandler() {
 	t.Tunnel.KeepAliveHandler = func(id string) {
 		if err := internalclient.NewClient().DevicesHeartbeat(id); err != nil {
-			logrus.Error(err)
+			log.Error(err)
 		}
 	}
 }
@@ -45,7 +45,7 @@ func (t *Tunnel) GetRouter() *mux.Router {
 	router, ok := t.Tunnel.Router().(*mux.Router)
 	if !ok {
 		// TODO: should the SSH does not up when this assertion fail?
-		logrus.Error("type assertion failed")
+		log.Error("type assertion failed")
 	}
 
 	return router

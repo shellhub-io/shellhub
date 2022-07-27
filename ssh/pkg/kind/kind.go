@@ -9,7 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -77,7 +77,7 @@ func (k *Kind) Shell(c internalclient.Client, uid string, client *ssh.Session, s
 	go func() {
 		for win := range winCh {
 			if err := client.WindowChange(win.Height, win.Width); err != nil {
-				logrus.WithError(err).WithFields(logrus.Fields{
+				log.WithError(err).WithFields(log.Fields{
 					"session": uid,
 				}).Error("Failed to send WindowChange")
 			}
@@ -103,7 +103,7 @@ func (k *Kind) Shell(c internalclient.Client, uid string, client *ssh.Session, s
 		for {
 			bufReader := bytes.NewReader(buf[:n])
 			if _, err = io.Copy(session, bufReader); err != nil {
-				logrus.WithError(err).WithFields(logrus.Fields{
+				log.WithError(err).WithFields(log.Fields{
 					"session": uid,
 				}).Error("Failed to copy from stdout in pty session")
 			}
@@ -125,7 +125,7 @@ func (k *Kind) Shell(c internalclient.Client, uid string, client *ssh.Session, s
 	}()
 
 	if err := client.Shell(); err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{
+		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
 		}).Error("Failed to start a new shell")
 
@@ -133,7 +133,7 @@ func (k *Kind) Shell(c internalclient.Client, uid string, client *ssh.Session, s
 	}
 
 	if err := client.Wait(); err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{
+		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
 		}).Warning("Client remote command returned a error")
 	}
@@ -149,7 +149,7 @@ func (k *Kind) Heredoc(c internalclient.Client, uid string, client *ssh.Session,
 	}
 
 	if err := client.Shell(); err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{
+		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
 		}).Error("Failed to start a new shell")
 
@@ -158,7 +158,7 @@ func (k *Kind) Heredoc(c internalclient.Client, uid string, client *ssh.Session,
 
 	err := client.Wait()
 	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{
+		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
 		}).Warning("Client remote command returned a error")
 	}
@@ -174,7 +174,7 @@ func (k *Kind) Exec(c internalclient.Client, uid string, client *ssh.Session, se
 	}
 
 	if err := client.Start(session.RawCommand()); err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{
+		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
 		}).Error("Failed to start session raw command")
 
@@ -183,7 +183,7 @@ func (k *Kind) Exec(c internalclient.Client, uid string, client *ssh.Session, se
 
 	err := client.Wait()
 	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{
+		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
 		}).Warning("Client remote command returned a error")
 	}
