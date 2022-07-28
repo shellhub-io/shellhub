@@ -51,6 +51,8 @@ endif
 stop:
 	@$(DOCKER_COMPOSE) stop
 
+restart: stop start
+
 .PHONY: build
 ## Build all services (append "SERVICE=<service>" to build a specific one)
 build: check_development_mode
