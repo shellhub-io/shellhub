@@ -79,7 +79,7 @@ func (k *Kind) Shell(api internalclient.Client, uid string, client *ssh.Session,
 			if err := client.WindowChange(win.Height, win.Width); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"session": uid,
-				}).Error("Failed to send WindowChange")
+				}).Error("failed to send WindowChange")
 			}
 		}
 	}()
@@ -88,7 +88,7 @@ func (k *Kind) Shell(api internalclient.Client, uid string, client *ssh.Session,
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
-		}).Error("Failed to create a flow of data from client to agent")
+		}).Error("failed to create a flow of data from client to agent")
 
 		return err
 	}
@@ -106,7 +106,7 @@ func (k *Kind) Shell(api internalclient.Client, uid string, client *ssh.Session,
 			if _, err = io.Copy(session, bytes.NewReader(buffer[:read])); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"UID": uid,
-				}).Error("Failed to copy from stdout in pty session")
+				}).Error("failed to copy from stdout in pty session")
 			}
 
 			if envs.IsEnterprise() || envs.IsCloud() {
@@ -125,7 +125,7 @@ func (k *Kind) Shell(api internalclient.Client, uid string, client *ssh.Session,
 	if err := client.Shell(); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
-		}).Error("Failed to start a new shell")
+		}).Error("failed to start a new shell")
 
 		return err
 	}
@@ -150,7 +150,7 @@ func (k *Kind) Heredoc(api internalclient.Client, uid string, client *ssh.Sessio
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
-		}).Error("Failed to create a flow of data from client to agent")
+		}).Error("failed to create a flow of data from client to agent")
 
 		return err
 	}
@@ -162,7 +162,7 @@ func (k *Kind) Heredoc(api internalclient.Client, uid string, client *ssh.Sessio
 	if err := client.Shell(); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
-		}).Error("Failed to start a new shell")
+		}).Error("failed to start a new shell")
 
 		return err
 	}
@@ -188,7 +188,7 @@ func (k *Kind) Exec(api internalclient.Client, uid string, client *ssh.Session, 
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
-		}).Error("Failed to create a flow of data from client to agent")
+		}).Error("failed to create a flow of data from client to agent")
 
 		return err
 	}
@@ -200,7 +200,7 @@ func (k *Kind) Exec(api internalclient.Client, uid string, client *ssh.Session, 
 	if err := client.Start(session.RawCommand()); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": uid,
-		}).Error("Failed to start session raw command")
+		}).Error("failed to start session raw command")
 
 		return err
 	}

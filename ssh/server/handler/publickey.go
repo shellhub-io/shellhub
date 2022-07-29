@@ -12,7 +12,7 @@ import (
 func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 	log.WithFields(log.Fields{
 		"key": pubKey,
-	}).Trace("Initializing a session through public key connection")
+	}).Trace("initializing a session through public key connection")
 
 	fingerprint := ssh.FingerprintLegacyMD5(pubKey)
 
@@ -22,7 +22,7 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 			"sshid":       sshid,
 			"key":         pubKey,
 			"fingerprint": fingerprint,
-		}).Error("Failed to get the session's SSHID from context")
+		}).Error("failed to get the session's SSHID from context")
 
 		return false
 	}
@@ -33,7 +33,7 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 			"sshid":       sshid,
 			"key":         pubKey,
 			"fingerprint": fingerprint,
-		}).Error("Failed to get the session's target")
+		}).Error("failed to get the session's target")
 
 		return false
 	}
@@ -48,7 +48,7 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 				"sshid":       sshid,
 				"key":         pubKey,
 				"fingerprint": fingerprint,
-			}).Error("Failed to get the device's hostname and namespace")
+			}).Error("failed to get the device's hostname and namespace")
 
 			return false
 		}
@@ -64,7 +64,7 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 				"sshid":       sshid,
 				"key":         pubKey,
 				"fingerprint": fingerprint,
-			}).Error("Failed to get the device from API")
+			}).Error("failed to get the device from API")
 
 			return false
 		}
@@ -80,7 +80,7 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 		"key":         pubKey,
 		"fingerprint": fingerprint,
 		"lookup":      lookup,
-	}).Debug("Device's to lookup at the API")
+	}).Debug("device's to lookup at the API")
 
 	device, errs := api.DeviceLookup(lookup)
 	if len(errs) > 0 {
@@ -89,7 +89,7 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 			"key":         pubKey,
 			"fingerprint": fingerprint,
 			"lookup":      lookup,
-		}).Error("Failed to get the device's data in the API server")
+		}).Error("failed to get the device's data in the API server")
 
 		return false
 	}
@@ -100,7 +100,7 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 			"sshid":       sshid,
 			"key":         pubKey,
 			"fingerprint": fingerprint,
-		}).Error("Failed to create the magic pulick key")
+		}).Error("failed to create the magic pulick key")
 
 		return false
 	}
@@ -113,7 +113,7 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 				"key":         pubKey,
 				"fingerprint": fingerprint,
 				"tenant":      device.TenantID,
-			}).Error("Failed to get the public key form the API server")
+			}).Error("failed to get the public key form the API server")
 
 			return false
 		}
@@ -124,7 +124,7 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 				"key":         pubKey,
 				"fingerprint": fingerprint,
 				"username":    tag.Username,
-			}).Error("Failed to evaluate the public key on the API server")
+			}).Error("failed to evaluate the public key on the API server")
 
 			return false
 		}
@@ -134,7 +134,7 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 
 	log.WithFields(log.Fields{
 		"key": pubKey,
-	}).Trace("Closing a session through public key connection")
+	}).Trace("closing a session through public key connection")
 
 	return true
 }

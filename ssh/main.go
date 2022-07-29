@@ -32,7 +32,7 @@ func main() {
 		exit := func(response http.ResponseWriter, status int, err error) {
 			log.WithError(err).WithFields(log.Fields{
 				"status": status,
-			}).Error("Failed to close the session")
+			}).Error("failed to close the session")
 
 			http.Error(response, err.Error(), status)
 		}
