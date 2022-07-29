@@ -21,34 +21,43 @@ import (
 )
 
 var (
-	ErrFindPublicKey        = fmt.Errorf("it could not possible to get the public key from the server")
-	ErrEvaluatePublicKey    = fmt.Errorf("it could not evaluate the public key in the server")
-	ErrForbiddenPublicKey   = fmt.Errorf("this public key could not be used to this action")
-	ErrDataPublicKey        = fmt.Errorf("it could not parse the public key data")
-	ErrSignaturePublicKey   = fmt.Errorf("it could not decode the public key signature")
-	ErrVerifyPublicKey      = fmt.Errorf("it could not verify the public key")
-	ErrInvalidSessionTarget = fmt.Errorf("invalid session target")
-	ErrFindDevice           = fmt.Errorf("it cloud not find the device")
-	ErrSignerPublicKey      = fmt.Errorf("it could not signer the public key")
-	ErrDialSSH              = fmt.Errorf("it could not dial to connect to SSH server")
-	ErrSession              = fmt.Errorf("it could not create the SSH session")
-	ErrEnvIPAddress         = fmt.Errorf("it could not set the env virable of ip address to session")
-	ErrEnvWS                = fmt.Errorf("it could not set the env virable of web socket to session")
-	ErrPipe                 = fmt.Errorf("it could not pipe session data from client to agent")
-	ErrPty                  = fmt.Errorf("it could not request the pty from agent")
-	ErrShell                = fmt.Errorf("it could not get the shell from agent")
+	ErrFindPublicKey      = fmt.Errorf("failed to get the public key from the server")
+	ErrEvaluatePublicKey  = fmt.Errorf("failed to evaluate the public key in the server")
+	ErrForbiddenPublicKey = fmt.Errorf("failed to use the public key for this action")
+	ErrDataPublicKey      = fmt.Errorf("failed to parse the public key data")
+	ErrSignaturePublicKey = fmt.Errorf("failed to decode the public key signature")
+	ErrVerifyPublicKey    = fmt.Errorf("failed to verify the public key")
+	ErrFindDevice         = fmt.Errorf("failed to find the device")
+	ErrSignerPublicKey    = fmt.Errorf("failed to signer the public key")
+	ErrDialSSH            = fmt.Errorf("failed to dial to connect to SSH server")
+	ErrSession            = fmt.Errorf("failed to create the SSH session")
+	ErrEnvIPAddress       = fmt.Errorf("failed to set the env virable of ip address to session")
+	ErrEnvWS              = fmt.Errorf("failed to set the env virable of web socket to session")
+	ErrPipe               = fmt.Errorf("failed to pipe session data from client to agent")
+	ErrPty                = fmt.Errorf("failed to request the pty from agent")
+	ErrShell              = fmt.Errorf("failed to get the shell from agent")
 )
 
-type WebConnection struct {
-	User        string
-	Password    string
+// WebData contains the data required by web termianl connection.
+type WebData struct {
+	// User is the device's user.
+	User string
+	// Password is the user's device password.
+	// when Password is set, Fingerprint must not be set.
+	Password string
+	// Fingerprint is the public key fingerprint.
+	// when Fingerprint is set, Password must not be set.
 	Fingerprint string
 	Signature   string
-	Columns     int
-	Rows        int
+	// Columns is the width size of pty.
+	Columns int
+	// Rows is the height size of pty.
+	Rows int
 }
 
-func NewWebConnection(socket *websocket.Conn) *WebConnection {
+// NewWebData create a new WebData.
+// WebData contains the data required by web termianl connection.
+func NewWebData(socket *websocket.Conn) *WebData {
 	get := func(socket *websocket.Conn, key string) string {
 		return socket.Request().URL.Query().Get(key)
 	}
@@ -56,13 +65,13 @@ func NewWebConnection(socket *websocket.Conn) *WebConnection {
 	toInt := func(text string) int {
 		integer, err := strconv.Atoi(text)
 		if err != nil {
-			log.WithError(err).Errorln("could not convert the text to int")
+			log.WithError(err).Error("failed to convert the text to int")
 		}
 
 		return integer
 	}
 
-	return &WebConnection{
+	return &WebData{
 		User:        get(socket, "user"),
 		Password:    get(socket, "passwd"),
 		Fingerprint: get(socket, "fingerprint"),
@@ -73,24 +82,24 @@ func NewWebConnection(socket *websocket.Conn) *WebConnection {
 }
 
 // isPublicKey checks if connection is using public key method.
-func (c *WebConnection) isPublicKey() bool { // nolint: unused
+func (c *WebData) isPublicKey() bool { // nolint: unused
 	return c.Fingerprint != "" && c.Signature != ""
 }
 
 // isPassword checks if connection is using password method.
-func (c *WebConnection) isPassword() bool {
+func (c *WebData) isPassword() bool {
 	return c.Password != ""
 }
 
 // GetAuth gets the authentication methods from connection.
-func (c *WebConnection) GetAuth(magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
+func (c *WebData) GetAuth(magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
 	if c.isPassword() {
 		return []ssh.AuthMethod{ssh.Password(c.Password)}, nil
 	}
 
 	tag, err := target.NewTarget(c.User)
 	if err != nil {
-		return nil, ErrInvalidSessionTarget
+		return nil, ErrTarget
 	}
 
 	cli := internalclient.NewClient()
@@ -144,28 +153,37 @@ func (c *WebConnection) GetAuth(magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, err
 
 // WebSession is the session's handler for connection coming from the web terminal.
 func WebSession(socket *websocket.Conn) {
-	log.Info("Handling web session request started")
+	log.Info("handling web session request started")
 
+	// exit responds and finish SSH's session when something goes wrong during session handling.
+	// Internal error is the error from Go code, and external one is what going to be send to end user.
 	exit := func(session *ssh.Session, socket *websocket.Conn, internal, external error) {
 		log.WithFields(log.Fields{
 			"internal": internal,
 			"external": external,
-		}).Error("Failed to handler the web session")
+		}).Error("failed to handler the web session")
 
+		// finish close the SSH's session and websocket connection.
 		finish := func(session *ssh.Session, socket *websocket.Conn) {
 			if session != nil {
-				session.Close()
+				err := session.Close()
+				if err != nil {
+					log.WithError(err).Error("failed to finish the web session")
+				}
 			}
 
 			if socket != nil {
-				socket.Close()
+				err := socket.Close()
+				if err != nil {
+					log.WithError(err).Error("failed to close the web socket")
+				}
 			}
 		}
 
 		respond := func(socket *websocket.Conn, err error) {
 			_, err = socket.Write([]byte(err.Error()))
 			if err != nil {
-				log.WithError(err).Error("could not write the error to the socket")
+				log.WithError(err).Error("failed to write the error to the socket")
 			}
 		}
 
@@ -173,17 +191,17 @@ func WebSession(socket *websocket.Conn) {
 		finish(session, socket)
 	}
 
-	connection := NewWebConnection(socket)
+	data := NewWebData(socket)
 
-	auth, err := connection.GetAuth(magickey.GetRerefence())
+	auth, err := data.GetAuth(magickey.GetRerefence())
 	if err != nil {
 		exit(nil, socket, nil, err)
 
 		return
 	}
 
-	cli, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
-		User:            connection.User,
+	server, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
+		User:            data.User,
 		Auth:            auth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 	})
@@ -193,7 +211,7 @@ func WebSession(socket *websocket.Conn) {
 		return
 	}
 
-	session, err := cli.NewSession()
+	session, err := server.NewSession()
 	if err != nil {
 		exit(session, socket, err, ErrSession)
 
@@ -219,7 +237,7 @@ func WebSession(socket *websocket.Conn) {
 		return
 	}
 
-	if err := session.RequestPty("xterm.js", connection.Rows, connection.Columns, ssh.TerminalModes{
+	if err := session.RequestPty("xterm.js", data.Rows, data.Columns, ssh.TerminalModes{
 		ssh.ECHO:          1,
 		ssh.TTY_OP_ISPEED: 14400,
 		ssh.TTY_OP_OSPEED: 14400,
@@ -259,12 +277,12 @@ func WebSession(socket *websocket.Conn) {
 
 	<-done
 
-	cli.Close()
+	server.Close()
 	socket.Close()
 
 	<-done
 
-	log.Info("Handling web session request closed")
+	log.Info("handling web session request closed")
 }
 
 func redirToWs(rd io.Reader, ws *websocket.Conn) error {

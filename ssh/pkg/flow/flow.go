@@ -34,7 +34,7 @@ func NewFlow(session *ssh.Session) (*Flow, error) {
 
 func (f *Flow) PipeIn(session io.Reader) {
 	if _, err := io.Copy(f.Stdin, session); err != nil {
-		log.WithError(err).Error("Failed to copy from session to Stdin")
+		log.WithError(err).Error("failed to copy from session to Stdin")
 	}
 
 	f.Stdin.Close()
@@ -42,12 +42,12 @@ func (f *Flow) PipeIn(session io.Reader) {
 
 func (f *Flow) PipeOut(session io.Writer) {
 	if _, err := io.Copy(session, f.Stdout); err != nil && err != io.EOF {
-		log.WithError(err).Error("Failed to copy from Stdout to session")
+		log.WithError(err).Error("failed to copy from Stdout to session")
 	}
 }
 
 func (f *Flow) PipeErr(session io.Writer) {
 	if _, err := io.Copy(session, f.Stderr); err != nil && err != io.EOF {
-		log.WithError(err).Error("Failed to copy from Stderr to session")
+		log.WithError(err).Error("failed to copy from Stderr to session")
 	}
 }

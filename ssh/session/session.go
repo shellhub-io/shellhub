@@ -22,25 +22,25 @@ import (
 )
 
 var (
-	ErrTarget          = fmt.Errorf("invalid session target")
-	ErrLookupDevice    = fmt.Errorf("could not lookup for device data")
+	ErrTarget          = fmt.Errorf("failed dto get session target")
+	ErrLookupDevice    = fmt.Errorf("failed to lookup for device data")
 	ErrBillingBlock    = fmt.Errorf("you cannot connect to this device because the namespace is not eligible for the free plan.\\nPlease contact the namespace owner's to upgrade the plan.\\nSee our pricing plans on https://www.shellhub.io/pricing to estimate the cost of your use cases on ShellHub Cloud or go to https://cloud.shellhub.io/settings/billing to upgrade the plan")
 	ErrFirewallBlock   = fmt.Errorf("a firewall rule block this action")
-	ErrHost            = fmt.Errorf("it could not get the device address")
-	ErrKindShell       = fmt.Errorf("it could not open a shell in the device")
-	ErrKindExec        = fmt.Errorf("it could not exec the command in the device")
-	ErrKindHeredoc     = fmt.Errorf("it could not exec the commands in the device")
+	ErrHost            = fmt.Errorf("failed to get the device address")
+	ErrKindShell       = fmt.Errorf("failed to open a shell in the device")
+	ErrKindExec        = fmt.Errorf("failed to exec the command in the device")
+	ErrKindHeredoc     = fmt.Errorf("failed to exec the commands in the device")
 	ErrKindUnsupported = fmt.Errorf("this connection kind does not exist")
-	ErrFlow            = fmt.Errorf("it cloud not open a data from client to agent")
-	ErrConnect         = fmt.Errorf("it could not connect to device") // NOTICE: this error happens when password wasn't corret.
+	ErrFlow            = fmt.Errorf("failed to open a data from client to agent")
+	ErrConnect         = fmt.Errorf("failed to connect to device") // NOTICE: this error happens when password wasn't corret.
 )
 
 type Session struct {
 	session       gliderssh.Session
 	User          string `json:"username"`
-	Target        string `json:"device_uid"`
+	Target        string `json:"device_uid"` // nolint: tagliatelle
 	UID           string `json:"uid"`
-	IPAddress     string `json:"ip_address"`
+	IPAddress     string `json:"ip_address"` // nolint: tagliatelle
 	Type          string `json:"type"`
 	Term          string `json:"term"`
 	Authenticated bool   `json:"authenticated"`
@@ -94,18 +94,18 @@ func handlePty(s *Session) {
 
 // NewSession creates a new session from a client to device, validating data, instance and payment.
 // It receives an SSHID what contains the device's hostname and namespace which it is desirable to
-// connect or a device ID, and a instance of sshserver.Session.
+// connect or a device ID, and an instance of sshserver.Session.
 func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 	log.WithFields(log.Fields{
 		"sshid":   sshid,
 		"session": session,
-	}).Trace("The creation of a new ShellHub session instance was initialized")
+	}).Trace("the creation of a new ShellHub session instance was initialized")
 
 	tag, err := target.NewTarget(sshid)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"sshid": sshid,
-		}).Error("Failed to get the session's target")
+		}).Error("failed to get the session's target")
 
 		return nil, ErrTarget
 	}
@@ -114,7 +114,7 @@ func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"sshid": sshid,
-		}).Error("Failed to get session's address")
+		}).Error("failed to get session's address")
 
 		return nil, ErrHost
 	}
@@ -137,7 +137,7 @@ func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"sshid": sshid,
-			}).Error("Failed to get the device's hostname and namespace")
+			}).Error("failed to get the device's hostname and namespace")
 
 			return nil, ErrTarget
 		}
@@ -151,7 +151,7 @@ func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"sshid": sshid,
-			}).Error("Failed to get the device from API")
+			}).Error("failed to get the device from API")
 
 			return nil, ErrFindDevice
 		}
@@ -174,7 +174,7 @@ func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 	if len(errs) > 0 || uid == "" {
 		log.WithError(err).WithFields(log.Fields{
 			"sshid": sshid,
-		}).Error("Failed to lookup for device in API")
+		}).Error("failed to lookup for device in API")
 
 		return nil, ErrLookupDevice
 	}
@@ -194,7 +194,7 @@ func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"sshid": sshid,
-			}).Error("Failed to get the device's data in the API server")
+			}).Error("failed to get the device's data in the API server")
 
 			return nil, ErrFindDevice
 		}
@@ -204,13 +204,13 @@ func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 				"sshid":  sshid,
 				"device": device.UID,
 				"tenant": device.TenantID,
-			}).Info("The billing blocked this action")
+			}).Info("the billing blocked this action")
 
 			return nil, ErrBillingBlock
 		}
 	}
 
-	sess := &Session{ // nolint:exhaustruct
+	sess := &Session{ // nolint: exhaustruct, forcetypeassert
 		session:   session,
 		UID:       session.Context().Value(gliderssh.ContextKeySessionID).(string),
 		User:      tag.Username,
@@ -224,14 +224,14 @@ func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 	log.WithFields(log.Fields{
 		"sshid":   sshid,
 		"session": session,
-	}).Trace("The new ShellHub session instance created")
+	}).Trace("the new ShellHub session instance created")
 
 	return sess, nil
 }
 
-// Connect trys to connect a client to the device what he or she wants to access. It receives a possible
-// session's password or public key, the SSH session opened from client to the server a network connection,
-// our API client for internal routes and configurations about connection's kind.
+// Connect trys to connect a client to the device what he or she wants to access. It receives a possible session's
+// password or public key, the SSH session opened from client to the server a network connection, our API client for
+// internal routes and configurations about connection's kind.
 func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.Session, conn net.Conn, api internalclient.Client, opts kind.ConfigOptions) error {
 	log.WithFields(log.Fields{
 		"session": s.UID,
@@ -253,7 +253,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": s.UID,
-			}).Error("Failed to get the signer from public key")
+			}).Error("failed to get the signer from public key")
 
 			return ErrSignerPublicKey
 		}
@@ -261,17 +261,25 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 		config.Auth = []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		}
+
+		log.WithFields(log.Fields{
+			"session": s.UID,
+		}).Trace("Using authentication from public key")
 	} else {
 		config.Auth = []ssh.AuthMethod{
 			ssh.Password(passwd),
 		}
+
+		log.WithFields(log.Fields{
+			"session": s.UID,
+		}).Trace("Using authentication from password")
 	}
 
 	connection, reqs, err := NewClientConnWithDeadline(conn, "tcp", config)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": s.UID,
-		}).Error("Failed to connect to forwarding")
+		}).Error("failed to connect to forwarding")
 
 		return ErrConnect
 	}
@@ -280,7 +288,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": s.UID,
-		}).Error("Failed to create session for SSH Client")
+		}).Error("failed to create session for SSH Client")
 	}
 
 	go handleRequests(ctx, reqs, api)
@@ -289,7 +297,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 
 	kid := kind.NewKind(session.Context(), isPty)
 
-	// Gets the ssh's server connection from the context to kill the process initialized by the session.
+	// Gets the SSH's server connection from the context to kill the process initialized by the session.
 	server, ok := session.Context().Value(gliderssh.ContextKeyConn).(*ssh.ServerConn)
 	if !ok {
 		log.WithFields(log.Fields{
@@ -306,7 +314,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 
 		log.WithFields(log.Fields{
 			"session": s.UID,
-		}).Info("Processes opened was closed")
+		}).Info("processes opened was closed")
 	}()
 
 	switch kid.Get() {
@@ -315,7 +323,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": s.UID,
-			}).Error("Failed to create a shell")
+			}).Error("failed to create a shell")
 
 			return ErrKindShell
 		}
@@ -324,7 +332,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": s.UID,
-			}).Error("Failed to exec a command")
+			}).Error("failed to exec a command")
 
 			return ErrKindExec
 		}
@@ -333,14 +341,14 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": s.UID,
-			}).Error("Failed to exec a interative commands")
+			}).Error("failed to exec a interative commands")
 
 			return ErrKindHeredoc
 		}
 	default:
 		log.WithError(err).WithFields(log.Fields{
 			"session": s.UID,
-		}).Error("This connection isn't supported")
+		}).Error("this connection isn't supported")
 		session.Exit(255) // nolint:errcheck
 
 		return ErrKindUnsupported
@@ -350,14 +358,14 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": s.UID,
-		}).Error("Failed to close the connection")
+		}).Error("failed to close the connection")
 
 		return err
 	}
 
 	log.WithFields(log.Fields{
 		"session": s.UID,
-	}).Trace("A connection between a client and agent was closed")
+	}).Trace("a connection between a client and agent was closed")
 
 	return nil
 }
@@ -365,21 +373,21 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 func (s *Session) Register(_ gliderssh.Session) error {
 	log.WithFields(log.Fields{
 		"session": s.UID,
-	}).Trace("Trying to register a new session at the API")
+	}).Trace("trying to register a new session at the API")
 
 	if _, err := resty.New().R().
 		SetBody(*s).
 		Post("http://api:8080/internal/sessions"); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"session": s.UID,
-		}).Error("Failed to register a new session at the API")
+		}).Error("failed to register a new session at the API")
 
 		return err
 	}
 
 	log.WithFields(log.Fields{
 		"session": s.UID,
-	}).Trace("Session registered at the API")
+	}).Trace("session registered at the API")
 
 	return nil
 }
@@ -390,13 +398,13 @@ func (s *Session) Finish(conn net.Conn) error {
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": s.UID,
-			}).Warning("Failed to request the session close")
+			}).Warning("failed to request the session close")
 		}
 
 		if err := request.Write(conn); err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"session": s.UID,
-			}).Warning("Failed to write the request to connection")
+			}).Warning("failed to write the request to connection")
 		}
 	}
 
@@ -455,7 +463,7 @@ func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientCon
 		if err := conn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"address": addr,
-			}).Error("Failed to read the dealine from the connection")
+			}).Error("failed to read the dealine from the connection")
 
 			return nil, nil, err
 		}
@@ -465,7 +473,7 @@ func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientCon
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"address": addr,
-		}).Error("Failed to create a new SSHE client connection")
+		}).Error("failed to create a new SSHE client connection")
 
 		return nil, nil, err
 	}
@@ -474,7 +482,7 @@ func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientCon
 		if err := conn.SetReadDeadline(time.Time{}); err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"address": addr,
-			}).Error("Failed to read the dealine from the connection")
+			}).Error("failed to read the dealine from the connection")
 
 			return nil, nil, err
 		}

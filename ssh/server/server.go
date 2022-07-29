@@ -26,13 +26,13 @@ import (
 )
 
 var (
-	ErrPassword   = fmt.Errorf("it could not get the password from context")
-	ErrPublicKey  = fmt.Errorf("it could not get the public key from context")
-	ErrPrivateKey = fmt.Errorf("it could not get the private key")
-	ErrSession    = fmt.Errorf("it could not create the session")
+	ErrPassword   = fmt.Errorf("failed to get the password from context")
+	ErrPublicKey  = fmt.Errorf("failed to get the public key from context")
+	ErrPrivateKey = fmt.Errorf("failed to get the private key")
+	ErrSession    = fmt.Errorf("failed to create the session")
 	ErrWebhook    = fmt.Errorf("the connection was reject by webhook")
-	ErrConnect    = fmt.Errorf("it could not connect to device")
-	ErrDial       = fmt.Errorf("it could not be possible to connect to the API server")
+	ErrConnect    = fmt.Errorf("failed to connect to device")
+	ErrDial       = fmt.Errorf("failed to be possible to connect to the API server")
 )
 
 type Options struct {
@@ -47,13 +47,14 @@ type Server struct {
 	tunnel *httptunnel.Tunnel
 }
 
+// NewServer create a new ShellHub's SSH server.
 func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
-	server := &Server{
+	server := &Server{ // nolint: exhaustruct
 		opts:   opts,
 		tunnel: tunnel,
 	}
 
-	server.sshd = &ssh.Server{
+	server.sshd = &ssh.Server{ // nolint: exhaustruct
 		Addr:                   opts.Addr,
 		Handler:                server.SessionHandler,
 		PasswordHandler:        handler.Password,
@@ -62,39 +63,47 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 	}
 
 	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) {
-		log.WithError(err).Fatal("Private key not found!")
+		log.WithError(err).Fatal("private key not found!")
 	}
 
 	if err := server.sshd.SetOption(ssh.HostKeyFile(os.Getenv("PRIVATE_KEY"))); err != nil {
-		log.WithError(err).Fatal("Host key not found!")
+		log.WithError(err).Fatal("host key not found!")
 	}
 
 	return server
 }
 
+// SessionHandler handles a new SSH session from ShellHub's users to device.
 func (s *Server) SessionHandler(glidersession ssh.Session) {
 	log.WithFields(log.Fields{
 		"target":  glidersession.User(),
 		"session": glidersession.Context().Value(ssh.ContextKeySessionID),
-	}).Info("Handling session request started")
+	}).Info("handling session request started")
 
+	// exit responds and finish SSH's session when something goes wrong during session handling.
+	// Internal error is the error from Go code, and external one is what going to be send to end user.
 	exit := func(session ssh.Session, internal, external error) {
 		log.WithFields(log.Fields{
 			"internal": internal,
 			"external": external,
 			"session":  glidersession.Context().Value(ssh.ContextKeySessionID),
-		}).Error("Failed to handler the session")
+		}).Error("failed to handler the session")
 
+		// finish close the SSH's session.
 		finish := func(session ssh.Session) {
 			if session != nil {
-				session.Close()
+				err := session.Close()
+				if err != nil {
+					log.WithError(err).Error("failed to finish the session")
+				}
 			}
 		}
 
+		// response sends the error's message through the session.
 		respond := func(session ssh.Session, err error) {
 			_, err = io.WriteString(session, fmt.Sprintf("%s\n", err))
 			if err != nil {
-				log.WithError(err).Error("could not write the error to the session")
+				log.WithError(err).Error("failed to write the error to the session")
 			}
 		}
 
@@ -138,21 +147,21 @@ func (s *Server) SessionHandler(glidersession ssh.Session) {
 			"target":   sess.Target,
 			"username": sess.User,
 			"session":  glidersession.Context().Value(ssh.ContextKeySessionID),
-		}).Info("Session closed")
+		}).Info("session closed")
 	}()
 
 	log.WithFields(log.Fields{
 		"target":   sess.Target,
 		"username": sess.User,
 		"session":  glidersession.Context().Value(ssh.ContextKeySessionID),
-	}).Info("Session created")
+	}).Info("session created")
 
 	if err = sess.Register(glidersession); err != nil {
 		log.WithFields(log.Fields{
 			"target":   sess.Target,
 			"username": sess.User,
 			"session":  glidersession.Context().Value(ssh.ContextKeySessionID),
-		}).Warning("Failed to register session")
+		}).Warning("failed to register session")
 	}
 
 	var privKey *rsa.PrivateKey
@@ -215,20 +224,22 @@ func (s *Server) SessionHandler(glidersession ssh.Session) {
 	log.WithFields(log.Fields{
 		"target":  glidersession.User(),
 		"session": glidersession.Context().Value(ssh.ContextKeySessionID),
-	}).Info("Handling session request closed")
+	}).Info("handling session request closed")
 }
 
 func (s *Server) ListenAndServe() error {
 	log.WithFields(log.Fields{
 		"addr": s.opts.Addr,
-	}).Info("SSH server listening")
+	}).Info("ssh server listening")
 
 	list, err := net.Listen("tcp", s.opts.Addr)
 	if err != nil {
+		log.WithError(err).Error("failed to listen an serve the TCP server")
+
 		return err
 	}
 
-	proxy := &proxyproto.Listener{Listener: list}
+	proxy := &proxyproto.Listener{Listener: list} // nolint: exhaustruct
 	defer proxy.Close()
 
 	return s.sshd.Serve(proxy)
