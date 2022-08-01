@@ -16,90 +16,122 @@ import (
 	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 )
 
-// sessionRecordCleanup deletes session's records registers older than days defined by SHELLHUB_RECORD_RETENTION.
-// When SHELLHUB_RECORD_RETENTION is equals to zero, records will never be deleted.
-// When SHELLHUB_RECORD_RETENTION is less than zero, nothing happen.
-//
-// If something inside the function does not work properly, it should panic.
-func sessionRecordCleanup() error {
-	logrus.Info("Running worker to delete session's records...")
+type envs struct {
+	MongoURI               string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
+	SessionRecordRetention int    `envconfig:"record_retention" default:"0"`
+}
 
-	type config struct {
-		MongoURI               string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
-		SessionRecordRetention int    `envconfig:"record_retention" default:"0"`
+// Connect connects to MongoDB.
+func Connect(ctx context.Context, uri string) (*mongo.Database, error) {
+	connStr, err := connstring.ParseAndValidate(uri)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid Mongo URI format")
 	}
 
-	// Loading env variables.
-	var envs config
-	if err := envconfig.Process("api", &envs); err != nil {
-		return errors.Wrap(err, "Failed to load environment variables")
+	// Applying MongoDB URI to client options.
+	clientOptions := options.Client().ApplyURI(uri)
+
+	// Connecting to MongoDB.
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to connect to MongoDB")
+	}
+
+	// Testing if MongoDB is connected.
+	if err = client.Ping(ctx, nil); err != nil {
+		return nil, errors.Wrap(err, "failed to ping MongoDB")
+	}
+
+	return client.Database(connStr.Database), nil
+}
+
+/*
+	This worker will delete all data inside recorded_session's collection older than a date limit and set the "recorded"
+	status from session's collection to false.
+*/
+
+// Delete deletes registers from recorded_session's collection.
+func Delete(ctx context.Context, db *mongo.Database, limit time.Time) (int64, error) {
+	deleted, err := db.Collection("recorded_sessions").DeleteMany(ctx,
+		bson.M{"time": bson.D{{"$lte", limit}}},
+	)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete the session's records from MongoDB")
+	}
+
+	return deleted.DeletedCount, nil
+}
+
+// Update updates session's records that were deleted to status no recorded.
+func Update(ctx context.Context, db *mongo.Database, limit time.Time) (int64, error) {
+	updated, err := db.Collection("sessions").UpdateMany(ctx,
+		bson.M{"started_at": bson.D{{"$lte", limit}}, "recorded": bson.M{"$eq": true}},
+		bson.M{"$set": bson.M{"recorded": false}})
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to set the sessions from MongoDB to no recorded")
+	}
+
+	return updated.ModifiedCount, nil
+}
+
+// sessionRecordCleanup deletes session's records registers older than days defined by SHELLHUB_RECORD_RETENTION.
+//
+// If something inside the function does not work properly, it should panic.
+// When SHELLHUB_RECORD_RETENTION is equals to zero, records will never be deleted.
+// When SHELLHUB_RECORD_RETENTION is less than zero, nothing happen.
+func sessionRecordCleanup() error {
+	logrus.Info("running worker to delete session's records")
+
+	ctx := context.Background()
+
+	var env envs
+	if err := envconfig.Process("api", &env); err != nil {
+		return errors.Wrap(err, "failed to load environment variables")
 	}
 
 	// Session record retention time was not defined.
-	if envs.SessionRecordRetention == 0 {
-		logrus.Warn("A time to clean the session's record was not defined. Skipping...")
+	if env.SessionRecordRetention == 0 {
+		logrus.Warn("a time to clean the session's record was not defined. Skipping")
 
 		return nil
 	}
 
-	if envs.SessionRecordRetention < 0 {
-		return errors.New("Invalid time interval")
+	if env.SessionRecordRetention < 0 {
+		return errors.New("invalid time interval")
 	}
 
-	// Registers older than that date will be deleted.
-	dateLimit := time.Now().UTC().AddDate(0, 0, envs.SessionRecordRetention*-1)
+	// Session's record older than that date will be deleted.
+	date := time.Now().UTC().AddDate(0, 0, env.SessionRecordRetention*-1)
 
-	logrus.Debug("Connecting to MongoDB...")
+	logrus.Trace("connecting to MongoDB")
 
-	connStr, err := connstring.ParseAndValidate(envs.MongoURI)
+	database, err := Connect(ctx, env.MongoURI)
 	if err != nil {
-		return errors.Wrap(err, "Invalid Mongo URI format")
+		logrus.WithError(err).Error("failed to connect to MongoDB")
+
+		return err
 	}
 
-	// Applying MongoDB URI to client options.
-	clientOptions := options.Client().ApplyURI(envs.MongoURI)
-	// Connecting to MongoDB.
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	deleted, err := Delete(ctx, database, date)
 	if err != nil {
-		return errors.Wrap(err, "Failed to connect to MongoDB")
+		logrus.WithError(err).Error("failed to delete the records on database")
+
+		return err
 	}
 
-	logrus.Debug("Connected! Pinging...")
+	logrus.Trace("session's record deleted")
 
-	// Testing if MongoDB is connected.
-	if err = client.Ping(context.TODO(), nil); err != nil {
-		return errors.Wrap(err, "Failed to ping MongoDB")
-	}
-
-	logrus.Debug("Pinged! Deleting session's record data...")
-
-	db := client.Database(connStr.Database)
-
-	/*
-		This worker will delete all data inside recorded_session's collection older than a date limit and set the "recorded"
-		status from session's collection to false.
-	*/
-	// Deleting registers from recorded_session's collection.
-	deleted, err := db.Collection("recorded_sessions").DeleteMany(context.Background(),
-		bson.M{"time": bson.D{{"$lte", dateLimit}}},
-	)
+	updated, err := Update(ctx, database, date)
 	if err != nil {
-		return errors.Wrap(err, "Failed to delete the session's records from MongoDB")
+		return err
 	}
 
-	logrus.Debug("Deleted! Updating the record status from sessions...")
-	// Setting session records that were deleted to correct status: no recorded.
-	updated, err := db.Collection("sessions").UpdateMany(context.Background(),
-		bson.M{"started_at": bson.D{{"$lte", dateLimit}}, "recorded": bson.M{"$eq": true}},
-		bson.M{"$set": bson.M{"recorded": false}})
-	if err != nil {
-		return errors.Wrap(err, "Failed to set the sessions from MongoDB to no recorded")
-	}
+	logrus.Trace("session's record updated to no recorded")
 
-	logrus.Info(deleted.DeletedCount, " session's records deleted")
-	logrus.Info(updated.ModifiedCount, " sessions set to no recorded")
+	logrus.Info(deleted, " session's records deleted")
+	logrus.Info(updated, " sessions set to no recorded")
 
-	logrus.Info("Closing worker to delete session's records...")
+	logrus.Info("closing worker to delete session's records")
 
 	return nil
 }
