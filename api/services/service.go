@@ -28,6 +28,7 @@ type Service interface {
 	NamespaceService
 	AuthService
 	StatsService
+	SetupService
 }
 
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}, l geoip.Locator) Service {

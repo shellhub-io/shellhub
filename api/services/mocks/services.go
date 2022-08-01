@@ -1026,6 +1026,20 @@ func (_m *Service) SetSessionAuthenticated(ctx context.Context, uid models.UID, 
 	return r0
 }
 
+// Setup provides a mock function with given fields: ctx, req
+func (_m *Service) Setup(ctx context.Context, req request.Setup) error {
+	ret := _m.Called(ctx, req)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, request.Setup) error); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateDataUser provides a mock function with given fields: ctx, id, userData
 func (_m *Service) UpdateDataUser(ctx context.Context, id string, userData request.UserDataUpdate) ([]string, error) {
 	ret := _m.Called(ctx, id, userData)
