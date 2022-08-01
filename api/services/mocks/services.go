@@ -197,13 +197,13 @@ func (_m *Service) AuthUserInfo(ctx context.Context, username string, tenant str
 	return r0, r1
 }
 
-// CreateDeviceTag provides a mock function with given fields: ctx, uid, name
-func (_m *Service) CreateDeviceTag(ctx context.Context, uid models.UID, name string) error {
-	ret := _m.Called(ctx, uid, name)
+// CreateDeviceTag provides a mock function with given fields: ctx, uid, tag
+func (_m *Service) CreateDeviceTag(ctx context.Context, uid models.UID, tag string) error {
+	ret := _m.Called(ctx, uid, tag)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, name)
+		r0 = rf(ctx, uid, tag)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -870,13 +870,13 @@ func (_m *Service) PublicKey() *rsa.PublicKey {
 	return r0
 }
 
-// RemoveDeviceTag provides a mock function with given fields: ctx, uid, name
-func (_m *Service) RemoveDeviceTag(ctx context.Context, uid models.UID, name string) error {
-	ret := _m.Called(ctx, uid, name)
+// RemoveDeviceTag provides a mock function with given fields: ctx, uid, tag
+func (_m *Service) RemoveDeviceTag(ctx context.Context, uid models.UID, tag string) error {
+	ret := _m.Called(ctx, uid, tag)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, name)
+		r0 = rf(ctx, uid, tag)
 	} else {
 		r0 = ret.Error(0)
 	}

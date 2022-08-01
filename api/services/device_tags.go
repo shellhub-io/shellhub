@@ -4,23 +4,25 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
+// DeviceTags contains the service's function to manage device tags.
 type DeviceTags interface {
-	CreateDeviceTag(ctx context.Context, uid models.UID, name string) error
-	RemoveDeviceTag(ctx context.Context, uid models.UID, name string) error
+	CreateDeviceTag(ctx context.Context, uid models.UID, tag string) error
+	RemoveDeviceTag(ctx context.Context, uid models.UID, tag string) error
 	UpdateDeviceTag(ctx context.Context, uid models.UID, tags []string) error
 }
 
 // DeviceMaxTags is the number of tags that a device can have.
 const DeviceMaxTags = 3
 
-func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, name string) error {
-	if !validator.ValidateFieldTag(name) {
-		return NewErrTagInvalid(name, nil)
-	}
-
+// CreateDeviceTag creates a new tag to a device. UID is the device's UID and tag is the tag's name.
+//
+// If the device does not exist, a NewErrDeviceNotFound error will be returned.
+// If the tag already exist, a NewErrTagDuplicated error will be returned.
+// If the device already has the maximum number of tags, a NewErrTagLimit error will be returned.
+// A unknown error will be returned if the tag is not created.
+func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, tag string) error {
 	device, err := s.store.DeviceGet(ctx, uid)
 	if err != nil || device == nil {
 		return NewErrDeviceNotFound(uid, err)
@@ -30,28 +32,40 @@ func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, name stri
 		return NewErrTagLimit(DeviceMaxTags, nil)
 	}
 
-	if contains(device.Tags, name) {
-		return NewErrTagDuplicated(name, nil)
+	if contains(device.Tags, tag) {
+		return NewErrTagDuplicated(tag, nil)
 	}
 
-	return s.store.DeviceCreateTag(ctx, uid, name)
+	return s.store.DeviceCreateTag(ctx, uid, tag)
 }
 
-func (s *service) RemoveDeviceTag(ctx context.Context, uid models.UID, name string) error {
+// RemoveDeviceTag removes a tag from a device. UID is the device's UID and tag is the tag's name.
+//
+// If the device does not exist, a NewErrDeviceNotFound error will be returned.
+// If the tag does not exist, a NewErrTagNotFound error will be returned.
+// A unknown error will be returned if the tag is not removed.
+func (s *service) RemoveDeviceTag(ctx context.Context, uid models.UID, tag string) error {
 	device, err := s.store.DeviceGet(ctx, uid)
 	if err != nil || device == nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
 
-	if !contains(device.Tags, name) {
-		return NewErrTagNotFound(name, nil)
+	if !contains(device.Tags, tag) {
+		return NewErrTagNotFound(tag, nil)
 	}
 
-	return s.store.DeviceRemoveTag(ctx, uid, name)
+	return s.store.DeviceRemoveTag(ctx, uid, tag)
 }
 
+// UpdateDeviceTag updates a device's tags. UID is the device's UID and tags is the new tags.
+//
+// If length of tags is greater than DeviceMaxTags, a NewErrTagLimit error will be returned.
+// If tags' list contains a duplicated one, it is removed and the device's tag will be updated.
+// If the device does not exist, a NewErrDeviceNotFound error will be returned.
+// A unknown error will be returned if the tags are not updated.
 func (s *service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []string) error {
-	listToSet := func(list []string) []string {
+	// TODO: remove this conversion function in favor of a external package.
+	set := func(list []string) []string {
 		s := make(map[string]bool)
 		l := make([]string, 0)
 		for _, o := range list {
@@ -62,24 +76,12 @@ func (s *service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []st
 		}
 
 		return l
-	}
-
-	if len(tags) > DeviceMaxTags {
-		return NewErrTagLimit(DeviceMaxTags, nil)
-	}
-
-	tagSet := listToSet(tags)
-
-	for _, tag := range tagSet {
-		if !validator.ValidateFieldTag(tag) {
-			return NewErrTagInvalid(tag, nil)
-		}
-	}
+	}(tags)
 
 	device, err := s.store.DeviceGet(ctx, uid)
 	if err != nil || device == nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
 
-	return s.store.DeviceUpdateTag(ctx, uid, tagSet)
+	return s.store.DeviceUpdateTag(ctx, uid, set)
 }

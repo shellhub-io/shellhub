@@ -14,8 +14,7 @@ import (
 )
 
 const (
-	invalidUID    = "Fails to find the device invalid uid"
-	invalidFormat = "Fails invalid format for name"
+	invalidUID = "Fails to find the device invalid uid"
 )
 
 func TestCreateTag(t *testing.T) {
@@ -28,8 +27,6 @@ func TestCreateTag(t *testing.T) {
 	err := errors.New("error", "", 0)
 
 	device := &models.Device{UID: "uid", TenantID: "tenant", Tags: []string{"device1"}}
-
-	device2 := &models.Device{UID: "uid2", TenantID: "tenant2", Tags: []string{"device1", "device2", "device3"}}
 
 	cases := []struct {
 		name          string
@@ -48,13 +45,6 @@ func TestCreateTag(t *testing.T) {
 			expected: NewErrDeviceNotFound(models.UID("invalid_uid"), err),
 		},
 		{
-			name:          "Fails invalid format for name",
-			uid:           models.UID(device.UID),
-			deviceName:    "de",
-			requiredMocks: func() {},
-			expected:      NewErrTagInvalid("de", nil),
-		},
-		{
 			name:       "Fails duplicated name",
 			uid:        models.UID(device.UID),
 			deviceName: "device1",
@@ -64,16 +54,7 @@ func TestCreateTag(t *testing.T) {
 			expected: NewErrTagDuplicated("device1", nil),
 		},
 		{
-			name:       "Fails max capacity reached",
-			uid:        models.UID(device2.UID),
-			deviceName: "device6",
-			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID(device2.UID)).Return(device2, nil).Once()
-			},
-			expected: NewErrTagLimit(DeviceMaxTags, nil),
-		},
-		{
-			name:       "successful create a tag for the device",
+			name:       "Successful create a tag for the device",
 			uid:        models.UID(device.UID),
 			deviceName: "device6",
 			requiredMocks: func() {
@@ -177,10 +158,6 @@ func TestUpdateTag(t *testing.T) {
 
 	tags := []string{"device1", "device2", "device3"}
 
-	maxReachedTags := []string{"device1", "device2", "device3", "device4"}
-
-	invalidTag := []string{"de"}
-
 	cases := []struct {
 		name          string
 		uid           models.UID
@@ -196,21 +173,6 @@ func TestUpdateTag(t *testing.T) {
 				mock.On("DeviceGet", ctx, models.UID("invalid_uid")).Return(nil, err).Once()
 			},
 			expected: NewErrDeviceNotFound("invalid_uid", err),
-		},
-		{
-			name:          invalidFormat,
-			uid:           models.UID(device.UID),
-			tags:          invalidTag,
-			requiredMocks: func() {},
-			expected:      NewErrTagInvalid("de", nil),
-		},
-		{
-			name: "Fails max capacity reached",
-			uid:  models.UID(device.UID),
-			tags: maxReachedTags,
-			requiredMocks: func() {
-			},
-			expected: NewErrTagLimit(DeviceMaxTags, nil),
 		},
 		{
 			name: "Successful create tags for the device",
