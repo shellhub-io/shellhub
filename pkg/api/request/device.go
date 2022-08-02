@@ -65,7 +65,7 @@ type DeviceRemoveTag struct {
 // DeviceUpdateTag is the structure to represent the request data for device update tags endpoint.
 type DeviceUpdateTag struct {
 	DeviceParam
-	Tags []string `json:"tags" validate:"required,min=1,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
+	Tags []string `json:"tags" validate:"required,min=0,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
 type DeviceIdentity struct {
