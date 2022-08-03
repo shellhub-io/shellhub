@@ -321,7 +321,14 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 		return nil, guard.ErrForbidden
 	}
 
-	return s.store.NamespaceRemoveMember(ctx, tenantID, member.ID)
+	removed, err := s.store.NamespaceRemoveMember(ctx, tenantID, member.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	s.AuthUncacheToken(ctx, namespace.TenantID, member.ID) // nolint: errcheck
+
+	return removed, nil
 }
 
 // EditNamespaceUser edits a member's role.
@@ -371,7 +378,13 @@ func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, membe
 		return guard.ErrForbidden
 	}
 
-	return s.store.NamespaceEditMember(ctx, tenantID, member.ID, memberNewRole)
+	if err := s.store.NamespaceEditMember(ctx, tenantID, member.ID, memberNewRole); err != nil {
+		return err
+	}
+
+	s.AuthUncacheToken(ctx, namespace.TenantID, member.ID) // nolint: errcheck
+
+	return nil
 }
 
 // EditSessionRecordStatus defines if the sessions will be recorded.

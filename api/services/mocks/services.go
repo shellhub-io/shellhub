@@ -59,6 +59,20 @@ func (_m *Service) AddPublicKeyTag(ctx context.Context, tenant string, fingerpri
 	return r0
 }
 
+// AuthCacheToken provides a mock function with given fields: ctx, tenant, id, token
+func (_m *Service) AuthCacheToken(ctx context.Context, tenant string, id string, token string) error {
+	ret := _m.Called(ctx, tenant, id, token)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenant, id, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // AuthDevice provides a mock function with given fields: ctx, req, remoteAddr
 func (_m *Service) AuthDevice(ctx context.Context, req request.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
 	ret := _m.Called(ctx, req, remoteAddr)
@@ -98,6 +112,27 @@ func (_m *Service) AuthGetToken(ctx context.Context, tenant string) (*models.Use
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, tenant)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AuthIsCacheToken provides a mock function with given fields: ctx, tenant, id
+func (_m *Service) AuthIsCacheToken(ctx context.Context, tenant string, id string) (bool, error) {
+	ret := _m.Called(ctx, tenant, id)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = rf(ctx, tenant, id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenant, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -149,6 +184,20 @@ func (_m *Service) AuthSwapToken(ctx context.Context, ID string, tenant string) 
 	}
 
 	return r0, r1
+}
+
+// AuthUncacheToken provides a mock function with given fields: ctx, tenant, id
+func (_m *Service) AuthUncacheToken(ctx context.Context, tenant string, id string) error {
+	ret := _m.Called(ctx, tenant, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, tenant, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // AuthUser provides a mock function with given fields: ctx, req
