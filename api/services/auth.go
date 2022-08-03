@@ -21,6 +21,9 @@ import (
 )
 
 type AuthService interface {
+	AuthCacheToken(ctx context.Context, tenant, id, token string) error
+	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
+	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req request.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
 	AuthUser(ctx context.Context, req request.UserAuth) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
@@ -189,6 +192,8 @@ func (s *service) AuthUser(ctx context.Context, req request.UserAuth) (*models.U
 			return nil, NewErrUserUpdate(user, err)
 		}
 
+		s.AuthCacheToken(ctx, tenant, user.ID, tokenStr) // nolint: errcheck
+
 		return &models.UserAuthResponse{
 			Token:  tokenStr,
 			Name:   user.Name,
@@ -323,6 +328,8 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				return nil, NewErrTokenSigned(err)
 			}
 
+			s.AuthCacheToken(ctx, tenant, user.ID, tokenStr) // nolint: errcheck
+
 			return &models.UserAuthResponse{
 				Token:  tokenStr,
 				Name:   user.Name,
@@ -370,4 +377,39 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 
 func (s *service) PublicKey() *rsa.PublicKey {
 	return s.pubKey
+}
+
+// AuthCacheToken caches the user's namespace token.
+//
+// It receives a context, used to "control" the request flow, the namespace's tenant, user's ID and the token to cache.
+//
+// Cache times is the sametime of the token expiry time, what is 72 hours.
+//
+// AuthCacheToken returns an erro when it could not cache the token.
+func (s *service) AuthCacheToken(ctx context.Context, tenant, id, token string) error {
+	return s.cache.Set(ctx, "token_"+tenant+id, token, time.Hour*72)
+}
+
+// AuthIsCacheToken checks if the user's namespace token is cached.
+//
+// It receives a context, used to "control" the request flow, the namespace's tenant, user's ID.
+//
+// AuthIsCacheToken returns a boolean to indicate if the token is cached and an error when it could not get the token.
+func (s *service) AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error) {
+	var data string
+
+	if err := s.cache.Get(ctx, "token_"+tenant+id, &data); err != nil {
+		return false, err
+	}
+
+	return data != "", nil
+}
+
+// AuthUncacheToken uncaches the user's namespace token.
+//
+// It receives a context, used to "control" the request flow, the namespace's tenant, user's ID.
+//
+// AuthUncacheToken returns an erro when it could not uncache the token.
+func (s *service) AuthUncacheToken(ctx context.Context, tenant, id string) error {
+	return s.cache.Delete(ctx, "token_"+tenant+id)
 }
