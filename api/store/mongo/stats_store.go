@@ -29,7 +29,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		},
 	}}, query...)
 
-	onlineDevices, err := aggregateCount(ctx, s.db.Collection("connected_devices"), query)
+	onlineDevices, err := AggregateCount(ctx, s.db.Collection("connected_devices"), query)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		},
 	}}, query...)
 
-	registeredDevices, err := aggregateCount(ctx, s.db.Collection("devices"), query)
+	registeredDevices, err := AggregateCount(ctx, s.db.Collection("devices"), query)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		},
 	}}, query...)
 
-	pendingDevices, err := aggregateCount(ctx, s.db.Collection("devices"), query)
+	pendingDevices, err := AggregateCount(ctx, s.db.Collection("devices"), query)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		},
 	}}, query...)
 
-	rejectedDevices, err := aggregateCount(ctx, s.db.Collection("devices"), query)
+	rejectedDevices, err := AggregateCount(ctx, s.db.Collection("devices"), query)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		"$count": "count",
 	})
 
-	activeSessions, err := aggregateCount(ctx, s.db.Collection("sessions"), query)
+	activeSessions, err := AggregateCount(ctx, s.db.Collection("sessions"), query)
 	if err != nil {
 		return nil, err
 	}

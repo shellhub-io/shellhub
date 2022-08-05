@@ -25,3 +25,11 @@ type Store struct {
 func NewStore(db *mongo.Database, cache cache.Cache) *Store {
 	return &Store{db: db, cache: cache}
 }
+
+func (s *Store) Database() *mongo.Database {
+	return s.db
+}
+
+func (s *Store) Cache() cache.Cache {
+	return s.cache
+}

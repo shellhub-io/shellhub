@@ -15,7 +15,7 @@ import (
 func (s *Store) FirewallRuleAddTag(ctx context.Context, id, tag string) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	result, err := s.db.Collection("firewall_rules").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$addToSet": bson.M{"filter.tags": tag}})
@@ -37,7 +37,7 @@ func (s *Store) FirewallRuleAddTag(ctx context.Context, id, tag string) error {
 func (s *Store) FirewallRuleRemoveTag(ctx context.Context, id, tag string) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	result, err := s.db.Collection("firewall_rules").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$pull": bson.M{"filter.tags": tag}})
@@ -59,7 +59,7 @@ func (s *Store) FirewallRuleRemoveTag(ctx context.Context, id, tag string) error
 func (s *Store) FirewallRuleUpdateTags(ctx context.Context, id string, tags []string) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	// If all tags exist in device, set the tags to tag's field in models.PublicKey.

@@ -14,7 +14,7 @@ func (s *Store) LicenseLoad(ctx context.Context) (*models.License, error) {
 
 	license := new(models.License)
 	if err := s.db.Collection("licenses").FindOne(ctx, bson.M{}, findOpts).Decode(&license); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	return license, nil
@@ -23,5 +23,5 @@ func (s *Store) LicenseLoad(ctx context.Context) (*models.License, error) {
 func (s *Store) LicenseSave(ctx context.Context, license *models.License) error {
 	_, err := s.db.Collection("licenses").InsertOne(ctx, license)
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }

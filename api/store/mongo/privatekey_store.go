@@ -10,13 +10,13 @@ import (
 func (s *Store) PrivateKeyCreate(ctx context.Context, key *models.PrivateKey) error {
 	_, err := s.db.Collection("private_keys").InsertOne(ctx, key)
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) PrivateKeyGet(ctx context.Context, fingerprint string) (*models.PrivateKey, error) {
 	privKey := new(models.PrivateKey)
 	if err := s.db.Collection("private_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint}).Decode(&privKey); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	return privKey, nil
