@@ -31,9 +31,9 @@ func (s *Store) FirewallRuleList(ctx context.Context, pagination paginator.Query
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
-	count, err := aggregateCount(ctx, s.db.Collection("firewall_rules"), queryCount)
+	count, err := AggregateCount(ctx, s.db.Collection("firewall_rules"), queryCount)
 	if err != nil {
-		return nil, 0, fromMongoError(err)
+		return nil, 0, FromMongoError(err)
 	}
 
 	query = append(query, queries.BuildPaginationQuery(pagination)...)
@@ -41,7 +41,7 @@ func (s *Store) FirewallRuleList(ctx context.Context, pagination paginator.Query
 	rules := make([]models.FirewallRule, 0)
 	cursor, err := s.db.Collection("firewall_rules").Aggregate(ctx, query)
 	if err != nil {
-		return nil, 0, fromMongoError(err)
+		return nil, 0, FromMongoError(err)
 	}
 	defer cursor.Close(ctx)
 
@@ -49,22 +49,22 @@ func (s *Store) FirewallRuleList(ctx context.Context, pagination paginator.Query
 		rule := new(models.FirewallRule)
 		err = cursor.Decode(&rule)
 		if err != nil {
-			return rules, count, fromMongoError(err)
+			return rules, count, FromMongoError(err)
 		}
 
 		rules = append(rules, *rule)
 	}
 
-	return rules, count, fromMongoError(err)
+	return rules, count, FromMongoError(err)
 }
 
 func (s *Store) FirewallRuleCreate(ctx context.Context, rule *models.FirewallRule) error {
 	if err := rule.Validate(); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	if _, err := s.db.Collection("firewall_rules").InsertOne(ctx, &rule); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	return nil
@@ -74,11 +74,11 @@ func (s *Store) FirewallRuleGet(ctx context.Context, id string) (*models.Firewal
 	rule := new(models.FirewallRule)
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	if err := s.db.Collection("firewall_rules").FindOne(ctx, bson.M{"_id": objID}).Decode(&rule); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	return rule, nil
@@ -86,31 +86,31 @@ func (s *Store) FirewallRuleGet(ctx context.Context, id string) (*models.Firewal
 
 func (s *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error) {
 	if err := rule.Validate(); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	if _, err := s.db.Collection("firewall_rules").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": rule}); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	r, err := s.FirewallRuleGet(ctx, id)
 
-	return r, fromMongoError(err)
+	return r, FromMongoError(err)
 }
 
 func (s *Store) FirewallRuleDelete(ctx context.Context, id string) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	if _, err := s.db.Collection("firewall_rules").DeleteOne(ctx, bson.M{"_id": objID}); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	return nil

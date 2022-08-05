@@ -9,8 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// aggregateCount takes a pipeline and count the results.
-func aggregateCount(ctx context.Context, coll *mongo.Collection, pipeline []bson.M) (int, error) {
+// AggregateCount takes a pipeline and count the results.
+func AggregateCount(ctx context.Context, coll *mongo.Collection, pipeline []bson.M) (int, error) {
 	resp := struct {
 		Count int `bson:"count"`
 	}{}
@@ -33,7 +33,7 @@ func aggregateCount(ctx context.Context, coll *mongo.Collection, pipeline []bson
 	return resp.Count, nil
 }
 
-func fromMongoError(err error) error {
+func FromMongoError(err error) error {
 	switch {
 	case err == mongo.ErrNoDocuments:
 		return store.ErrNoDocuments

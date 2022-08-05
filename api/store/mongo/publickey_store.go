@@ -13,7 +13,7 @@ import (
 func (s *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
 	pubKey := new(models.PublicKey)
 	if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}).Decode(&pubKey); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	return pubKey, nil
@@ -39,7 +39,7 @@ func (s *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) (
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
-	count, err := aggregateCount(ctx, s.db.Collection("public_keys"), queryCount)
+	count, err := AggregateCount(ctx, s.db.Collection("public_keys"), queryCount)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -69,13 +69,13 @@ func (s *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) (
 func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) error {
 	_, err := s.db.Collection("public_keys").InsertOne(ctx, key)
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
 	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}, bson.M{"$set": key}); err != nil {
 		if err != nil {
-			return nil, fromMongoError(err)
+			return nil, FromMongoError(err)
 		}
 
 		return nil, err

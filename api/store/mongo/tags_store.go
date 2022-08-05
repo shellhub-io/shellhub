@@ -59,7 +59,7 @@ func (s *Store) TagRename(ctx context.Context, tenantID string, tag string, newT
 	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
 		_, err := s.db.Collection("devices").UpdateMany(sessCtx, bson.M{"tags": tag, "tenant_id": tenantID}, bson.M{"$set": bson.M{"tags.$": newTag}})
 		if err != nil {
-			return nil, fromMongoError(err)
+			return nil, FromMongoError(err)
 		}
 
 		if err := s.PublicKeyRenameTag(sessCtx, tenantID, tag, newTag); err != store.ErrNoDocuments {

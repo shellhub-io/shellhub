@@ -46,9 +46,9 @@ func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
-	count, err := aggregateCount(ctx, s.db.Collection("sessions"), queryCount)
+	count, err := AggregateCount(ctx, s.db.Collection("sessions"), queryCount)
 	if err != nil {
-		return nil, 0, fromMongoError(err)
+		return nil, 0, FromMongoError(err)
 	}
 
 	query = append(query, queries.BuildPaginationQuery(pagination)...)
@@ -56,7 +56,7 @@ func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]
 	sessions := make([]models.Session, 0)
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
 	if err != nil {
-		return sessions, count, fromMongoError(err)
+		return sessions, count, FromMongoError(err)
 	}
 	defer cursor.Close(ctx)
 
@@ -112,19 +112,19 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
 	if err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 	defer cursor.Close(ctx)
 	cursor.Next(ctx)
 
 	err = cursor.Decode(&session)
 	if err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	device, err := s.DeviceGet(ctx, session.DeviceUID)
 	if err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	session.Device = device
@@ -135,13 +135,13 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 func (s *Store) SessionSetAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
 	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"authenticated": authenticated}})
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error {
 	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": recorded}})
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
@@ -151,13 +151,13 @@ func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*mod
 
 	device, err := s.DeviceGet(ctx, session.DeviceUID)
 	if err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	session.TenantID = device.TenantID
 
 	if _, err := s.db.Collection("sessions").InsertOne(ctx, &session); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	as := &models.ActiveSession{
@@ -166,7 +166,7 @@ func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*mod
 	}
 
 	if _, err := s.db.Collection("active_sessions").InsertOne(ctx, &as); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	return &session, nil
@@ -177,7 +177,7 @@ func (s *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 
 	err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": uid}).Decode(&session)
 	if err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	if session.Closed {
@@ -189,7 +189,7 @@ func (s *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 	opts := options.Update().SetUpsert(true)
 	_, err = s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session}, opts)
 	if err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	activeSession := &models.ActiveSession{
@@ -198,7 +198,7 @@ func (s *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 	}
 
 	if _, err := s.db.Collection("active_sessions").InsertOne(ctx, &activeSession); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	return nil
@@ -207,7 +207,7 @@ func (s *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error {
 	session := new(models.Session)
 	if err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": uid}).Decode(&session); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	session.LastSeen = clock.Now()
@@ -216,21 +216,21 @@ func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error 
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session}, opts)
 	if err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	_, err = s.db.Collection("active_sessions").DeleteMany(ctx, bson.M{"uid": session.UID})
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordSession *models.RecordedSession) error {
 	if _, err := s.db.Collection("recorded_sessions").InsertOne(ctx, &recordSession); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	if _, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": true}}); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	return nil
@@ -239,13 +239,13 @@ func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, re
 func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
 	_, err := s.db.Collection("sessions").UpdateMany(ctx, bson.M{"device_uid": oldUID}, bson.M{"$set": bson.M{"device_uid": newUID}})
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) SessionDeleteRecordFrame(ctx context.Context, uid models.UID) error {
 	_, err := s.db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{"uid": uid})
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error) {
@@ -294,7 +294,7 @@ func (s *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]mo
 		"$count": "count",
 	})
 
-	count, err := aggregateCount(ctx, s.db.Collection("recorded_sessions"), query)
+	count, err := AggregateCount(ctx, s.db.Collection("recorded_sessions"), query)
 	if err != nil {
 		return nil, 0, err
 	}

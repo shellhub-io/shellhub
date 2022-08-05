@@ -18,7 +18,7 @@ import (
 func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
 	queryMatch, err := queries.BuildFilterQuery(filters)
 	if err != nil {
-		return nil, 0, fromMongoError(err)
+		return nil, 0, FromMongoError(err)
 	}
 
 	query := []bson.M{
@@ -92,9 +92,9 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
-	count, err := aggregateCount(ctx, s.db.Collection("devices"), queryCount)
+	count, err := AggregateCount(ctx, s.db.Collection("devices"), queryCount)
 	if err != nil {
-		return nil, 0, fromMongoError(err)
+		return nil, 0, FromMongoError(err)
 	}
 
 	query = append(query, queries.BuildPaginationQuery(pagination)...)
@@ -103,7 +103,7 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 
 	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
 	if err != nil {
-		return devices, count, fromMongoError(err)
+		return devices, count, FromMongoError(err)
 	}
 	defer cursor.Close(ctx)
 
@@ -116,7 +116,7 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 		devices = append(devices, *device)
 	}
 
-	return devices, count, fromMongoError(err)
+	return devices, count, FromMongoError(err)
 }
 
 func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error) {
@@ -168,14 +168,14 @@ func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, 
 
 	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
 	if err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 	defer cursor.Close(ctx)
 	cursor.Next(ctx)
 
 	err = cursor.Decode(&device)
 	if err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	return device, nil
@@ -183,7 +183,7 @@ func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, 
 
 func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	if _, err := s.db.Collection("devices").DeleteOne(ctx, bson.M{"uid": uid}); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	if err := s.cache.Delete(ctx, string(uid)); err != nil {
@@ -191,12 +191,12 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	}
 
 	if _, err := s.db.Collection("sessions").DeleteMany(ctx, bson.M{"device_uid": uid}); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
@@ -221,12 +221,12 @@ func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname stri
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": d.UID}, q, opts)
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname string) error {
 	if _, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": hostname}}); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	return nil
@@ -235,12 +235,12 @@ func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname strin
 func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error) {
 	ns := new(models.Namespace)
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": ns.TenantID, "name": hostname, "status": "accepted"}).Decode(&device); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	return device, nil
@@ -249,20 +249,20 @@ func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*
 func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool) error {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	if !online {
 		_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
 
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	device.LastSeen = clock.Now()
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"last_seen": device.LastSeen}}, opts)
 	if err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	cd := &models.ConnectedDevice{
@@ -273,7 +273,7 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 	}
 
 	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	return nil
@@ -282,25 +282,25 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 func (s *Store) DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error {
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"online": online}})
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error {
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"last_seen": ts}})
 
-	return fromMongoError(err)
+	return FromMongoError(err)
 }
 
 func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status string) error {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"status": status}}, opts)
 	if err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	cd := &models.ConnectedDevice{
@@ -311,7 +311,7 @@ func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status s
 	}
 
 	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
-		return fromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	return nil
@@ -346,7 +346,7 @@ func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.
 
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
 	if err != nil {
-		return uids, fromMongoError(err)
+		return uids, FromMongoError(err)
 	}
 
 	for cursor.Next(ctx) {
@@ -367,11 +367,11 @@ func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string,
 	device := new(models.Device)
 	if status != "" {
 		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "identity": bson.M{"mac": mac}, "status": status}).Decode(&device); err != nil {
-			return nil, fromMongoError(err)
+			return nil, FromMongoError(err)
 		}
 	} else {
 		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
-			return nil, fromMongoError(err)
+			return nil, FromMongoError(err)
 		}
 	}
 
@@ -381,7 +381,7 @@ func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string,
 func (s *Store) DeviceGetByName(ctx context.Context, name string, tenantID string) (*models.Device, error) {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "name": name}).Decode(&device); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	return device, nil
@@ -398,7 +398,7 @@ func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID str
 	}
 
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "uid": uid}).Decode(&device); err != nil {
-		return nil, fromMongoError(err)
+		return nil, FromMongoError(err)
 	}
 
 	if err := s.cache.Set(ctx, strings.Join([]string{"device", string(uid)}, "/"), device, time.Minute); err != nil {
