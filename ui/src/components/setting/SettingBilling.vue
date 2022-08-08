@@ -131,7 +131,7 @@
               <p>
                 Estimated total:
                 <b v-if="renderData">
-                  {{ infoBillingData.nextPaymentDue | formatCurrency }}
+                  {{ infoBillingData.nextPaymentDue | formatCurrency(infoBillingData.currency) }}
                 </b>
               </p>
             </div>
