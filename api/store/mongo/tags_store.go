@@ -29,14 +29,8 @@ func (s *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, erro
 			return nil, err
 		}
 
-		tagsRule, err := s.db.Collection("firewall_rules").Distinct(sessCtx, "filter.tags", bson.M{"tenant_id": tenant})
-		if err != nil {
-			return nil, err
-		}
-
 		tagsSet.Add(tagsDevice...)
 		tagsSet.Add(tagsKey...)
-		tagsSet.Add(tagsRule...)
 
 		return nil, nil
 	})
@@ -66,10 +60,6 @@ func (s *Store) TagRename(ctx context.Context, tenantID string, tag string, newT
 			return nil, err
 		}
 
-		if err := s.FirewallRuleRenameTag(sessCtx, tenantID, tag, newTag); err != store.ErrNoDocuments {
-			return nil, err
-		}
-
 		return nil, nil
 	})
 
@@ -90,10 +80,6 @@ func (s *Store) TagDelete(ctx context.Context, tenantID string, tag string) erro
 		}
 
 		if err := s.PublicKeyDeleteTag(sessCtx, tenantID, tag); err != store.ErrNoDocuments {
-			return nil, err
-		}
-
-		if err := s.FirewallRuleDeleteTag(sessCtx, tenantID, tag); err != store.ErrNoDocuments {
 			return nil, err
 		}
 

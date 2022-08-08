@@ -16,6 +16,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type TestStore struct {
+	*Store
+}
+
+func (s *TestStore) FirewallRuleRenameTag(ctx context.Context, tenant, tagCurrent, tagNew string) error {
+	return nil
+}
+
 type Data struct {
 	User              models.User
 	Namespace         models.Namespace

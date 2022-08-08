@@ -16,6 +16,8 @@ var (
 )
 
 type Store struct {
+	specialized store.Store
+
 	db    *mongo.Database
 	cache cache.Cache
 
@@ -26,10 +28,22 @@ func NewStore(db *mongo.Database, cache cache.Cache) *Store {
 	return &Store{db: db, cache: cache}
 }
 
+func NewStoreSpecialized(db *mongo.Database, cache cache.Cache, specialized store.Store) *Store {
+	return &Store{db: db, cache: cache, specialized: specialized}
+}
+
 func (s *Store) Database() *mongo.Database {
 	return s.db
 }
 
 func (s *Store) Cache() cache.Cache {
 	return s.cache
+}
+
+func (s *Store) Specialized() store.Store {
+	if s.specialized != nil {
+		return s.specialized
+	}
+
+	return s
 }
