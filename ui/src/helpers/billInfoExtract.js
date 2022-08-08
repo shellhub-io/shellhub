@@ -4,7 +4,6 @@ export default function infoExtract(data, periodEnd) {
   const productDescription = data.product_description;
   const pms = data.payment_methods;
   const pm = data.default_payment_method;
-
   const showLink = (r, s) => {
     if (s === 'open') {
       return r;
@@ -26,12 +25,16 @@ export default function infoExtract(data, periodEnd) {
       dueDate: inv.due_date === 0 ? inv.created : inv.due_date,
       amountDue: inv.amount_due,
       attempted: inv.attempted,
+      currency: inv.currency,
+      accountCountry: inv.account_country,
     }], []);
   };
 
   const info = {
     periodEnd,
     description: productDescription,
+    currency: upcomingInvoice.currency,
+    accountCountry: upcomingInvoice.account_country,
     nextPaymentDue: upcomingInvoice.amount_due,
     nextPaymentPaid: upcomingInvoice.amount_paid,
   };
