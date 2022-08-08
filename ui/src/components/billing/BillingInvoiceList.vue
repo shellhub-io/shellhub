@@ -32,7 +32,7 @@
         </template>
 
         <template #[`item.amountDue`]="{ item }">
-          {{ item.amountDue | formatCurrency }}
+          {{ item.amountDue | formatCurrency(item.currency) }}
         </template>
 
         <template #[`item.dueDate`]="{ item }">
