@@ -220,7 +220,12 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 	return d.getContainer(clone.ID)
 }
 
-func NewUpdater(_ string) (Updater, error) {
+func NewUpdater(version string) (Updater, error) {
+	// ensure we are running inside a docker container, otherwise returns a dummy updater implementation
+	if _, err := os.Stat("/.dockerenv"); os.IsNotExist(err) {
+		return &nativeUpdater{version}, nil
+	}
+
 	api, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return nil, err
