@@ -12,14 +12,14 @@ exports[`WelcomeThirdScreen Renders the component 1`] = `
     </p>
     <v-row-stub tag="div" nogutters="true">
       <v-col-stub tag="div">
-        <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" class="pa-2 grey lighten-4"><strong>Hostname</strong></v-card-stub>
-        <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" data-test="deviceName-field" class="pa-2 grey lighten-4">
+        <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" class="pa-2"><strong>Hostname</strong></v-card-stub>
+        <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" data-test="deviceName-field" class="pa-2">
           39-5e-2a
         </v-card-stub>
       </v-col-stub>
       <v-col-stub tag="div">
-        <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" class="pa-2 grey lighten-4"><strong>Operation System</strong></v-card-stub>
-        <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" data-test="devicePrettyName-field" class="pa-2 grey lighten-4">
+        <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" class="pa-2"><strong>Operation System</strong></v-card-stub>
+        <v-card-stub loaderheight="4" tag="div" elevation="0" tile="true" data-test="devicePrettyName-field" class="pa-2">
           <div>
             <deviceicon-stub iconname="arch"></deviceicon-stub>
             Linux
