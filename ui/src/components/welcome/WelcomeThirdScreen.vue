@@ -12,14 +12,14 @@
       <v-row no-gutters>
         <v-col>
           <v-card
-            class="pa-2 grey lighten-4"
+            class="pa-2"
             tile
             :elevation="0"
           >
             <strong>Hostname</strong>
           </v-card>
           <v-card
-            class="pa-2 grey lighten-4"
+            class="pa-2"
             tile
             :elevation="0"
             data-test="deviceName-field"
@@ -29,14 +29,14 @@
         </v-col>
         <v-col>
           <v-card
-            class="pa-2 grey lighten-4"
+            class="pa-2"
             tile
             :elevation="0"
           >
             <strong>Operation System</strong>
           </v-card>
           <v-card
-            class="pa-2 grey lighten-4"
+            class="pa-2"
             tile
             :elevation="0"
             data-test="devicePrettyName-field"
