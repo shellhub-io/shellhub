@@ -113,7 +113,7 @@ func (s *Server) SessionHandler(glidersession ssh.Session) {
 
 	sess, err := session.NewSession(glidersession.User(), glidersession)
 	if err != nil {
-		exit(glidersession, err, ErrSession)
+		exit(glidersession, err, err)
 
 		return
 	}
