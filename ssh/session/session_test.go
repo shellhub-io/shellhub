@@ -14,11 +14,11 @@ func TestHandlePty(t *testing.T) {
 		session := &Session{session: sessionMock}
 
 		sessionMock.On("Environ").Return([]string{"WS=true"}).Once()
-		sessionMock.On("Pty").Return(ssh.Pty{Term: "xterm.js", Window: ssh.Window{Width: 100, Height: 40}}, nil, true).Once()
+		sessionMock.On("Pty").Return(ssh.Pty{Term: "xterm", Window: ssh.Window{Width: 100, Height: 40}}, nil, true).Once()
 		handlePty(session)
 		assert.Equal(t, true, session.Pty)
 		assert.Equal(t, Web, session.Type)
-		assert.Equal(t, "xterm.js", session.Term)
+		assert.Equal(t, "xterm", session.Term)
 
 		sessionMock.AssertExpectations(t)
 	})
