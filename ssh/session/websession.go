@@ -237,7 +237,7 @@ func WebSession(socket *websocket.Conn) {
 		return
 	}
 
-	if err := session.RequestPty("xterm.js", data.Rows, data.Columns, ssh.TerminalModes{
+	if err := session.RequestPty("xterm", data.Rows, data.Columns, ssh.TerminalModes{
 		ssh.ECHO:          1,
 		ssh.TTY_OP_ISPEED: 14400,
 		ssh.TTY_OP_OSPEED: 14400,
