@@ -16,7 +16,7 @@ import (
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/middleware"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -28,12 +28,12 @@ var serverCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, ok := cmd.Context().Value("cfg").(*config)
 		if !ok {
-			logrus.Fatal("Failed to retrieve environment config from context")
+			log.Fatal("Failed to retrieve environment config from context")
 		}
 
 		go func() {
 			if err := startWorker(cfg); err != nil {
-				logrus.Fatal(err)
+				log.Fatal(err)
 			}
 		}()
 
@@ -50,18 +50,29 @@ type config struct {
 	RedisURI string `envconfig:"redis_uri" default:"redis://redis:6379"`
 	// Enable store cache
 	StoreCache bool `envconfig:"store_cache" default:"false"`
-	// Enable geoip feature
+	// Enable GeoIP feature.
+	//
+	// GeoIP features enable the ability to get the logitude and latitude of the client from the IP address.
+	// The feature is disabled by default. To enable it, it is required to have a `MAXMIND` database license and feed it
+	// to `SHELLHUB_MAXMIND_LICENSE` with it, and `SHELLHUB_GEOIP=true`.
 	GeoIP bool `envconfig:"geoip" default:"false"`
 	// Session record cleanup worker schedule
 	SessionRecordCleanupSchedule string `envconfig:"session_record_cleanup_schedule" default:"@daily"`
 }
 
-func startServer(cfg *config) error {
-	if os.Getenv("SHELLHUB_ENV") == "development" {
-		logrus.SetLevel(logrus.DebugLevel)
+func init() {
+	if value, ok := os.LookupEnv("SHELLHUB_ENV"); ok && value == "development" {
+		log.SetLevel(log.TraceLevel)
+		log.Debug("Log level set to Trace")
+	} else {
+		log.Debug("Log level default")
 	}
+}
 
-	logrus.Info("Starting API server")
+func startServer(cfg *config) error {
+	ctx := context.Background()
+
+	log.Info("Starting API server")
 
 	e := echo.New()
 	e.Use(middleware.Log)
@@ -70,59 +81,55 @@ func startServer(cfg *config) error {
 	e.Validator = handlers.NewValidator()
 	e.HTTPErrorHandler = handlers.NewErrors()
 
-	logrus.Info("Connecting to MongoDB")
+	log.Trace("Connecting to Redis")
+
+	cache, err := storecache.NewRedisCache(cfg.RedisURI)
+	if err != nil {
+		log.WithError(err).Error("Failed to configure redis store cache")
+	}
+
+	log.Info("Connected to Redis")
+
+	log.Trace("Connecting to MongoDB")
 
 	connStr, err := connstring.ParseAndValidate(cfg.MongoURI)
 	if err != nil {
-		logrus.WithError(err).Fatal("Invalid Mongo URI format")
+		log.WithError(err).Fatal("Invalid Mongo URI format")
 	}
 
 	clientOptions := options.Client().ApplyURI(cfg.MongoURI)
-	client, err := mongodriver.Connect(context.TODO(), clientOptions)
+	client, err := mongodriver.Connect(ctx, clientOptions)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to connect to MongoDB")
+		log.WithError(err).Fatal("Failed to connect to MongoDB")
 	}
 
-	if err = client.Ping(context.TODO(), nil); err != nil {
-		logrus.WithError(err).Fatal("Failed to ping MongoDB")
+	if err = client.Ping(ctx, nil); err != nil {
+		log.WithError(err).Fatal("Failed to ping MongoDB")
 	}
 
-	logrus.Info("Running database migrations")
+	log.Info("Connected to MongoDB")
+
+	log.Info("Running database migrations")
 
 	if err := mongo.ApplyMigrations(client.Database(connStr.Database)); err != nil {
-		logrus.WithError(err).Fatal("Failed to apply mongo migrations")
-	}
-
-	var cache storecache.Cache
-	if cfg.StoreCache {
-		logrus.Info("Using redis as store cache backend")
-
-		cache, err = storecache.NewRedisCache(cfg.RedisURI)
-		if err != nil {
-			logrus.WithError(err).Error("Failed to configure redis store cache")
-		}
-	} else {
-		logrus.Info("Store cache disabled")
-		cache = storecache.NewNullCache()
+		log.WithError(err).Fatal("Failed to apply mongo migrations")
 	}
 
 	requestClient := requests.NewClient()
 
-	// apply dependency injection through project layers
-	store := mongo.NewStore(client.Database(connStr.Database), cache)
-
 	var locator geoip.Locator
 	if cfg.GeoIP {
-		logrus.Info("Using GeoIp for geolocation")
+		log.Info("GeoIP feature is enable")
 		locator, err = geoip.NewGeoLite2()
 		if err != nil {
-			logrus.WithError(err).Fatalln("Failed to init GeoIp")
+			log.WithError(err).Fatal("Failed to init GeoIP")
 		}
 	} else {
-		logrus.Info("GeoIp is disabled")
+		log.Info("GeoIP is disabled")
 		locator = geoip.NewNullGeoLite()
 	}
 
+	store := mongo.NewStore(client.Database(connStr.Database), cache)
 	service := services.NewService(store, nil, nil, cache, requestClient, locator)
 	handler := routes.NewHandler(service)
 
