@@ -71,7 +71,17 @@ jobs:
             --tag shellhubio/agent:${{ env.RELEASE_VERSION }}-${{ matrix.dockerfile }} \
             --build-arg SHELLHUB_VERSION=${{ env.RELEASE_VERSION }} \
             --platform linux/${{ matrix.arch }} .
+      - name: export rootfs
+        if: "contains(github.ref, 'refs/tags/v')"
+        run: |
+          docker export $(docker create shellhubio/agent:${{ env.RELEASE_VERSION }}-${{ matrix.dockerfile }}) | gzip > rootfs-${{ matrix.dockerfile }}.tar.gz
 
+      - name: upload rootfs artifact
+        if: "contains(github.ref, 'refs/tags/v')"
+        uses: actions/upload-artifact@v3
+        with:
+          name: rootfs-${{ matrix.dockerfile }}
+          path: rootfs-${{ matrix.dockerfile }}.tar.gz
   multiarch:
     if: github.event_name != 'pull_request'
     needs: build
@@ -132,3 +142,36 @@ jobs:
 
             echo "Pushing multiarch manifest"
             docker manifest push shellhubio/agent:${{ env.RELEASE_VERSION }}
+
+  draft:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: download amd64
+        uses: actions/download-artifact@v3
+        with:
+          name: rootfs-amd64
+      - name: download arm32v6
+        uses: actions/download-artifact@v3
+        with:
+          name: rootfs-arm32v6
+      - name: download arm32v7
+        uses: actions/download-artifact@v3
+        with:
+          name: rootfs-arm32v7
+      - name: download arm64v8
+        uses: actions/download-artifact@v3
+        with:
+          name: rootfs-arm64v8
+      - name: download i386
+        uses: actions/download-artifact@v3
+        with:
+          name: rootfs-i386
+      - name: release draft
+        uses: softprops/action-gh-release@v1
+        if: "contains(github.ref, 'refs/tags/v')"
+        with:
+          draft: true
+          generate_release_notes: true
+          files: rootfs-*.tar.gz
