@@ -156,6 +156,7 @@ func startServer(cfg *config) error {
 	internalAPI.GET(routes.AuthUserTokenURL, gateway.Handler(handler.AuthGetToken))
 	publicAPI.POST(routes.AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
 	publicAPI.GET(routes.AuthUserTokenURL, gateway.Handler(handler.AuthSwapToken))
+	publicAPI.POST(routes.AuthUserLogout, gateway.Handler(handler.AuthLogout))
 
 	publicAPI.PATCH(routes.UpdateUserDataURL, gateway.Handler(handler.UpdateUserData))
 	publicAPI.PATCH(routes.UpdateUserPasswordURL, gateway.Handler(handler.UpdateUserPassword))

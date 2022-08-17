@@ -246,6 +246,20 @@ func (_m *Service) AuthUserInfo(ctx context.Context, username string, tenant str
 	return r0, r1
 }
 
+// AuthUserLogout provides a mock function with given fields: ctx, tenant, id
+func (_m *Service) AuthUserLogout(ctx context.Context, tenant string, id string) error {
+	ret := _m.Called(ctx, tenant, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, tenant, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // CreateDeviceTag provides a mock function with given fields: ctx, uid, tag
 func (_m *Service) CreateDeviceTag(ctx context.Context, uid models.UID, tag string) error {
 	ret := _m.Called(ctx, uid, tag)

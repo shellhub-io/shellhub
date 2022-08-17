@@ -102,6 +102,7 @@ var (
 	ErrPublicKeyDataInvalid      = errors.New("public key data invalid", ErrLayer, ErrCodeInvalid)
 	ErrPublicKeyFilter           = errors.New("public key cannot have more than one filter at same time", ErrLayer, ErrCodeInvalid)
 	ErrTokenSigned               = errors.New("token signed", ErrLayer, ErrCodeInvalid)
+	ErrTokenNotFound             = errors.New("token not found", ErrLayer, ErrCodeNotFound)
 	ErrTypeAssertion             = errors.New("type assertion failed", ErrLayer, ErrCodeInvalid)
 	ErrSessionNotFound           = errors.New("session not found", ErrLayer, ErrCodeNotFound)
 	ErrAuthInvalid               = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
@@ -333,6 +334,11 @@ func NewErrDeviceStatusAccepted(next error) error {
 // NewErrTokenSigned returns an error to be used when the token signed fails.
 func NewErrTokenSigned(err error) error {
 	return NewErrInvalid(ErrTokenSigned, nil, err)
+}
+
+// NewErrTokenNotFound returns an error to be used when the token is not found.
+func NewErrTokenNotFound(tenant string, id string, err error) error {
+	return NewErrNotFound(ErrTokenNotFound, tenant+id, err)
 }
 
 // NewErrUserNotConfirmed returns an error to be used when the user is not confirmed.

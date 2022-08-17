@@ -22,6 +22,7 @@ const (
 	AuthUserURLV2    = "/auth/user"
 	AuthUserTokenURL = "/auth/token/:tenant" //nolint:gosec
 	AuthPublicKeyURL = "/auth/ssh"
+	AuthUserLogout   = "/logout"
 )
 
 func (h *Handler) AuthRequest(c gateway.Context) error {
@@ -183,6 +184,24 @@ func (h *Handler) AuthPublicKey(c gateway.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, res)
+}
+
+func (h *Handler) AuthLogout(c gateway.Context) error {
+	var tenant string
+	if c.Tenant() != nil {
+		tenant = c.Tenant().ID
+	}
+
+	var id string
+	if c.ID() != nil {
+		id = c.ID().ID
+	}
+
+	if err := h.service.AuthUserLogout(c.Ctx(), tenant, id); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {

@@ -30,6 +30,7 @@ type AuthService interface {
 	AuthPublicKey(ctx context.Context, req request.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
 	AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error)
+	AuthUserLogout(ctx context.Context, tenant, id string) error
 	PublicKey() *rsa.PublicKey
 }
 
@@ -373,6 +374,20 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 		ID:     user.ID,
 		Email:  user.Email,
 	}, nil
+}
+
+// AuthUserLogout removes the user's token from the cache, invaliding it to send new requests to API server.
+//
+// It receives a context used to "control" the request flow, tenant and user ID are required to identify the user as a
+// member of a namespace.
+//
+// Returns an error if the store cache could not perform the delete operation.
+func (s *service) AuthUserLogout(ctx context.Context, tenant, id string) error {
+	if ok, err := s.AuthIsCacheToken(ctx, tenant, id); err != nil || !ok {
+		return NewErrTokenNotFound(tenant, id, err)
+	}
+
+	return s.AuthUncacheToken(ctx, tenant, id)
 }
 
 func (s *service) PublicKey() *rsa.PublicKey {
