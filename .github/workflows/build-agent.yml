@@ -144,7 +144,7 @@ jobs:
             docker manifest push shellhubio/agent:${{ env.RELEASE_VERSION }}
 
   draft:
-    if: github.event_name != 'pull_request'
+    if: "contains(github.ref, 'refs/tags/v')"
     needs: build
     runs-on: ubuntu-latest
     steps:
