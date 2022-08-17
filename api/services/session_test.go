@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"net"
 	"testing"
 
 	storecache "github.com/shellhub-io/shellhub/api/cache"
@@ -10,6 +11,8 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/geoip"
+	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -141,10 +144,13 @@ func TestGetSession(t *testing.T) {
 }
 
 func TestCreateSession(t *testing.T) {
+	locator := &mocksGeoIp.Locator{}
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
 
 	ctx := context.TODO()
+
+	// ip := net.ParseIP("127.0.0.1")
 
 	type Expected struct {
 		session *models.Session
@@ -152,7 +158,10 @@ func TestCreateSession(t *testing.T) {
 	}
 
 	req := request.SessionCreate{UID: "uid"}
-	model := models.Session{UID: "uid"}
+	model := models.Session{UID: "uid", Position: models.SessionPosition{
+		Latitude:  0,
+		Longitude: 0,
+	}}
 
 	Err := errors.New("error")
 
@@ -166,6 +175,8 @@ func TestCreateSession(t *testing.T) {
 			name:    "CreateSession fails",
 			session: req,
 			requiredMocks: func() {
+				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
+					Return(geoip.Position{}, nil).Once()
 				mock.On("SessionCreate", ctx, model).
 					Return(nil, Err).Once()
 			},
@@ -178,6 +189,8 @@ func TestCreateSession(t *testing.T) {
 			name:    "CreateSession succeeds",
 			session: req,
 			requiredMocks: func() {
+				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
+					Return(geoip.Position{}, nil).Once()
 				mock.On("SessionCreate", ctx, model).
 					Return(&model, nil).Once()
 			},
@@ -191,7 +204,7 @@ func TestCreateSession(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			returnedSession, err := s.CreateSession(ctx, tc.session)
+			returnedSession, err := s.CreateSession(ctx, tc.session, "127.0.0.1")
 			assert.Equal(t, tc.expected, Expected{returnedSession, err})
 		})
 	}
