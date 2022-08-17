@@ -85,12 +85,13 @@ func (h *Handler) CreateSession(c gateway.Context) error {
 		return err
 	}
 
-	session, err := h.service.CreateSession(c.Ctx(), req)
+	ip := c.Request().Header.Get("X-Real-IP")
+
+	session, err := h.service.CreateSession(c.Ctx(), req, ip)
 	if err != nil {
 		return err
 	}
 
-	ip := c.Request().Header.Get("X-Real-IP")
 	err = h.service.SetDevicePosition(c.Ctx(), session.DeviceUID, ip)
 	if err != nil {
 		return err

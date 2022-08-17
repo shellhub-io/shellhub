@@ -4,21 +4,27 @@ import (
 	"time"
 )
 
+type SessionPosition struct {
+	Longitude float64 `json:"longitude" bson:"longitude"`
+	Latitude  float64 `json:"latitude" bson:"latitude"`
+}
+
 type Session struct {
-	UID           string    `json:"uid"`
-	DeviceUID     UID       `json:"device_uid,omitempty" bson:"device_uid"`
-	Device        *Device   `json:"device" bson:"device,omitempty"`
-	TenantID      string    `json:"tenant_id" bson:"tenant_id"`
-	Username      string    `json:"username"`
-	IPAddress     string    `json:"ip_address" bson:"ip_address"`
-	StartedAt     time.Time `json:"started_at" bson:"started_at"`
-	LastSeen      time.Time `json:"last_seen" bson:"last_seen"`
-	Active        bool      `json:"active" bson:",omitempty"`
-	Closed        bool      `json:"-" bson:"closed"`
-	Authenticated bool      `json:"authenticated" bson:"authenticated"`
-	Recorded      bool      `json:"recorded" bson:"recorded"`
-	Type          string    `json:"type" bson:"type"`
-	Term          string    `json:"term" bson:"term"`
+	UID           string          `json:"uid"`
+	DeviceUID     UID             `json:"device_uid,omitempty" bson:"device_uid"`
+	Device        *Device         `json:"device" bson:"device,omitempty"`
+	TenantID      string          `json:"tenant_id" bson:"tenant_id"`
+	Username      string          `json:"username"`
+	IPAddress     string          `json:"ip_address" bson:"ip_address"`
+	StartedAt     time.Time       `json:"started_at" bson:"started_at"`
+	LastSeen      time.Time       `json:"last_seen" bson:"last_seen"`
+	Active        bool            `json:"active" bson:",omitempty"`
+	Closed        bool            `json:"-" bson:"closed"`
+	Authenticated bool            `json:"authenticated" bson:"authenticated"`
+	Recorded      bool            `json:"recorded" bson:"recorded"`
+	Type          string          `json:"type" bson:"type"`
+	Term          string          `json:"term" bson:"term"`
+	Position      SessionPosition `json:"position" bson:"position"`
 }
 
 type ActiveSession struct {
