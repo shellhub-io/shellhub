@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
+	"fmt"
 	"strings"
 	"time"
 
@@ -402,7 +403,9 @@ func (s *service) PublicKey() *rsa.PublicKey {
 //
 // AuthCacheToken returns an erro when it could not cache the token.
 func (s *service) AuthCacheToken(ctx context.Context, tenant, id, token string) error {
-	return s.cache.Set(ctx, "token_"+tenant+id, token, time.Hour*72)
+	key := sha256.Sum256([]byte(fmt.Sprintf("token_%s%s", tenant, id)))
+
+	return s.cache.Set(ctx, string(key[:]), token, time.Hour*72)
 }
 
 // AuthIsCacheToken checks if the user's namespace token is cached.
@@ -413,7 +416,8 @@ func (s *service) AuthCacheToken(ctx context.Context, tenant, id, token string) 
 func (s *service) AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error) {
 	var data string
 
-	if err := s.cache.Get(ctx, "token_"+tenant+id, &data); err != nil {
+	key := sha256.Sum256([]byte(fmt.Sprintf("token_%s%s", tenant, id)))
+	if err := s.cache.Get(ctx, string(key[:]), &data); err != nil {
 		return false, err
 	}
 
@@ -426,5 +430,7 @@ func (s *service) AuthIsCacheToken(ctx context.Context, tenant, id string) (bool
 //
 // AuthUncacheToken returns an erro when it could not uncache the token.
 func (s *service) AuthUncacheToken(ctx context.Context, tenant, id string) error {
-	return s.cache.Delete(ctx, "token_"+tenant+id)
+	key := sha256.Sum256([]byte(fmt.Sprintf("token_%s%s", tenant, id)))
+
+	return s.cache.Delete(ctx, string(key[:]))
 }
