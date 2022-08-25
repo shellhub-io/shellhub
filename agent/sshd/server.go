@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"os/user"
 	"sync"
 	"time"
 
@@ -48,6 +49,135 @@ type Server struct {
 	singleUserPassword string
 }
 
+func SFTPSubsystemHandler(sess sshserver.Session) {
+	logrus.WithFields(logrus.Fields{
+		"user": sess.Context().User(),
+	}).Info("SFTP session started")
+	defer sess.Close()
+
+	cmd := exec.Command("/proc/self/exe", []string{"sftp"}...)
+
+	looked, err := user.Lookup(sess.User())
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Error("Failed to lookup user")
+
+		return
+	}
+
+	home := fmt.Sprintf("HOME=%s", looked.HomeDir)
+	gid := fmt.Sprintf("GID=%s", looked.Gid)
+	uid := fmt.Sprintf("UID=%s", looked.Uid)
+
+	cmd.Env = append(cmd.Env, home)
+	cmd.Env = append(cmd.Env, gid)
+	cmd.Env = append(cmd.Env, uid)
+
+	input, err := cmd.StdinPipe()
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Error("Failed to get stdin pipe")
+
+		return
+	}
+
+	output, err := cmd.StdoutPipe()
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Error("Failed to get stdout pipe")
+
+		return
+	}
+
+	erro, err := cmd.StderrPipe()
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Error("Failed to get stderr pipe")
+
+		return
+	}
+
+	if err := cmd.Start(); err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Error("Failed to start command")
+
+		return
+	}
+
+	go func() {
+		logrus.WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Trace("copying input to session")
+
+		if _, err := io.Copy(input, sess); err != nil && err != io.EOF {
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"user": sess.Context().User(),
+			}).Error("Failed to copy stdin to command")
+
+			return
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Trace("closing input to session ends")
+
+		input.Close()
+	}()
+
+	go func() {
+		logrus.WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Trace("copying output to session")
+
+		if _, err := io.Copy(sess, output); err != nil {
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"user": sess.Context().User(),
+			}).Error("Failed to copy stdout to session")
+
+			return
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Trace("closing output to session ends")
+	}()
+
+	go func() {
+		logrus.WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Trace("copying error to session")
+
+		if _, err := io.Copy(sess, erro); err != nil {
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"user": sess.Context().User(),
+			}).Error("Failed to copy stderr to session")
+
+			return
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Trace("closing error to session ends")
+	}()
+
+	if err = cmd.Wait(); err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"user": sess.Context().User(),
+		}).Error("Failed to wait command")
+
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"user": sess.Context().User(),
+	}).Info("SFTP session closed")
+}
+
 func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, singleUserPassword string) *Server {
 	server := &Server{
 		api:               api,
@@ -76,6 +206,9 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 			}
 
 			return &sshConn{conn, closeCallback, ctx}
+		},
+		SubsystemHandlers: map[string]sshserver.SubsystemHandler{
+			"sftp": SFTPSubsystemHandler,
 		},
 	}
 

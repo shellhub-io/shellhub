@@ -11,16 +11,16 @@ import (
 
 func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 	log.WithFields(log.Fields{
-		"key": pubKey,
-	}).Trace("initializing a session through public key connection")
+		"user": ctx.User(),
+	}).Trace("using public key handler")
 
 	fingerprint := ssh.FingerprintLegacyMD5(pubKey)
 
 	sshid, ok := ctx.Value(gliderssh.ContextKeyUser).(string)
 	if !ok {
 		log.WithFields(log.Fields{
+			"user":        ctx.User(),
 			"sshid":       sshid,
-			"key":         pubKey,
 			"fingerprint": fingerprint,
 		}).Error("failed to get the session's SSHID from context")
 
@@ -30,8 +30,8 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 	tag, err := target.NewTarget(sshid)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
+			"user":        ctx.User(),
 			"sshid":       sshid,
-			"key":         pubKey,
 			"fingerprint": fingerprint,
 		}).Error("failed to get the session's target")
 
@@ -45,8 +45,8 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 		namespace, hostname, err := tag.SplitSSHID()
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
+				"user":        ctx.User(),
 				"sshid":       sshid,
-				"key":         pubKey,
 				"fingerprint": fingerprint,
 			}).Error("failed to get the device's hostname and namespace")
 
@@ -61,8 +61,8 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 		device, err := api.GetDevice(tag.Data)
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
+				"user":        ctx.User(),
 				"sshid":       sshid,
-				"key":         pubKey,
 				"fingerprint": fingerprint,
 			}).Error("failed to get the device from API")
 
@@ -76,8 +76,8 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 	}
 
 	log.WithFields(log.Fields{
+		"user":        ctx.User(),
 		"sshid":       sshid,
-		"key":         pubKey,
 		"fingerprint": fingerprint,
 		"lookup":      lookup,
 	}).Debug("device's to lookup at the API")
@@ -85,8 +85,8 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 	device, errs := api.DeviceLookup(lookup)
 	if len(errs) > 0 {
 		log.WithError(err).WithFields(log.Fields{
+			"user":        ctx.User(),
 			"sshid":       sshid,
-			"key":         pubKey,
 			"fingerprint": fingerprint,
 			"lookup":      lookup,
 		}).Error("failed to get the device's data in the API server")
@@ -97,8 +97,8 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 	magicPubKey, err := ssh.NewPublicKey(&magickey.GetRerefence().PublicKey)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
+			"user":        ctx.User(),
 			"sshid":       sshid,
-			"key":         pubKey,
 			"fingerprint": fingerprint,
 		}).Error("failed to create the magic pulick key")
 
@@ -109,21 +109,23 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 		api := internalclient.NewClient()
 		if _, err = api.GetPublicKey(fingerprint, device.TenantID); err != nil {
 			log.WithError(err).WithFields(log.Fields{
+				"user":        ctx.User(),
 				"sshid":       sshid,
-				"key":         pubKey,
 				"fingerprint": fingerprint,
+				"username":    tag.Username,
 				"tenant":      device.TenantID,
-			}).Error("failed to get the public key form the API server")
+			}).Error("failed to get the public key from the API server")
 
 			return false
 		}
 
 		if ok, err := api.EvaluateKey(fingerprint, device, tag.Username); !ok || err != nil {
 			log.WithError(err).WithFields(log.Fields{
+				"user":        ctx.User(),
 				"sshid":       sshid,
-				"key":         pubKey,
 				"fingerprint": fingerprint,
 				"username":    tag.Username,
+				"tenant":      device.TenantID,
 			}).Error("failed to evaluate the public key on the API server")
 
 			return false
@@ -133,8 +135,8 @@ func PublicKey(ctx gliderssh.Context, pubKey gliderssh.PublicKey) bool {
 	ctx.SetValue("public_key", fingerprint)
 
 	log.WithFields(log.Fields{
-		"key": pubKey,
-	}).Trace("closing a session through public key connection")
+		"user": ctx.User(),
+	}).Info("using public key authentication")
 
 	return true
 }

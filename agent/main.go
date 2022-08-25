@@ -59,7 +59,7 @@ type ConfigOptions struct {
 	LogLevel string `envconfig:"log_level" default:"info"`
 }
 
-func main() {
+func NewAgentServer() {
 	opts := ConfigOptions{}
 
 	// Process unprefixed env vars for backward compatibility
@@ -241,5 +241,13 @@ func main() {
 
 	if err := rootCmd.Execute(); err != nil {
 		logrus.Error(err)
+	}
+}
+
+func main() {
+	if len(os.Args) > 1 && os.Args[1] == "sftp" {
+		NewSFTPServer()
+	} else {
+		NewAgentServer()
 	}
 }

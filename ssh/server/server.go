@@ -21,6 +21,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/ssh/pkg/kind"
 	"github.com/shellhub-io/shellhub/ssh/server/handler"
+	"github.com/shellhub-io/shellhub/ssh/server/subsystem"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 )
@@ -60,6 +61,9 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 		PasswordHandler:        handler.Password,
 		PublicKeyHandler:       handler.PublicKey,
 		SessionRequestCallback: server.sessionRequestCallback,
+		SubsystemHandlers: map[string]ssh.SubsystemHandler{
+			"sftp": subsystem.SFTPSubsystemHandler(tunnel),
+		},
 	}
 
 	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) {
