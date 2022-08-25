@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"net/url"
 	"runtime"
 	"time"
 
@@ -137,13 +136,13 @@ func sessionRecordCleanup() error {
 }
 
 func startWorker(cfg *config) error {
-	addr, err := url.Parse(cfg.RedisURI)
+	addr, err := asynq.ParseRedisURI(cfg.RedisURI)
 	if err != nil {
 		return err
 	}
 
 	srv := asynq.NewServer(
-		asynq.RedisClientOpt{Addr: addr.Host},
+		addr,
 		asynq.Config{
 			Concurrency: runtime.NumCPU(),
 		},
@@ -166,7 +165,7 @@ func startWorker(cfg *config) error {
 		}
 	}()
 
-	scheduler := asynq.NewScheduler(asynq.RedisClientOpt{Addr: addr.Host}, nil)
+	scheduler := asynq.NewScheduler(addr, nil)
 
 	// Schedule session_record:cleanup to run once a day
 	if _, err := scheduler.Register(cfg.SessionRecordCleanupSchedule,
