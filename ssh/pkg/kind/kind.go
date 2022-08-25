@@ -93,7 +93,7 @@ func (k *Kind) Shell(api internalclient.Client, uid string, client *ssh.Session,
 		return err
 	}
 
-	go flw.PipeIn(session)
+	go flw.PipeIn(session, nil)
 
 	go func() {
 		buffer := make([]byte, 1024)
@@ -155,9 +155,9 @@ func (k *Kind) Heredoc(api internalclient.Client, uid string, client *ssh.Sessio
 		return err
 	}
 
-	go flw.PipeIn(session)
-	go flw.PipeOut(session)
-	go flw.PipeErr(session)
+	go flw.PipeIn(session, nil)
+	go flw.PipeOut(session, nil)
+	go flw.PipeErr(session, nil)
 
 	if err := client.Shell(); err != nil {
 		log.WithError(err).WithFields(log.Fields{
@@ -193,9 +193,9 @@ func (k *Kind) Exec(api internalclient.Client, uid string, client *ssh.Session, 
 		return err
 	}
 
-	go flw.PipeIn(session)
-	go flw.PipeOut(session)
-	go flw.PipeErr(session)
+	go flw.PipeIn(session, nil)
+	go flw.PipeOut(session, nil)
+	go flw.PipeErr(session, nil)
 
 	if err := client.Start(session.RawCommand()); err != nil {
 		log.WithError(err).WithFields(log.Fields{
