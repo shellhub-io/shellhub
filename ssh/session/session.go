@@ -36,9 +36,11 @@ var (
 )
 
 type Session struct {
-	session       gliderssh.Session
-	User          string `json:"username"`
-	Target        string `json:"device_uid"` // nolint: tagliatelle
+	session gliderssh.Session
+	// User is the user that is trying to connect to the device; user on device.
+	User   string `json:"username"`
+	Target string `json:"device_uid"` // nolint: tagliatelle
+	// UID is the device's UID.
 	UID           string `json:"uid"`
 	IPAddress     string `json:"ip_address"` // nolint: tagliatelle
 	Type          string `json:"type"`
@@ -92,9 +94,15 @@ func handlePty(s *Session) {
 	}
 }
 
-// NewSession creates a new session from a client to device, validating data, instance and payment.
-// It receives an SSHID what contains the device's hostname and namespace which it is desirable to
+// NewSession creates a new session from a client to agent, validating data, instance and payment.
+//
+// It receives an SSHID what contains either device's hostname and namespace which it is required to
 // connect or a device ID, and an instance of sshserver.Session.
+//
+// A SSHID seems like this: username@namespace.00-00-00-00-00-00.
+// A Device ID seems like this: TODO.
+//
+// It returns a new session instance and an error, if it accours.
 func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
 	log.WithFields(log.Fields{
 		"sshid":   sshid,
@@ -458,6 +466,7 @@ func handleRequests(ctx context.Context, reqs <-chan *ssh.Request, c internalcli
 	}
 }
 
+// NewClientConnWithDeadline creates a new connection to the agent.
 func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, <-chan *ssh.Request, error) {
 	if config.Timeout > 0 {
 		if err := conn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
@@ -473,7 +482,7 @@ func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientCon
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"address": addr,
-		}).Error("failed to create a new SSHE client connection")
+		}).Error("failed to create a new SSH client connection")
 
 		return nil, nil, err
 	}
