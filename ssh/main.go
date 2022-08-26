@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -22,6 +23,13 @@ const (
 )
 
 func main() {
+	if value, ok := os.LookupEnv("SHELLHUB_ENV"); ok && value == "development" {
+		log.SetLevel(log.TraceLevel)
+		log.Debug("Log level set to Trace")
+	} else {
+		log.Debug("Log level default")
+	}
+
 	tunnel := sshTunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
 	tunnel.SetConnectionHandler()
 	tunnel.SetCloseHandler()
