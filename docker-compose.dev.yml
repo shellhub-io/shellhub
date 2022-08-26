@@ -18,6 +18,7 @@ services:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_BILLING=${SHELLHUB_BILLING}
+      - SHELLHUB_ENV=${SHELLHUB_ENV}
   api:
     image: api
     build:
