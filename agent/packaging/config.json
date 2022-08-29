@@ -1,0 +1,416 @@
+{
+    "ociVersion": "1.0.2-dev",
+    "process": {
+        "terminal": false,
+        "user": {
+            "uid": 0,
+            "gid": 0
+        },
+        "args": [
+            "/bin/agent"
+        ],
+        "env": [
+            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "SHELLHUB_SERVER_ADDRESS=__SERVER_ADDRESS__",
+            "SHELLHUB_TENANT_ID=__TENANT_ID__",
+            "SHELLHUB_PRIVATE_KEY=/host/etc/shellhub.key"
+        ],
+        "cwd": "/",
+        "capabilities": {
+            "bounding": [
+                "CAP_CHOWN",
+                "CAP_DAC_OVERRIDE",
+                "CAP_DAC_READ_SEARCH",   
+                "CAP_FOWNER",            
+                "CAP_FSETID",            
+                "CAP_KILL",              
+                "CAP_SETGID",            
+                "CAP_SETUID",            
+                "CAP_SETPCAP",           
+                "CAP_LINUX_IMMUTABLE",   
+                "CAP_NET_BIND_SERVICE",  
+                "CAP_NET_BROADCAST",     
+                "CAP_NET_ADMIN",         
+                "CAP_NET_RAW",           
+                "CAP_IPC_LOCK",          
+                "CAP_IPC_OWNER",         
+                "CAP_SYS_MODULE",        
+                "CAP_SYS_RAWIO",         
+                "CAP_SYS_CHROOT",        
+                "CAP_SYS_PTRACE",        
+                "CAP_SYS_PACCT",         
+                "CAP_SYS_ADMIN",         
+                "CAP_SYS_BOOT",          
+                "CAP_SYS_NICE",          
+                "CAP_SYS_RESOURCE",      
+                "CAP_SYS_TIME",          
+                "CAP_SYS_TTY_CONFIG",    
+                "CAP_MKNOD",             
+                "CAP_LEASE",             
+                "CAP_AUDIT_WRITE",       
+                "CAP_AUDIT_CONTROL",     
+                "CAP_SETFCAP",           
+                "CAP_MAC_OVERRIDE",      
+                "CAP_MAC_ADMIN",         
+                "CAP_SYSLOG",            
+                "CAP_WAKE_ALARM",        
+                "CAP_BLOCK_SUSPEND",     
+                "CAP_AUDIT_READ",        
+                "CAP_PERFMON",           
+                "CAP_BPF",               
+                "CAP_CHECKPOINT_RESTORE" 
+            ],
+            "effective": [
+                "CAP_CHOWN",             
+                "CAP_DAC_OVERRIDE",      
+                "CAP_DAC_READ_SEARCH",   
+                "CAP_FOWNER",            
+                "CAP_FSETID",            
+                "CAP_KILL",              
+                "CAP_SETGID",            
+                "CAP_SETUID",            
+                "CAP_SETPCAP",           
+                "CAP_LINUX_IMMUTABLE",   
+                "CAP_NET_BIND_SERVICE",  
+                "CAP_NET_BROADCAST",     
+                "CAP_NET_ADMIN",         
+                "CAP_NET_RAW",           
+                "CAP_IPC_LOCK",          
+                "CAP_IPC_OWNER",         
+                "CAP_SYS_MODULE",        
+                "CAP_SYS_RAWIO",         
+                "CAP_SYS_CHROOT",        
+                "CAP_SYS_PTRACE",        
+                "CAP_SYS_PACCT",         
+                "CAP_SYS_ADMIN",         
+                "CAP_SYS_BOOT",          
+                "CAP_SYS_NICE",          
+                "CAP_SYS_RESOURCE",      
+                "CAP_SYS_TIME",          
+                "CAP_SYS_TTY_CONFIG",    
+                "CAP_MKNOD",             
+                "CAP_LEASE",             
+                "CAP_AUDIT_WRITE",       
+                "CAP_AUDIT_CONTROL",     
+                "CAP_SETFCAP",           
+                "CAP_MAC_OVERRIDE",      
+                "CAP_MAC_ADMIN",         
+                "CAP_SYSLOG",            
+                "CAP_WAKE_ALARM",        
+                "CAP_BLOCK_SUSPEND",     
+                "CAP_AUDIT_READ",        
+                "CAP_PERFMON",           
+                "CAP_BPF",               
+                "CAP_CHECKPOINT_RESTORE" 
+            ],
+            "permitted": [
+                "CAP_CHOWN",             
+                "CAP_DAC_OVERRIDE",      
+                "CAP_DAC_READ_SEARCH",   
+                "CAP_FOWNER",            
+                "CAP_FSETID",            
+                "CAP_KILL",              
+                "CAP_SETGID",            
+                "CAP_SETUID",            
+                "CAP_SETPCAP",           
+                "CAP_LINUX_IMMUTABLE",   
+                "CAP_NET_BIND_SERVICE",  
+                "CAP_NET_BROADCAST",     
+                "CAP_NET_ADMIN",         
+                "CAP_NET_RAW",           
+                "CAP_IPC_LOCK",          
+                "CAP_IPC_OWNER",         
+                "CAP_SYS_MODULE",        
+                "CAP_SYS_RAWIO",         
+                "CAP_SYS_CHROOT",        
+                "CAP_SYS_PTRACE",        
+                "CAP_SYS_PACCT",         
+                "CAP_SYS_ADMIN",         
+                "CAP_SYS_BOOT",          
+                "CAP_SYS_NICE",          
+                "CAP_SYS_RESOURCE",      
+                "CAP_SYS_TIME",          
+                "CAP_SYS_TTY_CONFIG",    
+                "CAP_MKNOD",             
+                "CAP_LEASE",             
+                "CAP_AUDIT_WRITE",       
+                "CAP_AUDIT_CONTROL",     
+                "CAP_SETFCAP",           
+                "CAP_MAC_OVERRIDE",      
+                "CAP_MAC_ADMIN",         
+                "CAP_SYSLOG",            
+                "CAP_WAKE_ALARM",        
+                "CAP_BLOCK_SUSPEND",     
+                "CAP_AUDIT_READ",        
+                "CAP_PERFMON",           
+                "CAP_BPF",               
+                "CAP_CHECKPOINT_RESTORE" 
+            ],
+            "ambient": [
+                "CAP_CHOWN",             
+                "CAP_DAC_OVERRIDE",      
+                "CAP_DAC_READ_SEARCH",   
+                "CAP_FOWNER",            
+                "CAP_FSETID",            
+                "CAP_KILL",              
+                "CAP_SETGID",            
+                "CAP_SETUID",            
+                "CAP_SETPCAP",           
+                "CAP_LINUX_IMMUTABLE",   
+                "CAP_NET_BIND_SERVICE",  
+                "CAP_NET_BROADCAST",     
+                "CAP_NET_ADMIN",         
+                "CAP_NET_RAW",           
+                "CAP_IPC_LOCK",          
+                "CAP_IPC_OWNER",         
+                "CAP_SYS_MODULE",        
+                "CAP_SYS_RAWIO",         
+                "CAP_SYS_CHROOT",        
+                "CAP_SYS_PTRACE",        
+                "CAP_SYS_PACCT",         
+                "CAP_SYS_ADMIN",         
+                "CAP_SYS_BOOT",          
+                "CAP_SYS_NICE",          
+                "CAP_SYS_RESOURCE",      
+                "CAP_SYS_TIME",          
+                "CAP_SYS_TTY_CONFIG",    
+                "CAP_MKNOD",             
+                "CAP_LEASE",             
+                "CAP_AUDIT_WRITE",       
+                "CAP_AUDIT_CONTROL",     
+                "CAP_SETFCAP",           
+                "CAP_MAC_OVERRIDE",      
+                "CAP_MAC_ADMIN",         
+                "CAP_SYSLOG",            
+                "CAP_WAKE_ALARM",        
+                "CAP_BLOCK_SUSPEND",     
+                "CAP_AUDIT_READ",        
+                "CAP_PERFMON",           
+                "CAP_BPF",               
+                "CAP_CHECKPOINT_RESTORE" 
+            ]
+        },
+        "rlimits": [
+            {
+                "type": "RLIMIT_NOFILE",
+                "hard": 1024,
+                "soft": 1024
+            }
+        ],
+        "noNewPrivileges": false
+    },
+    "root": {
+        "path": "__ROOT_PATH__", 
+        "readonly": false
+    },
+    "hostname": "shellhub",
+    "mounts": [
+        {
+            "destination": "/proc",
+            "type": "proc",
+            "source": "proc",
+            "options": [
+                "nosuid",
+                "noexec",
+                "nodev"
+            ]
+        },
+        {
+            "destination": "/dev",
+            "source": "/dev",
+            "options": [
+                "bind"
+            ]
+        },
+        {
+            "destination": "/dev/pts",
+            "type": "devpts",
+            "source": "devpts",
+            "options": [
+                "nosuid",
+                "noexec",
+                "newinstance",
+                "ptmxmode=0666",
+                "mode=0620",
+                "gid=5"
+            ]
+        },
+        {
+            "destination": "/dev/shm",
+            "type": "tmpfs",
+            "source": "shm",
+            "options": [
+                "nosuid",
+                "noexec",
+                "nodev",
+                "mode=1777",
+                "size=65536k"
+            ]
+        },
+        {
+            "destination": "/dev/mqueue",
+            "type": "mqueue",
+            "source": "mqueue",
+            "options": [
+                "nosuid",
+                "noexec",
+                "nodev"
+            ]
+        },
+        {
+            "destination": "/sys",
+            "type": "sysfs",
+            "source": "sysfs",
+            "options": [
+                "nosuid",
+                "noexec",
+                "nodev",
+                "ro"
+            ]
+        },
+        {
+            "destination": "/sys/fs/cgroup",
+            "type": "cgroup",
+            "source": "cgroup",
+            "options": [
+                "nosuid",
+                "noexec",
+                "nodev",
+                "relatime",
+                "ro"
+            ]
+        },
+        {
+            "destination": "/host",
+            "source": "/",
+            "options": [
+                "bind"
+            ]
+        },
+        {
+            "destination": "/etc/passwd",
+            "source": "/etc/passwd",
+            "options": [
+                "bind"
+            ]
+        },
+        {
+            "destination": "/etc/group",
+            "source": "/etc/group",
+            "options": [
+                "bind"
+            ]
+        },
+        {
+            "destination": "/etc/resolv.conf",
+            "source": "/etc/resolv.conf",
+            "options": [
+                "bind"
+            ]
+        },
+        
+        {
+            "destination": "/var/run",
+            "source": "/var/run",
+            "options": [
+                "bind"
+            ]
+        },
+        {
+            "destination": "/var/log",
+            "source": "/var/log",
+            "options": [
+                "bind"
+            ]
+        }
+    ],
+    "linux": {
+        "resources": {
+            "devices": [
+                {
+                    "allow": false,
+                    "access": "rwm"
+                },
+                {
+                    "allow": true,
+                    "type": "c",
+                    "major": 1,
+                    "minor": 5,
+                    "access": "rwm"
+                },
+                {
+                    "allow": true,
+                    "type": "c",
+                    "major": 1,
+                    "minor": 3,
+                    "access": "rwm"
+                },
+                {
+                    "allow": true,
+                    "type": "c",
+                    "major": 1,
+                    "minor": 9,
+                    "access": "rwm"
+                },
+                {
+                    "allow": true,
+                    "type": "c",
+                    "major": 1,
+                    "minor": 8,
+                    "access": "rwm"
+                },
+                {
+                    "allow": true,
+                    "type": "c",
+                    "major": 5,
+                    "minor": 0,
+                    "access": "rwm"
+                },
+                {
+                    "allow": true,
+                    "type": "c",
+                    "major": 5,
+                    "minor": 1,
+                    "access": "rwm"
+                },
+                {
+                    "allow": false,
+                    "type": "c",
+                    "major": 10,
+                    "minor": 229,
+                    "access": "rwm"
+                }
+            ]
+        },
+        "namespaces": [
+            {
+                "type": "ipc"
+            },
+            {
+                "type": "uts"
+            },
+            {
+                "type": "mount"
+            }
+        ],
+        "maskedPaths": [
+            "/proc/acpi",
+            "/proc/asound",
+            "/proc/kcore",
+            "/proc/keys",
+            "/proc/latency_stats",
+            "/proc/timer_list",
+            "/proc/timer_stats",
+            "/proc/sched_debug",
+            "/sys/firmware",
+            "/proc/scsi"
+        ],
+        "readonlyPaths": [
+            "/proc/bus",
+            "/proc/fs",
+            "/proc/irq",
+            "/proc/sys",
+            "/proc/sysrq-trigger"
+        ]
+    }
+}
