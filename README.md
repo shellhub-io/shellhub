@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="https://shellhub.io">ShellHub Hosted</a> •
+  <a href="https://shellhub.io">ShellHub Cloud</a> •
   <a href="http://docs.shellhub.io">Documentation</a> •
   <a href="#contributing">Contributing</a> •
   <a href="#getting-help">Getting Help</a>
@@ -28,15 +28,16 @@ via command line (using any SSH client) or web-based user interface,
 designed as an alternative to _sshd_. Think ShellHub as centralized SSH
 for the the edge and cloud computing.
 
-A hosted version of ShellHub is available at https://shellhub.io/.
-
 ![Screenshot](https://github.com/shellhub-io/shellhub-io.github.io/raw/src/docs/img/screenshot.png)
 
 ## Getting started
 
-To start using ShellHub, it is suggested that you follow the
-[Getting started](https://shellhub-io.github.io/getting-started/) guide 
-in the ShellHub documentation.
+To self-host ShellHub on your own servers and managing your own infrastructure
+(installation, maintenance, upgrades, backup and so on) follow our
+[Self-Hosting Guide](https://docs.shellhub.io/self-hosted/deploying).
+
+If you prefer to use the cloud hosted service where we manage everything for your ease
+and convenience, create a free account in [ShellHub Cloud](https://cloud.shellhub.io).
 
 ## Contributing
 
