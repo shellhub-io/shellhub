@@ -28,7 +28,16 @@ via command line (using any SSH client) or web-based user interface,
 designed as an alternative to _sshd_. Think ShellHub as centralized SSH
 for the the edge and cloud computing.
 
+## Features
+
 ![Screenshot](https://github.com/shellhub-io/shellhub-io.github.io/raw/src/docs/img/screenshot.png)
+
+* **Native SSH suuport**: Access any device behind the ShellHub centralized SSH server using standard tools such as OpenSSH Client , PuTTY and so on.
+* **SCP/SFTP support**: Copy files from/to device using industry standard tools without 3rd party applications.
+* **Public-key authentication**: Allow multiple users to log in as the same system user without having to share a single password between them, revoke a single users's access without revoking access by other users and make it easier for a single user to log in to many accounts without needing to manage many different passwords.
+* **Firewall rules**: ShellHub provides flexible firewall for filtering SSH connections. It gives a fine-grained control over which SSH connections reach the devices.
+* **Audit logging**: Every time a SSH connection is made to ShellHub a session is created and stored on the server for audit purposes.
+* **Session recording**: All interactive SSH sessions are recorded, which includes all of the user activity that occurs during the session. Once recorded, it can be replayed via a built-in session player in the ShellHub Web UI.
 
 ## Getting started
 
