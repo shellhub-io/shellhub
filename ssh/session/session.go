@@ -55,6 +55,7 @@ const (
 	Term = "term"    // iterative pty
 	Exec = "exec"    // non iterative pty
 	SCP  = "scp"     // scp
+	SFTP = "sftp"    // sftp
 	Unk  = "unknown" // unknown
 )
 
@@ -91,6 +92,10 @@ func handlePty(s *Session) {
 		s.Type = Exec
 	case isPty:
 		s.Type = Term
+	}
+
+	if s.session.Subsystem() == SFTP {
+		s.Type = SFTP
 	}
 }
 
@@ -299,7 +304,7 @@ func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.
 		}).Error("failed to create session for SSH Client")
 	}
 
-	go handleRequests(ctx, reqs, api)
+	go HandleRequests(ctx, reqs, api)
 
 	pty, winCh, isPty := session.Pty()
 
@@ -438,7 +443,7 @@ func loadEnv(env []string) map[string]string {
 	return m
 }
 
-func handleRequests(ctx context.Context, reqs <-chan *ssh.Request, c internalclient.Client) {
+func HandleRequests(ctx context.Context, reqs <-chan *ssh.Request, c internalclient.Client) {
 	for {
 		select {
 		case req := <-reqs:

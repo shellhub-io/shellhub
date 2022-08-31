@@ -18,6 +18,8 @@ import (
 
 // SFTPSubsystemHandler is a subsystem handler for SFTP connections.
 func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler {
+	api := internalclient.NewClient()
+
 	return func(client gliderssh.Session) {
 		defer client.Close()
 
@@ -59,8 +61,7 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 
 		publicKey, ok := client.Context().Value("public_key").(string)
 		if publicKey != "" && ok {
-			apiClient := internalclient.NewClient()
-			key, err := apiClient.CreatePrivateKey()
+			key, err := api.CreatePrivateKey()
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"user":   client.User(),
@@ -110,7 +111,7 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 			log.WithFields(log.Fields{}).Trace("using authentication from password")
 		}
 
-		connection, _, err := shellhubSession.NewClientConnWithDeadline(dialed, "tcp", config)
+		connection, reqs, err := shellhubSession.NewClientConnWithDeadline(dialed, "tcp", config)
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"user":   client.User(),
@@ -142,6 +143,34 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 			}).Error("failed to request the SFTP subsystem to the agent")
 
 			return
+		}
+
+		if err = session.Register(client); err != nil {
+			log.WithFields(log.Fields{
+				"user":   client.User(),
+				"target": session.Target,
+				"uid":    session.UID,
+			}).Warning("failed to register session")
+		}
+
+		defer func() {
+			session.Finish(dialed) //nolint: errcheck
+
+			log.WithFields(log.Fields{
+				"user":   client.User(),
+				"target": session.Target,
+				"uid":    session.UID,
+			}).Info("session closed")
+		}()
+
+		go shellhubSession.HandleRequests(client.Context(), reqs, api)
+
+		if errs := api.PatchSessions(session.UID); len(errs) > 0 {
+			log.WithError(errs[0]).WithFields(log.Fields{
+				"user":   client.User(),
+				"target": session.Target,
+				"uid":    session.UID,
+			}).Warning("failed set the session as authenticated")
 		}
 
 		flw, err := flow.NewFlow(agent)
