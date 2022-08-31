@@ -22,14 +22,24 @@ const (
 	ServerSSHBroker     = ":2222"
 )
 
-func main() {
-	if value, ok := os.LookupEnv("SHELLHUB_ENV"); ok && value == "development" {
-		log.SetLevel(log.TraceLevel)
-		log.Debug("Log level set to Trace")
-	} else {
-		log.Debug("Log level default")
+func init() {
+	level := log.InfoLevel
+
+	if env, ok := os.LookupEnv("SHELLHUB_ENV"); ok && env == "development" {
+		level = log.TraceLevel
 	}
 
+	if env, ok := os.LookupEnv("SHELLHUB_LOG_LEVEL"); ok {
+		if v, err := log.ParseLevel(env); err != nil {
+			level = v
+		}
+	}
+
+	log.WithField("log_level", level.String()).Info("Setting log level")
+	log.SetLevel(level)
+}
+
+func main() {
 	tunnel := sshTunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
 	tunnel.SetConnectionHandler()
 	tunnel.SetCloseHandler()
