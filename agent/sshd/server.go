@@ -165,6 +165,8 @@ func SFTPSubsystemHandler(sess sshserver.Session) {
 		}).Trace("closing error to session ends")
 	}()
 
+	go StartKeepAliveLoop(time.Second*time.Duration(30), sess)
+
 	if err = cmd.Wait(); err != nil {
 		logrus.WithError(err).WithFields(logrus.Fields{
 			"user": sess.Context().User(),

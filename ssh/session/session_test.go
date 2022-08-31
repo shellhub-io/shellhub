@@ -30,6 +30,7 @@ func TestHandlePty(t *testing.T) {
 		sessionMock.On("Environ").Return([]string{"WS=false"}).Once()
 		sessionMock.On("Pty").Return(ssh.Pty{Term: "xterm", Window: ssh.Window{Width: 100, Height: 40}}, nil, true).Once()
 		sessionMock.On("Command").Return([]string{}).Once()
+		sessionMock.On("Subsystem").Return("").Once()
 		handlePty(session)
 		assert.Equal(t, true, session.Pty)
 		assert.Equal(t, Term, session.Type)
@@ -45,6 +46,7 @@ func TestHandlePty(t *testing.T) {
 		sessionMock.On("Environ").Return([]string{"WS=false"}).Once()
 		sessionMock.On("Pty").Return(ssh.Pty{}, nil, false).Once()
 		sessionMock.On("Command").Return([]string{"ls"}).Once()
+		sessionMock.On("Subsystem").Return("").Once()
 		handlePty(session)
 		assert.Equal(t, false, session.Pty)
 		assert.Equal(t, Exec, session.Type)
@@ -60,9 +62,25 @@ func TestHandlePty(t *testing.T) {
 		sessionMock.On("Environ").Return([]string{"WS=false"}).Once()
 		sessionMock.On("Pty").Return(ssh.Pty{}, nil, false).Once()
 		sessionMock.On("Command").Return([]string{"scp"}).Once()
+		sessionMock.On("Subsystem").Return("").Once()
 		handlePty(session)
 		assert.Equal(t, false, session.Pty)
 		assert.Equal(t, SCP, session.Type)
+		assert.Equal(t, "", session.Term)
+
+		sessionMock.AssertExpectations(t)
+	})
+	t.Run("HandleSFTP", func(t *testing.T) {
+		sessionMock := &mocks.Session{}
+		session := &Session{session: sessionMock}
+
+		sessionMock.On("Environ").Return([]string{"WS=false"}).Once()
+		sessionMock.On("Pty").Return(ssh.Pty{}, nil, false).Once()
+		sessionMock.On("Command").Return([]string{"scp"}).Once()
+		sessionMock.On("Subsystem").Return("sftp").Once()
+		handlePty(session)
+		assert.Equal(t, false, session.Pty)
+		assert.Equal(t, SFTP, session.Type)
 		assert.Equal(t, "", session.Term)
 
 		sessionMock.AssertExpectations(t)
