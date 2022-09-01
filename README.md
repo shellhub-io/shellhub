@@ -32,7 +32,7 @@ for the the edge and cloud computing.
 
 ![Screenshot](https://github.com/shellhub-io/shellhub-io.github.io/raw/src/docs/img/screenshot.png)
 
-* **Native SSH suuport**: Access any device behind the ShellHub centralized SSH server using standard tools such as OpenSSH Client , PuTTY and so on.
+* **Native SSH support**: Access any device behind the ShellHub centralized SSH server using standard tools such as OpenSSH Client , PuTTY and so on.
 * **SCP/SFTP support**: Copy files from/to device using industry standard tools without 3rd party applications.
 * **Public-key authentication**: Allow multiple users to log in as the same system user without having to share a single password between them, revoke a single users's access without revoking access by other users and make it easier for a single user to log in to many accounts without needing to manage many different passwords.
 * **Firewall rules**: ShellHub provides flexible firewall for filtering SSH connections. It gives a fine-grained control over which SSH connections reach the devices.
