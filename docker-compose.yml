@@ -29,7 +29,6 @@ services:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_BILLING=${SHELLHUB_BILLING}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
-      - STORE_CACHE=${SHELLHUB_STORE_CACHE}
       - GEOIP=${SHELLHUB_GEOIP}
       - MAXMIND_LICENSE=${SHELLHUB_MAXMIND_LICENSE}
       - RECORD_RETENTION=${SHELLHUB_RECORD_RETENTION}
@@ -75,8 +74,6 @@ services:
     image: shellhubio/cli:${SHELLHUB_VERSION}
     entrypoint: /bin/sleep infinity
     restart: unless-stopped
-    environment:
-      - STORE_CACHE=${SHELLHUB_STORE_CACHE}
     depends_on:
       - api
       - mongo
@@ -90,6 +87,11 @@ services:
       interval: 30s
       start_period: 10s
     command: ["--replSet", "rs", "--bind_ip_all"]
+    networks:
+      - shellhub
+  redis:
+    image: redis
+    restart: unless-stopped
     networks:
       - shellhub
 
