@@ -48,8 +48,6 @@ type config struct {
 	MongoURI string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
 	// Redis connection string (URI format)
 	RedisURI string `envconfig:"redis_uri" default:"redis://redis:6379"`
-	// Enable store cache
-	StoreCache bool `envconfig:"store_cache" default:"false"`
 	// Enable GeoIP feature.
 	//
 	// GeoIP features enable the ability to get the logitude and latitude of the client from the IP address.
