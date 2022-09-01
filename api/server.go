@@ -216,7 +216,6 @@ func startServer(cfg *config) error {
 	publicAPI.POST(routes.AddNamespaceUserURL, gateway.Handler(handler.AddNamespaceUser))
 	publicAPI.DELETE(routes.RemoveNamespaceUserURL, gateway.Handler(handler.RemoveNamespaceUser))
 	publicAPI.PATCH(routes.EditNamespaceUserURL, gateway.Handler(handler.EditNamespaceUser))
-	publicAPI.POST(routes.SetupEndpoint, gateway.Handler(handler.Setup))
 
 	e.Logger.Fatal(e.Start(":8080"))
 
