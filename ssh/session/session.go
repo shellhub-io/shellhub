@@ -458,6 +458,10 @@ func HandleRequests(ctx context.Context, reqs <-chan *ssh.Request, c internalcli
 						log.Error(errs[0])
 					}
 				}
+
+				if err := req.Reply(false, nil); err != nil {
+					log.Error(err)
+				}
 			default:
 				if req.WantReply {
 					if err := req.Reply(false, nil); err != nil {
