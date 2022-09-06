@@ -251,5 +251,9 @@ func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip stri
 }
 
 func (s *service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
-	return s.store.DeviceSetOnline(ctx, uid, true)
+	if err := s.store.DeviceSetOnline(ctx, uid, true); err != nil {
+		return NewErrDeviceNotFound(uid, err)
+	}
+
+	return nil
 }
