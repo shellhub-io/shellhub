@@ -13,7 +13,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	hp "github.com/shellhub-io/shellhub/pkg/requests"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
@@ -30,20 +29,6 @@ type NamespaceService interface {
 	FillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error)
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
 	GetSessionRecord(ctx context.Context, tenantID string) (bool, error)
-	HandleReportDelete(ns *models.Namespace) error
-}
-
-func (s *service) HandleReportDelete(ns *models.Namespace) error {
-	if !hp.HasBillingInstance(ns) {
-		return nil
-	}
-
-	status, err := s.client.(req.Client).ReportDelete(ns)
-	if err != nil {
-		return err
-	}
-
-	return HandleStatusResponse(status)
 }
 
 // ListNamespaces lists selected namespaces from a user.
@@ -172,7 +157,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	if err != nil {
 		return NewErrNamespaceNotFound(tenantID, err)
 	}
-	if err := s.HandleReportDelete(ns); err != nil {
+	if err := deleteReportUsage(s.client.(req.Client), ns); err != nil {
 		return err
 	}
 
