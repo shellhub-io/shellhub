@@ -25,7 +25,7 @@ const (
 )
 
 func (h *Handler) AuthRequest(c gateway.Context) error {
-	token, ok := c.Get("user").(*jwt.Token)
+	token, ok := c.Get(middleware.DefaultJWTConfig.ContextKey).(*jwt.Token)
 	if !ok {
 		return svc.ErrTypeAssertion
 	}
