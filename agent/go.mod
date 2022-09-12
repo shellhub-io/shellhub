@@ -8,7 +8,7 @@ require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/creack/pty v1.1.18
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v20.10.17+incompatible
+	github.com/docker/docker v20.10.18+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/gliderlabs/ssh v0.3.5
