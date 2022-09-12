@@ -25,7 +25,7 @@ type Flow struct {
 	Stderr io.Reader
 }
 
-// NewFlow creates a new Flow from an SSH's session.
+// NewFlow creates a new Flow from an Connect's session.
 //
 // It receives a *ssh.Session to be piped into Stdin, Stdout and Stderr.
 //
@@ -54,9 +54,9 @@ func NewFlow(session *ssh.Session) (*Flow, error) {
 // It receives an io.Reader to be read and a channel to inform if an error occurs while copying.
 //
 // After copy is code, it trys to close Flow Stdin.
-func (f *Flow) PipeIn(session io.Reader, done chan bool) {
-	if _, err := io.Copy(f.Stdin, session); err != nil && err != io.EOF {
-		log.WithError(err).Error("failed to copy from session to Stdin")
+func (f *Flow) PipeIn(client io.Reader, done chan bool) {
+	if _, err := io.Copy(f.Stdin, client); err != nil && err != io.EOF {
+		log.WithError(err).Error("failed to copy from client to Stdin")
 
 		done <- false
 
@@ -71,9 +71,9 @@ func (f *Flow) PipeIn(session io.Reader, done chan bool) {
 // PipeOut Pipe pipes a Flow Stdout to a session.
 //
 // It receives an io.Writer to be written and a channel to inform if an error occurs while copying.
-func (f *Flow) PipeOut(session io.Writer, done chan bool) {
-	if _, err := io.Copy(session, f.Stdout); err != nil && err != io.EOF {
-		log.WithError(err).Error("failed to copy from Stdout to session")
+func (f *Flow) PipeOut(client io.Writer, done chan bool) {
+	if _, err := io.Copy(client, f.Stdout); err != nil && err != io.EOF {
+		log.WithError(err).Error("failed to copy from Stdout to client")
 
 		done <- false
 
@@ -86,9 +86,9 @@ func (f *Flow) PipeOut(session io.Writer, done chan bool) {
 // PipeErr pipes a Flow Stderr to a session.
 //
 // It receives an io.Writer to be written and a channel to inform if an error occurs while copying.
-func (f *Flow) PipeErr(session io.Writer, done chan bool) {
-	if _, err := io.Copy(session, f.Stderr); err != nil && err != io.EOF {
-		log.WithError(err).Error("failed to copy from Stderr to session")
+func (f *Flow) PipeErr(client io.Writer, done chan bool) {
+	if _, err := io.Copy(client, f.Stderr); err != nil && err != io.EOF {
+		log.WithError(err).Error("failed to copy from Stderr to client")
 
 		done <- false
 

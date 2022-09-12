@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	sshTunnel "github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/ssh/server"
-	"github.com/shellhub-io/shellhub/ssh/session"
+	"github.com/shellhub-io/shellhub/ssh/server/handler"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
 )
@@ -41,9 +41,6 @@ func init() {
 
 func main() {
 	tunnel := sshTunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
-	tunnel.SetConnectionHandler()
-	tunnel.SetCloseHandler()
-	tunnel.SetKeepAliveHandler()
 
 	router := tunnel.GetRouter()
 	router.HandleFunc("/sessions/{uid}/close", func(response http.ResponseWriter, request *http.Request) {
@@ -74,14 +71,14 @@ func main() {
 			return
 		}
 
-		request, _ = http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", vars["uid"]), nil)
+		request, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", vars["uid"]), nil)
 		if err := request.Write(conn); err != nil {
 			exit(response, http.StatusInternalServerError, err)
 
 			return
 		}
 	})
-	router.Handle("/ws/ssh", websocket.Handler(session.WebSession))
+	router.Handle("/ws/ssh", websocket.Handler(handler.WebSession))
 
 	go http.ListenAndServe(ServerRouterAddress, router) // nolint:errcheck
 

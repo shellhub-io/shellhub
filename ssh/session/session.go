@@ -2,44 +2,38 @@ package session
 
 import (
 	"context"
-	"crypto/rsa"
 	"fmt"
 	"net"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
+
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/ssh/pkg/host"
-	"github.com/shellhub-io/shellhub/ssh/pkg/kind"
-	"github.com/shellhub-io/shellhub/ssh/pkg/target"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh"
+	gossh "golang.org/x/crypto/ssh"
 )
 
+// Errors returned by the NewSession to the client.
 var (
-	ErrTarget          = fmt.Errorf("failed dto get session target")
-	ErrLookupDevice    = fmt.Errorf("failed to lookup for device data")
-	ErrBillingBlock    = fmt.Errorf("you cannot connect to this device because the namespace is not eligible for the free plan.\\nPlease contact the namespace owner's to upgrade the plan.\\nSee our pricing plans on https://www.shellhub.io/pricing to estimate the cost of your use cases on ShellHub Cloud or go to https://cloud.shellhub.io/settings/billing to upgrade the plan")
-	ErrFirewallBlock   = fmt.Errorf("a firewall rule block this action")
-	ErrHost            = fmt.Errorf("failed to get the device address")
-	ErrKindShell       = fmt.Errorf("failed to open a shell in the device")
-	ErrKindExec        = fmt.Errorf("failed to exec the command in the device")
-	ErrKindHeredoc     = fmt.Errorf("failed to exec the commands in the device")
-	ErrKindUnsupported = fmt.Errorf("this connection kind does not exist")
-	ErrFlow            = fmt.Errorf("failed to open a data from client to agent")
-	ErrConnect         = fmt.Errorf("failed to connect to device") // NOTICE: this error happens when password wasn't corret.
+	ErrBillingBlock  = fmt.Errorf("you cannot connect to this device because the namespace is not eligible for the free plan.\\nPlease contact the namespace owner's to upgrade the plan.\\nSee our pricing plans on https://www.shellhub.io/pricing to estimate the cost of your use cases on ShellHub Cloud or go to https://cloud.shellhub.io/settings/billing to upgrade the plan")
+	ErrFirewallBlock = fmt.Errorf("you connot connect to this device because a firewall rule block your connection")
+	ErrHost          = fmt.Errorf("failed to get the device address")
+	ErrFindDevice    = fmt.Errorf("failed to find the device")
 )
 
 type Session struct {
-	session gliderssh.Session
-	// User is the user that is trying to connect to the device; user on device.
-	User   string `json:"username"`
-	Target string `json:"device_uid"` // nolint: tagliatelle
+	Client gliderssh.Session
+	// Username is the user that is trying to connect to the device; user on device.
+	Username string `json:"username"`
+	Device   string `json:"device_uid"` // nolint: tagliatelle
 	// UID is the device's UID.
 	UID           string `json:"uid"`
 	IPAddress     string `json:"ip_address"` // nolint: tagliatelle
@@ -48,19 +42,27 @@ type Session struct {
 	Authenticated bool   `json:"authenticated"`
 	Lookup        map[string]string
 	Pty           bool
+	Dialed        net.Conn
 }
 
 const (
-	Web  = "web"     // webterminal
-	Term = "term"    // iterative pty
-	Exec = "exec"    // non iterative pty
-	SCP  = "scp"     // scp
-	SFTP = "sftp"    // sftp
-	Unk  = "unknown" // unknown
+	Web     = "web"     // web terminal.
+	Term    = "term"    // iterative pty.
+	Exec    = "exec"    // non-iterative pty.
+	HereDoc = "heredoc" // heredoc pty.
+	SCP     = "scp"     // scp.
+	SFTP    = "sftp"    // sftp subsystem.
+	Unk     = "unknown" // unknown.
 )
 
+// handlePty sets the connection`s type to session.
+//
+// Connection types possible are: web, term, exec, heredoc, scp, sftp, unknown.
 func handlePty(s *Session) {
-	pty, _, isPty := s.session.Pty()
+	ctx := s.Client.Context()
+
+	// TODO: improve and clean.
+	pty, _, isPty := s.Client.Pty()
 	if isPty {
 		s.Term = pty.Term
 		s.Type = Unk
@@ -68,7 +70,7 @@ func handlePty(s *Session) {
 
 	s.Pty = isPty
 
-	env := loadEnv(s.session.Environ())
+	env := loadEnv(s.Client.Environ())
 
 	if value, ok := env["WS"]; ok && value == "true" {
 		env["WS"] = "false"
@@ -77,7 +79,7 @@ func handlePty(s *Session) {
 		return
 	}
 
-	commands := s.session.Command()
+	commands := s.Client.Command()
 
 	var cmd string
 
@@ -85,339 +87,143 @@ func handlePty(s *Session) {
 		cmd = commands[0]
 	}
 
+	if s.Client.Subsystem() == SFTP {
+		s.Type = SFTP
+
+		return
+	}
+
 	switch {
-	case !isPty && strings.HasPrefix(cmd, "scp"):
+	case !isPty && strings.HasPrefix(cmd, SCP):
 		s.Type = SCP
 	case !isPty && cmd != "":
 		s.Type = Exec
+	case !isPty && metadata.RestoreRequest(ctx) == "shell":
+		s.Type = HereDoc
 	case isPty:
 		s.Type = Term
-	}
-
-	if s.session.Subsystem() == SFTP {
-		s.Type = SFTP
+	default:
+		s.Type = Unk
 	}
 }
 
-// NewSession creates a new session from a client to agent, validating data, instance and payment.
-//
-// It receives an SSHID what contains either device's hostname and namespace which it is required to
-// connect or a device ID, and an instance of sshserver.Session.
-//
-// A SSHID seems like this: username@namespace.00-00-00-00-00-00.
-// A Device ID seems like this: TODO.
-//
-// It returns a new session instance and an error, if it accours.
-func NewSession(sshid string, session gliderssh.Session) (*Session, error) {
-	log.WithFields(log.Fields{
-		"sshid":   sshid,
-		"session": session,
-	}).Trace("the creation of a new ShellHub session instance was initialized")
-
-	tag, err := target.NewTarget(sshid)
+// NewSession creates a new Client from a client to agent, validating data, instance and payment.
+func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, error) {
+	hos, err := host.NewHost(client.RemoteAddr().String())
 	if err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"sshid": sshid,
-		}).Error("failed to get the session's target")
-
-		return nil, ErrTarget
-	}
-
-	hos, err := host.NewHost(session.RemoteAddr().String())
-	if err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"sshid": sshid,
-		}).Error("failed to get session's address")
-
 		return nil, ErrHost
 	}
 
 	if hos.IsLocalhost() {
-		env := loadEnv(session.Environ())
+		env := loadEnv(client.Environ())
 		if value, ok := env["IP_ADDRESS"]; ok {
 			hos.Host = value
 		}
 	}
 
-	api := internalclient.NewClient()
-
-	// When session's target doesn't has a dot, it is a connection from web terminal, but it has, session's
-	// target is the `SSHID`, what has that dot.
-	var lookup map[string]string
-
-	if tag.IsSSHID() {
-		namespace, hostname, err := tag.SplitSSHID()
-		if err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"sshid": sshid,
-			}).Error("failed to get the device's hostname and namespace")
-
-			return nil, ErrTarget
-		}
-
-		lookup = map[string]string{
-			"domain": namespace,
-			"name":   hostname,
-		}
-	} else {
-		device, err := api.GetDevice(tag.Data)
-		if err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"sshid": sshid,
-			}).Error("failed to get the device from API")
-
-			return nil, ErrFindDevice
-		}
-
-		lookup = map[string]string{
-			"domain": device.Namespace,
-			"name":   device.Name,
-		}
-	}
-
+	device := metadata.RestoreDevice(client.Context())
+	tag := metadata.RestoreTarget(client.Context())
+	api := metadata.RestoreAPI(client.Context())
+	lookup := metadata.RestoreLookup(client.Context())
 	lookup["username"] = tag.Username
 	lookup["ip_address"] = hos.Host
 
-	log.WithFields(log.Fields{
-		"sshid":  sshid,
-		"lookup": lookup,
-	}).Debug("Device's to lookup at the API")
-
-	uid, errs := api.Lookup(lookup)
-	if len(errs) > 0 || uid == "" {
-		log.WithError(err).WithFields(log.Fields{
-			"sshid": sshid,
-		}).Error("failed to lookup for device in API")
-
-		return nil, ErrLookupDevice
-	}
-
 	if envs.IsCloud() || envs.IsEnterprise() {
 		if err := api.FirewallEvaluate(lookup); err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"sshid": sshid,
-			}).Info("A firewall rule blocked this action")
-
 			return nil, ErrFirewallBlock
 		}
 	}
 
 	if envs.IsCloud() && envs.HasBilling() {
-		device, err := api.GetDevice(uid)
+		device, err := api.GetDevice(device.UID)
 		if err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"sshid": sshid,
-			}).Error("failed to get the device's data in the API server")
-
 			return nil, ErrFindDevice
 		}
 
 		if _, status, _ := api.BillingEvaluate(device.TenantID); status != 200 && status != 402 {
-			log.WithError(err).WithFields(log.Fields{
-				"sshid":  sshid,
-				"device": device.UID,
-				"tenant": device.TenantID,
-			}).Info("the billing blocked this action")
-
 			return nil, ErrBillingBlock
 		}
 	}
 
-	sess := &Session{ // nolint: exhaustruct, forcetypeassert
-		session:   session,
-		UID:       session.Context().Value(gliderssh.ContextKeySessionID).(string),
-		User:      tag.Username,
+	dialed, err := tunnel.Dial(client.Context(), device.UID)
+	if err != nil {
+		return nil, err
+	}
+
+	uid := client.Context().Value(gliderssh.ContextKeySessionID).(string)
+
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", uid), nil)
+	if err = req.Write(dialed); err != nil {
+		return nil, err
+	}
+
+	session := &Session{ // nolint: exhaustruct, forcetypeassert
+		Client:    client,
+		UID:       uid,
+		Username:  tag.Username,
 		IPAddress: hos.Host,
-		Target:    uid,
+		Device:    device.UID,
 		Lookup:    lookup,
+		Dialed:    dialed,
 	}
 
-	handlePty(sess)
+	handlePty(session)
 
-	log.WithFields(log.Fields{
-		"sshid":   sshid,
-		"session": session,
-	}).Trace("the new ShellHub session instance created")
+	session.Register(client) // nolint:errcheck
 
-	return sess, nil
+	return session, nil
 }
 
-// Connect trys to connect a client to the device what he or she wants to access. It receives a possible session's
-// password or public key, the SSH session opened from client to the server a network connection, our API client for
-// internal routes and configurations about connection's kind.
-func (s *Session) Connect(passwd string, key *rsa.PrivateKey, session gliderssh.Session, conn net.Conn, api internalclient.Client, opts kind.ConfigOptions) error {
-	log.WithFields(log.Fields{
-		"session": s.UID,
-	}).Trace("A connection between a client and agent was initialized")
-
-	ctx, cancel := context.WithCancel(session.Context())
-	defer cancel()
-
-	config := &ssh.ClientConfig{ // nolint: exhaustruct
-		User: s.User,
-		Auth: []ssh.AuthMethod{},
-		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			return nil
-		},
-	}
-
-	if key != nil {
-		signer, err := ssh.NewSignerFromKey(key)
-		if err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"session": s.UID,
-			}).Error("failed to get the signer from public key")
-
-			return ErrSignerPublicKey
-		}
-
-		config.Auth = []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		}
-
-		log.WithFields(log.Fields{
-			"session": s.UID,
-		}).Trace("Using authentication from public key")
-	} else {
-		config.Auth = []ssh.AuthMethod{
-			ssh.Password(passwd),
-		}
-
-		log.WithFields(log.Fields{
-			"session": s.UID,
-		}).Trace("Using authentication from password")
-	}
-
-	connection, reqs, err := NewClientConnWithDeadline(conn, "tcp", config)
-	if err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"session": s.UID,
-		}).Error("failed to connect to forwarding")
-
-		return ErrConnect
-	}
-
-	client, err := connection.NewSession()
-	if err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"session": s.UID,
-		}).Error("failed to create session for SSH Client")
-	}
-
-	go HandleRequests(ctx, reqs, api)
-
-	pty, winCh, isPty := session.Pty()
-
-	kid := kind.NewKind(session.Context(), isPty)
-
-	// Gets the SSH's server connection from the context to kill the process initialized by the session.
-	server, ok := session.Context().Value(gliderssh.ContextKeyConn).(*ssh.ServerConn)
-	if !ok {
-		log.WithFields(log.Fields{
-			"session": s.UID,
-		}).Warning("Type assertion failed")
-
-		return fmt.Errorf("type assertion failed")
-	}
-
-	go func() {
-		// Waits until the connection send no more data, and so kill the process opened by this connection.
-		server.Wait() // nolint:errcheck
-		client.Close()
-
-		log.WithFields(log.Fields{
-			"session": s.UID,
-		}).Info("processes opened was closed")
-	}()
-
-	switch kid.Get() {
-	case kind.SHELL:
-		err = kid.Shell(api, s.UID, client, session, pty, winCh, opts)
-		if err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"session": s.UID,
-			}).Error("failed to create a shell")
-
-			return ErrKindShell
-		}
-	case kind.EXEC:
-		err = kid.Exec(api, s.UID, client, session)
-		if err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"session": s.UID,
-			}).Error("failed to exec a command")
-
-			return ErrKindExec
-		}
-	case kind.HEREDOC:
-		err = kid.Heredoc(api, s.UID, client, session)
-		if err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"session": s.UID,
-			}).Error("failed to exec a interative commands")
-
-			return ErrKindHeredoc
-		}
-	default:
-		log.WithError(err).WithFields(log.Fields{
-			"session": s.UID,
-		}).Error("this connection isn't supported")
-		session.Exit(255) // nolint:errcheck
-
-		return ErrKindUnsupported
-	}
-
-	err = conn.Close()
-	if err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"session": s.UID,
-		}).Error("failed to close the connection")
-
-		return err
-	}
-
-	log.WithFields(log.Fields{
-		"session": s.UID,
-	}).Trace("a connection between a client and agent was closed")
-
-	return nil
+func (s *Session) GetType() string {
+	return s.Type
 }
 
+// NewClientConnWithDeadline creates a new connection to the agent.
+func (s *Session) NewClientConnWithDeadline(config *gossh.ClientConfig) (*gossh.Client, <-chan *gossh.Request, error) {
+	const Addr = "tcp"
+
+	if config.Timeout > 0 {
+		if err := s.Dialed.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	cli, chans, reqs, err := gossh.NewClientConn(s.Dialed, Addr, config)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if config.Timeout > 0 {
+		if err := s.Dialed.SetReadDeadline(time.Time{}); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	ch := make(chan *gossh.Request)
+	close(ch)
+
+	return gossh.NewClient(cli, chans, ch), reqs, nil
+}
+
+// Register registers a new Client at the api.
 func (s *Session) Register(_ gliderssh.Session) error {
-	log.WithFields(log.Fields{
-		"session": s.UID,
-	}).Trace("trying to register a new session at the API")
-
 	if _, err := resty.New().R().
 		SetBody(*s).
 		Post("http://api:8080/internal/sessions"); err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"session": s.UID,
-		}).Error("failed to register a new session at the API")
-
 		return err
 	}
-
-	log.WithFields(log.Fields{
-		"session": s.UID,
-	}).Trace("session registered at the API")
 
 	return nil
 }
 
-func (s *Session) Finish(conn net.Conn) error {
-	if conn != nil {
-		request, err := http.NewRequest("DELETE", fmt.Sprintf("/ssh/close/%s", s.UID), nil)
-		if err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"session": s.UID,
-			}).Warning("failed to request the session close")
-		}
+func (s *Session) Finish() error {
+	if s.Dialed != nil {
+		request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)
 
-		if err := request.Write(conn); err != nil {
-			log.WithError(err).WithFields(log.Fields{
+		if err := request.Write(s.Dialed); err != nil {
+			log.WithFields(log.Fields{
 				"session": s.UID,
-			}).Warning("failed to write the request to connection")
+			}).Error(err)
 		}
 	}
 
@@ -443,7 +249,7 @@ func loadEnv(env []string) map[string]string {
 	return m
 }
 
-func HandleRequests(ctx context.Context, reqs <-chan *ssh.Request, c internalclient.Client) {
+func HandleRequests(ctx context.Context, reqs <-chan *gossh.Request, c internalclient.Client) {
 	for {
 		select {
 		case req := <-reqs:
@@ -473,41 +279,4 @@ func HandleRequests(ctx context.Context, reqs <-chan *ssh.Request, c internalcli
 			return
 		}
 	}
-}
-
-// NewClientConnWithDeadline creates a new connection to the agent.
-func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, <-chan *ssh.Request, error) {
-	if config.Timeout > 0 {
-		if err := conn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"address": addr,
-			}).Error("failed to read the dealine from the connection")
-
-			return nil, nil, err
-		}
-	}
-
-	cli, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
-	if err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"address": addr,
-		}).Error("failed to create a new SSH client connection")
-
-		return nil, nil, err
-	}
-
-	if config.Timeout > 0 {
-		if err := conn.SetReadDeadline(time.Time{}); err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"address": addr,
-			}).Error("failed to read the dealine from the connection")
-
-			return nil, nil, err
-		}
-	}
-
-	ch := make(chan *ssh.Request)
-	close(ch)
-
-	return ssh.NewClient(cli, chans, ch), reqs, nil
 }

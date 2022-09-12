@@ -1,10 +1,9 @@
-package session
+package handler
 
 import (
 	"bytes"
 	"crypto/rsa"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"strconv"
 	"time"
@@ -20,25 +19,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-var (
-	ErrFindPublicKey      = fmt.Errorf("failed to get the public key from the server")
-	ErrEvaluatePublicKey  = fmt.Errorf("failed to evaluate the public key in the server")
-	ErrForbiddenPublicKey = fmt.Errorf("failed to use the public key for this action")
-	ErrDataPublicKey      = fmt.Errorf("failed to parse the public key data")
-	ErrSignaturePublicKey = fmt.Errorf("failed to decode the public key signature")
-	ErrVerifyPublicKey    = fmt.Errorf("failed to verify the public key")
-	ErrFindDevice         = fmt.Errorf("failed to find the device")
-	ErrSignerPublicKey    = fmt.Errorf("failed to signer the public key")
-	ErrDialSSH            = fmt.Errorf("failed to dial to connect to SSH server")
-	ErrSession            = fmt.Errorf("failed to create the SSH session")
-	ErrEnvIPAddress       = fmt.Errorf("failed to set the env virable of ip address to session")
-	ErrEnvWS              = fmt.Errorf("failed to set the env virable of web socket to session")
-	ErrPipe               = fmt.Errorf("failed to pipe session data from client to agent")
-	ErrPty                = fmt.Errorf("failed to request the pty from agent")
-	ErrShell              = fmt.Errorf("failed to get the shell from agent")
-)
-
-// WebData contains the data required by web termianl connection.
+// WebData contains the data required by web terminal connection.
 type WebData struct {
 	// User is the device's user.
 	User string
@@ -151,120 +132,89 @@ func (c *WebData) GetAuth(magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
 	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
 }
 
-// WebSession is the session's handler for connection coming from the web terminal.
+// WebSession is the Client's handler for connection coming from the web terminal.
 func WebSession(socket *websocket.Conn) {
-	log.Info("handling web session request started")
-
-	// exit responds and finish SSH's session when something goes wrong during session handling.
-	// Internal error is the error from Go code, and external one is what going to be send to end user.
-	exit := func(session *ssh.Session, socket *websocket.Conn, internal, external error) {
-		log.WithFields(log.Fields{
-			"internal": internal,
-			"external": external,
-		}).Error("failed to handler the web session")
-
-		// finish close the SSH's session and websocket connection.
-		finish := func(session *ssh.Session, socket *websocket.Conn) {
-			if session != nil {
-				err := session.Close()
-				if err != nil {
-					log.WithError(err).Error("failed to finish the web session")
-				}
-			}
-
-			if socket != nil {
-				err := socket.Close()
-				if err != nil {
-					log.WithError(err).Error("failed to close the web socket")
-				}
-			}
-		}
-
-		respond := func(socket *websocket.Conn, err error) {
-			_, err = socket.Write([]byte(err.Error()))
-			if err != nil {
-				log.WithError(err).Error("failed to write the error to the socket")
-			}
-		}
-
-		respond(socket, external)
-		finish(session, socket)
-	}
+	log.Info("handling web client request started")
+	defer log.Info("handling web client request end")
 
 	data := NewWebData(socket)
 
 	auth, err := data.GetAuth(magickey.GetRerefence())
 	if err != nil {
-		exit(nil, socket, nil, err)
+		sendAndInformError(socket, err, ErrGetAuth)
 
 		return
 	}
 
-	server, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
+	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
 		User:            data.User,
 		Auth:            auth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 	})
 	if err != nil {
-		exit(nil, socket, err, ErrDialSSH)
+		sendAndInformError(socket, err, ErrDialSSH)
 
 		return
 	}
 
-	session, err := server.NewSession()
+	defer connection.Close()
+
+	agent, err := connection.NewSession()
 	if err != nil {
-		exit(session, socket, err, ErrSession)
+		sendAndInformError(socket, err, ErrSession)
 
 		return
 	}
 
-	if err = session.Setenv("IP_ADDRESS", socket.Request().Header.Get("X-Real-Ip")); err != nil {
-		exit(session, socket, err, ErrEnvIPAddress)
+	defer agent.Close()
+
+	if err = agent.Setenv("IP_ADDRESS", socket.Request().Header.Get("X-Real-Ip")); err != nil {
+		sendAndInformError(socket, err, ErrEnvIPAddress)
 
 		return
 	}
 
-	if err = session.Setenv("WS", "true"); err != nil {
-		exit(session, socket, err, ErrEnvWS)
+	if err = agent.Setenv("WS", "true"); err != nil {
+		sendAndInformError(socket, err, ErrEnvWS)
 
 		return
 	}
 
-	flow, _ := flow.NewFlow(session)
+	flw, err := flow.NewFlow(agent)
 	if err != nil {
-		exit(session, socket, err, ErrPipe)
+		sendAndInformError(socket, err, ErrPipe)
 
 		return
 	}
 
-	if err := session.RequestPty("xterm", data.Rows, data.Columns, ssh.TerminalModes{
+	defer flw.Close()
+
+	if err := agent.RequestPty("xterm", data.Rows, data.Columns, ssh.TerminalModes{
 		ssh.ECHO:          1,
 		ssh.TTY_OP_ISPEED: 14400,
 		ssh.TTY_OP_OSPEED: 14400,
 	}); err != nil {
-		exit(session, socket, err, ErrPty)
+		sendAndInformError(socket, err, ErrPty)
 
 		return
 	}
 
-	if err := session.Shell(); err != nil {
-		exit(session, socket, err, ErrShell)
+	if err := agent.Shell(); err != nil {
+		sendAndInformError(socket, err, ErrShell)
 
 		return
 	}
 
 	done := make(chan bool)
 
-	go func() {
-		io.Copy(flow.Stdin, socket) // nolint:errcheck
-
-		done <- true
-	}()
+	go flw.PipeIn(socket, done)
+	go redirToWs(flw.Stdout, socket) // nolint:errcheck
+	go flw.PipeErr(socket, nil)
 
 	go func() {
-		redirToWs(flow.Stdout, socket) // nolint:errcheck
+		<-done
 
-		done <- true
+		agent.Close()
 	}()
 
 	conn := &wsconn{
@@ -275,14 +225,9 @@ func WebSession(socket *websocket.Conn) {
 
 	go conn.keepAlive(socket)
 
-	<-done
-
-	server.Close()
-	socket.Close()
-
-	<-done
-
-	log.Info("handling web session request closed")
+	if err := agent.Wait(); err != nil {
+		log.WithError(err).Warning("client remote command returned a error")
+	}
 }
 
 func redirToWs(rd io.Reader, ws *websocket.Conn) error {

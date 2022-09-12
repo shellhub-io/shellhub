@@ -16,35 +16,28 @@ type Tunnel struct {
 }
 
 func NewTunnel(connection, dial string) *Tunnel {
-	return &Tunnel{Tunnel: httptunnel.NewTunnel(connection, dial)}
-}
-
-func (t *Tunnel) SetConnectionHandler() {
-	t.Tunnel.ConnectionHandler = func(request *http.Request) (string, error) {
+	tunnel := &Tunnel{Tunnel: httptunnel.NewTunnel(connection, dial)}
+	tunnel.Tunnel.ConnectionHandler = func(request *http.Request) (string, error) {
 		return request.Header.Get(internalclient.DeviceUIDHeader), nil
 	}
-}
-
-func (t *Tunnel) SetCloseHandler() {
-	t.Tunnel.CloseHandler = func(id string) {
+	tunnel.Tunnel.CloseHandler = func(id string) {
 		if err := internalclient.NewClient().DevicesOffline(id); err != nil {
 			log.Error(err)
 		}
 	}
-}
-
-func (t *Tunnel) SetKeepAliveHandler() {
-	t.Tunnel.KeepAliveHandler = func(id string) {
+	tunnel.Tunnel.KeepAliveHandler = func(id string) {
 		if err := internalclient.NewClient().DevicesHeartbeat(id); err != nil {
 			log.Error(err)
 		}
 	}
+
+	return tunnel
 }
 
 func (t *Tunnel) GetRouter() *mux.Router {
 	router, ok := t.Tunnel.Router().(*mux.Router)
 	if !ok {
-		// TODO: should the SSH does not up when this assertion fail?
+		// TODO: should the Connect does not up when this assertion fail?
 		log.Error("type assertion failed")
 	}
 
