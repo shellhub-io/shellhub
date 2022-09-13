@@ -27,6 +27,7 @@ var (
 	ErrFirewallBlock = fmt.Errorf("you connot connect to this device because a firewall rule block your connection")
 	ErrHost          = fmt.Errorf("failed to get the device address")
 	ErrFindDevice    = fmt.Errorf("failed to find the device")
+	ErrDial          = fmt.Errorf("failed to tunnel the server to agent")
 )
 
 type Session struct {
@@ -147,7 +148,7 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 
 	dialed, err := tunnel.Dial(client.Context(), device.UID)
 	if err != nil {
-		return nil, err
+		return nil, ErrDial
 	}
 
 	uid := client.Context().Value(gliderssh.ContextKeySessionID).(string)

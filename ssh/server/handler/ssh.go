@@ -196,7 +196,7 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 		if err != nil {
 			return ErrRequestHeredoc
 		}
-	case session.Exec:
+	case session.Exec, session.SCP:
 		err := exec(api, sess.UID, agent, client)
 		if err != nil {
 			return ErrRequestExec
