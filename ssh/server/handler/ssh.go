@@ -210,10 +210,10 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 	return nil
 }
 
-// status gets the exit status from the client.
+// exitCodeFromError gets the exit code from the client.
 //
-// If error is nil, the status is zero, meaning that there isn't error. If none exit code is returned, it returns 255.
-func status(err error) int {
+// If error is nil, the exit code is zero, meaning that there isn't error. If none exit code is returned, it returns 255.
+func exitCodeFromError(err error) int {
 	if err == nil {
 		return 0
 	}
@@ -250,7 +250,7 @@ func shell(api internalclient.Client, uid string, agent *gossh.Session, client g
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"client": uid,
-		}).Error("failed to create a flow of data from agent to agent")
+		}).Error("failed to create a flow of data from agent")
 
 		return err
 	}
@@ -326,7 +326,7 @@ func heredoc(api internalclient.Client, uid string, agent *gossh.Session, client
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"client": uid,
-		}).Error("failed to create a flow of data from agent to agent")
+		}).Error("failed to create a flow of data from agent")
 
 		return err
 	}
@@ -356,10 +356,10 @@ func heredoc(api internalclient.Client, uid string, agent *gossh.Session, client
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"client": uid,
-		}).Warning("client remote command returned a error")
+		}).Warning("command on agent returned an error")
 	}
 
-	client.Exit(status(err)) // nolint:errcheck
+	client.Exit(exitCodeFromError(err)) // nolint:errcheck
 
 	return nil
 }
@@ -394,8 +394,9 @@ func exec(api internalclient.Client, uid string, agent *gossh.Session, client gl
 
 	if err := agent.Start(client.RawCommand()); err != nil {
 		log.WithError(err).WithFields(log.Fields{
-			"client": uid,
-		}).Error("failed to start client raw command")
+			"client":  uid,
+			"command": client.RawCommand(),
+		}).Error("failed to start a command on agent")
 
 		return err
 	}
@@ -403,11 +404,12 @@ func exec(api internalclient.Client, uid string, agent *gossh.Session, client gl
 	err = agent.Wait()
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
-			"client": uid,
-		}).Warning("client remote command returned a error")
+			"client":  uid,
+			"command": client.RawCommand(),
+		}).Warning("command on agent returned an error")
 	}
 
-	client.Exit(status(err)) // nolint:errcheck
+	client.Exit(exitCodeFromError(err)) // nolint:errcheck
 
 	return nil
 }
