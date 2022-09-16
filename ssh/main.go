@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	sshTunnel "github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/ssh/server"
 	"github.com/shellhub-io/shellhub/ssh/server/handler"
@@ -23,20 +23,7 @@ const (
 )
 
 func init() {
-	level := log.InfoLevel
-
-	if env, ok := os.LookupEnv("SHELLHUB_ENV"); ok && env == "development" {
-		level = log.TraceLevel
-	}
-
-	if env, ok := os.LookupEnv("SHELLHUB_LOG_LEVEL"); ok {
-		if v, err := log.ParseLevel(env); err != nil {
-			level = v
-		}
-	}
-
-	log.WithField("log_level", level.String()).Info("Setting log level")
-	log.SetLevel(level)
+	loglevel.SetLogLevel()
 }
 
 func main() {
