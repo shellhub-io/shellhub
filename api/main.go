@@ -4,9 +4,14 @@ import (
 	"context"
 
 	"github.com/kelseyhightower/envconfig"
+	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	loglevel.SetLogLevel()
+}
 
 func main() {
 	rootCmd := &cobra.Command{Use: "api"}

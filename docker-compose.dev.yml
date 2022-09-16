@@ -38,6 +38,7 @@ services:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
+      - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
   ui:
     image: ui
     build:
