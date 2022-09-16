@@ -80,6 +80,7 @@ services:
       - SHELLHUB_PRIVATE_KEY=/go/src/github.com/shellhub-io/shellhub/agent/shellhub.key
       - SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
+      - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
     volumes:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
