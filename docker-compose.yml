@@ -76,6 +76,8 @@ services:
     image: shellhubio/cli:${SHELLHUB_VERSION}
     entrypoint: /bin/sleep infinity
     restart: unless-stopped
+    environment:
+      - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
     depends_on:
       - api
       - mongo

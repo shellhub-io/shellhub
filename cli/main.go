@@ -6,6 +6,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
+	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	mgo "go.mongodb.org/mongo-driver/mongo"
@@ -16,6 +17,10 @@ import (
 type config struct {
 	MongoURI string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
 	RedisURI string `envconfig:"redis_uri" default:"redis://redis:6379"`
+}
+
+func init() {
+	loglevel.SetLogLevel()
 }
 
 func main() {
