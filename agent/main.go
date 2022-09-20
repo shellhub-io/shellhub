@@ -13,7 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/agent/selfupdater"
 	"github.com/shellhub-io/shellhub/agent/sshd"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +25,7 @@ import (
 // to be used during development only.
 var AgentVersion string
 
-// Provides the configuration for the agent service. The values are load from
+// ConfigOptions provides the configuration for the agent service. The values are load from
 // the system environment and control multiple aspects of the service.
 type ConfigOptions struct {
 	// Set the ShellHub Cloud server address the agent will use to connect.
@@ -60,7 +60,7 @@ type ConfigOptions struct {
 	LogLevel string `envconfig:"log_level" default:"info"`
 }
 
-func NewAgentServer() {
+func NewAgentServer() *Agent {
 	opts := ConfigOptions{}
 
 	// Process unprefixed env vars for backward compatibility
@@ -69,38 +69,38 @@ func NewAgentServer() {
 	if err := envconfig.Process("shellhub", &opts); err != nil {
 		// show envconfig usage help users to run agent
 		envconfig.Usage("shellhub", &opts) // nolint:errcheck
-		logrus.Fatal(err)
+		log.Fatal(err)
 	}
 
 	// Set the log level accordingly to the configuration.
-	level, err := logrus.ParseLevel(opts.LogLevel)
+	level, err := log.ParseLevel(opts.LogLevel)
 	if err != nil {
-		logrus.Error("Invalid log level has been provided.")
+		log.Error("Invalid log level has been provided.")
 		os.Exit(1)
 	}
-	logrus.SetLevel(level)
+	log.SetLevel(level)
 
 	if os.Geteuid() == 0 && opts.SingleUserPassword != "" {
-		logrus.Error("ShellHub agent cannot run as root when single-user mode is enabled.")
-		logrus.Error("To disable single-user mode unset SHELLHUB_SINGLE_USER_PASSWORD env.")
+		log.Error("ShellHub agent cannot run as root when single-user mode is enabled.")
+		log.Error("To disable single-user mode unset SHELLHUB_SINGLE_USER_PASSWORD env.")
 		os.Exit(1)
 	}
 
 	if os.Geteuid() != 0 && opts.SingleUserPassword == "" {
-		logrus.Error("When running as non-root user you need to set password for single-user mode by SHELLHUB_SINGLE_USER_PASSWORD environment variable.")
-		logrus.Error("You can use openssl passwd utility to generate password hash. The following algorithms are supported: bsd1, apr1, sha256, sha512.")
-		logrus.Error("Example: SHELLHUB_SINGLE_USER_PASSWORD=$(openssl passwd -6)")
-		logrus.Error("See man openssl-passwd for more information.")
+		log.Error("When running as non-root user you need to set password for single-user mode by SHELLHUB_SINGLE_USER_PASSWORD environment variable.")
+		log.Error("You can use openssl passwd utility to generate password hash. The following algorithms are supported: bsd1, apr1, sha256, sha512.")
+		log.Error("Example: SHELLHUB_SINGLE_USER_PASSWORD=$(openssl passwd -6)")
+		log.Error("See man openssl-passwd for more information.")
 		os.Exit(1)
 	}
 
 	updater, err := selfupdater.NewUpdater(AgentVersion)
 	if err != nil {
-		logrus.Panic(err)
+		log.Panic(err)
 	}
 
 	if err := updater.CompleteUpdate(); err != nil {
-		logrus.Warning(err)
+		log.Warning(err)
 		os.Exit(0)
 	}
 
@@ -109,11 +109,11 @@ func NewAgentServer() {
 	if AgentVersion != "latest" {
 		currentVersion, err = updater.CurrentVersion()
 		if err != nil {
-			logrus.Panic(err)
+			log.Panic(err)
 		}
 	}
 
-	logrus.WithFields(logrus.Fields{
+	log.WithFields(log.Fields{
 		"version": AgentVersion,
 		"mode": func() string {
 			if opts.SingleUserPassword != "" {
@@ -126,11 +126,11 @@ func NewAgentServer() {
 
 	agent, err := NewAgent(&opts)
 	if err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 	}
 
 	if err := agent.initialize(); err != nil {
-		logrus.WithFields(logrus.Fields{"err": err}).Fatal("Failed to initialize agent")
+		log.WithFields(log.Fields{"err": err}).Fatal("Failed to initialize agent")
 	}
 
 	sshserver := sshd.NewServer(agent.cli, agent.authData, opts.PrivateKey, opts.KeepAliveInterval, opts.SingleUserPassword)
@@ -140,7 +140,7 @@ func NewAgentServer() {
 		vars := mux.Vars(r)
 		conn, ok := r.Context().Value("http-conn").(net.Conn)
 		if !ok {
-			logrus.WithFields(logrus.Fields{
+			log.WithFields(log.Fields{
 				"version": AgentVersion,
 			}).Warning("Type assertion failed")
 
@@ -176,7 +176,7 @@ func NewAgentServer() {
 				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
 			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
 
-			logrus.WithFields(logrus.Fields{
+			log.WithFields(log.Fields{
 				"namespace":      namespace,
 				"hostname":       tenantName,
 				"server_address": opts.ServerAddress,
@@ -196,14 +196,14 @@ func NewAgentServer() {
 			for {
 				nextVersion, err := agent.checkUpdate()
 				if err != nil {
-					logrus.Error(err)
+					log.Error(err)
 
 					goto sleep
 				}
 
 				if nextVersion.GreaterThan(currentVersion) {
 					if err := updater.ApplyUpdate(nextVersion); err != nil {
-						logrus.Error(err)
+						log.Error(err)
 					}
 				}
 
@@ -229,20 +229,7 @@ func NewAgentServer() {
 		}
 	}
 
-	rootCmd := &cobra.Command{Use: "agent"}
-
-	rootCmd.AddCommand(&cobra.Command{
-		Use: "info",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := agent.probeServerInfo(); err != nil {
-				logrus.Fatal(err)
-			}
-		},
-	})
-
-	if err := rootCmd.Execute(); err != nil {
-		logrus.Error(err)
-	}
+	return agent
 }
 
 func init() {
@@ -250,9 +237,32 @@ func init() {
 }
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "sftp" {
-		NewSFTPServer()
-	} else {
-		NewAgentServer()
+	rootCmd := &cobra.Command{
+		Use: "agent",
+		Run: func(cmd *cobra.Command, args []string) {
+			NewAgentServer()
+		},
 	}
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "info",
+		Short: "Show information about the agent",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := NewAgentServer().probeServerInfo(); err != nil {
+				log.Fatal(err)
+			}
+		},
+	})
+
+	rootCmd.AddCommand(&cobra.Command{ // nolint: exhaustruct
+		Use:   "sftp",
+		Short: "Starts the SFTP server",
+		Long: `Starts the SFTP server. This command is used internally by the agent and should not be used directly.
+It is initialized by the agent when a new SFTP session is created.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			NewSFTPServer()
+		},
+	})
+
+	rootCmd.Execute() // nolint: errcheck
 }
