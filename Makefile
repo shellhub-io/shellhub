@@ -168,6 +168,10 @@ upgrade_mongodb:
 				start_mongodb 5.0.6
 				;;
 			5.0*)
+				echo "Upgrading MongoDB from 5.0-series to 6.0-series..."
+				start_mongodb 6.0.1
+				;;
+			6.0*)
 				echo "MongoDB upgrade successful!"
 				break
 				;;
