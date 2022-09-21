@@ -14,5 +14,4 @@ type Store interface {
 	PrivateKeyStore
 	LicenseStore
 	StatsStore
-	BillingStore
 }

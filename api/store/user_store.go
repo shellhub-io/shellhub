@@ -12,7 +12,6 @@ type UserStore interface {
 	UserCreate(ctx context.Context, user *models.User) error
 	UserGetByUsername(ctx context.Context, username string) (*models.User, error)
 	UserGetByEmail(ctx context.Context, email string) (*models.User, error)
-	UserGetByTenant(ctx context.Context, tenantID string) (*models.User, error)
 	UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error)
 	UserUpdateData(ctx context.Context, id string, user models.User) error
 	UserUpdatePassword(ctx context.Context, newPassword string, id string) error

@@ -18,9 +18,9 @@ var (
 type Store struct {
 	db    *mongo.Database
 	cache cache.Cache
-
-	store.Store
 }
+
+var _ store.Store = (*Store)(nil)
 
 func NewStore(db *mongo.Database, cache cache.Cache) *Store {
 	return &Store{db: db, cache: cache}
