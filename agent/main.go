@@ -232,14 +232,12 @@ func NewAgentServer() *Agent {
 	return agent
 }
 
-func init() {
-	loglevel.SetLogLevel()
-}
-
 func main() {
 	rootCmd := &cobra.Command{
 		Use: "agent",
 		Run: func(cmd *cobra.Command, args []string) {
+			loglevel.SetLogLevel()
+
 			NewAgentServer()
 		},
 	}
@@ -248,6 +246,8 @@ func main() {
 		Use:   "info",
 		Short: "Show information about the agent",
 		Run: func(cmd *cobra.Command, args []string) {
+			loglevel.SetLogLevel()
+
 			if err := NewAgentServer().probeServerInfo(); err != nil {
 				log.Fatal(err)
 			}
@@ -263,6 +263,4 @@ It is initialized by the agent when a new SFTP session is created.`,
 			NewSFTPServer()
 		},
 	})
-
-	rootCmd.Execute() // nolint: errcheck
 }
