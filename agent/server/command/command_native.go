@@ -1,7 +1,7 @@
 //go:build !docker
 // +build !docker
 
-package sshd
+package command
 
 import (
 	"os"
@@ -13,7 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 )
 
-func newCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
+func NewCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
 	user, _ := user.Lookup(u.Username)
 	userGroups, _ := user.GroupIds()
 

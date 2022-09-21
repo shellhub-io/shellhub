@@ -31,6 +31,7 @@ func (p *pipe) Close() error {
 	return nil
 }
 
+// NewSFTPServer creates a new SFTP server when a new session is created between the agent and the server.
 func NewSFTPServer() {
 	piped := &pipe{os.Stdin, os.Stdout, os.Stderr}
 

@@ -1,3 +1,4 @@
+//go:build !without_cgo
 // +build !without_cgo
 
 package yescrypt

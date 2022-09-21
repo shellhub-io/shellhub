@@ -7,12 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/loglevel"
+
 	"github.com/Masterminds/semver"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/shellhub-io/shellhub/agent/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/agent/selfupdater"
-	"github.com/shellhub-io/shellhub/agent/sshd"
-	"github.com/shellhub-io/shellhub/pkg/loglevel"
+	"github.com/shellhub-io/shellhub/agent/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -60,6 +62,7 @@ type ConfigOptions struct {
 	LogLevel string `envconfig:"log_level" default:"info"`
 }
 
+// NewAgentServer creates a new agent server instance.
 func NewAgentServer() *Agent {
 	opts := ConfigOptions{}
 
@@ -133,10 +136,10 @@ func NewAgentServer() *Agent {
 		log.WithFields(log.Fields{"err": err}).Fatal("Failed to initialize agent")
 	}
 
-	sshserver := sshd.NewServer(agent.cli, agent.authData, opts.PrivateKey, opts.KeepAliveInterval, opts.SingleUserPassword)
+	serv := server.NewServer(agent.cli, agent.authData, opts.PrivateKey, opts.KeepAliveInterval, opts.SingleUserPassword)
 
-	tunnel := NewTunnel()
-	tunnel.connHandler = func(w http.ResponseWriter, r *http.Request) {
+	tun := tunnel.NewTunnel()
+	tun.ConnHandler = func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		conn, ok := r.Context().Value("http-conn").(net.Conn)
 		if !ok {
@@ -147,15 +150,15 @@ func NewAgentServer() *Agent {
 			return
 		}
 
-		sshserver.Sessions[vars["id"]] = conn
-		sshserver.HandleConn(conn)
+		serv.Sessions[vars["id"]] = conn
+		serv.HandleConn(conn)
 	}
-	tunnel.closeHandler = func(w http.ResponseWriter, r *http.Request) {
+	tun.CloseHandler = func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		sshserver.CloseSession(vars["id"])
+		serv.CloseSession(vars["id"])
 	}
 
-	sshserver.SetDeviceName(agent.authData.Name)
+	serv.SetDeviceName(agent.authData.Name)
 
 	go func() {
 		for {
@@ -184,7 +187,7 @@ func NewAgentServer() *Agent {
 				"sshid":          sshid,
 			}).Info("Server connection established")
 
-			if err := tunnel.Listen(listener); err != nil {
+			if err := tun.Listen(listener); err != nil {
 				continue
 			}
 		}
@@ -217,15 +220,15 @@ func NewAgentServer() *Agent {
 	ticker := time.NewTicker(10 * time.Minute)
 
 	for range ticker.C {
-		sessions := make([]string, 0, len(sshserver.Sessions))
-		for key := range sshserver.Sessions {
+		sessions := make([]string, 0, len(serv.Sessions))
+		for key := range serv.Sessions {
 			sessions = append(sessions, key)
 		}
 
 		agent.sessions = sessions
 
 		if err := agent.authorize(); err != nil {
-			sshserver.SetDeviceName(agent.authData.Name)
+			serv.SetDeviceName(agent.authData.Name)
 		}
 	}
 
@@ -233,6 +236,7 @@ func NewAgentServer() *Agent {
 }
 
 func main() {
+	// Default command.
 	rootCmd := &cobra.Command{
 		Use: "agent",
 		Run: func(cmd *cobra.Command, args []string) {

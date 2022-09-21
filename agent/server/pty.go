@@ -1,4 +1,4 @@
-package sshd
+package server
 
 import (
 	"io"

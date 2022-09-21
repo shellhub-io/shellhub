@@ -1,4 +1,4 @@
-package sshd
+package utmp
 
 /*	At session start, a utmp record is constructed containing the PID,
 	tty name, ID, username, remote host, source IP and time.
@@ -38,8 +38,8 @@ const (
 	DeadProcess = 0x8 // Terminated process
 )
 
-// This function updates the utmp and wtmp files at the start of a user session.
-func utmpStartSession(line, user, remoteAddr string) Utmpx {
+// UtmpStartSession This function updates the utmp and wtmp files at the start of a user session.
+func UtmpStartSession(line, user, remoteAddr string) Utmpx {
 	var u Utmpx
 
 	u.Type = UserProcess
@@ -94,8 +94,8 @@ func utmpStartSession(line, user, remoteAddr string) Utmpx {
 	return u
 }
 
-// This function updates the utmp and wtmp files at the end of a user session.
-func utmpEndSession(u Utmpx) {
+// UtmpEndSession this function updates the utmp and wtmp files at the end of a user session.
+func UtmpEndSession(u Utmpx) {
 	u.Type = DeadProcess
 	u.User = [32]byte{}
 	u.Host = [256]byte{}
