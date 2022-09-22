@@ -1,8 +1,0 @@
-#!/bin/sh
-
-[ $# -ne 2 ] && echo "Usage: $0 <username> <namespace>" && exit 1
-
-USERNAME=$1
-NAMESPACE=$2
-
-docker-compose exec cli ./cli del-user-namespace $USERNAME $NAMESPACE

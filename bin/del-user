@@ -1,7 +1,0 @@
-#!/bin/sh
-
-[ -z $1 ] && echo "Usage: $0 <username>" && exit 1
-
-USERNAME=$1
-
-docker-compose exec cli ./cli del-user $USERNAME

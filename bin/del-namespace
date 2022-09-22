@@ -1,7 +1,0 @@
-#!/bin/sh
-
-[ -z $1 ] && echo "Usage: $0 <namespace>" && exit 1
-
-NAMESPACE=$1
-
-docker-compose exec cli ./cli del-namespace $NAMESPACE

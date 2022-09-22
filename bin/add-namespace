@@ -1,8 +1,0 @@
-#!/bin/sh
-
-[ $# -ne 2 ] && echo "Usage: $0 <namespace> <owner>" && exit 1
-
-NAMESPACE=$1
-OWNER=$2
-
-docker-compose exec cli ./cli add-namespace "$NAMESPACE" "$OWNER" "$TENANT_ID"

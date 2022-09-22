@@ -1,0 +1,197 @@
+#!/bin/bash
+#
+#
+# TODO
+
+usage() {
+cat <<EOF
+Helps ShellHub administrators to manage users and namespace
+Usage:
+    cli <resource> [--help]
+    Resources:
+        user        Manage users.
+        namespace   Manage namespaces.
+        membera     Manager namespace's members.
+
+    Commands:
+        --help      Show this help screen
+EOF
+    exit 1
+}
+
+usage_user() {
+cat <<EOF
+Manage users.
+Usage:
+    cli user <action> [--help]
+    Actions:
+        add     Add an user. 
+                cli user add <username> <password> <email>
+
+        delete  Delete an user.
+                cli user delete <username>
+
+    Commands:
+        --help      Show this help screen
+EOF
+    exit 1
+}
+
+usage_namespace() {
+cat <<EOF
+Manage namespaces.
+Usage:
+    cli namespace <action> [--help]
+    Actions:
+        add     Add a namespace.
+                cli namespace add <namespace> <owner>
+
+        delete  Delete a namespace.
+                cli namespace delete <namespace>
+
+    Commands:
+        --help      Show this help screen
+EOF
+    exit 1
+}
+
+usage_member() {
+cat <<EOF
+Manage namespace's members. 
+Usage:
+    cli member <action> [--help]
+    Actions:
+        add     Add a member to namespace.
+                cli member add <username> <namespace> <role>
+
+        remove  Remove a member from namespace.
+                cli member remove <username>
+
+    Commands:
+        --help      Show this help screen
+EOF
+    exit 1
+}
+
+user_add() {
+    [ $# -ne 3 ] && echo "Usage: $0 user add <username> <password> <email>" && exit 1
+
+    USERNAME=$1
+    PASSWORD=$2
+    EMAIL=$3
+
+    docker-compose exec cli ./cli add-user $USERNAME $PASSWORD $EMAIL
+}
+
+user_del() {
+    [ -z $1 ] && echo "Usage: $0 user delete <username>" && exit 1
+
+    USERNAME=$1
+
+    docker-compose exec cli ./cli del-user $USERNAME
+}
+
+namespace_add() {
+    [ $# -ne 2 ] && echo "Usage: $0 namespace add <namespace> <owner>" && exit 1
+
+    NAMESPACE=$1
+    OWNER=$2
+
+    docker-compose exec cli ./cli add-namespace "$NAMESPACE" "$OWNER" "$TENANT_ID"
+}
+namespace_del() {
+    [ -z $1 ] && echo "Usage: $0 namespace delete <namespace>" && exit 1
+
+    NAMESPACE=$1
+
+    docker-compose exec cli ./cli del-namespace $NAMESPACE
+}
+
+memberAdd() {
+    [ $# -ne 3 ] && echo "Usage: $0 member add <username> <namespace> <role>" && exit 1
+
+    USERNAME=$1
+    NAMESPACE=$2
+    ROLE=$3
+
+    docker-compose exec cli ./cli add-user-namespace $USERNAME $NAMESPACE $ROLE
+}
+
+member_rm() {
+    [ $# -ne 2 ] && echo "Usage: $0 member remove <username> <namespace>" && exit 1
+
+    USERNAME=$1
+    NAMESPACE=$2
+
+    docker-compose exec cli ./cli del-user-namespace $USERNAME $NAMESPACE
+}
+
+if [ $# -gt 0 ]; then
+    resource=$1
+    action=$2
+    params=${@:3}
+
+    case $resource in
+        "user")
+            case $action in
+                "add")
+                    user_add $params
+                ;;
+                "delete")
+                    user_del $params
+                ;;
+                "--help")
+                    usage_user
+                ;;
+                *)
+                    echo "Invalid action"
+                    usage_user
+                    exit 127
+                ;;
+            esac
+        ;;
+        "namespace")
+            case $action in
+                "add")
+                    namespace_add $params
+                ;;
+                "delete")
+                    namespace_del $params
+                ;;
+                "--help")
+                    usage_namespace
+                ;;
+                *)
+                    echo "Invalid action"
+                    usage_namespace
+                    exit 127
+                ;;
+            esac
+        ;;
+        "member")
+            case $action in
+                "add")
+                    memberAdd $params
+                ;;
+                "remove")
+                    member_rm $params
+                ;;
+                "--help")
+                    usage_member
+                ;;
+                *)
+                    echo "Invalid action"
+                    usage_member
+                ;;
+            esac
+        ;;
+        *)
+            echo "Resource not found"
+            usage
+            exit 127
+        ;;
+    esac
+else 
+    usage
+    exit 1
+fi

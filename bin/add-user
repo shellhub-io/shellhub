@@ -1,9 +1,0 @@
-#!/bin/sh
-
-[ $# -ne 3 ] && echo "Usage: $0 <username> <password> <email>" && exit 1
-
-USERNAME=$1
-PASSWORD=$2
-EMAIL=$3
-
-docker-compose exec cli ./cli add-user $USERNAME $PASSWORD $EMAIL

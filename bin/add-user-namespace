@@ -1,9 +1,0 @@
-#!/bin/sh
-
-[ $# -ne 3 ] && echo "Usage: $0 <username> <namespace> <role>" && exit 1
-
-USERNAME=$1
-NAMESPACE=$2
-ROLE=$3
-
-docker-compose exec cli ./cli add-user-namespace $USERNAME $NAMESPACE $ROLE
