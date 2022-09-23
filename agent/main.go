@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -267,6 +269,12 @@ It is initialized by the agent when a new SFTP session is created.`,
 			NewSFTPServer()
 		},
 	})
+
+	rootCmd.Version = AgentVersion
+
+	rootCmd.SetVersionTemplate(fmt.Sprintf("{{ .Name }} version: {{ .Version }}\ngo: %s\n",
+		runtime.Version(),
+	))
 
 	rootCmd.Execute() // nolint: errcheck
 }
