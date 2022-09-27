@@ -53,6 +53,7 @@ var (
 	ErrPty                = fmt.Errorf("failed to request the pty to agent")
 	ErrShell              = fmt.Errorf("failed to get the shell to agent")
 	ErrTarget             = fmt.Errorf("failed to get client target")
+	ErrAuthentification   = fmt.Errorf("failed to authenticate to device")
 )
 
 // sendAndInformError sends the external error to client and log the internal one to server.
@@ -159,7 +160,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 
 		err = connectSSH(ctx, client, sess, config, api, opts)
 		if err != nil {
-			sendAndInformError(client, err, ErrConnect)
+			sendAndInformError(client, err, err)
 
 			return
 		}
@@ -169,7 +170,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Session, config *gossh.ClientConfig, api internalclient.Client, opts ConfigOptions) error {
 	connection, reqs, err := sess.NewClientConnWithDeadline(config)
 	if err != nil {
-		return err
+		return ErrAuthentification
 	}
 
 	defer connection.Close()
