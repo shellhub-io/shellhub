@@ -27,7 +27,7 @@ var (
 	ErrFirewallBlock = fmt.Errorf("you connot connect to this device because a firewall rule block your connection")
 	ErrHost          = fmt.Errorf("failed to get the device address")
 	ErrFindDevice    = fmt.Errorf("failed to find the device")
-	ErrDial          = fmt.Errorf("failed to tunnel the server to agent")
+	ErrDial          = fmt.Errorf("failed to connect to device agent, please check the device connection")
 )
 
 type Session struct {
