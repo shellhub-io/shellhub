@@ -59,7 +59,7 @@ var (
 func sendAndInformError(client io.Writer, internal, external error) {
 	log.Error(internal.Error())
 
-	client.Write([]byte(external.Error())) // nolint: errcheck
+	client.Write([]byte(fmt.Sprintf("%s\n", external.Error()))) // nolint: errcheck
 }
 
 type ConfigOptions struct {
