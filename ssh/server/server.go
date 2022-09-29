@@ -46,6 +46,14 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 		SubsystemHandlers: map[string]gliderssh.SubsystemHandler{
 			handler.SFTPSubsystem: handler.SFTPSubsystemHandler(tunnel),
 		},
+                ChannelHandlers: map[string]gliderssh.ChannelHandler{
+                        "session":      gliderssh.DefaultSessionHandler,
+                        "direct-tcpip": gliderssh.DirectTCPIPHandler,
+                },
+                LocalPortForwardingCallback: gliderssh.LocalPortForwardingCallback(func(ctx gliderssh.Context, dhost string, dport uint32) bool {
+                        log.Println("Accepted forward", dhost, dport)
+                        return true
+                }),
 	}
 
 	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) {
