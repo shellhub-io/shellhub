@@ -1,4 +1,4 @@
-package services
+package businesses
 
 import (
 	"github.com/shellhub-io/shellhub/pkg/errors"
@@ -7,7 +7,7 @@ import (
 
 // ErrLayer is an error level. Each error defined at this level, is container to it.
 // ErrLayer is the errors' level for service's error.
-const ErrLayer = "service"
+const ErrLayer = "business"
 
 const (
 	// ErrCodeNotFound is the error code for when a resource is not found.
@@ -27,8 +27,6 @@ const (
 	// ErrCodeStore is the error code for when the store function fails. The store function is responsible for execute
 	// the main service action.
 	ErrCodeStore
-    // ErrCodeBuild is the error code for when the builder fails.
-	ErrCodeBuilder
 )
 
 // ErrDataNotFound structure should be used to add errors.Data to an error when the resource is not found.
@@ -108,7 +106,6 @@ var (
 	ErrSessionNotFound           = errors.New("session not found", ErrLayer, ErrCodeNotFound)
 	ErrAuthInvalid               = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthUnathorized           = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
-	ErrNamespaceBuild            = errors.New("failed to build a namespace", ErrLayer, ErrCodeBuilder)
 )
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
@@ -136,11 +133,6 @@ func NewErrLimit(err error, limit int, next error) error {
 // A service can make n calls to store's function, but each service has your main action; what it was made to do. For
 // this case, to use when the main store's function fails, this error was intended to be used.
 func NewErrStore(err error, data interface{}, next error) error {
-	return errors.Wrap(errors.WithData(err, data), next)
-}
-
-// NewErrBuilder returns an error to be used when the builder fails.
-func NewErrBuild(err error, data interface{}, next error) error {
 	return errors.Wrap(errors.WithData(err, data), next)
 }
 
@@ -371,9 +363,4 @@ func NewErrDeviceSetOnline(id models.UID, err error) error {
 // NewErrAuthUnathorized returns a error to be used when the auth is unauthorized.
 func NewErrAuthUnathorized(err error) error {
 	return NewErrUnathorized(ErrAuthUnathorized, err)
-}
-
-// NewErrNamespaceBuild returns a error when the namespace build fails.
-func NewErrNamespaceBuild(namespace *models.Namespace, err error) error {
-	return NewErrBuild(ErrNamespaceBuild, namespace, err)
 }

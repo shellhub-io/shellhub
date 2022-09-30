@@ -6,12 +6,11 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/shellhub-io/shellhub/api/businesses"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/request"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -70,60 +69,17 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 
 // CreateNamespace creates a new namespace.
 //
-// It receives a context, used to "control" the request flow, the models.Namespace to be created and the userID from
-// who is creating the namespace.
+// It receives a context, used to "control" the request flow, a request.NamespaceCreate, that contains the name and the
+// tenant ID of the namespace, and the user's ID.
 //
 // CreateNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
-func (s *service) CreateNamespace(ctx context.Context, namespace request.NamespaceCreate, userID string) (*models.Namespace, error) {
-	user, _, err := s.store.UserGetByID(ctx, userID, false)
-	if err != nil || user == nil {
-		return nil, NewErrUserNotFound(userID, err)
-	}
-
-	ns := &models.Namespace{
-		Name:  strings.ToLower(namespace.Name),
-		Owner: user.ID,
-		Members: []models.Member{
-			{
-				ID:   user.ID,
-				Role: guard.RoleOwner,
-			},
-		},
-		Settings: &models.NamespaceSettings{SessionRecord: true},
-		TenantID: namespace.TenantID,
-	}
-
-	if _, err := validator.ValidateStruct(ns); err != nil {
-		return nil, NewErrNamespaceInvalid(err)
-	}
-
-	if namespace.TenantID == "" {
-		ns.TenantID = uuid.Generate()
-	}
-
-	// Set limits according to ShellHub instance type
-	if envs.IsCloud() {
-		// cloud free plan is limited only by the max of devices
-		ns.MaxDevices = 3
-	} else {
-		// we don't set limits on enterprise and community instances
-		ns.MaxDevices = -1
-	}
-
-	otherNamespace, err := s.store.NamespaceGetByName(ctx, ns.Name)
-	if err != nil && err != store.ErrNoDocuments {
-		return nil, NewErrNamespaceNotFound(ns.Name, err)
-	}
-
-	if otherNamespace != nil {
-		return nil, NewErrNamespaceDuplicated(nil)
-	}
-
-	if _, err := s.store.NamespaceCreate(ctx, ns); err != nil {
-		return nil, NewErrNamespaceCreateStore(err)
-	}
-
-	return ns, nil
+func (s *service) CreateNamespace(ctx context.Context, req request.NamespaceCreate, id string) (*models.Namespace, error) {
+	return businesses.Namespace(ctx, s.store).
+		FromUser(id).
+		WithTenantID(uuid.Generate()).
+		WithName(req.Name).
+		WithSessionRecord(false).
+		Create()
 }
 
 // GetNamespace gets a namespace.
@@ -153,15 +109,18 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 //
 // DeleteNamespace returns an error.
 func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
-	ns, err := s.store.NamespaceGet(ctx, tenantID)
+	namespace, err := businesses.Namespace(ctx, s.store).
+		WithTenantID(tenantID).
+		Delete()
 	if err != nil {
-		return NewErrNamespaceNotFound(tenantID, err)
-	}
-	if err := deleteReportUsage(s.client.(req.Client), ns); err != nil {
 		return err
 	}
 
-	return s.store.NamespaceDelete(ctx, tenantID)
+	if err := deleteReportUsage(s.client.(req.Client), namespace); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // FillMembersData fill the member data with the user data.
@@ -221,43 +180,10 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*mo
 //
 // AddNamespaceUser returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error) {
-	if _, err := validator.ValidateStruct(models.Member{Username: memberUsername, Role: memberRole}); err != nil {
-		return nil, NewErrNamespaceMemberInvalid(err)
-	}
-
-	namespace, err := s.store.NamespaceGet(ctx, tenantID)
-	if err != nil || namespace == nil {
-		return nil, NewErrNamespaceNotFound(tenantID, err)
-	}
-
-	// user is the user who is adding the new member.
-	user, _, err := s.store.UserGetByID(ctx, userID, false)
-	if err != nil || user == nil {
-		return nil, NewErrUserNotFound(userID, err)
-	}
-
-	// checks if the active member is in the namespace. user is the active member.
-	active, ok := guard.CheckMember(namespace, user.ID)
-	if !ok {
-		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
-	}
-
-	passive, err := s.store.UserGetByUsername(ctx, memberUsername)
-	if err != nil {
-		return nil, NewErrUserNotFound(memberUsername, err)
-	}
-
-	// checks if the passive member is in the namespace.
-	_, ok = guard.CheckMember(namespace, passive.ID)
-	if ok {
-		return nil, NewErrNamespaceMemberDuplicated(passive.ID, nil)
-	}
-
-	if !guard.CheckRole(active.Role, memberRole) {
-		return nil, guard.ErrForbidden
-	}
-
-	return s.store.NamespaceAddMember(ctx, tenantID, passive.ID, memberRole)
+	return businesses.Namespace(ctx, s.store).
+		FromTenantID(tenantID).
+		FromUser(userID).
+		AddMember(memberUsername, memberRole)
 }
 
 // RemoveNamespaceUser removes member from a namespace.

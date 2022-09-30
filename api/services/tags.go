@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/validator"
+	"github.com/shellhub-io/shellhub/api/businesses"
 )
 
 type TagsService interface {
@@ -13,53 +13,22 @@ type TagsService interface {
 }
 
 func (s *service) GetTags(ctx context.Context, tenant string) ([]string, int, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
-	if err != nil || namespace == nil {
-		return nil, 0, NewErrNamespaceNotFound(tenant, err)
-	}
-
-	return s.store.TagsGet(ctx, namespace.TenantID)
+	return businesses.Tag(ctx, s.store).
+		FromTenant(tenant).
+		Get()
 }
 
 func (s *service) RenameTag(ctx context.Context, tenant string, oldTag string, newTag string) error {
-	if !validator.ValidateFieldTag(newTag) {
-		return NewErrTagInvalid(newTag, nil)
-	}
-
-	tags, count, err := s.store.TagsGet(ctx, tenant)
-	if err != nil || count == 0 {
-		return NewErrTagEmpty(tenant, err)
-	}
-
-	if !contains(tags, oldTag) {
-		return NewErrTagNotFound(oldTag, nil)
-	}
-
-	if contains(tags, newTag) {
-		return NewErrTagDuplicated(newTag, nil)
-	}
-
-	return s.store.TagRename(ctx, tenant, oldTag, newTag)
+	return businesses.Tag(ctx, s.store).
+		FromTenant(tenant).
+		FromTag(oldTag).
+		ToTag(newTag).
+		Rename()
 }
 
 func (s *service) DeleteTag(ctx context.Context, tenant string, tag string) error {
-	if !validator.ValidateFieldTag(tag) {
-		return NewErrTagInvalid(tag, nil)
-	}
-
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
-	if err != nil || namespace == nil {
-		return NewErrNamespaceNotFound(tenant, err)
-	}
-
-	tags, count, err := s.store.TagsGet(ctx, namespace.TenantID)
-	if err != nil || count == 0 {
-		return NewErrTagEmpty(tenant, err)
-	}
-
-	if !contains(tags, tag) {
-		return NewErrTagNotFound(tag, nil)
-	}
-
-	return s.store.TagDelete(ctx, namespace.TenantID, tag)
+	return businesses.Tag(ctx, s.store).
+		FromTenant(tenant).
+		FromTag(tag).
+		Delete()
 }

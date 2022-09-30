@@ -3,13 +3,11 @@ package main
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
+	"github.com/shellhub-io/shellhub/api/businesses"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
@@ -168,55 +166,20 @@ func (s *service) UserUpdate(username, password string) error {
 	return nil
 }
 
-func (s *service) NamespaceCreate(namespace, username, tenant string) (*models.Namespace, error) {
+func (s *service) NamespaceCreate(name, username, tenant string) (*models.Namespace, error) {
 	ctx := context.Background()
 
-	// tenant is optional.
-	if tenant == "" {
-		tenant = uuid.Generate()
-	}
-
-	user, err := s.store.UserGetByUsername(ctx, username)
-	if err != nil {
-		return nil, ErrUserNotFound
-	}
-
-	ns := &models.Namespace{
-		Name:     namespace,
-		Owner:    user.ID,
-		TenantID: tenant,
-		MaxDevices: func() int {
-			if envs.IsCloud() {
-				return 3
-			} else if envs.IsEnterprise() {
-				return -1
-			}
-
-			return 0
-		}(),
-		Members: []models.Member{
-			{
-				ID:   user.ID,
-				Role: guard.RoleOwner,
-			},
-		},
-		Settings: &models.NamespaceSettings{
-			SessionRecord: true,
-		},
-		CreatedAt: clock.Now(),
-	}
-
-	_, err = validator.ValidateStruct(ns)
-	if err != nil {
-		return nil, ErrNamespaceInvalid
-	}
-
-	ns, err = s.store.NamespaceCreate(ctx, ns)
+	namespace, err := businesses.Namespace(ctx, s.store).
+		WithUsername(username).
+		WithTenantID(tenant).
+		WithName(name).
+		WithSessionRecord(true).
+		Create()
 	if err != nil {
 		return nil, ErrDuplicateNamespace
 	}
 
-	return ns, nil
+	return namespace, nil
 }
 
 func (s *service) NamespaceAddMember(username, namespace, role string) (*models.Namespace, error) {
