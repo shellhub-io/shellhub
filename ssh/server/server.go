@@ -51,7 +51,7 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
                         "direct-tcpip": gliderssh.DirectTCPIPHandler,
                 },
                 LocalPortForwardingCallback: gliderssh.LocalPortForwardingCallback(func(ctx gliderssh.Context, dhost string, dport uint32) bool {
-                        log.Println("Accepted forward", dhost, dport)
+                        log.Info("Accepted forward", dhost, dport)
                         return true
                 }),
 	}
