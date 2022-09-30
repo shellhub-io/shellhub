@@ -43,9 +43,12 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 			return err
 		}
 
-		// This forces any no cached token to be invalid, even if it not not expired.
-		if ok, err := h.service.AuthIsCacheToken(c.Ctx(), claims.Tenant, claims.ID); err != nil || !ok {
-			return svc.NewErrAuthUnathorized(err)
+		args := c.QueryParam("args")
+		if args != "skip" {
+			// This forces any no cached token to be invalid, even if it not not expired.
+			if ok, err := h.service.AuthIsCacheToken(c.Ctx(), claims.Tenant, claims.ID); err != nil || !ok {
+				return svc.NewErrAuthUnathorized(err)
+			}
 		}
 
 		// Extract tenant and username from JWT
