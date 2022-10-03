@@ -1,8 +1,10 @@
 package server
 
 import (
+	"fmt"
 	"net"
 	"os"
+	"regexp"
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -15,9 +17,8 @@ import (
 )
 
 type Options struct {
-	Addr           string
-	Broker         string
-	ConnectTimeout time.Duration
+	LocalForwarding string        `envconfig:"local_forwarding"`
+	ConnectTimeout  time.Duration `envconfig:"connect_timeout" default:"30s"`
 }
 
 type Server struct {
@@ -34,7 +35,7 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 	}
 
 	server.sshd = &gliderssh.Server{ // nolint: exhaustruct
-		Addr:             opts.Addr,
+		Addr:             ":2222",
 		PasswordHandler:  auth.PasswordHandler,
 		PublicKeyHandler: auth.PublicKeyHandler,
 		SessionRequestCallback: func(client gliderssh.Session, request string) bool {
@@ -46,14 +47,21 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 		SubsystemHandlers: map[string]gliderssh.SubsystemHandler{
 			handler.SFTPSubsystem: handler.SFTPSubsystemHandler(tunnel),
 		},
-                ChannelHandlers: map[string]gliderssh.ChannelHandler{
-                        "session":      gliderssh.DefaultSessionHandler,
-                        "direct-tcpip": gliderssh.DirectTCPIPHandler,
-                },
-                LocalPortForwardingCallback: gliderssh.LocalPortForwardingCallback(func(ctx gliderssh.Context, dhost string, dport uint32) bool {
-                        log.Info("Accepted forward", dhost, dport)
-                        return true
-                }),
+		ChannelHandlers: map[string]gliderssh.ChannelHandler{
+			"session":      gliderssh.DefaultSessionHandler,
+			"direct-tcpip": gliderssh.DirectTCPIPHandler,
+		},
+		LocalPortForwardingCallback: gliderssh.LocalPortForwardingCallback(func(ctx gliderssh.Context, dhost string, dport uint32) bool {
+			ok, err := regexp.MatchString(opts.LocalForwarding, fmt.Sprintf("%s:%d", dhost, dport))
+
+			log.WithFields(log.Fields{
+				"host":    dhost,
+				"port":    dport,
+				"matched": ok,
+			}).WithError(err).Info("Local port forwarding request")
+
+			return ok
+		}),
 	}
 
 	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) {
@@ -69,10 +77,10 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 
 func (s *Server) ListenAndServe() error {
 	log.WithFields(log.Fields{
-		"addr": s.opts.Addr,
+		"addr": s.sshd.Addr,
 	}).Info("ssh server listening")
 
-	list, err := net.Listen("tcp", s.opts.Addr)
+	list, err := net.Listen("tcp", s.sshd.Addr)
 	if err != nil {
 		log.WithError(err).Error("failed to listen an serve the TCP server")
 
