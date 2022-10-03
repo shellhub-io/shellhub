@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	sshTunnel "github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/ssh/server"
@@ -16,17 +16,17 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-const (
-	ServerRouterAddress = ":8080"
-	ServerSSHAddress    = "tcp://emq:1883"
-	ServerSSHBroker     = ":2222"
-)
-
 func init() {
 	loglevel.SetLogLevel()
 }
 
 func main() {
+	// Populates configuration based on environment variables prefixed with 'SSH_'
+	var opts server.Options
+	if err := envconfig.Process("ssh", &opts); err != nil {
+		log.WithError(err).Fatal("Failed to load environment variables")
+	}
+
 	tunnel := sshTunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
 
 	router := tunnel.GetRouter()
@@ -67,11 +67,7 @@ func main() {
 	})
 	router.Handle("/ws/ssh", websocket.Handler(handler.WebSession))
 
-	go http.ListenAndServe(ServerRouterAddress, router) // nolint:errcheck
+	go http.ListenAndServe(":8080", router) // nolint:errcheck
 
-	log.Fatal(server.NewServer(&server.Options{
-		Addr:           ServerSSHBroker,
-		Broker:         ServerSSHAddress,
-		ConnectTimeout: 30 * time.Second,
-	}, tunnel.Tunnel).ListenAndServe())
+	log.Fatal(server.NewServer(&opts, tunnel.Tunnel).ListenAndServe())
 }
