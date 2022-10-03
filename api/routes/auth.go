@@ -44,7 +44,7 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		}
 
 		args := c.QueryParam("args")
-		if args != "skip" {
+		if args != "skip" && claims.Tenant != "" {
 			// This forces any no cached token to be invalid, even if it not not expired.
 			if ok, err := h.service.AuthIsCacheToken(c.Ctx(), claims.Tenant, claims.ID); err != nil || !ok {
 				return svc.NewErrAuthUnathorized(err)
