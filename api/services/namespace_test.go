@@ -129,7 +129,7 @@ func TestListNamespaces(t *testing.T) {
 			filter:     "",
 			ctx:        ctx,
 			requiredMocks: func() {
-				// TODO: Add mock to FillMembersData what will replace the three call to UserGetByID.
+				// TODO: Add mock to fillMembersData what will replace the three call to UserGetByID.
 				mock.On("NamespaceList", ctx, query, []models.Filter(nil), false).Return(namespaces, len(namespaces), nil).Once()
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
@@ -277,7 +277,7 @@ func TestSetMemberData(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			members, err := services.FillMembersData(ctx, tc.members)
+			members, err := services.fillMembersData(ctx, tc.members)
 			assert.Equal(t, tc.expected, Expected{members, err})
 		})
 	}
