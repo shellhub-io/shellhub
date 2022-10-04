@@ -8,6 +8,10 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 )
 
+type APIService struct {
+	*service
+}
+
 type service struct {
 	store   store.Store
 	privKey *rsa.PrivateKey
@@ -31,7 +35,7 @@ type Service interface {
 	SetupService
 }
 
-func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}, l geoip.Locator) Service {
+func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}, l geoip.Locator) *APIService {
 	if privKey == nil || pubKey == nil {
 		var err error
 		privKey, pubKey, err = LoadKeys()
@@ -40,5 +44,5 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		}
 	}
 
-	return &service{store, privKey, pubKey, cache, c, l}
+	return &APIService{service: &service{store, privKey, pubKey, cache, c, l}}
 }

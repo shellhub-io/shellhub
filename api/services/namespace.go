@@ -26,7 +26,6 @@ type NamespaceService interface {
 	AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error)
 	EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error
-	FillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error)
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
 	GetSessionRecord(ctx context.Context, tenantID string) (bool, error)
 }
@@ -57,7 +56,7 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 	}
 
 	for index, namespace := range namespaces {
-		members, err := s.FillMembersData(ctx, namespace.Members)
+		members, err := s.fillMembersData(ctx, namespace.Members)
 		if err != nil {
 			return nil, 0, NewErrNamespaceMemberFillData(err)
 		}
@@ -137,7 +136,7 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	members, err := s.FillMembersData(ctx, namespace.Members)
+	members, err := s.fillMembersData(ctx, namespace.Members)
 	if err != nil {
 		return nil, NewErrNamespaceMemberFillData(err)
 	}
@@ -164,7 +163,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	return s.store.NamespaceDelete(ctx, tenantID)
 }
 
-// FillMembersData fill the member data with the user data.
+// fillMembersData fill the member data with the user data.
 //
 // This method exist because the namespace stores only the user ID and the role from its member as a list of models.Member.
 // To avoid unnecessary calls to store for member information, member username, this "conversion" is ony made when
@@ -173,8 +172,8 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 // It receives a context, used to "control" the request flow and a slice of models.Member with just ID and return an
 // other slice with ID, username and role set.
 //
-// FillMembersData returns a slice of models.Member and an error. When error is not nil, the slice of models.Member is nil.
-func (s *service) FillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error) {
+// fillMembersData returns a slice of models.Member and an error. When error is not nil, the slice of models.Member is nil.
+func (s *service) fillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error) {
 	for index, member := range members {
 		user, _, err := s.store.UserGetByID(ctx, member.ID, false)
 		if err != nil || user == nil {
