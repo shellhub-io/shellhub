@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -50,6 +51,20 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 	var res *models.DeviceAuthResponse
 	_, err := c.http.R().
 		AddRetryCondition(func(r *resty.Response, err error) bool {
+			identity := func(mac, hostname string) string {
+				if mac != "" {
+					return mac
+				}
+
+				return hostname
+			}
+
+			log.WithFields(log.Fields{
+				"tenant_id":   req.TenantID,
+				"identity":    identity(req.Identity.MAC, req.Hostname),
+				"status_code": r.StatusCode(),
+			}).Debug("failed to authenticate device")
+
 			return r.IsError()
 		}).
 		SetBody(req).
