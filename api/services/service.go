@@ -12,6 +12,8 @@ type APIService struct {
 	*service
 }
 
+var _ Service = (*APIService)(nil)
+
 type service struct {
 	store   store.Store
 	privKey *rsa.PrivateKey
