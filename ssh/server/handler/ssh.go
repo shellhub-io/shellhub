@@ -38,6 +38,7 @@ var (
 	ErrConnect            = fmt.Errorf("failed to connect to device")
 	ErrSession            = fmt.Errorf("failed to create a session between the server to the agent")
 	ErrGetAuth            = fmt.Errorf("failed to get auth data from key")
+	ErrWebData            = fmt.Errorf("failed to get the data to connect to device")
 	ErrFindDevice         = fmt.Errorf("failed to find the device")
 	ErrFindPublicKey      = fmt.Errorf("failed to get the public key from the server")
 	ErrEvaluatePublicKey  = fmt.Errorf("failed to evaluate the public key in the server")
