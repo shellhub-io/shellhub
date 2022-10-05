@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
@@ -18,7 +16,7 @@ import (
 )
 
 type NamespaceService interface {
-	ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error)
+	ListNamespaces(ctx context.Context, pagination paginator.Query, filter []models.Filter, export bool) ([]models.Namespace, int, error)
 	CreateNamespace(ctx context.Context, namespace request.NamespaceCreate, userID string) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
@@ -38,18 +36,7 @@ type NamespaceService interface {
 //
 // ListNamespaces returns a slice of models.Namespace, the total of namespaces and an error. When error is not nil, the
 // slice of models.Namespace is nil, total is zero.
-func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
-	raw, err := base64.StdEncoding.DecodeString(filterB64)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	var filter []models.Filter
-
-	if err := json.Unmarshal(raw, &filter); len(raw) > 0 && err != nil {
-		return nil, 0, err
-	}
-
+func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filter []models.Filter, export bool) ([]models.Namespace, int, error) {
 	namespaces, count, err := s.store.NamespaceList(ctx, pagination, filter, export)
 	if err != nil {
 		return nil, 0, NewErrNamespaceList(err)
