@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rsa"
 	"encoding/base64"
+	"errors"
 	"io"
 	"strconv"
 	"time"
@@ -38,28 +39,50 @@ type WebData struct {
 
 // NewWebData create a new WebData.
 // WebData contains the data required by web termianl connection.
-func NewWebData(socket *websocket.Conn) *WebData {
-	get := func(socket *websocket.Conn, key string) string {
-		return socket.Request().URL.Query().Get(key)
+func NewWebData(socket *websocket.Conn, device, username, password, fingerprint, signature string) (*WebData, error) {
+	// ctx := socket.Request().Context()
+
+	get := func(socket *websocket.Conn, key string) (string, bool) {
+		value := socket.Request().URL.Query().Get(key)
+
+		return value, value != ""
 	}
 
-	toInt := func(text string) int {
+	toInt := func(text string, ok bool) (int, error) {
+		if !ok {
+			return 0, errors.New("failed to get the value to convert to int")
+		}
+
 		integer, err := strconv.Atoi(text)
 		if err != nil {
 			log.WithError(err).Error("failed to convert the text to int")
+
+			return 0, err
 		}
 
-		return integer
+		return integer, nil
 	}
 
-	return &WebData{
-		User:        get(socket, "user"),
-		Password:    get(socket, "passwd"),
-		Fingerprint: get(socket, "fingerprint"),
-		Signature:   get(socket, "signature"),
-		Columns:     toInt(get(socket, "cols")),
-		Rows:        toInt(get(socket, "rows")),
+	columns, err := toInt(get(socket, "cols"))
+	if err != nil {
+		return nil, errors.New("cols field is invalid or missing")
 	}
+
+	rows, err := toInt(get(socket, "rows"))
+	if err != nil {
+		return nil, errors.New("rows field is invalid or missing")
+	}
+
+	target := username + "@" + device
+
+	return &WebData{
+		User:        target,
+		Password:    password,
+		Fingerprint: fingerprint,
+		Signature:   signature,
+		Columns:     columns,
+		Rows:        rows,
+	}, nil
 }
 
 // isPublicKey checks if connection is using public key method.
@@ -133,11 +156,14 @@ func (c *WebData) GetAuth(magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
 }
 
 // WebSession is the Client's handler for connection coming from the web terminal.
-func WebSession(socket *websocket.Conn) {
+func WebSession(socket *websocket.Conn, device, username, password, fingerprint, signature string) {
 	log.Info("handling web client request started")
 	defer log.Info("handling web client request end")
 
-	data := NewWebData(socket)
+	data, err := NewWebData(socket, device, username, password, fingerprint, signature)
+	if err != nil {
+		sendAndInformError(socket, err, ErrWebData)
+	}
 
 	auth, err := data.GetAuth(magickey.GetRerefence())
 	if err != nil {

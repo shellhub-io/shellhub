@@ -12,8 +12,8 @@ import (
 	sshTunnel "github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/ssh/server"
 	"github.com/shellhub-io/shellhub/ssh/server/handler"
+	"github.com/shellhub-io/shellhub/ssh/web"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/websocket"
 )
 
 func init() {
@@ -65,7 +65,18 @@ func main() {
 			return
 		}
 	})
-	router.Handle("/ws/ssh", websocket.Handler(handler.WebSession))
+
+	// TODO: add this route to OpenAPI.
+	// `/ws/ssh` path managers a web terminal connection.
+	// Connects to the web terminal session through the token.
+	//
+	// Query parameters:
+	// - token: the session token.
+	// - cols: web terminal columns.
+	// - rows: web terminal rows.
+	router.Handle("/ws/ssh", web.RestoreSession(handler.WebSession)).Methods(http.MethodGet)
+	// Creates a new web terminal session token.
+	router.HandleFunc("/ws/ssh", web.NewSession).Methods(http.MethodPost)
 
 	go http.ListenAndServe(":8080", router) // nolint:errcheck
 
