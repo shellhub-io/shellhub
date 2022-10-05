@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -48,7 +50,17 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 
 	query.Normalize()
 
-	devices, count, err := h.service.ListDevices(c.Ctx(), query.Query, query.Filter, query.Status, query.SortBy, query.OrderBy)
+	raw, err := base64.StdEncoding.DecodeString(query.Filter)
+	if err != nil {
+		return err
+	}
+
+	var filter []models.Filter
+	if err := json.Unmarshal(raw, &filter); len(raw) > 0 && err != nil {
+		return err
+	}
+
+	devices, count, err := h.service.ListDevices(c.Ctx(), query.Query, filter, query.Status, query.SortBy, query.OrderBy)
 	if err != nil {
 		return err
 	}

@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"net"
 	"strings"
 
@@ -18,7 +16,7 @@ import (
 const StatusAccepted = "accepted"
 
 type DeviceService interface {
-	ListDevices(ctx context.Context, pagination paginator.Query, filter string, status string, sort string, order string) ([]models.Device, int, error)
+	ListDevices(ctx context.Context, pagination paginator.Query, filter []models.Filter, status string, sort string, order string) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
@@ -29,17 +27,7 @@ type DeviceService interface {
 	DeviceHeartbeat(ctx context.Context, uid models.UID) error
 }
 
-func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filterB64 string, status string, sort string, order string) ([]models.Device, int, error) {
-	raw, err := base64.StdEncoding.DecodeString(filterB64)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	var filter []models.Filter
-	if err := json.Unmarshal(raw, &filter); len(raw) > 0 && err != nil {
-		return nil, 0, err
-	}
-
+func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filter []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
 	return s.store.DeviceList(ctx, pagination, filter, status, sort, order)
 }
 

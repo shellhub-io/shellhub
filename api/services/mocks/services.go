@@ -529,29 +529,6 @@ func (_m *Service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKe
 	return r0, r1
 }
 
-// FillMembersData provides a mock function with given fields: ctx, members
-func (_m *Service) FillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error) {
-	ret := _m.Called(ctx, members)
-
-	var r0 []models.Member
-	if rf, ok := ret.Get(0).(func(context.Context, []models.Member) []models.Member); ok {
-		r0 = rf(ctx, members)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.Member)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, []models.Member) error); ok {
-		r1 = rf(ctx, members)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetDevice provides a mock function with given fields: ctx, uid
 func (_m *Service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	ret := _m.Called(ctx, uid)
@@ -733,11 +710,11 @@ func (_m *Service) KeepAliveSession(ctx context.Context, uid models.UID) error {
 }
 
 // ListDevices provides a mock function with given fields: ctx, pagination, filter, status, sort, order
-func (_m *Service) ListDevices(ctx context.Context, pagination paginator.Query, filter string, status string, sort string, order string) ([]models.Device, int, error) {
+func (_m *Service) ListDevices(ctx context.Context, pagination paginator.Query, filter []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
 	ret := _m.Called(ctx, pagination, filter, status, sort, order)
 
 	var r0 []models.Device
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, string, string, string, string) []models.Device); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, string, string, string) []models.Device); ok {
 		r0 = rf(ctx, pagination, filter, status, sort, order)
 	} else {
 		if ret.Get(0) != nil {
@@ -746,14 +723,14 @@ func (_m *Service) ListDevices(ctx context.Context, pagination paginator.Query, 
 	}
 
 	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, string, string, string, string) int); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, string, string, string) int); ok {
 		r1 = rf(ctx, pagination, filter, status, sort, order)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, string, string, string, string) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, string, string, string) error); ok {
 		r2 = rf(ctx, pagination, filter, status, sort, order)
 	} else {
 		r2 = ret.Error(2)
