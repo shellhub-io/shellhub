@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"net"
 	"strconv"
 	"testing"
@@ -43,11 +41,6 @@ func TestListDevices(t *testing.T) {
 		},
 	}
 
-	filterJSON, err := json.Marshal(filters)
-	assert.NoError(t, err)
-
-	encodedFilter := base64.StdEncoding.EncodeToString(filterJSON)
-
 	query := paginator.Query{Page: 1, PerPage: 10}
 
 	status := []string{"pending", "accepted", "rejected"}
@@ -61,16 +54,17 @@ func TestListDevices(t *testing.T) {
 	}
 
 	cases := []struct {
-		name                           string
-		pagination                     paginator.Query
-		requiredMocks                  func()
-		expected                       Expected
-		filterB64, status, sort, order string
+		name                string
+		pagination          paginator.Query
+		requiredMocks       func()
+		expected            Expected
+		filter              []models.Filter
+		status, sort, order string
 	}{
 		{
 			name:       "ListDevices fails when the store device list fails",
 			pagination: query,
-			filterB64:  encodedFilter,
+			filter:     filters,
 			status:     status[0],
 			sort:       sort,
 			order:      order[0],
@@ -87,7 +81,7 @@ func TestListDevices(t *testing.T) {
 		{
 			name:       "ListDevices succeeds",
 			pagination: query,
-			filterB64:  encodedFilter,
+			filter:     filters,
 			status:     status[0],
 			sort:       sort,
 			order:      order[0],
@@ -106,7 +100,7 @@ func TestListDevices(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(*testing.T) {
 			tc.requiredMocks()
-			returnedDevices, count, err := s.ListDevices(ctx, tc.pagination, tc.filterB64, tc.status, tc.sort, tc.order)
+			returnedDevices, count, err := s.ListDevices(ctx, tc.pagination, tc.filter, tc.status, tc.sort, tc.order)
 			assert.Equal(t, tc.expected, Expected{returnedDevices, count, err})
 		})
 	}
