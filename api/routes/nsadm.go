@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -34,7 +36,17 @@ func (h *Handler) GetNamespaceList(c gateway.Context) error {
 		return err
 	}
 
-	namespaces, count, err := h.service.ListNamespaces(c.Ctx(), query.Query, query.Filter, false)
+	raw, err := base64.StdEncoding.DecodeString(query.Filter)
+	if err != nil {
+		return err
+	}
+
+	var filter []models.Filter
+	if err := json.Unmarshal(raw, &filter); len(raw) > 0 && err != nil {
+		return err
+	}
+
+	namespaces, count, err := h.service.ListNamespaces(c.Ctx(), query.Query, filter, false)
 	if err != nil {
 		return err
 	}

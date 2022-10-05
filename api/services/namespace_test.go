@@ -146,7 +146,7 @@ func TestListNamespaces(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			nss, count, err := services.ListNamespaces(tc.ctx, tc.pagination, "", false)
+			nss, count, err := services.ListNamespaces(tc.ctx, tc.pagination, nil, false)
 			assert.Equal(t, tc.expected, Expected{nss, count, err})
 		})
 	}

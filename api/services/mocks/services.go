@@ -739,13 +739,13 @@ func (_m *Service) ListDevices(ctx context.Context, pagination paginator.Query, 
 	return r0, r1, r2
 }
 
-// ListNamespaces provides a mock function with given fields: ctx, pagination, filterB64, export
-func (_m *Service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
-	ret := _m.Called(ctx, pagination, filterB64, export)
+// ListNamespaces provides a mock function with given fields: ctx, pagination, filter, export
+func (_m *Service) ListNamespaces(ctx context.Context, pagination paginator.Query, filter []models.Filter, export bool) ([]models.Namespace, int, error) {
+	ret := _m.Called(ctx, pagination, filter, export)
 
 	var r0 []models.Namespace
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, string, bool) []models.Namespace); ok {
-		r0 = rf(ctx, pagination, filterB64, export)
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, bool) []models.Namespace); ok {
+		r0 = rf(ctx, pagination, filter, export)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Namespace)
@@ -753,15 +753,15 @@ func (_m *Service) ListNamespaces(ctx context.Context, pagination paginator.Quer
 	}
 
 	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, string, bool) int); ok {
-		r1 = rf(ctx, pagination, filterB64, export)
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, bool) int); ok {
+		r1 = rf(ctx, pagination, filter, export)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, string, bool) error); ok {
-		r2 = rf(ctx, pagination, filterB64, export)
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, bool) error); ok {
+		r2 = rf(ctx, pagination, filter, export)
 	} else {
 		r2 = ret.Error(2)
 	}
