@@ -140,16 +140,16 @@ if [ -z "$AGENT_ARCH" ]; then
             RUNC_ARCH=amd64
             ;;
         armv6l)
-            AGENT_ARG=arm32v6
-            RUNC_ARHC=armel
+            AGENT_ARCH=arm32v6
+            RUNC_ARCH=armel
             ;;
         armv7l)
-            AGENT_ARG=arm32v7
-            RUNC_ARHC=armhf
+            AGENT_ARCH=arm32v7
+            RUNC_ARCH=armhf
             ;;
         aarch64)
-            AGENT_ARG=arm64v8
-            RUNC_ARH=arm64
+            AGENT_ARCH=arm64v8
+            RUNC_ARCH=arm64
     esac
 fi
 
