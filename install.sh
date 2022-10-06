@@ -31,13 +31,13 @@ docker_install() {
 bundle_install() {
     INSTALL_DIR="${INSTALL_DIR:-/opt/shellhub}"
 
-    if [ $UID -ne 0 ]; then
-        echo -e "\nNOTE: This install method requires root privileges\n"
+    if [ $(id -u) -ne 0 ]; then
+        printf "NOTE: This install method requires root privileges\n"
         SUDO="sudo"
     fi
 
-    if ! systemctl show-environment &> /dev/null ; then
-        echo "ERROR: This is not a systemd based OS. Could be not proceed.."
+    if ! systemctl show-environment > /dev/null 2>&1 ; then
+        printf "ERROR: This is not a systemd based OS. Could be not proceed.."
         exit 1
     fi
 
@@ -56,7 +56,6 @@ bundle_install() {
     {
         download https://raw.githubusercontent.com/shellhub-io/shellhub/${AGENT_VERSION}/agent/packaging/shellhub-agent.service $TMP_DIR/shellhub-agent.service
     } || { rm -rf $TMP_DIR && echo "Failed to download systemd service file..." && exit 1; }
-
     echo "Downloading rootfs tarball..."
     {
         download https://github.com/shellhub-io/shellhub/releases/download/$AGENT_VERSION/rootfs-$AGENT_ARCH.tar.gz $TMP_DIR/rootfs.tar.gz
@@ -85,23 +84,23 @@ bundle_install() {
 }
 
 download() {
-    local URL=$1
-    local OUTPUT=$2
+    _DOWNLOAD_URL=$1
+    _DOWNLOAD_OUTPUT=$2
 
     if type curl > /dev/null 2>&1; then
-        curl -fsSL $URL --output $OUTPUT
+        curl -fsSL $_DOWNLOAD_URL --output $_DOWNLOAD_OUTPUT
     elif type wget > /dev/null 2>&1; then
-        wget -q -O $OUTPUT $URL
+        wget -q -O $_DOWNLOAD_OUTPUT $_DOWNLOAD_URL
     fi
 }
 
 http_get() {
-    local URL=$1
+    _HTTP_GET_URL=$1
 
     if type curl > /dev/null 2>&1; then
-        curl -sk $URL
+        curl -sk $_HTTP_GET_URL
     elif type wget > /dev/null 2>&1; then
-        wget -q -O - $URL
+        wget -q -O - $_HTTP_GET_URL
     fi
 }
 
@@ -123,7 +122,7 @@ if type docker > /dev/null 2>&1; then
         if $SUDO docker infoa > /dev/null 2>&1; then
             INSTALL_METHOD="${INSTALL_METHOD:-docker}"
             break
-         elif [ $UID -ne 0 ]; then
+        elif [ $(id -u) -ne 0 ]; then
             [ -z "$SUDO" ] && SUDO="sudo" || { SUDO="" && break; }
         fi
     done
