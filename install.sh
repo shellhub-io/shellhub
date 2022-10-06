@@ -49,7 +49,7 @@ bundle_install() {
 
     echo "Downloading OCI runtime spec file..."
     {
-        download "https://raw.githubusercontent.com/shellhub-io/agent/master/config.json" $TMP_DIR/config.json
+        download https://raw.githubusercontent.com/shellhub-io/agent/${AGENT_VERSION}/config.json $TMP_DIR/config.json
     } ||  { rm -rf $TMP_DIR && echo "Failed to download OCI runtime spec" && exit 1; }
 
     echo "Downloading systemd service file..."
