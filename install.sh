@@ -74,15 +74,14 @@ bundle_install() {
     sed -i "s,__ROOT_PATH__,$INSTALL_DIR/rootfs,g" $TMP_DIR/config.json
     sed -i "s,__INSTALL_DIR__,$INSTALL_DIR,g" $TMP_DIR/shellhub-agent.service
 
-    $SUDO rm -rf $INSTALL_DIR
-    $SUDO mv $TMP_DIR $INSTALL_DIR
-
     echo "Creating systemd service and starting it"
 
     $SUDO cp $TMP_DIR/shellhub-agent.service /etc/systemd/system/shellhub-agent.service
     $SUDO systemctl enable --now shellhub-agent || { rm -rf $TMP_DIR && echo "Failed to active systemd service service"; exit 1; }
 
-    rm -rf $TMP_DIR
+    $SUDO rm -rf $INSTALL_DIR
+    $SUDO mv $TMP_DIR $INSTALL_DIR
+    $SUDO rm -rf $TMP_DIR
 }
 
 download() {
