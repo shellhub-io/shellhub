@@ -31,7 +31,7 @@ docker_install() {
 bundle_install() {
     INSTALL_DIR="${INSTALL_DIR:-/opt/shellhub}"
 
-    if [ $(id -u) -ne 0 ]; then
+    if [ "$(id -u)" -ne 0 ]; then
         printf "NOTE: This install method requires root privileges\n"
         SUDO="sudo"
     fi
@@ -122,7 +122,7 @@ if type docker > /dev/null 2>&1; then
         if $SUDO docker infoa > /dev/null 2>&1; then
             INSTALL_METHOD="${INSTALL_METHOD:-docker}"
             break
-        elif [ $(id -u) -ne 0 ]; then
+        elif [ "$(id -u)" -ne 0 ]; then
             [ -z "$SUDO" ] && SUDO="sudo" || { SUDO="" && break; }
         fi
     done
