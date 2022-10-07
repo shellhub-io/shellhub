@@ -1,0 +1,30 @@
+http:
+  services:
+    ui:
+      loadBalancer:
+        servers:
+          - url: http://ui:8080
+    api:
+      loadBalancer:
+        servers:
+          - url: http://api:8080
+    ssh:
+      loadBalancer:
+        servers:
+          - url: http://ssh:8080
+    admin-api:
+      loadbalancer:
+        servers:
+          - url: http://admin-api:8080
+    dashboard:
+      loadBalancer:
+        servers:
+          - url: http://dashboard:8080
+    gateway:
+      loadBalancer:
+        servers:
+          - url: http://gateway
+    http-echo:
+      loadBalancer:
+        servers:
+          - url: http://http-echo:8080

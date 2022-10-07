@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  traefik:
+    image: traefik:v3.0.4
+    command: -c /etc/traefik/traefik.yml
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - ./conf.d:/etc/traefik/conf.d
+      - ./requestid-plugin:/plugins-local/src/github.com/shellhub-io/shellhub/traefik/requestid-plugin
+    environment:
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+    ports:
+      - 1313:80
+      - 8888:8080
+    networks:
+      - shellhub
+  http-echo:
+    image: mendhak/http-https-echo:25
+    networks:
+      - shellhub
+networks:
+  shellhub:
+    name: shellhub_network
+    external: true
+

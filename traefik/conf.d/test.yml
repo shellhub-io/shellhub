@@ -1,0 +1,2 @@
+    {{ if eq (env "SHELLHUB_PROXY") "true" }}
+    {{ end }}

@@ -1,0 +1,30 @@
+http:
+  routers:
+  middlewares:
+    request-id:
+      plugin:
+        requestid-plugin:
+          headerName: "X-Request-ID"
+    auth:
+      forwardAuth:
+        address: "http://api:8080/internal/auth"
+        authResponseHeaders:
+          - "X-Request-ID"
+          - "X-ID"
+          - "X-Tenant-ID"
+          - "X-Username"
+          - "X-Role"
+          - "X-Device-UID"
+    admin-rewrite:
+      replacePathRegex:
+        regex: "^/admin/(.*)"
+        replacement: "/$1"
+    dashboard-redirect:
+      redirectRegex:
+        regex: "(.*)/admin/?$"
+        replacement: "$1/admin/dashboard"
+        permanent: true
+    dashboard-trailing-slash:
+      replacePathRegex:
+        regex: "^/admin/dashboard/?(.*)"
+        replacement: "/admin/dashboard/$1"

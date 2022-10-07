@@ -1,0 +1,54 @@
+http:
+  routers:
+    ui:
+      rule: "PathPrefix(`/`)"
+      service: ui
+      priority: -1
+    api:
+      rule: "PathPrefix(`/api`)"
+      middlewares:
+        - request-id
+        - auth
+      service: api
+      priority: 1
+    api-login:
+      rule: "Path(`/api/login`)"
+      service: api
+    api-device-auth:
+      rule: "Path(`/api/devices/auth`)"
+      service: api
+    info:
+      rule: "PathPrefix(`/info`)"
+      service: gateway
+    ssh:
+      rule: "PathPrefix(`/ssh`)"
+      middlewares:
+        - auth
+      service: ssh
+    ssh-revdial:
+      rule: "Path(`/ssh/revdial`)"
+      service: ssh
+    ws:
+      rule: "PathPrefix(`/ws`)"
+      service: ssh
+    admin-api:
+      rule: "PathPrefix(`/admin`)"
+      service: admin-api
+      middlewares:
+        - admin-rewrite
+        - request-id
+    admin:
+      rule: "PathPrefix(`/admin`)"
+      middlewares:
+        - dashboard-redirect
+      service: dashboard
+    admin-dashboard:
+      rule: "PathPrefix(`/admin/dashboard`)"
+      middlewares:
+        - dashboard-trailing-slash
+      service: dashboard
+    echo:
+      rule: "PathPrefix(`/echo`)"
+      service: http-echo
+      middlewares:
+        - auth
