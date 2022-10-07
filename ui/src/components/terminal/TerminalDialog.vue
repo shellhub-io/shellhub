@@ -171,6 +171,7 @@ import { AttachAddon } from 'xterm-addon-attach';
 import { FitAddon } from 'xterm-addon-fit';
 import RSAKey from 'node-rsa';
 import 'xterm/css/xterm.css';
+import axios from 'axios';
 import { parsePrivateKey } from '@/sshpk';
 
 export default {
@@ -291,38 +292,18 @@ export default {
       this.$emit('update:show', false);
     },
 
-    connectWithPassword() {
-      const passwd = encodeURIComponent(this.passwd);
-      this.connect({ passwd });
-    },
-
     encodeURLParams(params) {
       return Object.entries(params).map(([k, v]) => `${k}=${v}`).join('&');
     },
 
-    async connectWithPrivateKey() {
-      const pk = parsePrivateKey(this.privateKey);
-      let signature;
+    async connect(params) {
+      const response = await axios.post('/ws/ssh', {
+        device: `${this.$props.uid}`,
+        username: `${this.username}`,
+        ...params,
+      });
 
-      if (pk.type === 'ed25519') {
-        const signer = pk.createSign('sha512');
-        signer.update(this.username);
-        signature = encodeURIComponent(signer.sign().toString());
-      } else {
-        const key = new RSAKey(this.privateKey);
-        key.setOptions({ signingScheme: 'pkcs1-sha1' });
-        signature = encodeURIComponent(key.sign(this.username, 'base64'));
-      }
-
-      const fingerprint = pk.fingerprint('md5');
-
-      this.connect({ signature, fingerprint });
-    },
-
-    connect(params) {
-      if (!this.$refs.form.validate(true)) {
-        return;
-      }
+      const { token } = response.data;
 
       this.showLoginForm = false;
       this.$nextTick(() => this.fitAddon.fit());
@@ -342,7 +323,7 @@ export default {
         protocolConnectionURL = 'wss';
       }
 
-      const wsInfo = { user: `${this.username}@${this.$props.uid}`, ...params, ...this.webTermDimensions };
+      const wsInfo = { token, ...this.webTermDimensions };
       this.ws = new WebSocket(`${protocolConnectionURL}://${window.location.host}/ws/ssh?${this.encodeURLParams(wsInfo)}`);
 
       this.ws.onopen = () => {
@@ -353,6 +334,31 @@ export default {
       this.ws.onclose = () => {
         this.attachAddon.dispose();
       };
+    },
+
+    async connectWithPassword() {
+      const password = this.passwd;
+
+      this.connect({ password });
+    },
+
+    async connectWithPrivateKey() {
+      const pk = parsePrivateKey(this.privateKey);
+      let signature;
+
+      if (pk.type === 'ed25519') {
+        const signer = pk.createSign('sha512');
+        signer.update(this.username);
+        signature = signer.sign().toString();
+      } else {
+        const key = new RSAKey(this.privateKey);
+        key.setOptions({ signingScheme: 'pkcs1-sha1' });
+        signature = key.sign(this.username, 'base64');
+      }
+
+      const fingerprint = pk.fingerprint('md5').toString('hex');
+
+      this.connect({ fingerprint, signature });
     },
 
     resetFieldValidation() {
