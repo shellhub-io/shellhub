@@ -114,7 +114,7 @@ func main() {
 		Long:  `Manage namespaces`,
 	}
 	namespaceCmd.AddCommand(&cobra.Command{
-		Use:     "create <namespace> <owner>",
+		Use:     "create <namespace> <owner> [tenant]",
 		Short:   "create a namespace",
 		Long:    `create a namespace`,
 		Example: `cli namespace create shellhubspace shellhub`,
@@ -145,15 +145,12 @@ func main() {
 		Example: `cli namespace delete shellhubspace`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			namespace, err := services.NamespaceRemoveMember(args[0], args[1])
-			if err != nil {
+			if err := services.NamespaceDelete(args[0]); err != nil {
 				return err
 			}
 
 			cmd.Println("Namespace deleted successfully")
-			cmd.Println("Namespace:", namespace.Name)
-			cmd.Println("Tenant:", namespace.TenantID)
-			cmd.Println("Owner:", namespace.Owner)
+			cmd.Println("Namespace:", args[0])
 
 			return nil
 		},
