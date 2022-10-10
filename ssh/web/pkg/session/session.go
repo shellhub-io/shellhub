@@ -2,6 +2,10 @@ package session
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -20,9 +24,20 @@ type Session struct {
 }
 
 func NewSession(ctx context.Context, device, username, password, fingerprint, signature string) (*Session, error) {
-	token, err := token.NewToken(uuid.Generate(), magickey.GetRerefence())
+	key := magickey.GetRerefence()
+
+	token, err := token.NewToken(uuid.Generate(), key)
 	if err != nil {
 		return nil, errors.New("failed to generate the session's token")
+	}
+
+	if password != "" {
+		signed, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, &key.PublicKey, []byte(password), nil)
+		if err != nil {
+			return nil, errors.New("failed to sign the session's password")
+		}
+
+		password = hex.EncodeToString(signed)
 	}
 
 	cached, err := cache.Token(ctx, token, struct {
@@ -51,6 +66,8 @@ func NewSession(ctx context.Context, device, username, password, fingerprint, si
 }
 
 func Restore(ctx context.Context, jwt string) (*Session, error) {
+	key := magickey.GetRerefence()
+
 	token, err := token.Parse(jwt)
 	if err != nil {
 		return nil, errors.New("invalid session's token")
@@ -59,6 +76,20 @@ func Restore(ctx context.Context, jwt string) (*Session, error) {
 	cached, err := cache.Restore(ctx, token)
 	if err != nil {
 		return nil, errors.New("failed to get credentials to login")
+	}
+
+	if cached.Password != "" {
+		decoded, err := hex.DecodeString(cached.Password)
+		if err != nil {
+			return nil, errors.New("failed to decode the session's password")
+		}
+
+		decrypted, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, key, decoded, nil)
+		if err != nil {
+			return nil, errors.New("failed to decrypt the session's password")
+		}
+
+		cached.Password = string(decrypted)
 	}
 
 	return &Session{
