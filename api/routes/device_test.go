@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/api/converter"
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
+	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers/pkg/converter"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	svc "github.com/shellhub-io/shellhub/api/services"

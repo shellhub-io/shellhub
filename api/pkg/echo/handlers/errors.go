@@ -4,49 +4,31 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/api/converter"
+	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers/pkg/converter"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	routes "github.com/shellhub-io/shellhub/api/routes/errors"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 )
 
-// NewErrors return a centralized echo error handling for all API responses. When a route returns a generic error, this
-// handler evaluates the error and returns a specific HTTP status code and error message.
+// NewErrors returns a custom echo's error handler.
+//
+// When error comes from guard.ErrLayer, the HTTP status code is http.StatusForbidden. When error comes from either
+// routes.ErrLayer or services.ErrLayer, it is converted using the converter's package to one HTTP status code, and When
+// error is not from the errors.Error type, a generic http.StatusInternalServerError.
 func NewErrors() func(error, echo.Context) {
-	return func(err error, c echo.Context) {
-		// TODO: Check if it's on development mode and return better logs.
-		if err == guard.ErrForbidden {
-			_ = c.NoContent(http.StatusForbidden)
-
-			return
-		}
-
-		e, ok := err.(errors.Error)
-		if !ok {
-			// If err is not from the errors.Error type, return its error with an internal error status.
-			// Generally, this happens when the service layer does not deal with the error.
-			_ = c.NoContent(http.StatusInternalServerError)
-
-			return
-		}
-
-		switch e.Layer {
-		case services.ErrLayer:
-			// When the error layer is from the service layer, return a specific HTTP status code and error message.
-			_ = c.NoContent(converter.FromErrServiceToHTTPStatus(e.Code))
-
-			return
-		case routes.ErrLayer:
-			// When the error layer is from the route layer, return a specific HTTP status code and error message.
-			_ = c.NoContent(converter.FromErrRouteToHTTPStatus(e.Code))
-
-			return
-		default:
-			// No mapped error.
-			_ = c.NoContent(http.StatusInternalServerError)
-
-			return
+	return func(e error, ctx echo.Context) {
+		if err, ok := e.(errors.Error); ok {
+			switch err.Layer {
+			case guard.ErrLayer:
+				ctx.NoContent(http.StatusForbidden) // nolint:errcheck
+			case routes.ErrLayer:
+				ctx.NoContent(converter.FromErrRouteToHTTPStatus(err.Code)) // nolint:errcheck
+			case services.ErrLayer:
+				ctx.NoContent(converter.FromErrServiceToHTTPStatus(err.Code)) // nolint:errcheck
+			}
+		} else {
+			ctx.NoContent(http.StatusInternalServerError) // nolint:errcheck
 		}
 	}
 }
