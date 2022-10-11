@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/cache"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/ssh/web/pkg/token"
 )
 
