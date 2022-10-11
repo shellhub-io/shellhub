@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/api/response"
+	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"

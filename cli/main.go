@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/kelseyhightower/envconfig"
-	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
+	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

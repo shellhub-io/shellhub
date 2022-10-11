@@ -13,7 +13,6 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/gliderlabs/ssh v0.3.5
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mattn/go-shellwords v1.0.12

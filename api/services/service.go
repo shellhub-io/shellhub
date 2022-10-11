@@ -3,8 +3,8 @@ package services
 import (
 	"crypto/rsa"
 
-	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 )
 

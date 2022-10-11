@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
-	"github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"

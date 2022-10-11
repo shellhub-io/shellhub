@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
-	storecache "github.com/shellhub-io/shellhub/api/cache"
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/routes"
@@ -14,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/middleware"
 	log "github.com/sirupsen/logrus"
