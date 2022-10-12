@@ -176,6 +176,7 @@
                   label="Current password"
                   :append-icon="showCurrentPassword? 'mdi-eye': 'mdi-eye-off'"
                   :type="showCurrentPassword ? 'text': 'password'"
+                  autocomplete="current-password"
                   class="mb-4"
                   :error-messages="errors"
                   required
@@ -197,6 +198,7 @@
                   label="New password"
                   :append-icon="showNewPassword? 'mdi-eye': 'mdi-eye-off'"
                   :type="showNewPassword ? 'text': 'password'"
+                  autocomplete="new-password"
                   class="mb-4"
                   :error-messages="errors"
                   required
@@ -217,6 +219,7 @@
                   label="Confirm new password"
                   :append-icon="showConfirmPassword? 'mdi-eye': 'mdi-eye-off'"
                   :type="showConfirmPassword ? 'text': 'password'"
+                  autocomplete="new-password"
                   class="mb-4"
                   :error-messages="errors"
                   required
