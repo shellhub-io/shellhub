@@ -79,6 +79,7 @@
               prepend-icon="person"
               label="Username"
               type="text"
+              autocomplete="username"
               data-test="username-text"
             />
             <v-text-field
@@ -89,6 +90,7 @@
               :append-icon="showPassword? 'mdi-eye': 'mdi-eye-off'"
               label="Password"
               :type="showPassword ? 'text': 'password'"
+              autocomplete="current-password"
               data-test="password-text"
               @click:append="showPassword = !showPassword"
               @keyup.enter="login()"

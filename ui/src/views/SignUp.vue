@@ -83,6 +83,7 @@
                 prepend-icon="person"
                 label="Username"
                 type="text"
+                autocomplete="username"
                 :error-messages="errors"
                 data-test="username-text"
               />
@@ -100,6 +101,7 @@
                 prepend-icon="email"
                 label="Email"
                 type="text"
+                autocomplete="email"
                 :error-messages="errors"
                 data-test="email-text"
               />
@@ -118,6 +120,7 @@
                 prepend-icon="lock"
                 label="Password"
                 type="password"
+                autocomplete="new-password"
                 :error-messages="errors"
                 data-test="password-text"
               />
@@ -135,6 +138,7 @@
                 prepend-icon="lock"
                 label="Confirm password"
                 type="password"
+                autocomplete="new-password"
                 :error-messages="errors"
                 data-test="confirmPassword-text"
               />

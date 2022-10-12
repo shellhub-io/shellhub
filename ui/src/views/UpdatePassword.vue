@@ -56,6 +56,7 @@
               <v-text-field
                 v-model="newPassword"
                 type="password"
+                autocomplete="new-password"
                 label="New password"
                 class="mb-4"
                 :error-messages="errors"
@@ -74,6 +75,7 @@
                 v-model="newPasswordConfirm"
                 label="Confirm new password"
                 type="password"
+                autocomplete="new-password"
                 class="mb-4"
                 :error-messages="errors"
                 required

@@ -58,6 +58,7 @@
                 prepend-icon="email"
                 label="Email"
                 type="text"
+                autocomplete="email"
                 :error-messages="errors"
                 data-test="email-text"
               />
