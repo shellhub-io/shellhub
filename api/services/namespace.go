@@ -143,6 +143,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	if err != nil {
 		return NewErrNamespaceNotFound(tenantID, err)
 	}
+
 	if err := deleteReportUsage(s.client.(req.Client), ns); err != nil {
 		return err
 	}

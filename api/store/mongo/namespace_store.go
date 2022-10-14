@@ -11,6 +11,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error) {
@@ -164,25 +166,75 @@ func (s *Store) NamespaceGetByName(ctx context.Context, name string) (*models.Na
 }
 
 func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
-	_, err := s.db.Collection("namespaces").InsertOne(ctx, namespace)
+	session, err := s.db.Client().StartSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.EndSession(ctx)
+
+	if _, err := session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
+		_, err := s.db.Collection("namespaces").InsertOne(sessCtx, namespace)
+		if err != nil {
+			return nil, err
+		}
+
+		objID, err := primitive.ObjectIDFromHex(namespace.Owner)
+		if err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		if _, err := s.db.Collection("users").UpdateOne(sessCtx, bson.M{"_id": objID}, bson.M{"$inc": bson.M{"namespaces": 1}}); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		return nil, nil
+	}); err != nil {
+		return nil, err
+	}
 
 	return namespace, err
 }
 
 func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
-	if _, err := s.db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": tenantID}); err != nil {
-		return FromMongoError(err)
+	session, err := s.db.Client().StartSession()
+	if err != nil {
+		return err
 	}
+	defer session.EndSession(ctx)
 
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
-		logrus.Error(err)
-	}
-
-	collections := []string{"devices", "sessions", "connected_devices", "firewall_rules", "public_keys", "recorded_sessions"}
-	for _, collection := range collections {
-		if _, err := s.db.Collection(collection).DeleteMany(ctx, bson.M{"tenant_id": tenantID}); err != nil {
-			return FromMongoError(err)
+	if _, err := session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
+		ns, err := s.NamespaceGet(ctx, tenantID)
+		if err != nil {
+			return nil, err
 		}
+
+		if _, err := s.db.Collection("namespaces").DeleteOne(sessCtx, bson.M{"tenant_id": tenantID}); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
+			logrus.Error(err)
+		}
+
+		collections := []string{"devices", "sessions", "connected_devices", "firewall_rules", "public_keys", "recorded_sessions"}
+		for _, collection := range collections {
+			if _, err := s.db.Collection(collection).DeleteMany(sessCtx, bson.M{"tenant_id": tenantID}); err != nil {
+				return nil, FromMongoError(err)
+			}
+		}
+
+		objID, err := primitive.ObjectIDFromHex(ns.Owner)
+		if err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		if _, err := s.db.Collection("users").UpdateOne(sessCtx, bson.M{"_id": objID}, bson.M{"$inc": bson.M{"namespaces": -1}}); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		return nil, nil
+	}); err != nil {
+		return err
 	}
 
 	return nil

@@ -87,10 +87,11 @@ func (s *service) UserCreate(username, password, email string) (*models.User, er
 	}
 
 	user := &models.User{
-		UserData:     userData,
-		UserPassword: userPass,
-		Confirmed:    true,
-		CreatedAt:    clock.Now(),
+		UserData:      userData,
+		UserPassword:  userPass,
+		Confirmed:     true,
+		CreatedAt:     clock.Now(),
+		MaxNamespaces: -1,
 	}
 
 	err = s.store.UserCreate(ctx, user)
