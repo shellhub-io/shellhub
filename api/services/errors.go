@@ -106,6 +106,7 @@ var (
 	ErrSessionNotFound           = errors.New("session not found", ErrLayer, ErrCodeNotFound)
 	ErrAuthInvalid               = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthUnathorized           = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
+	ErrNamespaceLimitReached     = errors.New("namespace limit reached", ErrLayer, ErrCodeLimit)
 )
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
@@ -363,4 +364,9 @@ func NewErrDeviceSetOnline(id models.UID, err error) error {
 // NewErrAuthUnathorized returns a error to be used when the auth is unauthorized.
 func NewErrAuthUnathorized(err error) error {
 	return NewErrUnathorized(ErrAuthUnathorized, err)
+}
+
+// NewErrNamespaceLimitReached a error to be used when the user namespace limit number is reached.
+func NewErrNamespaceLimitReached(limit int, err error) error {
+	return NewErrLimit(ErrNamespaceLimitReached, limit, err)
 }

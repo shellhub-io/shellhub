@@ -55,15 +55,15 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 }
 
 // CreateNamespace creates a new namespace.
-//
-// It receives a context, used to "control" the request flow, the models.Namespace to be created and the userID from
-// who is creating the namespace.
-//
-// CreateNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) CreateNamespace(ctx context.Context, namespace request.NamespaceCreate, userID string) (*models.Namespace, error) {
 	user, _, err := s.store.UserGetByID(ctx, userID, false)
 	if err != nil || user == nil {
 		return nil, NewErrUserNotFound(userID, err)
+	}
+
+	// When MaxNamespaces is less than zero, it means that the user has no limit of namespaces.
+	if user.MaxNamespaces > 0 && user.MaxNamespaces <= user.Namespaces {
+		return nil, NewErrNamespaceLimitReached(user.MaxNamespaces, nil)
 	}
 
 	ns := &models.Namespace{
