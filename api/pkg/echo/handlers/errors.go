@@ -26,6 +26,8 @@ func NewErrors() func(error, echo.Context) {
 				ctx.NoContent(converter.FromErrRouteToHTTPStatus(err.Code)) // nolint:errcheck
 			case services.ErrLayer:
 				ctx.NoContent(converter.FromErrServiceToHTTPStatus(err.Code)) // nolint:errcheck
+			default:
+				ctx.NoContent(http.StatusInternalServerError) // nolint:errcheck
 			}
 		} else {
 			ctx.NoContent(http.StatusInternalServerError) // nolint:errcheck
