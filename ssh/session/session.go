@@ -24,7 +24,7 @@ import (
 // Errors returned by the NewSession to the client.
 var (
 	ErrBillingBlock  = fmt.Errorf("you cannot connect to this device because the namespace is not eligible for the free plan.\\nPlease contact the namespace owner's to upgrade the plan.\\nSee our pricing plans on https://www.shellhub.io/pricing to estimate the cost of your use cases on ShellHub Cloud or go to https://cloud.shellhub.io/settings/billing to upgrade the plan")
-	ErrFirewallBlock = fmt.Errorf("you connot connect to this device because a firewall rule block your connection")
+	ErrFirewallBlock = fmt.Errorf("you cannot connect to this device because a firewall rule block your connection")
 	ErrHost          = fmt.Errorf("failed to get the device address")
 	ErrFindDevice    = fmt.Errorf("failed to find the device")
 	ErrDial          = fmt.Errorf("failed to connect to device agent, please check the device connection")
