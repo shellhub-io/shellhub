@@ -11,8 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const user2Username = "username2"
-
 func TestNamespaceGetDataUserSecurity(t *testing.T) {
 	data := initData()
 
@@ -139,17 +137,17 @@ func TestNamespaceAddMember(t *testing.T) {
 	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	user2 := data.User
-	user2.Username = user2Username
-	user2.ID = "user2_id"
+	member := data.User
+	member.ID = "507f1f77bcf86cd799439012"
+	member.Username = "memberFromNamespace"
 
-	err = mongostore.UserCreate(data.Context, &user2)
+	err = mongostore.UserCreate(data.Context, &member)
 	assert.NoError(t, err)
 
 	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	u, err := mongostore.UserGetByUsername(data.Context, "username")
+	u, err := mongostore.UserGetByUsername(data.Context, member.Username)
 	assert.NoError(t, err)
 
 	_, err = mongostore.NamespaceAddMember(data.Context, "00000000-0000-4000-0000-000000000000", u.ID, guard.RoleObserver)
@@ -189,20 +187,20 @@ func TestNamespaceRemoveMember(t *testing.T) {
 	err := mongostore.UserCreate(data.Context, &data.User)
 	assert.NoError(t, err)
 
-	user2 := data.User
-	user2.Username = user2Username
-	user2.ID = "user2_id"
+	member := data.User
+	member.ID = "507f1f77bcf86cd799439012"
+	member.Username = "memberFromNamespace"
 
-	err = mongostore.UserCreate(data.Context, &user2)
+	err = mongostore.UserCreate(data.Context, &member)
 	assert.NoError(t, err)
 
 	_, err = mongostore.NamespaceCreate(data.Context, &data.Namespace)
 	assert.NoError(t, err)
 
-	u, err := mongostore.UserGetByUsername(data.Context, "username")
+	u, err := mongostore.UserGetByUsername(data.Context, member.Username)
 	assert.NoError(t, err)
 
-	_, err = mongostore.NamespaceAddMember(data.Context, "00000000-0000-4000-0000-000000000000", u.ID, "")
+	_, err = mongostore.NamespaceAddMember(data.Context, "00000000-0000-4000-0000-000000000000", u.ID, guard.RoleObserver)
 	assert.NoError(t, err)
 
 	_, err = mongostore.NamespaceRemoveMember(data.Context, "00000000-0000-4000-0000-000000000000", u.ID)
