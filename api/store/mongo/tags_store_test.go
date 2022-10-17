@@ -12,12 +12,7 @@ import (
 )
 
 func TestGetTags(t *testing.T) {
-	dbStand := dbtest.DBServer{}
-	defer dbStand.Stop()
-
-	mongostoreStand := NewStore(dbStand.Client().Database("test"), cache.NewNullCache())
-
-	db := dbtest.DBServer{Replicaset: true}
+	db := dbtest.DBServer{}
 	defer db.Stop()
 
 	ctx := context.TODO()
@@ -77,9 +72,6 @@ func TestGetTags(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, &rule1)
 	assert.NoError(t, err)
 
-	_, _, err = mongostoreStand.TagsGet(ctx, "tenant1")
-	assert.Error(t, err)
-
 	tags, count, err := mongostore.TagsGet(ctx, "tenant1")
 	assert.NoError(t, err)
 	assert.Equal(t, 5, count)
@@ -89,12 +81,7 @@ func TestGetTags(t *testing.T) {
 }
 
 func TestRenameTag(t *testing.T) {
-	dbStand := dbtest.DBServer{}
-	defer dbStand.Stop()
-
-	mongostoreStand := NewStore(dbStand.Client().Database("test"), cache.NewNullCache())
-
-	db := dbtest.DBServer{Replicaset: true}
+	db := dbtest.DBServer{}
 	defer db.Stop()
 
 	ctx := context.TODO()
@@ -165,9 +152,6 @@ func TestRenameTag(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, &rule1)
 	assert.NoError(t, err)
 
-	err = mongostoreStand.TagRename(ctx, "tenant1", "device2", "device9")
-	assert.Error(t, err)
-
 	err = mongostore.TagRename(ctx, "tenant1", "device2", "device9")
 	assert.NoError(t, err)
 
@@ -183,12 +167,7 @@ func TestRenameTag(t *testing.T) {
 }
 
 func TestDeleteTag(t *testing.T) {
-	dbStand := dbtest.DBServer{}
-	defer dbStand.Stop()
-
-	mongostoreStand := NewStore(dbStand.Client().Database("test"), cache.NewNullCache())
-
-	db := dbtest.DBServer{Replicaset: true}
+	db := dbtest.DBServer{}
 	defer db.Stop()
 
 	ctx := context.TODO()
@@ -261,9 +240,6 @@ func TestDeleteTag(t *testing.T) {
 
 	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, &rule1)
 	assert.NoError(t, err)
-
-	err = mongostoreStand.TagDelete(ctx, "tenant1", "device1")
-	assert.Error(t, err)
 
 	err = mongostore.TagDelete(ctx, "tenant1", "device1")
 	assert.NoError(t, err)
