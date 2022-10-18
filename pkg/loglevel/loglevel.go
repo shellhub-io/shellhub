@@ -1,20 +1,19 @@
 package loglevel
 
 import (
-	"os"
-
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/sirupsen/logrus"
 )
 
 func SetLogLevel() {
 	level := logrus.InfoLevel
 
-	if env, ok := os.LookupEnv("SHELLHUB_ENV"); ok && env == "development" {
+	if envs.DefaultBackend.Get("SHELLHUB_ENV") == "development" {
 		level = logrus.TraceLevel
 	}
 
-	if env, ok := os.LookupEnv("SHELLHUB_LOG_LEVEL"); ok {
-		if v, err := logrus.ParseLevel(env); err != nil {
+	if env := envs.DefaultBackend.Get("SHELLHUB_LOG_LEVEL"); env != "" {
+		if v, err := logrus.ParseLevel(env); err == nil {
 			level = v
 		}
 	}
