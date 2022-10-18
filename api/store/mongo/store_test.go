@@ -153,15 +153,15 @@ func initData() Data {
 			UserPassword: models.UserPassword{
 				Password: "password",
 			},
-			ID: "1",
+			ID: "507f1f77bcf86cd799439011",
 		},
 		models.Namespace{
 			Name:     "namespace",
-			Owner:    "owner",
+			Owner:    "507f1f77bcf86cd799439011",
 			TenantID: "00000000-0000-4000-0000-000000000000",
 			Members: []models.Member{
 				{
-					ID:   "owner",
+					ID:   "507f1f77bcf86cd799439011",
 					Role: guard.RoleOwner,
 				},
 			},
