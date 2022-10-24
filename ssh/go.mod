@@ -12,7 +12,7 @@ require (
 	github.com/pires/go-proxyproto v0.6.2
 	github.com/shellhub-io/shellhub v0.8.1
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d
 	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b
 	google.golang.org/protobuf v1.27.1 // indirect
