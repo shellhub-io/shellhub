@@ -25,7 +25,7 @@ require (
 	github.com/shellhub-io/shellhub v0.5.2
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d
 	golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64
 )
