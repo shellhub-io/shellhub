@@ -20,26 +20,63 @@ var migration50 = migrate.Migration{
 			"action":    "Up",
 		}).Info("Applying migration up")
 
-		var maxNamespacesWanted int
+		var err error
 		if envs.IsCloud() {
-			maxNamespacesWanted = 1
+			_, err = db.Collection("users").Aggregate(context.Background(),
+				mongo.Pipeline{
+					{
+						{"$match", bson.M{}},
+					},
+					{
+						{"$set", bson.M{"tmp": bson.M{"$toString": "$_id"}}},
+					},
+					{
+						{
+							"$lookup", bson.M{
+								"from": "namespaces",
+								"let":  bson.M{"owner": "$tmp"},
+								"pipeline": mongo.Pipeline{
+									{
+										{"$match", bson.M{
+											"$expr": bson.M{
+												"$and": bson.A{
+													bson.M{"$eq": bson.A{"$owner", "$$owner"}},
+													bson.M{"$eq": bson.A{"$billing.active", true}},
+												},
+											},
+										}},
+									},
+								},
+								"as": "list",
+							},
+						},
+					},
+					{
+						{"$set", bson.M{"max_namespaces": bson.M{"$add": bson.A{bson.M{"$size": "$list"}, 1}}}},
+					},
+					{
+						{"$unset", bson.A{"tmp", "list"}},
+					},
+					{
+						{"$merge", bson.M{"into": "users", "whenMatched": "replace"}},
+					},
+				},
+			)
 		} else {
-			maxNamespacesWanted = -1
+			_, err = db.Collection("users").Aggregate(context.Background(),
+				mongo.Pipeline{
+					{
+						{"$match", bson.M{}},
+					},
+					{
+						{"$set", bson.M{"max_namespaces": -1}},
+					},
+					{
+						{"$merge", bson.M{"into": "users", "whenMatched": "replace"}},
+					},
+				},
+			)
 		}
-
-		_, err := db.Collection("users").Aggregate(context.Background(),
-			mongo.Pipeline{
-				{
-					{"$match", bson.M{}},
-				},
-				{
-					{"$set", bson.M{"max_namespaces": maxNamespacesWanted}},
-				},
-				{
-					{"$merge", bson.M{"into": "users", "whenMatched": "replace"}},
-				},
-			},
-		)
 		if err != nil {
 			return err
 		}
