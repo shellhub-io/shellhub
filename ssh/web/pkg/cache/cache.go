@@ -10,7 +10,7 @@ import (
 
 var instance cache.Cache
 
-func getInstance() (cache.Cache, error) {
+func getInstance() (cache.Cache, error) { //nolint: ireturn
 	if instance == nil {
 		instance, err := cache.NewRedisCache("redis://redis:6379")
 
@@ -20,10 +20,10 @@ func getInstance() (cache.Cache, error) {
 	return instance, nil
 }
 
-// CacheTokenTTL is the time to live of the token in the cache.
-const CacheTokenTTL = time.Second * 30
+// TTL is the time to live of the token in the cache.
+const TTL = time.Second * 30
 
-type CachedToken struct {
+type Token struct {
 	Token       string
 	ID          string
 	Device      string
@@ -34,25 +34,35 @@ type CachedToken struct {
 	Data        interface{}
 }
 
-func Token(ctx context.Context, token *token.Token, data interface{}) (*CachedToken, error) {
-	cache, err := getInstance()
+type Data struct {
+	Device      string
+	Username    string
+	Password    string
+	Fingerprint string
+	Signature   string
+}
+
+// Save saves a data set for TTL time using token as identifier.
+func Save(ctx context.Context, token *token.Token, data *Data) (*Token, error) {
+	cache, err := getInstance() //nolint: contextcheck
 	if err != nil {
 		return nil, err
 	}
 
-	if err := cache.Set(ctx, token.ID, data, CacheTokenTTL); err != nil {
+	if err := cache.Set(ctx, token.ID, data, TTL); err != nil {
 		return nil, err
 	}
 
-	return &CachedToken{
+	return &Token{ //nolint: exhaustruct
 		Token: token.Token,
 		ID:    token.ID,
 		Data:  data,
 	}, nil
 }
 
-func Restore(ctx context.Context, token *token.Token) (*CachedToken, error) {
-	cache, err := getInstance()
+// Restore restores a data set using token as identifier.
+func Restore(ctx context.Context, token *token.Token) (*Token, error) {
+	cache, err := getInstance() //nolint: contextcheck
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +79,7 @@ func Restore(ctx context.Context, token *token.Token) (*CachedToken, error) {
 		return nil, err
 	}
 
-	return &CachedToken{
+	return &Token{ //nolint: exhaustruct
 		ID:          token.ID,
 		Device:      value.Device,
 		Username:    value.Username,
