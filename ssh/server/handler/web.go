@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
+	"github.com/shellhub-io/shellhub/ssh/web"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/websocket"
@@ -39,9 +40,7 @@ type WebData struct {
 
 // NewWebData create a new WebData.
 // WebData contains the data required by web termianl connection.
-func NewWebData(socket *websocket.Conn, device, username, password, fingerprint, signature string) (*WebData, error) {
-	// ctx := socket.Request().Context()
-
+func NewWebData(socket *websocket.Conn, input *web.Session) (*WebData, error) {
 	get := func(socket *websocket.Conn, key string) (string, bool) {
 		value := socket.Request().URL.Query().Get(key)
 
@@ -73,13 +72,13 @@ func NewWebData(socket *websocket.Conn, device, username, password, fingerprint,
 		return nil, errors.New("rows field is invalid or missing")
 	}
 
-	target := username + "@" + device
+	target := input.Username + "@" + input.Device
 
 	return &WebData{
 		User:        target,
-		Password:    password,
-		Fingerprint: fingerprint,
-		Signature:   signature,
+		Password:    input.Password,
+		Fingerprint: input.Fingerprint,
+		Signature:   input.Signature,
 		Columns:     columns,
 		Rows:        rows,
 	}, nil
@@ -156,11 +155,11 @@ func (c *WebData) GetAuth(magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
 }
 
 // WebSession is the Client's handler for connection coming from the web terminal.
-func WebSession(socket *websocket.Conn, device, username, password, fingerprint, signature string) {
+func WebSession(socket *websocket.Conn, input *web.Session) {
 	log.Info("handling web client request started")
 	defer log.Info("handling web client request end")
 
-	data, err := NewWebData(socket, device, username, password, fingerprint, signature)
+	data, err := NewWebData(socket, input)
 	if err != nil {
 		sendAndInformError(socket, err, ErrWebData)
 	}

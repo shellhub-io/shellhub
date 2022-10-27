@@ -13,15 +13,15 @@ type Token struct {
 	Token string
 }
 
-func NewToken(id string, key *rsa.PrivateKey) (*Token, error) {
+func NewToken(identifier string, key *rsa.PrivateKey) (*Token, error) {
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"id": id,
+		"id": identifier,
 	}).SignedString(magickey.GetRerefence())
 	if err != nil {
 		return nil, err
 	}
 
-	return &Token{ID: id, Token: token}, nil
+	return &Token{ID: identifier, Token: token}, nil
 }
 
 func Parse(token string) (*Token, error) {
@@ -31,12 +31,12 @@ func Parse(token string) (*Token, error) {
 			return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
 		}
 
-		return magickey.GetRerefence().Public().(*rsa.PublicKey), nil
+		return magickey.GetRerefence().Public().(*rsa.PublicKey), nil //nolint: forcetypeassert
 	}); err != nil {
 		return nil, err
 	}
 
-	id := (*claims)["id"].(string) // nolint: forcetypeassert
+	id := (*claims)["id"].(string) //nolint: forcetypeassert
 
 	return &Token{ID: id, Token: token}, nil
 }

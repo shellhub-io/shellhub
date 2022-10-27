@@ -66,17 +66,11 @@ func main() {
 		}
 	})
 
-	// TODO: add this route to OpenAPI.
-	// `/ws/ssh` path managers a web terminal connection.
-	// Connects to the web terminal session through the token.
-	//
-	// Query parameters:
-	// - token: the session token.
-	// - cols: web terminal columns.
-	// - rows: web terminal rows.
-	router.Handle("/ws/ssh", web.RestoreSession(handler.WebSession)).Methods(http.MethodGet)
-	// Creates a new web terminal session token.
-	router.HandleFunc("/ws/ssh", web.NewSession).Methods(http.MethodPost)
+	// TODO: add `/ws/ssh` route to OpenAPI repository.
+	router.Handle("/ws/ssh", web.HandlerRestoreSession(web.RestoreSession, handler.WebSession)).
+		Methods(http.MethodGet)
+	router.HandleFunc("/ws/ssh", web.HandlerCreateSession(web.CreateSession)).
+		Methods(http.MethodPost)
 
 	go http.ListenAndServe(":8080", router) // nolint:errcheck
 
