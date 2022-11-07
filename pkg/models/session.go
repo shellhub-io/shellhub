@@ -46,8 +46,9 @@ type Status struct {
 }
 
 type SessionRecorded struct {
-	UID     string `json:"uid"`
-	Message string `json:"message" bson:"message"`
-	Width   int    `json:"width" bson:"width,omitempty"`
-	Height  int    `json:"height" bson:"height,omitempty"`
+	UID       string `json:"uid"`
+	Namespace string `json:"namespace" bson:"namespace"`
+	Message   string `json:"message" bson:"message"`
+	Width     int    `json:"width" bson:"width,omitempty"`
+	Height    int    `json:"height" bson:"height,omitempty"`
 }
