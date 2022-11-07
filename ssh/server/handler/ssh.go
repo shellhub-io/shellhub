@@ -189,7 +189,7 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 
 	switch sess.GetType() {
 	case session.Term, session.Web:
-		err := shell(api, sess.UID, agent, client, pty, winCh, opts)
+		err := shell(api, sess, sess.UID, agent, client, pty, winCh, opts)
 		if err != nil {
 			return ErrRequestShell
 		}
@@ -229,7 +229,7 @@ func exitCodeFromError(err error) int {
 }
 
 // shell handles an interactive terminal session.
-func shell(api internalclient.Client, uid string, agent *gossh.Session, client gliderssh.Session, pty gliderssh.Pty, winCh <-chan gliderssh.Window, opts ConfigOptions) error {
+func shell(api internalclient.Client, sess *session.Session, uid string, agent *gossh.Session, client gliderssh.Session, pty gliderssh.Pty, winCh <-chan gliderssh.Window, opts ConfigOptions) error {
 	if errs := api.PatchSessions(uid); len(errs) > 0 {
 		return errs[0]
 	}
@@ -281,10 +281,11 @@ func shell(api internalclient.Client, uid string, agent *gossh.Session, client g
 				message := string(buffer[:read])
 
 				api.RecordSession(&models.SessionRecorded{
-					UID:     uid,
-					Message: message,
-					Width:   pty.Window.Height,
-					Height:  pty.Window.Width,
+					UID:       uid,
+					Namespace: sess.Lookup["domain"],
+					Message:   message,
+					Width:     pty.Window.Height,
+					Height:    pty.Window.Width,
 				}, opts.RecordURL)
 			}
 		}
