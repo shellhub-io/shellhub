@@ -1,3 +1,4 @@
+// Package cache provides a interface to store and retrieve session's data from a cache.
 package cache
 
 import (
@@ -9,28 +10,34 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/web/pkg/token"
 )
 
+// instance is a singleton cache instance.
 var instance cache.Cache
 
 // TTL is the time to live of the token in the cache.
 const TTL = time.Second * 30
 
-type Token struct {
-	Token       string
-	ID          string
-	Device      string
-	Username    string
-	Password    string
+// Data is the data set to be saved in the cache.
+type Data struct {
+	// Device is the device's name.
+	Device string
+	// Username is the username of the user to login.
+	Username string
+	// Password is the password of the user to login.
+	// Password is should be empty if the user is using a public key.
+	Password string
+	// Fingerprint is the fingerprint of the public key.
+	// Fingerprint is should be empty if the user is using a password.
 	Fingerprint string
-	Signature   string
-	Data        interface{}
+	// Signature is the signature of the public key.
+	// Signature is should be empty if the user is using a password.
+	Signature string
 }
 
-type Data struct {
-	Device      string
-	Username    string
-	Password    string
-	Fingerprint string
-	Signature   string
+type Token struct {
+	// ID is the token's identifier.
+	ID string
+	// Token is the JWT token.
+	Token string
 }
 
 // ConnectRedis connects to redis to be used as cache system.
@@ -67,15 +74,14 @@ func Save(ctx context.Context, token *token.Token, data *Data) (*Token, error) {
 		return nil, err
 	}
 
-	return &Token{ //nolint: exhaustruct
-		Token: token.Token,
+	return &Token{
 		ID:    token.ID,
-		Data:  data,
+		Token: token.Data,
 	}, nil
 }
 
 // Restore restores a data set using token as identifier.
-func Restore(ctx context.Context, token *token.Token) (*Token, error) {
+func Restore(ctx context.Context, token *token.Token) (*Data, error) {
 	connection, err := getConnection()
 	if err != nil {
 		return nil, err
@@ -93,8 +99,7 @@ func Restore(ctx context.Context, token *token.Token) (*Token, error) {
 		return nil, err
 	}
 
-	return &Token{ //nolint: exhaustruct
-		ID:          token.ID,
+	return &Data{
 		Device:      value.Device,
 		Username:    value.Username,
 		Password:    value.Password,
