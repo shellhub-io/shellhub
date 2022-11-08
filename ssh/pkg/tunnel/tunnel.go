@@ -13,10 +13,15 @@ import (
 
 type Tunnel struct {
 	Tunnel *httptunnel.Tunnel
+	API    internalclient.Client
 }
 
 func NewTunnel(connection, dial string) *Tunnel {
-	tunnel := &Tunnel{Tunnel: httptunnel.NewTunnel(connection, dial)}
+	tunnel := &Tunnel{
+		Tunnel: httptunnel.NewTunnel(connection, dial),
+		API:    internalclient.NewClient(),
+	}
+
 	tunnel.Tunnel.ConnectionHandler = func(request *http.Request) (string, error) {
 		return request.Header.Get(internalclient.DeviceUIDHeader), nil
 	}
@@ -26,7 +31,7 @@ func NewTunnel(connection, dial string) *Tunnel {
 		}
 	}
 	tunnel.Tunnel.KeepAliveHandler = func(id string) {
-		if err := internalclient.NewClient().DevicesHeartbeat(id); err != nil {
+		if err := tunnel.API.DevicesHeartbeat(id); err != nil {
 			log.Error(err)
 		}
 	}
