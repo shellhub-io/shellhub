@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
 	"github.com/shellhub-io/shellhub/ssh/web/pkg/cache"
 	"github.com/shellhub-io/shellhub/ssh/web/pkg/token"
@@ -43,7 +42,7 @@ func CreateSession(ctx context.Context, data *Input) (*Session, error) {
 
 	key := magickey.GetRerefence()
 
-	token, err := token.NewToken(uuid.Generate(), key)
+	token, err := token.NewToken(key)
 	if err != nil {
 		return nil, errors.New("failed to generate the session's token")
 	}
@@ -70,11 +69,11 @@ func CreateSession(ctx context.Context, data *Input) (*Session, error) {
 
 	return &Session{
 		Token:       cached.Token,
-		Device:      cached.Device,
-		Username:    cached.Username,
-		Password:    cached.Password,
-		Fingerprint: cached.Fingerprint,
-		Signature:   cached.Signature,
+		Device:      data.Device,
+		Username:    data.Username,
+		Password:    data.Password,
+		Fingerprint: data.Fingerprint,
+		Signature:   data.Signature,
 	}, nil
 }
 
@@ -111,7 +110,7 @@ func RestoreSession(ctx context.Context, data *Output) (*Session, error) {
 	}
 
 	return &Session{
-		Token:       cached.Token,
+		Token:       data.Token,
 		Device:      cached.Device,
 		Username:    cached.Username,
 		Password:    cached.Password,

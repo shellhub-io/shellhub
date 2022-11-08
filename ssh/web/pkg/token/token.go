@@ -1,3 +1,4 @@
+// Package token provides a interface to create and parse session's token.
 package token
 
 import (
@@ -5,15 +6,23 @@ import (
 	"fmt"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
 )
 
+// Token represents a web session's token.
 type Token struct {
-	ID    string
-	Token string
+	// ID is a UUID used to identify the token.
+	// It is used to retrieve the data from the cache.
+	ID string
+	// Data is a JWT token.
+	Data string
 }
 
-func NewToken(identifier string, key *rsa.PrivateKey) (*Token, error) {
+// NewToken creates a new token.
+func NewToken(key *rsa.PrivateKey) (*Token, error) {
+	identifier := uuid.Generate()
+
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"id": identifier,
 	}).SignedString(magickey.GetRerefence())
@@ -21,9 +30,10 @@ func NewToken(identifier string, key *rsa.PrivateKey) (*Token, error) {
 		return nil, err
 	}
 
-	return &Token{ID: identifier, Token: token}, nil
+	return &Token{ID: identifier, Data: token}, nil
 }
 
+// Parse a JWT token to a session's token.
 func Parse(token string) (*Token, error) {
 	claims := new(jwt.MapClaims)
 	if _, err := jwt.ParseWithClaims(token, claims, func(jwtToken *jwt.Token) (interface{}, error) {
@@ -38,5 +48,5 @@ func Parse(token string) (*Token, error) {
 
 	id := (*claims)["id"].(string) //nolint: forcetypeassert
 
-	return &Token{ID: id, Token: token}, nil
+	return &Token{ID: id, Data: token}, nil
 }
