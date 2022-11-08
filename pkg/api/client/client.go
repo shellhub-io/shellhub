@@ -34,11 +34,6 @@ func NewClient(opts ...Opt) Client {
 		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
 	})
 
-	// disable reuse of TCP connection with same host
-	if transport, ok := httpClient.GetClient().Transport.(*http.Transport); ok {
-		transport.MaxIdleConnsPerHost = -1
-	}
-
 	c := &client{
 		host:   apiHost,
 		port:   apiPort,
