@@ -15,6 +15,13 @@ import (
 func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error) {
 	query := []bson.M{
 		{
+			"$match": bson.M{
+				"uid": bson.M{
+					"$ne": nil,
+				},
+			},
+		},
+		{
 			"$sort": bson.M{
 				"started_at": -1,
 			},
