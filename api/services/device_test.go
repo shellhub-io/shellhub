@@ -138,7 +138,7 @@ func TestGetDevice(t *testing.T) {
 			uid: models.UID("_uid"),
 			expected: Expected{
 				nil,
-				Err,
+				NewErrDeviceNotFound(models.UID("_uid"), Err),
 			},
 		},
 		{

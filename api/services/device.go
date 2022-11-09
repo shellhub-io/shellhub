@@ -32,7 +32,12 @@ func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, f
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
-	return s.store.DeviceGet(ctx, uid)
+	device, err := s.store.DeviceGet(ctx, uid)
+	if err != nil {
+		return nil, NewErrDeviceNotFound(uid, err)
+	}
+
+	return device, nil
 }
 
 // DeleteDevice deletes a device from a namespace.
