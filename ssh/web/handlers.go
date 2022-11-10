@@ -41,7 +41,6 @@ func HandlerCreateSession(create functionHandleCreateSession) func(http.Response
 		log.WithFields(log.Fields{
 			"device":   device,
 			"username": username,
-			"token":    token,
 		}).Info("session's token generated successfully")
 
 		req.WriteHeader(http.StatusOK)
