@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
@@ -56,6 +57,8 @@ type config struct {
 	GeoIP bool `envconfig:"geoip" default:"false"`
 	// Session record cleanup worker schedule
 	SessionRecordCleanupSchedule string `envconfig:"session_record_cleanup_schedule" default:"@daily"`
+	// Sentry DSN.
+	SentryDSN string `envconfig:"sentry_dsn" default:""`
 }
 
 func init() {
@@ -69,6 +72,18 @@ func init() {
 
 func startServer(cfg *config) error {
 	ctx := context.Background()
+
+	if cfg.SentryDSN != "" {
+		log.Info("Starting Sentry")
+
+		if err := sentry.Init(sentry.ClientOptions{ //nolint: exhaustruct
+			Dsn: cfg.SentryDSN,
+		}); err != nil {
+			log.WithError(err).Fatal("Failed to initialize Sentry")
+		}
+
+		log.Info("Sentry initialized")
+	}
 
 	log.Info("Starting API server")
 

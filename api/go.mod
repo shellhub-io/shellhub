@@ -6,14 +6,13 @@ require (
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/emirpasic/gods v1.18.1
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/getsentry/sentry-go v0.13.0
 	github.com/go-playground/validator/v10 v10.11.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.4.2
-	github.com/golang/snappy v0.0.3 // indirect
 	github.com/hibiken/asynq v0.23.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo/v4 v4.9.1
-	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/shellhub-io/shellhub v0.5.2
@@ -24,8 +23,7 @@ require (
 	github.com/undefinedlabs/go-mpatch v1.0.6
 	github.com/xakep666/mongo-migrate v0.2.1
 	go.mongodb.org/mongo-driver v1.11.0
-	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
-	google.golang.org/protobuf v1.27.1 // indirect
+	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
 )
 
