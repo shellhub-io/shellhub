@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -87,7 +89,7 @@ var (
 	ErrDeviceNotFound            = errors.New("device not found", ErrLayer, ErrCodeNotFound)
 	ErrDeviceInvalid             = errors.New("device invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceDuplicated          = errors.New("device duplicated", ErrLayer, ErrCodeDuplicated)
-	ErrDeviceLookUpStore         = errors.New("device look up store", ErrLayer, ErrCodeStore)
+	ErrDeviceLookupNotFound      = errors.New("device lookup not found", ErrLayer, ErrCodeNotFound)
 	ErrDeviceLimit               = errors.New("device limit reached", ErrLayer, ErrCodePayment)
 	ErrDeviceStatusInvalid       = errors.New("device status invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceStatusAccepted      = errors.New("device status accepted", ErrLayer, ErrCodeInvalid)
@@ -309,9 +311,9 @@ func NewErrDeviceDuplicated(name string, next error) error {
 	return NewErrDuplicated(ErrDeviceDuplicated, []string{name}, next)
 }
 
-// NewErrDeviceLookUpStore returns an error to be used when the store function that look up to a device fails.
-func NewErrDeviceLookUpStore(namespace, name string, next error) error {
-	return NewErrStore(ErrDeviceLookUpStore, map[string]interface{}{"namespace": namespace, "name": name}, next)
+// NewErrDeviceLookupNotFound returns an error to be used when the device lookup is not found.
+func NewErrDeviceLookupNotFound(namespace, name string, next error) error {
+	return NewErrNotFound(ErrDeviceLookupNotFound, fmt.Sprintf("device %s on namespace %s", name, namespace), next)
 }
 
 // NewErrDeviceLimit returns an error to be used when the device limit is reached.

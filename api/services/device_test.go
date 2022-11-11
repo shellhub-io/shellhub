@@ -451,7 +451,7 @@ func TestLookupDevice(t *testing.T) {
 			},
 			expected: Expected{
 				nil,
-				NewErrDeviceLookUpStore(namespace.Name, device.Name, Err),
+				NewErrDeviceLookupNotFound(namespace.Name, device.Name, Err),
 			},
 		},
 		{
@@ -464,7 +464,7 @@ func TestLookupDevice(t *testing.T) {
 			},
 			expected: Expected{
 				nil,
-				NewErrDeviceLookUpStore(namespace.Name, device.Name, store.ErrNoDocuments),
+				NewErrDeviceLookupNotFound(namespace.Name, device.Name, store.ErrNoDocuments),
 			},
 		},
 		{

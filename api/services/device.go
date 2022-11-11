@@ -112,7 +112,7 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
 	device, err := s.store.DeviceLookup(ctx, namespace, name)
 	if err != nil || device == nil {
-		return nil, NewErrDeviceLookUpStore(namespace, name, err)
+		return nil, NewErrDeviceLookupNotFound(namespace, name, err)
 	}
 
 	return device, nil

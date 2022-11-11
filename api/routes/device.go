@@ -8,7 +8,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -170,9 +169,7 @@ func (h *Handler) LookupDevice(c gateway.Context) error {
 	}
 
 	device, err := h.service.LookupDevice(c.Ctx(), req.Domain, req.Name)
-	if err == services.ErrNotFound {
-		return c.NoContent(http.StatusNotFound)
-	} else if err != nil {
+	if err != nil {
 		return err
 	}
 
