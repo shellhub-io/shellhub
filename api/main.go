@@ -21,7 +21,7 @@ func main() {
 	// Populates configuration based on environment variables prefixed with 'API_'
 	var cfg config
 	if err := envconfig.Process("api", &cfg); err != nil {
-		logrus.WithError(err).Fatal("Failed to load environment variables")
+		logrus.WithError(err).Fatal("Failed to load environment variablesX")
 	}
 
 	ctx := context.WithValue(context.TODO(), "cfg", &cfg) //nolint:revive
