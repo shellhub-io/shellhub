@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"io"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"go.mongodb.org/mongo-driver/bson"
@@ -35,7 +36,7 @@ func AggregateCount(ctx context.Context, coll *mongo.Collection, pipeline []bson
 
 func FromMongoError(err error) error {
 	switch {
-	case err == mongo.ErrNoDocuments:
+	case err == mongo.ErrNoDocuments, err == io.EOF:
 		return store.ErrNoDocuments
 	case err == primitive.ErrInvalidHex:
 		return store.ErrInvalidHex
