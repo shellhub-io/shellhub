@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/cache"
@@ -9,16 +10,6 @@ import (
 )
 
 var instance cache.Cache
-
-func getInstance() (cache.Cache, error) { //nolint: ireturn
-	if instance == nil {
-		instance, err := cache.NewRedisCache("redis://redis:6379")
-
-		return instance, err
-	}
-
-	return instance, nil
-}
 
 // TTL is the time to live of the token in the cache.
 const TTL = time.Second * 30
@@ -42,14 +33,37 @@ type Data struct {
 	Signature   string
 }
 
+// ConnectRedis connects to redis to be used as cache system.
+func ConnectRedis(uri string) error {
+	if instance == nil {
+		var err error
+		instance, err = cache.NewRedisCache(uri)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	return nil
+}
+
+func getConnection() (cache.Cache, error) { //nolint: ireturn
+	if instance == nil {
+		return nil, errors.New("cache was not connected")
+	}
+
+	return instance, nil
+}
+
 // Save saves a data set for TTL time using token as identifier.
 func Save(ctx context.Context, token *token.Token, data *Data) (*Token, error) {
-	cache, err := getInstance() //nolint: contextcheck
+	connection, err := getConnection()
 	if err != nil {
 		return nil, err
 	}
 
-	if err := cache.Set(ctx, token.ID, data, TTL); err != nil {
+	if err := connection.Set(ctx, token.ID, data, TTL); err != nil {
 		return nil, err
 	}
 
@@ -62,7 +76,7 @@ func Save(ctx context.Context, token *token.Token, data *Data) (*Token, error) {
 
 // Restore restores a data set using token as identifier.
 func Restore(ctx context.Context, token *token.Token) (*Token, error) {
-	cache, err := getInstance() //nolint: contextcheck
+	connection, err := getConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +89,7 @@ func Restore(ctx context.Context, token *token.Token) (*Token, error) {
 		Signature   string
 	}
 
-	if err := cache.Get(ctx, token.ID, &value); err != nil {
+	if err := connection.Get(ctx, token.ID, &value); err != nil {
 		return nil, err
 	}
 
