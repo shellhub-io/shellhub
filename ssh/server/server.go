@@ -19,6 +19,7 @@ import (
 type Options struct {
 	LocalForwarding string        `envconfig:"local_forwarding"`
 	ConnectTimeout  time.Duration `envconfig:"connect_timeout" default:"30s"`
+	RedisURI        string        `envconfig:"redis_uri" default:"redis://redis:6379"`
 }
 
 type Server struct {

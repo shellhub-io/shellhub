@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/server"
 	"github.com/shellhub-io/shellhub/ssh/server/handler"
 	"github.com/shellhub-io/shellhub/ssh/web"
+	"github.com/shellhub-io/shellhub/ssh/web/pkg/cache"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,6 +26,10 @@ func main() {
 	var opts server.Options
 	if err := envconfig.Process("ssh", &opts); err != nil {
 		log.WithError(err).Fatal("Failed to load environment variables")
+	}
+
+	if err := cache.ConnectRedis(opts.RedisURI); err != nil {
+		log.WithError(err).Fatal("Failed to connect to redis")
 	}
 
 	tunnel := sshTunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
