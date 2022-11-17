@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	routes "github.com/shellhub-io/shellhub/api/routes/errors"
 	"github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 )
 
@@ -21,16 +22,20 @@ func NewErrors() func(error, echo.Context) {
 		if err, ok := e.(errors.Error); ok {
 			switch err.Layer {
 			case guard.ErrLayer:
-				ctx.NoContent(http.StatusForbidden) // nolint:errcheck
+				ctx.NoContent(http.StatusForbidden) //nolint:errcheck
 			case routes.ErrLayer:
-				ctx.NoContent(converter.FromErrRouteToHTTPStatus(err.Code)) // nolint:errcheck
+				ctx.NoContent(converter.FromErrRouteToHTTPStatus(err.Code)) //nolint:errcheck
 			case services.ErrLayer:
-				ctx.NoContent(converter.FromErrServiceToHTTPStatus(err.Code)) // nolint:errcheck
+				if last, ok := errors.GetLastError(err).(errors.Error); !ok || last.Layer != store.ErrLayer {
+					ctx.NoContent(http.StatusInternalServerError) //nolint:errcheck
+				} else {
+					ctx.NoContent(converter.FromErrServiceToHTTPStatus(err.Code)) //nolint:errcheck
+				}
 			default:
-				ctx.NoContent(http.StatusInternalServerError) // nolint:errcheck
+				ctx.NoContent(http.StatusInternalServerError) //nolint:errcheck
 			}
 		} else {
-			ctx.NoContent(http.StatusInternalServerError) // nolint:errcheck
+			ctx.NoContent(http.StatusInternalServerError) //nolint:errcheck
 		}
 	}
 }
