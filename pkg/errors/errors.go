@@ -103,3 +103,21 @@ func Wrap(err error, next error) error {
 		Next:    err,
 	}
 }
+
+// GetLastError returns the last error in the error's chain. If there is no next error, returns nil.
+func GetLastError(err error) error {
+	for {
+		if err == nil {
+			break
+		}
+
+		next, ok := err.(Error)
+		if !ok {
+			break
+		}
+
+		err = next.Next
+	}
+
+	return err
+}
