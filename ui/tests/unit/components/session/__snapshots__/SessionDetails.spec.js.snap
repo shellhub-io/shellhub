@@ -12,7 +12,7 @@ exports[`SessionDetails Session recorded is false and device is offline when use
   <v-card-stub loaderheight="4" tag="div" class="mt-2">
     <v-toolbar-stub color="transparent" tag="header" extensionheight="48" flat="true" src="">
       <v-toolbar-title-stub tag="div">
-        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active 2 years ago</span></v-tooltip-stub>
+        <v-tooltip-stub opendelay="0" closedelay="0" bottom="true" openonclick="true" openonhover="true" openonfocus="true" contentclass="" maxwidth="auto" nudgebottom="0" nudgeleft="0" nudgeright="0" nudgetop="0" nudgewidth="0" tag="span"> <span>active 3 years ago</span></v-tooltip-stub>
 
       </v-toolbar-title-stub>
       <v-spacer-stub tag="div"></v-spacer-stub>
