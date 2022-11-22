@@ -248,7 +248,7 @@ func (s *service) NamespaceAddMember(username, namespace, role string) (*models.
 func (s *service) NamespaceRemoveMember(username, namespace string) (*models.Namespace, error) {
 	ctx := context.Background()
 
-	if !validator.ValidateFieldUsername(username) {
+	if _, err := validator.ValidateVar(username, "username"); err != nil {
 		return nil, ErrInvalidFormat
 	}
 
