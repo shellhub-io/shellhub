@@ -9,7 +9,7 @@ import (
 type UserData struct {
 	Name     string `json:"name" validate:"required,min=1"`
 	Email    string `json:"email" bson:",omitempty" validate:"required,email"`
-	Username string `json:"username" bson:",omitempty" validate:"required,min=3,max=30,alphanum,ascii"`
+	Username string `json:"username" bson:",omitempty" validate:"required,username"`
 }
 
 type UserPassword struct {

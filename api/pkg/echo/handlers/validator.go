@@ -19,6 +19,10 @@ func NewValidator() *Validator {
 		return err == nil
 	})
 
+	_ = validate.RegisterValidation("username", func(fl validator.FieldLevel) bool {
+		return regexp.MustCompile(`^([a-z0-9-_.@]){3,30}$`).MatchString(fl.Field().String())
+	})
+
 	return &Validator{validator: validate}
 }
 
