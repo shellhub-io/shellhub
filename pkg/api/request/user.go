@@ -9,7 +9,7 @@ type UserParam struct {
 type UserDataUpdate struct {
 	UserParam
 	Name     string `json:"name" validate:"required"`
-	Username string `json:"username" validate:"required"`
+	Username string `json:"username" validate:"required,username"`
 	Email    string `json:"email" validate:"required"`
 }
 
