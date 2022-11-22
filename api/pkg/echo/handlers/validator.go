@@ -1,10 +1,9 @@
 package handlers
 
 import (
-	"regexp"
-
 	"github.com/go-playground/validator/v10"
 	errors "github.com/shellhub-io/shellhub/api/routes/errors"
+	shellhub "github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type Validator struct {
@@ -12,18 +11,7 @@ type Validator struct {
 }
 
 func NewValidator() *Validator {
-	validate := validator.New()
-	_ = validate.RegisterValidation("regexp", func(fl validator.FieldLevel) bool {
-		_, err := regexp.Compile(fl.Field().String())
-
-		return err == nil
-	})
-
-	_ = validate.RegisterValidation("username", func(fl validator.FieldLevel) bool {
-		return regexp.MustCompile(`^([a-z0-9-_.@]){3,30}$`).MatchString(fl.Field().String())
-	})
-
-	return &Validator{validator: validate}
+	return &Validator{validator: shellhub.GetInstance()}
 }
 
 func (v *Validator) Validate(s interface{}) error {

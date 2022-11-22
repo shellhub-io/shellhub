@@ -3,10 +3,32 @@ package validator
 
 import (
 	"reflect"
+	"regexp"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
+
+var instance *validator.Validate
+
+func init() {
+	validate := validator.New()
+	_ = validate.RegisterValidation("regexp", func(fl validator.FieldLevel) bool {
+		_, err := regexp.Compile(fl.Field().String())
+
+		return err == nil
+	})
+
+	_ = validate.RegisterValidation("username", func(fl validator.FieldLevel) bool {
+		return regexp.MustCompile(`^([a-zA-Z0-9-_.@]){3,30}$`).MatchString(fl.Field().String())
+	})
+
+	instance = validate
+}
+
+func GetInstance() *validator.Validate {
+	return instance
+}
 
 // getValidateTag gets the tag string from a structure field.
 func getValidateTag(s interface{}, name string) (string, bool) {
@@ -43,7 +65,7 @@ func GetInvalidFieldsValues(err error) (map[string]interface{}, error) {
 }
 
 func ValidateStructFields(data interface{}) (map[string]interface{}, error) {
-	if err := validator.New().Struct(data); err != nil {
+	if err := instance.Struct(data); err != nil {
 		return GetInvalidFieldsValues(err)
 	}
 
@@ -51,7 +73,7 @@ func ValidateStructFields(data interface{}) (map[string]interface{}, error) {
 }
 
 func ValidateStruct(data interface{}) ([]string, error) {
-	if err := validator.New().Struct(data); err != nil {
+	if err := instance.Struct(data); err != nil {
 		return getInvalidFields(err)
 	}
 
@@ -59,7 +81,7 @@ func ValidateStruct(data interface{}) ([]string, error) {
 }
 
 func ValidateVar(data interface{}, tag string) ([]string, error) {
-	if err := validator.New().Var(data, tag); err != nil {
+	if err := instance.Var(data, tag); err != nil {
 		return getInvalidFields(err)
 	}
 
