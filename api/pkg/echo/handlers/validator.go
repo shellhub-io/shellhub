@@ -1,24 +1,23 @@
 package handlers
 
 import (
-	"github.com/go-playground/validator/v10"
 	errors "github.com/shellhub-io/shellhub/api/routes/errors"
-	shellhub "github.com/shellhub-io/shellhub/pkg/validator"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type Validator struct {
-	validator *validator.Validate
+	validator *validator.Validator
 }
 
 func NewValidator() *Validator {
-	return &Validator{validator: shellhub.GetInstance()}
+	return &Validator{validator: validator.New()}
 }
 
-func (v *Validator) Validate(s interface{}) error {
-	if err := v.validator.Struct(s); err != nil {
-		fields := make(map[string]string)
-		for _, err := range err.(validator.ValidationErrors) {
-			fields[err.Field()] = err.Tag()
+func (v *Validator) Validate(structure interface{}) error {
+	if ok, err := v.validator.Struct(structure); !ok {
+		fields, err := validator.GetInvalidFieldsFromErr(err)
+		if err != nil {
+			return err
 		}
 
 		return errors.NewErrInvalidEntity(fields)

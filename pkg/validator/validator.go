@@ -1,145 +1,57 @@
-// Package validator has functions to help to validate structures and fields for ShellHub.
 package validator
 
 import (
-	"reflect"
-	"regexp"
+	"fmt"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-var instance *validator.Validate
+type Validator struct {
+	Validate *validator.Validate
+}
 
-func init() {
+// New creates a new ShellHub validator.
+//
+// The ShellHub validator contains validations rules to name, username, email, password, etc.
+func New() *Validator {
 	validate := validator.New()
-	_ = validate.RegisterValidation("regexp", func(fl validator.FieldLevel) bool {
-		_, err := regexp.Compile(fl.Field().String())
+	validate.RegisterValidation(TagRegexp, regexpValidator)     //nolint:errcheck
+	validate.RegisterValidation(TagUsername, usernameValidator) //nolint:errcheck
 
-		return err == nil
-	})
-
-	_ = validate.RegisterValidation("username", func(fl validator.FieldLevel) bool {
-		return regexp.MustCompile(`^([a-zA-Z0-9-_.@]){3,30}$`).MatchString(fl.Field().String())
-	})
-
-	instance = validate
+	return &Validator{
+		Validate: validate,
+	}
 }
 
-func GetInstance() *validator.Validate {
-	return instance
+// Var validates a variable using a ShellHub validation's tags.
+func (v *Validator) Var(value, tags string) (bool, error) {
+	if err := v.Validate.Var(value, tags); err != nil {
+		return false, fmt.Errorf("%s is invalid for %s tags: %w", value, tags, err)
+	}
+
+	return true, nil
 }
 
-// getValidateTag gets the tag string from a structure field.
-func getValidateTag(s interface{}, name string) (string, bool) {
-	// Gets the structure's type.
-	p := reflect.TypeOf(s)
-	// Gets the structure's field name.
-	f, ok := p.FieldByName(name)
+// Struct validates a structure using ShellHub validation's tags.
+func (v *Validator) Struct(structure interface{}) (bool, error) {
+	if err := v.Validate.Struct(structure); err != nil {
+		return false, fmt.Errorf("invalid structure: %w", err)
+	}
+
+	return true, nil
+}
+
+// GetInvalidFieldsFromErr gets the invalids frields from a error returned by Struct function.
+func GetInvalidFieldsFromErr(err error) ([]string, error) {
+	errs, ok := err.(validator.ValidationErrors)
 	if !ok {
-		return "", false
+		return nil, ErrInvalidError
 	}
 
-	// Returns the "validate" fields's tag.
-	return f.Tag.Get("validate"), true
-}
-
-// getInvalidFields gets the fields reported as invalids.
-func getInvalidFields(err error) ([]string, error) {
-	f := []string{}
-	for _, err := range err.(validator.ValidationErrors) {
-		f = append(f, err.Field())
+	fields := make([]string, len(errs))
+	for index, err := range errs {
+		fields[index] = err.Field()
 	}
 
-	return f, ErrInvalidFields
-}
-
-// GetInvalidFieldsValues receive a structure validation error and return a map with invalid fields and values.
-func GetInvalidFieldsValues(err error) (map[string]interface{}, error) {
-	d := make(map[string]interface{})
-	for _, e := range err.(validator.ValidationErrors) {
-		d[e.Field()] = e.Value()
-	}
-
-	return d, ErrInvalidFields
-}
-
-func ValidateStructFields(data interface{}) (map[string]interface{}, error) {
-	if err := instance.Struct(data); err != nil {
-		return GetInvalidFieldsValues(err)
-	}
-
-	return nil, nil
-}
-
-func ValidateStruct(data interface{}) ([]string, error) {
-	if err := instance.Struct(data); err != nil {
-		return getInvalidFields(err)
-	}
-
-	return nil, nil
-}
-
-func ValidateVar(data interface{}, tag string) ([]string, error) {
-	if err := instance.Var(data, tag); err != nil {
-		return getInvalidFields(err)
-	}
-
-	return nil, nil
-}
-
-// ValidateField validates if a structure's field is valid.
-func ValidateField(structure interface{}, field, value string) bool {
-	// Getting tag string from a structure's field.
-	t, ok := getValidateTag(structure, field)
-	if !ok {
-		return false
-	}
-
-	// Validating the input data against the tag got.
-	if _, err := ValidateVar(value, t); err != nil {
-		return false
-	}
-
-	return true
-}
-
-// ValidateFieldTag validate the data for the field Tag from structure models.Device.
-func ValidateFieldTag(tag string) bool {
-	const Tag = "required,min=3,max=255,alphanum,ascii,excludes=/@&:"
-	if _, err := ValidateVar(tag, Tag); err != nil {
-		return false
-	}
-
-	return true
-}
-
-// ValidateFieldUsername validate the data for the field Username from structure models.UserData.
-func ValidateFieldUsername(username string) bool {
-	// Field's name that have a tag value.
-	const Field = "Username"
-	// Structure that contains the field above.
-	s := models.UserData{}
-
-	return ValidateField(s, Field, username)
-}
-
-// ValidateFieldEmail validate the data for the field Email from structure models.UserData.
-func ValidateFieldEmail(email string) bool {
-	// Field's name that have a tag value.
-	const Field = "Email"
-	// Structure that contains the field above.
-	s := models.UserData{}
-
-	return ValidateField(s, Field, email)
-}
-
-// ValidateFieldPassword validate the data for the field Password from structure models.UserPassword.
-func ValidateFieldPassword(password string) bool {
-	// Field's name that have a tag value.
-	const Field = "Password"
-	// Structure that contains the field above.
-	s := models.UserPassword{}
-
-	return ValidateField(s, Field, password)
+	return fields, nil
 }

@@ -16,7 +16,7 @@ const (
 )
 
 type ErrDataInvalidEntity struct {
-	Fields map[string]string
+	Fields []string
 }
 
 var (
@@ -30,6 +30,6 @@ func NewErrUnprocessableEntity(err error) error {
 }
 
 // NewErrInvalidEntity returns an error with the invalids fields and why it is invalid after a validation.
-func NewErrInvalidEntity(fields map[string]string) error {
+func NewErrInvalidEntity(fields []string) error {
 	return errors.Wrap(errors.WithData(ErrInvalidEntity, ErrDataInvalidEntity{Fields: fields}), nil)
 }
