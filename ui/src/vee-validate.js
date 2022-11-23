@@ -39,6 +39,11 @@ extend('routeIdentifier', {
   message: 'The name must not contain /, @, &, and :.',
 });
 
+extend('usernameSpecialCharacters', {
+  validate: (value) => /^[a-zA-Z 0-9 _.-@]*$/.test(value),
+  message: 'The username only accepts the special characters _, ., - and @.',
+});
+
 extend('password', (value) => {
   if (value.length < 5 || value.length > 30) {
     return 'Your password should be 5-30 characters long';
@@ -49,6 +54,13 @@ extend('password', (value) => {
 extend('namespace', (value) => {
   if (value.length < 3 || value.length > 30) {
     return 'Your namespace should be 3-30 characters long';
+  }
+  return true;
+});
+
+extend('username', (value) => {
+  if (value.length < 3 || value.length > 30) {
+    return 'Your username should be 3-30 characters long';
   }
   return true;
 });

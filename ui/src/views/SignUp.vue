@@ -76,7 +76,7 @@
               ref="providerUsername"
               name="Priority"
               vid="username"
-              rules="required"
+              rules="required|username|usernameSpecialCharacters"
             >
               <v-text-field
                 v-model="newUser.username"
