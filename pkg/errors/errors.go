@@ -116,6 +116,10 @@ func GetLastError(err error) error {
 			break
 		}
 
+		if next.Next == nil {
+			break
+		}
+
 		err = next.Next
 	}
 
