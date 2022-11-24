@@ -20,6 +20,7 @@ exports[`ValidationAccount Failed to verify account Renders the component 1`] = 
         There was a problem activating your account. Go to the login page, login to receive
         another email with the activation link.
       </v-card-text-stub>
+      <!---->
       <v-card-subtitle-stub tag="div" data-test="isCloud-card" class="d-flex align-center justify-center pa-4 mx-auto pt-2">
         Back to
         <router-link-stub to="[object Object]" tag="a" ariacurrentvalue="page" event="click" class="ml-1">
@@ -49,6 +50,7 @@ exports[`ValidationAccount Success to verify account Renders the component 1`] =
       <v-card-text-stub tag="div" data-test="success-cardText" class="d-flex align-center justify-center">
         Congrats and welcome to ShellHub.
       </v-card-text-stub>
+      <!---->
       <!---->
       <v-card-subtitle-stub tag="div" data-test="isCloud-card" class="d-flex align-center justify-center pa-4 mx-auto pt-2">
         Back to
