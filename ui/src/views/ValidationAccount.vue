@@ -65,6 +65,15 @@
           another email with the activation link.
         </v-card-text>
 
+        <v-card-text
+          v-if="verifyActivationProcessingStatus === 'failed-token'"
+          class="d-flex align-center justify-center"
+          data-test="failed-cardText"
+        >
+          Your account activation token has expired. Go to the login page, login to receive
+          another email with the activation link.
+        </v-card-text>
+
         <v-card-subtitle
           class="d-flex align-center justify-center pa-4 mx-auto pt-2"
           data-test="isCloud-card"
@@ -115,8 +124,22 @@ export default {
 
         this.activationProcessingStatus = 'success';
         setTimeout(() => this.$router.push({ path: '/login' }), 4000);
-      } catch {
-        this.activationProcessingStatus = 'failed';
+      } catch (error) {
+        if (error && error.response) {
+          switch (error.response.status) {
+          case 400:
+            this.activationProcessingStatus = 'failed';
+            break;
+          case 404:
+            this.activationProcessingStatus = 'failed-token';
+            break;
+          default:
+            this.activationProcessingStatus = 'failed';
+            break;
+          }
+        } else {
+          this.activationProcessingStatus = 'failed';
+        }
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.validationAccount);
       }
     },
