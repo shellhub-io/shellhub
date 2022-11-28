@@ -73,12 +73,15 @@ func init() {
 func startServer(cfg *config) error {
 	ctx := context.Background()
 
+	var reporter *sentry.Client
 	if cfg.SentryDSN != "" {
 		log.Info("Starting Sentry")
 
-		if err := sentry.Init(sentry.ClientOptions{ //nolint: exhaustruct
+		var err error
+		reporter, err = sentry.NewClient(sentry.ClientOptions{
 			Dsn: cfg.SentryDSN,
-		}); err != nil {
+		})
+		if err != nil {
 			log.WithError(err).Fatal("Failed to initialize Sentry")
 		}
 
@@ -92,7 +95,7 @@ func startServer(cfg *config) error {
 	e.Use(echoMiddleware.RequestID())
 	e.Binder = handlers.NewBinder()
 	e.Validator = handlers.NewValidator()
-	e.HTTPErrorHandler = handlers.NewErrors()
+	e.HTTPErrorHandler = handlers.NewErrors(reporter)
 
 	log.Trace("Connecting to Redis")
 
