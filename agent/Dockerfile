@@ -64,7 +64,7 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
-FROM alpine:3.16.3 AS production
+FROM alpine:3.17.0 AS production
 
 WORKDIR /app
 COPY --from=builder /agent /app/
