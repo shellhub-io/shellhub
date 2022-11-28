@@ -29,6 +29,11 @@ extend('noDot', {
   message: 'The name must not contain dots',
 });
 
+extend('noWhiteSpaces', {
+  validate: (value) => !/\s/.test(value),
+  message: 'The username cannot contain white spaces',
+});
+
 extend('rfc1123', {
   validate: (value) => isValidHostname(value),
   message: 'You entered an invalid RFC1123 name',
