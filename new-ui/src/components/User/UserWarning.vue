@@ -17,7 +17,7 @@
   />
 
   <BillingWarning
-    v-if="true"
+    v-if="isBillingEnabled"
     data-test="billingWarning-component"
   />
 </template>

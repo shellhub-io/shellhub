@@ -69,14 +69,12 @@
             </div>
 
             <div v-else>
-              <v-chip size="small">
-                No tags
-              </v-chip>
+              <v-chip size="small"> No tags </v-chip>
             </div>
           </td>
 
           <td class="text-center">
-            <v-menu location="bottom" :close-on-content-click="false">
+            <v-menu location="bottom" scrim eager>
               <template v-slot:activator="{ props }">
                 <v-chip v-bind="props" density="comfortable" size="small">
                   <v-icon>mdi-dots-horizontal</v-icon>
@@ -184,7 +182,10 @@ export default defineComponent({
 
         loading.value = false;
       } catch (error) {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.deviceList);
+        store.dispatch(
+          "snackbar/showSnackbarErrorAction",
+          INotificationsError.deviceList
+        );
       }
     };
 

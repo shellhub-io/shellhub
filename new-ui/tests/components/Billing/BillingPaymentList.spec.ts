@@ -3,7 +3,7 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import BillingPaymentList from "../../../src/components/Billing/BillingPaymentList.vue";
 import { createStore } from "vuex";
-import { key } from "../../../src/store";
+import { store, key } from "../../../src/store";
 import routes from "../../../src/router";
 
 const pms = [
@@ -67,7 +67,7 @@ describe("BillingPaymentList", () => {
   beforeEach(() => {
     wrapper = mount(BillingPaymentList, {
       global: {
-        plugins: [routes, vuetify],
+        plugins: [[store, key],routes, vuetify],
       },
       props: { cards: pms },
       shallow: false,

@@ -155,7 +155,7 @@ const store = (devices: any, numberDevices: any, currentRole: any) =>
     },
     getters: {
       "devices/list": (state) => state.devices,
-      "devices/numberDevices": (state) => state.numberDevices,
+      "devices/getNumberDevices": (state) => state.numberDevices,
       "auth/role": (state) => state.currentRole,
     },
     actions: {

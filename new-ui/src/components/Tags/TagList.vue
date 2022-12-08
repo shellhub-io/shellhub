@@ -15,7 +15,7 @@
       <tr v-for="(tag, i) in tags" :key="i">
         <td class="text-center">{{ tag }}</td>
         <td class="text-center">
-          <v-menu location="bottom" :close-on-content-click="false">
+          <v-menu location="bottom" scrim eager>
             <template v-slot:activator="{ props }">
               <v-chip v-bind="props" density="comfortable" size="small">
                 <v-icon>mdi-dots-horizontal</v-icon>

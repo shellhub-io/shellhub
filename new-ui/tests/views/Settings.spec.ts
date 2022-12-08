@@ -43,6 +43,8 @@ describe("Settings", () => {
       "box/setStatus": vi.fn(),
       "sessions/resetPagePerpage": vi.fn(),
       "sessions/refresh": vi.fn(),
+      "stats/get": vi.fn(),
+      "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
 

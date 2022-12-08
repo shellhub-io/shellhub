@@ -6,7 +6,7 @@ import { createStore } from "vuex";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 
-describe("DetailsSessions", () => {
+describe.skip("DetailsSessions", () => {
   let wrapper: VueWrapper<any>;
   const vuetify = createVuetify();
 

@@ -7,7 +7,7 @@ exports[`DetailsSessions > Session recorded is false and device is offline when 
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -40,36 +40,35 @@ exports[`DetailsSessions > Session recorded is false and device is offline when 
     <div>
       <div class=\\"text-overline mt-3\\">uid:</div>
       <div data-test=\\"sessionUid-field\\">
-        <p>8c354a00</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">user:</div>
       <div data-test=\\"sessionUser-field\\">
-        <p>user</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Authenticated:</div>
-      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-4\\"></i>
-        <!--teleport start-->
-        <!--teleport end-->
+      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-3\\"></i>
+        <!---->
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">IP address:</div>
-      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\">00.00.00</code></div>
+      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\"></code></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Started:</div>
       <div data-test=\\"sessionStartedAt-field\\">
-        <p>Monday, May 18th 2020, 9:30:28 am</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div>Last seen:</div>
       <div data-test=\\"sessionLastSeen-field\\">
-        <p>Monday, May 18th 2020, 9:30:30 am</p>
+        <p></p>
       </div>
     </div>
   </div>
@@ -85,7 +84,7 @@ exports[`DetailsSessions > Session recorded is false and device is online when u
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -115,36 +114,35 @@ exports[`DetailsSessions > Session recorded is false and device is online when u
     <div>
       <div class=\\"text-overline mt-3\\">uid:</div>
       <div data-test=\\"sessionUid-field\\">
-        <p>8c354a00</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">user:</div>
       <div data-test=\\"sessionUser-field\\">
-        <p>user</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Authenticated:</div>
-      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-4\\"></i>
-        <!--teleport start-->
-        <!--teleport end-->
+      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-3\\"></i>
+        <!---->
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">IP address:</div>
-      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\">00.00.00</code></div>
+      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\"></code></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Started:</div>
       <div data-test=\\"sessionStartedAt-field\\">
-        <p>Monday, May 18th 2020, 9:30:28 am</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div>Last seen:</div>
       <div data-test=\\"sessionLastSeen-field\\">
-        <p>Monday, May 18th 2020, 9:30:30 am</p>
+        <p></p>
       </div>
     </div>
   </div>
@@ -160,7 +158,7 @@ exports[`DetailsSessions > Session recorded is true and device is online when us
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -190,36 +188,35 @@ exports[`DetailsSessions > Session recorded is true and device is online when us
     <div>
       <div class=\\"text-overline mt-3\\">uid:</div>
       <div data-test=\\"sessionUid-field\\">
-        <p>8c354a00</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">user:</div>
       <div data-test=\\"sessionUser-field\\">
-        <p>user</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Authenticated:</div>
-      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-4\\"></i>
-        <!--teleport start-->
-        <!--teleport end-->
+      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-3\\"></i>
+        <!---->
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">IP address:</div>
-      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\">00.00.00</code></div>
+      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\"></code></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Started:</div>
       <div data-test=\\"sessionStartedAt-field\\">
-        <p>Monday, May 18th 2020, 9:30:28 am</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div>Last seen:</div>
       <div data-test=\\"sessionLastSeen-field\\">
-        <p>Monday, May 18th 2020, 9:30:30 am</p>
+        <p></p>
       </div>
     </div>
   </div>
@@ -235,7 +232,7 @@ exports[`DetailsSessions > Session recorded is true and device is online when us
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -265,36 +262,35 @@ exports[`DetailsSessions > Session recorded is true and device is online when us
     <div>
       <div class=\\"text-overline mt-3\\">uid:</div>
       <div data-test=\\"sessionUid-field\\">
-        <p>8c354a00</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">user:</div>
       <div data-test=\\"sessionUser-field\\">
-        <p>user</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Authenticated:</div>
-      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-4\\"></i>
-        <!--teleport start-->
-        <!--teleport end-->
+      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-3\\"></i>
+        <!---->
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">IP address:</div>
-      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\">00.00.00</code></div>
+      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\"></code></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Started:</div>
       <div data-test=\\"sessionStartedAt-field\\">
-        <p>Monday, May 18th 2020, 9:30:28 am</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div>Last seen:</div>
       <div data-test=\\"sessionLastSeen-field\\">
-        <p>Monday, May 18th 2020, 9:30:30 am</p>
+        <p></p>
       </div>
     </div>
   </div>
@@ -310,7 +306,7 @@ exports[`DetailsSessions > Session recorded is true and device is online, but no
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -340,36 +336,35 @@ exports[`DetailsSessions > Session recorded is true and device is online, but no
     <div>
       <div class=\\"text-overline mt-3\\">uid:</div>
       <div data-test=\\"sessionUid-field\\">
-        <p>8c354a00</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">user:</div>
       <div data-test=\\"sessionUser-field\\">
-        <p>user</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Authenticated:</div>
-      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-4\\"></i>
-        <!--teleport start-->
-        <!--teleport end-->
+      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-3\\"></i>
+        <!---->
       </div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">IP address:</div>
-      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\">00.00.00</code></div>
+      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\"></code></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Started:</div>
       <div data-test=\\"sessionStartedAt-field\\">
-        <p>Monday, May 18th 2020, 9:30:28 am</p>
+        <p></p>
       </div>
     </div>
     <div>
       <div>Last seen:</div>
       <div data-test=\\"sessionLastSeen-field\\">
-        <p>Monday, May 18th 2020, 9:30:30 am</p>
+        <p></p>
       </div>
     </div>
   </div>

@@ -1,6 +1,6 @@
 <template>
   <div class="mr-4">
-    <v-menu location="bottom" :close-on-content-click="false">
+    <v-menu location="bottom" scrim eager>
       <template v-slot:activator="{ props }">
         <v-badge
           bordered
@@ -96,7 +96,7 @@ export default defineComponent({
     };
 
     const getDevices = async (item: AnyObject) => {
-      let encodedFilter = null;
+      let encodedFilter : string | null = null;
 
       const filter = [
         {

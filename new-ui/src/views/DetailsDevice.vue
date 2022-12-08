@@ -6,17 +6,17 @@
     <v-card-title class="pa-4 d-flex align-center justify-space-between">
       <div class="d-flex align-center">
         <TerminalDialog
-            v-if="device.status === 'accepted'"
-            :enable-connect-button="true"
-            :uid="device.uid"
-            :online="device.online"
-            data-test="terminalDialog-component"
-          />
+          v-if="device.status === 'accepted'"
+          :enable-connect-button="true"
+          :uid="device.uid"
+          :online="device.online"
+          data-test="terminalDialog-component"
+        />
         <span class="ml-2">{{ device.name }}</span>
       </div>
 
       <div>
-        <v-menu location="bottom" :close-on-content-click="false">
+        <v-menu location="bottom" scrim eager>
           <template v-slot:activator="{ props }">
             <v-chip density="comfortable" size="small">
               <v-icon v-bind="props">mdi-dots-horizontal</v-icon>
@@ -37,7 +37,11 @@
               data-test="tagFormUpdate-component"
             />
 
-            <DeviceDelete :uid="device.uid" @update="refreshUsers" data-test="deviceDelete-component"/>
+            <DeviceDelete
+              :uid="device.uid"
+              @update="refreshUsers"
+              data-test="deviceDelete-component"
+            />
           </v-list>
         </v-menu>
       </div>
@@ -107,7 +111,7 @@
       </div>
     </v-card-text>
   </v-card>
-  <v-card class="mt-2 pa-4" v-else>
+  <v-card class="mt-2 pa-4 bg-v-theme-surface" v-else>
     <p class="text-center">Something is wrong, try again !</p>
   </v-card>
 </template>
@@ -115,7 +119,6 @@
 <script lang="ts">
 import { computed, ref, defineComponent, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { IDevice } from "../interfaces/IDevice";
 import { useStore } from "../store";
 import { formatDate } from "..//utils/formateDate";
 import { displayOnlyTenCharacters } from "../utils/string";
@@ -133,12 +136,11 @@ export default defineComponent({
     const store = useStore();
     const route = useRoute();
     const deviceId = computed(() => route.params.id);
-    const device = ref({} as IDevice);
+    const device = computed(() => store.getters["devices/get"]);
 
     onMounted(async () => {
       try {
         await store.dispatch("devices/get", deviceId.value);
-        device.value = store.getters["devices/get"];
       } catch {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
@@ -149,13 +151,12 @@ export default defineComponent({
     const deviceIsEmpty = computed(
       () =>
         store.getters["devices/get"] &&
-        store.getters["devices/get"].lenght === 0
+        Object.keys(store.getters["devices/get"]).length === 0
     );
 
     const refreshUsers = async () => {
       try {
         await store.dispatch("devices/get", deviceId.value);
-        device.value = store.getters["devices/get"];
       } catch {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
@@ -178,6 +179,12 @@ export default defineComponent({
       receiveName,
     };
   },
-  components: { DeviceIcon, TagFormUpdate, DeviceDelete, DeviceRename, TerminalDialog },
+  components: {
+    DeviceIcon,
+    TagFormUpdate,
+    DeviceDelete,
+    DeviceRename,
+    TerminalDialog,
+  },
 });
 </script>

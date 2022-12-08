@@ -87,7 +87,7 @@
               <v-btn 
                 color="primary" 
                 @click="updatePassword"
-                :disabled="currentPasswordError || newPasswordConfirmError"
+                :disabled="currentPasswordError !== '' || newPasswordConfirmError !== ''"
                 > Save </v-btn>
             </div>
           </v-col>

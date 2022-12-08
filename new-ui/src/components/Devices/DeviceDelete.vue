@@ -1,5 +1,5 @@
 <template>
-  <v-list-item @click="showDialog = true">
+  <v-list-item v-bind="$props, $attrs" @click="showDialog = true">
     <div class="d-flex align-center">
       <div class="mr-2" data-test="remove-icon">
         <v-icon  color="white">mdi-delete</v-icon>

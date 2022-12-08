@@ -16,7 +16,7 @@ exports[`Private Key List > Renders the component 1`] = `
         <tr>
           <td class=\\"text-center\\" data-test=\\"privateKey-name\\">key1</td>
           <td class=\\"text-center\\" data-test=\\"privateKey-fingerpint\\">07:55:09:4b:5a:66:d6:d2:fb:a4:19:0a:f6:77:81:de</td>
-          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal bg-v-theme-surface\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\" data-test=\\"privateKey-chip\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
             <!---->
             <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"privateKey-menu-icon\\"></i>
             <!---->
@@ -28,7 +28,7 @@ exports[`Private Key List > Renders the component 1`] = `
         <tr>
           <td class=\\"text-center\\" data-test=\\"privateKey-name\\">key2</td>
           <td class=\\"text-center\\" data-test=\\"privateKey-fingerpint\\">07:55:09:4b:5a:66:d6:d2:fb:a4:19:0a:f6:77:81:de</td>
-          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal bg-v-theme-surface\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\" data-test=\\"privateKey-chip\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
             <!---->
             <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"privateKey-menu-icon\\"></i>
             <!---->

@@ -13,7 +13,11 @@
     "lib": ["es5", "es6", "es7", "esnext", "dom"],
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["vitest/globals", "node"]
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+    },
+    "noImplicitAny": false,
   },
   "typeAcquisition": { "enable": true },
   "include": [

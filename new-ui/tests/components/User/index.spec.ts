@@ -146,16 +146,10 @@ describe("Without devices and billing disabled", () => {
   //////
 
   it("Renders the template with components", () => {
-    expect(wrapper.find('[data-test="deviceChooser-component"]').exists()).toBe(
-      false
-    );
+    expect(wrapper.find('[data-test="deviceChooser-component"]').exists()).toBe(false);
     expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
-    expect(
-      wrapper.find('[data-test="namespaceInstructions-component"]').exists()
-    ).toBe(true);
-    expect(
-      wrapper.find('[data-test="billingWarning-component"]').exists()
-    ).toBe(false);
+    expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billingWarning-component"]').exists()).toBe(false);
   });
   it("Renders the template with data", async () => {
     await wrapper.vm.showScreenWelcome();

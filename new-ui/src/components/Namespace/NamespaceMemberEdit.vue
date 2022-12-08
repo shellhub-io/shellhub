@@ -84,7 +84,7 @@ export default defineComponent({
     },
     show: {
       type: Boolean,
-      required: true,
+      required: false,
     },
     notHasAuthorization: {
       type: Boolean,

@@ -42,7 +42,7 @@
           </td>
 
           <td class="text-center">
-            <v-menu location="bottom">
+            <v-menu location="bottom" scrim eager>
               <template v-slot:activator="{ props }">
                 <v-chip density="comfortable" size="small">
                   <v-icon v-bind="props">mdi-dots-horizontal</v-icon>

@@ -38,7 +38,8 @@
           <td class="text-end">
             <v-menu
               location="bottom"
-              :close-on-content-click="false"
+              scrim
+              eager
               v-if="!isNamespaceOwner(member.role)"
             >
               <template v-slot:activator="{ props }">

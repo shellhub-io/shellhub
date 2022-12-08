@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     @click="showDialog = !showDialog"
-    v-bind="$props"
+    v-bind="$attrs, $props"
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
@@ -149,8 +149,8 @@ export default defineComponent({
     const terminal = ref<any>(null);
     const currentTime = ref(0);
     const totalLength = ref(0);
-    const endTimerDisplay = ref(0);
-    const getTimerNow = ref(0);
+    const endTimerDisplay = ref<string | number>(0);
+    const getTimerNow = ref<string | number>(0);
     const paused = ref(false);
     const previousPause = ref(false);
     const sliderChange = ref(false);

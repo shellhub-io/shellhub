@@ -1,0 +1,3 @@
+src/*.js linguist-generated
+*.js linguist-generated
+src/api/client/* linguist-generated

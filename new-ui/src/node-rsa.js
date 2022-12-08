@@ -17001,7 +17001,7 @@ const createSignerAndUpdate = (privateKey, username) => {
   return signer.sign().toString();
 };
 
-window.global.testRsa = createSignatureOfPrivateKey;
+window.global.createSignatureOfPrivateKey = createSignatureOfPrivateKey;
 window.global.createKeyFingerprint = createKeyFingerprint;
 window.global.convertKeyToFingerprint = convertKeyToFingerprint;
 window.global.createSignerAndUpdate = createSignerAndUpdate;
