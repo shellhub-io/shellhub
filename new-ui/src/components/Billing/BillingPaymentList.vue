@@ -21,7 +21,7 @@
         </td>
         <td>{{ item.expMonth }} / {{ item.expYear }}</td>
         <td>
-          <v-menu location="bottom" :close-on-content-click="false">
+          <v-menu location="bottom" scrim eager>
             <template v-slot:activator="{ props }">
               <v-chip v-bind="props" density="comfortable" size="small">
                 <v-icon>mdi-dots-horizontal</v-icon>
@@ -51,7 +51,10 @@
 </template>
 
 <script lang="ts">
-import { INotificationsError, INotificationsSuccess } from "../../interfaces/INotification";
+import {
+  INotificationsError,
+  INotificationsSuccess,
+} from "../../interfaces/INotification";
 import { defineComponent, computed } from "vue";
 import { useStore } from "../../store";
 import BillingIcon from "./BillingIcon.vue";

@@ -9,7 +9,7 @@ exports[`WelcomeThirdScreen > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated pa-2\\" tile=\\"\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
             <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -29,7 +29,7 @@ exports[`WelcomeThirdScreen > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated pa-2\\" tile=\\"\\" data-test=\\"deviceName-field\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
             <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -51,7 +51,7 @@ exports[`WelcomeThirdScreen > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated pa-2\\" tile=\\"\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
             <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -71,7 +71,7 @@ exports[`WelcomeThirdScreen > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated pa-2\\" tile=\\"\\" data-test=\\"devicePrettyName-field\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
             <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">

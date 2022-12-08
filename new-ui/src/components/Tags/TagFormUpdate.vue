@@ -1,5 +1,5 @@
 <template>
-  <v-list-item @click="showDialog = true">
+  <v-list-item v-bind="$props, $attrs" @click="showDialog = true">
     <div class="d-flex align-center">
       <div class="mr-2">
         <v-icon color="white"> mdi-tag </v-icon>
@@ -29,7 +29,6 @@
           hint="Maximum of 3 tags"
           multiple
           chips
-          append-icon
           variant="outlined"
           data-test="deviceTag-combobox"
           :deletable-chips="true"

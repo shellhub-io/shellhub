@@ -49,7 +49,7 @@ export const createSignatureOfPrivateKey = async (
   username: string
 ) => {
   // @ts-ignore
-  let signature = await window.global.testRsa(privateKeyData, username);
+  let signature = await window.global.createSignatureOfPrivateKey(privateKeyData, username);
   return signature;
 };
 

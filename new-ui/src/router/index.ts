@@ -1,5 +1,21 @@
 import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
 import { envVariables } from "../envVariables";
+import Dashboard from "@/views/Dashboard.vue"
+import Devices from "@/views/Devices.vue";
+import DeviceList from "@/components/Devices/DeviceList.vue";
+import DevicePendingList from "@/components/Devices/DevicePendingList.vue";
+import DeviceRejectedList from "@/components/Devices/DeviceRejectedList.vue";
+import DetailsDevice from "@/views/DetailsDevice.vue";
+import Sessions from "@/views/Sessions.vue";
+import DetailsSessions from "@/views/DetailsSessions.vue";
+import FirewallRules from "@/views/FirewallRules.vue";
+import PublicKeys from "@/views/PublicKeys.vue";
+import Settings from "@/views/Settings.vue";
+import SettingProfile from "@/components/Setting/SettingProfile.vue";
+import SettingNamespace from "@/components/Setting/SettingNamespace.vue";
+import SettingPrivateKeys from "@/components/Setting/SettingPrivateKeys.vue";
+import SettingTags from "@/components/Setting/SettingTags.vue";
+import SettingBilling from "@/components/Setting/SettingBilling.vue";
 
 
 const routes: Array<RouteRecordRaw> = [
@@ -31,12 +47,12 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
     name: "Dashboard",
-    component: () => import("../views/Dashboard.vue"),
+    component: Dashboard,
   },
   {
     path: "/devices",
     name: "devices",
-    component: () => import("../views/Devices.vue"),
+    component: Devices,
     redirect: {
       name: "listDevices",
     },
@@ -44,49 +60,49 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: "",
         name: "listDevices",
-        component: () => import("../components/Devices/DeviceList.vue"),
+        component: DeviceList,
       },
       {
         path: "pending",
         name: "pendingDevices",
-        component: () => import("../components/Devices/DevicePendingList.vue"),
+        component: DevicePendingList,
       },
       {
         path: "rejected",
         name: "rejectedDevices",
-        component: () => import("../components/Devices/DeviceRejectedList.vue"),
+        component: DeviceRejectedList,
       },
     ],
   },
   {
     path: "/device/:id",
     name: "detailsDevice",
-    component: () => import("../views/DetailsDevice.vue"),
+    component: DetailsDevice,
   },
   {
     path: "/sessions",
     name: "Sessions",
-    component: () => import("../views/Sessions.vue"),
+    component: Sessions,
   },
   {
     path: "/sessions/:id",
     name: "detailsSession",
-    component: () => import("../views/DetailsSessions.vue"),
+    component: DetailsSessions,
   },
   {
     path: "/firewall/rules",
     name: "firewalls",
-    component: () => import("../views/FirewallRules.vue"),
+    component: FirewallRules,
   },
   {
     path: "/sshkeys/public-keys",
     name: "publicKeys",
-    component: () => import("../views/PublicKeys.vue"),
+    component: PublicKeys,
   },
   {
     path: "/settings",
     name: "settings",
-    component: () => import("../views/Settings.vue"),
+    component: Settings,
     redirect: {
       name: "profileSettings",
     },
@@ -94,22 +110,22 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: "profile",
         name: "profileSettings",
-        component: () => import("../components/Setting/SettingProfile.vue"),
+        component: SettingProfile,
       },
       {
         path: "namespace-manager",
         name: "namespaceSettings",
-        component: () => import("../components/Setting/SettingNamespace.vue"),
+        component: SettingNamespace,
       },
       {
         path: "private-keys",
         name: "privateKeysSettings",
-        component: () => import("../components/Setting/SettingPrivateKeys.vue"),
+        component: SettingPrivateKeys,
       },
       {
         path: "tags",
         name: "tagsSettings",
-        component: () => import("../components/Setting/SettingTags.vue"),
+        component: SettingTags,
       },
       {
         path: "billing",
@@ -122,7 +138,7 @@ const routes: Array<RouteRecordRaw> = [
             next("/invalid");
           }
         },
-        component: () => import("../components/Setting/SettingBilling.vue"),
+        component: SettingBilling,
       },
     ],
   },

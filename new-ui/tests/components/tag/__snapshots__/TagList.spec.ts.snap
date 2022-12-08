@@ -34,8 +34,7 @@ exports[`TagList > List data when user has operator role > Renders the component
             <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
             <!---->
             <!----></span>
-            <!--teleport start-->
-            <!--teleport end-->
+            <!---->
           </td>
         </tr>
         <tr>
@@ -47,8 +46,7 @@ exports[`TagList > List data when user has operator role > Renders the component
             <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
             <!---->
             <!----></span>
-            <!--teleport start-->
-            <!--teleport end-->
+            <!---->
           </td>
         </tr>
       </tbody>
@@ -92,8 +90,7 @@ exports[`TagList > List data when user has owner role > Renders the component 1`
             <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
             <!---->
             <!----></span>
-            <!--teleport start-->
-            <!--teleport end-->
+            <!---->
           </td>
         </tr>
         <tr>
@@ -105,8 +102,7 @@ exports[`TagList > List data when user has owner role > Renders the component 1`
             <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
             <!---->
             <!----></span>
-            <!--teleport start-->
-            <!--teleport end-->
+            <!---->
           </td>
         </tr>
       </tbody>

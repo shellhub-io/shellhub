@@ -143,8 +143,7 @@ export const auth: Module<AuthState, State> = {
     setShowWelcomeScreen(context, tenantID : string) {
       localStorage.setItem('namespacesWelcome', JSON.stringify(
         Object.assign(
-          // @ts-ignore
-          JSON.parse(localStorage.getItem('namespacesWelcome')) || {},
+          JSON.parse(localStorage.getItem('namespacesWelcome') || "") || {},
           { ...{ [tenantID]: true } },
         ),
       ));

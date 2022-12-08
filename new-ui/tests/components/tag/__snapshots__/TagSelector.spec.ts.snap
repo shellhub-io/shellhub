@@ -8,7 +8,7 @@ exports[`TagSelector > With tags > Renders the component 1`] = `
         <!---->
         <!---->
       </button>
-      <transition-stub name=\\"scale-rotate-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\"><span class=\\"v-badge__badge v-theme--light bg-primary\\" aria-atomic=\\"true\\" aria-label=\\"Badge\\" aria-live=\\"polite\\" role=\\"status\\">0</span></transition-stub>
+      <transition-stub name=\\"scale-rotate-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\"><span class=\\"v-badge__badge v-theme--light bg-primary\\" aria-atomic=\\"true\\" aria-label=\\"Badge\\" aria-live=\\"polite\\" role=\\"status\\" style=\\"\\">0</span></transition-stub>
     </div>
   </div>
   <!--teleport start-->
@@ -24,7 +24,7 @@ exports[`TagSelector > Without tags > Renders the component 1`] = `
         <!---->
         <!---->
       </button>
-      <transition-stub name=\\"scale-rotate-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\"><span class=\\"v-badge__badge v-theme--light bg-primary\\" aria-atomic=\\"true\\" aria-label=\\"Badge\\" aria-live=\\"polite\\" role=\\"status\\">0</span></transition-stub>
+      <transition-stub name=\\"scale-rotate-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\"><span class=\\"v-badge__badge v-theme--light bg-primary\\" aria-atomic=\\"true\\" aria-label=\\"Badge\\" aria-live=\\"polite\\" role=\\"status\\" style=\\"\\">0</span></transition-stub>
     </div>
   </div>
   <!--teleport start-->

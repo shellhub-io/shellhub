@@ -13,13 +13,29 @@
     </thead>
     <tbody v-if="getListPrivateKeys.length">
       <tr v-for="(privateKey, i) in getListPrivateKeys" :key="i">
-        <td class="text-center" data-test="privateKey-name">{{ privateKey.name }}</td>
-        <td class="text-center" data-test="privateKey-fingerpint">{{ convertToFingerprint(privateKey.data) }}</td>
+        <td class="text-center" data-test="privateKey-name">
+          {{ privateKey.name }}
+        </td>
+        <td class="text-center" data-test="privateKey-fingerpint">
+          {{ convertToFingerprint(privateKey.data) }}
+        </td>
         <td class="text-center">
-          <v-menu location="bottom" :close-on-content-click="false">
+          <v-menu
+            location="bottom"
+            scrim
+            eager
+          >
             <template v-slot:activator="{ props }">
-              <v-chip v-bind="props" density="comfortable" size="small">
-                <v-icon data-test="privateKey-menu-icon">mdi-dots-horizontal</v-icon>
+              <v-chip 
+                v-bind="props"
+                class="bg-v-theme-surface"
+                data-test="privateKey-chip"
+                density="comfortable"
+                size="small"
+              >
+                <v-icon data-test="privateKey-menu-icon"
+                  >mdi-dots-horizontal</v-icon
+                >
               </v-chip>
             </template>
             <v-list class="bg-v-theme-surface" lines="two" density="compact">
@@ -28,7 +44,6 @@
                 @update="getPrivateKeys"
               />
 
-              <!-- Close v-menu on update -->
               <PrivateKeyDelete
                 :fingerprint="privateKey.data"
                 @update="getPrivateKeys"
@@ -45,7 +60,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref } from "vue";
+import { computed, defineComponent, onMounted } from "vue";
 import { useStore } from "../../store";
 import { convertToFingerprint } from "../../utils/validate";
 import PrivateKeyDelete from "./PrivateKeyDelete.vue";

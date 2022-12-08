@@ -4,7 +4,7 @@ exports[`BoxMessage Render > Process data in methods PublicKey 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -68,7 +68,7 @@ exports[`BoxMessage Render > Renders the component 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">

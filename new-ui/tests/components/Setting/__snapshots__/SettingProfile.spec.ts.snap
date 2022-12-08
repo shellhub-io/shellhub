@@ -24,7 +24,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -67,7 +67,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -110,7 +110,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -170,7 +170,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -215,7 +215,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -260,7 +260,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">

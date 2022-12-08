@@ -15,7 +15,7 @@ exports[`SignUp > Renders the component 1`] = `
             <div class=\\"v-card v-theme--dark v-card--density-default rounded-lg v-card--variant-elevated pa-6 bg-v-theme-surface\\">
               <!---->
               <div class=\\"v-card__loader\\">
-                <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -30,7 +30,7 @@ exports[`SignUp > Renders the component 1`] = `
               <!---->
               <!---->
               <div class=\\"v-card-title d-flex justify-center align-center mt-4\\">
-                <div class=\\"v-responsive v-img v-img--booting\\" style=\\"max-width: 220px;\\" aria-label=\\"logo do ShellHub, uma nuvem de com a escrita ShellHub Admin ao lado\\" role=\\"img\\">
+                <div class=\\"v-responsive v-img v-img--booting\\" style=\\"max-width: 220px;\\" aria-label=\\"ShellHub logo, a cloud with a shell in your base write ShellHub in the right side\\" role=\\"img\\">
                   <div class=\\"v-responsive__sizer\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"\\" style=\\"display: none;\\"></transition-stub>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -54,7 +54,7 @@ exports[`SignUp > Renders the component 1`] = `
                         <div class=\\"v-field v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
-                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                               <!---->
                               <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -99,7 +99,7 @@ exports[`SignUp > Renders the component 1`] = `
                         <div class=\\"v-field v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
-                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                               <!---->
                               <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -144,7 +144,7 @@ exports[`SignUp > Renders the component 1`] = `
                         <div class=\\"v-field v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
-                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                               <!---->
                               <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -189,7 +189,7 @@ exports[`SignUp > Renders the component 1`] = `
                         <div class=\\"v-field v-field--appended v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
-                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                               <!---->
                               <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -216,6 +216,53 @@ exports[`SignUp > Renders the component 1`] = `
                           <div class=\\"v-field__outline\\">
                             <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-6\\">
                               <!---->Password
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <!---->
+                      <div class=\\"v-input__details\\">
+                        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+                          <!---->
+                        </transition-group-stub>
+                        <!---->
+                      </div>
+                    </div>
+                    <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--flush-details\\" data-test=\\"password-confirm-text\\">
+                      <div class=\\"v-input__prepend\\">
+                        <!----><i class=\\"mdi-lock mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+                      </div>
+                      <div class=\\"v-input__control\\">
+                        <div class=\\"v-field v-field--appended v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
+                          <div class=\\"v-field__overlay\\"></div>
+                          <div class=\\"v-field__loader\\">
+                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                              <!---->
+                              <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
+                              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                                <div class=\\"v-progress-linear__indeterminate\\">
+                                  <div class=\\"v-progress-linear__indeterminate long bg-primary\\"></div>
+                                  <div class=\\"v-progress-linear__indeterminate short bg-primary\\"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                            <!----><label class=\\"v-label v-field-label\\" for=\\"input-8\\">
+                              <!---->Confirm Password
+                            </label>
+                            <!----><input size=\\"1\\" type=\\"password\\" id=\\"input-8\\" required=\\"\\" class=\\"v-field__input\\">
+                            <!---->
+                          </div>
+                          <!---->
+                          <div class=\\"v-field__append-inner\\">
+                            <!----><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--dark v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"Confirm Password appended action\\"></i>
+                          </div>
+                          <div class=\\"v-field__outline\\">
+                            <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-8\\">
+                              <!---->Confirm Password
                             </label>
                           </div>
                         </div>

@@ -2,100 +2,12 @@
 
 exports[`List data when user has operator role > Renders the component 1`] = `
 "<div>
-  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"function(...o) {
-    if (e.called = !0, e.callCount++, e.calls.push(o), e.next) {
-      let [s, l] = e.next;
-      if (e.results.push(e.next), e.next = null, s === &quot;ok&quot;)
-        return l;
-      throw l;
-    }
-    let r, n = &quot;ok&quot;;
-    if (e.impl)
-      try {
-        r = e.impl.apply(this, o), n = &quot;ok&quot;;
-      } catch (s) {
-        throw r = s, n = &quot;error&quot;, e.results.push([n, s]), s;
-      }
-    let c = [n, r];
-    if (v(r)) {
-      let s = r.then((l) =&gt; c[1] = l).catch((l) =&gt; {
-        throw c[0] = &quot;error&quot;, c[1] = l, l;
-      });
-      Object.assign(s, r), r = s;
-    }
-    return e.results.push(c), r;
-  }\\" previouspage=\\"function(...o) {
-    if (e.called = !0, e.callCount++, e.calls.push(o), e.next) {
-      let [s, l] = e.next;
-      if (e.results.push(e.next), e.next = null, s === &quot;ok&quot;)
-        return l;
-      throw l;
-    }
-    let r, n = &quot;ok&quot;;
-    if (e.impl)
-      try {
-        r = e.impl.apply(this, o), n = &quot;ok&quot;;
-      } catch (s) {
-        throw r = s, n = &quot;error&quot;, e.results.push([n, s]), s;
-      }
-    let c = [n, r];
-    if (v(r)) {
-      let s = r.then((l) =&gt; c[1] = l).catch((l) =&gt; {
-        throw c[0] = &quot;error&quot;, c[1] = l, l;
-      });
-      Object.assign(s, r), r = s;
-    }
-    return e.results.push(c), r;
-  }\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"firewallRules-list\\"></data-table-stub>
+  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"[Function]\\" previouspage=\\"[Function]\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"firewallRules-list\\"></data-table-stub>
 </div>"
 `;
 
 exports[`List data when user has owner role > Renders the component 1`] = `
 "<div>
-  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"function(...o) {
-    if (e.called = !0, e.callCount++, e.calls.push(o), e.next) {
-      let [s, l] = e.next;
-      if (e.results.push(e.next), e.next = null, s === &quot;ok&quot;)
-        return l;
-      throw l;
-    }
-    let r, n = &quot;ok&quot;;
-    if (e.impl)
-      try {
-        r = e.impl.apply(this, o), n = &quot;ok&quot;;
-      } catch (s) {
-        throw r = s, n = &quot;error&quot;, e.results.push([n, s]), s;
-      }
-    let c = [n, r];
-    if (v(r)) {
-      let s = r.then((l) =&gt; c[1] = l).catch((l) =&gt; {
-        throw c[0] = &quot;error&quot;, c[1] = l, l;
-      });
-      Object.assign(s, r), r = s;
-    }
-    return e.results.push(c), r;
-  }\\" previouspage=\\"function(...o) {
-    if (e.called = !0, e.callCount++, e.calls.push(o), e.next) {
-      let [s, l] = e.next;
-      if (e.results.push(e.next), e.next = null, s === &quot;ok&quot;)
-        return l;
-      throw l;
-    }
-    let r, n = &quot;ok&quot;;
-    if (e.impl)
-      try {
-        r = e.impl.apply(this, o), n = &quot;ok&quot;;
-      } catch (s) {
-        throw r = s, n = &quot;error&quot;, e.results.push([n, s]), s;
-      }
-    let c = [n, r];
-    if (v(r)) {
-      let s = r.then((l) =&gt; c[1] = l).catch((l) =&gt; {
-        throw c[0] = &quot;error&quot;, c[1] = l, l;
-      });
-      Object.assign(s, r), r = s;
-    }
-    return e.results.push(c), r;
-  }\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"firewallRules-list\\"></data-table-stub>
+  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"[Function]\\" previouspage=\\"[Function]\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"firewallRules-list\\"></data-table-stub>
 </div>"
 `;

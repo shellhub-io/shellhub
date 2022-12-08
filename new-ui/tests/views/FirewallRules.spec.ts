@@ -19,6 +19,7 @@ describe("FirewallRules", () => {
     "firewallRules/refresh": vi.fn(),
     "snackbar/showSnackbarErrorLoading": vi.fn(),
     "tags/fetch": vi.fn(),
+    "firewallRules/fetch": vi.fn(),
   };
 
   const storeWithoutFirewalls = createStore({

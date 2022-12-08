@@ -7,13 +7,14 @@ import inject from "@rollup/plugin-inject";
 import NodeGlobalsPolyfillPlugin from "@esbuild-plugins/node-globals-polyfill";
 import polyfillNode from "rollup-plugin-polyfill-node";
 import { splitVendorChunkPlugin } from "vite";
+import { fileURLToPath, URL } from "url";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
     port: 8080,
     hmr: {
-        clientPort: 80,
+      clientPort: 80,
     },
   },
   plugins: [
@@ -21,35 +22,24 @@ export default defineConfig({
     vue({
       template: {
         compilerOptions: {
-          isCustomElement: (tag) => tag.includes("v-list-item-group"),
+          isCustomElement: (tag) => tag.includes("v-list-item-group") || tag.includes("font-awesome-icon"),
         },
       },
     }),
     vuetify({ autoImport: true }),
-    // @ts-ignore
-    // nodePolyfills(),
     NodeGlobalsPolyfillPlugin({
       process: true,
       buffer: true,
     }),
   ],
-  optimizeDeps: {
-    esbuildOptions: {
-      // Node.js global to browser globalThis
-      define: {
-        global: "globalThis",
-      },
-      // Enable esbuild polyfill plugins
-      plugins: [
-        NodeGlobalsPolyfillPlugin({
-          buffer: true,
-        }),
-      ],
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
+    
   },
-  define: {
+  define: { 
     "process.env": process.env,
-    global: {},
   },
   test: {
     // environment: "jsdom",
@@ -59,14 +49,17 @@ export default defineConfig({
     deps: {
       inline: ["vuetify"],
     },
+    update: true,
   },
   build: {
     rollupOptions: {
       plugins: [
         // @ts-ignore
-        inject({ Buffer: ["Buffer", "Buffer"], process: "process" }),
-        // @ts-ignore
         polyfillNode(),
+        NodeGlobalsPolyfillPlugin({
+          process: true,
+          buffer: true,
+        }),
       ],
     },
   },

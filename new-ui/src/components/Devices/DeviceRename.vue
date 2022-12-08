@@ -1,5 +1,5 @@
 <template>
-  <v-list-item @click="showDialog = true">
+  <v-list-item v-bind="$props, $attrs" @click="showDialog = true">
     <div class="d-flex align-center">
       <div class="mr-2">
         <v-icon data-test="rename-icon" color="white"> mdi-pencil </v-icon>

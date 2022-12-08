@@ -79,7 +79,7 @@ describe('Devices', () => {
     expect(store.getters['devices/getNumberDevices']).toEqual(0);
     expect(store.getters['devices/getPage']).toEqual(1);
     expect(store.getters['devices/getPerPage']).toEqual(10);
-    expect(store.getters['devices/getFilter']).toEqual(null);
+    expect(store.getters['devices/getFilter']).toEqual("");
     expect(store.getters['devices/getStatus']).toEqual('');
     expect(store.getters['devices/getFirstPending']).toEqual({});
   });

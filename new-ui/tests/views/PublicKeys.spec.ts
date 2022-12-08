@@ -19,6 +19,7 @@ describe("Publickeys", () => {
     'publicKeys/resetPagePerpage': vi.fn(),
     'snackbar/showSnackbarErrorLoading': vi.fn(),
     'tags/fetch': vi.fn(),
+    'publicKeys/fetch': vi.fn(),
   };
 
   const storeWithoutPublickeys = createStore({

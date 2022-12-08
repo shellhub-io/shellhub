@@ -20,7 +20,7 @@
       </div>
 
       <div>
-        <v-menu location="bottom" :close-on-content-click="false">
+        <v-menu location="bottom" scrim eager>
           <template v-slot:activator="{ props }">
             <v-chip v-bind="props" density="comfortable" size="small">
               <v-icon>mdi-dots-horizontal</v-icon>
@@ -194,7 +194,10 @@ export default defineComponent({
         await store.dispatch("sessions/get", sessionId.value);
         session.value = store.getters["sessions/get"];
       } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.sessionDetails);
+        store.dispatch(
+          "snackbar/showSnackbarErrorAction",
+          INotificationsError.sessionDetails
+        );
       }
     };
 
@@ -211,12 +214,9 @@ export default defineComponent({
     };
 
     const hasAuthorizationPlay = () => {
-      const role = store.getters['auth/role'];
-      if (role !== '') {
-        return hasPermission(
-          authorizer.role[role],
-          actions.session["play"],
-        );
+      const role = store.getters["auth/role"];
+      if (role !== "") {
+        return hasPermission(authorizer.role[role], actions.session["play"]);
       }
 
       return false;

@@ -4,7 +4,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -48,7 +48,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -62,7 +62,27 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <!---->
+  <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4 bg-v-theme-surface\\" data-test=\\"dashboard-failed\\">
+    <!---->
+    <div class=\\"v-card__loader\\">
+      <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+        <!---->
+        <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+          <div class=\\"v-progress-linear__indeterminate\\">
+            <div class=\\"v-progress-linear__indeterminate long\\"></div>
+            <div class=\\"v-progress-linear__indeterminate short\\"></div>
+          </div>
+        </transition-stub>
+        <!---->
+      </div>
+    </div>
+    <!---->
+    <!---->
+    <p class=\\"text-center\\">Something is wrong, try again !</p>
+    <!---->
+    <!----><span class=\\"v-card__underlay\\"></span>
+  </div>
   <!---->
   <!----><span class=\\"v-card__underlay\\"></span>
 </div>"
@@ -72,7 +92,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -120,7 +140,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -134,7 +154,27 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <!---->
+  <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4 bg-v-theme-surface\\" data-test=\\"dashboard-failed\\">
+    <!---->
+    <div class=\\"v-card__loader\\">
+      <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+        <!---->
+        <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+          <div class=\\"v-progress-linear__indeterminate\\">
+            <div class=\\"v-progress-linear__indeterminate long\\"></div>
+            <div class=\\"v-progress-linear__indeterminate short\\"></div>
+          </div>
+        </transition-stub>
+        <!---->
+      </div>
+    </div>
+    <!---->
+    <!---->
+    <p class=\\"text-center\\">Something is wrong, try again !</p>
+    <!---->
+    <!----><span class=\\"v-card__underlay\\"></span>
+  </div>
   <!---->
   <!----><span class=\\"v-card__underlay\\"></span>
 </div>"

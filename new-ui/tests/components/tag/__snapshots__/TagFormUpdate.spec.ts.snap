@@ -1,16 +1,16 @@
 // Vitest Snapshot v1
 
 exports[`TagFormUpdate > Dialog closed with add > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\" deviceuid=\\"\\" tagslist=\\"\\"></v-list-item-stub>
 <v-dialog-stub minwidth=\\"280\\" maxwidth=\\"450\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`TagFormUpdate > Dialog closed with edit > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\" deviceuid=\\"xxxxxxx\\" tagslist=\\"ShellHub\\"></v-list-item-stub>
 <v-dialog-stub minwidth=\\"280\\" maxwidth=\\"450\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`TagFormUpdate > Dialog opened > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\" deviceuid=\\"xxxxxxx\\" tagslist=\\"ShellHub\\"></v-list-item-stub>
 <v-dialog-stub minwidth=\\"280\\" maxwidth=\\"450\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"true\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
