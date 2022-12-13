@@ -1,3 +1,4 @@
+import { envVariables } from './../../src/envVariables';
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -16,9 +17,12 @@ describe("SignUp", () => {
     email: "",
     password: "",
     confirmPassword: "",
+    emailMarketing: false,
   };
 
   const statusDarkMode = true;
+
+  const privacyPolicyError = "You need to accept the Privacy Policy to create an account.";
 
   const store = createStore({
     state: {
@@ -63,7 +67,10 @@ describe("SignUp", () => {
     expect(wrapper.vm.username).toEqual(newUser.username);
     expect(wrapper.vm.email).toEqual(newUser.email);
     expect(wrapper.vm.password).toEqual(newUser.password);
-    // expect(wrapper.vm.confirmPassword).toEqual(newUser.confirmPassword);
+    expect(wrapper.vm.passwordConfirm).toEqual(newUser.confirmPassword);
+    expect(wrapper.vm.acceptMarketing).toEqual(newUser.emailMarketing);
+    expect(wrapper.vm.acceptPrivacyPolicy).toEqual(false);
+    expect(wrapper.vm.privacyPolicyError).toEqual(false);
     expect(wrapper.vm.overlay).toEqual(false);
     expect(wrapper.vm.delay).toEqual(500);
   });
@@ -104,12 +111,20 @@ describe("SignUp", () => {
     );
   });
 
+  it("Should render the privacy policy error message when user not check the checkbox", async () => {
+    envVariables.isCloud = true;
+    wrapper.vm.privacyPolicyError = true;
+    await flushPromises();
+    expect(wrapper.find('[data-test="privacy-policy-error"]').exists()).toBeTruthy();
+    expect(wrapper.find('[data-test="privacy-policy-error"]').text()).toBe(privacyPolicyError);
+  });
+
   it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="name-text"]').exists()).toBeTruthy();
     expect(wrapper.find('[data-test="username-text"]').exists()).toBeTruthy();
     expect(wrapper.find('[data-test="email-text"]').exists()).toBeTruthy();
     expect(wrapper.find('[data-test="password-text"]').exists()).toBeTruthy();
-    // todo expect(wrapper.find('[data-test="confirmPassword-text"]').exists()).toBeTruthy();
+    expect(wrapper.find('[data-test="password-confirm-text"]').exists()).toBeTruthy();
     expect(wrapper.find('[data-test="login-btn"]').exists()).toBeTruthy();
   });
 });
