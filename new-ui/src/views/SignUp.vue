@@ -1,141 +1,177 @@
 <template>
   <v-app>
-    <v-main>
-      <v-container class="full-height d-flex justify-center align-center" fluid>
-        <v-row align="center" justify="center">
-          <v-col cols="12" sm="8" md="4">
-            <div class="text-center">
-              <v-overlay :value="overlay">
-                <v-progress-circular
-                  indeterminate
-                  size="64"
-                  alt="Sign Up loading"
-                />
-              </v-overlay>
-            </div>
-            <v-card
-              v-if="!showMessage"
-              theme="dark"
-              class="pa-6 bg-v-theme-surface"
-              rounded="lg"
-            >
-              <v-card-title class="d-flex justify-center align-center mt-4">
-                <v-img
-                  :src="Logo"
-                  max-width="220"
-                  alt="ShellHub logo, a cloud with a shell in your base write ShellHub in the right side"
-                />
-              </v-card-title>
-              <v-container>
-                <v-card-title class="text-center">Create Account</v-card-title>
-                <form @submit.prevent="createAccount">
-                  <v-container>
-                    <v-text-field
-                      color="primary"
-                      prepend-icon="mdi-account"
-                      v-model="name"
-                      :error-messages="nameError"
-                      required
-                      label="Name"
-                      variant="underlined"
-                      data-test="name-text"
-                    />
-
-                    <v-text-field
-                      color="primary"
-                      prepend-icon="mdi-account"
-                      v-model="username"
-                      :error-messages="usernameError"
-                      required
-                      label="Username"
-                      variant="underlined"
-                      data-test="username-text"
-                    />
-
-                    <v-text-field
-                      color="primary"
-                      prepend-icon="mdi-email"
-                      v-model="email"
-                      :error-messages="emailError"
-                      required
-                      label="Email"
-                      variant="underlined"
-                      data-test="email-text"
-                    />
-
-                    <v-text-field
-                      color="primary"
-                      prepend-icon="mdi-lock"
-                      :append-inner-icon="
-                        showPassword ? 'mdi-eye' : 'mdi-eye-off'
-                      "
-                      v-model="password"
-                      :error-messages="passwordError"
-                      label="Password"
-                      required
-                      variant="underlined"
-                      data-test="password-text"
-                      :type="showPassword ? 'text' : 'password'"
-                      @click:append-inner="showPassword = !showPassword"
-                    />
-
-                    <v-text-field
-                      color="primary"
-                      prepend-icon="mdi-lock"
-                      :append-inner-icon="
-                        showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'
-                      "
-                      v-model="passwordConfirm"
-                      :error-messages="passwordConfirmError"
-                      label="Confirm Password"
-                      required
-                      variant="underlined"
-                      data-test="password-confirm-text"
-                      :type="showConfirmPassword ? 'text' : 'password'"
-                      @click:append-inner="
-                        showConfirmPassword = !showConfirmPassword
-                      "
-                    />
-
-                    <v-card-actions class="justify-center">
-                      <v-btn
-                        type="submit"
-                        data-test="login-btn"
-                        color="primary"
-                        variant="tonal"
-                        block
-                      >
-                        CREATE
-                      </v-btn>
-                    </v-card-actions>
-
-                    <v-card-subtitle
-                      class="d-flex align-center justify-center pa-4 mx-auto"
-                      data-test="isCloud-card"
-                    >
-                      Do you have account ?
-                      <router-link class="ml-1" :to="{ name: 'login' }">
-                        Login
-                      </router-link>
-                    </v-card-subtitle>
-                  </v-container>
-                </form>
-              </v-container>
-            </v-card>
-            <AccountCreated
-              :show="showMessage"
-              :username="username"
-              data-test="accountCreated-component"
+    <v-main class="d-flex justify-center align-center">
+      <v-container class="w-auto" fluid>
+        <div class="text-center">
+          <v-overlay :value="overlay">
+            <v-progress-circular
+              indeterminate
+              size="64"
+              alt="Sign Up loading"
             />
-          </v-col>
-        </v-row>
+          </v-overlay>
+        </div>
+        <v-card
+          v-if="!showMessage"
+          theme="dark"
+          class="pa-6 bg-v-theme-surface"
+          rounded="lg"
+        >
+          <v-card-title class="d-flex justify-center align-center">
+            <v-img
+              :src="Logo"
+              max-width="220"
+              alt="ShellHub logo, a cloud with a shell in your base write ShellHub in the right side"
+            />
+          </v-card-title>
+          <v-container class="pb-0 mb-0">
+            <form @submit.prevent="createAccount">
+              <v-card-title class="text-center">Create Account</v-card-title>
+              <v-container>
+                <v-text-field
+                  color="primary"
+                  prepend-icon="mdi-account"
+                  v-model="name"
+                  :error-messages="nameError"
+                  required
+                  label="Name"
+                  variant="underlined"
+                  data-test="name-text"
+                />
+
+                <v-text-field
+                  color="primary"
+                  prepend-icon="mdi-account"
+                  v-model="username"
+                  :error-messages="usernameError"
+                  required
+                  label="Username"
+                  variant="underlined"
+                  data-test="username-text"
+                />
+
+                <v-text-field
+                  color="primary"
+                  prepend-icon="mdi-email"
+                  v-model="email"
+                  :error-messages="emailError"
+                  required
+                  label="Email"
+                  variant="underlined"
+                  data-test="email-text"
+                />
+
+                <v-text-field
+                  color="primary"
+                  prepend-icon="mdi-lock"
+                  :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  v-model="password"
+                  :error-messages="passwordError"
+                  label="Password"
+                  required
+                  variant="underlined"
+                  data-test="password-text"
+                  :type="showPassword ? 'text' : 'password'"
+                  @click:append-inner="showPassword = !showPassword"
+                />
+
+                <v-text-field
+                  color="primary"
+                  prepend-icon="mdi-lock"
+                  :append-inner-icon="
+                    showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'
+                  "
+                  v-model="passwordConfirm"
+                  :error-messages="passwordConfirmError"
+                  label="Confirm Password"
+                  required
+                  variant="underlined"
+                  data-test="password-confirm-text"
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  @click:append-inner="
+                    showConfirmPassword = !showConfirmPassword
+                  "
+                />
+              </v-container>
+
+              <div v-if="isCloud">
+                <v-checkbox
+                  v-model="acceptPrivacyPolicy"
+                  color="primary"
+                  hide-details
+                  data-test="accept-privacy-policy-checkbox"
+                >
+                  <template #label>
+                    <span class="caption">
+                      I agree to the
+                      <a
+                        href="https://website-git-fork-antonyrafael-feat-privacy-policy-page-shellhub.vercel.app/privacy-policy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >Privacy Policy</a
+                      >
+                    </span>
+                  </template>
+                </v-checkbox>
+                <v-checkbox
+                v-model="acceptMarketing"
+                color="primary"
+                hide-details
+                data-test="accept-news-checkbox"
+                >
+                  <template #label>
+                    <p>
+                      I accept to receive news and updates from ShellHub via
+                      email.
+                    </p>
+                  </template>
+                </v-checkbox>
+              </div>
+              <v-card-subtitle
+                v-if="privacyPolicyError"
+                class="pa-0 pl-2 font-weight-medium text-error"
+                data-test="privacy-policy-error"
+              >
+                You need to accept the Privacy Policy to create an account.
+              </v-card-subtitle>
+
+              <v-card-actions class="justify-center">
+                <v-btn
+                  type="submit"
+                  data-test="login-btn"
+                  color="primary"
+                  variant="tonal"
+                  block
+                >
+                  CREATE
+                </v-btn>
+
+              </v-card-actions>
+
+              <v-card-subtitle
+                class="d-flex align-center justify-center pa-4 mx-auto"
+                data-test="isCloud-card"
+              >
+                Do you have account ?
+                <router-link class="ml-1" :to="{ name: 'login' }">
+                  Login
+                </router-link>
+              </v-card-subtitle>
+            </form>
+          </v-container>
+        </v-card>
+        <AccountCreated
+          :show="showMessage"
+          :username="username"
+          data-test="accountCreated-component"
+        />
       </v-container>
     </v-main>
   </v-app>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from "vue";
+import { computed, defineComponent, ref, watch } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import Logo from "../assets/logo-inverted.png";
@@ -145,6 +181,7 @@ import {
   INotificationsSuccess,
 } from "../interfaces/INotifications";
 import AccountCreated from "../components/Account/AccountCreated.vue";
+import { envVariables } from "@/envVariables";
 
 export default defineComponent({
   setup() {
@@ -152,8 +189,12 @@ export default defineComponent({
     const showPassword = ref(false);
     const showConfirmPassword = ref(false);
     const showMessage = ref(false);
+    const acceptMarketing = ref(false);
+    const acceptPrivacyPolicy = ref(false);
+    const privacyPolicyError = ref(false);
     const delay = ref(500);
     const overlay = ref(false);
+    const isCloud = computed(() => envVariables.isCloud);
 
     const {
       value: name,
@@ -182,7 +223,8 @@ export default defineComponent({
             // @ts-ignore
             return regex.test(value);
           }
-        ).test(
+        )
+        .test(
           "white-spaces",
           "The username cannot contain white spaces.",
           (value) => {
@@ -190,8 +232,7 @@ export default defineComponent({
             // @ts-ignore
             return !regex.test(value);
           }
-        )
-        ,
+        ),
       {
         initialValue: "",
       }
@@ -253,6 +294,12 @@ export default defineComponent({
       }
     });
 
+    watch(acceptPrivacyPolicy, (value) => {
+      if (value) {
+        privacyPolicyError.value = false;
+      }
+    });
+
     const hasErrors = () => {
       if (
         nameError.value ||
@@ -274,12 +321,19 @@ export default defineComponent({
     const createAccount = async () => {
       if (!hasErrors()) {
         try {
+
+          if (isCloud.value && !acceptPrivacyPolicy.value) {
+            privacyPolicyError.value = true;
+            return;
+          }
+
           await store.dispatch("users/signUp", {
             name: name.value,
             email: email.value,
             username: username.value,
             password: password.value,
             confirmPassword: passwordConfirm.value,
+            emailMarketing: acceptMarketing.value,
           });
           overlay.value = !overlay.value;
           showMessage.value = !showMessage.value;
@@ -336,6 +390,10 @@ export default defineComponent({
       showMessage,
       delay,
       overlay,
+      isCloud,
+      acceptMarketing,
+      acceptPrivacyPolicy,
+      privacyPolicyError,
     };
   },
   components: { AccountCreated },

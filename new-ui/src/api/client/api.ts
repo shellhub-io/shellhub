@@ -1525,6 +1525,12 @@ export interface User {
      * @memberof User
      */
     'password': string;
+    /**
+     * User\'s email marketing option.
+     * @type {boolean}
+     * @memberof User
+     */
+    'email_marketing'?: boolean;
 }
 /**
  * 

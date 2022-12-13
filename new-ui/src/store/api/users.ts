@@ -6,6 +6,7 @@ export const signUp = async (data : any) => usersApi.registerUser({
   email: data.email,
   username: data.username,
   password: data.password,
+  email_marketing: data.emailMarketing || false,
 });
 
 export const postResendEmail = async (username : any) => usersApi.resendEmail({ username });
