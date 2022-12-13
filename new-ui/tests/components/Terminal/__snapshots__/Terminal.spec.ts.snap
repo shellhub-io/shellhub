@@ -1,8 +1,8 @@
 // Vitest Snapshot v1
 
 exports[`TerminalDialog > Button > Renders the component 1`] = `
-"<button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" data-test=\\"connect-btn\\" data-v-abcb598c=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Connect </span>
+"<button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Offline</span>
   <!---->
   <!---->
 </button>
@@ -11,8 +11,8 @@ exports[`TerminalDialog > Button > Renders the component 1`] = `
 `;
 
 exports[`TerminalDialog > Dialog opened > Renders the component 1`] = `
-"<button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" data-test=\\"connect-btn\\" data-v-abcb598c=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Connect </span>
+"<button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Offline</span>
   <!---->
   <!---->
 </button>
@@ -21,8 +21,8 @@ exports[`TerminalDialog > Dialog opened > Renders the component 1`] = `
 `;
 
 exports[`TerminalDialog > Icon > Renders the component 1`] = `
-"<span data-v-abcb598c=\\"\\"><i class=\\"mdi-console mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" left=\\"\\" data-test=\\"console-icon\\" data-v-abcb598c=\\"\\"></i></span>
-<span data-v-abcb598c=\\"\\"><div class=\\"v-list-item-title ml-2\\" data-test=\\"console-item\\" data-v-abcb598c=\\"\\"> Console </div></span>
+"<span><i class=\\"mdi-console mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" left=\\"\\" data-test=\\"console-icon\\"></i></span>
+<span><div class=\\"v-list-item-title ml-2\\" data-test=\\"console-item\\"> Console </div></span>
 <!--teleport start-->
 <!--teleport end-->"
 `;

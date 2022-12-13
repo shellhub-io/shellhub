@@ -7,7 +7,7 @@ exports[`NamespaceMemberDelete > Dialog closed > Renders the component 1`] = `
     <!---->
     <!---->
     <div class=\\"d-flex align-center\\">
-      <div data-test=\\"namespace-delete-icon\\" class=\\"mr-2\\"><i class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default text-white\\" aria-hidden=\\"true\\"></i></div>
+      <div data-test=\\"namespace-delete-icon\\" class=\\"mr-2\\"><i class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
       <div class=\\"v-list-item-title\\" data-test=\\"namespace-delete-title\\"> Remove </div>
     </div>
   </div>
@@ -24,7 +24,7 @@ exports[`NamespaceMemberDelete > Dialog opened > Renders the component 1`] = `
     <!---->
     <!---->
     <div class=\\"d-flex align-center\\">
-      <div data-test=\\"namespace-delete-icon\\" class=\\"mr-2\\"><i class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default text-white\\" aria-hidden=\\"true\\"></i></div>
+      <div data-test=\\"namespace-delete-icon\\" class=\\"mr-2\\"><i class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
       <div class=\\"v-list-item-title\\" data-test=\\"namespace-delete-title\\"> Remove </div>
     </div>
   </div>

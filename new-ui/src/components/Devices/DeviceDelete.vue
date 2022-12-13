@@ -2,7 +2,7 @@
   <v-list-item v-bind="$props, $attrs" @click="showDialog = true">
     <div class="d-flex align-center">
       <div class="mr-2" data-test="remove-icon">
-        <v-icon  color="white">mdi-delete</v-icon>
+        <v-icon>mdi-delete</v-icon>
       </div>
 
       <v-list-item-title data-test="remove-title"> Remove </v-list-item-title>

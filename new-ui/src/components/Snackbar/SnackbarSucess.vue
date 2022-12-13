@@ -4,8 +4,6 @@
     location="top"
     :timeout="4000"
     color="#4caf50"
-    variant="tonal"
-    text
     transition="slide-x-transition"
   >
     <p class="w-100 text-center">{{ message }}</p>

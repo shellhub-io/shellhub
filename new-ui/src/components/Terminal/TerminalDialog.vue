@@ -8,7 +8,7 @@
       data-test="connect-btn"
       @click="open()"
     >
-      Connect
+      {{ online ? "Connect" : "Offline" }}
     </v-btn>
   </template>
   <template v-else>
@@ -129,7 +129,7 @@
       </div>
     </v-card>
     <v-card-item class="ma-0 pa-0 w-100">
-      <div ref="terminal" class="mt-n6 xterm-helper" />
+      <div ref="terminal" />
     </v-card-item>
   </v-dialog>
 </template>
@@ -138,12 +138,12 @@
 import { useStore } from "../../store";
 import { defineComponent, ref, computed, watch, nextTick } from "vue";
 import { useField } from "vee-validate";
+import "xterm/css/xterm.css";
 import { Terminal } from "xterm";
 import { AttachAddon } from "xterm-addon-attach";
 import { FitAddon } from "xterm-addon-fit";
 
 import * as yup from "yup";
-import { parsePrivateKey } from "sshpk";
 import {
   createKeyFingerprint,
   createSignatureOfPrivateKey,
@@ -242,6 +242,9 @@ export default defineComponent({
       xterm.value = new Terminal({
         cursorBlink: true,
         fontFamily: "monospace",
+        theme: {
+          background: "#0f1526",
+        },
       });
 
       fitAddon.value = new FitAddon();
@@ -377,9 +380,9 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
+<!-- <style lang="scss" scoped>
 .xterm-helper {
   background: #0f1526;
   width: 105%;
 }
-</style>
+</style> -->

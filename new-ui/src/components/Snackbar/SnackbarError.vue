@@ -4,8 +4,6 @@
     :timeout="4000"
     color="#bd4147"
     location="top"
-    variant="tonal"
-    text
     transition="slide-x-transition"
   >
     {{ message }}

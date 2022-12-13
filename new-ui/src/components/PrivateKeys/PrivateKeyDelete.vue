@@ -2,7 +2,7 @@
   <v-list-item @click="showDialog = true">
     <div class="d-flex align-center">
       <div data-test="privatekey-delete-icon" class="mr-2">
-        <v-icon color="white"> mdi-delete </v-icon>
+        <v-icon> mdi-delete </v-icon>
       </div>
 
       <v-list-item-title data-test="privatekey-delete-title">

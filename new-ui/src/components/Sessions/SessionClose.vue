@@ -6,7 +6,7 @@
   >
     <div class="d-flex align-center">
       <div class="mr-2">
-        <v-icon color="white"> mdi-close-circle </v-icon>
+        <v-icon> mdi-close-circle </v-icon>
       </div>
 
       <v-list-item-title data-test="mdi-information-list-item">

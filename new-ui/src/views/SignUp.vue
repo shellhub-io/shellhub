@@ -104,7 +104,6 @@
                         color="primary"
                         variant="tonal"
                         block
-                        @click="createAccount"
                       >
                         CREATE
                       </v-btn>

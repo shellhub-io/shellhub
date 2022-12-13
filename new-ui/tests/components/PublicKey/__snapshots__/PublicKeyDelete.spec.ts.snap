@@ -7,7 +7,7 @@ exports[`PublicKeyDelete > Dialog closed > Renders the component 1`] = `
     <!---->
     <!---->
     <div class=\\"d-flex align-center\\">
-      <div data-test=\\"remove-icon\\" class=\\"mr-2\\"><i class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default text-white\\" aria-hidden=\\"true\\" data-test=\\"remove-icon\\"></i></div>
+      <div data-test=\\"remove-icon\\" class=\\"mr-2\\"><i class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"remove-icon\\"></i></div>
       <div class=\\"v-list-item-title\\" data-test=\\"remove-title\\"> Remove </div>
     </div>
   </div>
@@ -24,7 +24,7 @@ exports[`PublicKeyDelete > Dialog opened > Renders the component 1`] = `
     <!---->
     <!---->
     <div class=\\"d-flex align-center\\">
-      <div data-test=\\"remove-icon\\" class=\\"mr-2\\"><i class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default text-white\\" aria-hidden=\\"true\\" data-test=\\"remove-icon\\"></i></div>
+      <div data-test=\\"remove-icon\\" class=\\"mr-2\\"><i class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"remove-icon\\"></i></div>
       <div class=\\"v-list-item-title\\" data-test=\\"remove-title\\"> Remove </div>
     </div>
   </div>

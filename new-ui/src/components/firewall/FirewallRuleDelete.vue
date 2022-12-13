@@ -6,7 +6,7 @@
   >
     <div class="d-flex align-center">
       <div class="mr-2">
-        <v-icon data-test="remove-icon" color="white"> mdi-delete </v-icon>
+        <v-icon data-test="remove-icon"> mdi-delete </v-icon>
       </div>
 
       <v-list-item-title data-test="remove-title"> Remove </v-list-item-title>

@@ -2,7 +2,7 @@
   <v-list-item @click="showDialog = true" :disabled="notHasAuthorization">
     <div class="d-flex align-center">
       <div data-test="remove-icon" class="mr-2">
-        <v-icon data-test="remove-icon" color="white"> mdi-delete </v-icon>
+        <v-icon data-test="remove-icon"> mdi-delete </v-icon>
       </div>
 
       <v-list-item-title data-test="remove-title"> Remove </v-list-item-title>
