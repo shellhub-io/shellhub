@@ -137,5 +137,10 @@ export const snackbar: Module<SnackbarState, State> = {
     unsetShowStatusSnackbarCopy: ({ commit }) => {
       commit("unsetSnackbarCopy");
     },
+
+    showSnackbarErrorIncorrect: (context, value) => {
+      const data = { typeMessage: 'incorrect', typeContent: value };
+      context.commit('setSnackbarErrorIncorrect', data);
+    },
   },
 };
