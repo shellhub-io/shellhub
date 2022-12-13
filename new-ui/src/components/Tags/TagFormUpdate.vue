@@ -2,7 +2,7 @@
   <v-list-item v-bind="$props, $attrs" @click="showDialog = true">
     <div class="d-flex align-center">
       <div class="mr-2">
-        <v-icon color="white"> mdi-tag </v-icon>
+        <v-icon> mdi-tag </v-icon>
       </div>
 
       <v-list-item-title data-test="mdi-information-list-item">

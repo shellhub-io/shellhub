@@ -2,7 +2,7 @@
   <v-list-item @click="showDialog = true" v-bind="$props">
     <div class="d-flex align-center">
       <div data-test="privatekey-icon" class="mr-2">
-        <v-icon color="white"> mdi-pencil </v-icon>
+        <v-icon> mdi-pencil </v-icon>
       </div>
 
       <v-list-item-title data-test="privatekey-title">

@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from "vue";
+import { defineComponent, computed } from "vue";
 import { INotificationsSuccess } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
 

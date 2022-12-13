@@ -5,7 +5,7 @@
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
-      <v-icon color="white" class="mr-2"> mdi-play </v-icon>
+      <v-icon class="mr-2"> mdi-play </v-icon>
 
       <v-list-item-title data-test="mdi-information-list-item">
         Play Session

@@ -8,7 +8,7 @@ export const signUp = async (data : any) => usersApi.registerUser({
   password: data.password,
 });
 
-export const postResendEmail = async (username : any) => usersApi.resendEmail(username);
+export const postResendEmail = async (username : any) => usersApi.resendEmail({ username });
 
 export const postRecoverPassword = async (email : any) => usersApi.recoverPassword(email);
 

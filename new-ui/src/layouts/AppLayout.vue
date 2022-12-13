@@ -36,7 +36,7 @@
         >
           <div class="d-flex align-center">
             <div class="mr-3">
-              <v-icon color="white">
+              <v-icon>
                 {{ item.icon }}
               </v-icon>
             </div>

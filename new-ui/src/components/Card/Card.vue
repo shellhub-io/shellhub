@@ -18,7 +18,7 @@
 
         <template v-slot:append>
           <div class="mt-4">
-            <v-icon :icon="icon" size="x-large" color="white" :iconName-test="icon" />
+            <v-icon :icon="icon" size="x-large" :iconName-test="icon" />
           </div>
         </template>
       </v-list-item>
