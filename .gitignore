@@ -12,3 +12,5 @@ ssh/ssh
 agent/agent
 agent/shellhub.key
 cli/cli
+go.work
+go.work.sum
