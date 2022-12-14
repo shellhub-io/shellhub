@@ -33,7 +33,7 @@
       </v-card-title>
 
       <v-card-item class="ma-0 pa-0 w-100">
-        <div ref="terminal" class="mt-n6 xterm-helper" />
+        <div ref="terminal" />
       </v-card-item>
 
       <v-card-actions class="bg-v-theme-surface">
@@ -123,6 +123,7 @@ import {
   watch,
 } from "vue";
 import { Terminal } from "xterm";
+import "xterm/css/xterm.css";
 import { FitAddon } from "xterm-addon-fit";
 import moment from "moment";
 import { useStore } from "../../store";
@@ -197,6 +198,9 @@ export default defineComponent({
         xterm.value = new Terminal({
           cursorBlink: true,
           fontFamily: "monospace",
+          theme: {
+            background: "#0f1526",
+          },
         });
 
         fitAddon.value = new FitAddon();
@@ -436,10 +440,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-.xterm-helper {
-  background: #0f1526;
-  width: 105%;
-}
-</style>
