@@ -18,6 +18,101 @@ type Store struct {
 	mock.Mock
 }
 
+// AnnouncementCreate provides a mock function with given fields: ctx, announcement
+func (_m *Store) AnnouncementCreate(ctx context.Context, announcement *models.Announcement) error {
+	ret := _m.Called(ctx, announcement)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Announcement) error); ok {
+		r0 = rf(ctx, announcement)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// AnnouncementDelete provides a mock function with given fields: ctx, uuid
+func (_m *Store) AnnouncementDelete(ctx context.Context, uuid string) error {
+	ret := _m.Called(ctx, uuid)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, uuid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// AnnouncementGet provides a mock function with given fields: ctx, uuid
+func (_m *Store) AnnouncementGet(ctx context.Context, uuid string) (*models.Announcement, error) {
+	ret := _m.Called(ctx, uuid)
+
+	var r0 *models.Announcement
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Announcement); ok {
+		r0 = rf(ctx, uuid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Announcement)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, uuid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AnnouncementList provides a mock function with given fields: ctx, pagination
+func (_m *Store) AnnouncementList(ctx context.Context, pagination paginator.Query) ([]models.AnnouncementShort, int, error) {
+	ret := _m.Called(ctx, pagination)
+
+	var r0 []models.AnnouncementShort
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) []models.AnnouncementShort); ok {
+		r0 = rf(ctx, pagination)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.AnnouncementShort)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query) int); ok {
+		r1 = rf(ctx, pagination)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query) error); ok {
+		r2 = rf(ctx, pagination)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// AnnouncementUpdate provides a mock function with given fields: ctx, announcement
+func (_m *Store) AnnouncementUpdate(ctx context.Context, announcement *models.Announcement) error {
+	ret := _m.Called(ctx, announcement)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Announcement) error); ok {
+		r0 = rf(ctx, announcement)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeviceChooser provides a mock function with given fields: ctx, tenantID, chosen
 func (_m *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []string) error {
 	ret := _m.Called(ctx, tenantID, chosen)
