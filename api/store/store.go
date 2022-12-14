@@ -1,6 +1,7 @@
 package store
 
 type Store interface {
+	AnnouncementsStore
 	TagsStore
 	DeviceStore
 	DeviceTagsStore
