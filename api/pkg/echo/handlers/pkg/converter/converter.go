@@ -36,6 +36,8 @@ func FromErrRouteToHTTPStatus(code int) int {
 		return http.StatusUnprocessableEntity
 	case routes.ErrCodeInvalidEntity:
 		return http.StatusBadRequest
+	case routes.ErrCodeUnauthorized:
+		return http.StatusUnauthorized
 	default:
 		return http.StatusInternalServerError
 	}
