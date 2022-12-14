@@ -13,6 +13,8 @@ const (
 	ErrCodeUnprocessableEntity = iota + 1
 	// ErrCodeInvalidEntity is the error code for when he input model is invalid.
 	ErrCodeInvalidEntity
+	// ErrCodeUnauthorized is the error code for when the user is not authorized to access the resource.
+	ErrCodeUnauthorized
 )
 
 type ErrDataInvalidEntity struct {
@@ -22,6 +24,7 @@ type ErrDataInvalidEntity struct {
 var (
 	ErrUnprocessableEntity = errors.New("Unprocessable entity", ErrLayer, ErrCodeUnprocessableEntity)
 	ErrInvalidEntity       = errors.New("Invalid entity", ErrLayer, ErrCodeInvalidEntity)
+	ErrUnauthorized        = errors.New("Unauthorized", ErrLayer, ErrCodeUnauthorized)
 )
 
 // NewErrUnprocessableEntity returns an error when input model has syntax errors.
@@ -32,4 +35,8 @@ func NewErrUnprocessableEntity(err error) error {
 // NewErrInvalidEntity returns an error with the invalids fields and why it is invalid after a validation.
 func NewErrInvalidEntity(fields []string) error {
 	return errors.Wrap(errors.WithData(ErrInvalidEntity, ErrDataInvalidEntity{Fields: fields}), nil)
+}
+
+func NewErrUnauthorized(err error) error {
+	return errors.Wrap(ErrUnauthorized, err)
 }

@@ -32,11 +32,20 @@ func report(reporter *sentry.Client, err error, request *http.Request) {
 // occurs, it will also try to send the error to Sentry.
 func NewErrors(reporter *sentry.Client) func(error, echo.Context) {
 	return func(e error, ctx echo.Context) {
-		if err, ok := e.(errors.Error); ok {
+		if err, ok := e.(errors.Error); ok { //nolint:nestif
 			switch err.Layer {
 			case guard.ErrLayer:
 				ctx.NoContent(http.StatusForbidden) //nolint:errcheck
 			case routes.ErrLayer:
+				if last := errors.GetLastError(err); last != nil {
+					if converted, ok := last.(errors.Error); !ok || (converted.Layer != services.ErrLayer && converted.Layer != store.ErrLayer) {
+						report(reporter, last, ctx.Request())
+						ctx.NoContent(http.StatusInternalServerError) //nolint:errcheck
+
+						return
+					}
+				}
+
 				ctx.NoContent(converter.FromErrRouteToHTTPStatus(err.Code)) //nolint:errcheck
 			case services.ErrLayer:
 				if last := errors.GetLastError(err); last != nil {
