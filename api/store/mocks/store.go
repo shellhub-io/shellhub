@@ -8,6 +8,8 @@ import (
 	models "github.com/shellhub-io/shellhub/pkg/models"
 	mock "github.com/stretchr/testify/mock"
 
+	order "github.com/shellhub-io/shellhub/pkg/api/order"
+
 	paginator "github.com/shellhub-io/shellhub/pkg/api/paginator"
 
 	time "time"
@@ -69,13 +71,13 @@ func (_m *Store) AnnouncementGet(ctx context.Context, uuid string) (*models.Anno
 	return r0, r1
 }
 
-// AnnouncementList provides a mock function with given fields: ctx, pagination
-func (_m *Store) AnnouncementList(ctx context.Context, pagination paginator.Query) ([]models.AnnouncementShort, int, error) {
-	ret := _m.Called(ctx, pagination)
+// AnnouncementList provides a mock function with given fields: ctx, pagination, ordination
+func (_m *Store) AnnouncementList(ctx context.Context, pagination paginator.Query, ordination order.Query) ([]models.AnnouncementShort, int, error) {
+	ret := _m.Called(ctx, pagination, ordination)
 
 	var r0 []models.AnnouncementShort
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) []models.AnnouncementShort); ok {
-		r0 = rf(ctx, pagination)
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, order.Query) []models.AnnouncementShort); ok {
+		r0 = rf(ctx, pagination, ordination)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.AnnouncementShort)
@@ -83,15 +85,15 @@ func (_m *Store) AnnouncementList(ctx context.Context, pagination paginator.Quer
 	}
 
 	var r1 int
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query) int); ok {
-		r1 = rf(ctx, pagination)
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, order.Query) int); ok {
+		r1 = rf(ctx, pagination, ordination)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query) error); ok {
-		r2 = rf(ctx, pagination)
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, order.Query) error); ok {
+		r2 = rf(ctx, pagination, ordination)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -261,13 +263,13 @@ func (_m *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID st
 	return r0, r1
 }
 
-// DeviceList provides a mock function with given fields: ctx, pagination, filters, status, sort, order
-func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
-	ret := _m.Called(ctx, pagination, filters, status, sort, order)
+// DeviceList provides a mock function with given fields: ctx, pagination, filters, status, sort, _a5
+func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, _a5 string) ([]models.Device, int, error) {
+	ret := _m.Called(ctx, pagination, filters, status, sort, _a5)
 
 	var r0 []models.Device
 	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, string, string, string) []models.Device); ok {
-		r0 = rf(ctx, pagination, filters, status, sort, order)
+		r0 = rf(ctx, pagination, filters, status, sort, _a5)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
@@ -276,14 +278,14 @@ func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, fil
 
 	var r1 int
 	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, string, string, string) int); ok {
-		r1 = rf(ctx, pagination, filters, status, sort, order)
+		r1 = rf(ctx, pagination, filters, status, sort, _a5)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
 	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, string, string, string) error); ok {
-		r2 = rf(ctx, pagination, filters, status, sort, order)
+		r2 = rf(ctx, pagination, filters, status, sort, _a5)
 	} else {
 		r2 = ret.Error(2)
 	}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/pkg/api/order"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -149,5 +150,25 @@ func BuildPaginationQuery(pagination paginator.Query) []bson.M {
 	return []bson.M{
 		{"$skip": pagination.PerPage * (pagination.Page - 1)},
 		{"$limit": pagination.PerPage},
+	}
+}
+
+func BuildOrderQuery(ordination order.Query, field string) []bson.M {
+	options := map[string]int{
+		order.Asc:  1,
+		order.Desc: -1,
+	}
+
+	selected, ok := options[ordination.OrderBy]
+	if !ok {
+		selected = 1
+	}
+
+	return []bson.M{
+		{
+			"$sort": bson.M{
+				field: selected,
+			},
+		},
 	}
 }
