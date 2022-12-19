@@ -35,6 +35,29 @@ const statsWithDevices = {
   rejected_devices: 0,
 };
 
+const announcements = 
+  [
+    {
+      uuid: "52088548-2b99-4f38-ac09-3a8f8988476f",
+      title: "This is a announcement",
+      content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
+      date: "2022-12-15T19:45:45.618Z"
+    },
+    {
+      uuid: "52188548-2b99-4f38-ac09-3a8f8988476f",
+      title: "This is a new announcement",
+      content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
+      date: "2022-12-15T19:46:45.618Z"
+    },
+  ];
+
+  const announcement = {
+    uuid: "52088548-2b99-4f38-ac09-3a8f8988476f",
+    title: "This is a announcement",
+    content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
+    date: "2022-12-15T19:45:45.618Z"
+  };
+
 const getters = {
   "auth/isLoggedIn": () => true,
   "namespaces/getNumberNamespaces": (state: any) => state.numberNamespaces,
@@ -43,6 +66,8 @@ const getters = {
   "billing/active": (state: any) => !state.activeBilling,
   "namespaces/get": (state: any) => state.namespace,
   "devices/getDeviceChooserStatus": (state: any) => state.DeviceChooserStatus,
+  "announcement/list": (state: any) => state.announcements,
+  "announcement/get": (state: any) => state.announcement,
 };
 
 const actions = {
@@ -53,6 +78,8 @@ const actions = {
   "namespaces/get": vi.fn(),
   "snackbar/showSnackbarErrorAssociation": vi.fn(),
   "snackbar/showSnackbarErrorLoading": vi.fn(),
+  "announcement/getListAnnouncements": vi.fn(),
+  "announcement/getAnnouncement": vi.fn(),
 };
 
 const storeWithoutDevices = createStore({
@@ -63,6 +90,8 @@ const storeWithoutDevices = createStore({
     stats: statsWithoutDevices,
     activeBilling,
     namespace,
+    announcements,
+    announcement,
   },
   getters,
   actions,
@@ -76,6 +105,8 @@ const storeWithDevicesInactive = createStore({
     active: false,
     namespace,
     DeviceChooserStatus,
+    announcements,
+    announcement,
   },
   getters: {
     ...getters,
@@ -93,6 +124,8 @@ const storeWithDevicesActive = createStore({
     active: true,
     namespace,
     DeviceChooserStatus,
+    announcements,
+    announcement,
   },
   getters: {
     ...getters,
@@ -150,6 +183,7 @@ describe("Without devices and billing disabled", () => {
     expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="namespaceInstructions-component"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="billingWarning-component"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="announcementsModal-component"]').exists()).toBe(true);
   });
   it("Renders the template with data", async () => {
     await wrapper.vm.showScreenWelcome();
@@ -219,6 +253,9 @@ describe("Without devices", () => {
     ).toBe(true);
     expect(
       wrapper.find('[data-test="billingWarning-component"]').exists()
+    ).toBe(true);
+    expect(
+      wrapper.find('[data-test="announcementsModal-component"]').exists()
     ).toBe(true);
   });
   it("Renders the template with data", async () => {
@@ -295,6 +332,9 @@ describe("With devices and inactive billing", () => {
     expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
     expect(
       wrapper.find('[data-test="namespaceInstructions-component"]').exists()
+    ).toBe(true);
+    expect(
+      wrapper.find('[data-test="billingWarning-component"]').exists()
     ).toBe(true);
   });
 
@@ -390,6 +430,9 @@ describe("With devices and active billing", () => {
     expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
     expect(
       wrapper.find('[data-test="namespaceInstructions-component"]').exists()
+    ).toBe(true);
+    expect(
+      wrapper.find('[data-test="billingWarning-component"]').exists()
     ).toBe(true);
   });
 

@@ -17,7 +17,7 @@ let tagsApi = new axiosTs.TagsApi(configuration);
 let usersApi = new axiosTs.UsersApi(configuration);
 let billingApi = new axiosTs.BillingApi(configuration);
 let rulesApi = new axiosTs.RulesApi(configuration);
-
+let announcementApi = new axiosTs.AdminApi(configuration);
 
 export const createNewClient = () => {
   const newConfiguration = new Configuration();
@@ -33,6 +33,8 @@ export const createNewClient = () => {
   tagsApi = new axiosTs.TagsApi(newConfiguration);
   usersApi = new axiosTs.UsersApi(newConfiguration);
   billingApi = new axiosTs.BillingApi(newConfiguration);
+  rulesApi = new axiosTs.RulesApi(newConfiguration);
+  announcementApi = new axiosTs.AdminApi(newConfiguration);
   return newConfiguration;
 };
 
@@ -44,6 +46,8 @@ setupInterceptorsTo(sshApi.axios);
 setupInterceptorsTo(tagsApi.axios);
 setupInterceptorsTo(usersApi.axios);
 setupInterceptorsTo(billingApi.axios);
+setupInterceptorsTo(rulesApi.axios);
+setupInterceptorsTo(announcementApi.axios);
 
 export {
   sessionsApi,
@@ -55,4 +59,5 @@ export {
   usersApi,
   billingApi,
   rulesApi,
+  announcementApi,
 };

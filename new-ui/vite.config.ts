@@ -8,6 +8,7 @@ import NodeGlobalsPolyfillPlugin from "@esbuild-plugins/node-globals-polyfill";
 import polyfillNode from "rollup-plugin-polyfill-node";
 import { splitVendorChunkPlugin } from "vite";
 import { fileURLToPath, URL } from "url";
+import Markdown from 'vite-plugin-vue-markdown'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -24,6 +25,13 @@ export default defineConfig({
         compilerOptions: {
           isCustomElement: (tag) => tag.includes("v-list-item-group") || tag.includes("font-awesome-icon"),
         },
+      },
+      include: [/\.vue$/, /\.md$/],
+    }),
+    Markdown({
+      markdownItOptions: {
+        html: true,
+        typographer: true,
       },
     }),
     vuetify({ autoImport: true }),
