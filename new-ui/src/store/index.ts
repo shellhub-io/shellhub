@@ -20,6 +20,7 @@ import { devices, DevicesState } from "./modules/devices";
 import { box, BoxState } from "./modules/box";
 import { namespaces, NamespacesState } from "./modules/namespaces";
 import { billing } from "./modules/billing";
+import { announcement, AnnouncementState } from "./modules/announcement";
 
 export interface State {
   auth: AuthState;
@@ -41,6 +42,7 @@ export interface State {
   stats: StatsState;
   tags: TagsState;
   users: UsersState;
+  announcement: AnnouncementState;
 }
 
 export const key: InjectionKey<Store<State>> = Symbol();
@@ -66,6 +68,7 @@ export const store = createStore<State>({
     stats,
     tags,
     users,
+    announcement,
   },
 });
 

@@ -67,6 +67,62 @@ export interface AddTagPublicKeyRequest {
     'tag': string;
 }
 /**
+ * Announcement.
+ * @export
+ * @interface Announcement
+ */
+export interface Announcement {
+    /**
+     * Announcement UUID.
+     * @type {string}
+     * @memberof Announcement
+     */
+    'uuid'?: string;
+    /**
+     * Announcement title.
+     * @type {string}
+     * @memberof Announcement
+     */
+    'title'?: string;
+    /**
+     * Announcement description.
+     * @type {string}
+     * @memberof Announcement
+     */
+    'content'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Announcement
+     */
+    'date'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface AnnouncementShort
+ */
+export interface AnnouncementShort {
+    /**
+     * Announcement UUID.
+     * @type {string}
+     * @memberof AnnouncementShort
+     */
+    'uuid'?: string;
+    /**
+     * Announcement title.
+     * @type {string}
+     * @memberof AnnouncementShort
+     */
+    'title'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AnnouncementShort
+     */
+    'date'?: string;
+}
+/**
  * 
  * @export
  * @interface ChoiceDevicesRequest
@@ -571,19 +627,6 @@ export interface GetSessionData401Response {
 /**
  * 
  * @export
- * @interface GetSessionData500Response
- */
-export interface GetSessionData500Response {
-    /**
-     * Error message.
-     * @type {string}
-     * @memberof GetSessionData500Response
-     */
-    'message'?: string;
-}
-/**
- * 
- * @export
  * @interface GetStatusDevices200Response
  */
 export interface GetStatusDevices200Response {
@@ -711,6 +754,19 @@ export interface InfoEndpoints {
      * @memberof InfoEndpoints
      */
     'api'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface ListAnnouncements500Response
+ */
+export interface ListAnnouncements500Response {
+    /**
+     * Error message.
+     * @type {string}
+     * @memberof ListAnnouncements500Response
+     */
+    'message'?: string;
 }
 /**
  * 
@@ -1581,6 +1637,195 @@ export interface UserAuth {
      */
     'email'?: string;
 }
+
+/**
+ * AdminApi - axios parameter creator
+ * @export
+ */
+export const AdminApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get a announcement.
+         * @summary Get a announcement
+         * @param {string} uuid 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAnnouncement: async (uuid: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uuid' is not null or undefined
+            assertParamExists('getAnnouncement', 'uuid', uuid)
+            const localVarPath = `/api/announcements/{uuid}`
+                .replace(`{${"uuid"}}`, encodeURIComponent(String(uuid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * List the announcements posted by ShellHub Cloud.
+         * @summary List announcements
+         * @param {number} [page] Pagination page number
+         * @param {number} [perPage] Pagination items per page
+         * @param {'asc' | 'desc'} [orderBy] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAnnouncements: async (page?: number, perPage?: number, orderBy?: 'asc' | 'desc', options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/announcements`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (orderBy !== undefined) {
+                localVarQueryParameter['order_by'] = orderBy;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AdminApi - functional programming interface
+ * @export
+ */
+export const AdminApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AdminApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get a announcement.
+         * @summary Get a announcement
+         * @param {string} uuid 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAnnouncement(uuid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Announcement>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAnnouncement(uuid, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * List the announcements posted by ShellHub Cloud.
+         * @summary List announcements
+         * @param {number} [page] Pagination page number
+         * @param {number} [perPage] Pagination items per page
+         * @param {'asc' | 'desc'} [orderBy] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listAnnouncements(page?: number, perPage?: number, orderBy?: 'asc' | 'desc', options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<AnnouncementShort>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listAnnouncements(page, perPage, orderBy, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * AdminApi - factory interface
+ * @export
+ */
+export const AdminApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AdminApiFp(configuration)
+    return {
+        /**
+         * Get a announcement.
+         * @summary Get a announcement
+         * @param {string} uuid 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAnnouncement(uuid: string, options?: any): AxiosPromise<Announcement> {
+            return localVarFp.getAnnouncement(uuid, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * List the announcements posted by ShellHub Cloud.
+         * @summary List announcements
+         * @param {number} [page] Pagination page number
+         * @param {number} [perPage] Pagination items per page
+         * @param {'asc' | 'desc'} [orderBy] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAnnouncements(page?: number, perPage?: number, orderBy?: 'asc' | 'desc', options?: any): AxiosPromise<Array<AnnouncementShort>> {
+            return localVarFp.listAnnouncements(page, perPage, orderBy, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AdminApi - object-oriented interface
+ * @export
+ * @class AdminApi
+ * @extends {BaseAPI}
+ */
+export class AdminApi extends BaseAPI {
+    /**
+     * Get a announcement.
+     * @summary Get a announcement
+     * @param {string} uuid 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApi
+     */
+    public getAnnouncement(uuid: string, options?: AxiosRequestConfig) {
+        return AdminApiFp(this.configuration).getAnnouncement(uuid, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * List the announcements posted by ShellHub Cloud.
+     * @summary List announcements
+     * @param {number} [page] Pagination page number
+     * @param {number} [perPage] Pagination items per page
+     * @param {'asc' | 'desc'} [orderBy] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApi
+     */
+    public listAnnouncements(page?: number, perPage?: number, orderBy?: 'asc' | 'desc', options?: AxiosRequestConfig) {
+        return AdminApiFp(this.configuration).listAnnouncements(page, perPage, orderBy, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
 
 /**
  * BillingApi - axios parameter creator
@@ -2478,6 +2723,40 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Get a announcement.
+         * @summary Get a announcement
+         * @param {string} uuid 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAnnouncement: async (uuid: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uuid' is not null or undefined
+            assertParamExists('getAnnouncement', 'uuid', uuid)
+            const localVarPath = `/api/announcements/{uuid}`
+                .replace(`{${"uuid"}}`, encodeURIComponent(String(uuid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get the most used devices.
          * @summary Get devices most used
          * @param {*} [options] Override http request option.
@@ -2700,6 +2979,51 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
             if (token !== undefined) {
                 localVarQueryParameter['token'] = token;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * List the announcements posted by ShellHub Cloud.
+         * @summary List announcements
+         * @param {number} [page] Pagination page number
+         * @param {number} [perPage] Pagination items per page
+         * @param {'asc' | 'desc'} [orderBy] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAnnouncements: async (page?: number, perPage?: number, orderBy?: 'asc' | 'desc', options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/announcements`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (orderBy !== undefined) {
+                localVarQueryParameter['order_by'] = orderBy;
             }
 
 
@@ -3204,6 +3528,17 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get a announcement.
+         * @summary Get a announcement
+         * @param {string} uuid 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAnnouncement(uuid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Announcement>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAnnouncement(uuid, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get the most used devices.
          * @summary Get devices most used
          * @param {*} [options] Override http request option.
@@ -3267,6 +3602,19 @@ export const CloudApiFp = function(configuration?: Configuration) {
          */
         async getValidateAccount(email: string, token: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getValidateAccount(email, token, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * List the announcements posted by ShellHub Cloud.
+         * @summary List announcements
+         * @param {number} [page] Pagination page number
+         * @param {number} [perPage] Pagination items per page
+         * @param {'asc' | 'desc'} [orderBy] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listAnnouncements(page?: number, perPage?: number, orderBy?: 'asc' | 'desc', options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<AnnouncementShort>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listAnnouncements(page, perPage, orderBy, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -3476,6 +3824,16 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.deleteFirewallRule(id, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get a announcement.
+         * @summary Get a announcement
+         * @param {string} uuid 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAnnouncement(uuid: string, options?: any): AxiosPromise<Announcement> {
+            return localVarFp.getAnnouncement(uuid, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get the most used devices.
          * @summary Get devices most used
          * @param {*} [options] Override http request option.
@@ -3534,6 +3892,18 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         getValidateAccount(email: string, token: string, options?: any): AxiosPromise<void> {
             return localVarFp.getValidateAccount(email, token, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * List the announcements posted by ShellHub Cloud.
+         * @summary List announcements
+         * @param {number} [page] Pagination page number
+         * @param {number} [perPage] Pagination items per page
+         * @param {'asc' | 'desc'} [orderBy] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAnnouncements(page?: number, perPage?: number, orderBy?: 'asc' | 'desc', options?: any): AxiosPromise<Array<AnnouncementShort>> {
+            return localVarFp.listAnnouncements(page, perPage, orderBy, options).then((request) => request(axios, basePath));
         },
         /**
          * Record data about session session.
@@ -3748,6 +4118,18 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
+     * Get a announcement.
+     * @summary Get a announcement
+     * @param {string} uuid 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CloudApi
+     */
+    public getAnnouncement(uuid: string, options?: AxiosRequestConfig) {
+        return CloudApiFp(this.configuration).getAnnouncement(uuid, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Get the most used devices.
      * @summary Get devices most used
      * @param {*} [options] Override http request option.
@@ -3817,6 +4199,20 @@ export class CloudApi extends BaseAPI {
      */
     public getValidateAccount(email: string, token: string, options?: AxiosRequestConfig) {
         return CloudApiFp(this.configuration).getValidateAccount(email, token, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * List the announcements posted by ShellHub Cloud.
+     * @summary List announcements
+     * @param {number} [page] Pagination page number
+     * @param {number} [perPage] Pagination items per page
+     * @param {'asc' | 'desc'} [orderBy] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CloudApi
+     */
+    public listAnnouncements(page?: number, perPage?: number, orderBy?: 'asc' | 'desc', options?: AxiosRequestConfig) {
+        return CloudApiFp(this.configuration).listAnnouncements(page, perPage, orderBy, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

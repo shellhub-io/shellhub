@@ -20,6 +20,13 @@
     v-if="isBillingEnabled"
     data-test="billingWarning-component"
   />
+
+  <AnnouncementsModal
+    :show="showAnnouncements"
+    :announcement="announcement"
+    @update="showAnnouncements = false"
+    data-test="announcementsModal-component"
+  />
 </template>
 
 <script lang="ts">
@@ -31,6 +38,7 @@ import { useStore } from "../../store";
 import { envVariables } from "../../envVariables";
 import BillingWarning from "../Billing/BillingWarning.vue";
 import DeviceChooser from "../Devices/DeviceChooser.vue";
+import AnnouncementsModal from "../Announcements/AnnouncementsModal.vue";
 
 export default defineComponent({
   inheritAttrs: false,
@@ -38,6 +46,7 @@ export default defineComponent({
     const store = useStore();
     const showInstructions = ref(false);
     const show = ref<boolean>(false);
+    const showAnnouncements = ref<boolean>(false);
 
     const hasNamespaces = computed(
       () => store.getters["namespaces/getNumberNamespaces"] !== 0
@@ -47,10 +56,34 @@ export default defineComponent({
       () => store.getters["devices/getDeviceChooserStatus"]
     );
     const stats = computed(() => store.getters["stats/stats"]);
+    const announcements = computed(() => store.getters["announcement/list"]);
+    const announcement = computed(() => store.getters["announcement/get"]);
 
     onMounted(() => {
       showDialogs();
+      ShowAnnouncementsCheck();
     });
+
+    const ShowAnnouncementsCheck = async () => {
+      if (!envVariables.announcementsEnable) {
+        return;
+      }
+
+      await store.dispatch("announcement/getListAnnouncements", {
+        page: 1,
+        perPage: 10,
+        orderBy: "desc",
+      });
+
+      if (announcements.value.length > 0) {
+        const announcementTest = announcements.value[0];
+        await store.dispatch(
+          "announcement/getAnnouncement",
+          announcementTest.uuid
+        );
+        showAnnouncements.value = true;
+      }
+    };
 
     const statusWarning = async () => {
       const bill = store.getters["namespaces/get"].billing;
@@ -139,8 +172,16 @@ export default defineComponent({
       showScreenWelcome,
       hasWarning,
       show,
+      showAnnouncements,
+      announcement,
     };
   },
-  components: { Welcome, NamespaceInstructions, BillingWarning, DeviceChooser },
+  components: {
+    Welcome,
+    NamespaceInstructions,
+    BillingWarning,
+    DeviceChooser,
+    AnnouncementsModal,
+  },
 });
 </script>
