@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/request"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -45,12 +44,20 @@ func (s *service) CreateSession(ctx context.Context, session request.SessionCrea
 }
 
 func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
-	err := s.store.SessionDeleteActives(ctx, uid)
-	if err == store.ErrNoDocuments {
+	session, err := s.store.SessionGet(ctx, uid)
+	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
 
-	return err
+	if !session.Authenticated {
+		s.reporter.SessionUnauthenticated(session)
+	}
+
+	if err := s.store.SessionDeleteActives(ctx, uid); err != nil {
+		return NewErrSessionInvalid(uid, err)
+	}
+
+	return nil
 }
 
 func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {

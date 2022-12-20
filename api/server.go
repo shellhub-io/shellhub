@@ -9,6 +9,7 @@ import (
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/reporters"
 	"github.com/shellhub-io/shellhub/api/routes"
 	apiMiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
@@ -73,12 +74,12 @@ func init() {
 func startServer(cfg *config) error {
 	ctx := context.Background()
 
-	var reporter *sentry.Client
+	var reporter2 *sentry.Client
 	if cfg.SentryDSN != "" {
 		log.Info("Starting Sentry")
 
 		var err error
-		reporter, err = sentry.NewClient(sentry.ClientOptions{
+		reporter2, err = sentry.NewClient(sentry.ClientOptions{
 			Dsn: cfg.SentryDSN,
 		})
 		if err != nil {
@@ -95,7 +96,7 @@ func startServer(cfg *config) error {
 	e.Use(echoMiddleware.RequestID())
 	e.Binder = handlers.NewBinder()
 	e.Validator = handlers.NewValidator()
-	e.HTTPErrorHandler = handlers.NewErrors(reporter)
+	e.HTTPErrorHandler = handlers.NewErrors(reporter2)
 
 	log.Trace("Connecting to Redis")
 
@@ -146,7 +147,8 @@ func startServer(cfg *config) error {
 	}
 
 	store := mongo.NewStore(client.Database(connStr.Database), cache)
-	service := services.NewService(store, nil, nil, cache, requestClient, locator)
+	reporter := reporters.NewReporter(store)
+	service := services.NewService(store, nil, nil, cache, reporter, requestClient, locator)
 	handler := routes.NewHandler(service)
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {

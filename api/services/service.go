@@ -3,6 +3,7 @@ package services
 import (
 	"crypto/rsa"
 
+	"github.com/shellhub-io/shellhub/api/reporters"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
@@ -15,12 +16,13 @@ type APIService struct {
 var _ Service = (*APIService)(nil)
 
 type service struct {
-	store   store.Store
-	privKey *rsa.PrivateKey
-	pubKey  *rsa.PublicKey
-	cache   cache.Cache
-	client  interface{}
-	locator geoip.Locator
+	store    store.Store
+	privKey  *rsa.PrivateKey
+	pubKey   *rsa.PublicKey
+	cache    cache.Cache
+	reporter reporters.Reporters
+	client   interface{}
+	locator  geoip.Locator
 }
 
 type Service interface {
@@ -37,7 +39,7 @@ type Service interface {
 	SetupService
 }
 
-func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}, l geoip.Locator) *APIService {
+func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, reporter reporters.Reporters, c interface{}, l geoip.Locator) *APIService {
 	if privKey == nil || pubKey == nil {
 		var err error
 		privKey, pubKey, err = LoadKeys()
@@ -46,5 +48,5 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		}
 	}
 
-	return &APIService{service: &service{store, privKey, pubKey, cache, c, l}}
+	return &APIService{service: &service{store, privKey, pubKey, cache, reporter, c, l}}
 }

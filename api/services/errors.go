@@ -106,6 +106,7 @@ var (
 	ErrTokenSigned               = errors.New("token signed", ErrLayer, ErrCodeInvalid)
 	ErrTypeAssertion             = errors.New("type assertion failed", ErrLayer, ErrCodeInvalid)
 	ErrSessionNotFound           = errors.New("session not found", ErrLayer, ErrCodeNotFound)
+	ErrSessionInvalid            = errors.New("session invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthInvalid               = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthUnathorized           = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
 	ErrNamespaceLimitReached     = errors.New("namespace limit reached", ErrLayer, ErrCodeLimit)
@@ -258,6 +259,11 @@ func NewErrDeviceNotFound(id models.UID, next error) error {
 // NewErrSessionNotFound returns an error when the session is not found.
 func NewErrSessionNotFound(id models.UID, next error) error {
 	return NewErrNotFound(ErrSessionNotFound, string(id), next)
+}
+
+// NewErrSessionInvalid returns an error when the session is invalid.
+func NewErrSessionInvalid(id models.UID, next error) error {
+	return NewErrInvalid(ErrSessionInvalid, map[string]interface{}{"id": id}, next)
 }
 
 // NewErrNamespaceList return an error to be used when cannot list namespaces.
