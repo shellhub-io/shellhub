@@ -230,7 +230,7 @@ func exitCodeFromError(err error) int {
 
 // shell handles an interactive terminal session.
 func shell(api internalclient.Client, sess *session.Session, uid string, agent *gossh.Session, client gliderssh.Session, pty gliderssh.Pty, winCh <-chan gliderssh.Window, opts ConfigOptions) error {
-	if errs := api.PatchSessions(uid); len(errs) > 0 {
+	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
 		return errs[0]
 	}
 
@@ -321,7 +321,7 @@ func shell(api internalclient.Client, sess *session.Session, uid string, agent *
 
 // heredoc handles a heredoc session.
 func heredoc(api internalclient.Client, uid string, agent *gossh.Session, client gliderssh.Session) error {
-	if errs := api.PatchSessions(uid); len(errs) > 0 {
+	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
 		return errs[0]
 	}
 
@@ -369,7 +369,7 @@ func heredoc(api internalclient.Client, uid string, agent *gossh.Session, client
 
 // exec handles a non-interactive session.
 func exec(api internalclient.Client, uid string, agent *gossh.Session, client gliderssh.Session) error {
-	if errs := api.PatchSessions(uid); len(errs) > 0 {
+	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
 		return errs[0]
 	}
 
