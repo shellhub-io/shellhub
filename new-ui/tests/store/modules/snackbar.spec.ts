@@ -92,4 +92,12 @@ describe("Snackbar", () => {
 
     expect(store.getters["snackbar/snackbarCopy"]).toEqual(false);
   });
+
+  it("Verify initial states change for mutation setSnackbarErrorIncorrect", () => {
+    const data = { typeMessage: "incorrect", typeContent: "login" };
+    store.commit("snackbar/setSnackbarErrorIncorrect", data);
+
+    expect(store.getters["snackbar/snackbarError"]).toEqual(true);
+  });
+
 });
