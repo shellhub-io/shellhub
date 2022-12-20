@@ -78,6 +78,11 @@ export const snackbar: Module<SnackbarState, State> = {
       state.snackbarCopy = true;
     },
 
+    setSnackbarErrorIncorrect: (state, data) => {
+      state.snackbarMessageAndContentType = data;
+      state.snackbarError = true;
+    },
+
     unsetSnackbarCopy: (state) => {
       state.snackbarCopy = false;
     },
@@ -139,8 +144,8 @@ export const snackbar: Module<SnackbarState, State> = {
     },
 
     showSnackbarErrorIncorrect: (context, value) => {
-      const data = { typeMessage: 'incorrect', typeContent: value };
-      context.commit('setSnackbarErrorIncorrect', data);
+      const data = { typeMessage: "incorrect", typeContent: value };
+      context.commit("setSnackbarErrorIncorrect", data);
     },
   },
 };
