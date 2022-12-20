@@ -111,8 +111,7 @@ func connectSFTP(ctx context.Context, client gliderssh.Session, sess *session.Se
 
 	go session.HandleRequests(ctx, reqs, api)
 
-	// TODO: change PatchSession name to a more precise one.
-	if errs := api.PatchSessions(sess.UID); len(errs) > 0 {
+	if errs := api.SessionAsAuthenticated(sess.UID); len(errs) > 0 {
 		return errs[0]
 	}
 

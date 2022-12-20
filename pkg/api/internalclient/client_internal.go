@@ -28,7 +28,7 @@ type internalAPI interface {
 	DevicesOffline(id string) error
 	DevicesHeartbeat(id string) error
 	FirewallEvaluate(lookup map[string]string) error
-	PatchSessions(uid string) []error
+	SessionAsAuthenticated(uid string) []error
 	FinishSession(uid string) []error
 	KeepAliveSession(uid string) []error
 	RecordSession(session *models.SessionRecorded, recordURL string)
@@ -160,7 +160,8 @@ func (c *client) FirewallEvaluate(lookup map[string]string) error {
 	return nil
 }
 
-func (c *client) PatchSessions(uid string) []error {
+// SessionAsAuthenticated makes a HTTP request to ShellHub API server to mark the session as authenticated.
+func (c *client) SessionAsAuthenticated(uid string) []error {
 	var errors []error
 	_, err := c.http.R().
 		SetBody(&models.Status{

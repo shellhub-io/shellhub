@@ -282,22 +282,6 @@ func (_m *Client) LookupDevice() {
 	_m.Called()
 }
 
-// PatchSessions provides a mock function with given fields: uid
-func (_m *Client) PatchSessions(uid string) []error {
-	ret := _m.Called(uid)
-
-	var r0 []error
-	if rf, ok := ret.Get(0).(func(string) []error); ok {
-		r0 = rf(uid)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]error)
-		}
-	}
-
-	return r0
-}
-
 // RecordSession provides a mock function with given fields: session, recordURL
 func (_m *Client) RecordSession(session *models.SessionRecorded, recordURL string) {
 	_m.Called(session, recordURL)
@@ -343,4 +327,20 @@ func (_m *Client) ReportUsage(ur *models.UsageRecord) (int, error) {
 	}
 
 	return r0, r1
+}
+
+// SessionAsAuthenticated provides a mock function with given fields: uid
+func (_m *Client) SessionAsAuthenticated(uid string) []error {
+	ret := _m.Called(uid)
+
+	var r0 []error
+	if rf, ok := ret.Get(0).(func(string) []error); ok {
+		r0 = rf(uid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]error)
+		}
+	}
+
+	return r0
 }
