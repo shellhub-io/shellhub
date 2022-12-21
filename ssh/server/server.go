@@ -53,7 +53,14 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 			"direct-tcpip": gliderssh.DirectTCPIPHandler,
 		},
 		LocalPortForwardingCallback: gliderssh.LocalPortForwardingCallback(func(ctx gliderssh.Context, dhost string, dport uint32) bool {
-			ok, err := regexp.MatchString(opts.LocalForwarding, fmt.Sprintf("%s:%d", dhost, dport))
+			pattern := opts.LocalForwarding
+
+			// Empty pattern not match anything
+			if pattern == "" {
+				pattern = "(?!.*)"
+			}
+
+			ok, err := regexp.MatchString(pattern, fmt.Sprintf("%s:%d", dhost, dport))
 
 			log.WithFields(log.Fields{
 				"host":    dhost,
