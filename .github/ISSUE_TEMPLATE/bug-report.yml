@@ -1,0 +1,27 @@
+name: Bug report
+description: Create a bug report
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true
+  - type: dropdown
+    id: edition
+    attributes:
+      label: Edition
+      description: Which edition of ShellHub are you running?
+      options:
+        - Community
+        - Enterprise
+        - Cloud
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which version of ShellHub are you running?
+    validations:
+      required: true
