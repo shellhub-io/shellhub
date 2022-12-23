@@ -119,7 +119,7 @@ TMP_DIR="${TMP_DIR:-`mktemp -d -t shellhub-installer-XXXXXX`}"
 
 if type docker > /dev/null 2>&1; then
     while :; do
-        if $SUDO docker infoa > /dev/null 2>&1; then
+        if $SUDO docker info > /dev/null 2>&1; then
             INSTALL_METHOD="${INSTALL_METHOD:-docker}"
             break
         elif [ "$(id -u)" -ne 0 ]; then
