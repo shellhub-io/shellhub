@@ -28,16 +28,33 @@ via command line (using any SSH client) or web-based user interface,
 designed as an alternative to _sshd_. Think ShellHub as centralized SSH
 for the the edge and cloud computing.
 
-## Features
-
 ![Screenshot](https://github.com/shellhub-io/shellhub-io.github.io/raw/src/docs/img/screenshot.png)
 
-* **Native SSH support**: ShellHub provides native SSH support, allowing you to access any device behind the ShellHub SSH gateway using standard tools such as OpenSSH Client and PuTTY. This means you don't need to install any additional third-party tools to connect to your devices behind ShellHub. Simply use the tools you are already familiar with to remotely manage your servers and devices through ShellHub.
-* **SCP/SFTP support**: ShellHub offers SCP/SFTP support, allowing you to copy files to and from your devices using industry standard tools without the need for any additional third-party applications. This makes it easy to transfer files securely to and from your servers and devices, ensuring that your data remains safe and secure throughout the process.
-* **Public-key authentication**: ShellHub supports public-key authentication, which allows multiple users to log in as the same system user without having to share a single password. This can make it easier to manage access for multiple users, as you can revoke a single user's access without affecting the access of other users. Additionally, public-key authentication can make it easier for a single user to log in to many accounts without having to manage multiple passwords.
-* **Firewall rules**: ShellHub provides flexible firewall rules for filtering SSH connections, giving you fine-grained control over which SSH connections can reach your devices. This helps to improve the security of your servers and devices by allowing you to specify which connections are allowed and which are blocked, helping to prevent unauthorized access.
-* **Audit logging**: ShellHub includes audit logging capabilities, which means that every time an SSH connection is made to ShellHub, a session is created and stored on the server for audit purposes. This can be useful for tracking and monitoring access to your servers and devices, and can help you to identify unauthorized access attempts.
-* **Session recording**: ShellHub offers session recording, which means that all interactive SSH sessions are recorded, including all user activity that occurs during the session. These recordings can then be replayed via a built-in session player in the ShellHub Web UI. This feature can be useful for a variety of purposes, such as training and documentation, as well as for tracking and monitoring user activity on your servers and devices.
+## Features
+
+### :computer: Native SSH support
+
+ShellHub provides native SSH support, allowing you to access any device behind the ShellHub SSH gateway using standard tools such as OpenSSH Client and PuTTY. This means you don't need to install any additional third-party tools to connect to your devices behind ShellHub. Simply use the tools you are already familiar with to remotely manage your servers and devices through ShellHub.
+
+### :file_folder: SCP/SFTP support
+
+ShellHub offers SCP/SFTP support, allowing you to copy files to and from your devices using industry standard tools without the need for any additional third-party applications. This makes it easy to transfer files securely to and from your servers and devices, ensuring that your data remains safe and secure throughout the process.
+
+### :key: Public-key authentication
+
+ShellHub supports public-key authentication, which allows multiple users to log in as the same system user without having to share a single password. This can make it easier to manage access for multiple users, as you can revoke a single user's access without affecting the access of other users. Additionally, public-key authentication can make it easier for a single user to log in to many accounts without having to manage multiple passwords.
+
+### :shield: Firewall rules
+
+ShellHub provides flexible firewall rules for filtering SSH connections, giving you fine-grained control over which SSH connections can reach your devices. This helps to improve the security of your servers and devices by allowing you to specify which connections are allowed and which are blocked, helping to prevent unauthorized access.
+
+### :spiral_notepad: Audit logging
+
+ShellHub includes audit logging capabilities, which means that every time an SSH connection is made to ShellHub, a session is created and stored on the server for audit purposes. This can be useful for tracking and monitoring access to your servers and devices, and can help you to identify unauthorized access attempts.
+
+### :movie_camera: Session recording
+
+ShellHub offers session recording, which means that all interactive SSH sessions are recorded, including all user activity that occurs during the session. These recordings can then be replayed via a built-in session player in the ShellHub Web UI. This feature can be useful for a variety of purposes, such as training and documentation, as well as for tracking and monitoring user activity on your servers and devices.
 
 ## Getting started
 
