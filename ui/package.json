@@ -36,7 +36,7 @@
     "vuex": "^3.6.2",
     "xterm": "^5.0.0",
     "xterm-addon-attach": "^0.7.0",
-    "xterm-addon-fit": "^0.6.0"
+    "xterm-addon-fit": "^0.7.0"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.5.4",
