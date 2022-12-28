@@ -29,8 +29,8 @@ It offers a secure and convenient way to connect and control your servers and de
 
 One of the main benefits of ShellHub is that it acts as a central gateway for all your
 Linux servers and devices, allowing you to access them from anywhere with an internet connection.
-This means you don't have to worry about getting its public IP address, configuring the router
-, changing VPN/firewall settings or using a jump host to access your servers and devices.
+This means you don't have to worry about getting its public IP address, configuring the router,
+changing VPN/firewall settings or using a jump host to access your servers and devices.
 This can be inconvenient and time-consuming.
 
 ShellHub also allows you to access and manage multiple servers and devices from a single interface,
