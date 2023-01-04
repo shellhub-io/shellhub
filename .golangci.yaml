@@ -40,6 +40,7 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - gomoddirectives
     - bodyclose
     - cyclop
     - dupl
@@ -64,6 +65,7 @@ linters:
     # we use it inside pkg/
     - gochecknoinits
     - gochecknoglobals
+    - tagliatelle
 
 issues:
   exclude:
