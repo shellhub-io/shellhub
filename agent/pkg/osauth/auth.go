@@ -106,7 +106,7 @@ func parseShadowReader(r io.Reader) (map[string]ShadowEntry, error) {
 		entries[entry.Username] = entry
 	}
 
-	return entries, nil
+	return entries, nil //nolint:nilerr
 }
 
 func parseShadowLine(line string) (ShadowEntry, error) {

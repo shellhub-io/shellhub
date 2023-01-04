@@ -135,7 +135,7 @@ func (s *Server) sessionHandler(session gliderssh.Session) {
 	log.Info("New session request")
 
 	go s.startKeepAliveLoop(session)
-	requestType := session.Context().Value("request_type").(string)
+	requestType := session.Context().Value("request_type").(string) //nolint:forcetypeassert
 
 	switch {
 	case isPty:

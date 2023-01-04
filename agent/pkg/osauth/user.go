@@ -100,7 +100,7 @@ func parsePasswdReader(r io.Reader) (map[string]User, error) {
 		entries[entry.Username] = entry
 	}
 
-	return entries, nil
+	return entries, nil //nolint:nilerr
 }
 
 func parsePasswdLine(line string) (User, error) {
