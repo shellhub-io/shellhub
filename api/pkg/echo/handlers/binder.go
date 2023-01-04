@@ -14,7 +14,7 @@ func NewBinder() *Binder {
 func (b *Binder) Bind(s interface{}, c echo.Context) error {
 	binder := new(echo.DefaultBinder)
 	if err := binder.Bind(s, c); err != nil {
-		err := err.(*echo.HTTPError)
+		err := err.(*echo.HTTPError) //nolint:forcetypeassert
 
 		return errors.NewErrUnprocessableEntity(err.Unwrap())
 	}

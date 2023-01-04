@@ -93,7 +93,7 @@ func (s *Store) PublicKeyGetTags(ctx context.Context, tenant string) ([]string, 
 
 	tags := make([]string, len(list))
 	for i, item := range list {
-		tags[i] = item.(string)
+		tags[i] = item.(string) //nolint:forcetypeassert
 	}
 
 	return tags, len(tags), err
