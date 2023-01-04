@@ -41,7 +41,7 @@ func Parse(token string) (*Token, error) {
 			return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
 		}
 
-		return magickey.GetRerefence().Public().(*rsa.PublicKey), nil //nolint: forcetypeassert
+		return magickey.GetRerefence().Public().(*rsa.PublicKey), nil
 	}); err != nil {
 		return nil, err
 	}

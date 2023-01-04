@@ -151,14 +151,14 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 		return nil, ErrDial
 	}
 
-	uid := client.Context().Value(gliderssh.ContextKeySessionID).(string)
+	uid := client.Context().Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
 
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", uid), nil)
 	if err = req.Write(dialed); err != nil {
 		return nil, err
 	}
 
-	session := &Session{ // nolint: exhaustruct, forcetypeassert
+	session := &Session{ //nolint:exhaustruct
 		Client:    client,
 		UID:       uid,
 		Username:  tag.Username,
