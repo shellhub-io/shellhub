@@ -39,7 +39,7 @@ const (
 )
 
 // UtmpStartSession This function updates the utmp and wtmp files at the start of a user session.
-func UtmpStartSession(line, user, remoteAddr string) Utmpx {
+func UtmpStartSession(line, user, remoteAddr string) Utmpx { //nolint:revive
 	var u Utmpx
 
 	u.Type = UserProcess
@@ -95,7 +95,7 @@ func UtmpStartSession(line, user, remoteAddr string) Utmpx {
 }
 
 // UtmpEndSession this function updates the utmp and wtmp files at the end of a user session.
-func UtmpEndSession(u Utmpx) {
+func UtmpEndSession(u Utmpx) { //nolint:revive
 	u.Type = DeadProcess
 	u.User = [32]byte{}
 	u.Host = [256]byte{}
