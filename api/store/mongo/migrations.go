@@ -50,7 +50,7 @@ func ApplyMigrations(db *mongo.Database) error {
 		logrus.WithError(err).Fatal("Failed to get current migration version")
 	}
 
-	latest := list[len(list)-1] //nolint:ifshort
+	latest := list[len(list)-1]
 
 	if current == latest.Version {
 		logrus.Info("No migrations to apply")

@@ -196,7 +196,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return svc.ErrTypeAssertion
 		}
 
-		jwt := middleware.JWTWithConfig(middleware.JWTConfig{
+		jwt := middleware.JWTWithConfig(middleware.JWTConfig{ //nolint:staticcheck
 			Claims:        &jwt.MapClaims{},
 			SigningKey:    ctx.Service().(svc.Service).PublicKey(),
 			SigningMethod: "RS256",
