@@ -21,7 +21,7 @@ type (
 	}
 
 	// FilterTypeProperty holds data to filter a property based on value and comparison operator.
-	FilterTypeProperty struct {
+	FilterTypeProperty struct { //nolint:revive
 		// Property name
 		Name string `json:"name"`
 		// Comparison operator
@@ -37,7 +37,7 @@ type (
 	}
 
 	// FilterTypeOperator holds data to apply a conditional operator in a filter.
-	FilterTypeOperator struct {
+	FilterTypeOperator struct { //nolint:revive
 		// Conditional operator name
 		//
 		// and: AND conditional operator
@@ -46,7 +46,7 @@ type (
 	}
 
 	// FilterList is a slice of Filter.
-	FilterList []*Filter
+	FilterList []*Filter //nolint:revive
 )
 
 func (f *Filter) UnmarshalJSON(data []byte) error {
