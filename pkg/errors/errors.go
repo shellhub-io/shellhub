@@ -87,7 +87,7 @@ func Wrap(err error, next error) error {
 		return fmt.Errorf("%s: %w", err.Error(), next)
 	}
 
-	err = nil
+	err = nil //nolint:wastedassign
 	n, ok := next.(Error)
 	if !ok {
 		err = Error{Message: next.Error()}
