@@ -11,7 +11,7 @@ import (
 
 // store stores a value into a context.
 func store(ctx context.Context, key string, value interface{}) {
-	c := ctx.(gliderssh.Context)
+	c := ctx.(gliderssh.Context) //nolint:forcetypeassert
 	c.SetValue(key, value)
 }
 
@@ -24,8 +24,7 @@ func StoreRequest(ctx context.Context, value string) {
 //
 // Its return must be cast.
 func maybeStore(ctx context.Context, key string, value interface{}) interface{} {
-	got := restore(ctx, key)
-	if got != nil {
+	if got := restore(ctx, key); got != nil {
 		return got
 	}
 
