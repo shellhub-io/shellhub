@@ -1,5 +1,5 @@
 <template>
-  <v-table class="bg-v-theme-surface">
+  <v-table class="bg-v-theme-surface" v-bind="$props, $attrs">
     <thead>
       <tr>
         <th
@@ -11,9 +11,9 @@
         </th>
       </tr>
     </thead>
-    <tbody v-if="invoiceList.length">
-      <tr v-for="(invoice, i) in invoiceList" :key="i">
-        <td>
+    <tbody v-if="itemsToView.length">
+      <tr v-for="(invoice, i) in itemsToView" :key="i">
+        <td class="text-center">
           <v-chip v-if="invoice.paid" color="success">
             {{ invoice.status }}
           </v-chip>
@@ -31,15 +31,15 @@
           </v-chip>
         </td>
 
-        <td>
+        <td class="text-center">
           {{ formatCurrency(invoice.amountDue) }}
         </td>
 
-        <td>
+        <td class="text-center">
           {{ unixTimeFormat(invoice.dueDate) }}
         </td>
 
-        <td>
+        <td class="text-center">
           <a v-if="invoice.pdf != '---'" :href="invoice.pdf" target="_blank">
             <v-icon color="#E53935"> mdi-file-pdf-box </v-icon>
           </a>
@@ -49,7 +49,7 @@
           </div>
         </td>
 
-        <td>
+        <td class="text-center">
           <a v-if="invoice.url != '---'" :href="invoice.url" target="_blank">
             <v-icon color="primary"> mdi-credit-card </v-icon>
           </a>
@@ -64,27 +64,74 @@
       <p>No data avaliabe</p>
     </div>
   </v-table>
+  <v-divider />
+  <div class="d-flex w-100 justify-end align-center">
+    <span class="text-subtitle-2 mr-4">Items per page:</span>
+    <div>
+      <v-combobox
+        :items="[3, 5, 10]"
+        v-model="defaultPerPage"
+        outlined
+        :update:modelValue="defaultPerPage"
+        variant="underlined"
+        hide-details
+        class="mb-4"
+      />
+    </div>
+    <div class="d-flex align-center">
+      <v-btn icon="mdi-chevron-left" variant="plain" @click="previousPage" />
+      <span class="text-subtitle-2">{{ page }} of {{ pageQuantity }}</span>
+      <v-btn icon="mdi-chevron-right" variant="plain" @click="nextPage" />
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
 import { formatCurrency } from "../../utils/currency";
 import unixTimeFormat from "../../utils/timestamp";
-import { defineComponent, computed } from "vue";
+import { defineComponent, computed, ref } from "vue";
 import { useStore } from "../../store";
 
 export default defineComponent({
   setup() {
     const store = useStore();
-    const defaultPerPage = computed(() => store.getters["billing/getPerPage"]);
+    const defaultPerPage = ref(3);
+    const page = ref(1);
     const invoiceList = computed(() => store.getters["billing/getInvoices"]);
     const invoicesLength = computed(
       () => store.getters["billing/getInvoicesLength"]
     );
+    const itemsToView = computed(() => {
+      const start = (page.value - 1) * defaultPerPage.value;
+      const end = start + defaultPerPage.value;
+      return invoiceList.value.slice(start, end);
+    });
+    const pageQuantity = computed(() => {
+      return Math.ceil(invoicesLength.value / defaultPerPage.value);
+    });
+
+    const previousPage = () => {
+      if (page.value > 1) {
+        page.value--;
+      }
+    };
+
+    const nextPage = () => {
+      if (page.value < pageQuantity.value) {
+        page.value++;
+      }
+    };
 
     return {
       invoiceList,
+      itemsToView,
+      defaultPerPage,
+      page,
+      pageQuantity,
       formatCurrency,
       unixTimeFormat,
+      previousPage,
+      nextPage,
       headers: [
         {
           text: "Status",

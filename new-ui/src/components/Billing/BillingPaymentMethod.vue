@@ -1,5 +1,5 @@
 <template>
-  <v-btn class="bg-primary" data-test="show-btn" @click="dialog = !dialog">
+  <v-btn class="bg-primary" data-test="show-btn" @click="dialog = !dialog" v-bind="$props, $attrs">
     {{ actionButton(typeOperation) }}
   </v-btn>
 

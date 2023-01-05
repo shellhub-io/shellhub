@@ -13,14 +13,14 @@
     </thead>
     <tbody v-if="paymentList.length">
       <tr v-for="(item, i) in paymentList" :key="i" data-test="dataTable-field">
-        <td>
+        <td class="text-center">
           <BillingIcon :icon-name="item.brand" />
         </td>
-        <td>
+        <td class="text-center">
           {{ item.last4 }}
         </td>
-        <td>{{ item.expMonth }} / {{ item.expYear }}</td>
-        <td>
+        <td class="text-center">{{ item.expMonth }} / {{ item.expYear }}</td>
+        <td class="text-center">
           <v-menu location="bottom" scrim eager>
             <template v-slot:activator="{ props }">
               <v-chip v-bind="props" density="comfortable" size="small">
@@ -29,15 +29,19 @@
             </template>
             <v-list class="bg-v-theme-surface" lines="two" density="compact">
               <v-list-item @click.stop="updatePaymentMethod(item.id)">
-                <v-icon class="mr-2"> mdi-pencil </v-icon>
-
-                <v-list-item-title> Make default </v-list-item-title>
+                <div class="d-flex align-center">
+                  <v-icon class="mr-2"> mdi-pencil </v-icon>
+  
+                  <v-list-item-title> Make default </v-list-item-title>
+                </div>
               </v-list-item>
 
               <v-list-item @click.stop="deletePaymentMethod(item.id)">
-                <v-icon class="mr-2"> mdi-delete </v-icon>
-
-                <v-list-item-title> Remove </v-list-item-title>
+                <div class="d-flex align-center">
+                  <v-icon class="mr-2"> mdi-delete </v-icon>
+  
+                  <v-list-item-title> Remove </v-list-item-title>
+                </div>
               </v-list-item>
             </v-list>
           </v-menu>

@@ -119,10 +119,10 @@
                 </b>
               </p>
             </div>
-
-            <v-divider />
-            <v-divider />
           </div>
+
+          <v-divider />
+          <v-divider />
 
           <div class="mt-6 mb-6">
             <v-row>
@@ -141,6 +141,8 @@
               <v-col>
                 <h3>Payment methods</h3>
               </v-col>
+
+              <v-spacer />
 
               <v-col md="auto" class="ml-auto">
                 <BillingPaymentMethod
@@ -232,7 +234,7 @@ export default defineComponent({
     const warningMessage = ref(`Please update your payment method
         by adding a new card, or attempt to pay failed latest
         invoices through url`);
-    const billingData = computed(() => store.getters["billing/get"]);
+    const billingData = computed(() => store.getters["billing/getBillInfoData"]);
     const retrialExceeded = computed(() => retrials.value >= pollMax.value);
     const active = computed(() => store.getters["billing/active"]);
     const notifyWarning = computed(() => billingData.value.warning);
@@ -269,6 +271,7 @@ export default defineComponent({
         stripeData();
       }
     });
+
     onMounted(() => {
       if (hasAuthorization.value) {
         stripeData();

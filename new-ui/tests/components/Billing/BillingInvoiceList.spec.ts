@@ -11,17 +11,33 @@ const invoices = [
     paid: false,
     amountDue: 3040,
     dueDate: 1614983421,
-    status: 'open',
-    pdf: 'test.pdf',
-    url: 'inv_url',
+    status: "open",
+    pdf: "test.pdf",
+    url: "inv_url",
   },
   {
     paid: true,
     amountDue: 2030,
     dueDate: 1614983421,
-    status: 'paid',
-    pdf: '---',
-    url: '---',
+    status: "paid",
+    pdf: "---",
+    url: "---",
+  },
+  {
+    paid: true,
+    amountDue: 4030,
+    dueDate: 1614983421,
+    status: "paid",
+    pdf: "---",
+    url: "---",
+  },
+  {
+    paid: true,
+    amountDue: 3030,
+    dueDate: 1614983421,
+    status: "paid",
+    pdf: "---",
+    url: "---",
   },
 ];
 
@@ -58,6 +74,10 @@ const headers = [
   },
 ];
 
+const defaultPerPage = 3;
+const page = 1;
+const itemsToView = invoices.slice(0, defaultPerPage);
+
 const store = createStore({
   state: {
     invoices,
@@ -65,15 +85,16 @@ const store = createStore({
     defaultPerPage: 3,
   },
   getters: {
-    'billing/getInvoices': (state) => state.invoices,
-    'billing/defaultPerPage': (state) => state.defaultPerPage,
-    'billing/getInvoicesLength': (state) => state.invoices.length,
+    "billing/getInvoices": (state) => state.invoices,
+    "billing/defaultPerPage": (state) => state.defaultPerPage,
+    "billing/getInvoicesLength": (state) => state.invoices.length,
   },
   actions: {
-    'billing/getPagination': vi.fn(),
+    "billing/getPagination": vi.fn(),
   },
 });
-describe('BillingInvoiceList', () => {
+
+describe("BillingInvoiceList", () => {
   let wrapper: VueWrapper<any>;
   const vuetify = createVuetify();
 
@@ -100,16 +121,26 @@ describe('BillingInvoiceList', () => {
   ///////
   // Data checking
   //////
+
   it("Data is defined", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
 
-  it('Compares data with default value', () => {
+  it("Compares data with default value", () => {
     expect(wrapper.vm.headers).toStrictEqual(headers);
+    expect(wrapper.vm.defaultPerPage).toStrictEqual(defaultPerPage);
+    expect(wrapper.vm.page).toStrictEqual(page);
+    expect(wrapper.vm.itemsToView).toStrictEqual(itemsToView);
   });
-  it('Process data in the computed', () => {
+
+  it("Process data in the computed", () => {
     expect(wrapper.vm.invoiceList).toStrictEqual(invoices);
   });
 
-  // todo check the pagination
+  it("Check next page", async () => {
+    const itemsToView = invoices.slice(defaultPerPage, defaultPerPage * 2);
+    await wrapper.vm.nextPage();
+    expect(wrapper.vm.page).toStrictEqual(2);
+    expect(wrapper.vm.itemsToView).toStrictEqual(itemsToView);
+  });
 });
