@@ -71,7 +71,7 @@ export default defineComponent({
 
       await store.dispatch("announcement/getListAnnouncements", {
         page: 1,
-        perPage: 10,
+        perPage: 1,
         orderBy: "desc",
       });
 
@@ -80,8 +80,13 @@ export default defineComponent({
         await store.dispatch(
           "announcement/getAnnouncement",
           announcementTest.uuid
-        );
-        showAnnouncements.value = true;
+          );
+        
+        const announcementStorage = localStorage.getItem("announcement");
+        const lastAnnouncementEncoded = btoa(JSON.stringify(announcement.value))
+        if (announcementStorage !== lastAnnouncementEncoded) {
+          showAnnouncements.value = true;
+        }
       }
     };
 
