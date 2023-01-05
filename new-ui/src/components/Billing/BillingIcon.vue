@@ -1,15 +1,15 @@
 <template>
-  <font-awesome-icon
+  <i
     v-if="isDefaultIcon()"
-    icon="credit-card"
-    size="lg"
+    class="fa-regular fa-credit-card"
+    :style="{ fontSize: size}"
     data-test="default-icon"
   />
 
-  <font-awesome-icon
+  <i
     v-if="!isDefaultIcon()"
-    :icon="['fab', icon()]"
-    size="lg"
+    :class="'fab ' + icon()"
+    :style="{ fontSize: size}"
     data-test="type-icon"
   />
 </template>
@@ -26,13 +26,15 @@ export default defineComponent({
   },
   setup(props) {
     const cardIcon = ref({
-      amex: "cc-amex",
-      dinersClub: "cc-diners-club",
-      discover: "cc-discover",
-      jcb: "cc-jcb",
-      mastercard: "cc-mastercard",
-      visa: "cc-visa",
+      amex: "fa-cc-amex",
+      dinersClub: "fa-cc-diners-club",
+      discover: "fa-cc-discover",
+      jcb: "fa-cc-jcb",
+      mastercard: "fa-cc-mastercard",
+      visa: "fa-cc-visa",
     });
+
+    const size = ref("1.5rem");
 
     const isDefaultIcon = () => {
       // @ts-ignore
@@ -54,6 +56,7 @@ export default defineComponent({
 
     return {
       cardIcon,
+      size,
       isDefaultIcon,
       icon,
       convertIconName,

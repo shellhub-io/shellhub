@@ -27,12 +27,16 @@ export default function infoExtract(data, periodEnd) {
       dueDate: inv.due_date === 0 ? inv.created : inv.due_date,
       amountDue: inv.amount_due,
       attempted: inv.attempted,
+      currency: inv.currency,
+      accountCountry: inv.account_country,
     }], []);
   };
 
   const info = {
     periodEnd,
     description: productDescription,
+    currency: upcomingInvoice.currency,
+    accountCountry: upcomingInvoice.account_country,
     nextPaymentDue: upcomingInvoice.amount_due,
     nextPaymentPaid: upcomingInvoice.amount_paid,
   };

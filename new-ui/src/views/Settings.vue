@@ -1,5 +1,5 @@
 <template>
-  <v-card v-if="true"  class="bg-v-theme-surface">
+  <v-card class="bg-v-theme-surface">
     <v-tabs background-color="secondary" stacked color="primary" align-tabs="center">
       <v-tab
         v-for="item in visibleItems"
@@ -15,12 +15,12 @@
   </v-card>
 
   <v-card class="bg-v-theme-surface">
-    <router-view v-if="true" />
+    <router-view />
   </v-card>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref } from "vue";
+import { computed, defineComponent } from "vue";
 import { envVariables } from "../envVariables";
 import { useStore } from "../store";
 
@@ -34,7 +34,7 @@ export default defineComponent({
 
     const hasNamespace = computed(() => store.getters["namespaces/getNumberNamespaces"] !== 0);
 
-    const items = ref([
+    const items = computed(() => [
       {
         title: "Profile",
         path: "/settings",

@@ -8,12 +8,12 @@ const iconName = "cc-amex";
 const defaultIcon = "credit-card";
 
 const cardIcon = {
-  amex: "cc-amex",
-  dinersClub: "cc-diners-club",
-  discover: "cc-discover",
-  jcb: "cc-jcb",
-  mastercard: "cc-mastercard",
-  visa: "cc-visa",
+  amex: "fa-cc-amex",
+  dinersClub: "fa-cc-diners-club",
+  discover: "fa-cc-discover",
+  jcb: "fa-cc-jcb",
+  mastercard: "fa-cc-mastercard",
+  visa: "fa-cc-visa",
 };
 
 describe("BillingIcon", () => {

@@ -50,6 +50,8 @@ import { actions, authorizer } from "../../authorizer";
 import hasPermission from "../../utils/permission";
 import { useStore } from "../../store";
 import { formatCurrency } from "../../utils/currency";
+import { INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
+import { useRouter } from "vue-router";
 
 
 export default defineComponent({
@@ -61,6 +63,7 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const router = useRouter();
     const dialog = ref(false);
 
     const hasAuthorization = computed(() => {
@@ -75,9 +78,17 @@ export default defineComponent({
       return false;
     });
 
-    const cancelSubscription = () => {
-      store.dispatch("billing/unsubscribe");
-      dialog.value = false;
+    const cancelSubscription = async () => {
+      try {
+        await store.dispatch('billing/cancelSubscription');
+        dialog.value = false;
+        store.dispatch('snackbar/showSnackbarSuccessAction', INotificationsSuccess.cancelSubscription);
+
+        store.dispatch('devices/setDeviceChooserStatus', store.getters['stats/stats'].registered_devices > 3);
+        router.push({ name: 'profileSettings' });
+      } catch {
+        store.dispatch('snackbar/showSnackbarErrorAction', INotificationsError.cancelSubscription);
+      }
     };
     return {
       dialog,

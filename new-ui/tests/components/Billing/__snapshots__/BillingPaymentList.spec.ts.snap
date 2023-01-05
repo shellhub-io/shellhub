@@ -15,13 +15,12 @@ exports[`BillingPaymentList > Renders the component 1`] = `
       </thead>
       <tbody>
         <tr data-test=\\"dataTable-field\\">
-          <td>
-            <!--v-if-->
-            <font-awesome-icon icon=\\"fab,cc-visa\\" size=\\"lg\\" data-test=\\"type-icon\\"></font-awesome-icon>
+          <td class=\\"text-center\\">
+            <!--v-if--><i class=\\"fab fa-cc-visa\\" style=\\"font-size: 1.5rem;\\" data-test=\\"type-icon\\"></i>
           </td>
-          <td>4042</td>
-          <td>4 / 2024</td>
-          <td><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+          <td class=\\"text-center\\">4042</td>
+          <td class=\\"text-center\\">4 / 2024</td>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
             <!---->
             <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
             <!---->
@@ -31,13 +30,12 @@ exports[`BillingPaymentList > Renders the component 1`] = `
           </td>
         </tr>
         <tr data-test=\\"dataTable-field\\">
-          <td>
-            <!--v-if-->
-            <font-awesome-icon icon=\\"fab,cc-visa\\" size=\\"lg\\" data-test=\\"type-icon\\"></font-awesome-icon>
+          <td class=\\"text-center\\">
+            <!--v-if--><i class=\\"fab fa-cc-visa\\" style=\\"font-size: 1.5rem;\\" data-test=\\"type-icon\\"></i>
           </td>
-          <td>4042</td>
-          <td>4 / 2028</td>
-          <td><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+          <td class=\\"text-center\\">4042</td>
+          <td class=\\"text-center\\">4 / 2028</td>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
             <!---->
             <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
             <!---->
@@ -47,13 +45,12 @@ exports[`BillingPaymentList > Renders the component 1`] = `
           </td>
         </tr>
         <tr data-test=\\"dataTable-field\\">
-          <td>
-            <!--v-if-->
-            <font-awesome-icon icon=\\"fab,cc-visa\\" size=\\"lg\\" data-test=\\"type-icon\\"></font-awesome-icon>
+          <td class=\\"text-center\\">
+            <!--v-if--><i class=\\"fab fa-cc-visa\\" style=\\"font-size: 1.5rem;\\" data-test=\\"type-icon\\"></i>
           </td>
-          <td>4042</td>
-          <td>4 / 2029</td>
-          <td><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-4\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+          <td class=\\"text-center\\">4042</td>
+          <td class=\\"text-center\\">4 / 2029</td>
+          <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-4\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
             <!---->
             <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
             <!---->
