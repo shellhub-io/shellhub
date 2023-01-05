@@ -13,7 +13,7 @@
       <v-divider />
 
       <v-card-text style="max-height: 70vh">
-        <div v-html="markdownContent" data-test="announcement-title" />
+        <div class="content-announcement" v-html="markdownContent" data-test="announcement-title" />
 
         <div class="text-right">
           <span
@@ -77,6 +77,7 @@ export default defineComponent({
     });
 
     const close = () => {
+      localStorage.setItem("announcement", btoa(JSON.stringify(props.announcement)));
       ctx.emit("update", false);
       showAnnouncements.value = false;
     };
@@ -90,3 +91,20 @@ export default defineComponent({
   },
 });
 </script>
+
+<style lang="scss">
+.content-announcement {
+  p, span, div, h1, h2, h3, h4, h5, h6 {
+    margin: .5rem;
+    line-height: 1.4;
+  }
+
+  ul, ol {
+    padding: .5rem 1.5rem;
+  }
+
+  img {
+    max-width: 100%;
+  }
+}
+</style>
