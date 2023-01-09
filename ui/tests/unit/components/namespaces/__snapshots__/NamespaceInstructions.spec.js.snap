@@ -47,7 +47,7 @@ exports[`NamespaceInstructions  Renders the component 2`] = `
             script.
           </p>
           <p data-test="openContentSecond-text" class="caption mb-0">
-            Check the <a href="https://docs.shellhub.io/admin-manual/managing/" target="_blank">documentation</a>
+            Check the <a href="https://docs.shellhub.io/self-hosted/administration" target="_blank">documentation</a>
             for more information and alternative install methods.
           </p>
         </div>
