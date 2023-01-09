@@ -22,7 +22,7 @@
           <p class="text-caption mb-0 mt-3" data-test="openContentSecond-text">
             Check the
             <a
-              :href="'https://docs.shellhub.io/admin-manual/managing/'"
+              :href="'https://docs.shellhub.io/self-hosted/administration'"
               target="_blank"
               >documentation</a
             >

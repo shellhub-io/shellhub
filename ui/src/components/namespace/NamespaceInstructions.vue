@@ -29,7 +29,7 @@
               data-test="openContentSecond-text"
             >
               Check the <a
-                :href="'https://docs.shellhub.io/admin-manual/managing/'"
+                :href="'https://docs.shellhub.io/self-hosted/administration'"
                 target="_blank"
               >documentation</a>
               for more information and alternative install methods.
