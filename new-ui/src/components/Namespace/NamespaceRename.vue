@@ -81,6 +81,7 @@ export default defineComponent({
     });
 
     onMounted(() => {
+      if (!store.getters["auth/isLoggedIn"]) return;
       store.dispatch("namespaces/get", tenant.value);
     });
 

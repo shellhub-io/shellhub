@@ -86,12 +86,16 @@ export default defineComponent({
             nameUseTest: "viewActiveSession-btn",
           },
         ];
-      } catch {
-        hasStatus.value = true;
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.dashboard
-        );
+      } catch (error: any) {
+        if (error.response.status = 403) {
+          hasStatus.value = true;
+        } else {
+          hasStatus.value = true;
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.dashboard
+          );
+        }
       }
     });
 

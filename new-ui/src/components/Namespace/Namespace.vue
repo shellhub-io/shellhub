@@ -11,6 +11,7 @@
 
       <v-list-item v-if="isEnterprise">
         <NamespaceAdd
+          isSmall
           data-test="namespaceAdd-component"
           @update="getNamespaces"
         />
@@ -18,7 +19,12 @@
     </v-list-group>
   </v-list>
   <div v-else>
-    <NamespaceAdd data-test="namespaceAdd-component" @update="getNamespaces" />
+    <NamespaceAdd
+      enableSwitchIn
+      isSmall
+      data-test="namespaceAdd-component"
+      @update="getNamespaces"
+    />
   </div>
 </template>
 
@@ -36,10 +42,12 @@ export default defineComponent({
     const store = useStore();
     const inANamespace = ref(false);
     const listing = ref(false);
+    const isChecking = ref(false);
     const namespace = computed(() => store.getters["namespaces/get"]);
     const hasNamespace = computed(
       () => store.getters["namespaces/getNumberNamespaces"] !== 0
     );
+    const openVersion = computed(() => !envVariables.isEnterprise);
     const tenant = computed(() => localStorage.getItem("tenant"));
     const isEnterprise = computed(() => envVariables.isEnterprise);
     onMounted(async () => {
@@ -47,7 +55,15 @@ export default defineComponent({
       if (inANamespace.value) {
         await getNamespace();
       }
+      if (Object.keys(namespace.value).length === 0 && openVersion.value) {
+        isChecking.value = true;
+        // Interval to check if the namespace has been added by cli
+        setInterval(() => {
+          checkNewNamespace();
+        }, 3000);
+      }
     });
+
     watch(hasNamespace, (status) => {
       inANamespace.value = status;
       getNamespace();
@@ -57,8 +73,23 @@ export default defineComponent({
         getNamespaces();
       }
     });
+
+    const checkNewNamespace = async () => {
+      if (!store.getters["auth/isLoggedIn"]) return;
+
+      await store.dispatch("namespaces/fetch", {
+        page: 1,
+        perPage: 10,
+        fitler: "",
+      });
+      if (store.getters["namespaces/list"].length > 0) {
+        switchIn(store.getters["namespaces/list"][0].tenant_id);
+      }
+    };
+
     const getNamespace = async () => {
-      if (!store.getters['auth/isLoggedIn']) return;
+      if (!store.getters["auth/isLoggedIn"]) return;
+      if (isChecking.value) return;
 
       try {
         await store.dispatch("namespaces/get", tenant.value);
@@ -86,7 +117,7 @@ export default defineComponent({
     };
     const getNamespaces = async () => {
       try {
-        if (!store.getters['auth/isLoggedIn']) return;
+        if (!store.getters["auth/isLoggedIn"]) return;
         await store.dispatch("namespaces/fetch", {
           page: 1,
           perPage: 30,

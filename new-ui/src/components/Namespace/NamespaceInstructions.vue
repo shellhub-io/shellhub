@@ -1,9 +1,8 @@
 <template>
-  <v-dialog v-model="showNoNamespace" max-width="650px">
+  <v-dialog v-model="showNoNamespace" :retain-focus="false" persistent max-width="650px">
     <v-card
       v-model="showNoNamespace"
-      :retain-focus="false"
-      persistent
+      
       class="bg-v-theme-surface"
     >
       <v-card-title class="bg-primary">
@@ -12,12 +11,16 @@
 
       <v-card-text class="mt-4 mb-0 pb-1 mb-4">
         <p class="text-body-2">
-          In order to use ShellHub, you first need to create a namespace to
-          associate with your account or join an existing one.
+          In order to use ShellHub, you must have a namespace associate
+          with your account or join an existing one.
         </p>
         <div v-if="openVersion" id="cli-instructions" class="mt-3 text-body-2">
           <p data-test="openContentFirst-text">
             The easiest way to configure a namespace is by using the cli script.
+          </p>
+          <p class="mt-3" data-test="cliUpdateWarning-text">
+            When you add a namespace, on cli script, this dialog will be
+            automatically closed.
           </p>
           <p class="text-caption mb-0 mt-3" data-test="openContentSecond-text">
             Check the
@@ -32,17 +35,14 @@
       </v-card-text>
 
       <v-card-actions>
-        <v-btn text @click="close"> Close </v-btn>
         <v-spacer />
-        <v-btn
-          v-if="!openVersion"
-          id="namespace-add"
-          text
-          data-test="add-btn"
-          @click="dialogAdd = !dialogAdd"
-        >
-          Add Namespace
-        </v-btn>
+        <div>
+          <NamespaceAdd
+            v-if="!openVersion"
+            enableSwitchIn
+            data-test="namespaceAdd-component"
+          />
+        </div>
       </v-card-actions>
     </v-card>
 
@@ -79,7 +79,7 @@ export default defineComponent({
       },
     });
 
-    const openVersion = computed(() => envVariables.isEnterprise);
+    const openVersion = computed(() => !envVariables.isEnterprise);
 
     const autoSwitch = computed(() => localStorage.getItem("tenant") === "");
 
