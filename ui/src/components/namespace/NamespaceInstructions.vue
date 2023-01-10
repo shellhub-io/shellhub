@@ -13,8 +13,8 @@
 
         <v-card-text class="mt-4 mb-0 pb-1 mb-4">
           <p>
-            In order to use ShellHub, you first need to create a namespace to associate with
-            your account or join an existing one.
+            In order to use ShellHub, you must have a namespace associate
+            with your account or join an existing one.
           </p>
           <div
             v-if="openVersion"
@@ -23,6 +23,13 @@
             <p data-test="openContentFirst-text">
               The easiest way to configure a namespace is by using the cli
               script.
+            </p>
+            <p
+              class="mt-3"
+              data-test="cliUpdateWarning-text"
+            >
+              When you add a namespace, on cli script, this dialog will be
+              automatically closed.
             </p>
             <p
               class="caption mb-0"
@@ -37,12 +44,6 @@
           </div>
         </v-card-text>
         <v-card-actions>
-          <v-btn
-            text
-            @click="close"
-          >
-            Close
-          </v-btn>
           <v-spacer />
           <v-btn
             v-if="!openVersion"
