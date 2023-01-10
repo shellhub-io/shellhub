@@ -160,6 +160,10 @@ export default defineComponent({
     const route = useRoute();
     const router = useRouter();
     const isCloud = computed(() => envVariables.isCloud);
+    const hasNamespace = computed(
+      () => store.getters["namespaces/getNumberNamespaces"] !== 0
+    );
+    const isTheSameNamespace = computed(() => store.getters["namespaces/get"].tenant_id === localStorage.getItem("tenant"));
 
     onMounted(async () => {
       if (route.query.token) {
@@ -205,6 +209,11 @@ export default defineComponent({
           });
           await createNewClient();
           await store.dispatch("layout/setLayout", "appLayout");
+
+          if (hasNamespace.value && !isTheSameNamespace.value) {
+            await store.dispatch("namespaces/get", localStorage.getItem("tenant"));
+          }
+
           if (route.query.redirect) {
             router.push(`${route.query.redirect}`);
           } else {

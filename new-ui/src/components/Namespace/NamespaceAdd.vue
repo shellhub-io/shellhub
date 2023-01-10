@@ -2,7 +2,7 @@
   <v-btn
     v-if="!firstNamespace"
     block
-    size="small"
+    :size="isSmall ? 'small': 'default'"
     color="primary"
     @click="showDialog = true"
   >
@@ -55,7 +55,6 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
-import { AxiosError } from "axios";
 
 export default defineComponent({
   inheritAttrs: false,
@@ -68,6 +67,14 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    isSmall: {
+      type: Boolean,
+      default: false,
+    },
+    enableSwitchIn: {
+      type: Boolean,
+      default: false,
+    }
   },
   emits: ["update"],
   setup(props, ctx) {
@@ -114,7 +121,7 @@ export default defineComponent({
 
           const response = await store.dispatch("namespaces/post", namespaceName.value);
 
-          if (props.firstNamespace) {
+          if (props.firstNamespace || props.enableSwitchIn) {
             await switchIn(response.data.tenant_id);
             close();
           } else {
