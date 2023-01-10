@@ -9,15 +9,12 @@ exports[`NamespaceInstructions  Renders the component 1`] = `
       </v-card-title-stub>
       <v-card-text-stub tag="div" class="mt-4 mb-0 pb-1 mb-4">
         <p>
-          In order to use ShellHub, you first need to create a namespace to associate with
-          your account or join an existing one.
+          In order to use ShellHub, you must have a namespace associate
+          with your account or join an existing one.
         </p>
         <!---->
       </v-card-text-stub>
       <v-card-actions-stub tag="div">
-        <v-btn-stub tag="button" activeclass="" text="true" type="button">
-          Close
-        </v-btn-stub>
         <v-spacer-stub tag="div"></v-spacer-stub>
         <v-btn-stub tag="button" activeclass="" text="true" type="button" id="namespace-add" data-test="add-btn">
           Add Namespace
@@ -38,13 +35,17 @@ exports[`NamespaceInstructions  Renders the component 2`] = `
       </v-card-title-stub>
       <v-card-text-stub tag="div" class="mt-4 mb-0 pb-1 mb-4">
         <p>
-          In order to use ShellHub, you first need to create a namespace to associate with
-          your account or join an existing one.
+          In order to use ShellHub, you must have a namespace associate
+          with your account or join an existing one.
         </p>
         <div id="cli-instructions">
           <p data-test="openContentFirst-text">
             The easiest way to configure a namespace is by using the cli
             script.
+          </p>
+          <p data-test="cliUpdateWarning-text" class="mt-3">
+            When you add a namespace, on cli script, this dialog will be
+            automatically closed.
           </p>
           <p data-test="openContentSecond-text" class="caption mb-0">
             Check the <a href="https://docs.shellhub.io/self-hosted/administration" target="_blank">documentation</a>
@@ -53,9 +54,6 @@ exports[`NamespaceInstructions  Renders the component 2`] = `
         </div>
       </v-card-text-stub>
       <v-card-actions-stub tag="div">
-        <v-btn-stub tag="button" activeclass="" text="true" type="button">
-          Close
-        </v-btn-stub>
         <v-spacer-stub tag="div"></v-spacer-stub>
         <!---->
       </v-card-actions-stub>

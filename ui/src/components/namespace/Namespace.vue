@@ -52,6 +52,7 @@ export default {
     return {
       inANamespace: false,
       listing: false,
+      isChecking: false,
     };
   },
 
@@ -70,6 +71,10 @@ export default {
 
     isEnterprise() {
       return this.$env.isEnterprise;
+    },
+
+    openVersion() {
+      return !this.$env.isEnterprise;
     },
   },
 
@@ -91,10 +96,19 @@ export default {
     if (this.inANamespace) {
       await this.getNamespace();
     }
+    if (Object.keys(this.namespace).length === 0 && this.openVersion) {
+      this.isChecking = true;
+      // Interval to check if the namespace has been added by cli
+      setInterval(() => {
+        this.checkNewNamespace();
+      }, 3000);
+    }
   },
 
   methods: {
     async getNamespace() {
+      if (this.isChecking) return;
+
       try {
         await this.$store.dispatch('namespaces/get', this.tenant);
       } catch (error) {
@@ -132,6 +146,19 @@ export default {
           this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.snackbar.namespaceList);
         }
         }
+      }
+    },
+
+    async checkNewNamespace() {
+      if (!this.$store.getters['auth/isLoggedIn']) return;
+
+      await this.$store.dispatch('namespaces/fetch', {
+        page: 1,
+        perPage: 10,
+        fitler: '',
+      });
+      if (this.$store.getters['namespaces/list'].length > 0) {
+        this.switchIn(this.$store.getters['namespaces/list'][0].tenant_id);
       }
     },
 
