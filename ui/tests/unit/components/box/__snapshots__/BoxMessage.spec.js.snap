@@ -21,7 +21,7 @@ exports[`BoxMessage Renders the component 1`] = `
     <v-list-item-stub activeclass="" tag="div" class="text-center listText">
       <v-list-item-content-stub tag="div" data-test="1-boxMessage-text" class="justify-center py-2">
         <p>Please follow our guide on how to connect to your devices
-          <a target="_blank" href="https://docs.shellhub.io/getting-started/connecting-device/">See More</a>.
+          <a target="_blank" href="https://docs.shellhub.io/user-guides/devices/connecting">See More</a>.
         </p>
       </v-list-item-content-stub>
     </v-list-item-stub>
