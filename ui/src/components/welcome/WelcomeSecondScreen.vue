@@ -25,7 +25,7 @@
 
       <p class="caption mb-0">
         Check the <a
-          :href="'https://shellhub-io.github.io/guides/registering-device/'"
+          :href="'https://docs.shellhub.io/user-guides/devices/adding'"
           target="_blank"
         >documentation</a>
         for more information and alternative install methods.

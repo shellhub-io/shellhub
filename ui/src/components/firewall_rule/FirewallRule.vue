@@ -25,7 +25,7 @@
       Firewall rules gives a fine-grained control over which SSH connections reach the devices.
       <a
         target="_blank"
-        href="https://docs.shellhub.io/user-manual/managing-firewall-rules/"
+        href="https://docs.shellhub.io/user-guides/security/managing-firewall-rules"
       >See More</a>
     </p>
 

@@ -120,7 +120,7 @@ export default {
                 properly set up.
             <a
               target="_blank"
-              href="https://docs.shellhub.io/getting-started/registering-device/"
+              href="https://docs.shellhub.io/user-guides/devices/adding"
             >See More</a>.</p>`,
           ],
         },
@@ -135,7 +135,7 @@ export default {
             `<p>Please follow our guide on how to connect to your devices
             <a
               target="_blank"
-              href="https://docs.shellhub.io/getting-started/connecting-device/"
+              href="https://docs.shellhub.io/user-guides/devices/connecting"
             >See More</a>.</p>`,
           ],
         },

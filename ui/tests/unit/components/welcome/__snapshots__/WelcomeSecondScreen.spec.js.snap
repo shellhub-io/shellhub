@@ -13,7 +13,7 @@ exports[`WelcomeSecondScreen Renders the component 1`] = `
     <v-text-field-stub errorcount="1" errormessages="" messages="" readonly="true" rules="" successmessages="" value="curl -sSf &quot;http://localhost/install.sh?tenant_id=a582b47a42e&quot; | sh" appendicon="mdi-content-copy" backgroundcolor="" dense="true" loaderheight="2" clearicon="$clear" outlined="true" type="text" fill-width="" data-test="command-text" class="code"></v-text-field-stub>
     <v-divider-stub></v-divider-stub>
     <p class="caption mb-0">
-      Check the <a href="https://shellhub-io.github.io/guides/registering-device/" target="_blank">documentation</a>
+      Check the <a href="https://docs.shellhub.io/user-guides/devices/adding" target="_blank">documentation</a>
       for more information and alternative install methods.
     </p>
   </div>

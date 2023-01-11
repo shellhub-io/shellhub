@@ -30,12 +30,13 @@
     <p class="text-caption mb-0 mt-1">
       Check the
       <a
-        :href="'https://shellhub-io.github.io/guides/registering-device/'"
+        :href="'https://docs.shellhub.io/user-guides/devices/adding'"
         target="_blank"
         >documentation</a
       >
       for more information and alternative install methods.
     </p>
+    <!-- ! old url -->
   </div>
 </template>
 
