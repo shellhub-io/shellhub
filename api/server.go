@@ -14,6 +14,7 @@ import (
 	apiMiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
+	"github.com/shellhub-io/shellhub/api/workers"
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
@@ -28,15 +29,29 @@ import (
 var serverCmd = &cobra.Command{
 	Use: "server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg, ok := cmd.Context().Value("cfg").(*config)
+		ctx := cmd.Context()
+
+		cfg, ok := ctx.Value("cfg").(*config)
 		if !ok {
 			log.Fatal("Failed to retrieve environment config from context")
 		}
 
 		go func() {
-			if err := startWorker(cfg); err != nil {
-				log.Fatal(err)
+			start := func(ctx context.Context, fn func(ctx context.Context) error) {
+				if err := fn(ctx); err != nil {
+					log.WithError(err).Fatal("Failed to start worker")
+				}
 			}
+
+			log.Info("Starting workers")
+
+			if err := workers.Setup(); err != nil {
+				log.WithError(err).Fatal("Failed to setup workers")
+			}
+
+			start(ctx, workers.StartCleaner)
+
+			log.Info("Workers started")
 		}()
 
 		return startServer(cfg)
