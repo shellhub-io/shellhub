@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     @click="showDialog = true"
-    v-bind="$props"
+    v-bind="$attrs, $props"
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
@@ -184,6 +184,7 @@ export default defineComponent({
       default: false,
     },
   },
+  inheritAttrs: false,
   setup(props, ctx) {
     const showDialog = ref(false);
     const choiceUsername = ref("all");
@@ -450,11 +451,12 @@ export default defineComponent({
             INotificationsSuccess.firewallRuleCreating
           );
           update();
-        } catch {
+        } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.firewallRuleCreating
           );
+          throw new Error(error);
         }
       }
     };

@@ -109,6 +109,7 @@ export default defineComponent({
             "snackbar/showSnackbarErrorAction",
             INotificationsError.deviceRename
           );
+          throw new Error(error);
         }
       }
     };

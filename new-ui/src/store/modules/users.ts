@@ -33,31 +33,59 @@ export const users: Module<UsersState, State> = {
 
   actions: {
     async signUp(context, data) {
-      await apiUser.signUp(data);
+      try {
+        await apiUser.signUp(data);
+      } catch (error) {
+        throw error;
+      }
     },
 
     async patchData(context, data) {
-      await apiUser.patchUserData(data);
+      try {
+        await apiUser.patchUserData(data);
+      } catch (error) {
+        throw error;
+      }
     },
 
     async patchPassword(context, data) {
-      await apiUser.patchUserPassword(data);
+      try {
+        await apiUser.patchUserPassword(data);
+      } catch (error) {
+        throw error;
+      }
     },
 
     async resendEmail(context, username) {
-      await apiUser.postResendEmail(username);
+      try {
+        await apiUser.postResendEmail(username);
+      } catch (error) {
+        throw error;
+      }
     },
 
     async recoverPassword(context, email) {
-      await apiUser.postRecoverPassword(email);
+      try {
+        await apiUser.postRecoverPassword(email);
+      } catch (error) {
+        throw error;
+      }
     },
 
     async validationAccount(context, data) {
-      await apiUser.postValidationAccount(data);
+      try {
+        await apiUser.postValidationAccount(data);
+      } catch (error) {
+        throw error;
+      }
     },
 
     async updatePassword(context, data) {
-      await apiUser.postUpdatePassword(data);
+      try {
+        await apiUser.postUpdatePassword(data);
+      } catch (error) {
+        throw error;
+      }
     },
 
     setStatusUpdateAccountDialog(context, status) {

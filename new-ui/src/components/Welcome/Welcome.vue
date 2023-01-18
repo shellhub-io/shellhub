@@ -138,8 +138,9 @@ export default defineComponent({
             el.value = 3;
             clearTimeout(polling.value);
           }
-        } catch {
+        } catch (error: any) {
           store.dispatch("snackbar/showSnackbarErrorDefault");
+          throw new Error(error);
         }
       }, 3000);
     };
@@ -153,11 +154,12 @@ export default defineComponent({
         store.dispatch("stats/get");
 
         el.value = 4;
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceAccepting
         );
+        throw new Error(error);
       }
     };
 

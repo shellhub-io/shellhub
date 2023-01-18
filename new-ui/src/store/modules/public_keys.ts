@@ -64,7 +64,11 @@ export const publicKeys: Module<PublicKeysState, State> = {
 
   actions: {
     post: async (context, data) => {
-      await apiPublicKey.postPublicKey(data);
+      try {
+        await apiPublicKey.postPublicKey(data);
+      } catch (error) {
+        throw error;
+      }
     },
 
     fetch: async (context, data) => {
@@ -107,7 +111,11 @@ export const publicKeys: Module<PublicKeysState, State> = {
     },
 
     put: async (context, data) => {
-      await apiPublicKey.putPublicKey(data);
+      try {
+        await apiPublicKey.putPublicKey(data);
+      } catch (error) {
+        throw error;
+      }
     },
 
     resetPagePerpage: async (context) => {
@@ -115,7 +123,11 @@ export const publicKeys: Module<PublicKeysState, State> = {
     },
 
     remove: async (context, fingerprint) => {
-      await apiPublicKey.removePublicKey(fingerprint);
+      try {
+        await apiPublicKey.removePublicKey(fingerprint);
+      } catch (error) {
+        throw error;
+      }
     },
   },
 };

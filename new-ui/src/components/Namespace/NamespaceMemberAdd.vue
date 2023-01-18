@@ -160,6 +160,7 @@ export default defineComponent({
               "snackbar/showSnackbarErrorAction",
               INotificationsError.namespaceNewMember
             );
+            throw new Error(error);
           }
         }
       }

@@ -419,11 +419,12 @@ export default defineComponent({
             INotificationsSuccess.firewallRuleCreating
           );
           update();
-        } catch {
+        } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.firewallRuleCreating
           );
+          throw new Error(error);
         }
       }
     };

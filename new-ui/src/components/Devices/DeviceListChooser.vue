@@ -126,11 +126,13 @@ export default defineComponent({
       } catch (error: any) {
         if (error.response.status === 403) {
           store.dispatch("snackbar/showSnackbarErrorAssociation");
+          throw new Error(error);
         } else {
           store.dispatch(
             "snackbar/showSnackbarErrorLoading",
             INotificationsError.deviceList
           );
+          throw new Error(error);
         }
       }
     };

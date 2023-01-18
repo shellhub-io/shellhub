@@ -92,11 +92,12 @@ export default defineComponent({
             "snackbar/showSnackbarSuccessAction",
             INotificationsSuccess.recoverPassword
           );
-        } catch {
+        } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.recoverPassword
           );
+          throw new Error(error);
         }
       }
     };

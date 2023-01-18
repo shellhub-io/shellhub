@@ -175,11 +175,12 @@ export default defineComponent({
       try {
         await store.dispatch("sessions/get", sessionId.value);
         session.value = store.getters["sessions/get"];
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.sessionDetails
         );
+        throw new Error(error);
       }
     });
 
@@ -193,11 +194,12 @@ export default defineComponent({
       try {
         await store.dispatch("sessions/get", sessionId.value);
         session.value = store.getters["sessions/get"];
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.sessionDetails
         );
+        throw new Error(error);
       }
     };
 

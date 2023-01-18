@@ -55,17 +55,22 @@ export const announcement: Module<AnnouncementState, State> = {
 
   actions: {
     async getListAnnouncements({ commit }, { page, perPage, orderBy }) {
-      const res = await apiAnnouncement.getListAnnouncements(page, perPage, orderBy);
-
-      if (res.data) {
-        commit("setAnnouncements", res.data);
-        commit("setPageAndPerPage", { page, perPage });
-        commit("setOrderBy", orderBy);
-        return res.data;
+      try {
+        const res = await apiAnnouncement.getListAnnouncements(page, perPage, orderBy);
+  
+        if (res.data) {
+          commit("setAnnouncements", res.data);
+          commit("setPageAndPerPage", { page, perPage });
+          commit("setOrderBy", orderBy);
+          return res.data;
+        }
+  
+        commit("clearAnnouncements");
+        return false;
+      } catch (error) {
+        commit("clearAnnouncements");
+        throw error;;
       }
-
-      commit("clearAnnouncements");
-      return false;
     },
 
     async getAnnouncement({ commit }, uuid) {

@@ -191,22 +191,24 @@ export default defineComponent({
     const refreshFirewallRule = async () => {
       try {
         await store.dispatch("firewallRules/refresh");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.firewallRuleList
         );
+        throw new Error(error);
       }
     };
 
     const refreshPublicKey = async () => {
       try {
         await store.dispatch("publicKeys/refresh");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.publicKeyList
         );
+        throw new Error(error);
       }
     };
 

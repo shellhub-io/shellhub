@@ -175,13 +175,14 @@ export default defineComponent({
             }
             case error.response.status === 403: {
               store.dispatch("snackbar/showSnackbarErrorAssociation");
-              break;
+              throw new Error(error); 
             }
             default: {
               store.dispatch(
                 "snackbar/showSnackbarErrorLoading",
                 INotificationsError.notificationList
               );
+              throw new Error(error); 
             }
           }
         }

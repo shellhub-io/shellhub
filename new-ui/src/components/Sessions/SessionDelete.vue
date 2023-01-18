@@ -78,11 +78,12 @@ export default defineComponent({
           INotificationsSuccess.sessionRemoveRecord
         );
         ctx.emit("update");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.sessionRemoveRecord
         );
+        throw new Error(error);
       }
     };
 

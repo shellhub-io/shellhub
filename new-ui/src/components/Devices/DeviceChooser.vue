@@ -178,13 +178,14 @@ export default defineComponent({
 
       try {
         await store.dispatch('devices/postDevicesChooser', { choices });
-        // store.dispatch('snackbar/showSnackbarSuccessAction', INotificationsSuccess.deviceChooser);
+        store.dispatch('snackbar/showSnackbarSuccessAction', INotificationsSuccess.deviceChooser);
 
         store.dispatch('devices/refresh');
 
         close();
-      } catch {
-        // store.dispatch('snackbar/showSnackbarErrorAction', INotificationsError.deviceChooser);
+      } catch (error: any) {
+        store.dispatch('snackbar/showSnackbarErrorAction', INotificationsError.deviceChooser);
+        throw new Error(error);
       }
 
       store.dispatch('stats/get');

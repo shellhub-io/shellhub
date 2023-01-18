@@ -1,5 +1,5 @@
 <template>
-  <v-table data-test="tagListList-dataTable" class="bg-v-theme-surface">
+  <v-table v-bind="$attrs, $props" data-test="tagListList-dataTable" class="bg-v-theme-surface">
     <thead>
       <tr>
         <th
@@ -38,7 +38,7 @@
                 <template v-slot:activator="{ props }">
                   <TagRemove
                     v-bind="props"
-                    :tag-name="tag"
+                    :tag="tag"
                     :not-has-authorization="!hasAuthorizationRemove()"
                     @update="getTags()"
                   />
@@ -66,6 +66,7 @@ import TagEdit from "./TagEdit.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
 
 export default defineComponent({
+  inheritAttrs: true,
   setup() {
     const store = useStore();
     const tags = computed(() => {
@@ -94,11 +95,12 @@ export default defineComponent({
     const getTags = async () => {
       try {
         await store.dispatch("tags/fetch");
-      } catch (error) {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.deviceTagList
         );
+        throw new Error(error);
       }
     };
     return {

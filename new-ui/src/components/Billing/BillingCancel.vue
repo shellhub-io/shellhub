@@ -86,8 +86,9 @@ export default defineComponent({
 
         store.dispatch('devices/setDeviceChooserStatus', store.getters['stats/stats'].registered_devices > 3);
         router.push({ name: 'profileSettings' });
-      } catch {
+      } catch (error: any) {
         store.dispatch('snackbar/showSnackbarErrorAction', INotificationsError.cancelSubscription);
+        throw new Error(error); 
       }
     };
     return {

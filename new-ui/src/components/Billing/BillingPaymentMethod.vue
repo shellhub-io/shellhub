@@ -133,7 +133,11 @@ export default defineComponent({
     });
 
     onMounted(() => {
-      store.dispatch("stats/get");
+      try {
+        store.dispatch("stats/get");
+      } catch (error: any) {
+        throw new Error(error); 
+      }
     });
 
     onBeforeMount(() => {
@@ -293,6 +297,7 @@ export default defineComponent({
           if (status === 400 || status === 423) {
             showError(error);
           }
+          throw new Error(error); 
         }
       } else {
         displayError(result.error);

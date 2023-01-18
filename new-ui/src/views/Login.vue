@@ -234,6 +234,7 @@ export default defineComponent({
             }
             default: {
               store.dispatch("snackbar/showSnackbarErrorDefault");
+              throw new Error(error);
             }
           }
         }

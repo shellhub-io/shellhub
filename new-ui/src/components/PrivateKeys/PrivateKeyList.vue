@@ -76,7 +76,11 @@ export default defineComponent({
     });
 
     const getPrivateKeys = async () => {
-      await store.dispatch("privateKey/fetch");
+      try {
+        await store.dispatch("privateKey/fetch");
+      } catch (error: any) {
+        throw new Error(error);
+      }
     };
 
     return {

@@ -1,5 +1,5 @@
 <template>
-  <v-list-item @click="showDialog = true" :disabled="notHasAuthorization">
+  <v-list-item v-bind="$attrs, $props" @click="showDialog = true" :disabled="notHasAuthorization">
     <div class="d-flex align-center">
       <div data-test="remove-icon" class="mr-2">
         <v-icon data-test="remove-icon"> mdi-delete </v-icon>
@@ -77,11 +77,12 @@ export default defineComponent({
           INotificationsSuccess.publicKeyDeleting
         );
         ctx.emit("update");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.publicKeyDeleting
         );
+        throw new Error(error);
       } finally {
         showDialog.value = false;
       }

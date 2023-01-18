@@ -135,6 +135,7 @@ export default defineComponent({
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceAccepting
         );
+        throw new Error(error);
       }
     };
 
@@ -143,13 +144,14 @@ export default defineComponent({
         await store.dispatch("devices/reject", props.uid);
         refreshStats();
         refreshDevices();
-      } catch {
+      } catch (error: any){
         close();
 
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceRejecting
         );
+        throw new Error(error);
       }
     };
 
@@ -157,13 +159,14 @@ export default defineComponent({
       try {
         await store.dispatch("devices/remove", props.uid);
         refreshDevices();
-      } catch {
+      } catch (error: any) {
         close();
 
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceDelete
         );
+        throw new Error(error);
       }
     };
 
@@ -179,19 +182,21 @@ export default defineComponent({
         }
 
         close();
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.deviceList
         );
+        throw new Error(error);
       }
     };
 
     const refreshStats = async () => {
       try {
         await store.dispatch("stats/get");
-      } catch {
+      } catch (error: any) {
         store.dispatch("snackbar/showSnackbarErrorDefault");
+        throw new Error(error);
       }
     };
 

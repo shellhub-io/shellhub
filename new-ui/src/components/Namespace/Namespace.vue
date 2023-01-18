@@ -111,6 +111,7 @@ export default defineComponent({
               "snackbar/showSnackbarErrorLoading",
               INotificationsError.namespaceLoad
             );
+            throw new Error(error);
           }
         }
       }
@@ -130,13 +131,14 @@ export default defineComponent({
           }
           case error.response.status === 403: {
             store.dispatch("snackbar/showSnackbarErrorAssociation");
-            break;
+            throw new Error(error);
           }
           default: {
             store.dispatch(
               "snackbar/showSnackbarErrorLoading",
               INotificationsError.namespaceList
             );
+            throw new Error(error);
           }
         }
       }
@@ -147,11 +149,12 @@ export default defineComponent({
           tenant_id: tenantId,
         });
         window.location.reload();
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.namespaceSwitch
         );
+        throw new Error(error);
       }
     };
     return {

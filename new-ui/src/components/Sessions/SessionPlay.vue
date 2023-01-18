@@ -220,11 +220,12 @@ export default defineComponent({
         await nextTick().then(() => {
           connect();
         });
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.sessionPlay
         );
+        throw new Error(error);
       }
     };
 

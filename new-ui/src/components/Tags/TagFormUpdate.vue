@@ -1,5 +1,5 @@
 <template>
-  <v-list-item v-bind="$props, $attrs" @click="showDialog = true">
+  <v-list-item v-bind="$attrs, $props" @click="showDialog = true">
     <div class="d-flex align-center">
       <div class="mr-2">
         <v-icon> mdi-tag </v-icon>
@@ -80,6 +80,7 @@ export default defineComponent({
     },
   },
   emits: ["update"],
+  inheritAttrs: true,
   setup(props, ctx) {
     const store = useStore();
     const showDialog = ref(false);
@@ -143,6 +144,7 @@ export default defineComponent({
               "snackbar/showSnackbarErrorAction",
               INotificationsError.deviceTagUpdate
             );
+            throw new Error(error);
           }
         }
       }

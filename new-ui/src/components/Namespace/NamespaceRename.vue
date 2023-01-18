@@ -116,6 +116,7 @@ export default defineComponent({
               "snackbar/showSnackbarErrorAction",
               INotificationsError.namespaceEdit
             );
+            throw new Error(error);
           }
         }
       }

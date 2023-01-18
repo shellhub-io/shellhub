@@ -53,8 +53,9 @@ export default defineComponent({
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.namespaceEdit
         );
-      } catch {
+      } catch (error: any) {
         store.dispatch("snackbar/showSnackbarErrorDefault");
+        throw new Error(error);
       }
     });
 
@@ -74,8 +75,9 @@ export default defineComponent({
         if (props.hasTenant) {
           await store.dispatch("security/get");
         }
-      } catch {
+      } catch (error: any) {
         store.dispatch("snackbar/showSnackbarErrorDefault");
+        throw new Error(error);
       }
     });
 

@@ -36,7 +36,6 @@
       >
       for more information and alternative install methods.
     </p>
-    <!-- ! old url -->
   </div>
 </template>
 

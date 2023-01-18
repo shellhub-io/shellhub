@@ -106,11 +106,12 @@ export default defineComponent({
           tenant_id: tenant,
         });
         window.location.reload();
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.namespaceSwitch
         );
+        throw new Error(error);
       }
     };
 
@@ -150,6 +151,7 @@ export default defineComponent({
               "snackbar/showSnackbarErrorAction",
               INotificationsError.namespaceCreating
             );
+            throw new Error(error);
           }
         }
       }

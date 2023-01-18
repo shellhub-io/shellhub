@@ -132,6 +132,7 @@ import TerminalDialog from "../components/Terminal/TerminalDialog.vue";
 
 export default defineComponent({
   name: "DeviceDetails",
+  inheritAttrs: true,
   setup() {
     const store = useStore();
     const route = useRoute();
@@ -141,11 +142,12 @@ export default defineComponent({
     onMounted(async () => {
       try {
         await store.dispatch("devices/get", deviceId.value);
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceDetails
         );
+        throw new Error(error);
       }
     });
     const deviceIsEmpty = computed(
@@ -157,11 +159,12 @@ export default defineComponent({
     const refreshUsers = async () => {
       try {
         await store.dispatch("devices/get", deviceId.value);
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceDetails
         );
+        throw new Error(error);
       }
     };
 
