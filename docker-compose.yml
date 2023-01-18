@@ -26,6 +26,7 @@ services:
     image: shellhubio/api:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
+      - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - PRIVATE_KEY=/run/secrets/api_private_key
       - PUBLIC_KEY=/run/secrets/api_public_key
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
