@@ -83,11 +83,12 @@ export default defineComponent({
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.namespaceDelete
         );
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.namespaceRemoveUser
         );
+        throw new Error(error);
       }
     };
 

@@ -1,5 +1,5 @@
 <template>
-  <v-list-item @click="showDialog = true" :disabled="notHasAuthorization">
+  <v-list-item @click="showDialog = true" v-bind="$attrs, $props" :disabled="notHasAuthorization">
     <div class="d-flex align-center">
       <div class="mr-2">
         <v-icon> mdi-delete </v-icon>
@@ -49,7 +49,7 @@ import { useStore } from "../../store";
 
 export default defineComponent({
   props: {
-    tagName: {
+    tag: {
       type: String,
       required: true,
     },
@@ -59,24 +59,26 @@ export default defineComponent({
     },
   },
   emits: ["update"],
+  inheritAttrs: true,
   setup(props, ctx) {
     const showDialog = ref(false);
     const store = useStore();
 
     const remove = async () => {
       try {
-        await store.dispatch("tags/remove", props.tagName);
+        await store.dispatch("tags/remove", props.tag);
 
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.deviceTagDelete
         );
         ctx.emit("update");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceTagDelete
         );
+        throw new Error(error);
       } finally {
         showDialog.value = false;
       }

@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     @click="showDialog = true"
-    v-bind="$props"
+    v-bind="$attrs, $props"
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
@@ -83,11 +83,12 @@ export default defineComponent({
           INotificationsSuccess.firewallRuleDeleting
         );
         ctx.emit("update");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.firewallRuleDeleting
         );
+        throw new Error(error);
       } finally {
         showDialog.value = false;
       }

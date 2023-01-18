@@ -69,11 +69,12 @@ export default defineComponent({
           INotificationsSuccess.privateKeyDeleting
         );
         ctx.emit("update");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.privateKeyDeleting
         );
+        throw new Error(error);
       } finally {
         showDialog.value = false;
       }

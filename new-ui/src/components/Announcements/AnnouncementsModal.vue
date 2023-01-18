@@ -106,5 +106,13 @@ export default defineComponent({
   img {
     max-width: 100%;
   }
+
+  blockquote {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 40px;
+    margin-inline-end: 40px;
+  }
 }
 </style>

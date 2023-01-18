@@ -49,11 +49,12 @@ export default defineComponent({
     const refresh = async () => {
       try {
         await store.dispatch("publicKeys/refresh");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.firewallRuleList
         );
+        throw new Error(error);
       }
     };
 

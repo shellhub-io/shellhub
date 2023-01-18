@@ -70,24 +70,28 @@ export default defineComponent({
         return;
       }
 
-      await store.dispatch("announcement/getListAnnouncements", {
-        page: 1,
-        perPage: 1,
-        orderBy: "desc",
-      });
-
-      if (announcements.value.length > 0) {
-        const announcementTest = announcements.value[0];
-        await store.dispatch(
-          "announcement/getAnnouncement",
-          announcementTest.uuid
-          );
-        
-        const announcementStorage = localStorage.getItem("announcement");
-        const lastAnnouncementEncoded = btoa(JSON.stringify(announcement.value))
-        if (announcementStorage !== lastAnnouncementEncoded) {
-          showAnnouncements.value = true;
+      try {
+        await store.dispatch("announcement/getListAnnouncements", {
+          page: 1,
+          perPage: 1,
+          orderBy: "desc",
+        });
+  
+        if (announcements.value.length > 0) {
+          const announcementTest = announcements.value[0];
+          await store.dispatch(
+            "announcement/getAnnouncement",
+            announcementTest.uuid
+            );
+          
+          const announcementStorage = localStorage.getItem("announcement");
+          const lastAnnouncementEncoded = btoa(JSON.stringify(announcement.value))
+          if (announcementStorage !== lastAnnouncementEncoded) {
+            showAnnouncements.value = true;
+          }
         }
+      } catch (error: any) {
+        throw new Error(error);
       }
     };
 
@@ -124,11 +128,12 @@ export default defineComponent({
           // this shows the namespace instructions when the user has no namespace
           showInstructions.value = true;
         }
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.namespaceList
         );
+        throw new Error(error);
       }
     };
 

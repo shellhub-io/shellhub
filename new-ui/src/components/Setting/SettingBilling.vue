@@ -305,9 +305,10 @@ export default defineComponent({
         try {
           await store.dispatch("billing/getSubscription");
           renderData.value = true;
-        } catch {
+        } catch (error: any) {
           renderData.value = false;
           store.dispatch("snackbar/showSnackbarErrorDefault");
+          throw new Error(error);
         }
       }
     };
@@ -315,11 +316,12 @@ export default defineComponent({
     const updateNamespace = async () => {
       try {
         await store.dispatch("namespaces/get", localStorage.getItem("tenant"));
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.namespaceLoad
         );
+        throw new Error(error);
       }
     };
 

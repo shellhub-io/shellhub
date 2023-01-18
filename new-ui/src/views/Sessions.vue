@@ -34,11 +34,12 @@ export default defineComponent({
 
         await store.dispatch("sessions/refresh");
         show.value = true;
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.sessionList
         );
+        throw new Error(error);
       }
     });
 

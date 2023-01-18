@@ -188,6 +188,7 @@ export default defineComponent({
                 "snackbar/showSnackbarErrorNotRequest",
                 INotificationsError.privateKeyCreating
               );
+              throw new Error(error);
             }
           }
         }

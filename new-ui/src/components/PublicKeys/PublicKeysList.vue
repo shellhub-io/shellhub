@@ -1,6 +1,7 @@
 <template>
   <div>
     <DataTable
+      v-bind="$attrs, $props"
       :headers="headers"
       :items="publicKeys"
       :itemsPerPage="itemsPerPage"
@@ -157,10 +158,14 @@ export default defineComponent({
     });
 
     onMounted(async () => {
-      await store.dispatch("publicKeys/fetch", {
-        perPage: itemsPerPage.value,
-        page: page.value,
-      });
+      try {
+        await store.dispatch("publicKeys/fetch", {
+          perPage: itemsPerPage.value,
+          page: page.value,
+        });
+      } catch (error: any){
+        throw new Error(error);
+      }
     });
 
     const getPublicKeysList = async (
@@ -180,11 +185,12 @@ export default defineComponent({
             page.value--;
           }
           loading.value = false;
-        } catch {
+        } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorLoading",
             INotificationsError.publicKeyList
           );
+          throw new Error(error);
         }
       } else {
         store.dispatch("box/setStatus", false);
@@ -199,8 +205,9 @@ export default defineComponent({
       try {
         if (page.value > 1)
           await getPublicKeysList(itemsPerPage.value, --page.value);
-      } catch (error) {
+      } catch (error: any) {
         store.dispatch("snackbar/setSnackbarErrorDefault");
+        throw new Error(error);
       }
     };
 

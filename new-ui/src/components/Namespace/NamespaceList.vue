@@ -38,11 +38,12 @@ export default defineComponent({
         });
 
         window.location.reload();
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.namespaceSwitch
         );
+        throw new Error(error);
       }
     };
     return {

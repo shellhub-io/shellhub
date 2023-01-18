@@ -67,8 +67,9 @@ export default defineComponent({
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.resendEmail
         );
-      } catch {
+      } catch (error: any) {
         store.dispatch("snackbar/showSnackbarErrorDefault");
+        throw new Error(error); 
       }
     };
 

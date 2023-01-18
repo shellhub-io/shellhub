@@ -82,11 +82,12 @@ export default defineComponent({
           INotificationsSuccess.updateSubscription
         );
         ctx.emit("update");
-      } catch (error) {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.subscription
         );
+        throw new Error(error); 
       }
     };
     const deletePaymentMethod = async (paymentMethodId: string) => {
@@ -97,11 +98,12 @@ export default defineComponent({
           INotificationsSuccess.updateSubscription
         );
         ctx.emit("update");
-      } catch (error) {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deletePaymentMethod
         );
+        throw new Error(error); 
       }
     };
     return {

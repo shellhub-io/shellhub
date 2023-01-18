@@ -171,11 +171,12 @@ export default defineComponent({
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.updatingAccount
         );
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.updatingAccount
         );
+        throw new Error(error);
       }
     };
 

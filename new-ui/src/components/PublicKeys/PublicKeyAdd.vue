@@ -1,5 +1,5 @@
 <template>
-  <v-tooltip location="bottom" :disabled="hasAuthorization">
+  <v-tooltip v-bind="$attrs, $props" location="bottom" :disabled="hasAuthorization">
     <template v-slot:activator="{ props }">
       <v-btn
         v-bind="props"
@@ -372,6 +372,7 @@ export default defineComponent({
               "snackbar/showSnackbarErrorAction",
               INotificationsError.publicKeyCreating
             );
+            throw new Error(error);
           }
         }
       }

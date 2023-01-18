@@ -115,11 +115,12 @@ export default defineComponent({
           sortStatusField: "",
           sortStatusString: "",
         });
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.devicePending
         );
+        throw new Error(error);
       } finally {
         loading.value = false;
       }
@@ -143,11 +144,12 @@ export default defineComponent({
         }
 
         loading.value = false;
-      } catch (error) {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.devicePending
         );
+        throw new Error(error);
       }
     };
 
@@ -174,8 +176,9 @@ export default defineComponent({
     const prev = async () => {
       try {
         if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
-      } catch (error) {
+      } catch (error: any) {
         store.dispatch("snackbar/setSnackbarErrorDefault");
+        throw new Error(error);
       }
     };
 

@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     @click="showDialog = true"
-    v-bind="$props"
+    v-bind="$attrs, $props"
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
@@ -72,6 +72,7 @@ export default defineComponent({
     },
   },
   emits: ["update"],
+  inheritAttrs: true,
   setup(props, ctx) {
     const store = useStore();
     const showDialog = ref(false);
@@ -110,11 +111,12 @@ export default defineComponent({
             "snackbar/showSnackbarSuccessAction",
             INotificationsSuccess.deviceTagEdit
           );
-        } catch {
+        } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.deviceTagEdit
           );
+          throw new Error(error);
         }
       }
     };

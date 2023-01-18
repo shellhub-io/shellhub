@@ -79,13 +79,11 @@ export default defineComponent({
     };
 
     const hasDevice = computed(() => {
-      return true;
-      // TODO: route returning 404
-      // return (
-      //   store.getters["stats/stats"].registered_devices > 0 ||
-      //   store.getters["stats/stats"].pending_devices > 0 ||
-      //   store.getters["stats/stats"].rejected_devices > 0
-      // );
+      return (
+        store.getters["stats/stats"].registered_devices > 0 ||
+        store.getters["stats/stats"].pending_devices > 0 ||
+        store.getters["stats/stats"].rejected_devices > 0
+      );
     });
 
     const isDeviceList = computed(() => {
@@ -106,6 +104,7 @@ export default defineComponent({
         } else {
           store.dispatch("snackbar/showSnackbarErrorDefault");
         }
+        throw new Error(error);
       }
     });
 

@@ -86,11 +86,12 @@ export default defineComponent({
           INotificationsSuccess.deviceDelete
         );
         ctx.emit("update");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceDelete
         );
+        throw new Error(error);
       } finally {
         showDialog.value = false;
       }

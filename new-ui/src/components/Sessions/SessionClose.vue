@@ -86,11 +86,12 @@ export default defineComponent({
           INotificationsSuccess.sessionClose
         );
         ctx.emit("update");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.sessionClose
         );
+        throw new Error(error);
       }
     };
 

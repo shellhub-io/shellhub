@@ -194,6 +194,7 @@ export default defineComponent({
               "snackbar/showSnackbarErrorLoading",
               INotificationsError.sessionList
             );
+            throw new Error(error);
           }
         } finally {
           loading.value = false;

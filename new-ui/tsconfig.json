@@ -18,6 +18,8 @@
       "@/*": ["src/*"],
     },
     "noImplicitAny": false,
+    "sourceRoot": "/",
+    "inlineSources": true,
   },
   "typeAcquisition": { "enable": true },
   "include": [

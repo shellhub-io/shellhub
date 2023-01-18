@@ -96,6 +96,7 @@ export default defineComponent({
             INotificationsError.dashboard
           );
         }
+        throw new Error(error);
       }
     });
 

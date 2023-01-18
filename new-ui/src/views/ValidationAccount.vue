@@ -124,6 +124,7 @@ export default defineComponent({
         } else {
           activationProcessingStatus.value = "failed";
         }
+        throw new Error(error);
       }
     };
 

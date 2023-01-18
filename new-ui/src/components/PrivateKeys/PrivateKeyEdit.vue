@@ -140,11 +140,12 @@ export default defineComponent({
             INotificationsSuccess.privateKeyEditing
           );
           update();
-        } catch {
+        } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.publicKeyEditing
           );
+          throw new Error(error);
         }
       }
     };

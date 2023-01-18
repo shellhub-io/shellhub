@@ -101,13 +101,16 @@ export const billing: Module<NamespacesState, State> = {
     },
 
     getSubscription: async (context) => {
-      const res = await apiBilling.getSubscriptionInfo();
-      if (res.status === 200) {
-        const { billing } = context.state;
-        const data = infoExtract(res.data, billing.current_period_end); // TODO
-        context.commit("setGetSubscription", data);
+      try {
+        const res = await apiBilling.getSubscriptionInfo();
+        if (res.status === 200) {
+          const { billing } = context.state;
+          const data = infoExtract(res.data, billing.current_period_end); // TODO
+          context.commit("setGetSubscription", data);
+        }
+      } catch (error) {
+        throw error;
       }
-      return new Error("failed to get subscrition");
     },
 
     getPagination: (context, data) => {
@@ -115,30 +118,46 @@ export const billing: Module<NamespacesState, State> = {
     },
 
     updatePaymentMethod: async (context, id) => {
-      const res = await apiBilling.updatePaymentMethod(id);
-      if (res.status === 200) {
-        context.commit("setUpdatePaymentMethod", id);
+      try {
+        const res = await apiBilling.updatePaymentMethod(id);
+        if (res.status === 200) {
+          context.commit("setUpdatePaymentMethod", id);
+        }
+      } catch (error) {
+        throw error;
       }
     },
 
     addPaymentMethod: async (context, data) => {
-      const res = await apiBilling.addPaymentMethod(data);
-      if (res.status === 200) {
-        context.commit("setPaymentMethod", data);
+      try {
+        const res = await apiBilling.addPaymentMethod(data);
+        if (res.status === 200) {
+          context.commit("setPaymentMethod", data);
+        }
+      } catch (error) {
+        throw error;
       }
     },
 
     removePaymentMethod: async (context, id) => {
-      const res = await apiBilling.removePaymentMethod(id);
-      if (res.status === 200) {
-        context.commit("setDeletePaymentMethod", id);
+      try {
+        const res = await apiBilling.removePaymentMethod(id);
+        if (res.status === 200) {
+          context.commit("setDeletePaymentMethod", id);
+        }
+      } catch (error) {
+        throw error;
       }
     },
 
     cancelSubscription: async (context) => {
-      const res = await apiBilling.cancelSubscription();
-      if (res.status === 200) {
-        context.commit("deactivateSubscription");
+      try {
+        const res = await apiBilling.cancelSubscription();
+        if (res.status === 200) {
+          context.commit("deactivateSubscription");
+        }
+      } catch (error) {
+        throw error;
       }
     },
   },

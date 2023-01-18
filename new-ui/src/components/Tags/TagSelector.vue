@@ -1,6 +1,6 @@
 <template>
   <div class="mr-4">
-    <v-menu location="bottom" scrim eager>
+    <v-menu location="bottom" v-bind="$attrs, $props" scrim eager>
       <template v-slot:activator="{ props }">
         <v-badge
           bordered
@@ -60,6 +60,7 @@ import { AnyObject } from "yup/lib/object";
 import { useStore } from "../../store";
 
 export default defineComponent({
+  inheritAttrs: true,
   setup() {
     const store = useStore();
 
@@ -113,8 +114,10 @@ export default defineComponent({
       } catch (error: any) {
         if (error.response.status === 403) {
           store.dispatch("snackbar/showSnackbarErrorAssociation");
+          throw new Error(error);
         } else {
           store.dispatch("snackbar/showSnackbarErrorDefault");
+          throw new Error(error);
         }
       }
     };

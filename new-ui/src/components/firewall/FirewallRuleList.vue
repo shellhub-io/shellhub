@@ -167,11 +167,13 @@ export default defineComponent({
         } catch (error: any) {
           if (error.response.status === 403) {
             store.dispatch("snackbar/showSnackbarErrorAssociation");
+            throw new Error(error);
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorLoading",
               INotificationsError.firewallRuleList
             );
+            throw new Error(error);
           }
         } finally {
           loading.value = false;
@@ -204,8 +206,13 @@ export default defineComponent({
     });
 
     const refreshFirewallRules = async () => {
-      await store.dispatch("firewallRules/refresh");
-      getFirewalls(itemsPerPage.value, page.value);
+      try {
+        await store.dispatch("firewallRules/refresh");
+        getFirewalls(itemsPerPage.value, page.value);
+      } catch (error: any) {
+        store.dispatch("snackbar/setSnackbarErrorDefault");
+        throw new Error(error);
+      }
     };
 
     const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);

@@ -283,6 +283,7 @@ export default defineComponent({
             });
           } else {
             store.dispatch("snackbar/showSnackbarErrorDefault");
+            throw new Error(error);
           }
         }
       }
@@ -325,6 +326,7 @@ export default defineComponent({
             setNewPasswordConfirmError("Your password doesn't match");
           } else {
             store.dispatch("snackbar/showSnackbarErrorDefault");
+            throw new Error(error);
           }
         }
       }

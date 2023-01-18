@@ -165,11 +165,19 @@ export const devices: Module<DevicesState, State> = {
     },
 
     accept: async (context, uid) => {
-      await apiDevice.acceptDevice(uid);
+      try {
+        await apiDevice.acceptDevice(uid);
+      } catch (error) {
+        throw error;
+      }
     },
 
     reject: async (context, uid) => {
-      await apiDevice.rejectDevice(uid);
+      try {
+        await apiDevice.rejectDevice(uid);
+      } catch (error) {
+        throw error;
+      }
     },
 
     setFilter: async (context, filter) => {
@@ -264,7 +272,11 @@ export const devices: Module<DevicesState, State> = {
     },
 
     postDevicesChooser: async (context, data) => {
-      await apiBilling.postDevicesChooser(data);
+      try {
+        await apiBilling.postDevicesChooser(data);
+      } catch (error) {
+        throw error;
+      }
     },
 
     getDevicesMostUsed: async (context) => {
@@ -282,7 +294,11 @@ export const devices: Module<DevicesState, State> = {
     },
 
     updateDeviceTag: async (context, data) => {
-      await apiDevice.updateDeviceTag(data);
+      try {
+        await apiDevice.updateDeviceTag(data);
+      } catch (error) {
+        throw error;
+      }
     },
   },
 };

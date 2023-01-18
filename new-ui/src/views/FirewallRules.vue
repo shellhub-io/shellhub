@@ -56,21 +56,26 @@ export default defineComponent({
     const showBoxMessage = computed(() => !hasFirewallRule.value && show.value);
     
     onMounted(async () => {
-      store.dispatch("box/setStatus", true);
-      store.dispatch("firewallRules/resetPagePerpage");
-      await refresh();
-      store.dispatch("tags/fetch");
-      show.value = true;
+      try {
+        store.dispatch("box/setStatus", true);
+        store.dispatch("firewallRules/resetPagePerpage");
+        await refresh();
+        store.dispatch("tags/fetch");
+        show.value = true;
+      } catch (error: any) {
+        throw new Error(error);
+      }
     });
 
     const refresh = async () => {
       try {
         await store.dispatch("firewallRules/refresh");
-      } catch {
+      } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.firewallRuleList
         );
+        throw new Error(error);
       }
     };
 

@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     @click="showDialog = true"
-    v-bind="$props"
+    v-bind="$attrs, $props"
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
@@ -384,11 +384,12 @@ export default defineComponent({
             INotificationsSuccess.publicKeyEditing
           );
           update();
-        } catch {
+        } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.publicKeyEditing
           );
+          throw new Error(error);
         }
       }
     };
