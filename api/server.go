@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
 
 	"github.com/getsentry/sentry-go"
@@ -70,22 +71,36 @@ func init() {
 	}
 }
 
+// startSentry initializes the Sentry client.
+//
+// The Sentry client is used to report errors to the Sentry server, and is initialized only if the `SHELLHUB_SENTRY_DSN`
+// environment variable is set. Else, the function returns a error with a not initialized Sentry client.
+func startSentry(dsn string) (*sentry.Client, error) {
+	if dsn != "" {
+		var err error
+		reporter, err := sentry.NewClient(sentry.ClientOptions{ //nolint:exhaustruct
+			Dsn: dsn,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return reporter, nil
+	}
+
+	return nil, errors.New("sentry DSN not provided")
+}
+
 func startServer(cfg *config) error {
 	ctx := context.Background()
 
-	var reporter *sentry.Client
-	if cfg.SentryDSN != "" {
-		log.Info("Starting Sentry")
+	log.Info("Starting Sentry client")
 
-		var err error
-		reporter, err = sentry.NewClient(sentry.ClientOptions{
-			Dsn: cfg.SentryDSN,
-		})
-		if err != nil {
-			log.WithError(err).Fatal("Failed to initialize Sentry")
-		}
-
-		log.Info("Sentry initialized")
+	reporter, err := startSentry(cfg.SentryDSN)
+	if err != nil {
+		log.WithField("DSN", cfg.SentryDSN).WithError(err).Warn("Failed to start Sentry")
+	} else {
+		log.Info("Sentry client started")
 	}
 
 	log.Info("Starting API server")
