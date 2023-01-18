@@ -79,7 +79,8 @@ func startSentry(dsn string) (*sentry.Client, error) {
 	if dsn != "" {
 		var err error
 		reporter, err := sentry.NewClient(sentry.ClientOptions{ //nolint:exhaustruct
-			Dsn: dsn,
+			Dsn:     dsn,
+			Release: os.Getenv("SHELLHUB_VERSION"),
 		})
 		if err != nil {
 			return nil, err
