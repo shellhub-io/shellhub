@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"runtime"
 	"time"
 
@@ -135,6 +136,35 @@ func sessionRecordCleanup() error {
 	return nil
 }
 
+func sessionEvents(kind string, payload []byte) error {
+	ctx := context.Background()
+
+	var env envs
+	if err := envconfig.Process("api", &env); err != nil {
+		return errors.Wrap(err, "failed to load environment variables")
+	}
+
+	logrus.Trace("connecting to MongoDB")
+
+	database, err := Connect(ctx, env.MongoURI)
+	if err != nil {
+		logrus.WithError(err).Error("failed to connect to MongoDB")
+
+		return err
+	}
+
+	var decoded map[string]interface{}
+	if err := json.Unmarshal(payload, &decoded); err != nil {
+		return err
+	}
+
+	if _, err := database.Collection("events").InsertOne(ctx, bson.M{"type": kind, "payload": decoded, "date": time.Now()}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func startWorker(cfg *config) error {
 	addr, err := asynq.ParseRedisURI(cfg.RedisURI)
 	if err != nil {
@@ -154,6 +184,14 @@ func startWorker(cfg *config) error {
 	mux.HandleFunc("session_record:cleanup", func(ctx context.Context, task *asynq.Task) error {
 		if err := sessionRecordCleanup(); err != nil {
 			logrus.Error(err)
+		}
+
+		return nil
+	})
+
+	mux.HandleFunc("event:", func(ctx context.Context, task *asynq.Task) error {
+		if err := sessionEvents(task.Type(), task.Payload()); err != nil {
+			return err
 		}
 
 		return nil

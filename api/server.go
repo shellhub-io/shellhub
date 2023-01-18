@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/events"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/middleware"
 	log "github.com/sirupsen/logrus"
@@ -105,6 +106,9 @@ func startServer(cfg *config) error {
 	}
 
 	log.Info("Connected to Redis")
+
+	event := events.NewEventsAsynq(cfg.RedisURI)
+	defer event.Close()
 
 	log.Trace("Connecting to MongoDB")
 

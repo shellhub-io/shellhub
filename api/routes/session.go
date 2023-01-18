@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/events"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -72,7 +73,13 @@ func (h *Handler) SetSessionAuthenticated(c gateway.Context) error {
 		return err
 	}
 
-	return h.service.SetSessionAuthenticated(c.Ctx(), models.UID(req.UID), req.Authenticated)
+	if err := h.service.SetSessionAuthenticated(c.Ctx(), models.UID(req.UID), req.Authenticated); err != nil {
+		return err
+	}
+
+	events.Push(events.EventSessionAuthenticated, events.NewEventPayload(req, nil)) //nolint:errcheck
+
+	return nil
 }
 
 func (h *Handler) CreateSession(c gateway.Context) error {
@@ -90,6 +97,8 @@ func (h *Handler) CreateSession(c gateway.Context) error {
 		return err
 	}
 
+	events.Push(events.EventSessionCreated, events.NewEventPayload(req, session)) //nolint:errcheck
+
 	return c.JSON(http.StatusOK, session)
 }
 
@@ -103,7 +112,13 @@ func (h *Handler) FinishSession(c gateway.Context) error {
 		return err
 	}
 
-	return h.service.DeactivateSession(c.Ctx(), models.UID(req.UID))
+	if err := h.service.DeactivateSession(c.Ctx(), models.UID(req.UID)); err != nil {
+		return err
+	}
+
+	events.Push(events.EventSessionFinished, events.NewEventPayload(req, nil)) //nolint:errcheck
+
+	return nil
 }
 
 func (h *Handler) KeepAliveSession(c gateway.Context) error {
