@@ -9,14 +9,14 @@ const formatDate = (date: string) => {
 
 export const formatDateCompact = (date: string) => {
   if (date) {
-    return moment(date).format('LLL');
+    return moment(date).format("LLL");
   }
   return null;
 };
 
 export const formatDateWithoutDayAndHours = (date : string) => {
   if (date) {
-    return moment(date).format('MMMM Do YYYY');
+    return moment(date).format("MMMM Do YYYY");
   }
   return null;
 };
@@ -26,7 +26,7 @@ export const formatDateFullAbrevied = (date : string) => {
     return moment(date).format("ddd, MMM Do YY, h:mm:ss a");
   }
   return null;
-}
+};
 
 const lastSeen = (date: string) => {
   if (date) {

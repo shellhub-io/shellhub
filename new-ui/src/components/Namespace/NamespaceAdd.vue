@@ -2,7 +2,7 @@
   <v-btn
     v-if="!firstNamespace"
     block
-    :size="isSmall ? 'small': 'default'"
+    :size="isSmall ? 'small' : 'default'"
     color="primary"
     @click="showDialog = true"
   >
@@ -47,7 +47,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from "vue";
+import { defineComponent, ref } from "vue";
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import {
@@ -74,7 +74,7 @@ export default defineComponent({
     enableSwitchIn: {
       type: Boolean,
       default: false,
-    }
+    },
   },
   emits: ["update"],
   setup(props, ctx) {
@@ -97,7 +97,7 @@ export default defineComponent({
         .matches(/^[^.]*$/, "The name must not contain dots"),
       {
         initialValue: "",
-      }
+      },
     );
 
     const switchIn = async (tenant: string) => {
@@ -109,16 +109,26 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.namespaceSwitch
+          INotificationsError.namespaceSwitch,
         );
         throw new Error(error);
       }
     };
 
+    const close = () => {
+      showDialog.value = false;
+      resetNamespaceName();
+    };
+
+    const update = () => {
+      ctx.emit("update");
+      close();
+    };
+
     const addNamespace = async () => {
       if (!namespaceNameError.value) {
         try {
-          const tenant = localStorage.getItem("tenant");
+          // const tenant = localStorage.getItem("tenant");
 
           const response = await store.dispatch("namespaces/post", namespaceName.value);
 
@@ -135,12 +145,12 @@ export default defineComponent({
 
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.namespaceCreating
+            INotificationsSuccess.namespaceCreating,
           );
         } catch (error: any) {
           if (error.response.status === 400) {
             setNamespaceNameError(
-              "Your namespace should be 3-30 characters long"
+              "Your namespace should be 3-30 characters long",
             );
           } else if (error.response.status === 403) {
             setNamespaceNameError("Update your plan to create more namespaces");
@@ -149,22 +159,12 @@ export default defineComponent({
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorAction",
-              INotificationsError.namespaceCreating
+              INotificationsError.namespaceCreating,
             );
             throw new Error(error);
           }
         }
       }
-    };
-
-    const update = () => {
-      ctx.emit("update");
-      close();
-    };
-
-    const close = () => {
-      showDialog.value = false;
-      resetNamespaceName();
     };
 
     return {

@@ -7,6 +7,8 @@
     "build": "vite build",
     "dev": "vite --host",
     "preview": "vite preview",
+    "lint": "eslint --ext .ts,.vue --ignore-path .gitignore --no-fix src",
+    "lint-fix": "eslint --ext .ts,.vue --ignore-path .gitignore --fix src",
     "test": "vitest",
     "test-ui": "vitest --ui",
     "test-coverage": "vitest run --coverage"
@@ -20,6 +22,7 @@
     "@sentry/tracing": "^7.31.1",
     "@sentry/vue": "^7.31.1",
     "@stripe/stripe-js": "^1.38.1",
+    "@vue/eslint-config-airbnb": "^7.0.0",
     "@vue/eslint-config-typescript": "^11.0.2",
     "@vue/runtime-dom": "^3.2.40",
     "assert": "^2.0.0",

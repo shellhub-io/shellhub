@@ -53,14 +53,14 @@ export const namespaces: Module<NamespacesState, State> = {
     removeNamespace: (state, id) => {
       state.namespaces.splice(
         state.namespaces.findIndex((d) => d.tenant_id === id),
-        1
+        1,
       );
     },
 
     removeMember: (state, usr) => {
       state.namespace.members.splice(
         state.namespace.members.findIndex((m: any) => m.name === usr),
-        1
+        1,
       );
     },
 
@@ -84,6 +84,7 @@ export const namespaces: Module<NamespacesState, State> = {
         const res = await apiNamespace.postNamespace(data);
         return res;
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -93,6 +94,7 @@ export const namespaces: Module<NamespacesState, State> = {
         const res = await apiNamespace.fetchNamespaces(data.page, data.perPage, data.filter);
         context.commit("setNamespaces", res);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -101,12 +103,13 @@ export const namespaces: Module<NamespacesState, State> = {
       try {
         const res = await apiNamespace.getNamespace(id);
         context.commit("setNamespace", res);
-  
+
         const { billing } = res.data;
         if (billing !== null) {
           context.commit("setBilling", billing);
         }
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -115,6 +118,7 @@ export const namespaces: Module<NamespacesState, State> = {
       try {
         await apiNamespace.putNamespace(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -126,6 +130,7 @@ export const namespaces: Module<NamespacesState, State> = {
         context.commit("clearObjectNamespace");
         context.commit("clearNamespaceList");
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -134,6 +139,7 @@ export const namespaces: Module<NamespacesState, State> = {
       try {
         await apiNamespace.addUserToNamespace(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -142,6 +148,7 @@ export const namespaces: Module<NamespacesState, State> = {
       try {
         await apiNamespace.editUserToNamespace(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -150,6 +157,7 @@ export const namespaces: Module<NamespacesState, State> = {
       try {
         await apiNamespace.removeUserFromNamespace(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -161,7 +169,7 @@ export const namespaces: Module<NamespacesState, State> = {
     switchNamespace: async (context, data) => {
       try {
         localStorage.removeItem("role");
-  
+
         const res = await apiNamespace.tenantSwitch(data);
         if (res.status === 200) {
           localStorage.setItem("token", res.data.token || "");
@@ -169,6 +177,7 @@ export const namespaces: Module<NamespacesState, State> = {
           localStorage.setItem("role", res.data.role || "");
         }
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },

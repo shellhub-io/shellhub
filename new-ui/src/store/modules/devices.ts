@@ -62,7 +62,7 @@ export const devices: Module<DevicesState, State> = {
     removeDevice: (state, uid) => {
       state.devices.splice(
         state.devices.findIndex((d) => d.uid === uid),
-        1
+        1,
       );
     },
 
@@ -97,7 +97,7 @@ export const devices: Module<DevicesState, State> = {
       state.devicesForUserToChoose = res.data;
       state.numberdevicesForUserToChoose = parseInt(
         res.headers["x-total-count"],
-        10
+        10,
       );
     },
 
@@ -140,7 +140,7 @@ export const devices: Module<DevicesState, State> = {
         commit("setPagePerpageFilter", data);
         return res;
       }
-      
+
       commit("clearListDevices", res);
       return false;
     },
@@ -168,6 +168,7 @@ export const devices: Module<DevicesState, State> = {
       try {
         await apiDevice.acceptDevice(uid);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -176,6 +177,7 @@ export const devices: Module<DevicesState, State> = {
       try {
         await apiDevice.rejectDevice(uid);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -192,7 +194,7 @@ export const devices: Module<DevicesState, State> = {
           state.filter,
           state.status,
           state.sortStatusField,
-          state.sortStatusString
+          state.sortStatusString,
         );
         commit("setDevices", res);
       } catch (error) {
@@ -227,7 +229,7 @@ export const devices: Module<DevicesState, State> = {
           null,
           "pending",
           null,
-          ""
+          "",
         );
         context.commit("setDevice", res.data[0]);
       } catch (error) {
@@ -248,7 +250,7 @@ export const devices: Module<DevicesState, State> = {
           data.filter,
           data.status,
           data.sortStatusField,
-          data.sortStatusString
+          data.sortStatusString,
         );
         if (res.data.length) {
           context.commit("setDevicesForUserToChoose", res);
@@ -275,6 +277,7 @@ export const devices: Module<DevicesState, State> = {
       try {
         await apiBilling.postDevicesChooser(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -297,6 +300,7 @@ export const devices: Module<DevicesState, State> = {
       try {
         await apiDevice.updateDeviceTag(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },

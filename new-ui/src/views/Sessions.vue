@@ -37,14 +37,14 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.sessionList
+          INotificationsError.sessionList,
         );
         throw new Error(error);
       }
     });
 
     const hasSession = computed(
-      () => store.getters["sessions/getNumberSessions"] > 0
+      () => store.getters["sessions/getNumberSessions"] > 0,
     );
     const showBoxMessage = computed(() => !hasSession.value && show.value);
 

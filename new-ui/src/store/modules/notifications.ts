@@ -1,6 +1,6 @@
 import { Module } from "vuex";
 import { State } from "./../index";
-import * as apiDevice from '../api/devices';
+import * as apiDevice from "../api/devices";
 
 export interface NotificationsState {
   notifications: Array<any>;
@@ -22,7 +22,7 @@ export const notifications: Module<NotificationsState, State> = {
   mutations: {
     setNotifications: (state, res) => {
       state.notifications = res.data;
-      state.numberNotifications = parseInt(res.headers['x-total-count'], 10);
+      state.numberNotifications = parseInt(res.headers["x-total-count"], 10);
     },
 
     clearListNotifications: (state) => {
@@ -34,10 +34,10 @@ export const notifications: Module<NotificationsState, State> = {
   actions: {
     fetch: async (context) => {
       try {
-        const res = await apiDevice.fetchDevices(10, 1, '', 'pending', '', '');
-        context.commit('setNotifications', res);
+        const res = await apiDevice.fetchDevices(10, 1, "", "pending", "", "");
+        context.commit("setNotifications", res);
       } catch (error) {
-        context.commit('clearListNotifications');
+        context.commit("clearListNotifications");
         throw error;
       }
     },

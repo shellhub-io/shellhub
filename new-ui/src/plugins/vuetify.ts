@@ -15,8 +15,8 @@ const light = {
     tabs: "#F5F5F5",
     foreground: "#F5F5F5",
     paymentForm: "#F5F5F5",
-    "v-theme-background":"#FFFFFF",
-    "v-theme-surface":  "#FFFFFF",
+    "v-theme-background": "#FFFFFF",
+    "v-theme-surface": "#FFFFFF",
   },
 };
 
@@ -29,8 +29,8 @@ const dark = {
     tabs: "#1E1E1E",
     foreground: "#1E1E1E",
     paymentForm: "#E0E0E0",
-    "v-theme-background":"#1E2127",
-    "v-theme-surface":  "#1E2127",
+    "v-theme-background": "#1E2127",
+    "v-theme-surface": "#1E2127",
   },
 };
 

@@ -2,19 +2,20 @@
   <i
     v-if="isDefaultIcon()"
     class="fa-regular fa-credit-card"
-    :style="{ fontSize: size}"
+    :style="{ fontSize: size }"
     data-test="default-icon"
   />
 
   <i
     v-if="!isDefaultIcon()"
     :class="'fab ' + icon()"
-    :style="{ fontSize: size}"
+    :style="{ fontSize: size }"
     data-test="type-icon"
   />
 </template>
 
 <script lang="ts">
+/* eslint-disable */
 import { defineComponent, ref } from "vue";
 
 export default defineComponent({
@@ -36,16 +37,10 @@ export default defineComponent({
 
     const size = ref("1.5rem");
 
-    const isDefaultIcon = () => {
-      // @ts-ignore
-      return cardIcon.value[convertIconName()] === undefined;
-    };
-
-    const icon = () => {
-      // @ts-ignore
-      return cardIcon.value[convertIconName()] || "credit-card";
-    };
-
+    const isDefaultIcon = () =>
+      cardIcon.value[convertIconName()] === undefined;
+    const icon = () =>
+      cardIcon.value[convertIconName()] || "credit-card";
     const convertIconName = () => {
       if (props.iconName === "diners-club") {
         return "dinersClub";

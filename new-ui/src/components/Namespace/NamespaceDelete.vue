@@ -2,6 +2,7 @@
   <v-tooltip location="bottom" :disabled="hasAuthorization">
     <template v-slot:activator="{ props }">
       <v-btn
+        v-bind="props"
         :disabled="!hasAuthorization"
         color="red darken-1"
         variant="outlined"
@@ -58,11 +59,11 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
 import { envVariables } from "../../envVariables";
-import { useRouter } from "vue-router";
 import { displayOnlyTenCharacters } from "../../utils/string";
 import { formatCurrency } from "../../utils/currency";
 import {
@@ -87,7 +88,7 @@ export default defineComponent({
     const billingActive = computed(() => store.getters["billing/active"]);
     const billing = computed(() => store.getters["billing/get"]);
     const billingInfo = computed(
-      () => store.getters["billing/getBillInfoData"].info
+      () => store.getters["billing/getBillInfoData"].info,
     );
 
     const hasAuthorization = computed(() => {
@@ -95,18 +96,10 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.namespace["remove"]
+          actions.namespace.remove,
         );
       }
       return false;
-    });
-
-    onMounted(() => {
-      if (hasAuthorization.value && isBillingEnabled()) {
-        getSubscriptionInfo();
-      }
-
-      name.value = store.getters["namespaces/get"].name;
     });
 
     const isBillingEnabled = () => envVariables.billingEnable;
@@ -122,25 +115,31 @@ export default defineComponent({
       }
     };
 
-    const getDueAmount = (data: any) => {
-      return data.upcoming_invoice.amount_due;
-    };
+    onMounted(() => {
+      if (hasAuthorization.value && isBillingEnabled()) {
+        getSubscriptionInfo();
+      }
+
+      name.value = store.getters["namespaces/get"].name;
+    });
+
+    const getDueAmount = (data: any) => data.upcoming_invoice.amount_due;
 
     const remove = async () => {
       try {
-        dialog.value = !dialog;
+        dialog.value = !dialog.value;
         await store.dispatch("namespaces/remove", tenant.value);
         await store.dispatch("auth/logout");
         await store.dispatch("layout/setLayout", "simpleLayout");
         await router.push({ name: "login" });
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.namespaceDelete
+          INotificationsSuccess.namespaceDelete,
         );
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.namespaceDelete
+          INotificationsError.namespaceDelete,
         );
         throw new Error(error);
       }

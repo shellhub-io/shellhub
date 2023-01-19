@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { parsePrivateKey, parseKey } from "sshpk";
 
 export const validateKey = (typeKey: string, value: string) => {
@@ -46,15 +47,15 @@ export const createSignerPrivateKey = (privateKey: any, username: string) => {
 
 export const createSignatureOfPrivateKey = async (
   privateKeyData: any,
-  username: string
+  username: string,
 ) => {
   // @ts-ignore
-  let signature = await window.global.createSignatureOfPrivateKey(privateKeyData, username);
+  const signature = await window.global.createSignatureOfPrivateKey(privateKeyData, username);
   return signature;
 };
 
 export const createKeyFingerprint = async (privateKeyData: any) => {
   // @ts-ignore
-  let fingerprint = await window.global.createKeyFingerprint(privateKeyData);
+  const fingerprint = await window.global.createKeyFingerprint(privateKeyData);
   return fingerprint;
 };

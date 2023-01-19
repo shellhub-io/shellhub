@@ -1,6 +1,7 @@
+<!-- eslint-disable vue/no-v-text-v-html-on-component -->
 <template>
   <div class="mr-4">
-    <v-menu location="bottom" v-bind="$attrs, $props" scrim eager>
+    <v-menu location="bottom" v-bind="$attrs" scrim eager>
       <template v-slot:activator="{ props }">
         <v-badge
           bordered
@@ -24,7 +25,7 @@
       <v-list shaped density="compact">
         <v-list-item-group v-model="selectedTags" multiple>
           <template v-for="(item, i) in getListTags">
-            <v-divider v-if="!item" :key="`divider-${i}`"></v-divider>
+            <v-divider v-if="!item" :key="`divider-${i}`" />
 
             <v-list-item
               v-else
@@ -55,7 +56,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
+import { computed, defineComponent, onMounted, ref } from "vue";
 import { AnyObject } from "yup/lib/object";
 import { useStore } from "../../store";
 
@@ -66,10 +67,6 @@ export default defineComponent({
 
     const prevSelectedLength = ref(0);
 
-    onMounted(() => {
-      getTags();
-    });
-
     const getListTags = computed(() => store.getters["tags/list"]);
 
     const selectedTags = computed(() => store.getters["tags/selected"]);
@@ -78,19 +75,7 @@ export default defineComponent({
       store.dispatch("tags/setSelected", item);
     };
 
-    const tagIsSelected = (tag: string) => {
-      return selectedTags.value.includes(tag);
-    };
-
-    const selectTag = (item: any) => {
-      store.dispatch("tags/setSelected", item);
-      if (item.length > 0) {
-        getDevices(item);
-        prevSelectedLength.value = item.length;
-      } else if (prevSelectedLength.value === 1 && item.length === 0) {
-        fetchDevices();
-      }
-    };
+    const tagIsSelected = (tag: string) => selectedTags.value.includes(tag);
 
     const getTags = async () => {
       await store.dispatch("tags/fetch");
@@ -134,6 +119,20 @@ export default defineComponent({
 
       await store.dispatch("devices/fetch", data);
     };
+
+    const selectTag = (item: any) => {
+      store.dispatch("tags/setSelected", item);
+      if (item.length > 0) {
+        getDevices(item);
+        prevSelectedLength.value = item.length;
+      } else if (prevSelectedLength.value === 1 && item.length === 0) {
+        fetchDevices();
+      }
+    };
+
+    onMounted(() => {
+      getTags();
+    });
 
     return {
       prevSelectedLength,

@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     @click="showDialog = true"
-    v-bind="$attrs, $props"
+    v-bind="$attrs"
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
@@ -53,8 +53,8 @@
 <script lang="ts">
 import { useField } from "vee-validate";
 import { defineComponent, onMounted, ref } from "vue";
-import { useStore } from "../../store";
 import * as yup from "yup";
+import { useStore } from "../../store";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -77,17 +77,17 @@ export default defineComponent({
     const store = useStore();
     const showDialog = ref(false);
 
-    const { value: tagLocal, errorMessage: tagLocalError } = useField<string>(
+    const { value: tagLocal, errorMessage: tagLocalError, resetField: resetTagLocal } = useField<string>(
       "tagLocal",
       yup
         .string()
         .required()
         .min(3)
         .max(255)
-        .matches(/^[^\/|@|&|:]*$/, "The name must not contain /, @, &, and :"),
+        .matches(/^[^/|@|&|:]*$/, "The name must not contain /, @, &, and :"),
       {
         initialValue: props.tag,
-      }
+      },
     );
 
     const setLocalTag = () => {
@@ -97,6 +97,16 @@ export default defineComponent({
     onMounted(() => {
       setLocalTag();
     });
+
+    const close = () => {
+      showDialog.value = false;
+      resetTagLocal();
+    };
+
+    const update = () => {
+      ctx.emit("update");
+      close();
+    };
 
     const edit = async () => {
       if (!tagLocalError.value) {
@@ -109,25 +119,16 @@ export default defineComponent({
           update();
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.deviceTagEdit
+            INotificationsSuccess.deviceTagEdit,
           );
         } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.deviceTagEdit
+            INotificationsError.deviceTagEdit,
           );
           throw new Error(error);
         }
       }
-    };
-
-    const close = () => {
-      showDialog.value = false;
-    };
-
-    const update = () => {
-      ctx.emit("update");
-      close();
     };
 
     return {

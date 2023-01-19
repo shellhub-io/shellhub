@@ -34,9 +34,21 @@ export default defineComponent({
     const store = useStore();
     const show = ref(false);
     const hasPublicKey = computed(
-      () => store.getters["publicKeys/getNumberPublicKeys"] > 0
+      () => store.getters["publicKeys/getNumberPublicKeys"] > 0,
     );
     const showBoxMessage = computed(() => !hasPublicKey.value && show.value);
+
+    const refresh = async () => {
+      try {
+        await store.dispatch("publicKeys/refresh");
+      } catch (error: any) {
+        store.dispatch(
+          "snackbar/showSnackbarErrorLoading",
+          INotificationsError.firewallRuleList,
+        );
+        throw new Error(error);
+      }
+    };
 
     onMounted(async () => {
       store.dispatch("box/setStatus", true);
@@ -45,18 +57,6 @@ export default defineComponent({
       store.dispatch("tags/fetch");
       show.value = true;
     });
-
-    const refresh = async () => {
-      try {
-        await store.dispatch("publicKeys/refresh");
-      } catch (error: any) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.firewallRuleList
-        );
-        throw new Error(error);
-      }
-    };
 
     return {
       show,

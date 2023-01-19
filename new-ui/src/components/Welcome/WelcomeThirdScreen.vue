@@ -44,8 +44,8 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "../../store";
 import { defineComponent, computed, onMounted } from "vue";
+import { useStore } from "../../store";
 import { INotificationsError } from "../../interfaces/INotifications";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
 
@@ -53,7 +53,7 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const getPendingDevice = computed(
-      () => store.getters["devices/getFirstPending"]
+      () => store.getters["devices/getFirstPending"],
     );
     onMounted(() => {
       try {
@@ -61,7 +61,7 @@ export default defineComponent({
       } catch {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.devicePending
+          INotificationsError.devicePending,
         );
       }
     });

@@ -31,7 +31,7 @@
               <v-list-item @click.stop="updatePaymentMethod(item.id)">
                 <div class="d-flex align-center">
                   <v-icon class="mr-2"> mdi-pencil </v-icon>
-  
+
                   <v-list-item-title> Make default </v-list-item-title>
                 </div>
               </v-list-item>
@@ -39,7 +39,7 @@
               <v-list-item @click.stop="deletePaymentMethod(item.id)">
                 <div class="d-flex align-center">
                   <v-icon class="mr-2"> mdi-delete </v-icon>
-  
+
                   <v-list-item-title> Remove </v-list-item-title>
                 </div>
               </v-list-item>
@@ -55,11 +55,11 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, computed } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotification";
-import { defineComponent, computed } from "vue";
 import { useStore } from "../../store";
 import BillingIcon from "./BillingIcon.vue";
 
@@ -79,15 +79,15 @@ export default defineComponent({
         await store.dispatch("billing/updatePaymentMethod", paymentMethodId);
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.updateSubscription
+          INotificationsSuccess.updateSubscription,
         );
         ctx.emit("update");
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.subscription
+          INotificationsError.subscription,
         );
-        throw new Error(error); 
+        throw new Error(error);
       }
     };
     const deletePaymentMethod = async (paymentMethodId: string) => {
@@ -95,15 +95,15 @@ export default defineComponent({
         await store.dispatch("billing/removePaymentMethod", paymentMethodId);
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.updateSubscription
+          INotificationsSuccess.updateSubscription,
         );
         ctx.emit("update");
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.deletePaymentMethod
+          INotificationsError.deletePaymentMethod,
         );
-        throw new Error(error); 
+        throw new Error(error);
       }
     };
     return {

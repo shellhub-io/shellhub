@@ -1,5 +1,5 @@
 <template>
-  <v-tooltip v-bind="$attrs, $props" location="bottom" :disabled="hasAuthorization">
+  <v-tooltip v-bind="$attrs" location="bottom" :disabled="hasAuthorization">
     <template v-slot:activator="{ props }">
       <v-btn
         v-bind="props"
@@ -130,10 +130,10 @@
 <script lang="ts">
 import { useField } from "vee-validate";
 import { computed, defineComponent, nextTick, ref, watch } from "vue";
+import * as yup from "yup";
 import { actions, authorizer } from "../../authorizer";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
-import * as yup from "yup";
 import { validateKey } from "../../utils/validate";
 import {
   INotificationsError,
@@ -183,7 +183,7 @@ export default defineComponent({
       },
     ]);
     const supportedKeys = ref(
-      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
     );
 
     const {
@@ -229,7 +229,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.publicKey["create"]
+          actions.publicKey.create,
         );
       }
       return false;
@@ -246,12 +246,6 @@ export default defineComponent({
       } else if (list.length <= 2) {
         validateLength.value = true;
         errMsg.value = "";
-      }
-    });
-
-    watch(dialog, (value) => {
-      if (!value) {
-        setLocalVariable();
       }
     });
 
@@ -310,6 +304,16 @@ export default defineComponent({
       choiceFilter.value = "all";
       choiceUsername.value = "all";
     };
+    watch(dialog, (value) => {
+      if (!value) {
+        setLocalVariable();
+      }
+    });
+
+    const close = () => {
+      dialog.value = false;
+      setLocalVariable();
+    };
 
     const update = () => {
       ctx.emit("update");
@@ -353,6 +357,7 @@ export default defineComponent({
           chooseUsername();
           const keySend = {
             ...keyLocal.value,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             data: btoa(publicKeyData.value),
             name: name.value,
@@ -360,7 +365,7 @@ export default defineComponent({
           await store.dispatch("publicKeys/post", keySend);
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.publicKeyCreating
+            INotificationsSuccess.publicKeyCreating,
           );
           update();
           resetFields();
@@ -370,17 +375,12 @@ export default defineComponent({
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorAction",
-              INotificationsError.publicKeyCreating
+              INotificationsError.publicKeyCreating,
             );
             throw new Error(error);
           }
         }
       }
-    };
-
-    const close = () => {
-      dialog.value = false;
-      setLocalVariable();
     };
 
     return {

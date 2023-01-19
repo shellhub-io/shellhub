@@ -144,12 +144,8 @@ export default defineComponent({
     const firewallRules = computed(() => store.getters["firewallRules/list"]);
 
     const getNumberFirewallRules = computed(
-      () => store.getters["firewallRules/getNumberFirewalls"]
+      () => store.getters["firewallRules/getNumberFirewalls"],
     );
-
-    onMounted(() => {
-      getFirewalls(itemsPerPage.value, page.value);
-    });
 
     const getFirewalls = async (perPagaeValue: number, pageValue: number) => {
       if (!store.getters["boxs/getStatus"]) {
@@ -171,7 +167,7 @@ export default defineComponent({
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorLoading",
-              INotificationsError.firewallRuleList
+              INotificationsError.firewallRuleList,
             );
             throw new Error(error);
           }
@@ -184,14 +180,17 @@ export default defineComponent({
       }
     };
 
+    onMounted(() => {
+      getFirewalls(itemsPerPage.value, page.value);
+    });
+
     const next = async () => {
       await getFirewalls(itemsPerPage.value, ++page.value);
     };
 
     const prev = async () => {
       try {
-        if (page.value > 1)
-          await getFirewalls(itemsPerPage.value, --page.value);
+        if (page.value > 1) await getFirewalls(itemsPerPage.value, --page.value);
       } catch (error) {
         store.dispatch("snackbar/setSnackbarErrorDefault");
       }
@@ -217,19 +216,16 @@ export default defineComponent({
 
     const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
 
-    const formatUsername = (username: string) =>
-      username === ".*" ? "All users" : username;
+    const formatUsername = (username: string) => username === ".*" ? "All users" : username;
 
-    const formatHostnameFilter = (filter: filterType) =>
-      filter.hostname === ".*" ? "All devices" : filter.hostname;
+    const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? "All devices" : filter.hostname;
 
-    const isHostname = (filter: filterType) =>
-      Object.prototype.hasOwnProperty.call(filter, "hostname");
+    const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
 
     const hasAuthorizationFormDialogEdit = () => {
       const role = store.getters["auth/role"];
       if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.firewall["edit"]);
+        return hasPermission(authorizer.role[role], actions.firewall.edit);
       }
 
       return false;
@@ -238,7 +234,7 @@ export default defineComponent({
     const hasAuthorizationFormDialogRemove = () => {
       const role = store.getters["auth/role"];
       if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.firewall["remove"]);
+        return hasPermission(authorizer.role[role], actions.firewall.remove);
       }
 
       return false;

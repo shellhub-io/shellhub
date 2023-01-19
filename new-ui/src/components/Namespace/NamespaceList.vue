@@ -14,8 +14,8 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, computed } from "vue";
 import { useStore } from "../../store";
-import { defineComponent, ref, computed, onMounted } from "vue";
 import { INotificationsError } from "../../interfaces/INotifications";
 
 export default defineComponent({
@@ -25,11 +25,9 @@ export default defineComponent({
 
     const namespace = computed(() => store.getters["namespaces/get"]);
 
-    const namespaces = computed(() =>
-      store.getters["namespaces/list"].filter(
-        (el: any) => el.name !== namespace.value.name
-      )
-    );
+    const namespaces = computed(() => store.getters["namespaces/list"].filter(
+      (el: any) => el.name !== namespace.value.name,
+    ));
 
     const switchIn = async (tenant: string) => {
       try {
@@ -41,7 +39,7 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.namespaceSwitch
+          INotificationsError.namespaceSwitch,
         );
         throw new Error(error);
       }

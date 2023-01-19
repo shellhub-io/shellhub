@@ -108,16 +108,16 @@
                         href="https://website-git-fork-antonyrafael-feat-privacy-policy-page-shellhub.vercel.app/privacy-policy"
                         target="_blank"
                         rel="noopener noreferrer"
-                        >Privacy Policy</a
+                      >Privacy Policy</a
                       >
                     </span>
                   </template>
                 </v-checkbox>
                 <v-checkbox
-                v-model="acceptMarketing"
-                color="primary"
-                hide-details
-                data-test="accept-news-checkbox"
+                  v-model="acceptMarketing"
+                  color="primary"
+                  hide-details
+                  data-test="accept-news-checkbox"
                 >
                   <template #label>
                     <p>
@@ -220,22 +220,20 @@ export default defineComponent({
           "The username only accepts the special characters _, ., - and @.",
           (value) => {
             const regex = /^[a-zA-Z0-9_.@-\s]*$/;
-            // @ts-ignore
-            return regex.test(value);
-          }
+            return regex.test(value || "");
+          },
         )
         .test(
           "white-spaces",
           "The username cannot contain white spaces.",
           (value) => {
             const regex = /\s/;
-            // @ts-ignore
-            return !regex.test(value);
-          }
+            return !regex.test(value || "");
+          },
         ),
       {
         initialValue: "",
-      }
+      },
     );
 
     const {
@@ -259,14 +257,12 @@ export default defineComponent({
         .max(30, "Your password should be 5-30 characters long"),
       {
         initialValue: "",
-      }
+      },
     );
 
     const {
       value: passwordConfirm,
       errorMessage: passwordConfirmError,
-      setErrors: setPasswordConfirmError,
-      resetField: resetPasswordConfirm,
     } = useField<string>(
       "passwordConfirm",
       yup
@@ -275,11 +271,11 @@ export default defineComponent({
         .test(
           "passwords-match",
           "Passwords do not match",
-          (value) => password.value === value
+          (value) => password.value === value,
         ),
       {
         initialValue: "",
-      }
+      },
     );
 
     watch(overlay, (value) => {
@@ -288,7 +284,7 @@ export default defineComponent({
           overlay.value = false;
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.addUser
+            INotificationsSuccess.addUser,
           );
         }, delay.value);
       }
@@ -302,16 +298,16 @@ export default defineComponent({
 
     const hasErrors = () => {
       if (
-        nameError.value ||
-        usernameError.value ||
-        emailError.value ||
-        passwordError.value ||
-        passwordConfirmError.value ||
-        !name.value ||
-        !username.value ||
-        !email.value ||
-        !password.value ||
-        !passwordConfirm.value
+        nameError.value
+        || usernameError.value
+        || emailError.value
+        || passwordError.value
+        || passwordConfirmError.value
+        || !name.value
+        || !username.value
+        || !email.value
+        || !password.value
+        || !passwordConfirm.value
       ) {
         return true;
       }
@@ -321,7 +317,6 @@ export default defineComponent({
     const createAccount = async () => {
       if (!hasErrors()) {
         try {
-
           if (isCloud.value && !acceptPrivacyPolicy.value) {
             privacyPolicyError.value = true;
             return;
@@ -339,33 +334,26 @@ export default defineComponent({
           showMessage.value = !showMessage.value;
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.addUser
+            INotificationsSuccess.addUser,
           );
         } catch (e: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.addUser
+            INotificationsError.addUser,
           );
           if (e.response.status === 409) {
             e.response.data.forEach((field: string) => {
-              if (field === "username")
-                setUsernameError("This username already exists");
-              else if (field === "name")
-                setNameError("This name already exists");
-              else if (field === "email")
-                setEmailError("This email already exists");
-              else if (field === "password")
-                setPasswordError("This password already exists");
+              if (field === "username") setUsernameError("This username already exists");
+              else if (field === "name") setNameError("This name already exists");
+              else if (field === "email") setEmailError("This email already exists");
+              else if (field === "password") setPasswordError("This password already exists");
             });
           } else if (e.response.status === 400) {
             e.response.data.forEach((field: string) => {
-              if (field === "username")
-                setUsernameError("This username is invalid !");
+              if (field === "username") setUsernameError("This username is invalid !");
               else if (field === "name") setNameError("This name is invalid !");
-              else if (field === "email")
-                setEmailError("This email is invalid !");
-              else if (field === "password")
-                setPasswordError("This password is invalid !");
+              else if (field === "email") setEmailError("This email is invalid !");
+              else if (field === "password") setPasswordError("This password is invalid !");
             });
           }
         }

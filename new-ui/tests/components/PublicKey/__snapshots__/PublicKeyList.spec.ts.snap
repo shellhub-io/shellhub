@@ -2,7 +2,7 @@
 
 exports[`PublicKeyList > List data when user has operator role > Renders the component 1`] = `
 "<div>
-  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"async () =&gt; {
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"async () =&gt; {
       await getPublicKeysList(itemsPerPage.value, ++page.value);
     }\\" previouspage=\\"async () =&gt; {
       try {
@@ -11,13 +11,13 @@ exports[`PublicKeyList > List data when user has operator role > Renders the com
       } catch (error) {
         store.dispatch(&quot;snackbar/setSnackbarErrorDefault&quot;);
       }
-    }\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"publicKeys-list\\"></data-table-stub>
+    }\\" data-test=\\"publicKeys-list\\"></data-table-stub>
 </div>"
 `;
 
 exports[`PublicKeyList > List data when user has owner role > Renders the component 1`] = `
 "<div>
-  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"async () =&gt; {
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"async () =&gt; {
       await getPublicKeysList(itemsPerPage.value, ++page.value);
     }\\" previouspage=\\"async () =&gt; {
       try {
@@ -26,6 +26,6 @@ exports[`PublicKeyList > List data when user has owner role > Renders the compon
       } catch (error) {
         store.dispatch(&quot;snackbar/setSnackbarErrorDefault&quot;);
       }
-    }\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"publicKeys-list\\"></data-table-stub>
+    }\\" data-test=\\"publicKeys-list\\"></data-table-stub>
 </div>"
 `;

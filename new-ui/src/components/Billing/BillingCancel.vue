@@ -46,13 +46,12 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from "vue";
+import { useRouter } from "vue-router";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "../../utils/permission";
 import { useStore } from "../../store";
 import { formatCurrency } from "../../utils/currency";
 import { INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
-import { useRouter } from "vue-router";
-
 
 export default defineComponent({
   props: {
@@ -71,7 +70,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.billing["unsubscribe"]
+          actions.billing.unsubscribe,
         );
       }
 
@@ -80,15 +79,15 @@ export default defineComponent({
 
     const cancelSubscription = async () => {
       try {
-        await store.dispatch('billing/cancelSubscription');
+        await store.dispatch("billing/cancelSubscription");
         dialog.value = false;
-        store.dispatch('snackbar/showSnackbarSuccessAction', INotificationsSuccess.cancelSubscription);
+        store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.cancelSubscription);
 
-        store.dispatch('devices/setDeviceChooserStatus', store.getters['stats/stats'].registered_devices > 3);
-        router.push({ name: 'profileSettings' });
+        store.dispatch("devices/setDeviceChooserStatus", store.getters["stats/stats"].registered_devices > 3);
+        router.push({ name: "profileSettings" });
       } catch (error: any) {
-        store.dispatch('snackbar/showSnackbarErrorAction', INotificationsError.cancelSubscription);
-        throw new Error(error); 
+        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.cancelSubscription);
+        throw new Error(error);
       }
     };
     return {

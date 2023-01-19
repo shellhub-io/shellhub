@@ -53,7 +53,8 @@
           <a
             :href="'https://docs.shellhub.io/user-guides/devices/adding'"
             target="_blank"
-            >documentation</a
+            rel="noopener noreferrer"
+          >documentation</a
           >
           for more information and alternative install methods.
         </p>
@@ -70,8 +71,8 @@
 </template>
 
 <script lang="ts">
-import { INotificationsCopy } from "../../interfaces/INotification";
 import { computed, defineComponent, ref } from "vue";
+import { INotificationsCopy } from "../../interfaces/INotification";
 import { useStore } from "../../store";
 
 export default defineComponent({
@@ -90,8 +91,8 @@ export default defineComponent({
     const tenant = computed(() => store.getters["auth/tenant"]);
 
     const command = () => {
-      let port = window.location.port ? `:${window.location.port}` : "";
-      let hostname = window.location.hostname;
+      const port = window.location.port ? `:${window.location.port}` : "";
+      const { hostname } = window.location;
 
       return `curl -sSf "${window.location.protocol}//${hostname}${port}/install.sh?tenant_id=${tenant.value}" | sh`;
     };

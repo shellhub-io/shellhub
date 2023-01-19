@@ -1,5 +1,5 @@
 <template>
-  <v-list-item v-bind="$props, $attrs" @click="showDialog = true">
+  <v-list-item v-bind="$attrs" @click="showDialog = true">
     <div class="d-flex align-center">
       <div class="mr-2">
         <v-icon data-test="rename-icon"> mdi-pencil </v-icon>
@@ -67,14 +67,14 @@ export default defineComponent({
 
     name: {
       type: String,
-      default: true,
+      required: true,
     },
   },
   emits: ["new-hostname"],
   setup(props, ctx) {
     const showDialog = ref(false);
     const messages = ref(
-      "Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)"
+      "Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)",
     );
     const store = useStore();
 
@@ -85,6 +85,11 @@ export default defineComponent({
     } = useField<string | undefined>("name", yup.string().required(), {
       initialValue: props.name,
     });
+
+    const close = () => {
+      setEditNameError("");
+      showDialog.value = false;
+    };
 
     const rename = async () => {
       try {
@@ -97,7 +102,7 @@ export default defineComponent({
         close();
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.deviceRename
+          INotificationsSuccess.deviceRename,
         );
       } catch (error: any) {
         if (error.response.status === 400) {
@@ -107,16 +112,11 @@ export default defineComponent({
         } else {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.deviceRename
+            INotificationsError.deviceRename,
           );
           throw new Error(error);
         }
       }
-    };
-
-    const close = () => {
-      setEditNameError("");
-      showDialog.value = false;
     };
 
     return {

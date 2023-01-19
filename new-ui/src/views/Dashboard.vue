@@ -22,8 +22,8 @@
 </template>
 
 <script lang="ts">
-import { INotificationsError } from "../interfaces/INotifications";
 import { computed, defineComponent, onMounted, ref } from "vue";
+import { INotificationsError } from "../interfaces/INotifications";
 import Card from "../components/Card/Card.vue";
 import { useStore } from "../store";
 
@@ -87,14 +87,19 @@ export default defineComponent({
           },
         ];
       } catch (error: any) {
-        if (error.response.status = 403) {
-          hasStatus.value = true;
-        } else {
-          hasStatus.value = true;
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.dashboard
-          );
+        switch (true) {
+          case error.response.status === 403: {
+            hasStatus.value = true;
+            break;
+          }
+          default: {
+            hasStatus.value = true;
+            store.dispatch(
+              "snackbar/showSnackbarErrorAction",
+              INotificationsError.dashboard,
+            );
+            break;
+          }
         }
         throw new Error(error);
       }

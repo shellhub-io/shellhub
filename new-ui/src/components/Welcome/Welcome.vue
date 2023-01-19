@@ -26,7 +26,7 @@
               data-test="firstClick-btn"
               color="primary"
               @click="activePollingDevices()"
-              >Next</v-btn
+            >Next</v-btn
             >
           </v-card-actions>
         </v-window-item>
@@ -88,8 +88,8 @@
 </template>
 
 <script lang="ts">
-import { INotificationsError } from "../../interfaces/INotifications";
 import { computed, defineComponent, ref } from "vue";
+import { INotificationsError } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
 import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
@@ -123,11 +123,6 @@ export default defineComponent({
       tenant: store.getters["auth/tenant"],
     });
 
-    const activePollingDevices = () => {
-      el.value = 2;
-      pollingDevices();
-    };
-
     const pollingDevices = () => {
       polling.value = setInterval(async () => {
         try {
@@ -145,6 +140,11 @@ export default defineComponent({
       }, 3000);
     };
 
+    const activePollingDevices = () => {
+      el.value = 2;
+      pollingDevices();
+    };
+
     const acceptDevice = async () => {
       const device = store.getters["devices/getFirstPending"];
       try {
@@ -157,15 +157,15 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceAccepting
+          INotificationsError.deviceAccepting,
         );
         throw new Error(error);
       }
     };
 
     const command = () => {
-      let port = window.location.port ? `:${window.location.port}` : "";
-      let hostname = window.location.hostname;
+      const port = window.location.port ? `:${window.location.port}` : "";
+      const { hostname } = window.location;
 
       return `curl -sSf "${window.location.protocol}//${hostname}${port}/install.sh?tenant_id=${curl.value.tenant}" | sh`;
     };

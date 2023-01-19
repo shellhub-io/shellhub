@@ -41,8 +41,10 @@
       <div class="mt-2" v-if="showLoginForm">
         <v-tabs align-tabs="center" color="primary" v-model="tabActive">
           <v-tab value="Password" @click="resetFieldValidation">Password</v-tab>
-          <v-tab value="PublicKey" @click="resetFieldValidation"
-            >Private Key</v-tab
+          <v-tab
+            value="PublicKey"
+            @click="resetFieldValidation"
+          >Private Key</v-tab
           >
         </v-tabs>
 
@@ -135,22 +137,21 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "../../store";
 import { defineComponent, ref, computed, watch, nextTick } from "vue";
 import { useField } from "vee-validate";
 import "xterm/css/xterm.css";
 import { Terminal } from "xterm";
 import { AttachAddon } from "xterm-addon-attach";
 import { FitAddon } from "xterm-addon-fit";
-
 import * as yup from "yup";
+import axios from "axios";
+import { useStore } from "../../store";
 import {
   createKeyFingerprint,
   createSignatureOfPrivateKey,
   createSignerPrivateKey,
   parsePrivateKeySsh,
 } from "../../utils/validate";
-import axios from "axios";
 
 export default defineComponent({
   inheritAttrs: false,
@@ -178,7 +179,7 @@ export default defineComponent({
       default: false,
     },
   },
-  setup(props, ctx) {
+  setup(props) {
     const store = useStore();
     const tabActive = ref("Password");
     const showPassword = ref(false);
@@ -195,7 +196,6 @@ export default defineComponent({
     const {
       value: username,
       errorMessage: usernameError,
-      setErrors: setUsernameError,
       resetField: resetUsername,
     } = useField<string>("username", yup.string().required(), {
       initialValue: "",
@@ -204,18 +204,15 @@ export default defineComponent({
     const {
       value: password,
       errorMessage: passwordError,
-      setErrors: setPasswordError,
       resetField: resetPassword,
     } = useField<string>("password", yup.string().required(), {
       initialValue: "",
     });
 
-    const webTermDimensions = computed(() => {
-      return {
-        cols: xterm.value.cols,
-        rows: xterm.value.rows,
-      };
-    });
+    const webTermDimensions = computed(() => ({
+      cols: xterm.value.cols,
+      rows: xterm.value.rows,
+    }));
 
     const getListPrivateKeys = computed(() => store.getters["privateKey/list"]);
 
@@ -235,65 +232,9 @@ export default defineComponent({
       }
     });
 
-    const open = () => {
-      showTerminal.value = true;
-      privateKey.value = "";
-
-      xterm.value = new Terminal({
-        cursorBlink: true,
-        fontFamily: "monospace",
-        theme: {
-          background: "#0f1526",
-        },
-      });
-
-      fitAddon.value = new FitAddon();
-      xterm.value.loadAddon(fitAddon.value);
-
-      store.dispatch("modal/toggleTerminal", props.uid);
-
-      if (xterm.value.element) {
-        xterm.value.reset();
-      }
-    };
-
-    const resetFieldValidation = () => {
-      resetUsername();
-      resetPassword();
-    };
-
-    const connectWithPassword = () => {
-      connect({ password: password.value });
-    };
-
-    const encodeURLParams = (params: any) => {
-      return Object.entries(params)
-        .map(([key, value]) => `${key}=${value}`)
-        .join("&");
-    };
-
-    const findPrivateKeyByName = (name: string) => {
-      const list = getListPrivateKeys.value;
-      return list.find((item: any) => item.name === name);
-    };
-
-    const connectWithPrivateKey = async () => {
-      const privateKeyData = findPrivateKeyByName(privateKey.value);
-      const pk = parsePrivateKeySsh(privateKeyData.data);
-      let signature;
-
-      if (pk.type === "ed25519") {
-        const signer = createSignerPrivateKey(pk, username.value);
-        signature = signer;
-      } else {
-        signature = await createSignatureOfPrivateKey(
-          privateKeyData.data,
-          username.value
-        );
-      }
-      const fingerprint = await createKeyFingerprint(privateKeyData.data);
-      connect({ fingerprint, signature });
-    };
+    const encodeURLParams = (params: any) => Object.entries(params)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("&");
 
     const connect = async (params: any) => {
       if (params.passwd && !username.value && !password.value) {
@@ -335,7 +276,7 @@ export default defineComponent({
       ws.value = new WebSocket(
         `${protocolConnectionURL}://${
           window.location.host
-        }/ws/ssh?${encodeURLParams(wsInfo)}`
+        }/ws/ssh?${encodeURLParams(wsInfo)}`,
       );
 
       ws.value.onopen = () => {
@@ -349,6 +290,60 @@ export default defineComponent({
           // attachAddon.value.dispose();
         }
       };
+    };
+
+    const open = () => {
+      showTerminal.value = true;
+      privateKey.value = "";
+
+      xterm.value = new Terminal({
+        cursorBlink: true,
+        fontFamily: "monospace",
+        theme: {
+          background: "#0f1526",
+        },
+      });
+
+      fitAddon.value = new FitAddon();
+      xterm.value.loadAddon(fitAddon.value);
+
+      store.dispatch("modal/toggleTerminal", props.uid);
+
+      if (xterm.value.element) {
+        xterm.value.reset();
+      }
+    };
+
+    const resetFieldValidation = () => {
+      resetUsername();
+      resetPassword();
+    };
+
+    const connectWithPassword = () => {
+      connect({ password: password.value });
+    };
+
+    const findPrivateKeyByName = (name: string) => {
+      const list = getListPrivateKeys.value;
+      return list.find((item: any) => item.name === name);
+    };
+
+    const connectWithPrivateKey = async () => {
+      const privateKeyData = findPrivateKeyByName(privateKey.value);
+      const pk = parsePrivateKeySsh(privateKeyData.data);
+      let signature;
+
+      if (pk.type === "ed25519") {
+        const signer = createSignerPrivateKey(pk, username.value);
+        signature = signer;
+      } else {
+        signature = await createSignatureOfPrivateKey(
+          privateKeyData.data,
+          username.value,
+        );
+      }
+      const fingerprint = await createKeyFingerprint(privateKeyData.data);
+      connect({ fingerprint, signature });
     };
 
     const close = () => {

@@ -35,7 +35,7 @@ module.exports = {
     "import/no-extraneous-dependencies": ["error", { peerDependencies: true }],
     "import/no-cycle": [0, { ignoreExternal: true }],
     "import/extensions": "off",
-    "max-len": ["error", { code: 140 }],
+    "vue/max-len": ["error", { code: 140, template: 140 }],
     "spaced-comment": [
       2,
       "always",
@@ -60,6 +60,15 @@ module.exports = {
     "no-confusing-arrow": [0, { allowParens: true, onlyOneSimpleParam: false }],
     "object-curly-newline": [0, "always"],
     "no-plusplus": 0,
+    "@typescript-eslint/ban-types": [
+      "error",
+      {
+        extendDefaults: true,
+        types: {
+          "{}": false,
+        },
+      },
+    ],
   },
 
   overrides: [

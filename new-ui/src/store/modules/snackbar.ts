@@ -103,8 +103,8 @@ export const snackbar: Module<SnackbarState, State> = {
     },
 
     showSnackbarSuccessNotRequest: (context, value) => {
-      const data = { typeMessage: 'notRequest', typeContent: value };
-      context.commit('setSnackbarSuccessNotRequest', data);
+      const data = { typeMessage: "notRequest", typeContent: value };
+      context.commit("setSnackbarSuccessNotRequest", data);
     },
 
     showSnackbarErrorLoading: ({ commit }, value) => {

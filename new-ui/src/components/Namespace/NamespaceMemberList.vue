@@ -15,8 +15,10 @@
             class="hover"
           >
             {{ head.text }}
-            <v-tooltip activator="parent" anchor="top"
-              >Sort by {{ head.text }}</v-tooltip
+            <v-tooltip
+              activator="parent"
+              anchor="top"
+            >Sort by {{ head.text }}</v-tooltip
             >
           </span>
           <span v-else> {{ head.text }}</span>
@@ -90,7 +92,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from "vue";
+import { defineComponent, computed } from "vue";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
@@ -114,7 +116,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.namespace["editMember"]
+          actions.namespace.editMember,
         );
       }
       return false;
@@ -124,7 +126,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.namespace["removeMember"]
+          actions.namespace.removeMember,
         );
       }
       return false;
@@ -139,7 +141,7 @@ export default defineComponent({
         } else {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.namespaceLoad
+            INotificationsError.namespaceLoad,
           );
           throw new Error(error);
         }
@@ -149,9 +151,7 @@ export default defineComponent({
       getNamespace();
     };
 
-    const isNamespaceOwner = (role: string) => {
-      return role === "owner";
-    };
+    const isNamespaceOwner = (role: string) => role === "owner";
 
     return {
       headers: [

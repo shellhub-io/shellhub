@@ -32,7 +32,8 @@
       <a
         :href="'https://docs.shellhub.io/user-guides/devices/adding'"
         target="_blank"
-        >documentation</a
+        rel="noopener noreferrer"
+      >documentation</a
       >
       for more information and alternative install methods.
     </p>
@@ -40,9 +41,9 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from "vue";
 import { INotificationsCopy } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
-import { defineComponent } from "vue";
 
 export default defineComponent({
   props: {

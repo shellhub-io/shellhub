@@ -3,4 +3,4 @@ export interface IMember {
   role: string;
   selectedRole: string;
   username: string;
-};
+}

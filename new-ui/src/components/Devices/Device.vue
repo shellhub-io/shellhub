@@ -17,9 +17,6 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import DeviceList from "./DeviceList.vue";
-import DevicePendingList from "./DevicePendingList.vue";
-import DeviceRejectedList from "./DeviceRejectedList.vue";
 
 export default defineComponent({
   name: "Device",
@@ -29,6 +26,5 @@ export default defineComponent({
       tab,
     };
   },
-  components: { DeviceList, DevicePendingList, DeviceRejectedList },
 });
 </script>

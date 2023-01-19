@@ -3,7 +3,7 @@
     <v-table class="bg-v-theme-surface">
       <thead>
         <tr>
-          <th v-for="(head, i) in headers" :key="i" :class="head.align ? `text-${head.align}` :'text-center'">
+          <th v-for="(head, i) in headers" :key="i" :class="head.align ? `text-${head.align}` : 'text-center'">
             <span
               v-if="head.sortable"
               @click="$emit('clickSortableIcon', head.value)"
@@ -19,7 +19,7 @@
         </tr>
       </thead>
       <tbody v-if="items.length">
-        <slot name="rows"> </slot>
+        <slot name="rows" />
       </tbody>
       <div v-else class="pa-4 text-subtitle-2">
         <p>No data available</p>
@@ -102,9 +102,11 @@ export default defineComponent({
     },
     nextPage: {
       type: Function as PropType<() => void>,
+      default: Function as PropType<() => {}>,
     },
     previousPage: {
       type: Function as PropType<() => void>,
+      default: Function as PropType<() => {}>,
     },
   },
   emits: ["changeItemsPerPage", "clickNextPage", "clickPreviousPage", "clickSortableIcon"],

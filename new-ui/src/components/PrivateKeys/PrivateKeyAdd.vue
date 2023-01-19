@@ -1,5 +1,5 @@
 <template>
-  <v-tooltip v-bind="$props, $attrs" location="bottom" :disabled="hasAuthorization">
+  <v-tooltip v-bind="$attrs" location="bottom" :disabled="hasAuthorization">
     <template v-slot:activator="{ props }">
       <v-btn
         v-bind="props"
@@ -74,11 +74,11 @@
 
 <script lang="ts">
 import { useField } from "vee-validate";
-import { computed, defineComponent, ref, watch } from "vue";
+import { computed, defineComponent, ref } from "vue";
+import * as yup from "yup";
 import { actions, authorizer } from "../../authorizer";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
-import * as yup from "yup";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -98,7 +98,7 @@ export default defineComponent({
     const store = useStore();
     const dialog = ref(false);
     const supportedKeys = ref(
-      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
     );
 
     const {
@@ -144,14 +144,14 @@ export default defineComponent({
         setPrivateKeyDataError("Not is a valid private key");
       }
     };
-    
+
     const resetFields = () => {
       resetName();
       resetPrivateKeyData();
     };
 
     const close = () => {
-      resetFields()
+      resetFields();
       dialog.value = false;
     };
 
@@ -164,7 +164,7 @@ export default defineComponent({
           });
           store.dispatch(
             "snackbar/showSnackbarSuccessNotRequest",
-            INotificationsSuccess.privateKeyCreating
+            INotificationsSuccess.privateKeyCreating,
           );
           ctx.emit("update");
           close();
@@ -186,7 +186,7 @@ export default defineComponent({
             default: {
               store.dispatch(
                 "snackbar/showSnackbarErrorNotRequest",
-                INotificationsError.privateKeyCreating
+                INotificationsError.privateKeyCreating,
               );
               throw new Error(error);
             }
@@ -200,7 +200,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.publicKey["create"]
+          actions.publicKey.create,
         );
       }
       return false;

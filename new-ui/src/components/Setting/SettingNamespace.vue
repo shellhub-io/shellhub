@@ -87,7 +87,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed } from "vue";
+import { defineComponent, onMounted, computed } from "vue";
 import { envVariables } from "../../envVariables";
 import { useStore } from "../../store";
 import NamespaceRename from "../Namespace/NamespaceRename.vue";
@@ -112,13 +112,9 @@ export default defineComponent({
         navigator.clipboard.writeText(value);
         store.dispatch(
           "snackbar/showSnackbarCopy",
-          INotificationsCopy.tenantId
+          INotificationsCopy.tenantId,
         );
       }
-    };
-
-    const refresh = () => {
-      getNamespace();
     };
 
     const getNamespace = async () => {
@@ -130,11 +126,15 @@ export default defineComponent({
         } else {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.namespaceLoad
+            INotificationsError.namespaceLoad,
           );
           throw new Error(error);
         }
       }
+    };
+
+    const refresh = () => {
+      getNamespace();
     };
 
     onMounted(async () => {
@@ -143,9 +143,7 @@ export default defineComponent({
       }
     });
 
-    const hasTenant = () => {
-      return tenant.value !== "";
-    };
+    const hasTenant = () => tenant.value !== "";
 
     return {
       tenant,

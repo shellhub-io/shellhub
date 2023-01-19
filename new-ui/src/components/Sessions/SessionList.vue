@@ -152,7 +152,6 @@ import { formatDateCompact, lastSeen } from "../../utils/formateDate";
 import { displayOnlyTenCharacters } from "../../utils/string";
 import showTag from "../../utils/tag";
 import DataTable from "../DataTable.vue";
-import TagFormUpdate from "../Tags/TagFormUpdate.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
@@ -167,12 +166,8 @@ export default defineComponent({
 
     const sessions = computed(() => store.getters["sessions/list"]);
     const numberSessions = computed(
-      () => store.getters["sessions/getNumberSessions"]
+      () => store.getters["sessions/getNumberSessions"],
     );
-
-    onMounted(async () => {
-      await getSessions(itemsPerPage.value, page.value);
-    });
 
     const getSessions = async (perPagaeValue: number, pageValue: number) => {
       if (!store.getters["box/getStatus"]) {
@@ -192,7 +187,7 @@ export default defineComponent({
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorLoading",
-              INotificationsError.sessionList
+              INotificationsError.sessionList,
             );
             throw new Error(error);
           }
@@ -203,6 +198,10 @@ export default defineComponent({
         store.dispatch("box/setStatus", false);
       }
     };
+
+    onMounted(async () => {
+      await getSessions(itemsPerPage.value, page.value);
+    });
 
     const next = async () => {
       await getSessions(itemsPerPage.value, ++page.value);
@@ -241,7 +240,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.session["removeRecord"]
+          actions.session.removeRecord,
         );
       }
 
@@ -251,7 +250,7 @@ export default defineComponent({
     const hasAuthorizationPlay = () => {
       const role = store.getters["auth/role"];
       if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.session["play"]);
+        return hasPermission(authorizer.role[role], actions.session.play);
       }
 
       return false;
@@ -311,7 +310,7 @@ export default defineComponent({
       hasAuthorizationPlay,
     };
   },
-  components: { DataTable, TagFormUpdate, SessionClose, SessionPlay },
+  components: { DataTable, SessionClose, SessionPlay },
 });
 </script>
 

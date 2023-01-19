@@ -157,7 +157,7 @@
           <div>
             <BillingPaymentList
               data-test="paymentMethods-component"
-              :cards.sync="cardBillingData"
+              v-model:cards="cardBillingData"
             />
 
             <v-divider />
@@ -207,8 +207,10 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "../../store";
+/* eslint-disable */
 import { defineComponent, ref, computed, onMounted, watch } from "vue";
+import { loadStripe } from "@stripe/stripe-js";
+import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
 import SettingOwnerInfo from "./SettingOwnerInfo.vue";
@@ -216,7 +218,6 @@ import BillingPaymentMethod from "../Billing/BillingPaymentMethod.vue";
 import { formatCurrency } from "../../utils/currency";
 import { formatDateWithoutDayAndHours } from "../../utils/formateDate";
 import BillingInvoiceList from "../Billing/BillingInvoiceList.vue";
-import { loadStripe } from "@stripe/stripe-js";
 import BillingCancel from "../Billing/BillingCancel.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
 import BillingPaymentList from "../Billing/BillingPaymentList.vue";
@@ -249,7 +250,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.billing["subscribe"]
+          actions.billing.subscribe,
         );
       }
       return false;
@@ -319,7 +320,7 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.namespaceLoad
+          INotificationsError.namespaceLoad,
         );
         throw new Error(error);
       }
@@ -346,7 +347,7 @@ export default defineComponent({
     BillingPaymentMethod,
     BillingInvoiceList,
     BillingCancel,
-    BillingPaymentList
-},
+    BillingPaymentList,
+  },
 });
 </script>

@@ -72,9 +72,10 @@
 import { defineComponent, ref, computed } from "vue";
 import { useStore } from "../../store";
 import DeviceListChooser from "./DeviceListChooser.vue";
-import { INotificationsError, INotificationsSuccess } from "../../interfaces/INotifications";
+import { INotificationsError } from "../../interfaces/INotifications";
 import hasPermision from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
+import { INotificationsSuccess } from "@/interfaces/INotification";
 
 export default defineComponent({
   setup() {
@@ -102,38 +103,24 @@ export default defineComponent({
       },
     });
 
-    const url = () => {
-      return `${window.location.protocol}//${hostname.value}/settings/billing`;
-    };
+    const url = () => `${window.location.protocol}//${hostname.value}/settings/billing`;
 
-    const disableTooltipOrButton = computed(() => {
-      return (
-        (store.getters["devices/getDevicesSelected"].length <= 0 ||
-          store.getters["devices/getDevicesSelected"].length > 3) &&
-        action.value !== items.value[0].action
-      );
-    });
+    const disableTooltipOrButton = computed(() => (
+      (store.getters["devices/getDevicesSelected"].length <= 0
+          || store.getters["devices/getDevicesSelected"].length > 3)
+        && action.value !== items.value[0].action
+    ));
 
-    const equalThreeDevices = computed(() => {
-      return store.getters["devices/getDevicesSelected"].length === 3;
-    });
+    const equalThreeDevices = computed(() => store.getters["devices/getDevicesSelected"].length === 3);
 
     const hasAuthorization = computed(() => {
       const role = store.getters["auth/role"];
       if (role !== "") {
-        return hasPermision(authorizer.role[role], actions.device["chooser"]);
+        return hasPermision(authorizer.role[role], actions.device.chooser);
       }
 
       return false;
     });
-
-    const accept = () => {
-      if (action.value === items.value[0].action) {
-        sendDevicesChoice(store.getters["devices/getDevicesForUserToChoose"]);
-      } else {
-        sendDevicesChoice(store.getters["devices/getDevicesSelected"]);
-      }
-    };
 
     const doAction = async (actionParam: string) => {
       action.value = actionParam;
@@ -158,16 +145,20 @@ export default defineComponent({
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorLoading",
-              INotificationsError.deviceList
+              INotificationsError.deviceList,
             );
           }
         }
       } else {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.deviceList
+          INotificationsError.deviceList,
         );
       }
+    };
+
+    const close = () => {
+      store.dispatch("devices/setDeviceChooserStatus", false);
     };
 
     const sendDevicesChoice = async (devices: Array<any>) => {
@@ -177,23 +168,28 @@ export default defineComponent({
       });
 
       try {
-        await store.dispatch('devices/postDevicesChooser', { choices });
-        store.dispatch('snackbar/showSnackbarSuccessAction', INotificationsSuccess.deviceChooser);
+        await store.dispatch("devices/postDevicesChooser", { choices });
+        store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.deviceChooser);
 
-        store.dispatch('devices/refresh');
+        store.dispatch("devices/refresh");
 
         close();
       } catch (error: any) {
-        store.dispatch('snackbar/showSnackbarErrorAction', INotificationsError.deviceChooser);
+        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.deviceChooser);
         throw new Error(error);
       }
 
-      store.dispatch('stats/get');
+      store.dispatch("stats/get");
     };
 
-    const close = () => {
-      store.dispatch('devices/setDeviceChooserStatus', false);
+    const accept = () => {
+      if (action.value === items.value[0].action) {
+        sendDevicesChoice(store.getters["devices/getDevicesForUserToChoose"]);
+      } else {
+        sendDevicesChoice(store.getters["devices/getDevicesSelected"]);
+      }
     };
+
     return {
       show,
       url,

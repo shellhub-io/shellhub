@@ -14,7 +14,7 @@
               </v-card-title>
               <v-container>
                 <v-card-title class="text-center"
-                  >Forgot your password</v-card-title
+                >Forgot your password</v-card-title
                 >
                 <v-card-text class="text-center mt-2">
                   Please enter the email address you'd like your password reset
@@ -66,7 +66,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import Logo from "../assets/logo-inverted.png";
@@ -90,12 +90,12 @@ export default defineComponent({
           store.dispatch("users/recoverPassword", email.value);
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.recoverPassword
+            INotificationsSuccess.recoverPassword,
           );
         } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.recoverPassword
+            INotificationsError.recoverPassword,
           );
           throw new Error(error);
         }

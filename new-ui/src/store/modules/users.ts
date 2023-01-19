@@ -1,6 +1,6 @@
 import { Module } from "vuex";
 import { State } from "./../index";
-import * as apiUser from '../api/users';
+import * as apiUser from "../api/users";
 
 export interface UsersState {
   statusUpdateAccountDialog: boolean;
@@ -36,6 +36,7 @@ export const users: Module<UsersState, State> = {
       try {
         await apiUser.signUp(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -44,6 +45,7 @@ export const users: Module<UsersState, State> = {
       try {
         await apiUser.patchUserData(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -52,6 +54,7 @@ export const users: Module<UsersState, State> = {
       try {
         await apiUser.patchUserPassword(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -60,6 +63,7 @@ export const users: Module<UsersState, State> = {
       try {
         await apiUser.postResendEmail(username);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -68,6 +72,7 @@ export const users: Module<UsersState, State> = {
       try {
         await apiUser.postRecoverPassword(email);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -76,6 +81,7 @@ export const users: Module<UsersState, State> = {
       try {
         await apiUser.postValidationAccount(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -84,16 +90,17 @@ export const users: Module<UsersState, State> = {
       try {
         await apiUser.postUpdatePassword(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
 
     setStatusUpdateAccountDialog(context, status) {
-      context.commit('updateStatusUpdateAccountDialog', status);
+      context.commit("updateStatusUpdateAccountDialog", status);
     },
 
     setStatusUpdateAccountDialogByDeviceAction(context, status) {
-      context.commit('updateStatusUpdateAccountDialogByDeviceAction', status);
+      context.commit("updateStatusUpdateAccountDialogByDeviceAction", status);
     },
   },
 };

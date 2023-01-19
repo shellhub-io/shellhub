@@ -1,5 +1,5 @@
 <template>
-  <v-list-item @click="showDialog = true" v-bind="$attrs, $props" :disabled="notHasAuthorization">
+  <v-list-item v-bind="$attrs" @click="showDialog = true" :disabled="notHasAuthorization">
     <div class="d-flex align-center">
       <div class="mr-2">
         <v-icon> mdi-delete </v-icon>
@@ -40,11 +40,11 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import { defineComponent, ref } from "vue";
 import { useStore } from "../../store";
 
 export default defineComponent({
@@ -70,13 +70,13 @@ export default defineComponent({
 
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.deviceTagDelete
+          INotificationsSuccess.deviceTagDelete,
         );
         ctx.emit("update");
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceTagDelete
+          INotificationsError.deviceTagDelete,
         );
         throw new Error(error);
       } finally {

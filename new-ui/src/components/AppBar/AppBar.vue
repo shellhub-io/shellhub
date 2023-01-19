@@ -43,7 +43,7 @@
           @click="triggerClick(item)"
         >
           <div class="d-flex align-center">
-            <v-icon :icon="item.icon" class="mr-2"></v-icon>
+            <v-icon :icon="item.icon" class="mr-2" />
 
             <v-list-item-title>
               {{ item.title }}
@@ -71,7 +71,6 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "../../store";
 import {
   defineComponent,
   computed,
@@ -80,8 +79,8 @@ import {
   defineAsyncComponent,
 } from "vue";
 import { RouteLocationRaw, useRouter } from "vue-router";
-// @ts-ignore
 import GitterSidecar from "gitter-sidecar";
+import { useStore } from "../../store";
 import { createNewClient } from "../../api/http";
 
 type MenuItem = {
@@ -99,7 +98,7 @@ export default defineComponent({
     const store = useStore();
     const router = useRouter();
     const getStatusDarkMode = computed(
-      () => store.getters["layout/getStatusDarkMode"]
+      () => store.getters["layout/getStatusDarkMode"],
     );
     const currentUser = computed(() => store.getters["auth/currentUser"]);
     const defaultSize = ref(24);
@@ -128,7 +127,7 @@ export default defineComponent({
         createNewClient();
         store.dispatch("layout/setLayout", "simpleLayout");
       } catch (error: any) {
-        throw new Error(error); 
+        throw new Error(error);
       }
     };
 
@@ -156,6 +155,7 @@ export default defineComponent({
           type: "path",
           path: "/settings",
           icon: "mdi-cog",
+          // eslint-disable-next-line no-void
           method: () => void 0,
         },
         {
@@ -177,7 +177,7 @@ export default defineComponent({
   },
   components: {
     Notification: defineAsyncComponent(
-      () => import("./Notifications/Notification.vue")
+      () => import("./Notifications/Notification.vue"),
     ),
   },
 });

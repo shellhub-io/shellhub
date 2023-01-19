@@ -1,7 +1,7 @@
 <template>
   <div>
     <DataTable
-      v-bind="$attrs, $props"
+      v-bind="$attrs"
       :headers="headers"
       :items="publicKeys"
       :itemsPerPage="itemsPerPage"
@@ -135,13 +135,13 @@ export default defineComponent({
     const page = ref(1);
     const publicKeys = computed(() => store.getters["publicKeys/list"]);
     const getNumberPublicKeys = computed(
-      () => store.getters["publicKeys/getNumberPublicKeys"]
+      () => store.getters["publicKeys/getNumberPublicKeys"],
     );
 
     const hasAuthorizationFormDialogEdit = computed(() => {
       const role = store.getters["auth/role"];
       if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.publicKey["edit"]);
+        return hasPermission(authorizer.role[role], actions.publicKey.edit);
       }
       return false;
     });
@@ -151,7 +151,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.publicKey["remove"]
+          actions.publicKey.remove,
         );
       }
       return false;
@@ -163,14 +163,14 @@ export default defineComponent({
           perPage: itemsPerPage.value,
           page: page.value,
         });
-      } catch (error: any){
+      } catch (error: any) {
         throw new Error(error);
       }
     });
 
     const getPublicKeysList = async (
       perPagaeValue: number,
-      pageValue: number
+      pageValue: number,
     ) => {
       if (store.getters["box/getStatus"]) {
         const data = {
@@ -188,7 +188,7 @@ export default defineComponent({
         } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorLoading",
-            INotificationsError.publicKeyList
+            INotificationsError.publicKeyList,
           );
           throw new Error(error);
         }
@@ -203,8 +203,7 @@ export default defineComponent({
 
     const prev = async () => {
       try {
-        if (page.value > 1)
-          await getPublicKeysList(itemsPerPage.value, --page.value);
+        if (page.value > 1) await getPublicKeysList(itemsPerPage.value, --page.value);
       } catch (error: any) {
         store.dispatch("snackbar/setSnackbarErrorDefault");
         throw new Error(error);
@@ -224,8 +223,7 @@ export default defineComponent({
       getPublicKeysList(itemsPerPage.value, page.value);
     };
 
-    const isHostname = (filter: filterType) =>
-      Object.prototype.hasOwnProperty.call(filter, "hostname");
+    const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
 
     return {
       headers: [

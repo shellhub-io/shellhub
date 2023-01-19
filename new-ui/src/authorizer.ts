@@ -1,3 +1,4 @@
+/* eslint-disable */
 // @ts-nocheck
 function iota(start = 0) {
   let count = start;
@@ -11,7 +12,7 @@ function iota(start = 0) {
         // eslint-disable-next-line no-return-assign,no-param-reassign
         return (o[prop] = count);
       },
-    }
+    },
   );
 }
 

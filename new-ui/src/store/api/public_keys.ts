@@ -1,17 +1,17 @@
-import http from '../helpers/http';
+import http from "../helpers/http";
 import { sshApi } from "../../api/http";
 
 export const postPublicKey = async (data : any) => sshApi.createPublicKey(data);
 
 export const fetchPublicKeys = async (
-    page : any,
-    perPage: any,
-    filter : any,
-  ) => {
-    if (filter) return sshApi.getPublicKeys(filter, page, perPage);
-  
-    return sshApi.getPublicKeys(filter, page, perPage);
-  };
+  page : any,
+  perPage: any,
+  filter : any,
+) => {
+  if (filter) return sshApi.getPublicKeys(filter, page, perPage);
+
+  return sshApi.getPublicKeys(filter, page, perPage);
+};
 
 export const getPublicKey = async (fingerprint : any) => http().get(`/sshkeys/public-keys/${fingerprint}`); // TODO
 

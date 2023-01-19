@@ -38,12 +38,11 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, computed, ref, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
 import { useStore } from "../store";
-import DeviceList from "../components/Devices/DeviceList.vue";
 import Device from "../components/Devices/Device.vue";
 import DeviceAdd from "../components/Devices/DeviceAdd.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
-import { useRouter } from "vue-router";
 import BoxMessage from "../components/Box/BoxMessage.vue";
 
 export default defineComponent({
@@ -78,21 +77,15 @@ export default defineComponent({
       }
     };
 
-    const hasDevice = computed(() => {
-      return (
-        store.getters["stats/stats"].registered_devices > 0 ||
-        store.getters["stats/stats"].pending_devices > 0 ||
-        store.getters["stats/stats"].rejected_devices > 0
-      );
-    });
+    const hasDevice = computed(() => (
+      store.getters["stats/stats"].registered_devices > 0
+        || store.getters["stats/stats"].pending_devices > 0
+        || store.getters["stats/stats"].rejected_devices > 0
+    ));
 
-    const isDeviceList = computed(() => {
-      return router.currentRoute.value.name === "listDevices";
-    });
+    const isDeviceList = computed(() => router.currentRoute.value.name === "listDevices");
 
-    const showMessageBox = computed(() => {
-      return !hasDevice.value && show.value;
-    });
+    const showMessageBox = computed(() => !hasDevice.value && show.value);
 
     onMounted(async () => {
       try {
@@ -120,6 +113,6 @@ export default defineComponent({
       showMessageBox,
     };
   },
-  components: { DeviceList, Device, DeviceAdd, TagSelector, BoxMessage },
+  components: { Device, DeviceAdd, TagSelector, BoxMessage },
 });
 </script>

@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 export default function infoExtract(data, periodEnd) {
   const { invoices, warning } = data;
@@ -7,11 +8,11 @@ export default function infoExtract(data, periodEnd) {
   const pm = data.default_payment_method;
 
   const showLink = (r, s) => {
-    if (s === 'open') {
+    if (s === "open") {
       return r;
     }
 
-    return '---';
+    return "---";
   };
 
   const parseInvoices = (invs) => {

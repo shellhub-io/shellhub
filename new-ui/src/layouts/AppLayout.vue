@@ -63,7 +63,7 @@
 
     <v-overlay v-model="hasSpinner">
       <div class="full-width-height d-flex justify-center align-center">
-        <v-progress-circular indeterminate size="64" alt="Request loading"/>
+        <v-progress-circular indeterminate size="64" alt="Request loading" />
       </div>
     </v-overlay>
   </v-app>
@@ -124,17 +124,17 @@ export default {
     const currentRoute = computed(() => router.currentRoute);
     const visibleItems = computed(() => items.filter((item) => !item.hidden));
     const hasNamespaces = computed(
-      () => store.getters["namespaces/getNumberNamespaces"] !== 0
+      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
     );
     const getStatusDarkMode = computed(
-      () => store.getters["layout/getStatusDarkMode"]
+      () => store.getters["layout/getStatusDarkMode"],
     );
 
     const showNavigationDrawer = computed({
       get() {
         return (
-          !store.getters["mobile/isMobile"] ||
-          store.getters["layout/getStatusNavigationDrawer"]
+          !store.getters["mobile/isMobile"]
+          || store.getters["layout/getStatusNavigationDrawer"]
         );
       },
       set(status) {
@@ -142,6 +142,11 @@ export default {
       },
     });
     const hasSpinner = computed(() => store.getters["spinner/status"]);
+
+    const onResize = () => {
+      const isMobile = window.innerWidth < 1265;
+      store.dispatch("mobile/setIsMobileStatus", isMobile);
+    };
 
     onMounted(() => {
       onResize();
@@ -155,13 +160,7 @@ export default {
       window.removeEventListener("resize", onResize);
     });
 
-    const onResize = () => {
-      const isMobile = window.innerWidth < 1265;
-      store.dispatch("mobile/setIsMobileStatus", isMobile);
-    };
-
-    const disableItem = (item: string) =>
-      !hasNamespaces && item !== "Dashboard";
+    const disableItem = (item: string) => !hasNamespaces.value && item !== "Dashboard";
 
     return {
       Logo,

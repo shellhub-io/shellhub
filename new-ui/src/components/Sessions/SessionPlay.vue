@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     @click="showDialog = !showDialog"
-    v-bind="$attrs, $props"
+    v-bind="$attrs"
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
@@ -114,6 +114,7 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable */
 import {
   computed,
   defineComponent,
@@ -223,7 +224,7 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.sessionPlay
+          INotificationsError.sessionPlay,
         );
         throw new Error(error);
       }
@@ -268,7 +269,7 @@ export default defineComponent({
 
       const displayTime = moment
         .utc(duration.asMilliseconds())
-        .format(`${hoursFormat ? hoursFormat + ":" : ""}mm:ss`);
+        .format(`${hoursFormat ? `${hoursFormat}:` : ""}mm:ss`);
       if (timeMs) {
         endTimerDisplay.value = displayTime;
       } else {
@@ -325,7 +326,7 @@ export default defineComponent({
       }
       iterativeTimer.value = setTimeout(
         timer.bind(null),
-        100 * (1 / defaultSpeed.value)
+        100 * (1 / defaultSpeed.value),
       );
     };
 
@@ -369,7 +370,7 @@ export default defineComponent({
         iterativePrinting.value = setTimeout(
           print.bind(null, frame.index + 1, logs.value),
           // @ts-ignore
-          frame.waitForPrint * (1 / defaultSpeed.value)
+          frame.waitForPrint * (1 / defaultSpeed.value),
         );
       }
     };
@@ -381,7 +382,7 @@ export default defineComponent({
       let higherBound = frames.length - 1;
       let nextTimeSetPrint;
 
-      for (; higherBound - lowerBound > 1; ) {
+      for (; higherBound - lowerBound > 1;) {
         // progressive increment search
         between = Math.floor((lowerBound + higherBound) / 2);
         if (frames[between].incTime < givenTime) {
@@ -412,7 +413,7 @@ export default defineComponent({
         // @ts-ignore
         iterativePrinting.value = setTimeout(
           print.bind(null, i + 1, logsArray),
-          interval * (1 / defaultSpeed.value)
+          interval * (1 / defaultSpeed.value),
         );
       }
     };

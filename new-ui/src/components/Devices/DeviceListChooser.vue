@@ -58,11 +58,11 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, ref, computed, onMounted, watch } from "vue";
 import {
   INotificationsCopy,
   INotificationsError,
 } from "../../interfaces/INotifications";
-import { defineComponent, ref, computed, onMounted, watch } from "vue";
 import { useStore } from "../../store";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
@@ -84,10 +84,10 @@ export default defineComponent({
     const page = ref(1);
 
     const devices = computed(
-      () => store.getters["devices/getDevicesForUserToChoose"]
+      () => store.getters["devices/getDevicesForUserToChoose"],
     );
     const numberDevices = computed(
-      () => store.getters["devices/getNumberForUserToChoose"]
+      () => store.getters["devices/getNumberForUserToChoose"],
     );
     const selected = computed({
       get() {
@@ -115,7 +115,7 @@ export default defineComponent({
             filter: filter.value,
             sortStatusField: store.getters["devices/sortStatusField"],
             sortStatusString: store.getters["devices/sortStatusString"],
-          }
+          },
         );
 
         if (!hasDevices) {
@@ -130,7 +130,7 @@ export default defineComponent({
         } else {
           store.dispatch(
             "snackbar/showSnackbarErrorLoading",
-            INotificationsError.deviceList
+            INotificationsError.deviceList,
           );
           throw new Error(error);
         }
@@ -173,15 +173,14 @@ export default defineComponent({
       await getDevices(itemsPerPage.value, page.value);
     });
 
-    const address = (item: any) =>
-      `${item.namespace}.${item.name}@${window.location.hostname}`;
+    const address = (item: any) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
     const copyText = (value: string | undefined) => {
       if (value) {
         navigator.clipboard.writeText(value);
         store.dispatch(
           "snackbar/showSnackbarCopy",
-          INotificationsCopy.deviceSSHID
+          INotificationsCopy.deviceSSHID,
         );
       }
     };

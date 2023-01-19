@@ -90,8 +90,8 @@
 
 <script lang="ts">
 import { useField } from "vee-validate";
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
-import { LocationQueryValue, useRoute, useRouter } from "vue-router";
+import { defineComponent, onMounted, ref } from "vue";
+import { LocationQueryValue, useRoute } from "vue-router";
 import * as yup from "yup";
 import Logo from "../assets/logo-inverted.png";
 import {
@@ -109,7 +109,6 @@ type TUpdatePassword = {
 export default defineComponent({
   setup() {
     const store = useStore();
-    const router = useRouter();
     const route = useRoute();
     const data = ref({} as TUpdatePassword);
     const showPassword = ref(false);
@@ -118,7 +117,6 @@ export default defineComponent({
     const {
       value: password,
       errorMessage: passwordError,
-      setErrors: setPasswordError,
     } = useField<string>(
       "password",
       yup
@@ -128,14 +126,12 @@ export default defineComponent({
         .max(30, "Your password should be 5-30 characters long"),
       {
         initialValue: "",
-      }
+      },
     );
 
     const {
       value: passwordConfirm,
       errorMessage: passwordConfirmError,
-      setErrors: setPasswordConfirmError,
-      resetField: resetPasswordConfirm,
     } = useField<string>(
       "passwordConfirm",
       yup
@@ -144,18 +140,18 @@ export default defineComponent({
         .test(
           "passwords-match",
           "Passwords do not match",
-          (value) => password.value === value
+          (value) => password.value === value,
         ),
       {
         initialValue: "",
-      }
+      },
     );
 
     onMounted(() => {
       data.value = {
         id: route.query.id,
         token: route.query.token,
-        password: ""
+        password: "",
       };
     });
 
@@ -169,12 +165,12 @@ export default defineComponent({
 
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.updatingAccount
+          INotificationsSuccess.updatingAccount,
         );
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.updatingAccount
+          INotificationsError.updatingAccount,
         );
         throw new Error(error);
       }

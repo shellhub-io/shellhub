@@ -11,11 +11,21 @@
 
     <p class="ml-4 pt-4 text-subtitle-2" data-test="welcome-fourth-links">
       For more details, consult our
-      <a target="_blank" href="http://docs.shellhub.io/"> documentation </a>
+      <a
+        href="http://docs.shellhub.io/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        documentation
+      </a>
       and, if you have any questions, contact us through the
-      <a target="_blank" href="https://gitter.im/shellhub-io/community">
-        Gitter</a
-      >.
+      <a
+        href="https://gitter.im/shellhub-io/community"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Gitter
+      </a>.
     </p>
 
     <p class="ml-4 pt-4 text-subtitle-2" data-test="welcome-fourth-thanks">Thank you for choosing Shellhub.</p>

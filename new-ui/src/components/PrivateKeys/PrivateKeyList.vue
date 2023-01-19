@@ -26,7 +26,7 @@
             eager
           >
             <template v-slot:activator="{ props }">
-              <v-chip 
+              <v-chip
                 v-bind="props"
                 class="bg-v-theme-surface"
                 data-test="privateKey-chip"
@@ -34,7 +34,7 @@
                 size="small"
               >
                 <v-icon data-test="privateKey-menu-icon"
-                  >mdi-dots-horizontal</v-icon
+                >mdi-dots-horizontal</v-icon
                 >
               </v-chip>
             </template>
@@ -71,10 +71,6 @@ export default defineComponent({
     const store = useStore();
     const getListPrivateKeys = computed(() => store.getters["privateKey/list"]);
 
-    onMounted(() => {
-      getPrivateKeys();
-    });
-
     const getPrivateKeys = async () => {
       try {
         await store.dispatch("privateKey/fetch");
@@ -82,6 +78,10 @@ export default defineComponent({
         throw new Error(error);
       }
     };
+
+    onMounted(() => {
+      getPrivateKeys();
+    });
 
     return {
       headers: [

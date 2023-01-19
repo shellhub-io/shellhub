@@ -29,8 +29,8 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "../../store";
 import { defineComponent, ref, computed, watch, onMounted } from "vue";
+import { useStore } from "../../store";
 import { envVariables } from "../../envVariables";
 import { INotificationsError } from "../../interfaces/INotifications";
 import NamespaceList from "./NamespaceList.vue";
@@ -45,34 +45,53 @@ export default defineComponent({
     const isChecking = ref(false);
     const namespace = computed(() => store.getters["namespaces/get"]);
     const hasNamespace = computed(
-      () => store.getters["namespaces/getNumberNamespaces"] !== 0
+      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
     );
     const openVersion = computed(() => !envVariables.isEnterprise);
     const tenant = computed(() => localStorage.getItem("tenant"));
     const isEnterprise = computed(() => envVariables.isEnterprise);
-    onMounted(async () => {
-      await getNamespaces();
-      if (inANamespace.value) {
-        await getNamespace();
-      }
-      if (Object.keys(namespace.value).length === 0 && openVersion.value) {
-        isChecking.value = true;
-        // Interval to check if the namespace has been added by cli
-        setInterval(() => {
-          checkNewNamespace();
-        }, 3000);
-      }
-    });
 
-    watch(hasNamespace, (status) => {
-      inANamespace.value = status;
-      getNamespace();
-    });
-    watch(listing, (val) => {
-      if (val) {
-        getNamespaces();
+    const getNamespaces = async () => {
+      try {
+        if (!store.getters["auth/isLoggedIn"]) return;
+        await store.dispatch("namespaces/fetch", {
+          page: 1,
+          perPage: 30,
+        });
+      } catch (error: any) {
+        switch (true) {
+          case !inANamespace.value && error.response.status === 403: {
+            // dialog pops
+            break;
+          }
+          case error.response.status === 403: {
+            store.dispatch("snackbar/showSnackbarErrorAssociation");
+            break;
+          }
+          default: {
+            store.dispatch(
+              "snackbar/showSnackbarErrorLoading",
+              INotificationsError.namespaceList,
+            );
+            throw new Error(error);
+          }
+        }
       }
-    });
+    };
+    const switchIn = async (tenantId: string) => {
+      try {
+        await store.dispatch("namespaces/switchNamespace", {
+          tenant_id: tenantId,
+        });
+        window.location.reload();
+      } catch (error: any) {
+        store.dispatch(
+          "snackbar/showSnackbarErrorLoading",
+          INotificationsError.namespaceSwitch,
+        );
+        throw new Error(error);
+      }
+    };
 
     const checkNewNamespace = async () => {
       if (!store.getters["auth/isLoggedIn"]) return;
@@ -103,60 +122,44 @@ export default defineComponent({
             }
             break;
           }
-          case error.response.status === 500 && tenant === null: {
+          case error.response.status === 500 && tenant.value === null: {
             break;
           }
           default: {
             store.dispatch(
               "snackbar/showSnackbarErrorLoading",
-              INotificationsError.namespaceLoad
+              INotificationsError.namespaceLoad,
             );
             throw new Error(error);
           }
         }
       }
     };
-    const getNamespaces = async () => {
-      try {
-        if (!store.getters["auth/isLoggedIn"]) return;
-        await store.dispatch("namespaces/fetch", {
-          page: 1,
-          perPage: 30,
-        });
-      } catch (error: any) {
-        switch (true) {
-          case !inANamespace.value && error.response.status === 403: {
-            // dialog pops
-            break;
-          }
-          case error.response.status === 403: {
-            store.dispatch("snackbar/showSnackbarErrorAssociation");
-            throw new Error(error);
-          }
-          default: {
-            store.dispatch(
-              "snackbar/showSnackbarErrorLoading",
-              INotificationsError.namespaceList
-            );
-            throw new Error(error);
-          }
-        }
+
+    onMounted(async () => {
+      await getNamespaces();
+      if (inANamespace.value) {
+        await getNamespace();
       }
-    };
-    const switchIn = async (tenantId: string) => {
-      try {
-        await store.dispatch("namespaces/switchNamespace", {
-          tenant_id: tenantId,
-        });
-        window.location.reload();
-      } catch (error: any) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.namespaceSwitch
-        );
-        throw new Error(error);
+      if (Object.keys(namespace.value).length === 0 && openVersion.value) {
+        isChecking.value = true;
+        // Interval to check if the namespace has been added by cli
+        setInterval(() => {
+          checkNewNamespace();
+        }, 3000);
       }
-    };
+    });
+
+    watch(hasNamespace, (status) => {
+      inANamespace.value = status;
+      getNamespace();
+    });
+    watch(listing, (val) => {
+      if (val) {
+        getNamespaces();
+      }
+    });
+
     return {
       inANamespace,
       hasNamespace,

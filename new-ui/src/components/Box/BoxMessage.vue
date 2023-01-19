@@ -58,8 +58,8 @@
 </template>
 
 <script lang="ts">
-import { INotificationsError } from "../../interfaces/INotification";
 import { defineComponent } from "vue";
+import { INotificationsError } from "../../interfaces/INotification";
 import { useStore } from "../../store";
 import DeviceAdd from "../Devices/DeviceAdd.vue";
 import FirewallRuleAdd from "../firewall/FirewallRuleAdd.vue";
@@ -123,8 +123,7 @@ export default defineComponent({
     typeMessage: {
       type: String,
       default: "firewall",
-      validator: (value: string) =>
-        ["device", "session", "firewall", "publicKey"].includes(value),
+      validator: (value: string) => ["device", "session", "firewall", "publicKey"].includes(value),
       required: true,
     },
   },
@@ -194,7 +193,7 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.firewallRuleList
+          INotificationsError.firewallRuleList,
         );
         throw new Error(error);
       }
@@ -206,7 +205,7 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.publicKeyList
+          INotificationsError.publicKeyList,
         );
         throw new Error(error);
       }
