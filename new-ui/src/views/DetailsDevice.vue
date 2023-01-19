@@ -117,7 +117,7 @@
 </template>
 
 <script lang="ts">
-import { computed, ref, defineComponent, onMounted } from "vue";
+import { computed, defineComponent, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "../store";
 import { formatDate } from "..//utils/formateDate";
@@ -145,15 +145,14 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceDetails
+          INotificationsError.deviceDetails,
         );
         throw new Error(error);
       }
     });
     const deviceIsEmpty = computed(
-      () =>
-        store.getters["devices/get"] &&
-        Object.keys(store.getters["devices/get"]).length === 0
+      () => store.getters["devices/get"]
+        && Object.keys(store.getters["devices/get"]).length === 0,
     );
 
     const refreshUsers = async () => {
@@ -162,7 +161,7 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceDetails
+          INotificationsError.deviceDetails,
         );
         throw new Error(error);
       }

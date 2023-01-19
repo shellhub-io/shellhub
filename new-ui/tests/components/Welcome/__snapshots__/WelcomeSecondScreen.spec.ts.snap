@@ -53,6 +53,6 @@ exports[`WelcomeSecondScreen > Renders the component 1`] = `
     </div>
   </div>
   <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-  <p class=\\"text-caption mb-0 mt-1\\"> Check the <a href=\\"https://docs.shellhub.io/user-guides/devices/adding\\" target=\\"_blank\\">documentation</a> for more information and alternative install methods. </p><!-- ! old url -->
+  <p class=\\"text-caption mb-0 mt-1\\"> Check the <a href=\\"https://docs.shellhub.io/user-guides/devices/adding\\" target=\\"_blank\\" rel=\\"noopener noreferrer\\">documentation</a> for more information and alternative install methods. </p>
 </div>"
 `;

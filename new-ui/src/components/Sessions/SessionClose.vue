@@ -46,11 +46,11 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, PropType, ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import { defineComponent, PropType, ref } from "vue";
 import { IDevice } from "../../interfaces/IDevice";
 import { useStore } from "../../store";
 
@@ -83,13 +83,13 @@ export default defineComponent({
         showDialog.value = false;
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.sessionClose
+          INotificationsSuccess.sessionClose,
         );
         ctx.emit("update");
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.sessionClose
+          INotificationsError.sessionClose,
         );
         throw new Error(error);
       }

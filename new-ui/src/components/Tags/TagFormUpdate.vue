@@ -1,5 +1,5 @@
 <template>
-  <v-list-item v-bind="$attrs, $props" @click="showDialog = true">
+  <v-list-item v-bind="$attrs" @click="showDialog = true">
     <div class="d-flex align-center">
       <div class="mr-2">
         <v-icon> mdi-tag </v-icon>
@@ -57,11 +57,8 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
-import { useField } from "vee-validate";
-import * as yup from "yup";
+import { computed, defineComponent, ref, watch } from "vue";
 import { useStore } from "../../store";
-import { AxiosError } from "axios";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -114,7 +111,7 @@ export default defineComponent({
         showDialog.value = false;
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.deviceTagUpdate
+          INotificationsSuccess.deviceTagUpdate,
         );
 
         ctx.emit("update");
@@ -122,15 +119,14 @@ export default defineComponent({
         switch (error.response.status) {
           // when the name the format is invalid.
           case 400: {
-            tagsError.value =
-              "The format is invalid. Min 3, Max 255 characters!";
+            tagsError.value = "The format is invalid. Min 3, Max 255 characters!";
             break;
           }
           // when the user is not authorized.
           case 403: {
             store.dispatch(
               "snackbar/showSnackbarErrorAction",
-              INotificationsError.deviceTagUpdate
+              INotificationsError.deviceTagUpdate,
             );
             break;
           }
@@ -142,7 +138,7 @@ export default defineComponent({
           default: {
             store.dispatch(
               "snackbar/showSnackbarErrorAction",
-              INotificationsError.deviceTagUpdate
+              INotificationsError.deviceTagUpdate,
             );
             throw new Error(error);
           }

@@ -65,11 +65,11 @@ export default defineComponent({
         await store.dispatch("users/resendEmail", props.username);
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.resendEmail
+          INotificationsSuccess.resendEmail,
         );
       } catch (error: any) {
         store.dispatch("snackbar/showSnackbarErrorDefault");
-        throw new Error(error); 
+        throw new Error(error);
       }
     };
 

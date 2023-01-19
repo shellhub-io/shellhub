@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     @click="showDialog = true"
-    v-bind="$attrs, $props"
+    v-bind="$attrs"
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
@@ -15,7 +15,7 @@
     </div>
   </v-list-item>
 
-  <v-dialog v-model="showDialog"  width="520" transition="dialog-bottom-transition">
+  <v-dialog v-model="showDialog" width="520" transition="dialog-bottom-transition">
     <v-card class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-3 bg-primary">
         Edit Firewall Rule
@@ -160,9 +160,9 @@
 
 <script lang="ts">
 import { useField } from "vee-validate";
-import { defineComponent, ref, watch, onMounted, computed } from "vue";
-import { useStore } from "../../store";
+import { defineComponent, ref, watch, computed } from "vue";
 import * as yup from "yup";
+import { useStore } from "../../store";
 import { FirewallRuleType } from "./FirewallRuleAdd.vue";
 import {
   INotificationsError,
@@ -174,6 +174,7 @@ export default defineComponent({
     firewallRule: {
       type: Object as any,
       required: false,
+      default: null,
     },
     show: {
       type: Boolean,
@@ -290,10 +291,6 @@ export default defineComponent({
 
     const errMsg = ref("");
 
-    watch(showDialog, (val) => {
-      if (val) setLocalVariable();
-    });
-
     const store = useStore();
 
     const tagNames = computed(() => store.getters["tags/list"]);
@@ -355,7 +352,7 @@ export default defineComponent({
 
     const setLocalVariable = () => {
       let status = "inactive";
-      let {
+      const {
         action,
         active,
         username: usernameLocal,
@@ -416,18 +413,22 @@ export default defineComponent({
       ruleFirewallLocal.value.username = username.value;
     });
 
+    watch(showDialog, (val) => {
+      if (val) setLocalVariable();
+    });
+
     const hasErros = () => {
       if (
-        choiceIP.value === "ipDetails" &&
-        ruleFirewallLocal.value.source_ip === ""
+        choiceIP.value === "ipDetails"
+        && ruleFirewallLocal.value.source_ip === ""
       ) {
         setSourceIpError("This Field is required !");
         return true;
       }
 
       if (
-        choiceUsername.value === "username" &&
-        ruleFirewallLocal.value.username === ""
+        choiceUsername.value === "username"
+        && ruleFirewallLocal.value.username === ""
       ) {
         setUsernameError("This Field is required !");
         return true;
@@ -441,26 +442,6 @@ export default defineComponent({
       return false;
     };
 
-    const edit = async () => {
-      if (!hasErros()) {
-        selectRestriction();
-        try {
-          await store.dispatch("firewallRules/put", ruleFirewallLocal.value);
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.firewallRuleCreating
-          );
-          update();
-        } catch (error: any) {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.firewallRuleCreating
-          );
-          throw new Error(error);
-        }
-      }
-    };
-
     const resetChoices = () => {
       choiceIP.value = "all";
       choiceUsername.value = "all";
@@ -471,14 +452,34 @@ export default defineComponent({
       tagChoices.value = [];
     };
 
+    const close = () => {
+      resetChoices();
+      showDialog.value = false;
+    };
+
     const update = () => {
       ctx.emit("update");
       close();
     };
 
-    const close = () => {
-      resetChoices();
-      showDialog.value = false;
+    const edit = async () => {
+      if (!hasErros()) {
+        selectRestriction();
+        try {
+          await store.dispatch("firewallRules/put", ruleFirewallLocal.value);
+          store.dispatch(
+            "snackbar/showSnackbarSuccessAction",
+            INotificationsSuccess.firewallRuleCreating,
+          );
+          update();
+        } catch (error: any) {
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.firewallRuleCreating,
+          );
+          throw new Error(error);
+        }
+      }
     };
 
     return {

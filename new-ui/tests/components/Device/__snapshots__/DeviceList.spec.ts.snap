@@ -2,7 +2,7 @@
 
 exports[`List data when user has observer role > Renders the component 1`] = `
 "<div totalcount=\\"2\\" data-v-06dd64af=\\"\\">
-  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"async () =&gt; {
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"async () =&gt; {
       await getDevices(itemsPerPage.value, ++page.value);
     }\\" previouspage=\\"async () =&gt; {
       try {
@@ -11,13 +11,13 @@ exports[`List data when user has observer role > Renders the component 1`] = `
       } catch (error) {
         store.dispatch(&quot;snackbar/setSnackbarErrorDefault&quot;);
       }
-    }\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"devices-list\\" data-v-06dd64af=\\"\\"></data-table-stub>
+    }\\" data-test=\\"devices-list\\" data-v-06dd64af=\\"\\"></data-table-stub>
 </div>"
 `;
 
 exports[`List data when user has owner role > Renders the component 1`] = `
 "<div totalcount=\\"2\\" data-v-06dd64af=\\"\\">
-  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"async () =&gt; {
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"async () =&gt; {
       await getDevices(itemsPerPage.value, ++page.value);
     }\\" previouspage=\\"async () =&gt; {
       try {
@@ -26,6 +26,6 @@ exports[`List data when user has owner role > Renders the component 1`] = `
       } catch (error) {
         store.dispatch(&quot;snackbar/setSnackbarErrorDefault&quot;);
       }
-    }\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"devices-list\\" data-v-06dd64af=\\"\\"></data-table-stub>
+    }\\" data-test=\\"devices-list\\" data-v-06dd64af=\\"\\"></data-table-stub>
 </div>"
 `;

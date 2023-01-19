@@ -13,16 +13,17 @@
       <v-spacer />
     </div>
 
-    <FirewallRuleAdd @update="refresh"/>
+    <FirewallRuleAdd @update="refresh" />
   </div>
 
   <p v-if="showHelp" class="mt-n4 mb-2">
     Firewall rules gives a fine-grained control over which SSH connections reach
     the devices.
     <a
-      target="_blank"
       href="https://docs.shellhub.io/user-guides/security/managing-firewall-rules"
-      >See More</a
+      target="_blank"
+      rel="noopener noreferrer"
+    >See More</a
     >
   </p>
 
@@ -51,10 +52,22 @@ export default defineComponent({
     const store = useStore();
     const show = ref(false);
     const hasFirewallRule = computed(
-      () => store.getters["firewallRules/getNumberFirewalls"] > 0
+      () => store.getters["firewallRules/getNumberFirewalls"] > 0,
     );
     const showBoxMessage = computed(() => !hasFirewallRule.value && show.value);
-    
+
+    const refresh = async () => {
+      try {
+        await store.dispatch("firewallRules/refresh");
+      } catch (error: any) {
+        store.dispatch(
+          "snackbar/showSnackbarErrorLoading",
+          INotificationsError.firewallRuleList,
+        );
+        throw new Error(error);
+      }
+    };
+
     onMounted(async () => {
       try {
         store.dispatch("box/setStatus", true);
@@ -66,18 +79,6 @@ export default defineComponent({
         throw new Error(error);
       }
     });
-
-    const refresh = async () => {
-      try {
-        await store.dispatch("firewallRules/refresh");
-      } catch (error: any) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.firewallRuleList
-        );
-        throw new Error(error);
-      }
-    };
 
     return {
       show,

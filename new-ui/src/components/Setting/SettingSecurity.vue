@@ -51,7 +51,7 @@ export default defineComponent({
         await store.dispatch("security/set", data);
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.namespaceEdit
+          INotificationsSuccess.namespaceEdit,
         );
       } catch (error: any) {
         store.dispatch("snackbar/showSnackbarErrorDefault");
@@ -64,7 +64,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.namespace["enableSessionRecord"]
+          actions.namespace.enableSessionRecord,
         );
       }
       return false;

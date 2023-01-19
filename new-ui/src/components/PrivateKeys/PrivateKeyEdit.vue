@@ -11,7 +11,7 @@
     </div>
   </v-list-item>
 
-  <v-dialog v-model="showDialog"  width="520" transition="dialog-bottom-transition">
+  <v-dialog v-model="showDialog" width="520" transition="dialog-bottom-transition">
     <v-card class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-3 bg-primary">
         Edit Private Key
@@ -72,18 +72,14 @@ import {
   ref,
   watch,
   onMounted,
-  computed,
-  nextTick,
-  onUpdated,
 } from "vue";
-import { useStore } from "../../store";
 import * as yup from "yup";
+import { useStore } from "../../store";
 import { IPublicKey } from "../../interfaces/IPublicKey";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-// import { validateKey } from "../../utils/validate";
 
 export default defineComponent({
   props: {
@@ -107,7 +103,7 @@ export default defineComponent({
       data: "",
     });
     const supportedKeys = ref(
-      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
     );
 
     const { value: name, errorMessage: nameError } = useField<
@@ -120,34 +116,17 @@ export default defineComponent({
       keyLocal.value.name = name.value;
     });
 
-    onMounted(() => {
-      setPrivateKey();
-    });
-
     const setPrivateKey = () => {
       keyLocal.value = { ...props.keyObject };
     };
 
-    const edit = async () => {
-      if (!nameError.value) {
-        // @ts-ignore
-        let keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data) };
+    onMounted(() => {
+      setPrivateKey();
+    });
 
-        try {
-          await store.dispatch("privateKey/edit", keySend);
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.privateKeyEditing
-          );
-          update();
-        } catch (error: any) {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.publicKeyEditing
-          );
-          throw new Error(error);
-        }
-      }
+    const close = () => {
+      setPrivateKey();
+      showDialog.value = false;
     };
 
     const update = () => {
@@ -155,9 +134,27 @@ export default defineComponent({
       close();
     };
 
-    const close = () => {
-      setPrivateKey();
-      showDialog.value = false;
+    const edit = async () => {
+      if (!nameError.value) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data) };
+
+        try {
+          await store.dispatch("privateKey/edit", keySend);
+          store.dispatch(
+            "snackbar/showSnackbarSuccessAction",
+            INotificationsSuccess.privateKeyEditing,
+          );
+          update();
+        } catch (error: any) {
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.publicKeyEditing,
+          );
+          throw new Error(error);
+        }
+      }
     };
 
     return {

@@ -1,5 +1,5 @@
 <template>
-  <v-table class="bg-v-theme-surface" v-bind="$props, $attrs">
+  <v-table class="bg-v-theme-surface" v-bind="$attrs">
     <thead>
       <tr>
         <th
@@ -40,7 +40,7 @@
         </td>
 
         <td class="text-center">
-          <a v-if="invoice.pdf != '---'" :href="invoice.pdf" target="_blank">
+          <a v-if="invoice.pdf != '---'" :href="invoice.pdf" target="_blank" rel="noopener noreferrer">
             <v-icon color="#E53935"> mdi-file-pdf-box </v-icon>
           </a>
 
@@ -50,7 +50,7 @@
         </td>
 
         <td class="text-center">
-          <a v-if="invoice.url != '---'" :href="invoice.url" target="_blank">
+          <a v-if="invoice.url != '---'" :href="invoice.url" target="_blank" rel="noopener noreferrer">
             <v-icon color="primary"> mdi-credit-card </v-icon>
           </a>
 
@@ -87,9 +87,9 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, computed, ref } from "vue";
 import { formatCurrency } from "../../utils/currency";
 import unixTimeFormat from "../../utils/timestamp";
-import { defineComponent, computed, ref } from "vue";
 import { useStore } from "../../store";
 
 export default defineComponent({
@@ -99,16 +99,14 @@ export default defineComponent({
     const page = ref(1);
     const invoiceList = computed(() => store.getters["billing/getInvoices"]);
     const invoicesLength = computed(
-      () => store.getters["billing/getInvoicesLength"]
+      () => store.getters["billing/getInvoicesLength"],
     );
     const itemsToView = computed(() => {
       const start = (page.value - 1) * defaultPerPage.value;
       const end = start + defaultPerPage.value;
       return invoiceList.value.slice(start, end);
     });
-    const pageQuantity = computed(() => {
-      return Math.ceil(invoicesLength.value / defaultPerPage.value);
-    });
+    const pageQuantity = computed(() => Math.ceil(invoicesLength.value / defaultPerPage.value));
 
     const previousPage = () => {
       if (page.value > 1) {

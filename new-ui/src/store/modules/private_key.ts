@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Module } from "vuex";
 import { State } from "./../index";
 
@@ -34,7 +35,7 @@ export const privateKey: Module<PrivateKeyState, State> = {
     editPrivateKey: (state, data) => {
       const { index, ...pk } = data;
       state.privateKeys.splice(index, 1, pk);
-      localStorage.setItem('privateKeys', JSON.stringify(state.privateKeys));
+      localStorage.setItem("privateKeys", JSON.stringify(state.privateKeys));
     },
 
     removePrivateKey: (state, data) => {
@@ -46,28 +47,28 @@ export const privateKey: Module<PrivateKeyState, State> = {
   actions: {
     fetch: async (context) => {
       // @ts-ignore
-      const privateKeys = JSON.parse(localStorage.getItem('privateKeys'));
-      if (privateKeys !== null) { context.commit('fetchPrivateKey', privateKeys); }
+      const privateKeys = JSON.parse(localStorage.getItem("privateKeys"));
+      if (privateKeys !== null) { context.commit("fetchPrivateKey", privateKeys); }
     },
 
     set: async (context, privateKey) => {
       // @ts-ignore
-      const privateKeys = JSON.parse(localStorage.getItem('privateKeys')) || [];
+      const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
 
       privateKeys.forEach((pk : any) => {
         if (pk.data === privateKey.data && pk.name === privateKey.name) {
-          throw new Error('both');
+          throw new Error("both");
         }
         if (pk.data === privateKey.data) {
-          throw new Error('private_key');
+          throw new Error("private_key");
         }
         if (pk.name === privateKey.name) {
-          throw new Error('name');
+          throw new Error("name");
         }
       });
       privateKeys.push(privateKey);
-      localStorage.setItem('privateKeys', JSON.stringify(privateKeys));
-      context.commit('setPrivateKey', privateKey);
+      localStorage.setItem("privateKeys", JSON.stringify(privateKeys));
+      context.commit("setPrivateKey", privateKey);
     },
 
     edit: async (context, privateKey) => {
@@ -77,22 +78,22 @@ export const privateKey: Module<PrivateKeyState, State> = {
           index = i;
         }
         if (pk.name === privateKey.name) {
-          throw new Error('name');
+          throw new Error("name");
         }
       });
-      context.commit('editPrivateKey', { ...privateKey, ...{ index } });
+      context.commit("editPrivateKey", { ...privateKey, ...{ index } });
     },
 
     remove: async (context, data) => {
       // @ts-ignore
-      const privateKeys = JSON.parse(localStorage.getItem('privateKeys')) || [];
+      const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
 
       if (privateKeys !== null) {
         privateKeys.splice(privateKeys.findIndex((d: any) => d.data === data), 1);
       }
 
-      localStorage.setItem('privateKeys', JSON.stringify(privateKeys));
-      context.commit('removePrivateKey', data);
+      localStorage.setItem("privateKeys", JSON.stringify(privateKeys));
+      context.commit("removePrivateKey", data);
     },
   },
 };

@@ -6,7 +6,7 @@ export default () => {
   const axios = Axios.create({
     baseURL: `${window.location.protocol}//${window.location.host}/api`,
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
 
@@ -17,7 +17,7 @@ export default () => {
     },
     async (error) => {
       throw error;
-    }
+    },
   );
 
   axios.interceptors.response.use(
@@ -29,12 +29,12 @@ export default () => {
       store.dispatch("spinner/setStatus", false);
       if (error.response.status === 401) {
         await store.dispatch("auth/logout");
-        await router.push({ name: "login" }).catch(() => {});
+        await router.push({ name: "login" });
 
         store.dispatch("layout/setLayout", "simpleLayout");
       }
       throw error;
-    }
+    },
   );
 
   return axios;

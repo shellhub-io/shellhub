@@ -5,13 +5,13 @@
   />
 
   <Welcome
-    :show.sync="show"
+    v-model:show="show"
     @update="show = false"
     data-test="welcome-component"
   />
 
   <NamespaceInstructions
-    :show.sync="showInstructions"
+    v-model:show="showInstructions"
     @update="showInstructions = false"
     data-test="namespaceInstructions-component"
   />
@@ -49,51 +49,16 @@ export default defineComponent({
     const showAnnouncements = ref<boolean>(false);
 
     const hasNamespaces = computed(
-      () => store.getters["namespaces/getNumberNamespaces"] !== 0
+      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
     );
     const hasSpinner = computed(() => store.getters["spinner/getStatus"]);
     const hasWarning = computed(
-      () => store.getters["devices/getDeviceChooserStatus"]
+      () => store.getters["devices/getDeviceChooserStatus"],
     );
     const openVersion = computed(() => !envVariables.isEnterprise);
     const stats = computed(() => store.getters["stats/stats"]);
     const announcements = computed(() => store.getters["announcement/list"]);
     const announcement = computed(() => store.getters["announcement/get"]);
-
-    onMounted(() => {
-      showDialogs();
-      ShowAnnouncementsCheck();
-    });
-
-    const ShowAnnouncementsCheck = async () => {
-      if (!envVariables.announcementsEnable || openVersion.value ) {
-        return;
-      }
-
-      try {
-        await store.dispatch("announcement/getListAnnouncements", {
-          page: 1,
-          perPage: 1,
-          orderBy: "desc",
-        });
-  
-        if (announcements.value.length > 0) {
-          const announcementTest = announcements.value[0];
-          await store.dispatch(
-            "announcement/getAnnouncement",
-            announcementTest.uuid
-            );
-          
-          const announcementStorage = localStorage.getItem("announcement");
-          const lastAnnouncementEncoded = btoa(JSON.stringify(announcement.value))
-          if (announcementStorage !== lastAnnouncementEncoded) {
-            showAnnouncements.value = true;
-          }
-        }
-      } catch (error: any) {
-        throw new Error(error);
-      }
-    };
 
     const statusWarning = async () => {
       const bill = store.getters["namespaces/get"].billing;
@@ -103,10 +68,72 @@ export default defineComponent({
       }
 
       return (
-        store.getters["stats/stats"].registered_devices > 3 &&
-        !store.getters["billing/active"]
+        store.getters["stats/stats"].registered_devices > 3
+        && !store.getters["billing/active"]
       );
     };
+
+    const billingWarning = async () => {
+      const status = await statusWarning();
+      await store.dispatch("devices/setDeviceChooserStatus", status);
+    };
+
+    const namespaceHasBeenShown = (tenant: string) => (
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      JSON.parse(localStorage.getItem("namespacesWelcome"))[tenant]
+        !== undefined
+    );
+
+    const hasDevices = computed(() => (
+      stats.value.registered_devices !== 0
+        || stats.value.pending_devices !== 0
+        || stats.value.rejected_devices !== 0
+    ));
+
+    const showScreenWelcome = async () => {
+      let status = false;
+
+      const tenantID = await store.getters["namespaces/get"].tenant_id;
+      if (!namespaceHasBeenShown(tenantID) && !hasDevices.value) {
+        store.dispatch("auth/setShowWelcomeScreen", tenantID);
+        status = true;
+      }
+
+      show.value = status;
+    };
+
+    const ShowAnnouncementsCheck = async () => {
+      if (!envVariables.announcementsEnable || openVersion.value) {
+        return;
+      }
+
+      try {
+        await store.dispatch("announcement/getListAnnouncements", {
+          page: 1,
+          perPage: 1,
+          orderBy: "desc",
+        });
+
+        if (announcements.value.length > 0) {
+          const announcementTest = announcements.value[0];
+          await store.dispatch(
+            "announcement/getAnnouncement",
+            announcementTest.uuid,
+          );
+
+          const announcementStorage = localStorage.getItem("announcement");
+          const lastAnnouncementEncoded = btoa(JSON.stringify(announcement.value));
+          if (announcementStorage !== lastAnnouncementEncoded) {
+            showAnnouncements.value = true;
+          }
+        }
+      } catch (error: any) {
+        throw new Error(error);
+      }
+    };
+
+    const isBillingEnabled = computed(() => envVariables.billingEnable);
 
     const showDialogs = async () => {
       try {
@@ -131,46 +158,16 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.namespaceList
+          INotificationsError.namespaceList,
         );
         throw new Error(error);
       }
     };
 
-    const isBillingEnabled = computed(() => envVariables.billingEnable);
-
-    const billingWarning = async () => {
-      const status = await statusWarning();
-      await store.dispatch("devices/setDeviceChooserStatus", status);
-    };
-
-    const namespaceHasBeenShown = (tenant: string) => {
-      return (
-        // @ts-ignore
-        JSON.parse(localStorage.getItem("namespacesWelcome"))[tenant] !==
-        undefined
-      );
-    };
-
-    const hasDevices = computed(() => {
-      return (
-        stats.value.registered_devices !== 0 ||
-        stats.value.pending_devices !== 0 ||
-        stats.value.rejected_devices !== 0
-      );
+    onMounted(() => {
+      showDialogs();
+      ShowAnnouncementsCheck();
     });
-
-    const showScreenWelcome = async () => {
-      let status = false;
-
-      const tenantID = await store.getters["namespaces/get"].tenant_id;
-      if (!namespaceHasBeenShown(tenantID) && !hasDevices.value) {
-        store.dispatch("auth/setShowWelcomeScreen", tenantID);
-        status = true;
-      }
-
-      show.value = status;
-    };
 
     return {
       hasNamespaces,

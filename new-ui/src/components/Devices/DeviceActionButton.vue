@@ -48,8 +48,8 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "../../store";
 import { defineComponent, ref, computed } from "vue";
+import { useStore } from "../../store";
 import { authorizer, actions } from "../../authorizer";
 import hasPermission from "../../utils/permission";
 import { INotificationsError } from "../../interfaces/INotifications";
@@ -71,8 +71,7 @@ export default defineComponent({
     action: {
       type: String,
       default: "accept",
-      validator: (value: string) =>
-        ["accept", "reject", "remove"].includes(value),
+      validator: (value: string) => ["accept", "reject", "remove"].includes(value),
     },
 
     show: {
@@ -89,7 +88,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.device[props.action]
+          actions.device[props.action],
         );
       }
 
@@ -97,6 +96,94 @@ export default defineComponent({
     });
 
     const dialog = ref(false);
+
+    const close = () => {
+      dialog.value = false;
+      ctx.emit("update:show", false);
+    };
+
+    const refreshStats = async () => {
+      try {
+        await store.dispatch("stats/get");
+      } catch (error: any) {
+        store.dispatch("snackbar/showSnackbarErrorDefault");
+        throw new Error(error);
+      }
+    };
+
+    const refreshDevices = () => {
+      try {
+        ctx.emit("update");
+        if (
+          window.location.pathname === "/devices/pending"
+          || window.location.pathname === "/devices"
+        ) {
+          store.dispatch("devices/refresh");
+          store.dispatch("notifications/fetch");
+        }
+
+        close();
+      } catch (error: any) {
+        store.dispatch(
+          "snackbar/showSnackbarErrorLoading",
+          INotificationsError.deviceList,
+        );
+        throw new Error(error);
+      }
+    };
+
+    const removeDevice = async () => {
+      try {
+        await store.dispatch("devices/remove", props.uid);
+        refreshDevices();
+      } catch (error: any) {
+        close();
+
+        store.dispatch(
+          "snackbar/showSnackbarErrorAction",
+          INotificationsError.deviceDelete,
+        );
+        throw new Error(error);
+      }
+    };
+
+    const rejectDevice = async () => {
+      try {
+        await store.dispatch("devices/reject", props.uid);
+        refreshStats();
+        refreshDevices();
+      } catch (error: any) {
+        close();
+
+        store.dispatch(
+          "snackbar/showSnackbarErrorAction",
+          INotificationsError.deviceRejecting,
+        );
+        throw new Error(error);
+      }
+    };
+
+    const acceptDevice = async () => {
+      try {
+        await store.dispatch("devices/accept", props.uid);
+        refreshStats();
+        refreshDevices();
+      } catch (error: any) {
+        if (error.response.status === 402) {
+          store.dispatch(
+            "users/setStatusUpdateAccountDialogByDeviceAction",
+            true,
+          );
+        }
+        close();
+
+        store.dispatch(
+          "snackbar/showSnackbarErrorAction",
+          INotificationsError.deviceAccepting,
+        );
+        throw new Error(error);
+      }
+    };
 
     const doAction = () => {
       if (hasAuthorization.value) {
@@ -117,89 +204,6 @@ export default defineComponent({
       }
     };
 
-    const acceptDevice = async () => {
-      try {
-        await store.dispatch("devices/accept", props.uid);
-        refreshStats();
-        refreshDevices();
-      } catch (error: any) {
-        if (error.response.status === 402) {
-          store.dispatch(
-            "users/setStatusUpdateAccountDialogByDeviceAction",
-            true
-          );
-        }
-        close();
-
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceAccepting
-        );
-        throw new Error(error);
-      }
-    };
-
-    const rejectDevice = async () => {
-      try {
-        await store.dispatch("devices/reject", props.uid);
-        refreshStats();
-        refreshDevices();
-      } catch (error: any){
-        close();
-
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceRejecting
-        );
-        throw new Error(error);
-      }
-    };
-
-    const removeDevice = async () => {
-      try {
-        await store.dispatch("devices/remove", props.uid);
-        refreshDevices();
-      } catch (error: any) {
-        close();
-
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceDelete
-        );
-        throw new Error(error);
-      }
-    };
-
-    const refreshDevices = () => {
-      try {
-        ctx.emit("update");
-        if (
-          window.location.pathname === "/devices/pending" ||
-          window.location.pathname === "/devices"
-        ) {
-          store.dispatch("devices/refresh");
-          store.dispatch("notifications/fetch");
-        }
-
-        close();
-      } catch (error: any) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.deviceList
-        );
-        throw new Error(error);
-      }
-    };
-
-    const refreshStats = async () => {
-      try {
-        await store.dispatch("stats/get");
-      } catch (error: any) {
-        store.dispatch("snackbar/showSnackbarErrorDefault");
-        throw new Error(error);
-      }
-    };
-
     const findIcon = () => {
       switch (props.action) {
         case "accept":
@@ -214,11 +218,6 @@ export default defineComponent({
     };
 
     const icon = ref(findIcon());
-
-    const close = () => {
-      dialog.value = false;
-      ctx.emit("update:show", false);
-    };
 
     return {
       icon,

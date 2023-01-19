@@ -1,7 +1,6 @@
 import { Module } from "vuex";
 import { State } from "./../index";
-import * as apiUser from '../api/users';
-
+import * as apiUser from "../api/users";
 
 export interface SecurityState {
   sessionRecord: boolean,
@@ -28,8 +27,9 @@ export const security: Module<SecurityState, State> = {
     async set(context, data) {
       try {
         await apiUser.putSecurity(data);
-        context.commit('setSecurity', data.status);
+        context.commit("setSecurity", data.status);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -37,8 +37,9 @@ export const security: Module<SecurityState, State> = {
     async get(context) {
       try {
         const res = await apiUser.getSecurity();
-        context.commit('setSecurity', res.data);
+        context.commit("setSecurity", res.data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },

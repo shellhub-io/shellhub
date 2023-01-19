@@ -14,8 +14,8 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "../../store";
 import { defineComponent, computed } from "vue";
+import { useStore } from "../../store";
 
 export default defineComponent({
   props: {
@@ -30,9 +30,8 @@ export default defineComponent({
     const namespace = computed(() => store.getters["namespaces/get"]);
 
     const owner = computed(
-      () =>
-        store.getters["namespaces/get"].owner &&
-        store.getters["namespaces/get"].owner
+      () => store.getters["namespaces/get"].owner
+        && store.getters["namespaces/get"].owner,
     );
 
     const namespaceOwnerName = () => {

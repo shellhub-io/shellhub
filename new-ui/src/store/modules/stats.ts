@@ -1,11 +1,11 @@
 import { Module } from "vuex";
+import { AxiosResponse } from "axios";
 import { State } from "./../index";
 import getStats from "../api/stats";
 import { IStats } from "../../interfaces/IStats";
-import { AxiosResponse } from "axios";
 
 export interface StatsState {
-  stats: IStats | Object;
+  stats: IStats | object;
 }
 
 export const stats: Module<StatsState, State> = {
@@ -35,6 +35,7 @@ export const stats: Module<StatsState, State> = {
         commit("setStats", res);
         return res;
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },

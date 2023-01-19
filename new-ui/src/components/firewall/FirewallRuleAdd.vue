@@ -159,11 +159,11 @@
 
 <script lang="ts">
 import { computed, defineComponent, nextTick, ref, watch } from "vue";
+import { useField } from "vee-validate";
+import * as yup from "yup";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "../../utils/permission";
 import { useStore } from "../../store";
-import { useField } from "vee-validate";
-import * as yup from "yup";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -309,7 +309,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.firewall[action.value]
+          actions.firewall[action.value],
         );
       }
 
@@ -374,28 +374,28 @@ export default defineComponent({
       };
     };
 
-    const update = () => {
-      ctx.emit("update");
-      close();
-    };
-
     const close = () => {
       dialog.value = false;
       resetRuleFirewall();
     };
 
+    const update = () => {
+      ctx.emit("update");
+      close();
+    };
+
     const hasErros = () => {
       if (
-        choiceIP.value === "ipDetails" &&
-        ruleFirewall.value.source_ip === ""
+        choiceIP.value === "ipDetails"
+        && ruleFirewall.value.source_ip === ""
       ) {
         setSourceIpError("This Field is required !");
         return true;
       }
 
       if (
-        choiceUsername.value === "username" &&
-        ruleFirewall.value.username === ""
+        choiceUsername.value === "username"
+        && ruleFirewall.value.username === ""
       ) {
         setUsernameError("This Field is required !");
         return true;
@@ -416,13 +416,13 @@ export default defineComponent({
           await store.dispatch("firewallRules/post", ruleFirewall.value);
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.firewallRuleCreating
+            INotificationsSuccess.firewallRuleCreating,
           );
           update();
         } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.firewallRuleCreating
+            INotificationsError.firewallRuleCreating,
           );
           throw new Error(error);
         }

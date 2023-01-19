@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     @click="showDialog = true"
-    v-bind="$attrs, $props"
+    v-bind="$attrs"
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
@@ -136,14 +136,13 @@ import {
   nextTick,
   onUpdated,
 } from "vue";
-import { useStore } from "../../store";
 import * as yup from "yup";
+import { useStore } from "../../store";
 import { IPublicKey } from "../../interfaces/IPublicKey";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-// import { validateKey } from "../../utils/validate";
 
 export default defineComponent({
   props: {
@@ -199,7 +198,7 @@ export default defineComponent({
       data: "",
     });
     const supportedKeys = ref(
-      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
     );
 
     const {
@@ -237,7 +236,6 @@ export default defineComponent({
     const {
       value: publicKeyData,
       errorMessage: publicKeyDataError,
-      setErrors: setPublicKeyDataError,
     } = useField<string>("publicKeyData", yup.string().required(), {
       initialValue: props.keyObject.data,
     });
@@ -273,23 +271,14 @@ export default defineComponent({
       }
     });
 
-    onMounted(async () => {
-      await setLocalVariable();
-    });
-
-    onUpdated(async () => {
-      handleUpdate();
-      await setLocalVariable();
-    });
-
     const handleUpdate = () => {
       if (showDialog.value) {
         if (hasTags.value) {
-          let { tags } = props.keyObject.filter;
+          const { tags } = props.keyObject.filter;
           tagChoices.value = tags;
           choiceFilter.value = "tags";
         } else {
-          let { hostname: hostnameLocal } = props.keyObject.filter;
+          const { hostname: hostnameLocal } = props.keyObject.filter;
           if (!!hostnameLocal && hostnameLocal !== ".*") {
             choiceFilter.value = "hostname";
             hostname.value = hostnameLocal;
@@ -298,7 +287,7 @@ export default defineComponent({
           }
         }
 
-        let { username: usernameLocal } = props.keyObject;
+        const { username: usernameLocal } = props.keyObject;
         choiceUsername.value = usernameLocal === ".*" ? "all" : "username";
         username.value = usernameLocal;
       }
@@ -370,34 +359,14 @@ export default defineComponent({
       return false;
     };
 
-    const edit = async () => {
-      if (!hasError()) {
-        chooseFilter();
-        chooseUsername();
-        // @ts-ignore
-        let keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data) };
+    onMounted(async () => {
+      await setLocalVariable();
+    });
 
-        try {
-          await store.dispatch("publicKeys/put", keySend);
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.publicKeyEditing
-          );
-          update();
-        } catch (error: any) {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.publicKeyEditing
-          );
-          throw new Error(error);
-        }
-      }
-    };
-
-    const update = () => {
-      ctx.emit("update");
-      close();
-    };
+    onUpdated(async () => {
+      handleUpdate();
+      await setLocalVariable();
+    });
 
     const resetPublicKey = () => {
       hostname.value = "";
@@ -409,6 +378,36 @@ export default defineComponent({
       resetPublicKey();
       setLocalVariable();
       showDialog.value = false;
+    };
+
+    const update = () => {
+      ctx.emit("update");
+      close();
+    };
+
+    const edit = async () => {
+      if (!hasError()) {
+        chooseFilter();
+        chooseUsername();
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data) };
+
+        try {
+          await store.dispatch("publicKeys/put", keySend);
+          store.dispatch(
+            "snackbar/showSnackbarSuccessAction",
+            INotificationsSuccess.publicKeyEditing,
+          );
+          update();
+        } catch (error: any) {
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.publicKeyEditing,
+          );
+          throw new Error(error);
+        }
+      }
     };
 
     return {

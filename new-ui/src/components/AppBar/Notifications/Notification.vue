@@ -98,7 +98,6 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "../../../store";
 import {
   defineComponent,
   ref,
@@ -106,6 +105,7 @@ import {
   watch,
   defineAsyncComponent,
 } from "vue";
+import { useStore } from "../../../store";
 import { authorizer, actions } from "../../../authorizer";
 import hasPermission from "../../../utils/permission";
 import { INotificationsError } from "../../../interfaces/INotifications";
@@ -122,11 +122,11 @@ export default defineComponent({
     const defaultSize = ref(24);
 
     const listNotifications = computed(
-      () => store.getters["notifications/list"]
+      () => store.getters["notifications/list"],
     );
 
     const getNumberNotifications = computed(
-      () => store.getters["notifications/getNumberNotifications"]
+      () => store.getters["notifications/getNumberNotifications"],
     );
 
     const showNumberNotifications = computed(() => {
@@ -144,7 +144,7 @@ export default defineComponent({
     });
 
     const hasNamespace = computed(
-      () => store.getters["namespaces/getNumberNamespaces"] !== 0
+      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
     );
 
     const hasAuthorization = computed(() => {
@@ -152,7 +152,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.notification["view"]
+          actions.notification.view,
         );
       }
       return false;
@@ -175,14 +175,14 @@ export default defineComponent({
             }
             case error.response.status === 403: {
               store.dispatch("snackbar/showSnackbarErrorAssociation");
-              throw new Error(error); 
+              throw new Error(error);
             }
             default: {
               store.dispatch(
                 "snackbar/showSnackbarErrorLoading",
-                INotificationsError.notificationList
+                INotificationsError.notificationList,
               );
-              throw new Error(error); 
+              throw new Error(error);
             }
           }
         }
@@ -210,7 +210,7 @@ export default defineComponent({
   },
   components: {
     DeviceActionButton: defineAsyncComponent(
-      () => import("../../../components/Devices/DeviceActionButton.vue")
+      () => import("../../../components/Devices/DeviceActionButton.vue"),
     ),
   },
 });

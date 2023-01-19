@@ -42,11 +42,11 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import { defineComponent, ref } from "vue";
 import { useStore } from "../../store";
 
 export default defineComponent({
@@ -66,13 +66,13 @@ export default defineComponent({
         await store.dispatch("privateKey/remove", props.fingerprint);
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.privateKeyDeleting
+          INotificationsSuccess.privateKeyDeleting,
         );
         ctx.emit("update");
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.privateKeyDeleting
+          INotificationsError.privateKeyDeleting,
         );
         throw new Error(error);
       } finally {

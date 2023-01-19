@@ -2,7 +2,7 @@
 
 exports[`Devices Pending List > Renders the component 1`] = `
 "<div action=\\"suggestedDevices\\" data-v-dede1877=\\"\\">
-  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"async () =&gt; {
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"async () =&gt; {
       await getDevices(itemsPerPage.value, ++page.value);
     }\\" previouspage=\\"async () =&gt; {
       try {
@@ -11,6 +11,6 @@ exports[`Devices Pending List > Renders the component 1`] = `
       } catch (error) {
         store.dispatch(&quot;snackbar/setSnackbarErrorDefault&quot;);
       }
-    }\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"devices-list\\" data-v-dede1877=\\"\\"></data-table-stub>
+    }\\" data-test=\\"devices-list\\" data-v-dede1877=\\"\\"></data-table-stub>
 </div>"
 `;

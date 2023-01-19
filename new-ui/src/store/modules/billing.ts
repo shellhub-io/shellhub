@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Module } from "vuex";
 import { State } from "./../index";
 import * as apiBilling from "../api/billing";
@@ -73,10 +74,8 @@ export const billing: Module<NamespacesState, State> = {
     setPagination: (state, data) => {
       const { perPage, page } = data;
       const { invoices } = state.billInfoData;
-      
-        state.invoices =
-        invoices.slice((page - 1) * perPage, page * perPage)
-      ;
+
+      state.invoices = invoices.slice((page - 1) * perPage, page * perPage);
     },
 
     deactivateSubscription: (state) => {

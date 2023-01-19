@@ -45,7 +45,7 @@ export interface State {
   announcement: AnnouncementState;
 }
 
-export const key: InjectionKey<Store<State>> = Symbol();
+export const key: InjectionKey<Store<State>> = Symbol("store");
 
 export const store = createStore<State>({
   modules: {

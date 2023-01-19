@@ -63,9 +63,7 @@ export default defineComponent({
     const md = new MarkdownIt();
 
     const date = computed(() => moment(props.announcement.date).format("LL"));
-    const markdownContent = computed(() =>
-      md.render(props.announcement.content)
-    );
+    const markdownContent = computed(() => md.render(props.announcement.content));
 
     const showAnnouncements = computed({
       get() {

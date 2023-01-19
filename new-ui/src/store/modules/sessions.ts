@@ -85,7 +85,7 @@ export const sessions: Module<SessionsState, State> = {
       try {
         const res = await apiSession.fetchSessions(
           context.state.page,
-          context.state.perPage
+          context.state.perPage,
         );
         context.commit("setSessions", res);
       } catch (error) {
@@ -122,6 +122,7 @@ export const sessions: Module<SessionsState, State> = {
       try {
         await apiSession.closeSession(session);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -131,6 +132,7 @@ export const sessions: Module<SessionsState, State> = {
         await apiSession.deleteSessionLogs(uid);
         context.commit("removeRecordedSession");
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },

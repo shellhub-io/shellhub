@@ -20,8 +20,7 @@ export default defineComponent({
     const store = useStore();
 
     const name = computed(
-      () =>
-        store.getters["auth/currentName"] || store.getters["auth/currentUser"]
+      () => store.getters["auth/currentName"] || store.getters["auth/currentUser"],
     );
     return {
       name,

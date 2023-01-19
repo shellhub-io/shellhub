@@ -161,7 +161,7 @@ export default defineComponent({
     const router = useRouter();
     const isCloud = computed(() => envVariables.isCloud);
     const hasNamespace = computed(
-      () => store.getters["namespaces/getNumberNamespaces"] !== 0
+      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
     );
     const isTheSameNamespace = computed(() => store.getters["namespaces/get"].tenant_id === localStorage.getItem("tenant"));
 
@@ -176,7 +176,7 @@ export default defineComponent({
         await store.dispatch("auth/loginToken", route.query.token).then(async () => {
           createNewClient();
           await router.push("/");
-          store.dispatch('layout/setLayout', 'appLayout');
+          store.dispatch("layout/setLayout", "appLayout");
         });
       }
     });
@@ -184,12 +184,12 @@ export default defineComponent({
     const { value: username, errorMessage: usernameError } = useField<string>(
       "name",
       yup.string().required(),
-      { initialValue: "" }
+      { initialValue: "" },
     );
     const { value: password, errorMessage: passwordError } = useField<string>(
       "password",
       yup.string().required(),
-      { initialValue: "" }
+      { initialValue: "" },
     );
     const required = (value: string) => !!value || "Required.";
 
@@ -224,7 +224,7 @@ export default defineComponent({
             case error.response.status === 401: {
               store.dispatch(
                 "snackbar/showSnackbarErrorIncorrect",
-                INotificationsError.loginFailed
+                INotificationsError.loginFailed,
               );
               break;
             }

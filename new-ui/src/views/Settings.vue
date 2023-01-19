@@ -28,9 +28,7 @@ export default defineComponent({
   setup() {
     const store = useStore();
 
-    const visibleItems = computed(() => items.value.filter((item) => !item.hidden));
-
-    const currentInANamespace = computed(() => localStorage.getItem("tenant") !== "" );
+    const currentInANamespace = computed(() => localStorage.getItem("tenant") !== "");
 
     const hasNamespace = computed(() => store.getters["namespaces/getNumberNamespaces"] !== 0);
 
@@ -56,12 +54,14 @@ export default defineComponent({
         title: "Billing",
         path: "/settings/billing",
         hidden: !(
-          envVariables.billingEnable &&
-          envVariables.isCloud &&
-          hasNamespace.value
+          envVariables.billingEnable
+          && envVariables.isCloud
+          && hasNamespace.value
         ),
       },
     ]);
+
+    const visibleItems = computed(() => items.value.filter((item) => !item.hidden));
 
     return {
       items,

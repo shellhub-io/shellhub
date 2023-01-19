@@ -1,6 +1,6 @@
 import { Module } from "vuex";
 import { State } from "./../index";
-import * as apiPublicKey from '../api/public_keys';
+import * as apiPublicKey from "../api/public_keys";
 
 export interface PublicKeysState {
   publicKeys: Array<any>,
@@ -31,7 +31,7 @@ export const publicKeys: Module<PublicKeysState, State> = {
   mutations: {
     setPublicKeys: (state, res) => {
       state.publicKeys = res.data;
-      state.numberPublicKeys = parseInt(res.headers['x-total-count'], 10);
+      state.numberPublicKeys = parseInt(res.headers["x-total-count"], 10);
     },
 
     setPublicKey: (state, res) => {
@@ -67,6 +67,7 @@ export const publicKeys: Module<PublicKeysState, State> = {
       try {
         await apiPublicKey.postPublicKey(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -75,13 +76,13 @@ export const publicKeys: Module<PublicKeysState, State> = {
       try {
         const res = await apiPublicKey.fetchPublicKeys(data.page, data.perPage, "");
         if (res.data.length) {
-          context.commit('setPublicKeys', res);
-          context.commit('setPagePerpage', data);
+          context.commit("setPublicKeys", res);
+          context.commit("setPagePerpage", data);
           return true;
-        } 
+        }
         return false;
       } catch (error) {
-        context.commit('clearListPublicKeys');
+        context.commit("clearListPublicKeys");
         throw error;
       }
     },
@@ -93,9 +94,9 @@ export const publicKeys: Module<PublicKeysState, State> = {
           context.state.perPage,
           "",
         );
-        context.commit('setPublicKeys', res);
+        context.commit("setPublicKeys", res);
       } catch (error) {
-        context.commit('clearListPublicKeys');
+        context.commit("clearListPublicKeys");
         throw error;
       }
     },
@@ -103,9 +104,9 @@ export const publicKeys: Module<PublicKeysState, State> = {
     get: async (context, id) => {
       try {
         const res = await apiPublicKey.getPublicKey(id);
-        context.commit('setPublicKey', res);
+        context.commit("setPublicKey", res);
       } catch (error) {
-        context.commit('clearObjectPublicKey');
+        context.commit("clearObjectPublicKey");
         throw error;
       }
     },
@@ -114,18 +115,20 @@ export const publicKeys: Module<PublicKeysState, State> = {
       try {
         await apiPublicKey.putPublicKey(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
 
     resetPagePerpage: async (context) => {
-      context.commit('resetPagePerpage');
+      context.commit("resetPagePerpage");
     },
 
     remove: async (context, fingerprint) => {
       try {
         await apiPublicKey.removePublicKey(fingerprint);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },

@@ -1,7 +1,7 @@
 type identity = {
     mac: string;
   }
-  
+
   type infoDetails = {
     arch: string;
     id: string;
@@ -9,13 +9,13 @@ type identity = {
     pretty_name: string;
     version: string;
   }
-  
+
   type position = {
     latitude: number;
     longitude: number;
   }
-  
-  export interface IDevice {
+
+export interface IDevice {
     created_at: string;
     identity: identity;
     info: infoDetails;
@@ -31,4 +31,3 @@ type identity = {
     tenant_id:string;
     uid: string;
   }
-  

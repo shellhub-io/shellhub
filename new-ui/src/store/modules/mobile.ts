@@ -17,13 +17,13 @@ export const mobile: Module<MobileState, State> = {
 
   mutations: {
     setIsMobileStatus: (state, status) => {
-      state.isMobile = status
+      state.isMobile = status;
     },
   },
 
   actions: {
     setIsMobileStatus(context, status) {
-      context.commit('setIsMobileStatus', status);
+      context.commit("setIsMobileStatus", status);
     },
   },
 };

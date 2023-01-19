@@ -2,7 +2,7 @@
 
 exports[`SessionList > Sessions has enterprise version when user has observer role > Renders the component 1`] = `
 "<div data-v-459ab1b4=\\"\\">
-  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"async () =&gt; {
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"async () =&gt; {
       await getSessions(itemsPerPage.value, ++page.value);
     }\\" previouspage=\\"async () =&gt; {
       try {
@@ -11,13 +11,13 @@ exports[`SessionList > Sessions has enterprise version when user has observer ro
       } catch (error) {
         store.dispatch(&quot;snackbar/setSnackbarErrorDefault&quot;);
       }
-    }\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"sessions-list\\" data-v-459ab1b4=\\"\\"></data-table-stub>
+    }\\" data-test=\\"sessions-list\\" data-v-459ab1b4=\\"\\"></data-table-stub>
 </div>"
 `;
 
 exports[`SessionList > Sessions has enterprise version when user has owner role > Renders the component 1`] = `
 "<div data-v-459ab1b4=\\"\\">
-  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"async () =&gt; {
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"async () =&gt; {
       await getSessions(itemsPerPage.value, ++page.value);
     }\\" previouspage=\\"async () =&gt; {
       try {
@@ -26,13 +26,13 @@ exports[`SessionList > Sessions has enterprise version when user has owner role 
       } catch (error) {
         store.dispatch(&quot;snackbar/setSnackbarErrorDefault&quot;);
       }
-    }\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"sessions-list\\" data-v-459ab1b4=\\"\\"></data-table-stub>
+    }\\" data-test=\\"sessions-list\\" data-v-459ab1b4=\\"\\"></data-table-stub>
 </div>"
 `;
 
 exports[`SessionList > Sessions has no enterprise version > Renders the component 1`] = `
 "<div data-v-459ab1b4=\\"\\">
-  <data-table-stub itemsperpage=\\"10\\" nextpage=\\"async () =&gt; {
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"async () =&gt; {
       await getSessions(itemsPerPage.value, ++page.value);
     }\\" previouspage=\\"async () =&gt; {
       try {
@@ -41,6 +41,6 @@ exports[`SessionList > Sessions has no enterprise version > Renders the componen
       } catch (error) {
         store.dispatch(&quot;snackbar/setSnackbarErrorDefault&quot;);
       }
-    }\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" data-test=\\"sessions-list\\" data-v-459ab1b4=\\"\\"></data-table-stub>
+    }\\" data-test=\\"sessions-list\\" data-v-459ab1b4=\\"\\"></data-table-stub>
 </div>"
 `;

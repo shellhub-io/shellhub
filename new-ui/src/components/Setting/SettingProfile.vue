@@ -84,11 +84,11 @@
                 Cancel
               </v-btn>
 
-              <v-btn 
-                color="primary" 
+              <v-btn
+                color="primary"
                 @click="updatePassword"
                 :disabled="currentPasswordError !== '' || newPasswordConfirmError !== ''"
-                > Save </v-btn>
+              > Save </v-btn>
             </div>
           </v-col>
         </v-row>
@@ -143,9 +143,9 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from "vue";
-import { useStore } from "../../store";
 import { useField } from "vee-validate";
 import * as yup from "yup";
+import { useStore } from "../../store";
 import { INotificationsSuccess } from "../../interfaces/INotifications";
 
 export default defineComponent({
@@ -185,7 +185,6 @@ export default defineComponent({
     const {
       value: currentPassword,
       errorMessage: currentPasswordError,
-      setErrors: setCurrentPasswordError,
       resetField: resetCurrentPassword,
     } = useField<string>("currentPassword", yup.string().required(), {
       initialValue: "",
@@ -201,7 +200,7 @@ export default defineComponent({
       yup.string().required().min(5).max(30),
       {
         initialValue: "",
-      }
+      },
     );
 
     const {
@@ -217,16 +216,12 @@ export default defineComponent({
         .test(
           "passwords-match",
           "Passwords do not match",
-          (value) => newPassword.value === value
+          (value) => newPassword.value === value,
         ),
       {
         initialValue: "",
-      }
+      },
     );
-
-    onMounted(() => {
-      setUserData();
-    });
 
     const setUserData = () => {
       name.value = store.getters["auth/currentName"];
@@ -234,9 +229,11 @@ export default defineComponent({
       email.value = store.getters["auth/email"];
     };
 
-    const hasUserDataError = computed(() => {
-      return nameError.value || usernameError.value || emailError.value;
+    onMounted(() => {
+      setUserData();
     });
+
+    const hasUserDataError = computed(() => nameError.value || usernameError.value || emailError.value);
 
     const enableEdit = (form: string) => {
       if (form === "data") {
@@ -260,26 +257,21 @@ export default defineComponent({
           store.dispatch("auth/changeUserData", data);
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.profileData
+            INotificationsSuccess.profileData,
           );
           enableEdit("data");
         } catch (error: any) {
           if (error.code === 409) {
             error.body.forEach((field: string) => {
-              if (field === "username")
-                setUsernameError("This username already exists");
-              else if (field === "name")
-                setNameError("This name already exists");
-              else if (field === "email")
-                setEmailError("This email already exists");
+              if (field === "username") setUsernameError("This username already exists");
+              else if (field === "name") setNameError("This name already exists");
+              else if (field === "email") setEmailError("This email already exists");
             });
           } else if (error.code === 400) {
             error.body.forEach((field: string) => {
-              if (field === "username")
-                setUsernameError("This username is invalid !");
+              if (field === "username") setUsernameError("This username is invalid !");
               else if (field === "name") setNameError("This name is invalid !");
-              else if (field === "email")
-                setEmailError("This email is invalid !");
+              else if (field === "email") setEmailError("This email is invalid !");
             });
           } else {
             store.dispatch("snackbar/showSnackbarErrorDefault");
@@ -289,13 +281,11 @@ export default defineComponent({
       }
     };
 
-    const hasUpdatePasswordError = computed(() => {
-      return (
-        currentPasswordError.value ||
-        newPasswordError.value ||
-        newPasswordConfirmError.value
-      );
-    });
+    const hasUpdatePasswordError = computed(() => (
+      currentPasswordError.value
+        || newPasswordError.value
+        || newPasswordConfirmError.value
+    ));
 
     const resetPasswordFields = () => {
       resetCurrentPassword();
@@ -315,7 +305,7 @@ export default defineComponent({
           await store.dispatch("users/patchPassword", data);
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.profilePassword
+            INotificationsSuccess.profilePassword,
           );
           enableEdit("password");
           resetPasswordFields();

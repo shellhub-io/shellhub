@@ -24,7 +24,7 @@ export default defineComponent({
     const router = useRouter();
 
     const layout = computed(() => store.getters["layout/getLayout"]);
-    const token = computed(() => window.location.search.replace("?token=", ""));
+    // const token = computed(() => window.location.search.replace("?token=", ""));
 
     const isLoggedIn = computed(() => store.getters["auth/isLoggedIn"]);
     const hasLoggedID = computed(() => store.getters["auth/id"] !== "");
@@ -43,12 +43,12 @@ export default defineComponent({
 
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.namespaceReload
+            INotificationsSuccess.namespaceReload,
           );
         } catch {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.namespaceLoad
+            INotificationsError.namespaceLoad,
           );
         }
       }

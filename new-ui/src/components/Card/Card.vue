@@ -37,7 +37,7 @@
           {{ buttonName }}
         </v-btn>
 
-        <DeviceAdd v-else size="small"/>
+        <DeviceAdd v-else size="small" />
       </v-card-actions>
     </v-card>
   </v-hover>
@@ -48,45 +48,45 @@ import { defineComponent } from "vue";
 import DeviceAdd from "../Devices/DeviceAdd.vue";
 
 export default defineComponent({
-    props: {
-        id: {
-            type: Number,
-            default: 0,
-        },
-        title: {
-            type: String,
-            default: "",
-        },
-        fieldObject: {
-            type: String,
-            default: "",
-        },
-        content: {
-            type: String,
-            default: "",
-        },
-        icon: {
-            type: String,
-            default: "",
-        },
-        buttonName: {
-            type: String,
-            default: "",
-        },
-        pathName: {
-            type: String,
-            default: "",
-        },
-        nameUseTest: {
-            type: String,
-            default: "",
-        },
-        stats: {
-            type: Number,
-            default: 0,
-        },
+  props: {
+    id: {
+      type: Number,
+      default: 0,
     },
-    components: { DeviceAdd }
+    title: {
+      type: String,
+      default: "",
+    },
+    fieldObject: {
+      type: String,
+      default: "",
+    },
+    content: {
+      type: String,
+      default: "",
+    },
+    icon: {
+      type: String,
+      default: "",
+    },
+    buttonName: {
+      type: String,
+      default: "",
+    },
+    pathName: {
+      type: String,
+      default: "",
+    },
+    nameUseTest: {
+      type: String,
+      default: "",
+    },
+    stats: {
+      type: Number,
+      default: 0,
+    },
+  },
+  components: { DeviceAdd },
 });
 </script>
 

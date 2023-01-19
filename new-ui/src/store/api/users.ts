@@ -1,4 +1,3 @@
-import http from '../helpers/http';
 import { usersApi } from "../../api/http";
 
 export const signUp = async (data : any) => usersApi.registerUser({
@@ -17,12 +16,12 @@ export const postValidationAccount = async (data : any) => usersApi.getValidateA
 
 export const putSecurity = async (data : any) => usersApi.setSessionRecord(data.id, { session_record: data.status });
 
-export const getSecurity = async () =>  usersApi.getSessionRecord();
+export const getSecurity = async () => usersApi.getSessionRecord();
 
-export const postUpdatePassword = async (data : any) =>usersApi.updateUserPassword(data.id, {
+export const postUpdatePassword = async (data : any) => usersApi.updateUserPassword(data.id, {
   current_password: data.password,
   new_password: data.new_password,
-} );
+});
 
 export const patchUserData = async (data : any) => usersApi.updateUserData(data.id, {
   name: data.name,
@@ -30,7 +29,7 @@ export const patchUserData = async (data : any) => usersApi.updateUserData(data.
   email: data.email,
 });
 
-export const patchUserPassword = async (data : any) => usersApi.updateUserPassword(data.id,{
+export const patchUserPassword = async (data : any) => usersApi.updateUserPassword(data.id, {
   current_password: data.currentPassword,
   new_password: data.newPassword,
 });

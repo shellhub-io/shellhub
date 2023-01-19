@@ -38,7 +38,7 @@
           required
           variant="underlined"
           data-test="role-select"
-        ></v-select>
+        />
       </v-card-text>
 
       <v-card-actions>
@@ -54,10 +54,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from "vue";
+import { defineComponent, ref } from "vue";
 import { useField } from "vee-validate";
-import hasPermission from "../../utils/permission";
 import * as yup from "yup";
+import hasPermission from "../../utils/permission";
 import { useStore } from "../../store";
 import { actions, authorizer } from "../../authorizer";
 import {
@@ -94,7 +94,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.namespace["addMember"]
+          actions.namespace.addMember,
         );
       }
 
@@ -144,7 +144,7 @@ export default defineComponent({
 
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.namespaceNewMember
+            INotificationsSuccess.namespaceNewMember,
           );
           update();
           resetFields();
@@ -153,12 +153,12 @@ export default defineComponent({
             setUsernameError("This username doesn't exist.");
           } else if (error.response.status === 409) {
             setUsernameError(
-              "This user is already a member of this namespace."
+              "This user is already a member of this namespace.",
             );
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorAction",
-              INotificationsError.namespaceNewMember
+              INotificationsError.namespaceNewMember,
             );
             throw new Error(error);
           }

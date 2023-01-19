@@ -118,7 +118,7 @@ export default defineComponent({
 
     const devices = computed(() => store.getters["devices/list"]);
     const numberDevices = computed<number>(
-      () => store.getters["devices/getNumberDevices"]
+      () => store.getters["devices/getNumberDevices"],
     );
 
     onMounted(async () => {
@@ -135,7 +135,7 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceRejecting
+          INotificationsError.deviceRejecting,
         );
         throw new Error(error);
       } finally {
@@ -163,7 +163,7 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceRejecting
+          INotificationsError.deviceRejecting,
         );
         throw new Error(error);
       }
@@ -214,15 +214,14 @@ export default defineComponent({
       router.push({ name: "deviceDetails", params: { id: deviceId } });
     };
 
-    const sshidAddress = (item: any) =>
-      `${item.namespace}.${item.name}@${window.location.hostname}`;
+    const sshidAddress = (item: any) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
     const copyText = (value: string | undefined) => {
       if (value) {
         navigator.clipboard.writeText(value);
         store.dispatch(
           "snackbar/showSnackbarCopy",
-          INotificationsCopy.tenantId
+          INotificationsCopy.tenantId,
         );
       }
     };

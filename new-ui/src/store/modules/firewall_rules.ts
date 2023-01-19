@@ -43,7 +43,7 @@ export const firewallRules: Module<FirewallRulesState, State> = {
     removeFirewalls: (state, id) => {
       state.firewalls.splice(
         state.firewalls.findIndex((d) => d.id === id),
-        1
+        1,
       );
     },
 
@@ -73,6 +73,7 @@ export const firewallRules: Module<FirewallRulesState, State> = {
       try {
         await apiFirewallRule.postFirewall(data);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },
@@ -81,7 +82,7 @@ export const firewallRules: Module<FirewallRulesState, State> = {
       try {
         const res = await apiFirewallRule.fetchFirewalls(
           data.perPage,
-          data.page
+          data.page,
         );
         if (res.data.length) {
           context.commit("setFirewalls", res);
@@ -99,7 +100,7 @@ export const firewallRules: Module<FirewallRulesState, State> = {
       try {
         const res = await apiFirewallRule.fetchFirewalls(
           context.state.perPage,
-          context.state.page
+          context.state.page,
         );
         context.commit("setFirewalls", res);
       } catch (error) {
@@ -130,6 +131,7 @@ export const firewallRules: Module<FirewallRulesState, State> = {
       try {
         await apiFirewallRule.removeFirewall(id);
       } catch (error) {
+        console.error(error);
         throw error;
       }
     },

@@ -1,3 +1,4 @@
+/* eslint-disable */
 // import.meta.env.MODE
 export const envVariables = {
   isEnterprise: process.env.VUE_APP_SHELLHUB_ENTERPRISE === "true",

@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     @click="showDialog = true"
-    v-bind="$attrs, $props"
+    v-bind="$attrs"
     :disabled="notHasAuthorization"
   >
     <div class="d-flex align-center">
@@ -51,11 +51,11 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import { defineComponent, ref } from "vue";
 import { useStore } from "../../store";
 
 export default defineComponent({
@@ -80,13 +80,13 @@ export default defineComponent({
 
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.firewallRuleDeleting
+          INotificationsSuccess.firewallRuleDeleting,
         );
         ctx.emit("update");
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.firewallRuleDeleting
+          INotificationsError.firewallRuleDeleting,
         );
         throw new Error(error);
       } finally {

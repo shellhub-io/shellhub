@@ -42,11 +42,11 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import { defineComponent, ref } from "vue";
 import { useStore } from "../../store";
 
 export default defineComponent({
@@ -81,12 +81,12 @@ export default defineComponent({
         update();
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.namespaceDelete
+          INotificationsSuccess.namespaceDelete,
         );
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.namespaceRemoveUser
+          INotificationsError.namespaceRemoveUser,
         );
         throw new Error(error);
       }

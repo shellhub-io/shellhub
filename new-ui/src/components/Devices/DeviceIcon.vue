@@ -1,5 +1,5 @@
 <template>
-  <i data-test="type-icon" :class="iconName" style="font-size: 20px"></i>
+  <i data-test="type-icon" :class="iconName" style="font-size: 20px" />
 </template>
 
 <script lang="ts">

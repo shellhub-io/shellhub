@@ -42,7 +42,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from "vue";
+import { defineComponent, computed } from "vue";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "../../utils/permission";
 import { useStore } from "../../store";
@@ -56,25 +56,11 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.billing["subscribe"]
+          actions.billing.subscribe,
         );
       }
 
       return false;
-    });
-
-    const showMessage = computed({
-      get() {
-        return (
-          (store.getters["users/statusUpdateAccountDialog"] &&
-            store.getters["stats/stats"].registered_devices === 3 &&
-            !store.getters["billing/active"]) ||
-          store.getters["users/statusUpdateAccountDialogByDeviceAction"]
-        );
-      },
-      set() {
-        close();
-      }
     });
 
     const close = () => {
@@ -85,10 +71,24 @@ export default defineComponent({
       ) {
         store.dispatch(
           "users/setStatusUpdateAccountDialogByDeviceAction",
-          false
+          false,
         );
       }
     };
+
+    const showMessage = computed({
+      get() {
+        return (
+          (store.getters["users/statusUpdateAccountDialog"]
+            && store.getters["stats/stats"].registered_devices === 3
+            && !store.getters["billing/active"])
+          || store.getters["users/statusUpdateAccountDialogByDeviceAction"]
+        );
+      },
+      set() {
+        close();
+      },
+    });
 
     return {
       hasAuthorization,

@@ -2,7 +2,7 @@
   <v-dialog v-model="showNoNamespace" :retain-focus="false" persistent max-width="650px">
     <v-card
       v-model="showNoNamespace"
-      
+
       class="bg-v-theme-surface"
     >
       <v-card-title class="bg-primary">
@@ -27,7 +27,8 @@
             <a
               :href="'https://docs.shellhub.io/self-hosted/administration'"
               target="_blank"
-              >documentation</a
+              rel="noopener noreferrer"
+            >documentation</a
             >
             for more information and alternative install methods.
           </p>
@@ -56,8 +57,8 @@
 </template>
 
 <script lang="ts">
-import { envVariables } from "../../envVariables";
 import { defineComponent, ref, computed } from "vue";
+import { envVariables } from "../../envVariables";
 import NamespaceAdd from "./NamespaceAdd.vue";
 
 export default defineComponent({

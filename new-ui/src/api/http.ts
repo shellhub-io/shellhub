@@ -1,3 +1,4 @@
+/* eslint-disable */
 // @ts-nocheck
 import * as axiosTs from "./client";
 import { Configuration } from "./client";

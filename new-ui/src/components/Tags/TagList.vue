@@ -1,5 +1,5 @@
 <template>
-  <v-table v-bind="$attrs, $props" data-test="tagListList-dataTable" class="bg-v-theme-surface">
+  <v-table v-bind="$attrs" data-test="tagListList-dataTable" class="bg-v-theme-surface">
     <thead>
       <tr>
         <th
@@ -57,8 +57,8 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, computed, onMounted } from "vue";
 import { useStore } from "../../store";
-import { defineComponent, ref, computed, onMounted } from "vue";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "../../utils/permission";
 import TagRemove from "./TagRemove.vue";
@@ -69,28 +69,20 @@ export default defineComponent({
   inheritAttrs: true,
   setup() {
     const store = useStore();
-    const tags = computed(() => {
-      return store.getters["tags/list"];
-    });
+    const tags = computed(() => store.getters["tags/list"]);
     const hasAuthorizationEdit = () => {
       const role = store.getters["auth/role"];
       if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.tag["edit"]);
+        return hasPermission(authorizer.role[role], actions.tag.edit);
       }
       return false;
     };
     const hasAuthorizationRemove = () => {
       const role = store.getters["auth/role"];
       if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.tag["remove"]);
+        return hasPermission(authorizer.role[role], actions.tag.remove);
       }
       return false;
-    };
-    onMounted(() => {
-      getTags();
-    });
-    const updateTags = () => {
-      getTags();
     };
     const getTags = async () => {
       try {
@@ -98,10 +90,16 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
-          INotificationsError.deviceTagList
+          INotificationsError.deviceTagList,
         );
         throw new Error(error);
       }
+    };
+    onMounted(() => {
+      getTags();
+    });
+    const updateTags = () => {
+      getTags();
     };
     return {
       headers: [

@@ -153,10 +153,6 @@ import { formatDate, lastSeen } from "..//utils/formateDate";
 import hasPermission from "..//utils/permission";
 import { displayOnlyTenCharacters } from "../utils/string";
 import showTag from "../utils/tag";
-import DeviceIcon from "../components/Devices/DeviceIcon.vue";
-import TagFormUpdate from "../components/Tags/TagFormUpdate.vue";
-import DeviceDelete from "../components/Devices/DeviceDelete.vue";
-import DeviceRename from "../components/Devices/DeviceRename.vue";
 import { ISessions } from "../interfaces/ISessions";
 import { authorizer, actions } from "../authorizer";
 import SessionDelete from "../components/Sessions/SessionDelete.vue";
@@ -178,16 +174,15 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.sessionDetails
+          INotificationsError.sessionDetails,
         );
         throw new Error(error);
       }
     });
 
     const sessionIsEmpty = computed(
-      () =>
-        store.getters["sessions/get"] &&
-        store.getters["sessions/get"].lenght === 0
+      () => store.getters["sessions/get"]
+        && store.getters["sessions/get"].lenght === 0,
     );
 
     const refreshSessions = async () => {
@@ -197,7 +192,7 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.sessionDetails
+          INotificationsError.sessionDetails,
         );
         throw new Error(error);
       }
@@ -208,7 +203,7 @@ export default defineComponent({
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.session["removeRecord"]
+          actions.session.removeRecord,
         );
       }
 
@@ -218,7 +213,7 @@ export default defineComponent({
     const hasAuthorizationPlay = () => {
       const role = store.getters["auth/role"];
       if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.session["play"]);
+        return hasPermission(authorizer.role[role], actions.session.play);
       }
 
       return false;
@@ -237,10 +232,6 @@ export default defineComponent({
     };
   },
   components: {
-    DeviceIcon,
-    TagFormUpdate,
-    DeviceDelete,
-    DeviceRename,
     SessionDelete,
     SessionClose,
     SessionPlay,

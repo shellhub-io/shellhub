@@ -1,6 +1,6 @@
 import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
 import { envVariables } from "../envVariables";
-import Dashboard from "@/views/Dashboard.vue"
+import Dashboard from "@/views/Dashboard.vue";
 import Devices from "@/views/Devices.vue";
 import DeviceList from "@/components/Devices/DeviceList.vue";
 import DevicePendingList from "@/components/Devices/DevicePendingList.vue";
@@ -16,7 +16,6 @@ import SettingNamespace from "@/components/Setting/SettingNamespace.vue";
 import SettingPrivateKeys from "@/components/Setting/SettingPrivateKeys.vue";
 import SettingTags from "@/components/Setting/SettingTags.vue";
 import SettingBilling from "@/components/Setting/SettingBilling.vue";
-
 
 const routes: Array<RouteRecordRaw> = [
   {

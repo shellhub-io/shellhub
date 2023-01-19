@@ -1,12 +1,12 @@
 <template>
-  <v-btn class="bg-primary" data-test="show-btn" @click="dialog = !dialog" v-bind="$props, $attrs">
+  <v-btn class="bg-primary" data-test="show-btn" @click="dialog = !dialog" v-bind="$attrs">
     {{ actionButton(typeOperation) }}
   </v-btn>
 
   <v-dialog v-model="dialog" max-width="600">
     <v-card
       v-model="dialog"
-      
+
       class="bg-v-theme-surface"
       data-test="BillingDialogPaymentMethod-dialog"
     >
@@ -37,7 +37,7 @@
         <v-card class="paymentForm mt-6 pa-3 bg-white">
           <StripeElements
             v-if="stripeLoaded"
-            v-slot="{ elements, instance }"
+            v-slot="{ elements }"
             ref="elms"
             :stripe-key="stripeKey"
             :instance-options="instanceOptions"
@@ -81,11 +81,11 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "../../store";
 import { defineComponent, ref, computed, onBeforeMount, onMounted } from "vue";
-import { formatCurrency } from "../../utils/currency";
 import { StripeElements, StripeElement } from "vue-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { formatCurrency } from "../../utils/currency";
+import { useStore } from "../../store";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -111,7 +111,7 @@ export default defineComponent({
     const store = useStore();
 
     const currentQuantity = computed(
-      () => store.getters["stats/stats"].registered_devices
+      () => store.getters["stats/stats"].registered_devices,
     );
 
     const stripeKey = ref("pk_test_daOQ5URsElI0aQdJWU8E9xTz");
@@ -136,7 +136,7 @@ export default defineComponent({
       try {
         store.dispatch("stats/get");
       } catch (error: any) {
-        throw new Error(error); 
+        throw new Error(error);
       }
     });
 
@@ -195,6 +195,7 @@ export default defineComponent({
           sumPrice += (n <= t.upTo ? n - t.begin : t.upTo - t.begin) * t.k;
         }
       });
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       return formatCurrency(String(sumPrice * 100));
     };
@@ -222,20 +223,6 @@ export default defineComponent({
       }
     };
 
-    const doAction = async () => {
-      lockButton.value = true;
-      switch (props.typeOperation) {
-        case "subscription":
-          await subscriptionPaymentMethod();
-          break;
-        case "update":
-          await updatePaymentMethod();
-          break;
-        default:
-          lockButton.value = false;
-      }
-    };
-
     const subscriptionPaymentMethod = async () => {
       const cardElement = card.value.stripeElement;
       const result = await elms.value.instance.createPaymentMethod({
@@ -249,12 +236,12 @@ export default defineComponent({
           });
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.subscription
+            INotificationsSuccess.subscription,
           );
         } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.subscription
+            INotificationsError.subscription,
           );
           const { status } = error.response;
           if (status === 400 || status === 423) {
@@ -279,31 +266,45 @@ export default defineComponent({
         try {
           await store.dispatch(
             "billing/addPaymentMethod",
-            result.paymentMethod.id
+            result.paymentMethod.id,
           );
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.updateSubscription
+            INotificationsSuccess.updateSubscription,
           );
           ctx.emit("update");
           dialog.value = false;
         } catch (error: any) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.updatePaymentMethod
+            INotificationsError.updatePaymentMethod,
           );
 
           const { status } = error.response;
           if (status === 400 || status === 423) {
             showError(error);
           }
-          throw new Error(error); 
+          throw new Error(error);
         }
       } else {
         displayError(result.error);
       }
 
       lockButton.value = false;
+    };
+
+    const doAction = async () => {
+      lockButton.value = true;
+      switch (props.typeOperation) {
+        case "subscription":
+          await subscriptionPaymentMethod();
+          break;
+        case "update":
+          await updatePaymentMethod();
+          break;
+        default:
+          lockButton.value = false;
+      }
     };
 
     return {

@@ -69,7 +69,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
+import { computed, defineComponent, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Logo from "../assets/logo-inverted.png";
 import {
@@ -86,20 +86,14 @@ export default defineComponent({
 
     const activationProcessingStatus = ref("processing");
 
-    const verifyActivationProcessingStatus = computed(() => {
-      return activationProcessingStatus.value;
-    });
+    const verifyActivationProcessingStatus = computed(() => activationProcessingStatus.value);
 
-    onMounted(() => {
-      validationAccount(route.query);
-    });
-
-    const validationAccount = async (data: any) => {
+    const validationAccount = async (data: unknown) => {
       try {
         await store.dispatch("users/validationAccount", data);
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.validationAccount
+          INotificationsSuccess.validationAccount,
         );
 
         activationProcessingStatus.value = "success";
@@ -107,7 +101,7 @@ export default defineComponent({
       } catch (error: any) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
-          INotificationsError.validationAccount
+          INotificationsError.validationAccount,
         );
         if (error && error.response) {
           switch (error.response.status) {
@@ -127,6 +121,10 @@ export default defineComponent({
         throw new Error(error);
       }
     };
+
+    onMounted(() => {
+      validationAccount(route.query);
+    });
 
     return {
       Logo,
