@@ -60,6 +60,13 @@ updates:
       update-types: ["version-update:semver-major"]
     - dependency-name: "@vue/cli-plugin-unit-jest"
       update-types: ["version-update:semver-major"]
+- package-ecosystem: npm
+  directory: "/new-ui"
+  schedule:
+    interval: weekly
+  commit-message:
+    prefix: "new-ui"
+  versioning-strategy: increase-if-necessary
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
