@@ -34,6 +34,9 @@ jobs:
           - project: ui
             extra_args: ""
             lint_args: ""
+          - project: new-ui
+            extra_args: ""
+            lint_args: ""
           - project: cli
             extra_args: ""
             lint_args: ""
@@ -118,7 +121,7 @@ jobs:
           node-version: "16.13.1"
 
       - name: Set up Node.JS 17.9.1 [NEW-UI]
-        if: matrix.project == 'new-ui' && matrix.project != 'ui' && steps.filter.outputs.npm == 'true' && github.event.pull_request.draft == false
+        if: matrix.project == 'new-ui' && matrix.project != 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         uses: actions/setup-node@v1
         with:
           node-version: "17.9.1"
@@ -130,8 +133,20 @@ jobs:
           path: ui/node_modules
           key: ${{ runner.OS }}-ui-${{ hashFiles('**/package-lock.json') }}
 
-      - name: Install Node Dependencies [UI, NEW-UI]
-        if: matrix.project == 'ui' && matrix.project == 'new-ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
+      - name: Cache node modules [NEW-UI]
+        if: matrix.project == 'new-ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
+        uses: actions/cache@v1
+        with:
+          path: new-ui/node_modules
+          key: ${{ runner.OS }}-new-ui-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Node Dependencies [UI]
+        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
+        working-directory: ${{ matrix.project }}
+        run: npm install
+        
+      - name: Install Node Dependencies [NEW-UI]
+        if: matrix.project == 'new-ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: npm install
 
