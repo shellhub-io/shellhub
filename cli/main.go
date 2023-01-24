@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"errors"
+	"reflect"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
@@ -21,6 +23,23 @@ type config struct {
 
 func init() {
 	loglevel.SetLogLevel()
+}
+
+func bind(args []string, input interface{}) error {
+	typeOf := reflect.TypeOf(input)
+	valueOf := reflect.ValueOf(input)
+
+	if typeOf.Kind() != reflect.Ptr || typeOf.Elem().Kind() != reflect.Struct {
+		return errors.New("input must be a pointer to a structure")
+	}
+
+	for i := 0; i < len(args); i++ {
+		valueOf.Elem().
+			FieldByName(typeOf.Elem().FieldByIndex([]int{i}).Name).
+			SetString(args[i])
+	}
+
+	return nil
 }
 
 func main() {
@@ -47,12 +66,12 @@ func main() {
 	services := NewService(mongo.NewStore(client.Database(connStr.Database), cache))
 
 	rootCmd := &cobra.Command{Use: "cli"}
-
 	userCmd := &cobra.Command{
 		Use:   "user",
 		Short: "Manage users",
 		Long:  `Manage users`,
 	}
+
 	userCmd.AddCommand(&cobra.Command{
 		Use:     "create <username> <password> <email>",
 		Short:   "Create an user",
@@ -60,7 +79,17 @@ func main() {
 		Example: `cli user create shellhub password`,
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			user, err := services.UserCreate(args[0], args[1], args[2])
+			var input struct {
+				Username string
+				Password string
+				Email    string
+			}
+
+			if err := bind(args, &input); err != nil {
+				return err
+			}
+
+			user, err := services.UserCreate(input.Username, input.Password, input.Email)
 			if err != nil {
 				return err
 			}
@@ -79,7 +108,15 @@ func main() {
 		Example: `cli user delete shellhub`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := services.UserDelete(args[0]); err != nil {
+			var input struct {
+				Username string
+			}
+
+			if err := bind(args, &input); err != nil {
+				return err
+			}
+
+			if err := services.UserDelete(input.Username); err != nil {
 				return err
 			}
 
@@ -89,7 +126,6 @@ func main() {
 			return nil
 		},
 	})
-
 	userCmd.AddCommand(&cobra.Command{
 		Use:     "password <username> <password>",
 		Short:   "Change user password",
@@ -97,7 +133,16 @@ func main() {
 		Example: `cli user password shellhub password`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := services.UserUpdate(args[0], args[1]); err != nil {
+			var input struct {
+				Username string
+				Password string
+			}
+
+			if err := bind(args, &input); err != nil {
+				return err
+			}
+
+			if err := services.UserUpdate(input.Username, input.Password); err != nil {
 				return err
 			}
 
@@ -125,7 +170,17 @@ func main() {
 				args = append(args, "")
 			}
 
-			namespace, err := services.NamespaceCreate(args[0], args[1], args[2])
+			var input struct {
+				Namespace string
+				Owner     string
+				TenantID  string
+			}
+
+			if err := bind(args, &input); err != nil {
+				return err
+			}
+
+			namespace, err := services.NamespaceCreate(input.Namespace, input.Owner, input.TenantID)
 			if err != nil {
 				return err
 			}
@@ -145,7 +200,15 @@ func main() {
 		Example: `cli namespace delete shellhubspace`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := services.NamespaceDelete(args[0]); err != nil {
+			var input struct {
+				Namespace string
+			}
+
+			if err := bind(args, &input); err != nil {
+				return err
+			}
+
+			if err := services.NamespaceDelete(input.Namespace); err != nil {
 				return err
 			}
 
@@ -168,7 +231,17 @@ func main() {
 		Example: `cli member add shellhub shellhubspace`,
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			namespace, err := services.NamespaceAddMember(args[0], args[1], args[2])
+			var input struct {
+				Username  string
+				Namespace string
+				Role      string
+			}
+
+			if err := bind(args, &input); err != nil {
+				return err
+			}
+
+			namespace, err := services.NamespaceAddMember(input.Username, input.Namespace, input.Role)
 			if err != nil {
 				return err
 			}
@@ -189,7 +262,16 @@ func main() {
 		Example: `cli member remove shellhub shellhubspace`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			namespace, err := services.NamespaceRemoveMember(args[0], args[1])
+			var input struct {
+				Username  string
+				Namespace string
+			}
+
+			if err := bind(args, &input); err != nil {
+				return err
+			}
+
+			namespace, err := services.NamespaceRemoveMember(input.Username, input.Namespace)
 			if err != nil {
 				return err
 			}
