@@ -20,6 +20,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
 	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
+	"github.com/shellhub-io/shellhub/ssh/pkg/tty"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
@@ -54,7 +55,7 @@ var (
 	ErrPty                = fmt.Errorf("failed to request the pty to agent")
 	ErrShell              = fmt.Errorf("failed to get the shell to agent")
 	ErrTarget             = fmt.Errorf("failed to get client target")
-	ErrAuthentification   = fmt.Errorf("failed to authenticate to device")
+	ErrAuthentication     = fmt.Errorf("failed to authenticate to device")
 )
 
 // sendAndInformError sends the external error to client and log the internal one to server.
@@ -91,9 +92,9 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 
 			return
 		}
-
 		defer sess.Finish() // nolint: errcheck
 
+		tty.Log(client, sess.Client, "starting SSH connection") //nolint:errcheck
 		if wh := webhook.NewClient(); wh != nil {
 			res, err := wh.Connect(sess.Lookup)
 			if errors.Is(err, webhook.ErrForbidden) {
@@ -103,7 +104,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 			}
 
 			if sess.Pty {
-				client.Write([]byte(fmt.Sprintf("Wait %d seconds while the agent starts\n", res.Timeout))) // nolint:errcheck
+				tty.Log(client, sess.Client, fmt.Sprintf("wait %d seconds while the agent starts", res.Timeout)) //nolint:errcheck
 			}
 
 			time.Sleep(time.Duration(res.Timeout) * time.Second)
@@ -159,6 +160,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 			}
 		}
 
+		tty.Log(client, sess.Client, "connecting client to device...") //nolint: errcheck
 		err = connectSSH(ctx, client, sess, config, api, opts)
 		if err != nil {
 			sendAndInformError(client, err, err)
@@ -169,9 +171,10 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 }
 
 func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Session, config *gossh.ClientConfig, api internalclient.Client, opts ConfigOptions) error {
+	tty.Log(client, sess.Client, "authenticating to device...") //nolint:errcheck
 	connection, reqs, err := sess.NewClientConnWithDeadline(config)
 	if err != nil {
-		return ErrAuthentification
+		return ErrAuthentication
 	}
 
 	defer connection.Close()
@@ -185,6 +188,7 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 
 	go session.HandleRequests(ctx, reqs, api)
 
+	tty.Log(client, sess.Client, "requesting shell...") //nolint:errcheck
 	pty, winCh, _ := client.Pty()
 
 	switch sess.GetType() {
@@ -248,6 +252,7 @@ func shell(api internalclient.Client, sess *session.Session, uid string, agent *
 		}
 	}()
 
+	tty.Reset(client, sess.Client) // nolint:errcheck
 	flw, err := flow.NewFlow(agent)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{

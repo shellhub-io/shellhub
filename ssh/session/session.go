@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
-
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -18,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/ssh/pkg/host"
+	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
