@@ -95,7 +95,7 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 func connectSFTP(ctx context.Context, client gliderssh.Session, sess *session.Session, api internalclient.Client, config *gossh.ClientConfig) error {
 	connection, reqs, err := sess.NewClientConnWithDeadline(config)
 	if err != nil {
-		return ErrAuthentification
+		return ErrAuthentication
 	}
 
 	agent, err := connection.NewSession()
