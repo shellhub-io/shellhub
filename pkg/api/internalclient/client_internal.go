@@ -145,16 +145,22 @@ func (c *client) DevicesHeartbeat(id string) error {
 	return nil
 }
 
+var (
+	ErrFirewallConnection = errors.New("failed to make the request to evaluate the firewall")
+	ErrFirewallBlock      = errors.New("a firewall rule prohibit this connection")
+)
+
 func (c *client) FirewallEvaluate(lookup map[string]string) error {
-	resp, err := c.http.R().
+	resp, err := c.http.
+		SetRetryCount(10).R().
 		SetQueryParams(lookup).
 		Get("http://cloud-api:8080/internal/firewall/rules/evaluate")
 	if err != nil {
-		return fmt.Errorf("failed to make the request to evaluate the firewall: %v with error %v", lookup, err)
+		return ErrFirewallConnection
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return errors.New("a firewall rule prohibit this connection")
+		return ErrFirewallBlock
 	}
 
 	return nil
