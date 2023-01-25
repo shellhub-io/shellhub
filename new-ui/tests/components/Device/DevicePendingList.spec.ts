@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import DevicePendingList from "../../../src/components/Devices/DevicePendingList.vue";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createStore } from "vuex";
+import DevicePendingList from "../../../src/components/Devices/DevicePendingList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -136,7 +137,7 @@ describe("Devices Pending List", () => {
   });
 
   it("Process data in methods", () => {
-    const address = `${devices[0].namespace}.${devices[0].name}@`;
+    const address = `${devices[0].namespace}.${devices[0].name}@localhost`;
     expect(wrapper.vm.sshidAddress(devices[0])).toEqual(address);
   });
 
@@ -146,15 +147,14 @@ describe("Devices Pending List", () => {
 
   it("Renders the template with components", async () => {
     expect(wrapper.find('[data-test="devices-list"]').exists()).toEqual(
-      true
+      true,
     );
   });
-  it('Renders the template with data', () => {
+  it("Renders the template with data", () => {
     const dataTable = wrapper.find('[data-test="devices-list"]');
     const dataTableAttr = dataTable.attributes();
     expect(dataTable.exists()).toEqual(true);
     expect(+dataTableAttr.totalcount).toBe(numberDevices);
     expect(+dataTableAttr.actualpage).toBe(1);
-
   });
 });

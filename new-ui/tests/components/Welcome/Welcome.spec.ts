@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Welcome from "../../../src/components/Welcome/Welcome.vue";
 import { createStore } from "vuex";
+import Welcome from "../../../src/components/Welcome/Welcome.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -72,6 +72,7 @@ describe("Welcome", () => {
     });
     window.location.protocol = "http:";
     window.location.hostname = "localhost";
+    window.location.port = "3000";
   });
 
   ///////
@@ -103,15 +104,15 @@ describe("Welcome", () => {
     expect(wrapper.vm.showWelcome).toEqual(show);
   });
   it("Process data in the methods", () => {
-    const command = `curl -sSf "http://localhost/install.sh?tenant_id=${tenant}" | sh`;
+    const command = `curl -sSf "http://localhost:3000/install.sh?tenant_id=${tenant}" | sh`;
 
     expect(wrapper.vm.command()).toEqual(command);
   });
 
-  it('Compare data with default value', async () => {
+  it("Compare data with default value", async () => {
     expect(wrapper.vm.el).toEqual(1);
     expect(wrapper.vm.enable).toEqual(false);
-    expect(wrapper.vm.curl.hostname).toEqual('localhost');
+    expect(wrapper.vm.curl.hostname).toEqual("localhost");
     expect(wrapper.vm.curl.tenant).toEqual(tenant);
 
     //////

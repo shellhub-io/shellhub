@@ -1,12 +1,12 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import DetailsSessions from "../../src/views/DetailsSessions.vue";
 import { createStore } from "vuex";
+import DetailsSessions from "../../src/views/DetailsSessions.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 
-describe.skip("DetailsSessions", () => {
+describe("DetailsSessions", () => {
   let wrapper: VueWrapper<any>;
   const vuetify = createVuetify();
 
@@ -72,8 +72,8 @@ describe.skip("DetailsSessions", () => {
         "sessionUid-field": sessionGlobal.uid,
         "sessionUser-field": sessionGlobal.username,
         "sessionIpAddress-field": sessionGlobal.ip_address,
-        "sessionStartedAt-field": "Monday, May 18th 2020, 9:30:28 am",
-        "sessionLastSeen-field": "Monday, May 18th 2020, 9:30:30 am",
+        "sessionStartedAt-field": "Monday, May 18th 2020, 12:30:28 pm",
+        "sessionLastSeen-field": "Monday, May 18th 2020, 12:30:30 pm",
       },
     },
     {
@@ -112,8 +112,8 @@ describe.skip("DetailsSessions", () => {
         "sessionUid-field": sessionGlobal.uid,
         "sessionUser-field": sessionGlobal.username,
         "sessionIpAddress-field": sessionGlobal.ip_address,
-        "sessionStartedAt-field": "Monday, May 18th 2020, 9:30:28 am",
-        "sessionLastSeen-field": "Monday, May 18th 2020, 9:30:30 am",
+        "sessionStartedAt-field": "Monday, May 18th 2020, 12:30:28 pm",
+        "sessionLastSeen-field": "Monday, May 18th 2020, 12:30:30 pm",
       },
     },
     {
@@ -162,8 +162,8 @@ describe.skip("DetailsSessions", () => {
         "sessionUid-field": sessionGlobal.uid,
         "sessionUser-field": sessionGlobal.username,
         "sessionIpAddress-field": sessionGlobal.ip_address,
-        "sessionStartedAt-field": "Monday, May 18th 2020, 9:30:28 am",
-        "sessionLastSeen-field": "Monday, May 18th 2020, 9:30:30 am",
+        "sessionStartedAt-field": "Monday, May 18th 2020, 12:30:28 pm",
+        "sessionLastSeen-field": "Monday, May 18th 2020, 12:30:30 pm",
       },
     },
     {
@@ -201,8 +201,8 @@ describe.skip("DetailsSessions", () => {
         "sessionUid-field": sessionGlobal.uid,
         "sessionUser-field": sessionGlobal.username,
         "sessionIpAddress-field": sessionGlobal.ip_address,
-        "sessionStartedAt-field": "Monday, May 18th 2020, 9:30:28 am",
-        "sessionLastSeen-field": "Monday, May 18th 2020, 9:30:30 am",
+        "sessionStartedAt-field": "Monday, May 18th 2020, 12:30:28 pm",
+        "sessionLastSeen-field": "Monday, May 18th 2020, 12:30:30 pm",
       },
     },
     {
@@ -236,29 +236,27 @@ describe.skip("DetailsSessions", () => {
         "sessionUid-field": sessionGlobal.uid,
         "sessionUser-field": sessionGlobal.username,
         "sessionIpAddress-field": sessionGlobal.ip_address,
-        "sessionStartedAt-field": "Monday, May 18th 2020, 9:30:28 am",
-        "sessionLastSeen-field": "Monday, May 18th 2020, 9:30:30 am",
+        "sessionStartedAt-field": "Monday, May 18th 2020, 12:30:28 pm",
+        "sessionLastSeen-field": "Monday, May 18th 2020, 12:30:30 pm",
       },
     },
   ];
 
-  const store = (session: any, currentRole: any) => {
-    return createStore({
-      state: {
-        session,
-        currentRole,
-      },
-      getters: {
-        "sessions/get": (state) => state.session,
-        "auth/role": (state) => state.currentRole,
-      },
-      actions: {
-        "sessions/get": vi.fn(),
-        "sessions/close": vi.fn(),
-        "snackbar/showSnackbarErrorLoading": vi.fn(),
-      },
-    });
-  };
+  const store = (session: any, currentRole: any) => createStore({
+    state: {
+      session,
+      currentRole,
+    },
+    getters: {
+      "sessions/get": (state) => state.session,
+      "auth/role": (state) => state.currentRole,
+    },
+    actions: {
+      "sessions/get": vi.fn(),
+      "sessions/close": vi.fn(),
+      "snackbar/showSnackbarErrorLoading": vi.fn(),
+    },
+  });
 
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
@@ -291,7 +289,7 @@ describe.skip("DetailsSessions", () => {
       it("Data is defined", () => {
         expect(wrapper.vm.$data).toBeDefined();
       });
-      it('Process data in the computed', () => {
+      it("Process data in the computed", () => {
         expect(wrapper.vm.session).toEqual(test.data.session);
       });
 
@@ -300,11 +298,13 @@ describe.skip("DetailsSessions", () => {
       //////
 
       it("Renders the template with data", () => {
+        // eslint-disable-next-line no-restricted-syntax
         for (const [key, value] of Object.entries(test.template)) {
           expect(wrapper.find(`[data-test="${key}"]`).exists()).toBe(value);
         }
       });
       it("Renders template with expected text", () => {
+        // eslint-disable-next-line no-restricted-syntax
         for (const [key, value] of Object.entries(test.templateText)) {
           expect(wrapper.find(`[data-test="${key}"]`).text()).toBe(value);
         }

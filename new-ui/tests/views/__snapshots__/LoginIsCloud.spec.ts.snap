@@ -3,7 +3,7 @@
 exports[`Login is cloud > Account has been activated > Renders the component 1`] = `
 "<div class=\\"v-application v-theme--light v-layout v-layout--full-height v-locale--is-ltr\\" style=\\"z-index: 1000;\\">
   <div class=\\"v-application__wrap\\">
-    <main class=\\"v-main d-flex align-center justify-center\\" style=\\"--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 0px; --v-layout-bottom: 0px; transition: none !important;\\">
+    <main class=\\"v-main d-flex align-center justify-center\\" style=\\"--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 0px; --v-layout-bottom: 0px; transition: none;\\">
       <div class=\\"v-container v-container--fluid\\">
         <div class=\\"v-row align-center justify-center\\">
           <div class=\\"v-col-sm-8 v-col-md-4 v-col-12\\">
@@ -20,7 +20,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
             <div class=\\"v-card v-theme--dark v-card--density-default rounded-lg v-card--variant-elevated pa-6 bg-v-theme-surface\\">
               <!---->
               <div class=\\"v-card__loader\\">
-                <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -59,7 +59,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
                         <div class=\\"v-field v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
-                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                               <!---->
                               <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -76,7 +76,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
                             <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
                               <!---->Username
                             </label>
-                            <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" required=\\"\\" class=\\"v-field__input\\">
+                            <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" required=\\"\\" class=\\"v-field__input\\">
                             <!---->
                           </div>
                           <!---->
@@ -90,7 +90,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
                       </div>
                       <!---->
                       <div class=\\"v-input__details\\">
-                        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+                        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-0-messages\\">
                           <!---->
                         </transition-group-stub>
                         <!---->
@@ -104,7 +104,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
                         <div class=\\"v-field v-field--appended v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
-                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                               <!---->
                               <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -121,7 +121,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
                             <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
                               <!---->Password
                             </label>
-                            <!----><input size=\\"1\\" type=\\"password\\" id=\\"input-2\\" required=\\"\\" class=\\"v-field__input\\">
+                            <!----><input size=\\"1\\" type=\\"password\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
                             <!---->
                           </div>
                           <!---->
@@ -137,7 +137,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
                       </div>
                       <!---->
                       <div class=\\"v-input__details\\">
-                        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+                        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-2-messages\\">
                           <!---->
                         </transition-group-stub>
                         <!---->
@@ -172,7 +172,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
 exports[`Login is cloud > Account has not been activated > Renders the component 1`] = `
 "<div class=\\"v-application v-theme--light v-layout v-layout--full-height v-locale--is-ltr\\" style=\\"z-index: 1000;\\">
   <div class=\\"v-application__wrap\\">
-    <main class=\\"v-main d-flex align-center justify-center\\" style=\\"--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 0px; --v-layout-bottom: 0px; transition: none !important;\\">
+    <main class=\\"v-main d-flex align-center justify-center\\" style=\\"--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 0px; --v-layout-bottom: 0px; transition: none;\\">
       <div class=\\"v-container v-container--fluid\\">
         <div class=\\"v-row align-center justify-center\\">
           <div class=\\"v-col-sm-8 v-col-md-4 v-col-12\\">
@@ -189,7 +189,7 @@ exports[`Login is cloud > Account has not been activated > Renders the component
             <div class=\\"v-card v-theme--dark v-card--density-default rounded-lg v-card--variant-elevated pa-6 bg-v-theme-surface\\">
               <!---->
               <div class=\\"v-card__loader\\">
-                <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -228,7 +228,7 @@ exports[`Login is cloud > Account has not been activated > Renders the component
                         <div class=\\"v-field v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
-                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                               <!---->
                               <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -245,7 +245,7 @@ exports[`Login is cloud > Account has not been activated > Renders the component
                             <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
                               <!---->Username
                             </label>
-                            <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" required=\\"\\" class=\\"v-field__input\\">
+                            <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" required=\\"\\" class=\\"v-field__input\\">
                             <!---->
                           </div>
                           <!---->
@@ -259,7 +259,7 @@ exports[`Login is cloud > Account has not been activated > Renders the component
                       </div>
                       <!---->
                       <div class=\\"v-input__details\\">
-                        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+                        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-0-messages\\">
                           <!---->
                         </transition-group-stub>
                         <!---->
@@ -273,7 +273,7 @@ exports[`Login is cloud > Account has not been activated > Renders the component
                         <div class=\\"v-field v-field--appended v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
-                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                               <!---->
                               <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -290,7 +290,7 @@ exports[`Login is cloud > Account has not been activated > Renders the component
                             <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
                               <!---->Password
                             </label>
-                            <!----><input size=\\"1\\" type=\\"password\\" id=\\"input-2\\" required=\\"\\" class=\\"v-field__input\\">
+                            <!----><input size=\\"1\\" type=\\"password\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
                             <!---->
                           </div>
                           <!---->
@@ -306,7 +306,7 @@ exports[`Login is cloud > Account has not been activated > Renders the component
                       </div>
                       <!---->
                       <div class=\\"v-input__details\\">
-                        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+                        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-2-messages\\">
                           <!---->
                         </transition-group-stub>
                         <!---->
@@ -332,7 +332,7 @@ exports[`Login is cloud > Account has not been activated > Renders the component
             <div class=\\"v-card v-theme--light bg-transparent v-card--density-default v-card--variant-elevated elevation-0 bg-v-theme-surface mt-2\\" data-test=\\"accountCreated-component\\">
               <!---->
               <div class=\\"v-card__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">

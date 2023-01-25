@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Settings from "../../src/views/Settings.vue";
 import { createStore } from "vuex";
+import Settings from "../../src/views/Settings.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 import { envVariables } from "../../src/envVariables";
@@ -11,7 +11,7 @@ describe("Settings", () => {
   let wrapper: VueWrapper<any>;
   const vuetify = createVuetify();
 
-  let numberNamespaces = 1;
+  const numberNamespaces = 1;
 
   const items = [
     {
@@ -38,6 +38,7 @@ describe("Settings", () => {
     },
     getters: {
       "namespaces/getNumberNamespaces": (state) => state.numberNamespaces,
+      "stats/stats": () => [],
     },
     actions: {
       "box/setStatus": vi.fn(),
@@ -58,6 +59,13 @@ describe("Settings", () => {
       wrapper = mount(Settings, {
         global: {
           plugins: [[store, key], vuetify, routes],
+        },
+        mocks: {
+          envVariables: {
+            ...envVariables,
+            isCloud: true,
+            billingEnable: true,
+          },
         },
       });
 
@@ -90,7 +98,7 @@ describe("Settings", () => {
     it("Renders the template with data", async () => {
       for (const [key, value] of Object.entries(items)) {
         expect(
-          wrapper.find(`[data-test="${value.title}-tab"]`).attributes("href")
+          wrapper.find(`[data-test="${value.title}-tab"]`).attributes("href"),
         ).toEqual(value.path);
       }
     });
@@ -106,6 +114,13 @@ describe("Settings", () => {
       wrapper = mount(Settings, {
         global: {
           plugins: [[store, key], vuetify, routes],
+        },
+        mocks: {
+          envVariables: {
+            ...envVariables,
+            isCloud: false,
+            billingEnable: true,
+          },
         },
       });
 
@@ -138,9 +153,7 @@ describe("Settings", () => {
     it("Renders the template with data", async () => {
       Object.keys(items.slice(0, -1)).forEach((item) => {
         expect(
-          // @ts-ignore
-          wrapper.find(`[data-test="${items[item].title}-tab"]`).text()
-          // @ts-ignore
+          wrapper.find(`[data-test="${items[item].title}-tab"]`).text(),
         ).toEqual(items[item].title);
       });
     });

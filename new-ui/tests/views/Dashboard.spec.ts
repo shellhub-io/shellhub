@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Dashboard from "../../src/views/Dashboard.vue";
 import { createStore } from "vuex";
+import Dashboard from "../../src/views/Dashboard.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 

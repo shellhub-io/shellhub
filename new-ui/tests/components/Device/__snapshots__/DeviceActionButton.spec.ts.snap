@@ -1,51 +1,51 @@
 // Vitest Snapshot v1
 
 exports[`DeviceActionButton: Create button in the list - observer > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" ripple=\\"true\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
 <v-dialog-stub maxwidth=\\"450px\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`DeviceActionButton: Create button in the list - owner > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" ripple=\\"true\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
 <v-dialog-stub maxwidth=\\"450px\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`DeviceActionButton: Create button in the notification - observer > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" ripple=\\"true\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
 <v-dialog-stub maxwidth=\\"450px\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`DeviceActionButton: Create button in the notification - owner > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" ripple=\\"true\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
 <v-dialog-stub maxwidth=\\"450px\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`DeviceActionButton: Dialog - observer > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" ripple=\\"true\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
 <v-dialog-stub maxwidth=\\"450px\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`DeviceActionButton: Dialog - owner > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" ripple=\\"true\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
 <v-dialog-stub maxwidth=\\"450px\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`DeviceActionButton: Reject button in the list - observer > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" ripple=\\"true\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
 <v-dialog-stub maxwidth=\\"450px\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`DeviceActionButton: Reject button in the list - owner > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" ripple=\\"true\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
 <v-dialog-stub maxwidth=\\"450px\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`DeviceActionButton: Remove button in the list - observer > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" ripple=\\"true\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
 <v-dialog-stub maxwidth=\\"450px\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;
 
 exports[`DeviceActionButton: Remove button in the list - owner > Renders the component 1`] = `
-"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
+"<v-list-item-stub disabled=\\"false\\" nav=\\"false\\" ripple=\\"true\\" subtitle=\\"false\\" title=\\"false\\" border=\\"false\\" density=\\"default\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"text\\"></v-list-item-stub>
 <v-dialog-stub maxwidth=\\"450px\\" fullscreen=\\"false\\" retainfocus=\\"true\\" scrollable=\\"false\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" noclickanimation=\\"false\\" modelvalue=\\"false\\" persistent=\\"false\\" scrim=\\"true\\" zindex=\\"2400\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" location=\\"bottom\\" origin=\\"center center\\" scrollstrategy=\\"block\\" transition=\\"[object Object]\\"></v-dialog-stub>"
 `;

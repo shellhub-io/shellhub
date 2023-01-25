@@ -4,7 +4,7 @@ exports[`Device > Renders the component 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -21,7 +21,7 @@ exports[`Device > Renders the component 1`] = `
   <div class=\\"v-slide-group v-tabs v-tabs--horizontal v-tabs--align-tabs-start v-tabs--stacked v-tabs--density-default\\" tabindex=\\"-1\\" role=\\"tablist\\" background-color=\\"secondary\\">
     <!---->
     <div class=\\"v-slide-group__container\\">
-      <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light text-primary v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Device List <div class=\\"v-tab__slider\\"></div></span>
           <!---->
           <!---->
@@ -44,7 +44,7 @@ exports[`Device > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">

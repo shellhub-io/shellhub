@@ -88,7 +88,7 @@ export default defineComponent({
         ];
       } catch (error: any) {
         switch (true) {
-          case error.response.status === 403: {
+          case error.response && error.response.status === 403: {
             hasStatus.value = true;
             break;
           }

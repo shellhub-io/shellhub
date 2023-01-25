@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import DeviceList from "../../../src/components/Devices/DeviceList.vue";
 import { createStore } from "vuex";
+import DeviceList from "../../../src/components/Devices/DeviceList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -106,7 +106,7 @@ const tests = [
       itemsPerPage: 10,
       numberDevices: numberDevicesGlobal,
       actualPage: 1,
-      comboboxOptions: [10,20,50,100],
+      comboboxOptions: [10, 20, 50, 100],
       nextPage: vi.fn(),
       previousPage: vi.fn(),
       loading: false,
@@ -133,7 +133,7 @@ const tests = [
       itemsPerPage: 10,
       numberDevices: numberDevicesGlobal,
       actualPage: 1,
-      comboboxOptions: [10,20,50,100],
+      comboboxOptions: [10, 20, 50, 100],
       nextPage: vi.fn(),
       previousPage: vi.fn(),
       loading: false,
@@ -146,29 +146,28 @@ const tests = [
   },
 ];
 
-const store = (devices: any, numberDevices: any, currentRole: any) =>
-  createStore({
-    state: {
-      devices,
-      numberDevices,
-      currentRole,
-    },
-    getters: {
-      "devices/list": (state) => state.devices,
-      "devices/getNumberDevices": (state) => state.numberDevices,
-      "auth/role": (state) => state.currentRole,
-    },
-    actions: {
-      "modals/showAddDevice": vi.fn(),
-      "devices/fetch": vi.fn(),
-      "devices/rename": vi.fn(),
-      "tags/clearSelectedTags": vi.fn(),
-      "devices/resetListDevices": vi.fn(),
-      "tags/setSelected": vi.fn(),
-      "devices/setFilter": vi.fn(),
-      "stats/get": vi.fn(),
-    },
-  });
+const store = (devices: any, numberDevices: any, currentRole: any) => createStore({
+  state: {
+    devices,
+    numberDevices,
+    currentRole,
+  },
+  getters: {
+    "devices/list": (state) => state.devices,
+    "devices/getNumberDevices": (state) => state.numberDevices,
+    "auth/role": (state) => state.currentRole,
+  },
+  actions: {
+    "modals/showAddDevice": vi.fn(),
+    "devices/fetch": vi.fn(),
+    "devices/rename": vi.fn(),
+    "tags/clearSelectedTags": vi.fn(),
+    "devices/resetListDevices": vi.fn(),
+    "tags/setSelected": vi.fn(),
+    "devices/setFilter": vi.fn(),
+    "stats/get": vi.fn(),
+  },
+});
 
 tests.forEach((test) => {
   describe(`${test.description}`, () => {
@@ -184,7 +183,7 @@ tests.forEach((test) => {
               store(
                 test.variables.devices,
                 test.variables.numberDevices,
-                test.role
+                test.role,
               ),
               key,
             ],
@@ -225,9 +224,9 @@ tests.forEach((test) => {
       expect(wrapper.vm.itemsPerPage).toEqual(pagination.itemsPerPage);
       expect(wrapper.vm.loading).toEqual(false);
     });
-    it('Process data in methods', () => {
+    it("Process data in methods", () => {
       devicesGlobal.forEach((device: any) => {
-        const address = `${device.namespace}.${device.name}@`;
+        const address = `${device.namespace}.${device.name}@localhost`;
         expect(wrapper.vm.sshidAddress(device)).toEqual(address);
       });
     });

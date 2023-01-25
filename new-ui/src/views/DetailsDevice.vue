@@ -120,7 +120,6 @@
 import { computed, defineComponent, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "../store";
-import { formatDate } from "..//utils/formateDate";
 import { displayOnlyTenCharacters } from "../utils/string";
 import showTag from "../utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
@@ -129,6 +128,7 @@ import DeviceDelete from "../components/Devices/DeviceDelete.vue";
 import DeviceRename from "../components/Devices/DeviceRename.vue";
 import { INotificationsError } from "../interfaces/INotifications";
 import TerminalDialog from "../components/Terminal/TerminalDialog.vue";
+import { formatDate } from "@/utils/formateDate";
 
 export default defineComponent({
   name: "DeviceDetails",
