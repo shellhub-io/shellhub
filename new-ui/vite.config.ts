@@ -2,7 +2,6 @@ import { defineConfig } from "vitest/config";
 import vue from "@vitejs/plugin-vue";
 // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
 import vuetify from "vite-plugin-vuetify";
-import inject from "@rollup/plugin-inject";
 import NodeGlobalsPolyfillPlugin from "@esbuild-plugins/node-globals-polyfill";
 import polyfillNode from "rollup-plugin-polyfill-node";
 import { splitVendorChunkPlugin } from "vite";
@@ -46,16 +45,6 @@ export default defineConfig({
   },
   define: {
     "process.env": process.env,
-  },
-  test: {
-    // environment: "jsdom",
-    environment: "happy-dom",
-    globals: true,
-    setupFiles: "vuetify.config.ts",
-    deps: {
-      inline: ["vuetify"],
-    },
-    update: true,
   },
   build: {
     rollupOptions: {

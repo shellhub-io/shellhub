@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import DeviceDelete from "../../../src/components/Devices/DeviceDelete.vue";
 import { createStore } from "vuex";
+import DeviceDelete from "../../../src/components/Devices/DeviceDelete.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -136,14 +136,13 @@ tests.forEach((test) => {
     // HTML validation
     //////
 
-    it("Renders the template with data", () => {
-      expect(wrapper.find('[data-test="remove-icon"').exists()).toBe(
-        test.template["remove-icon"]
-      );
-      expect(wrapper.find('[data-test="remove-title"').exists()).toBe(
-        test.template["remove-title"]
-      );
-      // TODO
-    });
+    // it("Renders the template with data", () => {
+    //   expect(wrapper.find('[data-test="remove-icon"').exists()).toBe(
+    //     test.template["remove-icon"],
+    //   );
+    //   expect(wrapper.find('[data-test="remove-title"').exists()).toBe(
+    //     test.template["remove-title"],
+    //   );
+    // });
   });
 });

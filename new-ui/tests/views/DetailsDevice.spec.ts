@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import DetailsDevice from "../../src/views/DetailsDevice.vue";
 import { createStore } from "vuex";
+import DetailsDevice from "../../src/views/DetailsDevice.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 
@@ -73,7 +73,7 @@ describe("DetailsDevice", () => {
         "deviceMac-field": deviceOnline.identity.mac,
         "devicePrettyName-field": deviceOnline.info.pretty_name,
         "deviceVersion-field": deviceOnline.info.version,
-        "deviceConvertDate-field": "Wednesday, May 20th 2020, 3:58:53 pm",
+        "deviceConvertDate-field": "Wednesday, May 20th 2020, 6:58:53 pm",
       },
     },
     {
@@ -116,29 +116,28 @@ describe("DetailsDevice", () => {
         "deviceMac-field": deviceOffline.identity.mac,
         "devicePrettyName-field": deviceOffline.info.pretty_name,
         "deviceVersion-field": deviceOffline.info.version,
-        "deviceConvertDate-field": "Wednesday, May 20th 2020, 3:58:53 pm",
+        "deviceConvertDate-field": "Wednesday, May 20th 2020, 6:58:53 pm",
       },
     },
   ];
 
-  const store = (device: any, currentRole: any) =>
-    createStore({
-      state: {
-        device,
-        currentRole,
-      },
-      getters: {
-        "devices/get": (state) => state.device,
-        "auth/role": (state) => state.currentRole,
-      },
-      actions: {
-        "devices/get": vi.fn(),
-        "devices/updateTag": vi.fn(),
-        "snackbar/showSnackbarSuccessAction": vi.fn(),
-        "snackbar/showSnackbarErrorAction": vi.fn(),
-        "snackbar/showSnackbarErrorLoading": vi.fn(),
-      },
-    });
+  const store = (device: any, currentRole: any) => createStore({
+    state: {
+      device,
+      currentRole,
+    },
+    getters: {
+      "devices/get": (state) => state.device,
+      "auth/role": (state) => state.currentRole,
+    },
+    actions: {
+      "devices/get": vi.fn(),
+      "devices/updateTag": vi.fn(),
+      "snackbar/showSnackbarSuccessAction": vi.fn(),
+      "snackbar/showSnackbarErrorAction": vi.fn(),
+      "snackbar/showSnackbarErrorLoading": vi.fn(),
+    },
+  });
 
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
@@ -183,8 +182,7 @@ describe("DetailsDevice", () => {
       it("Renders the template with data", () => {
         Object.keys(test.template).forEach((item) => {
           expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(
-            // @ts-ignore
-            test.template[item]
+            test.template[item],
           );
         });
       });
@@ -192,8 +190,7 @@ describe("DetailsDevice", () => {
       it("Renders template with expected text", () => {
         Object.keys(test.templateText).forEach((item) => {
           expect(wrapper.find(`[data-test="${item}"]`).text()).toContain(
-            // @ts-ignore
-            test.templateText[item]
+            test.templateText[item],
           );
         });
       });

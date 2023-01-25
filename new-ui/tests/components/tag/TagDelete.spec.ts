@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import TagRemove from "../../../src/components/Tags/TagRemove.vue";
 import { createStore } from "vuex";
+import TagRemove from "../../../src/components/Tags/TagRemove.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -75,13 +75,13 @@ describe("TagDelete", () => {
             plugins: [[store, key], routes, vuetify],
           },
           props: {
-            tagName: test.props.tagName,
+            tag: test.props.tagName,
             notHasAuthorization: test.props.notHasAuthorization,
           },
           shallow: true,
         });
 
-        if(test.data.showDialog) {
+        if (test.data.showDialog) {
           wrapper.vm.showDialog = true;
         }
       });
@@ -97,20 +97,20 @@ describe("TagDelete", () => {
         expect(wrapper.html()).toMatchSnapshot();
       });
 
-      ///////s
+      ///////
       // Data checking
       //////
+
       it("Data is defined", () => {
         expect(wrapper.vm.$data).toBeDefined();
       });
-      it('Receive data in props', () => {
-        expect(wrapper.vm.tagName).toBe(test.props.tagName);
+      it("Receive data in props", () => {
+        expect(wrapper.vm.tag).toBe(test.props.tagName);
         expect(wrapper.vm.notHasAuthorization).toBe(test.props.notHasAuthorization);
       });
-      it('Receive data', () => {
+      it("Receive data", () => {
         expect(wrapper.vm.showDialog).toBe(test.data.showDialog);
       });
-
     });
   });
 });

@@ -3,7 +3,7 @@
 exports[`NamespaceMemberEdit > Dialog closed > Renders the component 1`] = `
 "<div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default v-list-item--variant-text\\" tabindex=\\"0\\" member=\\"[object Object]\\" show=\\"false\\" nothasauthorization=\\"false\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
   <!---->
-  <div class=\\"v-list-item__content\\">
+  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
     <!---->
     <!---->
     <div class=\\"d-flex align-center\\">
@@ -20,7 +20,7 @@ exports[`NamespaceMemberEdit > Dialog closed > Renders the component 1`] = `
 exports[`NamespaceMemberEdit > Dialog opened > Renders the component 1`] = `
 "<div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default v-list-item--variant-text\\" tabindex=\\"0\\" member=\\"[object Object]\\" show=\\"true\\" nothasauthorization=\\"false\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
   <!---->
-  <div class=\\"v-list-item__content\\">
+  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
     <!---->
     <!---->
     <div class=\\"d-flex align-center\\">
