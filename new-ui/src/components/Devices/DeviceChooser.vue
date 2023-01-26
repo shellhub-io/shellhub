@@ -72,10 +72,9 @@
 import { defineComponent, ref, computed } from "vue";
 import { useStore } from "../../store";
 import DeviceListChooser from "./DeviceListChooser.vue";
-import { INotificationsError } from "../../interfaces/INotifications";
 import hasPermision from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
-import { INotificationsSuccess } from "@/interfaces/INotification";
+import { INotificationsSuccess, INotificationsError } from "@/interfaces/INotifications";
 
 export default defineComponent({
   setup() {

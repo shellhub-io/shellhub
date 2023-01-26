@@ -311,6 +311,8 @@ export default defineComponent({
       if (active.value) {
         try {
           await store.dispatch("billing/getSubscription");
+          console.log("billing data", billing.value)
+          console.log("billing billingData", billingData.value)
           renderData.value = true;
         } catch (error: any) {
           renderData.value = false;

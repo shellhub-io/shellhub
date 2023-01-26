@@ -4,6 +4,7 @@ import { State } from "./../index";
 import * as apiBilling from "../api/billing";
 import { namespaces, NamespacesState } from "./namespaces";
 import infoExtract from "../../utils/billInfoExtract";
+import { IBIllingDataCard } from "@/interfaces/IBilling";
 
 export const billing: Module<NamespacesState, State> = {
   namespaced: true,
@@ -21,6 +22,7 @@ export const billing: Module<NamespacesState, State> = {
   mutations: {
     setSubscription: (state, data) => {
       state.billing = {
+        ...state.billing,
         active: data.status === "active",
         current_period_end: data.current_period_end,
         customer_id: data.customer.id,
@@ -59,11 +61,12 @@ export const billing: Module<NamespacesState, State> = {
     setUpdatePaymentMethod: (state, id) => {
       const { defaultCard, cards } = state.billInfoData;
 
-      const index = cards.findIndex((c: any) => c.id === id);
-      const prevDefault = cards.find((c: any) => c.id === defaultCard.id);
+      const index = cards.findIndex((c: IBIllingDataCard) => c.id === id);
+      const prevDefault = cards.find((c: IBIllingDataCard) => c.id === defaultCard.id);
       cards[index].default = true;
-      prevDefault.default = false;
-
+      if (prevDefault) {
+        prevDefault.default = false;
+      }
       state.billInfoData = {
         ...state.billInfoData,
         cards,

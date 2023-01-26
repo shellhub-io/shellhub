@@ -1,13 +1,15 @@
 import { Module } from "vuex";
 import { State } from "./../index";
 import * as apiNamespace from "../api/namespaces";
+import { INamespace, INamespaceMember } from "@/interfaces/INamespace";
+import { IBIllingDataInvoice, IBilling, IBillingData } from "@/interfaces/IBilling";
 
 export interface NamespacesState {
-  namespace: any;
-  billInfoData: any;
-  billing: any;
-  namespaces: Array<any>;
-  invoices: Array<any>;
+  namespace: INamespace;
+  billInfoData: IBillingData;
+  billing: IBilling;
+  namespaces: Array<INamespace>;
+  invoices: Array<IBIllingDataInvoice>;
   defaultPerPage: number;
   invoicesLength: number;
   numberNamespaces: number;
@@ -17,9 +19,9 @@ export interface NamespacesState {
 export const namespaces: Module<NamespacesState, State> = {
   namespaced: true,
   state: {
-    namespace: {},
-    billInfoData: {},
-    billing: {},
+    namespace: {} as INamespace,
+    billInfoData: {} as IBillingData,
+    billing: {} as IBilling,
     namespaces: [],
     invoices: [],
     defaultPerPage: 3,
@@ -59,7 +61,7 @@ export const namespaces: Module<NamespacesState, State> = {
 
     removeMember: (state, usr) => {
       state.namespace.members.splice(
-        state.namespace.members.findIndex((m: any) => m.name === usr),
+        state.namespace.members.findIndex((m: INamespaceMember) => m.username === usr),
         1,
       );
     },
@@ -70,7 +72,7 @@ export const namespaces: Module<NamespacesState, State> = {
     },
 
     clearObjectNamespace: (state) => {
-      state.namespace = {};
+      state.namespace = {} as INamespace;
     },
 
     setOwnerStatus: (state, status) => {

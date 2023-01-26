@@ -72,8 +72,8 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref } from "vue";
-import { INotificationsCopy } from "../../interfaces/INotification";
 import { useStore } from "../../store";
+import { INotificationsCopy } from "@/interfaces/INotifications";
 
 export default defineComponent({
   props: {

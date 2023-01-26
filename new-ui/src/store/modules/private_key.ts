@@ -1,9 +1,10 @@
 /* eslint-disable */
 import { Module } from "vuex";
 import { State } from "./../index";
+import { IPrivateKey } from "@/interfaces/IPrivateKey";
 
 export interface PrivateKeyState {
-  privateKeys: Array<any>,
+  privateKeys: Array<IPrivateKey>,
   numberPrivateKeys: number,
 }
 

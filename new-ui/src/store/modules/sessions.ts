@@ -1,10 +1,11 @@
 import { Module } from "vuex";
 import { State } from "./../index";
 import * as apiSession from "../api/sessions";
+import { ISessions } from "@/interfaces/ISessions";
 
 export interface SessionsState {
-  sessions: Array<any>;
-  session: any;
+  sessions: Array<ISessions>;
+  session: ISessions;
   numberSessions: number;
   page: number;
   perPage: number;
@@ -14,7 +15,7 @@ export const sessions: Module<SessionsState, State> = {
   namespaced: true,
   state: {
     sessions: [],
-    session: {},
+    session: {} as ISessions,
     numberSessions: 0,
     page: 1,
     perPage: 10,
@@ -54,7 +55,7 @@ export const sessions: Module<SessionsState, State> = {
     },
 
     clearObjectSession: (state) => {
-      state.session = {};
+      state.session = {} as ISessions;
     },
 
     removeRecordedSession: (state) => {

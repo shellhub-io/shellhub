@@ -59,11 +59,11 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { INotificationsError } from "../../interfaces/INotification";
 import { useStore } from "../../store";
 import DeviceAdd from "../Devices/DeviceAdd.vue";
 import FirewallRuleAdd from "../firewall/FirewallRuleAdd.vue";
 import PublicKeyAdd from "../PublicKeys/PublicKeyAdd.vue";
+import { INotificationsError } from "@/interfaces/INotifications";
 
 const items = {
   device: {

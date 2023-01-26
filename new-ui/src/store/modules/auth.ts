@@ -6,7 +6,7 @@ export interface AuthState {
   status: string;
   token: string;
   user: string;
-  name: any;
+  name: string;
   tenant: string;
   email: string;
   id: string;

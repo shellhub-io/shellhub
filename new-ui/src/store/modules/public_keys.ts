@@ -1,10 +1,11 @@
 import { Module } from "vuex";
 import { State } from "./../index";
 import * as apiPublicKey from "../api/public_keys";
+import { IPublicKey } from "@/interfaces/IPublicKey";
 
 export interface PublicKeysState {
-  publicKeys: Array<any>,
-  publicKey: any,
+  publicKeys: Array<IPublicKey>,
+  publicKey: IPublicKey,
   numberPublicKeys: number,
   page: number,
   perPage: number,
@@ -14,7 +15,7 @@ export const publicKeys: Module<PublicKeysState, State> = {
   namespaced: true,
   state: {
     publicKeys: [],
-    publicKey: {},
+    publicKey: {} as IPublicKey,
     numberPublicKeys: 0,
     page: 1,
     perPage: 10,
@@ -58,7 +59,7 @@ export const publicKeys: Module<PublicKeysState, State> = {
     },
 
     clearObjectPublicKey: (state) => {
-      state.publicKey = {};
+      state.publicKey = {} as IPublicKey;
     },
   },
 

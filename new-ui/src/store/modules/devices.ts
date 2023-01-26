@@ -3,10 +3,11 @@ import { State } from "./../index";
 
 import * as apiDevice from "../api/devices";
 import * as apiBilling from "../api/billing";
+import { IDevice } from "@/interfaces/IDevice";
 
 export interface DevicesState {
-  devices: Array<any>;
-  device: any;
+  devices: Array<IDevice>;
+  device: IDevice;
   numberDevices: number;
   page: number;
   perPage: number;
@@ -15,16 +16,16 @@ export interface DevicesState {
   sortStatusField: null | string;
   sortStatusString: string;
   deviceChooserStatus: boolean;
-  devicesForUserToChoose: any;
+  devicesForUserToChoose: Array<IDevice>;
   numberdevicesForUserToChoose: number;
-  devicesSelected: any;
+  devicesSelected: Array<IDevice>;
 }
 
 export const devices: Module<DevicesState, State> = {
   namespaced: true,
   state: {
     devices: [],
-    device: {},
+    device: {} as IDevice,
     numberDevices: 0,
     page: 1,
     perPage: 10,
@@ -116,7 +117,7 @@ export const devices: Module<DevicesState, State> = {
     },
 
     clearObjectDevice: (state) => {
-      state.device = [];
+      state.device = {} as IDevice;
     },
 
     clearListDevicesForUserToChoose: (state) => {
