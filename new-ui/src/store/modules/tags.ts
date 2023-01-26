@@ -4,9 +4,9 @@ import * as apiTags from "../api/tags";
 import * as apiDevice from "../api/devices";
 
 export interface TagsState {
-  tags: Array<any>;
+  tags: Array<string>;
   numberTags: number;
-  selected: Array<any>;
+  selected: Array<string>;
 }
 
 export const tags: Module<TagsState, State> = {

@@ -1,9 +1,10 @@
 import { Module } from "vuex";
 import { State } from "./../index";
 import * as apiDevice from "../api/devices";
+import { IDevice } from "@/interfaces/IDevice";
 
 export interface NotificationsState {
-  notifications: Array<any>;
+  notifications: Array<IDevice>;
   numberNotifications: number;
 }
 

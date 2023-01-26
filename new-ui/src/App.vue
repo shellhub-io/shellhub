@@ -10,8 +10,7 @@ import { useRouter } from "vue-router";
 import SimpleLayout from "./layouts/SimpleLayout.vue";
 import AppLayout from "./layouts/AppLayout.vue";
 import { useStore } from "./store";
-import { INotificationsError } from "./interfaces/INotification";
-import { INotificationsSuccess } from "./interfaces/INotifications";
+import { INotificationsSuccess, INotificationsError } from "@/interfaces/INotifications";
 
 export default defineComponent({
   name: "App",

@@ -54,7 +54,7 @@ import { useRouter } from "vue-router";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotification";
+} from "@/interfaces/INotifications";
 import { useStore } from "../../store";
 
 export default defineComponent({

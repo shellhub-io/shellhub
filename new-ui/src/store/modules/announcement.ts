@@ -1,10 +1,11 @@
 import { Module } from "vuex";
 import { State } from "./../index";
 import * as apiAnnouncement from "../api/announcement";
+import { IAnnouncement, IAnnouncements } from "@/interfaces/IAnnouncements";
 
 export interface AnnouncementState {
-  announcements: Array<any>;
-  announcement: any;
+  announcements: Array<IAnnouncements>;
+  announcement: IAnnouncement;
   page: number;
   perPage: number;
   orderBy: "asc" | "desc";
@@ -14,7 +15,7 @@ export const announcement: Module<AnnouncementState, State> = {
   namespaced: true,
   state: {
     announcements: [],
-    announcement: {},
+    announcement: {} as IAnnouncement,
     page: 1,
     perPage: 10,
     orderBy: "asc",
@@ -49,7 +50,7 @@ export const announcement: Module<AnnouncementState, State> = {
     },
 
     clearAnnouncement: (state) => {
-      state.announcement = {};
+      state.announcement = {} as IAnnouncement;
     },
   },
 

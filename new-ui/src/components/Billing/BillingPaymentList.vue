@@ -59,7 +59,7 @@ import { defineComponent, computed } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotification";
+} from "@/interfaces/INotifications";
 import { useStore } from "../../store";
 import BillingIcon from "./BillingIcon.vue";
 

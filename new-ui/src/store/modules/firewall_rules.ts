@@ -1,10 +1,11 @@
 import { Module } from "vuex";
 import { State } from "./../index";
 import * as apiFirewallRule from "../api/firewall_rules";
+import { IFirewall } from "@/interfaces/IFirewall";
 
 export interface FirewallRulesState {
-  firewalls: Array<any>;
-  firewall: any;
+  firewalls: Array<IFirewall>;
+  firewall: IFirewall;
   numberFirewalls: number;
   page: number;
   perPage: number;
@@ -15,7 +16,7 @@ export const firewallRules: Module<FirewallRulesState, State> = {
   namespaced: true,
   state: {
     firewalls: [],
-    firewall: {},
+    firewall: {} as IFirewall,
     numberFirewalls: 0,
     page: 1,
     perPage: 10,
@@ -64,7 +65,7 @@ export const firewallRules: Module<FirewallRulesState, State> = {
     },
 
     clearObjectFirewalls: (state) => {
-      state.firewall = {};
+      state.firewall = {} as IFirewall;
     },
   },
 
