@@ -1,13 +1,11 @@
 /* eslint-disable */
-import { parsePrivateKey, parseKey } from "sshpk";
-
 export const validateKey = (typeKey: string, value: string) => {
   try {
     let x;
     if (typeKey === "private") {
-      x = parsePrivateKey(value, "ssh");
+      x = window.global.parsePrivateKey(value);
     } else {
-      x = parseKey(value, "ssh");
+      x = window.global.parseKey(value);
     }
     return true;
   } catch (err) {
@@ -17,7 +15,6 @@ export const validateKey = (typeKey: string, value: string) => {
 
 export const convertToFingerprint = (privateKey: string) => {
   try {
-    // @ts-ignore
     return window.global.convertKeyToFingerprint(privateKey);
   } catch (err) {
     console.error("err", err);
@@ -27,7 +24,6 @@ export const convertToFingerprint = (privateKey: string) => {
 
 export const parsePrivateKeySsh = (privateKey: any) => {
   try {
-    // @ts-ignore
     return window.global.parsePrivateKey(privateKey);
   } catch (err) {
     console.error("err", err);
@@ -37,7 +33,6 @@ export const parsePrivateKeySsh = (privateKey: any) => {
 
 export const createSignerPrivateKey = (privateKey: any, username: string) => {
   try {
-    // @ts-ignore
     return window.global.createSignerAndUpdate(privateKey, username);
   } catch (err) {
     console.error("err", err);
@@ -49,13 +44,11 @@ export const createSignatureOfPrivateKey = async (
   privateKeyData: any,
   username: string,
 ) => {
-  // @ts-ignore
   const signature = await window.global.createSignatureOfPrivateKey(privateKeyData, username);
   return signature;
 };
 
 export const createKeyFingerprint = async (privateKeyData: any) => {
-  // @ts-ignore
   const fingerprint = await window.global.createKeyFingerprint(privateKeyData);
   return fingerprint;
 };

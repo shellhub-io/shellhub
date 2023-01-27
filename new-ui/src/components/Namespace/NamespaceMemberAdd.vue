@@ -1,7 +1,7 @@
 <template>
-  <v-tooltip location="bottom" :disabled="hasAuthorization()">
+  <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization()">
     <template v-slot:activator="{ props }">
-      <div v-on="props">
+      <div v-bind="props">
         <v-btn
           :disabled="!hasAuthorization()"
           color="primary"

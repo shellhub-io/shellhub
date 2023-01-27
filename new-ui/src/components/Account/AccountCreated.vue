@@ -11,7 +11,7 @@
 
     <v-card-text class="mt-4 mb-0 pb-1">
       <p class="text-caption mt-2 mb-0">
-        Thank you for registaring an account on ShellHub. An email was sent with
+        Thank you for registering an account on ShellHub. An email was sent with
         a confirmation link. You need to click on the link to activate your
         account.
       </p>

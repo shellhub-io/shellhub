@@ -52,30 +52,34 @@
               <v-list class="bg-v-theme-surface" lines="two" density="compact">
                 <v-tooltip
                   location="bottom"
-                  :disabled="hasAuthorizationRemoveMember()"
+                  class="text-center"
+                  :disabled="hasAuthorizationEditMember()"
                 >
                   <template v-slot:activator="{ props }">
-                    <NamespaceMemberEdit
-                      :member="member"
-                      :v-bind="props"
-                      @update="refresh"
-                      :notHasAuthorization="!hasAuthorizationEditMember()"
-                    />
+                    <div :v-bind="props">
+                      <NamespaceMemberEdit
+                        :member="member"
+                        @update="refresh"
+                        :notHasAuthorization="!hasAuthorizationEditMember()"
+                      />
+                    </div>
                   </template>
                   <span> You don't have this kind of authorization. </span>
                 </v-tooltip>
 
                 <v-tooltip
                   location="bottom"
+                  class="text-center"
                   :disabled="hasAuthorizationRemoveMember()"
                 >
                   <template v-slot:activator="{ props }">
-                    <NamespaceMemberDelete
-                      :v-bind="props"
-                      :member="member"
-                      @update="refresh"
-                      :hasAuthorization="hasAuthorizationRemoveMember()"
-                    />
+                    <div :v-bind="props">
+                      <NamespaceMemberDelete
+                        :member="member"
+                        @update="refresh"
+                        :hasAuthorization="hasAuthorizationRemoveMember()"
+                      />
+                    </div>
                   </template>
                   <span> You don't have this kind of authorization. </span>
                 </v-tooltip>

@@ -283,7 +283,156 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <!---->
+  <div class=\\"v-row mt-2 ml-2\\">
+    <div class=\\"v-col-md-4 v-col-12 pt-0\\">
+      <div data-test=\\"dashboard-card\\">
+        <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
+          <!---->
+          <div class=\\"v-card__loader\\">
+            <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <!---->
+              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                <div class=\\"v-progress-linear__indeterminate\\">
+                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                </div>
+              </transition-stub>
+              <!---->
+            </div>
+          </div>
+          <!---->
+          <!---->
+          <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"registeredDevices-btn\\">
+            <!----><span class=\\"v-list-item__underlay\\"></span>
+            <!---->
+            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <!---->
+              <!---->
+              <div>
+                <p class=\\"text-overline mb-1\\" title-test=\\"Registered Devices\\">Registered Devices</p>
+                <div class=\\"v-list-item-title text-h5 mb-1\\" stats-test=\\"0\\">0</div>
+                <div class=\\"v-list-item-subtitle\\" content-test=\\"Registered devices into the tenancy account\\">Registered devices into the tenancy account</div>
+              </div>
+              <div class=\\"flex-grow-1\\"></div>
+            </div>
+            <div class=\\"v-list-item__append\\">
+              <div class=\\"mt-4\\"><i class=\\"mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" iconname-test=\\"mdi-devices\\"></i></div>
+              <!---->
+              <!---->
+            </div>
+          </div>
+          <div class=\\"v-card-actions\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add device\\" data-test=\\"device-add-btn\\" data-v-51a05120=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Device </span>
+              <!---->
+              <!---->
+            </button>
+            <!---->
+            <!--teleport start-->
+            <!--teleport end-->
+          </div>
+          <!---->
+          <!----><span class=\\"v-card__underlay\\"></span>
+        </div>
+      </div>
+    </div>
+    <div class=\\"v-col-md-4 v-col-12 pt-0\\">
+      <div data-test=\\"dashboard-card\\">
+        <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
+          <!---->
+          <div class=\\"v-card__loader\\">
+            <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <!---->
+              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                <div class=\\"v-progress-linear__indeterminate\\">
+                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                </div>
+              </transition-stub>
+              <!---->
+            </div>
+          </div>
+          <!---->
+          <!---->
+          <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"viewOnlineDevices-btn\\">
+            <!----><span class=\\"v-list-item__underlay\\"></span>
+            <!---->
+            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <!---->
+              <!---->
+              <div>
+                <p class=\\"text-overline mb-1\\" title-test=\\"Online Devices\\">Online Devices</p>
+                <div class=\\"v-list-item-title text-h5 mb-1\\" stats-test=\\"0\\">0</div>
+                <div class=\\"v-list-item-subtitle\\" content-test=\\"Devices are online and ready for connecting\\">Devices are online and ready for connecting</div>
+              </div>
+              <div class=\\"flex-grow-1\\"></div>
+            </div>
+            <div class=\\"v-list-item__append\\">
+              <div class=\\"mt-4\\"><i class=\\"mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" iconname-test=\\"mdi-devices\\"></i></div>
+              <!---->
+              <!---->
+            </div>
+          </div>
+          <div class=\\"v-card-actions\\"><a class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle\\" href=\\"/devices\\" tabindex=\\"0\\" buttonname-test=\\"View all Devices\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">View all Devices</span>
+              <!---->
+              <!---->
+            </a></div>
+          <!---->
+          <!----><span class=\\"v-card__underlay\\"></span>
+        </div>
+      </div>
+    </div>
+    <div class=\\"v-col-md-4 v-col-12 pt-0\\">
+      <div data-test=\\"dashboard-card\\">
+        <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
+          <!---->
+          <div class=\\"v-card__loader\\">
+            <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <!---->
+              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                <div class=\\"v-progress-linear__indeterminate\\">
+                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                </div>
+              </transition-stub>
+              <!---->
+            </div>
+          </div>
+          <!---->
+          <!---->
+          <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"viewActiveSession-btn\\">
+            <!----><span class=\\"v-list-item__underlay\\"></span>
+            <!---->
+            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <!---->
+              <!---->
+              <div>
+                <p class=\\"text-overline mb-1\\" title-test=\\"Active Sessions\\">Active Sessions</p>
+                <div class=\\"v-list-item-title text-h5 mb-1\\" stats-test=\\"0\\">0</div>
+                <div class=\\"v-list-item-subtitle\\" content-test=\\"Active SSH Sessions opened by users\\">Active SSH Sessions opened by users</div>
+              </div>
+              <div class=\\"flex-grow-1\\"></div>
+            </div>
+            <div class=\\"v-list-item__append\\">
+              <div class=\\"mt-4\\"><i class=\\"mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" iconname-test=\\"mdi-devices\\"></i></div>
+              <!---->
+              <!---->
+            </div>
+          </div>
+          <div class=\\"v-card-actions\\"><a class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle\\" href=\\"/sessions\\" tabindex=\\"0\\" buttonname-test=\\"View all Sessions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">View all Sessions</span>
+              <!---->
+              <!---->
+            </a></div>
+          <!---->
+          <!----><span class=\\"v-card__underlay\\"></span>
+        </div>
+      </div>
+    </div>
+  </div>
   <!---->
   <!----><span class=\\"v-card__underlay\\"></span>
 </div>"

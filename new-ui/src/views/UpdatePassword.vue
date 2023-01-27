@@ -21,7 +21,7 @@
                 <div
                   class="d-flex align-center justify-center text-center mb-6"
                 >
-                  Please enter your new password you would like.
+                  Please insert your new password.
                 </div>
               </v-card-text>
 

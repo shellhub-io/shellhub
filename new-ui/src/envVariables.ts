@@ -7,4 +7,5 @@ export const envVariables = {
   billingEnable: process.env.VUE_APP_SHELLHUB_BILLING === "true",
   version: process.env.SHELLHUB_VERSION,
   announcementsEnable: process.env.VUE_APP_SHELLHUB_ANNOUNCEMENTS === "true",
+  stripeKey: process.env.VUE_APP_SHELLHUB_STRIPE_PUBLISHABLE_KEY,
 };

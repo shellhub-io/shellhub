@@ -27,52 +27,61 @@
             </v-chip>
           </template>
           <v-list class="bg-v-theme-surface" lines="two" density="compact">
-            <v-tooltip location="bottom" :disabled="hasAuthorizationPlay()">
+            <v-tooltip
+              location="bottom"
+              class="text-center"
+              :disabled="hasAuthorizationPlay()"
+            >
               <template v-slot:activator="{ props }">
-                <SessionPlay
-                  v-if="session.authenticated && session.recorded"
-                  v-bind="props"
-                  :uid="session.uid"
-                  :device="session.device"
-                  :notHasAuthorization="!hasAuthorizationPlay()"
-                  :recorded="session.authenticated && session.recorded"
-                  @update="refreshSessions"
-                  data-test="sessionPlay-component"
-                />
+                <div v-bind="props">
+                  <SessionPlay
+                    v-if="session.authenticated && session.recorded"
+                    :uid="session.uid"
+                    :device="session.device"
+                    :notHasAuthorization="!hasAuthorizationPlay()"
+                    :recorded="session.authenticated && session.recorded"
+                    @update="refreshSessions"
+                    data-test="sessionPlay-component"
+                  />
+                </div>
               </template>
               <span> You don't have this kind of authorization. </span>
             </v-tooltip>
 
             <v-tooltip
               location="bottom"
+              class="text-center"
               :disabled="hasAuthorizationRemoveRecord()"
             >
               <template v-slot:activator="{ props }">
-                <SessionClose
-                  v-if="session.active"
-                  v-bind="props"
-                  :uid="session.uid"
-                  :device="session.device"
-                  :notHasAuthorization="!hasAuthorizationRemoveRecord()"
-                  @update="refreshSessions"
-                  data-test="sessionClose-component"
-                />
+                <div v-bind="props">
+                  <SessionClose
+                    v-if="session.active"
+                    :uid="session.uid"
+                    :device="session.device"
+                    :notHasAuthorization="!hasAuthorizationRemoveRecord()"
+                    @update="refreshSessions"
+                    data-test="sessionClose-component"
+                  />
+                </div>
               </template>
               <span> You don't have this kind of authorization. </span>
             </v-tooltip>
 
             <v-tooltip
               location="bottom"
+              class="text-center"
               :disabled="hasAuthorizationRemoveRecord()"
             >
               <template v-slot:activator="{ props }">
-                <SessionDelete
-                  v-bind="props"
-                  :uid="session.uid"
-                  :notHasAuthorization="!hasAuthorizationRemoveRecord()"
-                  @update="refreshSessions"
-                  data-test="sessionDeleteRecord-component"
-                />
+                <div v-bind="props">
+                  <SessionDelete
+                    :uid="session.uid"
+                    :notHasAuthorization="!hasAuthorizationRemoveRecord()"
+                    @update="refreshSessions"
+                    data-test="sessionDeleteRecord-component"
+                  />
+                </div>
               </template>
               <span> You don't have this kind of authorization. </span>
             </v-tooltip>

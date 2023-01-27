@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import BillingCancel from "../../../src/components/Billing/BillingCancel.vue";
 import { createStore } from "vuex";
+import BillingCancel from "../../../src/components/Billing/BillingCancel.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -18,6 +18,7 @@ const tests = [
     description: "Button",
     props: {
       nextPaymentDue: 1234,
+      currency: "USD",
     },
     data: {
       dialog: false,
@@ -36,6 +37,7 @@ const tests = [
     description: "Dialog",
     props: {
       nextPaymentDue: 1234,
+      currency: "BRL",
     },
     data: {
       dialog: false,
@@ -52,23 +54,22 @@ const tests = [
   },
 ];
 
-const store = (currentrole: string) => {
-  return createStore({
-    state: {
-      currentrole,
-    },
-    getters: {
-      "auth/role": (state) => state.currentrole,
-    },
-    actions: {
-      "billing/cancelSubscription": vi.fn(),
-      "billing/unsubscribe": vi.fn(),
-      "devices/setDeviceChooserStatus": vi.fn(),
-      "snackbar/showSnackbarSuccessAction": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
-};
+const store = (currentrole: string) => createStore({
+  state: {
+    currentrole,
+  },
+  getters: {
+    "auth/role": (state) => state.currentrole,
+  },
+  actions: {
+    "billing/cancelSubscription": vi.fn(),
+    "billing/unsubscribe": vi.fn(),
+    "devices/setDeviceChooserStatus": vi.fn(),
+    "snackbar/showSnackbarSuccessAction": vi.fn(),
+    "snackbar/showSnackbarErrorAction": vi.fn(),
+  },
+});
+
 describe("BillingCancel", () => {
   let wrapper: VueWrapper<any>;
   const vuetify = createVuetify();
@@ -83,6 +84,7 @@ describe("BillingCancel", () => {
             },
             props: {
               nextPaymentDue: test.props.nextPaymentDue,
+              currency: test.props.currency,
             },
             shallow: true,
           });
@@ -110,8 +112,7 @@ describe("BillingCancel", () => {
         });
         it("Compare the computed with the default value", () => {
           expect(wrapper.vm.hasAuthorization).toBe(
-            // @ts-ignore
-            hasAuthorization[currentrole]
+            hasAuthorization[currentrole],
           );
         });
       });

@@ -1,16 +1,17 @@
 <template>
-  <v-tooltip location="bottom" :disabled="hasAuthorization">
+  <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
     <template v-slot:activator="{ props }">
-      <v-btn
-        v-bind="props"
-        :disabled="!hasAuthorization"
-        color="red darken-1"
-        variant="outlined"
-        data-test="delete-btn"
-        @click="dialog = !dialog"
-      >
-        Delete namespace
-      </v-btn>
+      <div v-bind="props">
+        <v-btn
+          :disabled="!hasAuthorization"
+          color="red darken-1"
+          variant="outlined"
+          data-test="delete-btn"
+          @click="dialog = !dialog"
+        >
+          Delete namespace
+        </v-btn>
+      </div>
     </template>
     <span> You don't have this kind of authorization. </span>
   </v-tooltip>
@@ -27,7 +28,7 @@
           data-test="contentSubscription-p"
         >
           Deleting the namespace will generate an invoice, estimated
-          <b> {{ formatCurrency(billingInfo.nextPaymentDue) }} </b> for the time
+          <b> {{ formatCurrency(billingInfo.nextPaymentDue, billingInfo.currency) }} </b> for the time
           of use.
         </p>
 
@@ -65,7 +66,7 @@ import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
 import { envVariables } from "../../envVariables";
 import { displayOnlyTenCharacters } from "../../utils/string";
-import { formatCurrency } from "../../utils/currency";
+import formatCurrency from "@/utils/currency";
 import {
   INotificationsError,
   INotificationsSuccess,

@@ -23,7 +23,7 @@
         </v-badge>
       </template>
       <v-list shaped density="compact">
-        <v-list-item-group v-model="selectedTags" multiple>
+        <div>
           <template v-for="(item, i) in getListTags">
             <v-divider v-if="!item" :key="`divider-${i}`" />
 
@@ -39,7 +39,6 @@
                   <v-list-item-action>
                     <v-checkbox
                       :model-value="tagIsSelected(item)"
-                      color="deep-purple-accent-3"
                       hide-details
                     />
 
@@ -49,7 +48,7 @@
               </template>
             </v-list-item>
           </template>
-        </v-list-item-group>
+        </div>
       </v-list>
     </v-menu>
   </div>
@@ -120,13 +119,18 @@ export default defineComponent({
       await store.dispatch("devices/fetch", data);
     };
 
-    const selectTag = (item: any) => {
+    const selectTag = async (item: string) => {
       store.dispatch("tags/setSelected", item);
-      if (item.length > 0) {
-        getDevices(item);
-        prevSelectedLength.value = item.length;
-      } else if (prevSelectedLength.value === 1 && item.length === 0) {
-        fetchDevices();
+      if (selectedTags.value.length > 0) {
+        await getDevices(selectedTags.value);
+        prevSelectedLength.value = selectedTags.value.length;
+      } else if (prevSelectedLength.value === 1 && selectedTags.value.length === 0) {
+        await fetchDevices();
+      }
+
+      if (selectedTags.value.length === 0) {
+        await store.dispatch("tags/clearSelectedTags");
+        await fetchDevices();
       }
     };
 

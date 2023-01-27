@@ -115,7 +115,7 @@
               <p>
                 Estimated total:
                 <b v-if="renderData">
-                  {{ formatCurrency(infoBillingData.nextPaymentDue) }}
+                  {{ formatCurrency(infoBillingData.nextPaymentDue, infoBillingData.currency) }}
                 </b>
               </p>
             </div>
@@ -185,6 +185,7 @@
                   <BillingCancel
                     v-if="renderData"
                     :nextPaymentDue="infoBillingData.nextPaymentDue"
+                    :currency="infoBillingData.currency"
                   />
                 </v-col>
               </v-row>
@@ -208,19 +209,20 @@
 
 <script lang="ts">
 /* eslint-disable */
-import { defineComponent, ref, computed, onMounted, watch } from "vue";
+import { defineComponent, ref, computed, onMounted, watch, onBeforeMount, onUpdated } from "vue";
 import { loadStripe } from "@stripe/stripe-js";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
 import SettingOwnerInfo from "./SettingOwnerInfo.vue";
 import BillingPaymentMethod from "../Billing/BillingPaymentMethod.vue";
-import { formatCurrency } from "../../utils/currency";
+import formatCurrency from "@/utils/currency";
 import { formatDateWithoutDayAndHours } from "../../utils/formateDate";
 import BillingInvoiceList from "../Billing/BillingInvoiceList.vue";
 import BillingCancel from "../Billing/BillingCancel.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
 import BillingPaymentList from "../Billing/BillingPaymentList.vue";
+import { envVariables } from "@/envVariables";
 
 export default defineComponent({
   setup() {
@@ -244,13 +246,14 @@ export default defineComponent({
     const infoBillingData = computed(() => billingData.value.info);
     const cardBillingData = computed(() => billingData.value.cards);
     const cardBillingDefault = computed(() => billingData.value.defaultCard);
+    const stripeKey = computed(() => envVariables.stripeKey);
     let polling: any;
     const hasAuthorization = computed(() => {
       const role = store.getters["auth/role"];
       if (role !== "") {
         return hasPermission(
           authorizer.role[role],
-          actions.billing.subscribe,
+          actions.billing["subscribe"]
         );
       }
       return false;
@@ -266,13 +269,16 @@ export default defineComponent({
         retrials.value = 0;
       }
     });
-    watch(hasPermission, (status) => {
-      // @ts-ignore
+    watch(hasPermission, (status: any) => {
       if (status) {
         stripeData();
       }
     });
-
+    watch(active, (val) => {
+      if (val) {
+        getSubscriptionInfo();
+      }
+    });
     onMounted(() => {
       if (hasAuthorization.value) {
         stripeData();
@@ -296,7 +302,7 @@ export default defineComponent({
     };
 
     const mountStripeElements = async () => {
-      const stripe = await loadStripe("pk_test_daOQ5URsElI0aQdJWU8E9xTz");
+      const stripe = await loadStripe(stripeKey.value || "");
       elements.value = stripe?.elements();
       card.value = elements.value.create("card");
     };

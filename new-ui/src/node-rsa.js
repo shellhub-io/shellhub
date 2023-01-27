@@ -16966,11 +16966,11 @@ nacl.setPRNG = function(fn) {
 
 },{"crypto":81}],57:[function(require,module,exports){
 const NodeRSA = require("node-rsa");
-const sshpk = require('sshpk');
+const sshpk = require("sshpk");
 
 const createSignatureOfPrivateKey = (
   privateKeyData,
-  username
+  username,
 ) => {
   let signature;
   const key = NodeRSA(privateKeyData);
@@ -16981,7 +16981,7 @@ const createSignatureOfPrivateKey = (
 
 const createKeyFingerprint = (privateKeyData) => {
   const key = sshpk.parsePrivateKey(privateKeyData);
-  const fingerprint = key.fingerprint("md5").toString('hex');
+  const fingerprint = key.fingerprint("md5").toString("hex");
   return fingerprint;
 };
 
@@ -16990,8 +16990,13 @@ const parsePrivateKey = (privateKey) => {
   return key;
 };
 
+const parseKey = (key) => {
+  const parsedKey = sshpk.parseKey(key);
+  return parsedKey;
+};
+
 const convertKeyToFingerprint = (privateKey) => {
-  const fingerprint = sshpk.parsePrivateKey(privateKey).fingerprint('md5');
+  const fingerprint = sshpk.parsePrivateKey(privateKey).fingerprint("md5");
   return fingerprint;
 };
 
@@ -17006,6 +17011,7 @@ window.global.createKeyFingerprint = createKeyFingerprint;
 window.global.convertKeyToFingerprint = convertKeyToFingerprint;
 window.global.createSignerAndUpdate = createSignerAndUpdate;
 window.global.parsePrivateKey = parsePrivateKey;
+window.global.parseKey = parseKey;
 
 },{"node-rsa":13,"sshpk":50}],58:[function(require,module,exports){
 'use strict';

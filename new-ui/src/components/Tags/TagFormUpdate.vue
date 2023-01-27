@@ -1,5 +1,9 @@
 <template>
-  <v-list-item v-bind="$attrs" @click="showDialog = true">
+  <v-list-item
+    v-bind="$attrs"
+    @click="showDialog = true"
+    :disabled="notHasAuthorization"
+  >
     <div class="d-flex align-center">
       <div class="mr-2">
         <v-icon> mdi-tag </v-icon>
@@ -75,6 +79,10 @@ export default defineComponent({
       type: Array<string>,
       required: true,
     },
+    notHasAuthorization: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ["update"],
   inheritAttrs: true,
@@ -86,15 +94,20 @@ export default defineComponent({
     const inputTags = ref(props.tagsList);
     const tagsError = ref("");
 
+    const tagsHasLessThan3Characters = computed(() => inputTags.value.some((tag) => tag.length < 3));
+
     watch(inputTags, () => {
       if (inputTags.value.length > 3) {
         tagsError.value = "Maximum of 3 tags";
+      } else if (tagsHasLessThan3Characters.value) {
+        tagsError.value = "The minimum length is 3 characters";
       } else {
         tagsError.value = "";
       }
     });
 
     const save = async () => {
+      if (tagsError.value) return;
       try {
         tagsError.value = "";
         await store.dispatch("devices/updateDeviceTag", {
@@ -144,7 +157,6 @@ export default defineComponent({
           }
         }
       }
-      return false;
     };
 
     const close = () => {
@@ -157,6 +169,7 @@ export default defineComponent({
       tagsError,
       showDialog,
       hasTags,
+      tagsHasLessThan3Characters,
       save,
       close,
     };

@@ -73,30 +73,34 @@
               <v-list class="bg-v-theme-surface" lines="two" density="compact">
                 <v-tooltip
                   location="bottom"
+                  class="text-center"
                   :disabled="hasAuthorizationFormDialogEdit"
                 >
                   <template v-slot:activator="{ props }">
-                    <PublicKeyEdit
-                      v-bind="props"
-                      :keyObject="item"
-                      :notHasAuthorization="!hasAuthorizationFormDialogEdit"
-                      @update="refreshPublicKeys"
-                    />
+                    <div v-bind="props">
+                      <PublicKeyEdit
+                        :keyObject="item"
+                        :notHasAuthorization="!hasAuthorizationFormDialogEdit"
+                        @update="refreshPublicKeys"
+                      />
+                    </div>
                   </template>
                   <span> You don't have this kind of authorization. </span>
                 </v-tooltip>
 
                 <v-tooltip
                   location="bottom"
+                  class="text-center"
                   :disabled="hasAuthorizationFormDialogRemove"
                 >
                   <template v-slot:activator="{ props }">
-                    <PublicKeyDelete
-                      v-bind="props"
-                      :fingerprint="item.fingerprint"
-                      :notHasAuthorization="!hasAuthorizationFormDialogRemove"
-                      @update="refreshPublicKeys"
-                    />
+                    <div v-bind="props">
+                      <PublicKeyDelete
+                        :fingerprint="item.fingerprint"
+                        :notHasAuthorization="!hasAuthorizationFormDialogRemove"
+                        @update="refreshPublicKeys"
+                      />
+                    </div>
                   </template>
                   <span> You don't have this kind of authorization. </span>
                 </v-tooltip>
