@@ -1,20 +1,21 @@
 <template>
-  <v-tooltip v-bind="$attrs" location="bottom" :disabled="hasAuthorization">
+  <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
     <template v-slot:activator="{ props }">
-      <v-btn
-        v-bind="props"
-        @click="dialog = !dialog"
-        color="primary"
-        tabindex="0"
-        variant="elevated"
-        aria-label="Dialog Add Private Key"
-        :disabled="!hasAuthorization"
-        @keypress.enter="dialog = !dialog"
-        :size="size"
-        data-test="private-key-add-btn"
-      >
-        Add Private Key
-      </v-btn>
+      <div v-bind="props">
+        <v-btn
+          @click="dialog = !dialog"
+          color="primary"
+          tabindex="0"
+          variant="elevated"
+          aria-label="Dialog Add Private Key"
+          :disabled="!hasAuthorization"
+          @keypress.enter="dialog = !dialog"
+          :size="size"
+          data-test="private-key-add-btn"
+        >
+          Add Private Key
+        </v-btn>
+      </div>
     </template>
     <span> You don't have this kind of authorization. </span>
   </v-tooltip>

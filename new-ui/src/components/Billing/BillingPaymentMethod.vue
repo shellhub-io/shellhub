@@ -84,12 +84,13 @@
 import { defineComponent, ref, computed, onBeforeMount, onMounted } from "vue";
 import { StripeElements, StripeElement } from "vue-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import { formatCurrency } from "../../utils/currency";
+import formatCurrency from "@/utils/currency";
 import { useStore } from "../../store";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
+import { envVariables } from "@/envVariables";
 
 export default defineComponent({
   props: {
@@ -114,7 +115,7 @@ export default defineComponent({
       () => store.getters["stats/stats"].registered_devices,
     );
 
-    const stripeKey = ref("pk_test_daOQ5URsElI0aQdJWU8E9xTz");
+    const stripeKey = computed(() => envVariables.stripeKey);
     const stripeLoaded = ref(false);
     const card = ref();
     const elms = ref();
@@ -141,7 +142,7 @@ export default defineComponent({
     });
 
     onBeforeMount(() => {
-      const stripePromise = loadStripe(stripeKey.value);
+      const stripePromise = loadStripe(stripeKey.value || "");
       stripePromise.then(() => {
         stripeLoaded.value = true;
       });

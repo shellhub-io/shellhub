@@ -9,10 +9,11 @@
     <v-col md="auto" class="ml-auto">
       <v-tooltip
         location="bottom"
+        class="text-center"
         :disabled="hasAuthorizationRenameNamespace()"
       >
         <template v-slot:activator="{ props }">
-          <div v-on="props">
+          <div v-bind="props">
             <v-btn
               :disabled="!hasAuthorizationRenameNamespace()"
               color="primary"
@@ -100,6 +101,11 @@ export default defineComponent({
           await store.dispatch("namespaces/put", {
             id: tenant.value,
             name: name.value,
+          });
+          await store.dispatch("namespaces/fetch", {
+            page: 1,
+            perPage: 10,
+            filter: "",
           });
           await store.dispatch("namespaces/get", tenant.value);
           store.dispatch(

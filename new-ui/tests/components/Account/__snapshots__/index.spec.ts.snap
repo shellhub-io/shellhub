@@ -20,7 +20,7 @@ exports[`Account Render > Renders the component 1`] = `
   <!---->
   <div class=\\"v-card-title text-h5 pa-3 bg-primary\\"> Account Creation Successful </div>
   <div class=\\"v-card-text mt-4 mb-0 pb-1\\">
-    <p class=\\"text-caption mt-2 mb-0\\"> Thank you for registaring an account on ShellHub. An email was sent with a confirmation link. You need to click on the link to activate your account. </p>
+    <p class=\\"text-caption mt-2 mb-0\\"> Thank you for registering an account on ShellHub. An email was sent with a confirmation link. You need to click on the link to activate your account. </p>
     <p class=\\"text-caption mt-2 mb-0\\"> If you haven't received the email, click on the button. </p>
   </div>
   <div class=\\"v-card-actions justify-center\\">

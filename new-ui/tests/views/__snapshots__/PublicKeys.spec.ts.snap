@@ -4,11 +4,12 @@ exports[`Publickeys > With public key > Renders the component 1`] = `
 "<div class=\\"d-flex flex-column justify-space-between align-center flex-sm-row mb-2\\">
   <h1>Public Keys</h1>
   <div class=\\"flex-grow-1\\"></div>
-  <div class=\\"flex-grow-1\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" disabled=\\"\\" aria-describedby=\\"v-tooltip-0\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Public Key\\" data-test=\\"public-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-    <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Public Key </span>
-    <!---->
-    <!---->
-  </button>
+  <div class=\\"flex-grow-1\\"></div>
+  <div aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" disabled=\\"\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Public Key\\" data-test=\\"public-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Public Key </span>
+      <!---->
+      <!---->
+    </button></div>
   <!--teleport start-->
   <!--teleport end-->
   <!---->
@@ -110,11 +111,12 @@ exports[`Publickeys > Without public key > Renders the component 1`] = `
 "<div class=\\"d-flex flex-column justify-space-between align-center flex-sm-row mb-2\\">
   <h1>Public Keys</h1>
   <div class=\\"flex-grow-1\\"></div>
-  <div class=\\"flex-grow-1\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" disabled=\\"\\" aria-describedby=\\"v-tooltip-0\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Public Key\\" data-test=\\"public-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-    <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Public Key </span>
-    <!---->
-    <!---->
-  </button>
+  <div class=\\"flex-grow-1\\"></div>
+  <div aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" disabled=\\"\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Public Key\\" data-test=\\"public-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Public Key </span>
+      <!---->
+      <!---->
+    </button></div>
   <!--teleport start-->
   <!--teleport end-->
   <!---->
@@ -173,18 +175,19 @@ exports[`Publickeys > Without public key > Renders the component 1`] = `
       <!-- eslint-enable vue/no-v-html-->
     </div>
     <div class=\\"v-card-actions justify-center pt-8 pb-0\\">
-      <!--v-if--><span><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" disabled=\\"\\" aria-describedby=\\"v-tooltip-4\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Public Key\\" data-test=\\"public-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <!--v-if--><span><div aria-describedby=\\"v-tooltip-4\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" disabled=\\"\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Public Key\\" data-test=\\"public-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
       <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Public Key </span>
       <!---->
       <!----></button>
-      <!--teleport start-->
-      <!--teleport end-->
-      <!---->
-      <!--teleport start-->
-      <!--teleport end--></span>
     </div>
+    <!--teleport start-->
+    <!--teleport end-->
     <!---->
-    <!----><span class=\\"v-card__underlay\\"></span>
+    <!--teleport start-->
+    <!--teleport end--></span>
   </div>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>
 </div>"
 `;

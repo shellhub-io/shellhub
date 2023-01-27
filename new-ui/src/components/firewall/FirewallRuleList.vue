@@ -82,32 +82,36 @@
               <v-list class="bg-v-theme-surface" lines="two" density="compact">
                 <v-tooltip
                   location="bottom"
+                  class="text-center"
                   :disabled="hasAuthorizationFormDialogEdit()"
                 >
                   <template v-slot:activator="{ props }">
-                    <FirewallRuleEdit
-                      v-bind="props"
-                      :firewallRule="item"
-                      :notHasAuthorization="!hasAuthorizationFormDialogEdit()"
-                      @update="refreshFirewallRules"
-                      data-test="firewallRuleEdit-component"
-                    />
+                    <div v-bind="props">
+                      <FirewallRuleEdit
+                        :firewallRule="item"
+                        :notHasAuthorization="!hasAuthorizationFormDialogEdit()"
+                        @update="refreshFirewallRules"
+                        data-test="firewallRuleEdit-component"
+                      />
+                    </div>
                   </template>
                   <span> You don't have this kind of authorization. </span>
                 </v-tooltip>
 
                 <v-tooltip
                   location="bottom"
+                  class="text-center"
                   :disabled="hasAuthorizationFormDialogRemove()"
                 >
                   <template v-slot:activator="{ props }">
-                    <FirewallRuleDelete
-                      v-bind="props"
-                      :id="item.id"
-                      @update="refreshFirewallRules"
-                      :notHasAuthorization="!hasAuthorizationFormDialogEdit()"
-                      data-test="firewallRuleRemove-component"
-                    />
+                    <div v-bind="props">
+                      <FirewallRuleDelete
+                        :id="item.id"
+                        @update="refreshFirewallRules"
+                        :notHasAuthorization="!hasAuthorizationFormDialogEdit()"
+                        data-test="firewallRuleRemove-component"
+                      />
+                    </div>
                   </template>
                   <span> You don't have this kind of authorization. </span>
                 </v-tooltip>

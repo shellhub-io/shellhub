@@ -93,13 +93,40 @@
                   </div>
                 </v-list-item>
 
-                <TagFormUpdate
-                  :device-uid="item.uid"
-                  :tagsList="item.tags"
-                  @update="refreshDevices"
-                />
+                <v-tooltip
+                  location="bottom"
+                  class="text-center"
+                  :disabled="hasAuthorizationFormUpdate()"
+                >
+                  <template v-slot:activator="{ props }">
+                    <div v-bind="props">
+                      <TagFormUpdate
+                        :device-uid="item.uid"
+                        :tagsList="item.tags"
+                        :notHasAuthorization="!hasAuthorizationFormUpdate()"
+                        @update="refreshDevices"
+                      />
+                    </div>
+                  </template>
+                  <span> You don't have this kind of authorization. </span>
+                </v-tooltip>
 
-                <DeviceDelete :uid="item.uid" @update="refreshDevices" />
+                <v-tooltip
+                  location="bottom"
+                  class="text-center"
+                  :disabled="hasAuthorizationRemove()"
+                >
+                  <template v-slot:activator="{ props }">
+                    <div v-bind="props">
+                      <DeviceDelete
+                        :uid="item.uid"
+                        :notHasAuthorization="!hasAuthorizationRemove()"
+                        @update="refreshDevices"
+                      />
+                    </div>
+                  </template>
+                  <span> You don't have this kind of authorization. </span>
+                </v-tooltip>
               </v-list>
             </v-menu>
           </td>
@@ -125,6 +152,8 @@ import {
   INotificationsError,
 } from "../../interfaces/INotifications";
 import TerminalDialog from "../Terminal/TerminalDialog.vue";
+import { actions, authorizer } from "../../authorizer";
+import hasPermission from "@/utils/permission";
 
 export default defineComponent({
   setup() {
@@ -252,6 +281,24 @@ export default defineComponent({
       getDevices(itemsPerPage.value, page.value);
     };
 
+    const hasAuthorizationFormUpdate = () => {
+      const role = store.getters["auth/role"];
+      if (role !== "") {
+        return hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
+      }
+
+      return false;
+    };
+
+    const hasAuthorizationRemove = () => {
+      const role = store.getters["auth/role"];
+      if (role !== "") {
+        return hasPermission(authorizer.role[role], actions.device.remove);
+      }
+
+      return false;
+    };
+
     return {
       headers: [
         {
@@ -299,6 +346,8 @@ export default defineComponent({
       sshidAddress,
       copyText,
       refreshDevices,
+      hasAuthorizationFormUpdate,
+      hasAuthorizationRemove,
     };
   },
   components: {

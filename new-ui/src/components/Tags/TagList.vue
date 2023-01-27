@@ -22,26 +22,28 @@
               </v-chip>
             </template>
             <v-list class="bg-v-theme-surface" lines="two" density="compact">
-              <v-tooltip location="bottom" :disabled="hasAuthorizationEdit()">
+              <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorizationEdit()">
                 <template v-slot:activator="{ props }">
-                  <TagEdit
-                    v-bind="props"
-                    :tag="tag"
-                    :not-has-authorization="!hasAuthorizationEdit()"
-                    @update="getTags()"
-                  />
+                  <div v-bind="props">
+                    <TagEdit
+                      :tag="tag"
+                      :not-has-authorization="!hasAuthorizationEdit()"
+                      @update="getTags()"
+                    />
+                  </div>
                 </template>
                 <span> You don't have this kind of authorization. </span>
               </v-tooltip>
 
-              <v-tooltip location="bottom" :disabled="hasAuthorizationRemove()">
+              <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorizationRemove()">
                 <template v-slot:activator="{ props }">
-                  <TagRemove
-                    v-bind="props"
-                    :tag="tag"
-                    :not-has-authorization="!hasAuthorizationRemove()"
-                    @update="getTags()"
-                  />
+                  <div v-bind="props">
+                    <TagRemove
+                      :tag="tag"
+                      :not-has-authorization="!hasAuthorizationRemove()"
+                      @update="getTags()"
+                    />
+                  </div>
                 </template>
                 <span> You don't have this kind of authorization. </span>
               </v-tooltip>

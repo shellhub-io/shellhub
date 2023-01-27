@@ -1,5 +1,5 @@
 <template>
-  <v-tooltip location="bottom" :disabled="hasAuthorization">
+  <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
     <template v-slot:activator="{ props }">
       <div v-bind="props">
         <v-btn
@@ -25,7 +25,7 @@
       <v-card-text class="mt-4 mb-0 pb-1">
         <p class="text-body-2 mb-2">
           Canceling the subscription will generate an invoice, estimated
-          <b> {{ formatCurrency(nextPaymentDue) }} </b> for the time of use.
+          <b> {{ formatCurrency(nextPaymentDue, currency) }} </b> for the time of use.
         </p>
       </v-card-text>
 
@@ -50,13 +50,17 @@ import { useRouter } from "vue-router";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "../../utils/permission";
 import { useStore } from "../../store";
-import { formatCurrency } from "../../utils/currency";
+import formatCurrency from "@/utils/currency";
 import { INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
 
 export default defineComponent({
   props: {
     nextPaymentDue: {
       type: Number,
+      required: true,
+    },
+    currency: {
+      type: String,
       required: true,
     },
   },

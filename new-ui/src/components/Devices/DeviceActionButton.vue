@@ -10,7 +10,7 @@
       {{ icon }}
       Accept
     </v-btn>
-    <v-tooltip location="bottom" :disabled="hasAuthorization" v-else>
+    <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization" v-else>
       <template v-slot:activator="{ props }">
         <span v-bind="props">
           <v-list-item-title data-test="action-item" v-on="props">

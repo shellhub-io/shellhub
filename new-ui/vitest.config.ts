@@ -43,6 +43,7 @@ export default defineConfig({
       inline: ["vuetify"],
     },
     exclude: ["**/node_modules/**"],
+    update: true,
     threads: false,
   },
 });

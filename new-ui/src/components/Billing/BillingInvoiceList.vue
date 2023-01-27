@@ -32,7 +32,7 @@
         </td>
 
         <td class="text-center">
-          {{ formatCurrency(invoice.amountDue) }}
+          {{ formatCurrency(invoice.amountDue, invoice.currency) }}
         </td>
 
         <td class="text-center">
@@ -88,7 +88,7 @@
 
 <script lang="ts">
 import { defineComponent, computed, ref } from "vue";
-import { formatCurrency } from "../../utils/currency";
+import formatCurrency from "@/utils/currency";
 import unixTimeFormat from "../../utils/timestamp";
 import { useStore } from "../../store";
 

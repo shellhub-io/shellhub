@@ -17,8 +17,7 @@
                 >Forgot your password</v-card-title
                 >
                 <v-card-text class="text-center mt-2">
-                  Please enter the email address you'd like your password reset
-                  information send to
+                  Please insert the e-mail associated to the account you'd like to request an password reset for
                 </v-card-text>
                 <form @submit.prevent="sendEmail">
                   <v-container>

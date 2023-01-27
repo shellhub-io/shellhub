@@ -1,5 +1,9 @@
 <template>
-  <v-list-item v-bind="$attrs" @click="showDialog = true">
+  <v-list-item
+    v-bind="$attrs"
+    @click="showDialog = true"
+    :disabled="notHasAuthorization"
+  >
     <div class="d-flex align-center">
       <div class="mr-2" data-test="remove-icon">
         <v-icon>mdi-delete</v-icon>
@@ -61,6 +65,11 @@ export default defineComponent({
     },
 
     redirect: {
+      type: Boolean,
+      default: false,
+    },
+
+    notHasAuthorization: {
       type: Boolean,
       default: false,
     },
