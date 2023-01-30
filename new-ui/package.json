@@ -47,7 +47,7 @@
     "webfontloader": "^1.6.28",
     "xterm": "^5.0.0",
     "xterm-addon-attach": "^0.7.0",
-    "xterm-addon-fit": "^0.6.0"
+    "xterm-addon-fit": "^0.7.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^14.1.0",
