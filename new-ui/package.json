@@ -14,7 +14,7 @@
     "test-coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@mdi/font": "5.9.55",
     "@rollup/plugin-inject": "^4.0.4",
     "@rushstack/eslint-patch": "^1.2.0",
