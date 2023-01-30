@@ -3,8 +3,10 @@ package internalclient
 import (
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -151,8 +153,18 @@ var (
 )
 
 func (c *client) FirewallEvaluate(lookup map[string]string) error {
-	resp, err := c.http.
-		SetRetryCount(10).R().
+	local := resty.New()
+	local.AddRetryCondition(func(r *resty.Response, err error) bool {
+		if _, ok := err.(net.Error); ok {
+			return true
+		}
+
+		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
+	})
+
+	resp, err := local.
+		SetRetryCount(10).
+		R().
 		SetQueryParams(lookup).
 		Get("http://cloud-api:8080/internal/firewall/rules/evaluate")
 	if err != nil {
