@@ -62,6 +62,19 @@ services:
       - api
     networks:
       - shellhub
+  new-ui:
+    image: shellhubio/new-ui:${SHELLHUB_VERSION}
+    restart: unless-stopped
+    environment:
+      - SHELLHUB_STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - SHELLHUB_BILLING=${SHELLHUB_BILLING}
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
+      - SHELLHUB_ANNOUNCEMENTS=${SHELLHUB_ANNOUNCEMENTS}
+      - SHELLHUB_VERSION=${SHELLHUB_VERSION}
+      - SHELLHUB_SENTRY_DSN=${SHELLHUB_SENTRY_DSN}
+    networks:
+      - shellhub
   gateway:
     image: shellhubio/gateway:${SHELLHUB_VERSION}
     restart: unless-stopped
