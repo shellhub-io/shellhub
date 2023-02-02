@@ -7,6 +7,7 @@ import (
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
+	"github.com/shellhub-io/shellhub/cli/services"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
@@ -63,7 +64,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	services := NewService(mongo.NewStore(client.Database(connStr.Database), cache))
+	services := services.NewService(mongo.NewStore(client.Database(connStr.Database), cache))
 
 	rootCmd := &cobra.Command{Use: "cli"}
 	userCmd := &cobra.Command{
