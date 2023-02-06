@@ -83,7 +83,7 @@ import { envVariables } from "../envVariables";
 
 const items = [
   {
-    icon: "mdi-account",
+    icon: "mdi-view-dashboard",
     title: "Dashboard",
     path: "/",
   },
