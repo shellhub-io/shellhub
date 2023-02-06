@@ -21,7 +21,7 @@ import (
 func StartCleaner(ctx context.Context) error {
 	envs, err := getEnvs()
 	if err != nil {
-		return fmt.Errorf("failed to get envs: %w", err)
+		return fmt.Errorf("failed to get the envs: %w", err)
 	}
 
 	if envs.SessionRecordCleanupRetention == 0 {

@@ -37,19 +37,11 @@ var serverCmd = &cobra.Command{
 		}
 
 		go func() {
-			start := func(ctx context.Context, fn func(ctx context.Context) error) {
-				if err := fn(ctx); err != nil {
-					log.WithError(err).Fatal("Failed to start worker")
-				}
-			}
-
 			log.Info("Starting workers")
 
-			if err := workers.Setup(); err != nil {
-				log.WithError(err).Fatal("Failed to setup workers")
+			if err := workers.StartCleaner(ctx); err != nil {
+				log.WithError(err).Fatal("Failed to start cleaner worker")
 			}
-
-			start(ctx, workers.StartCleaner)
 
 			log.Info("Workers started")
 		}()
