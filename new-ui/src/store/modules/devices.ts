@@ -128,22 +128,26 @@ export const devices: Module<DevicesState, State> = {
 
   actions: {
     fetch: async ({ commit }, data) => {
-      const res = await apiDevice.fetchDevices(
-        data.page,
-        data.perPage,
-        data.filter,
-        data.status,
-        data.sortStatusField,
-        data.sortStatusString,
-      );
-      if (res.data.length) {
-        commit("setDevices", res);
-        commit("setPagePerpageFilter", data);
-        return res;
-      }
+      try {
+        const res = await apiDevice.fetchDevices(
+          data.page,
+          data.perPage,
+          data.filter,
+          data.status,
+          data.sortStatusField,
+          data.sortStatusString,
+        );
+        if (res.data.length) {
+          commit("setDevices", res);
+          commit("setPagePerpageFilter", data);
+          return res;
+        }
 
-      commit("clearListDevices", res);
-      return false;
+        return false;
+      } catch (error) {
+        commit("clearListDevices");
+        throw error;
+      }
     },
 
     remove: async (context, uid) => {

@@ -148,4 +148,14 @@ const router = createRouter({
   routes,
 });
 
+router.beforeEach((to, from, next) => {
+  const routeExists = router.options.routes.some((route) => route.path === to.path);
+
+  if (!routeExists) {
+    next({ path: "/" });
+  } else {
+    next();
+  }
+});
+
 export default router;
