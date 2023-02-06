@@ -1,8 +1,6 @@
 package workers
 
 import (
-	"fmt"
-
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -13,36 +11,11 @@ type Envs struct {
 	SessionRecordCleanupRetention int    `envconfig:"record_retention" default:"0"`
 }
 
-var envs *Envs
-
-func loadEnvs() error {
-	var local Envs
-	if envs == nil {
-		if err := envconfig.Process("api", &local); err != nil {
-			envs = &local
-
-			return err
-		}
-	}
-
-	return nil
-}
-
 func getEnvs() (*Envs, error) {
-	if envs == nil {
-		if err := loadEnvs(); err != nil {
-			return nil, err
-		}
+	var envs Envs
+	if err := envconfig.Process("api", &envs); err != nil {
+		return nil, err
 	}
 
-	return envs, nil
-}
-
-// Setup loads the essentials data to run the workers.
-func Setup() error {
-	if err := loadEnvs(); err != nil {
-		return fmt.Errorf("failed to load environment variables: %w", err)
-	}
-
-	return nil
+	return &envs, nil
 }
