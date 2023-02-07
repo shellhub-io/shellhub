@@ -89,7 +89,7 @@ jobs:
 
     steps:
       - name: checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set github reference env
         run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
