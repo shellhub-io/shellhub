@@ -74,7 +74,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
                           <!---->
                           <div class=\\"v-field__field\\" data-no-activator=\\"\\">
                             <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
-                              <!---->Username
+                              <!---->Username or email address
                             </label>
                             <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" required=\\"\\" class=\\"v-field__input\\">
                             <!---->
@@ -83,7 +83,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
                           <!---->
                           <div class=\\"v-field__outline\\">
                             <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-0\\">
-                              <!---->Username
+                              <!---->Username or email address
                             </label>
                           </div>
                         </div>
@@ -243,7 +243,7 @@ exports[`Login is cloud > Account has not been activated > Renders the component
                           <!---->
                           <div class=\\"v-field__field\\" data-no-activator=\\"\\">
                             <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
-                              <!---->Username
+                              <!---->Username or email address
                             </label>
                             <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" required=\\"\\" class=\\"v-field__input\\">
                             <!---->
@@ -252,7 +252,7 @@ exports[`Login is cloud > Account has not been activated > Renders the component
                           <!---->
                           <div class=\\"v-field__outline\\">
                             <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-0\\">
-                              <!---->Username
+                              <!---->Username or email address
                             </label>
                           </div>
                         </div>

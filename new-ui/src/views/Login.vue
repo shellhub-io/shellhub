@@ -58,7 +58,7 @@
                       v-model="username"
                       :error-messages="usernameError"
                       required
-                      label="Username"
+                      label="Username or email address"
                       variant="underlined"
                       data-test="username-text"
                     />
