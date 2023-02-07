@@ -23,11 +23,11 @@
                   <v-container>
                     <v-text-field
                       color="primary"
-                      prepend-icon="mdi-email"
+                      prepend-icon="mdi-account"
                       v-model="email"
                       :error-messages="emailError"
                       required
-                      label="Email"
+                      label="Username or email address"
                       variant="underlined"
                       data-test="email-text"
                     />
