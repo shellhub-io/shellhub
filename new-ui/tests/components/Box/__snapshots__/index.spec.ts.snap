@@ -4,7 +4,7 @@ exports[`BoxMessage Render > Process data in methods PublicKey 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -28,7 +28,7 @@ exports[`BoxMessage Render > Process data in methods PublicKey 1`] = `
     <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">
       <!----><span class=\\"v-list-item__underlay\\"></span>
       <!---->
-      <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+      <div class=\\"v-list-item__content\\">
         <!---->
         <!---->
         <div data-test=\\"0-boxMessage-text\\">You can connect to your devices using password-based logins, but we strongly recommend using SSH key pairs instead.</div>
@@ -38,7 +38,7 @@ exports[`BoxMessage Render > Process data in methods PublicKey 1`] = `
     <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">
       <!----><span class=\\"v-list-item__underlay\\"></span>
       <!---->
-      <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+      <div class=\\"v-list-item__content\\">
         <!---->
         <!---->
         <div data-test=\\"1-boxMessage-text\\">SSH keys are more secure than passwords and can help you log in without having to remember long passwords.</div>
@@ -56,11 +56,9 @@ exports[`BoxMessage Render > Process data in methods PublicKey 1`] = `
     <!---->
     <!----></button>
   </div>
-  <!--teleport start-->
-  <!--teleport end-->
   <!---->
-  <!--teleport start-->
-  <!--teleport end--></span>
+  <!---->
+  <!----></span>
 </div>
 <!---->
 <!----><span class=\\"v-card__underlay\\"></span></div>"
@@ -70,7 +68,7 @@ exports[`BoxMessage Render > Renders the component 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -94,7 +92,7 @@ exports[`BoxMessage Render > Renders the component 1`] = `
     <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">
       <!----><span class=\\"v-list-item__underlay\\"></span>
       <!---->
-      <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+      <div class=\\"v-list-item__content\\">
         <!---->
         <!---->
         <div data-test=\\"0-boxMessage-text\\">In order to register a device on ShellHub, you need to install ShellHub agent onto it.</div>
@@ -107,7 +105,7 @@ exports[`BoxMessage Render > Renders the component 1`] = `
     <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix mt-n3\\">
       <!----><span class=\\"v-list-item__underlay\\"></span>
       <!---->
-      <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+      <div class=\\"v-list-item__content\\">
         <!---->
         <!---->
         <div class=\\"justify-center\\" data-test=\\"0-boxMessage-text\\">
@@ -127,8 +125,7 @@ exports[`BoxMessage Render > Renders the component 1`] = `
       <!---->
     </button>
     <!---->
-    <!--teleport start-->
-    <!--teleport end-->
+    <!---->
     <!--v-if-->
   </div>
   <!---->

@@ -11,7 +11,7 @@ exports[`WelcomeSecondScreen > Renders the component 1`] = `
       <div class=\\"v-field v-field--active v-field--dirty v-field--no-label v-field--variant-outlined v-theme--light\\" role=\\"textbox\\">
         <div class=\\"v-field__overlay\\"></div>
         <div class=\\"v-field__loader\\">
-          <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
             <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -29,7 +29,7 @@ exports[`WelcomeSecondScreen > Renders the component 1`] = `
             <!---->
             <!---->
           </label>
-          <!----><input readonly=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" class=\\"v-field__input\\">
+          <!----><input readonly=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-0\\" class=\\"v-field__input\\">
           <!---->
         </div>
         <!---->
@@ -46,7 +46,7 @@ exports[`WelcomeSecondScreen > Renders the component 1`] = `
       <!---->
     </div>
     <div class=\\"v-input__details\\">
-      <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-0-messages\\">
+      <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
         <!---->
       </transition-group-stub>
       <!---->

@@ -4,7 +4,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -21,7 +21,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
   <div class=\\"v-slide-group v-tabs v-tabs--horizontal v-tabs--align-tabs-center v-tabs--stacked v-tabs--density-default\\" tabindex=\\"-1\\" role=\\"tablist\\" background-color=\\"secondary\\">
     <!---->
     <div class=\\"v-slide-group__container\\">
-      <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/settings\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\" data-test=\\"Profile-tab\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light text-primary v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/settings\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\" data-test=\\"Profile-tab\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Profile<div class=\\"v-tab__slider\\"></div></span>
           <!---->
           <!---->
@@ -48,7 +48,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -68,7 +68,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
         <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
           <!---->
           <div class=\\"v-card__loader\\">
-            <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
               <!---->
               <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -85,7 +85,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
           <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"registeredDevices-btn\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
             <!---->
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class=\\"v-list-item__content\\">
               <!---->
               <!---->
               <div>
@@ -120,7 +120,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
         <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
           <!---->
           <div class=\\"v-card__loader\\">
-            <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
               <!---->
               <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -137,7 +137,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
           <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"viewOnlineDevices-btn\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
             <!---->
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class=\\"v-list-item__content\\">
               <!---->
               <!---->
               <div>
@@ -168,7 +168,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
         <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
           <!---->
           <div class=\\"v-card__loader\\">
-            <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
               <!---->
               <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -185,7 +185,7 @@ exports[`Settings > Cloud is false > Renders the component 1`] = `
           <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"viewActiveSession-btn\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
             <!---->
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class=\\"v-list-item__content\\">
               <!---->
               <!---->
               <div>
@@ -221,7 +221,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -238,7 +238,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
   <div class=\\"v-slide-group v-tabs v-tabs--horizontal v-tabs--align-tabs-center v-tabs--stacked v-tabs--density-default\\" tabindex=\\"-1\\" role=\\"tablist\\" background-color=\\"secondary\\">
     <!---->
     <div class=\\"v-slide-group__container\\">
-      <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/settings\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\" data-test=\\"Profile-tab\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light text-primary v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/settings\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\" data-test=\\"Profile-tab\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Profile<div class=\\"v-tab__slider\\"></div></span>
           <!---->
           <!---->
@@ -269,7 +269,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -289,7 +289,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
         <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
           <!---->
           <div class=\\"v-card__loader\\">
-            <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
               <!---->
               <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -306,7 +306,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
           <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"registeredDevices-btn\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
             <!---->
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class=\\"v-list-item__content\\">
               <!---->
               <!---->
               <div>
@@ -341,7 +341,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
         <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
           <!---->
           <div class=\\"v-card__loader\\">
-            <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
               <!---->
               <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -358,7 +358,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
           <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"viewOnlineDevices-btn\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
             <!---->
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class=\\"v-list-item__content\\">
               <!---->
               <!---->
               <div>
@@ -389,7 +389,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
         <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
           <!---->
           <div class=\\"v-card__loader\\">
-            <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
               <!---->
               <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -406,7 +406,7 @@ exports[`Settings > Cloud is true > Renders the component 1`] = `
           <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"viewActiveSession-btn\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
             <!---->
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class=\\"v-list-item__content\\">
               <!---->
               <!---->
               <div>

@@ -2,6 +2,16 @@
 
 exports[`Devices Pending List > Renders the component 1`] = `
 "<div action=\\"suggestedDevices\\" data-v-dede1877=\\"\\">
-  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"[Function]\\" previouspage=\\"[Function]\\" data-test=\\"devices-list\\" data-v-dede1877=\\"\\"></data-table-stub>
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"async () => {
+      await getDevices(itemsPerPage.value, ++page.value);
+    }\\" previouspage=\\"async () => {
+      try {
+        if (page.value > 1)
+          await getDevices(itemsPerPage.value, --page.value);
+      } catch (error) {
+        store.dispatch(&quot;snackbar/setSnackbarErrorDefault&quot;);
+        throw new Error(error);
+      }
+    }\\" data-test=\\"devices-list\\" data-v-dede1877=\\"\\"></data-table-stub>
 </div>"
 `;

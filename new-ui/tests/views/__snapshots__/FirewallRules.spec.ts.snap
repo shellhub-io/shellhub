@@ -51,7 +51,7 @@ exports[`FirewallRules > With firewall rules > Renders the component 1`] = `
               <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light\\" role=\\"textbox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-3\\">
                 <div class=\\"v-field__overlay\\"></div>
                 <div class=\\"v-field__loader\\">
-                  <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                     <!---->
                     <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                     <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -74,7 +74,7 @@ exports[`FirewallRules > With firewall rules > Renders the component 1`] = `
                     <!---->
                     <!--teleport start-->
                     <!--teleport end-->
-                    <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-1\\" aria-describedby=\\"input-1-messages\\" outlined=\\"\\">
+                    <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-1\\" outlined=\\"\\">
                   </div>
                   <!---->
                 </div>
@@ -129,7 +129,7 @@ exports[`FirewallRules > Without firewall rules > Renders the component 1`] = `
   <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border\\" data-test=\\"BoxMessageFirewall-component\\">
     <!---->
     <div class=\\"v-card__loader\\">
-      <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
         <!---->
         <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
         <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -153,7 +153,7 @@ exports[`FirewallRules > Without firewall rules > Renders the component 1`] = `
       <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">
         <!----><span class=\\"v-list-item__underlay\\"></span>
         <!---->
-        <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+        <div class=\\"v-list-item__content\\">
           <!---->
           <!---->
           <div data-test=\\"0-boxMessage-text\\">ShellHub provides flexible firewall for filtering SSH connections.
@@ -164,7 +164,7 @@ exports[`FirewallRules > Without firewall rules > Renders the component 1`] = `
       <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">
         <!----><span class=\\"v-list-item__underlay\\"></span>
         <!---->
-        <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+        <div class=\\"v-list-item__content\\">
           <!---->
           <!---->
           <div data-test=\\"1-boxMessage-text\\">Using Firewall Rules you can deny or allow SSH connections from specific
