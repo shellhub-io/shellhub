@@ -1,5 +1,6 @@
 <template>
   <v-main>
+    <snackbar-component />
     <router-view :key="currentRoute.value.path" />
   </v-main>
 </template>
