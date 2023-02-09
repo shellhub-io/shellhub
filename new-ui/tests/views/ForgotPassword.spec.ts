@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ForgotPassword from "../../src/views/ForgotPassword.vue";
 import { createStore } from "vuex";
+import ForgotPassword from "../../src/views/ForgotPassword.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 
@@ -12,13 +12,23 @@ describe("ForgotPassword", () => {
 
   const statusDarkMode = true;
 
-  const invalidEmails = [
-    "notemail",
-    "missing@dot",
-    "with.only.dots",
-    "r4ndomCH@r5",
+  const invalidInputs = [
+    "an",
+    "invalidChar(/",
+    "with space",
+    `moreThan255charactersmoreThan255charactersmoreThan255charactersmoreThan255characters
+    moreThan255charactersmoreThan255charactersmoreThan255charactersmoreThan255characters
+    moreThan255charactersmoreThan255charactersmoreThan255charactersmoreThan255charactermoreT`,
   ];
-  const validEmails = ["new@email.com", "another@email.org"];
+
+  const referentError = [
+    "this must be at least 3 characters",
+    "The field only accepts the special characters _, ., - and @.",
+    "The field cannot contain white spaces.",
+    "this must be at most 255 characters",
+  ];
+
+  const validInputs = ["new@email.com", "another@email.org", "shellhub", "myUser"];
 
   const store = createStore({
     state: {
@@ -61,58 +71,46 @@ describe("ForgotPassword", () => {
   });
 
   it("Compare data with default value", () => {
-    expect(wrapper.vm.email).toEqual("");
+    expect(wrapper.vm.account).toEqual("");
+    expect(wrapper.vm.accountError).toEqual(undefined);
   });
   //////
-  // In this case, the empty fields are validated.
+  // In this case, the empty field are validated.
   //////
 
   it("Show validation messages", async () => {
-    wrapper.vm.email = undefined;
+    wrapper.vm.account = undefined;
 
     await flushPromises();
 
-    expect(wrapper.vm.emailError).toBe("this is a required field");
+    expect(wrapper.vm.accountError).toBe("this is a required field");
   });
 
   //////
-  // In this case, invalid email error are validated.
+  // In this case, test invalid inputs.
   //////
 
-  it("Show validation messages", async () => {
-    wrapper.vm.email = invalidEmails[0];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe("this must be a valid email");
-
-    wrapper.vm.email = invalidEmails[1];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe("this must be a valid email");
-
-    wrapper.vm.email = invalidEmails[2];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe("this must be a valid email");
-
-    wrapper.vm.email = invalidEmails[3];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe("this must be a valid email");
-    wrapper.vm.email = "";
+  invalidInputs.forEach((input, index) => {
+    it("Show validation messages", async () => {
+      wrapper.vm.account = input;
+      await flushPromises();
+      expect(wrapper.vm.accountError).toBe(referentError[index]);
+    });
   });
 
   //////
-  // In this case, valid email are validated.
+  // In this case, test valid inputs.
   //////
 
-  it('Show validation messages', async () => {
-    wrapper.vm.email = validEmails[0];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe(undefined);
-
-    wrapper.vm.email = validEmails[1];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe(undefined);
+  validInputs.forEach((input) => {
+    it("Show validation messages", async () => {
+      wrapper.vm.account = input;
+      await flushPromises();
+      expect(wrapper.vm.accountError).toBe(undefined);
+    });
   });
 
-  it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="email-text"]').exists()).toBeTruthy();
+  it("Renders the template with data", () => {
+    expect(wrapper.find('[data-test="account-text"]').exists()).toBeTruthy();
   });
 });

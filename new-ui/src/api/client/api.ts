@@ -1177,12 +1177,18 @@ export interface RecordedSessionResponseInner {
  */
 export interface RecoverPasswordRequest {
     /**
-     * User\'s email.
-     * @type {string}
+     * 
+     * @type {RecoverPasswordRequestUsername}
      * @memberof RecoverPasswordRequest
      */
-    'email': string;
+    'username': RecoverPasswordRequestUsername;
 }
+/**
+ * @type RecoverPasswordRequestUsername
+ * @export
+ */
+export type RecoverPasswordRequestUsername = string;
+
 /**
  * 
  * @export
@@ -1469,7 +1475,7 @@ export interface UpdatePublicKeyRequest {
  */
 export interface UpdateRecoverPasswordRequest {
     /**
-     * User\'s new password.
+     * User\'s password.
      * @type {string}
      * @memberof UpdateRecoverPasswordRequest
      */
@@ -2935,10 +2941,6 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
             if (email !== undefined) {
                 localVarQueryParameter['email'] = email;
             }
@@ -3331,10 +3333,6 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
     
@@ -8752,10 +8750,6 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
             if (email !== undefined) {
                 localVarQueryParameter['email'] = email;
             }
@@ -9010,10 +9004,6 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
     

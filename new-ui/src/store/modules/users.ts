@@ -68,9 +68,9 @@ export const users: Module<UsersState, State> = {
       }
     },
 
-    async recoverPassword(context, email) {
+    async recoverPassword(context, username) {
       try {
-        await apiUser.postRecoverPassword(email);
+        await apiUser.postRecoverPassword(username);
       } catch (error) {
         console.error(error);
         throw error;
