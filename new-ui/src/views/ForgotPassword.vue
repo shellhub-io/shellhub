@@ -13,27 +13,27 @@
                 />
               </v-card-title>
               <v-container>
-                <v-card-title class="text-center"
-                >Forgot your password</v-card-title
-                >
+                <v-card-title class="text-center">
+                  Forgot your password
+                </v-card-title>
                 <v-card-text class="text-center mt-2">
-                  Please insert the e-mail associated to the account you'd like to request an password reset for
+                  Please insert the e-mail associated to the account you'd like
+                  to request an password reset for
                 </v-card-text>
                 <form @submit.prevent="sendEmail">
                   <v-container>
                     <v-text-field
                       color="primary"
                       prepend-icon="mdi-account"
-                      v-model="email"
-                      :error-messages="emailError"
+                      v-model="account"
+                      :error-messages="accountError"
                       required
                       label="Username or email address"
                       variant="underlined"
-                      data-test="email-text"
+                      data-test="account-text"
                     />
                     <v-card-actions class="justify-center">
                       <v-btn
-                        type="submit"
                         data-test="login-btn"
                         color="primary"
                         variant="tonal"
@@ -79,14 +79,40 @@ export default defineComponent({
   setup() {
     const store = useStore();
 
-    const { value: email, errorMessage: emailError } = useField<
+    const { value: account, errorMessage: accountError } = useField<
       string | undefined
-    >("name", yup.string().email().required(), { initialValue: "" });
+    >(
+      "account",
+      yup
+        .string()
+        .required()
+        .min(3)
+        .max(255)
+        .test(
+          "account-error",
+          "The field only accepts the special characters _, ., - and @.",
+          (value) => {
+            const regex = /^[a-zA-Z0-9_.@-\s]*$/;
+            return regex.test(value || "");
+          },
+        )
+        .test(
+          "white-spaces",
+          "The field cannot contain white spaces.",
+          (value) => {
+            const regex = /\s/;
+            return !regex.test(value || "");
+          },
+        ),
+      {
+        initialValue: "",
+      },
+    );
 
-    const sendEmail = () => {
-      if (!emailError.value) {
+    const sendEmail = async () => {
+      if (!accountError.value) {
         try {
-          store.dispatch("users/recoverPassword", email.value);
+          await store.dispatch("users/recoverPassword", account.value);
           store.dispatch(
             "snackbar/showSnackbarSuccessAction",
             INotificationsSuccess.recoverPassword,
@@ -103,8 +129,8 @@ export default defineComponent({
 
     return {
       Logo,
-      email,
-      emailError,
+      account,
+      accountError,
       sendEmail,
       store,
     };

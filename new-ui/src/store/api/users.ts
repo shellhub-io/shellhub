@@ -10,7 +10,7 @@ export const signUp = async (data : any) => usersApi.registerUser({
 
 export const postResendEmail = async (username : any) => usersApi.resendEmail({ username });
 
-export const postRecoverPassword = async (email : any) => usersApi.recoverPassword({ email });
+export const postRecoverPassword = async (username : string) => usersApi.recoverPassword({ username });
 
 export const postValidationAccount = async (data : any) => usersApi.getValidateAccount(data.email, data.token);
 
