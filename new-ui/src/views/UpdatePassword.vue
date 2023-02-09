@@ -27,6 +27,7 @@
 
               <v-card-text>
                 <v-text-field
+                  id="password"
                   color="primary"
                   prepend-icon="mdi-lock"
                   :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
@@ -41,6 +42,7 @@
                 />
 
                 <v-text-field
+                  id="password-confirm"
                   color="primary"
                   prepend-icon="mdi-lock"
                   :append-inner-icon="
@@ -91,7 +93,7 @@
 <script lang="ts">
 import { useField } from "vee-validate";
 import { defineComponent, onMounted, ref } from "vue";
-import { LocationQueryValue, useRoute } from "vue-router";
+import { LocationQueryValue, useRoute, useRouter } from "vue-router";
 import * as yup from "yup";
 import Logo from "../assets/logo-inverted.png";
 import {
@@ -110,6 +112,7 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const route = useRoute();
+    const router = useRouter();
     const data = ref({} as TUpdatePassword);
     const showPassword = ref(false);
     const showConfirmPassword = ref(false);
@@ -156,18 +159,20 @@ export default defineComponent({
     });
 
     const updatePassword = async () => {
+      if (passwordError.value || passwordConfirmError.value) return;
       try {
         data.value = {
           ...data.value,
           password: password.value,
         };
         await store.dispatch("users/updatePassword", data.value);
-
+        await router.push({ name: "login" });
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.updatingAccount,
         );
       } catch (error: any) {
+        console.log(error);
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.updatingAccount,

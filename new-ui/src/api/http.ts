@@ -18,7 +18,7 @@ let tagsApi = new axiosTs.TagsApi(configuration);
 let usersApi = new axiosTs.UsersApi(configuration);
 let billingApi = new axiosTs.BillingApi(configuration);
 let rulesApi = new axiosTs.RulesApi(configuration);
-let announcementApi = new axiosTs.AdminApi(configuration);
+let announcementApi = new axiosTs.AnnouncementsApi(configuration);
 
 export const createNewClient = () => {
   const newConfiguration = new Configuration();
@@ -35,7 +35,7 @@ export const createNewClient = () => {
   usersApi = new axiosTs.UsersApi(newConfiguration);
   billingApi = new axiosTs.BillingApi(newConfiguration);
   rulesApi = new axiosTs.RulesApi(newConfiguration);
-  announcementApi = new axiosTs.AdminApi(newConfiguration);
+  announcementApi = new axiosTs.AnnouncementsApi(newConfiguration);
   return newConfiguration;
 };
 

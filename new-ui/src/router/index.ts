@@ -149,9 +149,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const routeExists = router.options.routes.some((route) => route.path === to.path);
-
-  if (!routeExists) {
+  if (to.matched.length === 0) {
     next({ path: "/" });
   } else {
     next();
