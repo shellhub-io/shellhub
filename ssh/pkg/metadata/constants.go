@@ -1,4 +1,4 @@
-// Package metadata provides a way to store and retrieve data from a context.
+// Package metadata provides a way to store and retrieve data from an SSH ;context.
 package metadata
 
 const (
@@ -22,6 +22,10 @@ const (
 	device = "device"
 	// sshid is the key to store and restore the sshid from the context.
 	sshid = "sshid"
+	// agent is the key to store and restore the agent from the context.
+	agent = "agent"
+	// established is the key to store and restore the established state from the context.
+	established = "established"
 )
 
 const (

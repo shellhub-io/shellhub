@@ -73,7 +73,6 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		Handler:                server.sessionHandler,
 		SessionRequestCallback: server.sessionRequestCallback,
 		RequestHandlers:        gliderssh.DefaultRequestHandlers,
-		ChannelHandlers:        gliderssh.DefaultChannelHandlers,
 		SubsystemHandlers: map[string]gliderssh.SubsystemHandler{
 			SFTPSubsystemName: server.sftpSubsystemHandler,
 		},
@@ -89,6 +88,17 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 			}
 
 			return &sshConn{conn, closeCallback, ctx}
+		},
+		LocalPortForwardingCallback: func(ctx gliderssh.Context, destinationHost string, destinationPort uint32) bool {
+			return true
+		},
+		ReversePortForwardingCallback: func(ctx gliderssh.Context, destinationHost string, destinationPort uint32) bool {
+			return false
+		},
+		ChannelHandlers: map[string]gliderssh.ChannelHandler{
+			"session":       gliderssh.DefaultSessionHandler,
+			"direct-tcpip":  gliderssh.DirectTCPIPHandler,
+			"dynamic-tcpip": gliderssh.DirectTCPIPHandler,
 		},
 	}
 

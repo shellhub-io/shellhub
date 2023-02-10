@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
 	"github.com/shellhub-io/shellhub/ssh/server/auth"
+	"github.com/shellhub-io/shellhub/ssh/server/channels"
 	"github.com/shellhub-io/shellhub/ssh/server/handler"
 	log "github.com/sirupsen/logrus"
 )
@@ -48,28 +49,26 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 		SubsystemHandlers: map[string]gliderssh.SubsystemHandler{
 			handler.SFTPSubsystem: handler.SFTPSubsystemHandler(tunnel),
 		},
-		ChannelHandlers: map[string]gliderssh.ChannelHandler{
-			"session":      gliderssh.DefaultSessionHandler,
-			"direct-tcpip": gliderssh.DirectTCPIPHandler,
-		},
-		LocalPortForwardingCallback: gliderssh.LocalPortForwardingCallback(func(ctx gliderssh.Context, dhost string, dport uint32) bool {
+		LocalPortForwardingCallback: func(ctx gliderssh.Context, dhost string, dport uint32) bool {
 			pattern := opts.LocalForwarding
-
-			// Empty pattern not match anything
-			if pattern == "" {
+			if pattern == "" { // Empty pattern not match anything.
 				pattern = "(?!.*)"
 			}
 
-			ok, err := regexp.MatchString(pattern, fmt.Sprintf("%s:%d", dhost, dport))
+			if ok, err := regexp.MatchString(pattern, fmt.Sprintf("%s:%d", dhost, dport)); !ok || err != nil {
+				return false
+			}
 
-			log.WithFields(log.Fields{
-				"host":    dhost,
-				"port":    dport,
-				"matched": ok,
-			}).WithError(err).Info("Local port forwarding request")
-
-			return ok
-		}),
+			return true
+		},
+		ReversePortForwardingCallback: func(ctx gliderssh.Context, bindHost string, bindPort uint32) bool {
+			return false
+		},
+		ChannelHandlers: map[string]gliderssh.ChannelHandler{
+			"session":                    gliderssh.DefaultSessionHandler,
+			channels.DirectTCPIPChannel:  channels.DefaultTCPIPHandler,
+			channels.DynamicTCPIPChannel: channels.DefaultTCPIPHandler,
+		},
 	}
 
 	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) {
