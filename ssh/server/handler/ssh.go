@@ -81,8 +81,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 			"sshid": client.User(),
 		}).Info("SSH connection closed")
 
-		ctx, cancel := context.WithCancel(client.Context())
-		defer cancel()
+		ctx := client.Context()
 
 		api := metadata.RestoreAPI(ctx)
 
@@ -161,7 +160,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 		}
 
 		tty.Log(client, sess.Client, "connecting client to device...") //nolint: errcheck
-		err = connectSSH(ctx, client, sess, config, api, opts)
+		err = connectSSH(client.Context(), client, sess, config, api, opts)
 		if err != nil {
 			sendAndInformError(client, err, err)
 
@@ -179,6 +178,8 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 
 	defer connection.Close()
 
+	metadata.MaybeStoreAgent(ctx.(gliderssh.Context), connection)
+
 	agent, err := connection.NewSession()
 	if err != nil {
 		return ErrSession
@@ -187,6 +188,8 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 	defer agent.Close()
 
 	go session.HandleRequests(ctx, reqs, api)
+
+	metadata.MaybeStoreEstablished(ctx.(gliderssh.Context), true)
 
 	tty.Log(client, sess.Client, "requesting shell...") //nolint:errcheck
 	pty, winCh, _ := client.Pty()

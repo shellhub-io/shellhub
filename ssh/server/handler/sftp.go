@@ -29,8 +29,7 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 			"sshid": client.User(),
 		}).Info("SFTP connection closed")
 
-		ctx, cancel := context.WithCancel(client.Context())
-		defer cancel()
+		ctx := client.Context()
 
 		api := metadata.RestoreAPI(ctx)
 
