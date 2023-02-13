@@ -406,6 +406,11 @@ export default defineComponent({
         return true;
       }
 
+      if (choiceFilter.value === "tags" && tagChoices.value.length === 0) {
+        errMsg.value = "You must choose at least one tag";
+        return true;
+      }
+
       return false;
     };
 

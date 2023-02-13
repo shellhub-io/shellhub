@@ -1,19 +1,21 @@
 <template>
   <v-list-item @click="dialog = !dialog">
     <v-btn
+      v-bind="$attrs"
       v-if="notificationStatus"
-      x-small
+      size="x-small"
       color="primary"
       data-test="notification-btn"
       @click="doAction()"
     >
-      {{ icon }}
+      <v-icon> {{ icon }} </v-icon>
       Accept
     </v-btn>
     <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization" v-else>
       <template v-slot:activator="{ props }">
         <span v-bind="props">
           <v-list-item-title data-test="action-item" v-on="props">
+            <v-icon> {{ icon }}</v-icon>
             {{ capitalizeText(action) }}
           </v-list-item-title>
         </span>
@@ -21,7 +23,7 @@
       <span> You don't have this kind of authorization. </span>
     </v-tooltip>
   </v-list-item>
-  <v-dialog max-width="450px" v-model="dialog" @click:outside="close">
+  <v-dialog max-width="450px" v-model="dialog" @click:outside="close" v-bind="$attrs">
     <v-card class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-5 bg-primary">
         Are you sure?

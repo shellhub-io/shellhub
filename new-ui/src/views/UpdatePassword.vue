@@ -92,7 +92,7 @@
 
 <script lang="ts">
 import { useField } from "vee-validate";
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref, watch } from "vue";
 import { LocationQueryValue, useRoute, useRouter } from "vue-router";
 import * as yup from "yup";
 import Logo from "../assets/logo-inverted.png";
@@ -120,6 +120,7 @@ export default defineComponent({
     const {
       value: password,
       errorMessage: passwordError,
+      setErrors: setPasswordError,
     } = useField<string>(
       "password",
       yup
@@ -135,6 +136,8 @@ export default defineComponent({
     const {
       value: passwordConfirm,
       errorMessage: passwordConfirmError,
+      resetField: resetPasswordConfirm,
+      setErrors: setPasswordConfirmError,
     } = useField<string>(
       "passwordConfirm",
       yup
@@ -158,8 +161,40 @@ export default defineComponent({
       };
     });
 
+    watch(password, () => {
+      if (password.value === passwordConfirm.value) {
+        resetPasswordConfirm();
+      }
+
+      if (password.value !== passwordConfirm.value && passwordConfirm.value) {
+        setPasswordConfirmError("Passwords do not match");
+      }
+    });
+
+    const hasErros = () => {
+      if (password.value === "") {
+        setPasswordError("this is a required field");
+        return true;
+      }
+
+      if (passwordConfirm.value === "") {
+        setPasswordConfirmError("this is a required field");
+        return true;
+      }
+
+      if (passwordError.value) {
+        return true;
+      }
+
+      if (passwordConfirmError.value) {
+        return true;
+      }
+
+      return false;
+    };
+
     const updatePassword = async () => {
-      if (passwordError.value || passwordConfirmError.value) return;
+      if (hasErros()) return;
       try {
         data.value = {
           ...data.value,
@@ -172,7 +207,6 @@ export default defineComponent({
           INotificationsSuccess.updatingAccount,
         );
       } catch (error: any) {
-        console.log(error);
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.updatingAccount,

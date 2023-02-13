@@ -35,7 +35,14 @@ export const notifications: Module<NotificationsState, State> = {
   actions: {
     fetch: async (context) => {
       try {
-        const res = await apiDevice.fetchDevices(10, 1, "", "pending", "", "");
+        const res = await apiDevice.fetchDevices(
+          1,
+          10,
+          "",
+          "pending",
+          null,
+          "",
+        );
         context.commit("setNotifications", res);
       } catch (error) {
         context.commit("clearListNotifications");

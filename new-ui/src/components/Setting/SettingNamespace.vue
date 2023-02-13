@@ -8,7 +8,7 @@
           </v-col>
           <v-spacer />
           <v-col>
-            <v-card tile :elevation="0">
+            <v-card tile :elevation="0" class="bg-v-theme-surface">
               <v-chip>
                 <v-tooltip location="top">
                   <template v-slot:activator="{ props }">

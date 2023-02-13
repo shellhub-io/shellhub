@@ -24,21 +24,7 @@
             <span>{{ item.info.pretty_name }}</span>
           </td>
           <td class="text-center">
-            <v-chip>
-              <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
-                  <span
-                    v-bind="props"
-                    @click="copyText(sshidAddress(item))"
-                    @keypress="copyText(sshidAddress(item))"
-                    class="hover-text"
-                  >
-                    {{ sshidAddress(item) }}
-                  </span>
-                </template>
-                <span>Copy ID</span>
-              </v-tooltip>
-            </v-chip>
+            {{ formatDate(item.last_seen) }}
           </td>
 
           <td class="text-center">
@@ -49,41 +35,19 @@
                 </v-chip>
               </template>
               <v-list class="bg-v-theme-surface" lines="two" density="compact">
-                <v-list-item @click="redirectToDevice(item)">
-                  <div class="d-flex align-center">
-                    <div class="mr-2">
-                      <v-icon> mdi-information </v-icon>
-                    </div>
+                <DeviceActionButton
+                  :uid="item.uid"
+                  action="accept"
+                  data-test="DeviceActionButtonAccept-component"
+                  @update="refreshDevices"
+                />
 
-                    <v-list-item-title data-test="mdi-information-list-item">
-                      Details
-                    </v-list-item-title>
-                  </div>
-                </v-list-item>
-
-                <v-list-item @click="redirectToDevice(item)">
-                  <div class="d-flex align-center">
-                    <div class="mr-2">
-                      <v-icon> mdi-tag </v-icon>
-                    </div>
-
-                    <v-list-item-title data-test="mdi-information-list-item">
-                      Edit tags
-                    </v-list-item-title>
-                  </div>
-                </v-list-item>
-
-                <v-list-item @click="redirectToDevice(item)">
-                  <div class="d-flex align-center">
-                    <div class="mr-2">
-                      <v-icon> mdi-delete </v-icon>
-                    </div>
-
-                    <v-list-item-title data-test="mdi-information-list-item">
-                      Remove
-                    </v-list-item-title>
-                  </div>
-                </v-list-item>
+                <DeviceActionButton
+                  :uid="item.uid"
+                  action="remove"
+                  data-test="deviceActionButtonRemove-component"
+                  @update="refreshDevices"
+                />
               </v-list>
             </v-menu>
           </td>
@@ -106,6 +70,7 @@ import {
   INotificationsCopy,
   INotificationsError,
 } from "../../interfaces/INotifications";
+import DeviceActionButton from "./DeviceActionButton.vue";
 
 export default defineComponent({
   setup() {
@@ -151,6 +116,7 @@ export default defineComponent({
           perPage: perPagaeValue,
           page: pageValue,
           filter: filter.value,
+          status: "rejected",
           sortStatusField: store.getters["devices/sortStatusField"],
           sortStatusString: store.getters["devices/sortStatusString"],
         });
@@ -214,6 +180,10 @@ export default defineComponent({
       router.push({ name: "deviceDetails", params: { id: deviceId } });
     };
 
+    const refreshDevices = () => {
+      getDevices(itemsPerPage.value, page.value);
+    };
+
     const sshidAddress = (item: any) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
     const copyText = (value: string | undefined) => {
@@ -262,9 +232,10 @@ export default defineComponent({
       redirectToDevice,
       sshidAddress,
       copyText,
+      refreshDevices,
     };
   },
-  components: { DataTable, DeviceIcon },
+  components: { DataTable, DeviceIcon, DeviceActionButton },
 });
 </script>
 
