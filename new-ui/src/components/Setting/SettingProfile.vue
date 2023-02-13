@@ -87,7 +87,7 @@
               <v-btn
                 color="primary"
                 @click="updatePassword"
-                :disabled="currentPasswordError !== '' || newPasswordConfirmError !== ''"
+                :disabled="hasUpdatePasswordError"
               > Save </v-btn>
             </div>
           </v-col>
@@ -285,6 +285,9 @@ export default defineComponent({
       currentPasswordError.value
         || newPasswordError.value
         || newPasswordConfirmError.value
+        || newPassword.value === ""
+        || newPasswordConfirm.value === ""
+        || currentPassword.value === ""
     ));
 
     const resetPasswordFields = () => {
@@ -355,6 +358,7 @@ export default defineComponent({
       showCurrentPassword,
       showNewPassword,
       showConfirmPassword,
+      hasUpdatePasswordError,
       updateUserData,
       updatePassword,
       cancel,

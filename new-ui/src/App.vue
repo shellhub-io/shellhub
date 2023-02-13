@@ -31,6 +31,8 @@ export default defineComponent({
     onMounted(async () => {
       if (!isLoggedIn.value) {
         store.dispatch("layout/setLayout", "simpleLayout");
+        await store.dispatch("auth/logout");
+        router.push("/login");
       }
 
       if (!hasLoggedID.value && isLoggedIn.value) {

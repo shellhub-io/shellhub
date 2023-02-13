@@ -439,6 +439,11 @@ export default defineComponent({
         return true;
       }
 
+      if (choiceFilter.value === "tags" && tagChoices.value.length === 0) {
+        errMsg.value = "This Field is required !";
+        return true;
+      }
+
       return false;
     };
 

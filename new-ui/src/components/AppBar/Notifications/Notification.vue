@@ -2,6 +2,7 @@
   <v-menu>
     <template v-slot:activator="{ props }">
       <v-badge
+        v-bind="$props"
         v-if="showNumberNotifications > 0"
         :content="showNumberNotifications"
         :value="showNumberNotifications"
@@ -11,10 +12,10 @@
         data-test="notifications-badge"
       >
         <v-icon
+          v-bind="props"
           class="ml-2 mr-2"
           color="primary"
           :size="defaultSize"
-          v-bind="props"
           aria-label="notifications-icon"
           @click="getNotifications()"
         >
@@ -22,11 +23,11 @@
         </v-icon>
       </v-badge>
       <v-icon
+        v-bind="props"
         v-else
         class="ml-2 mr-2"
         color="primary"
         :size="defaultSize"
-        v-bind="props"
         aria-label="notifications-icon"
         @click="getNotifications()"
       >
@@ -40,13 +41,12 @@
       offset-x="20"
     >
       <v-card-subtitle>Pending Devices</v-card-subtitle>
-
       <v-divider />
 
-      <v-list class="pa-0">
-        <v-list-group :v-model="1">
-          <v-list-item v-for="item in listNotifications" :key="item.uid">
-            <div>
+      <v-list class="pa-0" density="compact">
+        <v-list-item-group :v-model="1">
+          <v-list-item class="d-flex" v-for="item in listNotifications" :key="item.uid">
+            <template v-slot:prepend>
               <v-list-item-title>
                 <router-link
                   :to="{ name: 'detailsDevice', params: { id: item.uid } }"
@@ -55,7 +55,7 @@
                   {{ item.name }}
                 </router-link>
               </v-list-item-title>
-            </div>
+            </template>
 
             <v-list-item-action>
               <DeviceActionButton
@@ -69,7 +69,7 @@
               />
             </v-list-item-action>
           </v-list-item>
-        </v-list-group>
+        </v-list-item-group>
       </v-list>
 
       <v-divider />
@@ -109,11 +109,14 @@ import { useStore } from "../../../store";
 import { authorizer, actions } from "../../../authorizer";
 import hasPermission from "../../../utils/permission";
 import { INotificationsError } from "../../../interfaces/INotifications";
-// import DeviceActionButton from "../../../components/Devices/DeviceActionButton.vue";
+import DeviceActionButton from "../../../components/Devices/DeviceActionButton.vue";
 
 export default defineComponent({
   name: "Notification",
   inheritAttrs: false,
+  components: {
+    DeviceActionButton,
+  },
   setup() {
     const store = useStore();
     const numberNotifications = ref(0);
@@ -207,11 +210,6 @@ export default defineComponent({
       refresh,
       show,
     };
-  },
-  components: {
-    DeviceActionButton: defineAsyncComponent(
-      () => import("../../../components/Devices/DeviceActionButton.vue"),
-    ),
   },
 });
 </script>

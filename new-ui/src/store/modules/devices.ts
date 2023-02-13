@@ -143,6 +143,7 @@ export const devices: Module<DevicesState, State> = {
           return res;
         }
 
+        commit("clearListDevices");
         return false;
       } catch (error) {
         commit("clearListDevices");

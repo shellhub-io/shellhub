@@ -26,11 +26,12 @@
       <v-card-actions>
         <v-spacer />
 
-        <v-btn text data-test="close-btn" @click="close()"> Close </v-btn>
+        <v-btn variant="text" data-test="close-btn" @click="close()"> Close </v-btn>
 
         <v-btn
           to="/settings/billing"
-          text
+          variant="text"
+          color="primary"
           data-test="goToBilling-btn"
           @click="close()"
         >
