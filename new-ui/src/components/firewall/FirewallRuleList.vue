@@ -125,7 +125,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
+import { computed, defineComponent, ref, watch } from "vue";
 import { actions, authorizer } from "../../authorizer";
 import { filterType } from "../../interfaces/IFirewallRule";
 import { useStore } from "../../store";
@@ -184,10 +184,6 @@ export default defineComponent({
       }
     };
 
-    onMounted(() => {
-      getFirewalls(itemsPerPage.value, page.value);
-    });
-
     const next = async () => {
       await getFirewalls(itemsPerPage.value, ++page.value);
     };
@@ -211,7 +207,7 @@ export default defineComponent({
     const refreshFirewallRules = async () => {
       try {
         await store.dispatch("firewallRules/refresh");
-        getFirewalls(itemsPerPage.value, page.value);
+        // getFirewalls(itemsPerPage.value, page.value);
       } catch (error: any) {
         store.dispatch("snackbar/setSnackbarErrorDefault");
         throw new Error(error);
