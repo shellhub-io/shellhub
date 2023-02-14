@@ -18,7 +18,7 @@
     >
       <template v-slot:rows>
         <tr v-for="(item, i) in devices" :key="i">
-          <td class="d-flex justify-center">
+          <td class="text-center">
             <TerminalDialog
               :enable-connect-button="true"
               :uid="item.uid"

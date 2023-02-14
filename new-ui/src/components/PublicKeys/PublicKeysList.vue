@@ -161,17 +161,6 @@ export default defineComponent({
       return false;
     });
 
-    onMounted(async () => {
-      try {
-        await store.dispatch("publicKeys/fetch", {
-          perPage: itemsPerPage.value,
-          page: page.value,
-        });
-      } catch (error: any) {
-        throw new Error(error);
-      }
-    });
-
     const getPublicKeysList = async (
       perPagaeValue: number,
       pageValue: number,
@@ -224,7 +213,6 @@ export default defineComponent({
 
     const refreshPublicKeys = async () => {
       await store.dispatch("publicKeys/refresh");
-      getPublicKeysList(itemsPerPage.value, page.value);
     };
 
     const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
