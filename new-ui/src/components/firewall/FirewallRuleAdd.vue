@@ -1,17 +1,25 @@
 <template>
-  <v-btn
-    v-bind="$attrs"
-    @click="dialog = !dialog"
-    color="primary"
-    tabindex="0"
-    variant="elevated"
-    aria-label="Dialog Add device"
-    @keypress.enter="dialog = !dialog"
-    :size="size"
-    data-test="device-add-btn"
-  >
-    Add Rule
-  </v-btn>
+  <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
+    <template v-slot:activator="{ props }">
+      <div v-bind="props">
+        <v-btn
+          v-bind="$attrs"
+          @click="dialog = !dialog"
+          color="primary"
+          tabindex="0"
+          variant="elevated"
+          aria-label="Dialog Add device"
+          :disabled="!hasAuthorization"
+          @keypress.enter="dialog = !dialog"
+          :size="size"
+          data-test="device-add-btn"
+        >
+          Add Rule
+        </v-btn>
+      </div>
+    </template>
+    <span> You don't have this kind of authorization. </span>
+  </v-tooltip>
 
   <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
     <v-card class="bg-v-theme-surface">

@@ -19,7 +19,7 @@
       <template v-slot:rows>
         <tr v-for="(item, i) in devices" :key="i">
           <td class="text-center">{{ item.name }}</td>
-          <td class="d-flex align-center justify-center">
+          <td class="text-center">
             <DeviceIcon :icon="item.info.id" class="mr-2" />
             <span>{{ item.info.pretty_name }}</span>
           </td>

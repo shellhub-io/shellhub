@@ -1,5 +1,6 @@
 <template>
-  <i data-test="type-icon" :class="iconName" style="font-size: 20px" />
+  <i v-if="iconName" data-test="type-icon" :class="iconName + ' mr-1'" style="font-size: 18px" />
+  <i v-else data-test="type-icon" class="fl-tux mr-1" style="font-size: 18px" />
 </template>
 
 <script lang="ts">
@@ -36,6 +37,7 @@ export default defineComponent({
       ubuntu: "fl-ubuntu",
       raspbian: "fl-raspberry-pi",
       "ubuntu-core": "fl-ubuntu",
+      ubuntucore: "fl-ubuntu",
       void: "fl-void",
     };
 

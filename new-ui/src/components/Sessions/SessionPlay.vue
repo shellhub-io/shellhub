@@ -72,9 +72,6 @@
                 class="pt-4 pl-9 mr-5 d-flex align-center"
                 tile
               >
-                <!-- <p class="mr-4">
-                  {{ nowTimerDisplay }} - {{ endTimerDisplay }}
-                </p> -->
                 <v-slider
                   v-model="currentTime"
                   class="ml-0"
@@ -84,7 +81,7 @@
                   hide-details
                   color="primary"
                   data-test="time-slider"
-                  @change="changeSliderTime"
+                  @update:model-value="changeSliderTime()"
                   @mousedown="(previousPause = paused), (paused = true)"
                   @mouseup="paused = previousPause"
                   @click="setSliderDiplayTime(currentTime)"
