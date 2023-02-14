@@ -23,12 +23,22 @@ export default defineComponent({
     const router = useRouter();
 
     const layout = computed(() => store.getters["layout/getLayout"]);
-    // const token = computed(() => window.location.search.replace("?token=", ""));
+    const token = computed(() => window.location.search.replace("?token=", ""));
 
     const isLoggedIn = computed(() => store.getters["auth/isLoggedIn"]);
     const hasLoggedID = computed(() => store.getters["auth/id"] !== "");
 
     onMounted(async () => {
+      if (!isLoggedIn.value && token.value) {
+        store.dispatch("layout/setLayout", "simpleLayout");
+        await router.push({
+          name: "login",
+          query: {
+            token: token.value,
+          },
+        });
+      }
+
       if (!isLoggedIn.value) {
         store.dispatch("layout/setLayout", "simpleLayout");
         await store.dispatch("auth/logout");

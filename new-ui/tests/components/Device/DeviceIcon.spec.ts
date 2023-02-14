@@ -1,9 +1,7 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import DeviceIcon from "../../../src/components/Devices/DeviceIcon.vue";
-import { createStore } from "vuex";
-import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 const iconName = "alpine";
@@ -32,6 +30,7 @@ const iconsMap = {
   ubuntu: "fl-ubuntu",
   raspbian: "fl-raspberry-pi",
   "ubuntu-core": "fl-ubuntu",
+  ubuntucore: "fl-ubuntu",
   void: "fl-void",
 };
 
@@ -126,8 +125,47 @@ describe("DeviceIcon", () => {
     const wrapperClasses = wrapper.find('[data-test="type-icon"]').classes();
 
     expect(wrapperClasses[0]).toBe(
-      // @ts-ignore
-      iconsMap[iconKey]
+      iconsMap[iconKey],
     );
+  });
+});
+
+describe("DeviceIcon icon not found", () => {
+  let wrapper: VueWrapper<any>;
+
+  beforeEach(() => {
+    const vuetify = createVuetify();
+    wrapper = mount(DeviceIcon, {
+      global: {
+        plugins: [vuetify, routes],
+        stubs: ["router-link"],
+      },
+      props: {
+        icon: "not-found",
+      },
+      data() {
+        return {
+          deviceIcon: iconsMap,
+        };
+      },
+    });
+  });
+
+  ///////
+  // Data and Props checking
+  //////
+
+  it("Receive data in props", () => {
+    expect(wrapper.props("icon")).toBe("not-found");
+  });
+
+  it("Compare data with default value", () => {
+    expect(wrapper.vm.deviceIcon).toEqual(iconsMap);
+  });
+
+  it("Renders the template with data", () => {
+    const icon = wrapper.find('[data-test="type-icon"]');
+    expect(icon.exists()).toBeTruthy();
+    expect(icon.classes()).toContain("fl-tux");
   });
 });
