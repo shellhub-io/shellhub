@@ -14,6 +14,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
@@ -171,7 +172,7 @@ func (d *dockerUpdater) stopContainer(container *dockerContainer) error {
 	ctx := context.Background()
 
 	timeout := time.Minute
-	if err := d.api.ContainerStop(ctx, container.info.ID, &timeout); err != nil {
+	if err := d.api.ContainerStop(ctx, container.info.ID, container.StopOptions{Timeout: &timeout}); err != nil {
 		return err
 	}
 
