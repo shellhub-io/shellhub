@@ -1,6 +1,6 @@
 # docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-FROM arm64v8/golang:1.20.0-alpine3.16
+FROM arm64v8/golang:1.20.1-alpine3.16
 
 ARG SHELLHUB_VERSION=latest
 
