@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SettingProfile from "../../../src/components/Setting/SettingProfile.vue";
 import { createStore } from "vuex";
+import SettingProfile from "../../../src/components/Setting/SettingProfile.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -17,9 +17,11 @@ describe("SettingProfile", () => {
   // vee-validate variables bellow
   const invalidEmails = [
     "notemail",
-    "missing@dot",
-    "with.only.dots",
-    "r4ndomCH@r5",
+    "notemail@",
+    "not.em.ail@",
+    "notemail@notemail.",
+    "not email@notemail.com",
+    "notemail@notemail.com.",
   ];
   const validEmails = ["new@email.com", "another@email.org"];
   const invalidPasswords = [
@@ -79,9 +81,10 @@ describe("SettingProfile", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  ///////s
+  ///////
   // Data checking
   //////
+
   it("Data is defined", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
@@ -119,23 +122,13 @@ describe("SettingProfile", () => {
   // In this case, invalid email error are validated.
   //////
 
-  it("Show validation messages", async () => {
-    wrapper.vm.email = invalidEmails[0];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe("this must be a valid email");
-
-    wrapper.vm.email = invalidEmails[1];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe("this must be a valid email");
-
-    wrapper.vm.email = invalidEmails[2];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe("this must be a valid email");
-
-    wrapper.vm.email = invalidEmails[3];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe("this must be a valid email");
-    wrapper.vm.email = "";
+  invalidEmails.forEach((email) => {
+    it("Show validation messages", async () => {
+      console.log("email", email);
+      wrapper.vm.email = email;
+      await flushPromises();
+      expect(wrapper.vm.emailError).toBe("this must be a valid email");
+    });
   });
 
   //////
@@ -143,74 +136,90 @@ describe("SettingProfile", () => {
   //////
 
   it("Show validation messages", async () => {
-    wrapper.vm.newPassword = invalidPasswords[0];
+    const [most30Characters, less5Characters] = invalidPasswords;
+
+    wrapper.vm.newPassword = most30Characters;
     await flushPromises();
     expect(wrapper.vm.newPasswordError).toBe(
-      "this must be at most 30 characters"
+      "this must be at most 30 characters",
     );
 
-    wrapper.vm.newPassword = invalidPasswords[1];
+    wrapper.vm.newPassword = less5Characters;
     await flushPromises();
     expect(wrapper.vm.newPasswordError).toBe(
-      "this must be at least 5 characters"
+      "this must be at least 5 characters",
     );
-
   });
 
-   //////
+  //////
   // In this case, invalid password match are validated.
   //////
 
-  it('Show validation messages', async () => {
-    // todo:  do not work
+  confirmPasswordsMatchError.forEach((passwords) => {
+    it("Show validation messages", async () => {
+      const { new: newPassword, confirmNew: newPasswordConfirm } = passwords;
+      wrapper.vm.newPassword = newPassword;
+      wrapper.vm.newPasswordConfirm = newPasswordConfirm;
+      await flushPromises();
+      expect(wrapper.vm.newPasswordConfirmError).toBe(
+        "Passwords do not match",
+      );
+    });
   });
 
-    //////
+  //////
   // In this case, valid email are validated.
   //////
 
-  it('Show validation messages', async () => {
-    wrapper.vm.email = validEmails[0];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe(undefined);
-
-    wrapper.vm.email = validEmails[1];
-    await flushPromises();
-    expect(wrapper.vm.emailError).toBe(undefined);
+  validEmails.forEach((email) => {
+    it("Show validation messages", async () => {
+      wrapper.vm.email = email;
+      await flushPromises();
+      expect(wrapper.vm.emailError).toBe(undefined);
+    });
   });
 
   //////
   // In this case, valid password length are validated.
   //////
 
-  it('Show validation messages', async () => {
-    wrapper.vm.newPassword = validPasswords[0];
-    await flushPromises();
-    expect(wrapper.vm.newPasswordError).toBe(undefined);
-
-    wrapper.vm.newPassword = validPasswords[1];
-    await flushPromises();
-    expect(wrapper.vm.newPasswordError).toBe(undefined);
+  validPasswords.forEach((password) => {
+    it("Show validation messages", async () => {
+      wrapper.vm.newPassword = password;
+      await flushPromises();
+      expect(wrapper.vm.newPasswordError).toBe(undefined);
+    });
   });
-
 
   //////
   // In this case, valid password match are validated.
   //////
 
-  it('Show validation messages', async () => {
-    // todo match password not work
+  confirmPasswordsMatchSuccess.forEach((passwords) => {
+    it("Show validation messages", async () => {
+      const { new: newPassword, confirmNew: newPasswordConfirm } = passwords;
+      wrapper.vm.newPassword = newPassword;
+      wrapper.vm.newPasswordConfirm = newPasswordConfirm;
+      await flushPromises();
+      expect(wrapper.vm.newPasswordConfirmError).toBe(undefined);
+    });
   });
 
   //////
   // In this case, valid password change.
   //////
 
-  it('Show validation messages', async () => {
-    // todo compareOldNewSuccess password not work
+  compareOldNewSuccess.forEach((passwords) => {
+    it("Show validation messages", async () => {
+      const { old: currentPassword, new: newPassword } = passwords;
+      wrapper.vm.currentPassword = currentPassword;
+      wrapper.vm.newPassword = newPassword;
+      await flushPromises();
+      expect(wrapper.vm.currentPasswordError).toBe(undefined);
+    });
   });
 
-  it('Renders the template with data', async () => {
+  it("Renders the template with data", async () => {
     expect(wrapper.find('[data-test="username-text"]').exists()).toBeTruthy();
     expect(wrapper.find('[data-test="email-text"]').exists()).toBeTruthy();
     expect(wrapper.find('[data-test="password-text"]').exists()).toBeTruthy();
