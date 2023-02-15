@@ -44,29 +44,6 @@ updates:
   commit-message:
     prefix: "ui"
   versioning-strategy: increase-if-necessary
-  ignore:
-    - dependency-name: "vue-fragment"
-    - dependency-name: "sass-loader"
-      update-types: ["version-update:semver-major","version-update:semver-minor"]
-    - dependency-name: "sass"
-      update-types: ["version-update:semver-major","version-update:semver-minor"]
-    - dependency-name: "stylus-loader"
-      update-types: ["version-update:semver-major"]
-    - dependency-name: "eslint"
-      update-types: ["version-update:semver-major"]
-    - dependency-name: "webpack"
-      update-types: ["version-update:semver-major"]
-    - dependency-name: "@vue/cli-service"
-      update-types: ["version-update:semver-major"]
-    - dependency-name: "@vue/cli-plugin-unit-jest"
-      update-types: ["version-update:semver-major"]
-- package-ecosystem: npm
-  directory: "/new-ui"
-  schedule:
-    interval: weekly
-  commit-message:
-    prefix: "new-ui"
-  versioning-strategy: increase-if-necessary
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
