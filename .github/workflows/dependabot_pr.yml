@@ -20,7 +20,13 @@ jobs:
           go-version: 1.17
       - name: Update go.sum
         run: |
-          for dir in cli api agent ssh; do (cd $dir && go mod tidy); done
+          # Run go mod tidy for every sub-project
+          for dir in cli api agent ssh; do
+              (cd $dir && go mod tidy)
+          done
+
+          # Run go mod tidy for root project
+          go mod tidy
       - name: Create diff artifact
         run: |
           git diff > /tmp/diff
