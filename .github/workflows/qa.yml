@@ -112,7 +112,7 @@ jobs:
 
       - name: Set up Node.JS 17.9.1 [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: "17.9.1"
 
