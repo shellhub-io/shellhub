@@ -81,6 +81,6 @@
     "vue-cli-plugin-vuetify": "~2.5.8",
     "vue-stripe-js": "^1.0.1",
     "vue-tsc": "^0.40.13",
-    "yup": "^0.32.11"
+    "yup": "^1.0.0"
   }
 }
