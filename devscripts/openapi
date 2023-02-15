@@ -25,7 +25,7 @@ generate() {
     esac
 
     ./bin/docker-compose \
-        exec new-ui \
+        exec ui \
         openapi-generator-cli generate \
             --skip-validate-spec \
             -i http://openapi:8080/openapi.json \
