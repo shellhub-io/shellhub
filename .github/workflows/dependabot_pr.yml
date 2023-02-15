@@ -21,7 +21,7 @@ jobs:
       - name: Update go.sum
         run: |
           # Run go mod tidy for every sub-project
-          for i $(seq 1 5); do
+          for i in $(seq 1 5); do
               for dir in cli api agent ssh; do
                   (cd $dir && go mod tidy)
               done
