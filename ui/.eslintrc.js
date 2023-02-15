@@ -1,50 +1,94 @@
+/* eslint-env node */
+require("@rushstack/eslint-patch/modern-module-resolution");
+
 module.exports = {
   root: true,
+
   env: {
-    // this section will be used to determine which APIs are available to us
-    // (i.e are we running in a browser environment or a node.js env)
     node: true,
-    browser: true,
     jest: true,
   },
-  parserOptions: {
-    parser: '@babel/eslint-parser',
-    // specifying a module sourcetype prevent eslint from marking import statements as errors
-    sourceType: 'module',
-    requireConfigFile: false,
-  },
+
   extends: [
-    // use the recommended rule set for both plain javascript and vue
-    'eslint:recommended',
-    'airbnb-base',
-    'plugin:vue/recommended',
+    "eslint:recommended",
+    "plugin:vue/vue3-essential",
+    "@vue/airbnb",
+    "@vue/eslint-config-typescript/recommended",
   ],
-  plugins: ['import'],
-  rules: {
-    'global-require': 0,
-    indent: [2, 2],
-    'no-cond-assign': ['error'],
-    'no-constant-condition': ['error'],
-    'no-empty-pattern': ['error'],
-    'no-redeclare': ['error'],
-    'no-delete-var': ['error'],
-    'no-var': ['error'],
-    'import/no-unresolved': 'off',
-    'import/no-extraneous-dependencies': ['error', { peerDependencies: true }],
-    'import/no-cycle': [0, { ignoreExternal: true }],
-    'import/extensions': 'off',
-    'spaced-comment': [2, 'always', {
-      exceptions: ['////'],
-      markers: ['/'],
-    }],
+
+  parserOptions: {
+    ecmaVersion: 2020,
   },
-  settings: {
-    'import/resolver': ['webpack', {
-      node: {
-        extensions: ['.js', '.vue'],
-        moduleDirectory: ['node_modules', 'src/'],
+  rules: {
+    quotes: [2, "double", "avoid-escape"],
+    "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
+    "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
+    "global-require": 0,
+    indent: [2],
+    "no-cond-assign": ["error"],
+    "no-constant-condition": ["error"],
+    "no-empty-pattern": ["error"],
+    "no-redeclare": ["error"],
+    "no-delete-var": ["error"],
+    "no-var": ["error"],
+    "import/no-unresolved": "off",
+    "import/no-extraneous-dependencies": ["error", { peerDependencies: true }],
+    "import/no-cycle": [0, { ignoreExternal: true }],
+    "import/extensions": "off",
+    "vue/max-len": ["error", { code: 140, template: 140 }],
+    "spaced-comment": [
+      2,
+      "always",
+      {
+        exceptions: ["////"],
+        markers: ["/"],
       },
-    },
+    ],
+    "import/no-useless-path-segments": [
+      0,
+      {
+        noUselessIndex: true,
+      },
+    ],
+    "vue/multi-word-component-names": [
+      0,
+      {
+        ignores: [],
+      },
+    ],
+    "no-shadow": [0, { hoist: "never" }],
+    "no-confusing-arrow": [0, { allowParens: true, onlyOneSimpleParam: false }],
+    "object-curly-newline": [0, "always"],
+    "no-plusplus": 0,
+    "@typescript-eslint/ban-types": [
+      "error",
+      {
+        extendDefaults: true,
+        types: {
+          "{}": false,
+        },
+      },
     ],
   },
+
+  overrides: [
+    {
+      files: ["**/__tests__/*.{j,t}s?(x)", "**/tests/unit/**/*.spec.{j,t}s?(x)"],
+      env: {
+        jest: true,
+      },
+    },
+    {
+      files: ["**/__tests__/*.{j,t}s?(x)", "**/tests/unit/**/*.spec.{j,t}s?(x)"],
+      env: {
+        jest: true,
+      },
+    },
+    {
+      files: ["**/__tests__/*.{j,t}s?(x)", "**/tests/unit/**/*.spec.{j,t}s?(x)"],
+      env: {
+        jest: true,
+      },
+    },
+  ],
 };

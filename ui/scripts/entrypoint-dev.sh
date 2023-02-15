@@ -15,4 +15,4 @@ for line in $(env); do
     export "VUE_APP_${VAR}=${VALUE}"
 done
 
-yarn serve
+yarn dev

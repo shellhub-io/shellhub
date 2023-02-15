@@ -1,166 +1,240 @@
 <template>
-  <v-layout
-    align-center
-    justify-center
-  >
-    <v-flex
-      xs12
-      sm8
-      md4
-      lg3
-      xl2
-    >
-      <v-card class="pa-6">
-        <v-container>
-          <v-layout
-            align-center
-            justify-center
-            column
-          >
-            <v-flex class="text-center primary--text">
-              <v-img
-                v-if="getStatusDarkMode"
-                src="@/assets/logo-inverted.png"
-                max-width="220"
-              />
+  <v-app>
+    <v-main>
+      <v-container class="full-height d-flex justify-center align-center" fluid>
+        <v-row align="center" justify="center">
+          <v-col cols="12" sm="8" md="4">
+            <v-card theme="dark" class="pa-6 bg-v-theme-surface" rounded="lg">
+              <v-card-title class="d-flex justify-center align-center mt-4">
+                <v-img
+                  :src="Logo"
+                  max-width="220"
+                  alt="ShellHub logo, a cloud with a shell in your base write ShellHub in the right side"
+                />
+              </v-card-title>
 
-              <v-img
-                v-else
-                src="@/assets/logo.png"
-                max-width="220"
-              />
-            </v-flex>
-          </v-layout>
-        </v-container>
+              <v-card-title class="d-flex justify-center">
+                Reset your password
+              </v-card-title>
 
-        <v-card-title class="justify-center">
-          Reset your password
-        </v-card-title>
+              <v-card-text>
+                <div
+                  class="d-flex align-center justify-center text-center mb-6"
+                >
+                  Please insert your new password.
+                </div>
+              </v-card-text>
 
-        <ValidationObserver
-          ref="obs"
-          v-slot="{ passes }"
-        >
-          <v-card-text>
-            <div class="d-flex align-center justify-center mb-6">
-              Please enter your new password you would like.
-            </div>
+              <v-card-text>
+                <v-text-field
+                  id="password"
+                  color="primary"
+                  prepend-icon="mdi-lock"
+                  :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  v-model="password"
+                  :error-messages="passwordError"
+                  label="Password"
+                  required
+                  variant="underlined"
+                  data-test="password-text"
+                  :type="showPassword ? 'text' : 'password'"
+                  @click:append-inner="showPassword = !showPassword"
+                />
 
-            <ValidationProvider
-              v-slot="{ errors }"
-              ref="providerNewPassword"
-              name="Priority"
-              rules="required|password|comparePasswords:@currentPassword"
-              vid="newPassword"
-            >
-              <v-text-field
-                v-model="newPassword"
-                type="password"
-                autocomplete="new-password"
-                label="New password"
-                class="mb-4"
-                :error-messages="errors"
-                required
-                data-test="newPassword-text"
-              />
-            </ValidationProvider>
+                <v-text-field
+                  id="password-confirm"
+                  color="primary"
+                  prepend-icon="mdi-lock"
+                  :append-inner-icon="
+                    showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'
+                  "
+                  v-model="passwordConfirm"
+                  :error-messages="passwordConfirmError"
+                  label="Confirm Password"
+                  required
+                  variant="underlined"
+                  data-test="password-confirm-text"
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  @click:append-inner="
+                    showConfirmPassword = !showConfirmPassword
+                  "
+                />
+              </v-card-text>
 
-            <ValidationProvider
-              v-slot="{ errors }"
-              ref="providerConfirmPassword"
-              rules="required|confirmed:newPassword"
-              name="confirm"
-            >
-              <v-text-field
-                v-model="newPasswordConfirm"
-                label="Confirm new password"
-                type="password"
-                autocomplete="new-password"
-                class="mb-4"
-                :error-messages="errors"
-                required
-                data-test="confirmNewPassword-text"
-              />
-            </ValidationProvider>
-          </v-card-text>
+              <v-card-actions class="justify-center">
+                <v-btn
+                  type="submit"
+                  color="primary"
+                  variant="tonal"
+                  data-test="login-btn"
+                  @click="updatePassword"
+                >
+                  UPDATE PASSWORD
+                </v-btn>
+              </v-card-actions>
 
-          <v-card-actions class="justify-center">
-            <v-btn
-              type="submit"
-              color="primary"
-              data-test="login-btn"
-              @click="passes(updatePassword)"
-            >
-              UPDATE PASSWORD
-            </v-btn>
-          </v-card-actions>
-
-          <v-card-subtitle
-            class="d-flex align-center justify-center pa-4 mx-auto pt-2"
-            data-test="isCloud-card"
-          >
-            Back to
-            <router-link
-              class="ml-1"
-              :to="{ name: 'login' }"
-            >
-              Login
-            </router-link>
-          </v-card-subtitle>
-        </ValidationObserver>
-      </v-card>
-    </v-flex>
-  </v-layout>
+              <v-card-subtitle
+                class="d-flex align-center justify-center pa-4 mx-auto pt-2"
+                data-test="isCloud-card"
+              >
+                Back to
+                <router-link class="ml-1" :to="{ name: 'login' }">
+                  Login
+                </router-link>
+              </v-card-subtitle>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
-<script>
-
+<script lang="ts">
+import { useField } from "vee-validate";
+import { defineComponent, onMounted, ref, watch } from "vue";
+import { LocationQueryValue, useRoute, useRouter } from "vue-router";
+import * as yup from "yup";
+import Logo from "../assets/logo-inverted.png";
 import {
-  ValidationObserver,
-  ValidationProvider,
-} from 'vee-validate';
+  INotificationsError,
+  INotificationsSuccess,
+} from "../interfaces/INotifications";
+import { useStore } from "../store";
 
-export default {
-  name: 'ForgotPasswordView',
-
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
-
-  data() {
-    return {
-      newPassword: '',
-      newPasswordConfirm: '',
-      data: {},
-    };
-  },
-
-  computed: {
-    getStatusDarkMode() {
-      return this.$store.getters['layout/getStatusDarkMode'];
-    },
-  },
-
-  async created() {
-    this.data = {
-      id: this.$route.query.id,
-      token: this.$route.query.token,
-    };
-  },
-
-  methods: {
-    async updatePassword() {
-      try {
-        this.data.password = this.newPassword;
-        await this.$store.dispatch('users/updatePassword', this.data);
-
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.updatingAccount);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.updatingAccount);
-      }
-    },
-  },
+type TUpdatePassword = {
+  id: LocationQueryValue | LocationQueryValue[];
+  token: LocationQueryValue | LocationQueryValue[];
+  password: string;
 };
 
+export default defineComponent({
+  setup() {
+    const store = useStore();
+    const route = useRoute();
+    const router = useRouter();
+    const data = ref({} as TUpdatePassword);
+    const showPassword = ref(false);
+    const showConfirmPassword = ref(false);
+
+    const {
+      value: password,
+      errorMessage: passwordError,
+      setErrors: setPasswordError,
+    } = useField<string>(
+      "password",
+      yup
+        .string()
+        .required()
+        .min(5, "Your password should be 5-30 characters long")
+        .max(30, "Your password should be 5-30 characters long"),
+      {
+        initialValue: "",
+      },
+    );
+
+    const {
+      value: passwordConfirm,
+      errorMessage: passwordConfirmError,
+      resetField: resetPasswordConfirm,
+      setErrors: setPasswordConfirmError,
+    } = useField<string>(
+      "passwordConfirm",
+      yup
+        .string()
+        .required()
+        .test(
+          "passwords-match",
+          "Passwords do not match",
+          (value) => password.value === value,
+        ),
+      {
+        initialValue: "",
+      },
+    );
+
+    onMounted(() => {
+      data.value = {
+        id: route.query.id,
+        token: route.query.token,
+        password: "",
+      };
+    });
+
+    watch(password, () => {
+      if (password.value === passwordConfirm.value) {
+        resetPasswordConfirm();
+      }
+
+      if (password.value !== passwordConfirm.value && passwordConfirm.value) {
+        setPasswordConfirmError("Passwords do not match");
+      }
+    });
+
+    const hasErros = () => {
+      if (password.value === "") {
+        setPasswordError("this is a required field");
+        return true;
+      }
+
+      if (passwordConfirm.value === "") {
+        setPasswordConfirmError("this is a required field");
+        return true;
+      }
+
+      if (passwordError.value) {
+        return true;
+      }
+
+      if (passwordConfirmError.value) {
+        return true;
+      }
+
+      return false;
+    };
+
+    const updatePassword = async () => {
+      if (hasErros()) return;
+      try {
+        data.value = {
+          ...data.value,
+          password: password.value,
+        };
+        await store.dispatch("users/updatePassword", data.value);
+        await router.push({ name: "login" });
+        store.dispatch(
+          "snackbar/showSnackbarSuccessAction",
+          INotificationsSuccess.updatingAccount,
+        );
+      } catch (error: any) {
+        store.dispatch(
+          "snackbar/showSnackbarErrorAction",
+          INotificationsError.updatingAccount,
+        );
+        throw new Error(error);
+      }
+    };
+
+    return {
+      Logo,
+      updatePassword,
+      password,
+      passwordError,
+      passwordConfirm,
+      passwordConfirmError,
+      showPassword,
+      showConfirmPassword,
+    };
+  },
+});
 </script>
+
+<style>
+.full-height {
+  height: 100vh;
+}
+
+.v-field__append-inner {
+  cursor: pointer;
+}
+</style>

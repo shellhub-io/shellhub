@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`FirewallRules Renders the component 1`] = `
-<div>
-  <firewall-stub data-test="firewall-component"></firewall-stub>
-</div>
-`;
