@@ -1,10 +1,8 @@
 package server
 
 import (
-	"fmt"
 	"net"
 	"os"
-	"regexp"
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -18,9 +16,8 @@ import (
 )
 
 type Options struct {
-	LocalForwarding string        `envconfig:"local_forwarding"`
-	ConnectTimeout  time.Duration `envconfig:"connect_timeout" default:"30s"`
-	RedisURI        string        `envconfig:"redis_uri" default:"redis://redis:6379"`
+	ConnectTimeout time.Duration `envconfig:"connect_timeout" default:"30s"`
+	RedisURI       string        `envconfig:"redis_uri" default:"redis://redis:6379"`
 }
 
 type Server struct {
@@ -50,15 +47,6 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 			handler.SFTPSubsystem: handler.SFTPSubsystemHandler(tunnel),
 		},
 		LocalPortForwardingCallback: func(ctx gliderssh.Context, dhost string, dport uint32) bool {
-			pattern := opts.LocalForwarding
-			if pattern == "" { // Empty pattern not match anything.
-				pattern = "(?!.*)"
-			}
-
-			if ok, err := regexp.MatchString(pattern, fmt.Sprintf("%s:%d", dhost, dport)); !ok || err != nil {
-				return false
-			}
-
 			return true
 		},
 		ReversePortForwardingCallback: func(ctx gliderssh.Context, bindHost string, bindPort uint32) bool {
