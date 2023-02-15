@@ -48,19 +48,6 @@ services:
         - NPM_CONFIG_REGISTRY=${SHELLHUB_NPM_REGISTRY}
     volumes:
       - ./ui:/src
-    environment:
-      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
-  new-ui:
-    image: new-ui
-    build:
-      context: .
-      dockerfile: new-ui/Dockerfile
-      target: development
-      network: host
-      args:
-        - NPM_CONFIG_REGISTRY=${SHELLHUB_NPM_REGISTRY}
-    volumes:
-      - ./new-ui:/src
   gateway:
     image: gateway
     build:
