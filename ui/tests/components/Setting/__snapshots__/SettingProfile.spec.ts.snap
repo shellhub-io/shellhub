@@ -24,7 +24,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -41,7 +41,7 @@ exports[`SettingProfile > Renders the component 1`] = `
                 <!----><label class=\\"v-label v-field-label\\" for=\\"input-1\\">
                   <!---->Name
                 </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-1\\" required=\\"\\" class=\\"v-field__input\\">
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-1\\" aria-describedby=\\"input-1-messages\\" required=\\"\\" class=\\"v-field__input\\">
                 <!---->
               </div>
               <!---->
@@ -55,7 +55,7 @@ exports[`SettingProfile > Renders the component 1`] = `
           </div>
           <!---->
           <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-1-messages\\">
               <!---->
             </transition-group-stub>
             <!---->
@@ -67,7 +67,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -81,16 +81,16 @@ exports[`SettingProfile > Renders the component 1`] = `
               </div>
               <!---->
               <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-3\\" style=\\"\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-3\\">
                   <!---->Username
                 </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-3\\" required=\\"\\" class=\\"v-field__input\\">
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-3\\" aria-describedby=\\"input-3-messages\\" required=\\"\\" class=\\"v-field__input\\">
                 <!---->
               </div>
               <!---->
               <!---->
               <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-3\\" style=\\"\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-3\\">
                   <!---->Username
                 </label>
               </div>
@@ -98,7 +98,7 @@ exports[`SettingProfile > Renders the component 1`] = `
           </div>
           <!---->
           <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-3-messages\\">
               <!---->
             </transition-group-stub>
             <!---->
@@ -110,7 +110,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -124,16 +124,16 @@ exports[`SettingProfile > Renders the component 1`] = `
               </div>
               <!---->
               <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-5\\" style=\\"\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-5\\">
                   <!---->Email
                 </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-5\\" required=\\"\\" class=\\"v-field__input\\">
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-5\\" aria-describedby=\\"input-5-messages\\" required=\\"\\" class=\\"v-field__input\\">
                 <!---->
               </div>
               <!---->
               <!---->
               <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-5\\" style=\\"\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-5\\">
                   <!---->Email
                 </label>
               </div>
@@ -141,7 +141,7 @@ exports[`SettingProfile > Renders the component 1`] = `
           </div>
           <!---->
           <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-5-messages\\">
               <!---->
             </transition-group-stub>
             <!---->
@@ -170,7 +170,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -187,7 +187,7 @@ exports[`SettingProfile > Renders the component 1`] = `
                 <!----><label class=\\"v-label v-field-label\\" for=\\"input-8\\">
                   <!---->Current password
                 </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-8\\" required=\\"\\" class=\\"v-field__input\\">
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-8\\" aria-describedby=\\"input-8-messages\\" required=\\"\\" class=\\"v-field__input\\">
                 <!---->
               </div>
               <!---->
@@ -203,7 +203,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <!---->
           </div>
           <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-8-messages\\">
               <!---->
             </transition-group-stub>
             <!---->
@@ -215,7 +215,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -232,7 +232,7 @@ exports[`SettingProfile > Renders the component 1`] = `
                 <!----><label class=\\"v-label v-field-label\\" for=\\"input-10\\">
                   <!---->New password
                 </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-10\\" required=\\"\\" class=\\"v-field__input\\">
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-10\\" aria-describedby=\\"input-10-messages\\" required=\\"\\" class=\\"v-field__input\\">
                 <!---->
               </div>
               <!---->
@@ -248,7 +248,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <!---->
           </div>
           <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-10-messages\\">
               <!---->
             </transition-group-stub>
             <!---->
@@ -260,7 +260,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -277,7 +277,7 @@ exports[`SettingProfile > Renders the component 1`] = `
                 <!----><label class=\\"v-label v-field-label\\" for=\\"input-12\\">
                   <!---->Confirm new password
                 </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-12\\" required=\\"\\" class=\\"v-field__input\\">
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-12\\" aria-describedby=\\"input-12-messages\\" required=\\"\\" class=\\"v-field__input\\">
                 <!---->
               </div>
               <!---->
@@ -293,7 +293,7 @@ exports[`SettingProfile > Renders the component 1`] = `
             <!---->
           </div>
           <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-12-messages\\">
               <!---->
             </transition-group-stub>
             <!---->
