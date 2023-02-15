@@ -1,160 +1,115 @@
 <template>
-  <fragment>
-    <v-alert
-      v-if="notFound"
-      text
-      color="#bd4147"
-      outlined
-      dismissible
-    >
-      Sorry, we couldn't find the page you were looking for
-    </v-alert>
-    <v-row
-      class="mt-4"
-    >
-      <v-col
-        v-for="(item, index) in items"
-        :key="index"
-        cols="12"
-        md="4"
-        class="pt-0"
-      >
-        <v-card
-          :disabled="!currentInANamespace"
-          outlined
-          elevation="1"
-        >
-          <v-list-item three-line>
-            <v-list-item-content>
-              <div class="overline mb-4">
-                {{ item.title }}
-              </div>
-              <v-list-item-title class="headline mb-1">
-                {{ stats[item.fieldObject] || 0 }}
-              </v-list-item-title>
-              <v-list-item-subtitle class="grey--text">
-                {{ item.content }}
-              </v-list-item-subtitle>
-            </v-list-item-content>
-
-            <v-list-item-avatar
-              tile
-              size="80"
-            >
-              <v-icon x-large>
-                {{ item.icon }}
-              </v-icon>
-            </v-list-item-avatar>
-          </v-list-item>
-
-          <v-card-actions class="ma-2">
-            <div v-if="item.pathName == 'addDevice'">
-              <DeviceAdd
-                :small-button="true"
-                data-test="addDevice-btn"
-              />
-            </div>
-
-            <div v-else>
-              <v-btn
-                :to="{ name: item.pathName }"
-                color="primary"
-                small
-                :data-test="item.nameUseTest"
-              >
-                {{ item.buttonName }}
-              </v-btn>
-            </div>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-    </v-row>
-  </fragment>
+  <v-row class="mt-2 ml-2" v-if="!hasStatus">
+    <v-col cols="12" md="4" class="pt-0" v-for="item in items" :key="item.id">
+      <div data-test="dashboard-card">
+        <Card
+          :id="item.id"
+          :title="item.title"
+          :fieldObject="item.fieldObject"
+          :content="item.content"
+          :icon="item.icon"
+          :buttonName="item.buttonName"
+          :pathName="item.pathName"
+          :nameUseTest="item.nameUseTest"
+          :stats="item.stats"
+        />
+      </div>
+    </v-col>
+  </v-row>
+  <v-card data-test="dashboard-failed" class="mt-2 pa-4 bg-v-theme-surface" v-else>
+    <p class="text-center">Something is wrong, try again !</p>
+  </v-card>
 </template>
 
-<script>
+<script lang="ts">
+import { computed, defineComponent, onMounted, ref } from "vue";
+import { INotificationsError } from "../interfaces/INotifications";
+import Card from "../components/Card/Card.vue";
+import { useStore } from "../store";
 
-import DeviceAdd from '@/components/device/DeviceAdd';
-
-export default {
-  name: 'DashboardView',
-
-  components: {
-    DeviceAdd,
-  },
-
-  props: {
-    notFound: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-  },
-
-  data() {
-    return {
-      items: [
-        {
-          title: 'Registered Devices',
-          fieldObject: 'registered_devices',
-          content: 'Registered devices into the tenancy account',
-          icon: 'devices',
-          buttonName: 'Add Device',
-          pathName: 'addDevice',
-          nameUseTest: 'addDevice-btn',
-        },
-        {
-          title: 'Online Devices',
-          fieldObject: 'online_devices',
-          content: 'Devices are online and ready for connecting',
-          icon: 'devices',
-          buttonName: 'View all Devices',
-          pathName: 'devices',
-          nameUseTest: 'viewDevices-btn',
-        },
-        {
-          title: 'Active Sessions',
-          fieldObject: 'active_sessions',
-          content: 'Active SSH Sessions opened by users',
-          icon: 'devices',
-          buttonName: 'View all Sessions',
-          pathName: 'sessions',
-          nameUseTest: 'viewSessions-btn',
-        },
-      ],
-    };
-  },
-
-  computed: {
-    stats() {
-      return this.$store.getters['stats/stats'];
-    },
-
-    currentInANamespace() {
-      return localStorage.getItem('tenant') !== '';
-    },
-
-    hasNamespace() {
-      return this.$store.getters['namespaces/getNumberNamespaces'] > 0;
-    },
-  },
-
-  watch: {
-    hasNamespace(status) {
-      if (status) {
-        this.$store.dispatch('stats/get');
-      }
-    },
-  },
-
-  created() {
-    this.$store.dispatch('users/setStatusUpdateAccountDialog', true);
-  },
-
-  mounted() {
-    this.flag = localStorage.getItem('flag');
-    localStorage.removeItem('flag');
-  },
+type ItemCard = {
+  id: number;
+  title: string;
+  fieldObject: string;
+  content: string;
+  icon: string;
+  buttonName: string;
+  pathName: string;
+  nameUseTest: string;
+  stats: number;
 };
 
+export default defineComponent({
+  name: "DashboardView",
+  components: { Card },
+  setup() {
+    const store = useStore();
+    const items = ref<ItemCard[]>([]);
+    const hasStatus = ref(false);
+    const itemsStats = computed(() => store.getters["stats/stats"]);
+
+    onMounted(async () => {
+      try {
+        await store.dispatch("stats/get");
+        items.value = [
+          {
+            id: 1,
+            title: "Registered Devices",
+            fieldObject: "registered_devices",
+            content: "Registered devices into the tenancy account",
+            icon: "mdi-devices",
+            stats: itemsStats.value.registered_devices ?? 0,
+            buttonName: "Add Device",
+            pathName: "devices",
+            nameUseTest: "registeredDevices-btn",
+          },
+          {
+            id: 2,
+            title: "Online Devices",
+            fieldObject: "online_devices",
+            content: "Devices are online and ready for connecting",
+            icon: "mdi-devices",
+            stats: itemsStats.value.online_devices ?? 0,
+            buttonName: "View all Devices",
+            pathName: "devices",
+            nameUseTest: "viewOnlineDevices-btn",
+          },
+          {
+            id: 3,
+            title: "Active Sessions",
+            fieldObject: "active_sessions",
+            content: "Active SSH Sessions opened by users",
+            icon: "mdi-devices",
+            stats: itemsStats.value.active_sessions ?? 0,
+            buttonName: "View all Sessions",
+            pathName: "sessions",
+            nameUseTest: "viewActiveSession-btn",
+          },
+        ];
+      } catch (error: any) {
+        switch (true) {
+          case error.response && error.response.status === 403: {
+            hasStatus.value = true;
+            break;
+          }
+          default: {
+            hasStatus.value = true;
+            store.dispatch(
+              "snackbar/showSnackbarErrorAction",
+              INotificationsError.dashboard,
+            );
+            break;
+          }
+        }
+        throw new Error(error);
+      }
+    });
+
+    return {
+      hasStatus,
+      itemsStats,
+      items,
+    };
+  },
+});
 </script>

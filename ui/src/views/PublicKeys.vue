@@ -1,19 +1,70 @@
 <template>
+  <div
+    class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2"
+  >
+    <h1>Public Keys</h1>
+
+    <v-spacer />
+    <v-spacer />
+
+    <PublicKeyAdd @update="refresh" />
+  </div>
+
   <div>
-    <Publickey data-test="publickey-component" />
+    <PublicKeysList v-if="hasPublicKey" />
+
+    <BoxMessage
+      v-if="showBoxMessage"
+      typeMessage="publicKey"
+      data-test="BoxMessagePublicKey-component"
+    />
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { computed, defineComponent, onMounted, ref } from "vue";
+import { useStore } from "../store";
+import BoxMessage from "../components/Box/BoxMessage.vue";
+import PublicKeyAdd from "../components/PublicKeys/PublicKeyAdd.vue";
+import PublicKeysList from "../components/PublicKeys/PublicKeysList.vue";
+import { INotificationsError } from "../interfaces/INotifications";
 
-import Publickey from '@/components/public_key/PublicKey';
+export default defineComponent({
+  setup() {
+    const store = useStore();
+    const show = ref(false);
+    const hasPublicKey = computed(
+      () => store.getters["publicKeys/getNumberPublicKeys"] > 0,
+    );
+    const showBoxMessage = computed(() => !hasPublicKey.value && show.value);
 
-export default {
-  name: 'PublickeysView',
+    const refresh = async () => {
+      try {
+        await store.dispatch("publicKeys/refresh");
+      } catch (error: any) {
+        store.dispatch(
+          "snackbar/showSnackbarErrorLoading",
+          INotificationsError.firewallRuleList,
+        );
+        throw new Error(error);
+      }
+    };
 
-  components: {
-    Publickey,
+    onMounted(async () => {
+      store.dispatch("box/setStatus", true);
+      store.dispatch("publicKeys/resetPagePerpage");
+      await refresh();
+      store.dispatch("tags/fetch");
+      show.value = true;
+    });
+
+    return {
+      show,
+      hasPublicKey,
+      showBoxMessage,
+      refresh,
+    };
   },
-};
-
+  components: { BoxMessage, PublicKeysList, PublicKeyAdd },
+});
 </script>

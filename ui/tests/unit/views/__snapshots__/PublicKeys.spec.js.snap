@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`Publickeys Renders the component 1`] = `
-<div>
-  <publickey-stub data-test="publickey-component"></publickey-stub>
-</div>
-`;

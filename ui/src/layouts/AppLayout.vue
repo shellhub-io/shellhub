@@ -1,203 +1,188 @@
 <template>
-  <fragment>
+  <v-app :theme="getStatusDarkMode" v-bind="$attrs">
     <v-navigation-drawer
+      theme="dark"
       v-model="showNavigationDrawer"
       app
-      dark
+      class="bg-v-theme-surface"
     >
-      <v-list-item>
-        <v-list-item-content>
-          <v-list-item-title class="d-flex justify-center">
-            <router-link to="/">
-              <v-img
-                class="d-sm-flex hidden-sm-and-down"
-                src="@/assets/logo-inverted.png"
-                max-width="140"
-              />
-            </router-link>
-          </v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
+      <v-app-bar-title>
+        <router-link to="/" class="text-decoration-none">
+          <div class="d-flex justify-center pa-4 pb-2">
+            <v-img
+              class="d-sm-flex hidden-sm-and-down"
+              :src="Logo"
+              max-width="140"
+              alt="Shell logo, a cloud with the writing 'ShellHub' on the right side"
+            />
+          </div>
+        </router-link>
+        <v-divider class="ma-2" />
+      </v-app-bar-title>
 
-      <v-divider class="ma-2" />
-
-      <div class="pr-2 pl-2">
+      <div class="pa-2">
         <Namespace data-test="namespace-component" />
+        <v-divider class="ma-2" />
       </div>
 
-      <v-divider class="ma-2" />
-
-      <v-list>
+      <v-list class="bg-v-theme-surface">
         <v-list-item
           v-for="item in visibleItems"
           :key="item.title"
           :to="item.path"
-          two-line
-          :disabled="disableItem(item.icon)"
+          lines="two"
+          class="mb-2"
+          :disabled="disableItem(item.title)"
         >
-          <v-list-item-action>
-            <v-icon v-text="item.icon" />
-          </v-list-item-action>
+          <div class="d-flex align-center">
+            <div class="mr-3">
+              <v-icon>
+                {{ item.icon }}
+              </v-icon>
+            </div>
 
-          <v-list-item-content>
-            <v-list-item-title
-              :data-test="item.icon+'-listItem'"
-              v-text="item.title"
-            />
-          </v-list-item-content>
+            <v-list-item-title :data-test="item.icon + '-listItem'">
+              {{ item.title }}
+            </v-list-item-title>
+          </div>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
 
+    <SnackbarComponent />
+
     <AppBar />
 
     <v-main>
-      <v-container
-        class="pl-8 pr-8"
-        fluid
-      >
-        <router-view :key="$route.fullPath" />
-      </v-container>
+      <slot>
+        <v-container class="pa-8" fluid>
+          <router-view :key="currentRoute.value.path" />
+        </v-container>
+      </slot>
     </v-main>
 
-    <v-overlay :value="hasSpinner">
-      <v-progress-circular
-        indeterminate
-        size="64"
-      />
+    <v-overlay v-model="hasSpinner">
+      <div class="full-width-height d-flex justify-center align-center">
+        <v-progress-circular indeterminate size="64" alt="Request loading" />
+      </div>
     </v-overlay>
+  </v-app>
 
-    <UserWarning data-test="userWarning-component" />
-  </fragment>
+  <UserWarning data-test="userWarning-component" />
 </template>
 
-<script>
+<script lang="ts">
+import { computed, onBeforeUnmount, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import Logo from "../assets/logo-inverted.png";
+import { useStore } from "../store";
+import UserWarning from "../components/User/UserWarning.vue";
+import Namespace from "../../src/components/Namespace/Namespace.vue";
+import AppBar from "../components/AppBar/AppBar.vue";
+import { envVariables } from "../envVariables";
 
-import AppBar from '@/components/app_bar/AppBar';
-import UserWarning from '@/components/user/UserWarning';
-import Namespace from '@/components/namespace/Namespace';
+const items = [
+  {
+    icon: "mdi-view-dashboard",
+    title: "Dashboard",
+    path: "/",
+  },
+  {
+    icon: "mdi-cellphone-link",
+    title: "Devices",
+    path: "/devices",
+  },
+  {
+    icon: "mdi-history",
+    title: "Sessions",
+    path: "/sessions",
+  },
+  {
+    icon: "mdi-security",
+    title: "Firewall Rules",
+    path: "/firewall/rules",
+    hidden: !envVariables.isEnterprise,
+  },
+  {
+    icon: "mdi-key",
+    title: "Public Keys",
+    path: "/sshkeys/public-keys",
+  },
+  {
+    icon: "mdi-cog",
+    title: "Settings",
+    path: "/settings",
+  },
+];
 
 export default {
-  name: 'AppLayoutComponent',
+  name: "AppLayout",
+  inheritAttrs: false,
+  setup() {
+    const router = useRouter();
+    const store = useStore();
+    const currentRoute = computed(() => router.currentRoute);
+    const visibleItems = computed(() => items.filter((item) => !item.hidden));
+    const hasNamespaces = computed(
+      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
+    );
+    const getStatusDarkMode = computed(
+      () => store.getters["layout/getStatusDarkMode"],
+    );
 
-  components: {
-    AppBar,
-    UserWarning,
-    Namespace,
-  },
-
-  data() {
-    return {
-      items: [
-        {
-          icon: 'dashboard',
-          title: 'Dashboard',
-          path: '/',
-        },
-        {
-          icon: 'devices',
-          title: 'Devices',
-          path: '/devices',
-        },
-        {
-          icon: 'history',
-          title: 'Sessions',
-          path: '/sessions',
-        },
-        {
-          icon: 'security',
-          title: 'Firewall Rules',
-          path: '/firewall/rules',
-          hidden: !this.$env.isEnterprise,
-        },
-        {
-          icon: 'vpn_key',
-          title: 'Public Keys',
-          path: '/sshkeys/public-keys',
-        },
-        {
-          icon: 'mdi-cog',
-          title: 'Settings',
-          path: '/settings/namespace-manager',
-        },
-      ],
-      admins: [
-        ['Management', 'people_outline'],
-        ['Settings', 'settings'],
-      ],
-    };
-  },
-
-  computed: {
-    visibleItems() {
-      return this.items.filter((item) => !item.hidden);
-    },
-
-    hasNamespaces() {
-      return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
-    },
-
-    hasSpinner() {
-      return this.$store.getters['spinner/getStatus'];
-    },
-
-    showNavigationDrawer: {
+    const showNavigationDrawer = computed({
       get() {
-        return !this.$store.getters['mobile/isMobile'] || this.$store.getters['layout/getStatusNavigationDrawer'];
+        return (
+          !store.getters["mobile/isMobile"]
+          || store.getters["layout/getStatusNavigationDrawer"]
+        );
       },
       set(status) {
-        this.$store.dispatch('layout/setStatusNavigationDrawer', status);
+        store.dispatch("layout/setStatusNavigationDrawer", status);
       },
-    },
+    });
+    const hasSpinner = computed(() => store.getters["spinner/status"]);
+
+    const onResize = () => {
+      const isMobile = window.innerWidth < 1265;
+      store.dispatch("mobile/setIsMobileStatus", isMobile);
+    };
+
+    onMounted(() => {
+      onResize();
+      window.addEventListener("resize", onResize, { passive: true });
+      store.dispatch("privateKey/fetch");
+    });
+
+    onBeforeUnmount(() => {
+      if (typeof window === "undefined") return;
+
+      window.removeEventListener("resize", onResize);
+    });
+
+    const disableItem = (item: string) => !hasNamespaces.value && item !== "Dashboard";
+
+    return {
+      Logo,
+      showNavigationDrawer,
+      currentRoute,
+      visibleItems,
+      hasSpinner,
+      disableItem,
+      getStatusDarkMode,
+    };
   },
-
-  beforeDestroy() {
-    if (typeof window === 'undefined') return;
-
-    window.removeEventListener('resize', this.onResize, { passive: true });
-  },
-
-  created() {
-    this.onResize();
-    window.addEventListener('resize', this.onResize, { passive: true });
-
-    this.$store.dispatch('privatekeys/fetch');
-  },
-
-  methods: {
-    triggerClick(item) {
-      switch (item.type) {
-      case 'path':
-        this.$router.push(item.path).catch(() => {});
-        break;
-      case 'method':
-        this[item.method]();
-        break;
-      default:
-        break;
-      }
-    },
-
-    onResize() {
-      const isMobile = this.$vuetify.breakpoint.mobile;
-      this.$store.dispatch('mobile/setIsMobileStatus', isMobile);
-    },
-
-    disableItem(item) {
-      return !this.hasNamespaces && item !== 'dashboard';
-    },
-  },
+  components: { UserWarning, Namespace, AppBar },
 };
-
 </script>
 
-<style>
-.v-list-active {
-  border-left: 4px solid var(--v-primary-base);
+<style lang="css" scoped>
+.admin-name {
+  color: #fff;
+  text-decoration: none;
 }
-
-.text-shadow {
-  text-shadow: #000 0 0 6px;
-  color: transparent;
+.full-width-height {
+  width: 100vw !important;
+  height: 100vh !important;
 }
 </style>

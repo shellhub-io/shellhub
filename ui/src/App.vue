@@ -1,64 +1,73 @@
 <template>
   <v-app>
-    <Snackbar data-test="snackbar-component" />
-
-    <component
-      :is="layout"
-      :data-test="layout+'-component'"
-    />
+    <component :is="layout" :data-test="layout + '-component'" />
   </v-app>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
+import SimpleLayout from "./layouts/SimpleLayout.vue";
+import AppLayout from "./layouts/AppLayout.vue";
+import { useStore } from "./store";
+import { INotificationsSuccess, INotificationsError } from "@/interfaces/INotifications";
 
-import AppLayout from '@/layouts/AppLayout';
-import SimpleLayout from '@/layouts/SimpleLayout';
-import Snackbar from '@/components/snackbar/Snackbar';
-
-export default {
-  name: 'App',
-
-  // Define as many layouts you want for the application
+export default defineComponent({
+  name: "App",
   components: {
     appLayout: AppLayout,
     simpleLayout: SimpleLayout,
-    Snackbar,
   },
+  setup() {
+    const store = useStore();
+    const router = useRouter();
 
-  computed: {
-    layout() {
-      return this.$store.getters['layout/getLayout'];
-    },
+    const layout = computed(() => store.getters["layout/getLayout"]);
+    const token = computed(() => window.location.search.replace("?token=", ""));
 
-    isLoggedIn() {
-      return this.$store.getters['auth/isLoggedIn'];
-    },
+    const isLoggedIn = computed(() => store.getters["auth/isLoggedIn"]);
+    const hasLoggedID = computed(() => store.getters["auth/id"] !== "");
 
-    hasLoggedID() {
-      return this.$store.getters['auth/id'] !== '';
-    },
-  },
-
-  async created() {
-    this.$vuetify.theme.dark = this.$store.getters['layout/getStatusDarkMode'];
-
-    if (!this.isLoggedIn) {
-      this.$store.dispatch('layout/setLayout', 'simpleLayout');
-    }
-
-    if (!this.hasLoggedID && this.isLoggedIn) {
-      try {
-        await this.$store.dispatch('auth/logout');
-
-        this.$store.dispatch('layout/setLayout', 'simpleLayout');
-        this.$router.push('/login');
-
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceReload);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$error.namespaceLoad);
+    onMounted(async () => {
+      if (!isLoggedIn.value && token.value) {
+        store.dispatch("layout/setLayout", "simpleLayout");
+        await router.push({
+          name: "login",
+          query: {
+            token: token.value,
+          },
+        });
       }
-    }
-  },
-};
 
+      if (!isLoggedIn.value) {
+        store.dispatch("layout/setLayout", "simpleLayout");
+        await store.dispatch("auth/logout");
+        router.push("/login");
+      }
+
+      if (!hasLoggedID.value && isLoggedIn.value) {
+        try {
+          await store.dispatch("auth/logout");
+
+          store.dispatch("layout/setLayout", "simpleLayout");
+          router.push("/login");
+
+          store.dispatch(
+            "snackbar/showSnackbarSuccessAction",
+            INotificationsSuccess.namespaceReload,
+          );
+        } catch {
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.namespaceLoad,
+          );
+        }
+      }
+    });
+
+    return {
+      layout,
+    };
+  },
+});
 </script>

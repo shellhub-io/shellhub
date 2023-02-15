@@ -1,13 +1,24 @@
 <template>
-  <fragment>
-    <router-view />
-  </fragment>
+  <v-main>
+    <snackbar-component />
+    <router-view :key="currentRoute.value.path" />
+  </v-main>
 </template>
 
-<script>
+<script lang="ts">
+import { computed } from "vue";
+import { useRouter } from "vue-router";
 
 export default {
-  name: 'SimpleLayoutComponent',
-};
+  name: "SimpleLayout",
+  setup() {
+    const router = useRouter();
 
+    const currentRoute = computed(() => router.currentRoute);
+
+    return {
+      currentRoute,
+    };
+  },
+};
 </script>

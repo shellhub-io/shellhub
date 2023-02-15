@@ -1,289 +1,399 @@
 <template>
-  <v-layout
-    align-center
-    justify-center
-  >
-    <div class="text-center">
-      <v-overlay :value="overlay">
-        <v-progress-circular
-          indeterminate
-          size="64"
-        />
-      </v-overlay>
-    </div>
-
-    <v-flex
-      xs12
-      sm8
-      md4
-      lg3
-      xl2
-    >
-      <v-card
-        v-if="!showMessage"
-        class="pa-6"
-      >
-        <v-container>
-          <v-layout
-            align-center
-            justify-center
-            column
-          >
-            <v-flex class="text-center primary--text">
-              <v-img
-                v-if="getStatusDarkMode"
-                src="@/assets/logo-inverted.png"
-                max-width="220"
-              />
-
-              <v-img
-                v-else
-                src="@/assets/logo.png"
-                max-width="220"
-              />
-            </v-flex>
-          </v-layout>
-        </v-container>
-
-        <v-card-title class="justify-center">
-          Sign up for free
-        </v-card-title>
-
-        <ValidationObserver
-          ref="obs"
-          v-slot="{ passes }"
+  <v-app>
+    <v-main class="d-flex justify-center align-center">
+      <v-container class="w-auto" fluid>
+        <div class="text-center">
+          <v-overlay :value="overlay">
+            <v-progress-circular
+              indeterminate
+              size="64"
+              alt="Sign Up loading"
+            />
+          </v-overlay>
+        </div>
+        <v-card
+          v-if="!showMessage"
+          theme="dark"
+          class="pa-6 bg-v-theme-surface"
+          rounded="lg"
         >
-          <v-card-text>
-            <ValidationProvider
-              v-slot="{ errors }"
-              ref="providerName"
-              name="Priority"
-              vid="name"
-              rules="required"
-            >
-              <v-text-field
-                v-model="newUser.name"
-                prepend-icon="person"
-                label="Name"
-                type="text"
-                :error-messages="errors"
-                data-test="name-text"
-              />
-            </ValidationProvider>
+          <v-card-title class="d-flex justify-center align-center">
+            <v-img
+              :src="Logo"
+              max-width="220"
+              alt="ShellHub logo, a cloud with a shell in your base write ShellHub in the right side"
+            />
+          </v-card-title>
+          <v-container class="pb-0 mb-0">
+            <form @submit.prevent="createAccount">
+              <v-card-title class="text-center">Create Account</v-card-title>
+              <v-container>
+                <v-text-field
+                  color="primary"
+                  prepend-icon="mdi-account"
+                  v-model="name"
+                  :error-messages="nameError"
+                  required
+                  label="Name"
+                  variant="underlined"
+                  data-test="name-text"
+                />
 
-            <ValidationProvider
-              v-slot="{ errors }"
-              ref="providerUsername"
-              name="Priority"
-              vid="username"
-              rules="required|username|usernameSpecialCharacters|noWhiteSpaces"
-            >
-              <v-text-field
-                v-model="newUser.username"
-                prepend-icon="person"
-                label="Username"
-                type="text"
-                autocomplete="username"
-                :error-messages="errors"
-                data-test="username-text"
-              />
-            </ValidationProvider>
+                <v-text-field
+                  color="primary"
+                  prepend-icon="mdi-account"
+                  v-model="username"
+                  :error-messages="usernameError"
+                  required
+                  label="Username"
+                  variant="underlined"
+                  data-test="username-text"
+                />
 
-            <ValidationProvider
-              v-slot="{ errors }"
-              ref="providerEmail"
-              name="Priority"
-              vid="email"
-              rules="required|email"
-            >
-              <v-text-field
-                v-model="newUser.email"
-                prepend-icon="email"
-                label="Email"
-                type="text"
-                autocomplete="email"
-                :error-messages="errors"
-                data-test="email-text"
-              />
-            </ValidationProvider>
+                <v-text-field
+                  color="primary"
+                  prepend-icon="mdi-email"
+                  v-model="email"
+                  :error-messages="emailError"
+                  required
+                  label="Email"
+                  variant="underlined"
+                  data-test="email-text"
+                />
 
-            <ValidationProvider
-              v-slot="{ errors }"
-              ref="providerPassword"
-              name="Priority"
-              rules="required|password|comparePasswords:@currentPassword"
-              vid="password"
-            >
-              <v-text-field
-                id="password"
-                v-model="newUser.password"
-                prepend-icon="lock"
-                label="Password"
-                type="password"
-                autocomplete="new-password"
-                :error-messages="errors"
-                data-test="password-text"
-              />
-            </ValidationProvider>
+                <v-text-field
+                  color="primary"
+                  prepend-icon="mdi-lock"
+                  :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  v-model="password"
+                  :error-messages="passwordError"
+                  label="Password"
+                  required
+                  variant="underlined"
+                  data-test="password-text"
+                  :type="showPassword ? 'text' : 'password'"
+                  @click:append-inner="showPassword = !showPassword"
+                />
 
-            <ValidationProvider
-              v-slot="{ errors }"
-              ref="providerConfirmPassword"
-              rules="required|confirmed:password"
-              name="confirmPassword"
-            >
-              <v-text-field
-                id="confirmpassword"
-                v-model="newUser.confirmPassword"
-                prepend-icon="lock"
-                label="Confirm password"
-                type="password"
-                autocomplete="new-password"
-                :error-messages="errors"
-                data-test="confirmPassword-text"
-              />
-            </ValidationProvider>
-          </v-card-text>
+                <v-text-field
+                  color="primary"
+                  prepend-icon="mdi-lock"
+                  :append-inner-icon="
+                    showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'
+                  "
+                  v-model="passwordConfirm"
+                  :error-messages="passwordConfirmError"
+                  label="Confirm Password"
+                  required
+                  variant="underlined"
+                  data-test="password-confirm-text"
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  @click:append-inner="
+                    showConfirmPassword = !showConfirmPassword
+                  "
+                />
+              </v-container>
 
-          <v-card-actions class="justify-center">
-            <v-btn
-              type="submit"
-              color="primary"
-              data-test="login-btn"
-              @click="passes(signUp)"
-            >
-              SIGN UP
-            </v-btn>
-          </v-card-actions>
+              <div v-if="isCloud">
+                <v-checkbox
+                  v-model="acceptPrivacyPolicy"
+                  color="primary"
+                  hide-details
+                  data-test="accept-privacy-policy-checkbox"
+                >
+                  <template #label>
+                    <span class="caption">
+                      I agree to the
+                      <a
+                        href="https://website-git-fork-antonyrafael-feat-privacy-policy-page-shellhub.vercel.app/privacy-policy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >Privacy Policy</a
+                      >
+                    </span>
+                  </template>
+                </v-checkbox>
+                <v-checkbox
+                  v-model="acceptMarketing"
+                  color="primary"
+                  hide-details
+                  data-test="accept-news-checkbox"
+                >
+                  <template #label>
+                    <p>
+                      I accept to receive news and updates from ShellHub via
+                      email.
+                    </p>
+                  </template>
+                </v-checkbox>
+              </div>
+              <v-card-subtitle
+                v-if="privacyPolicyError"
+                class="pa-0 pl-2 font-weight-medium text-error"
+                data-test="privacy-policy-error"
+              >
+                You need to accept the Privacy Policy to create an account.
+              </v-card-subtitle>
 
-          <v-card-subtitle class="d-flex align-center justify-center pa-4 mx-auto">
-            Already have an account?
+              <v-card-actions class="justify-center">
+                <v-btn
+                  type="submit"
+                  data-test="login-btn"
+                  color="primary"
+                  variant="tonal"
+                  block
+                >
+                  CREATE
+                </v-btn>
 
-            <router-link
-              class="ml-1"
-              :to="{ name: 'login' }"
-            >
-              Log in
-            </router-link>
-          </v-card-subtitle>
-        </ValidationObserver>
-      </v-card>
+              </v-card-actions>
 
-      <AccountCreated
-        :show="showMessage"
-        :username="newUser.username"
-        data-test="accountCreated-component"
-      />
-    </v-flex>
-  </v-layout>
+              <v-card-subtitle
+                class="d-flex align-center justify-center pa-4 mx-auto"
+                data-test="isCloud-card"
+              >
+                Do you have account ?
+                <router-link class="ml-1" :to="{ name: 'login' }">
+                  Login
+                </router-link>
+              </v-card-subtitle>
+            </form>
+          </v-container>
+        </v-card>
+        <AccountCreated
+          :show="showMessage"
+          :username="username"
+          data-test="accountCreated-component"
+        />
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
-<script>
-
+<script lang="ts">
+import { computed, defineComponent, ref, watch } from "vue";
+import { useField } from "vee-validate";
+import * as yup from "yup";
+import Logo from "../assets/logo-inverted.png";
+import { useStore } from "../store";
 import {
-  ValidationObserver,
-  ValidationProvider,
-} from 'vee-validate';
+  INotificationsError,
+  INotificationsSuccess,
+} from "../interfaces/INotifications";
+import AccountCreated from "../components/Account/AccountCreated.vue";
+import { envVariables } from "@/envVariables";
 
-import AccountCreated from '@/components/account/AccountCreated';
+export default defineComponent({
+  setup() {
+    const store = useStore();
+    const showPassword = ref(false);
+    const showConfirmPassword = ref(false);
+    const showMessage = ref(false);
+    const acceptMarketing = ref(false);
+    const acceptPrivacyPolicy = ref(false);
+    const privacyPolicyError = ref(false);
+    const delay = ref(500);
+    const overlay = ref(false);
+    const isCloud = computed(() => envVariables.isCloud);
 
-export default {
-  name: 'SignUpView',
+    const {
+      value: name,
+      errorMessage: nameError,
+      setErrors: setNameError,
+    } = useField<string>("name", yup.string().required(), {
+      initialValue: "",
+    });
 
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-    AccountCreated,
-  },
-
-  data() {
-    return {
-      newUser: {
-        name: '',
-        username: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
+    const {
+      value: username,
+      errorMessage: usernameError,
+      setErrors: setUsernameError,
+    } = useField<string>(
+      "username",
+      yup
+        .string()
+        .required()
+        .min(3)
+        .max(30)
+        .test(
+          "username-error",
+          "The username only accepts the special characters _, ., - and @.",
+          (value) => {
+            const regex = /^[a-zA-Z0-9_.@-\s]*$/;
+            return regex.test(value || "");
+          },
+        )
+        .test(
+          "white-spaces",
+          "The username cannot contain white spaces.",
+          (value) => {
+            const regex = /\s/;
+            return !regex.test(value || "");
+          },
+        ),
+      {
+        initialValue: "",
       },
-      showMessage: false,
-      delay: 500,
-      overlay: false,
+    );
+
+    const {
+      value: email,
+      errorMessage: emailError,
+      setErrors: setEmailError,
+    } = useField<string>("email", yup.string().email().required(), {
+      initialValue: "",
+    });
+
+    const {
+      value: password,
+      errorMessage: passwordError,
+      setErrors: setPasswordError,
+    } = useField<string>(
+      "password",
+      yup
+        .string()
+        .required()
+        .min(5, "Your password should be 5-30 characters long")
+        .max(30, "Your password should be 5-30 characters long"),
+      {
+        initialValue: "",
+      },
+    );
+
+    const {
+      value: passwordConfirm,
+      errorMessage: passwordConfirmError,
+    } = useField<string>(
+      "passwordConfirm",
+      yup
+        .string()
+        .required()
+        .test(
+          "passwords-match",
+          "Passwords do not match",
+          (value) => password.value === value,
+        ),
+      {
+        initialValue: "",
+      },
+    );
+
+    watch(overlay, (value) => {
+      if (value) {
+        setTimeout(() => {
+          overlay.value = false;
+          store.dispatch(
+            "snackbar/showSnackbarSuccessAction",
+            INotificationsSuccess.addUser,
+          );
+        }, delay.value);
+      }
+    });
+
+    watch(acceptPrivacyPolicy, (value) => {
+      if (value) {
+        privacyPolicyError.value = false;
+      }
+    });
+
+    const hasErrors = () => {
+      if (
+        nameError.value
+        || usernameError.value
+        || emailError.value
+        || passwordError.value
+        || passwordConfirmError.value
+        || !name.value
+        || !username.value
+        || !email.value
+        || !password.value
+        || !passwordConfirm.value
+      ) {
+        return true;
+      }
+      return false;
     };
-  },
 
-  computed: {
-    getStatusDarkMode() {
-      return this.$store.getters['layout/getStatusDarkMode'];
-    },
-  },
+    const createAccount = async () => {
+      if (!hasErrors()) {
+        try {
+          if (isCloud.value && !acceptPrivacyPolicy.value) {
+            privacyPolicyError.value = true;
+            return;
+          }
 
-  watch: {
-    overlay() {
-      setTimeout(() => {
-        this.overlay = false;
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.addUser);
-      }, this.delay);
-    },
-  },
-
-  methods: {
-    async signUp() {
-      try {
-        await this.$store.dispatch('users/signUp', this.newUser);
-        this.overlay = !this.overlay;
-        this.showMessage = !this.showMessage;
-      } catch (error) {
-        // Invalid username and/or password
-        if (error.response.status === 400) {
-          error.response.data.forEach((field) => {
-            switch (field) {
-            case 'name':
-              this.$refs.obs.setErrors({
-                name: this.$errors.form.invalid(field, 'other'),
-              });
-              break;
-            case 'username':
-              this.$refs.obs.setErrors({
-                username: this.$errors.form.invalid(field, 'other'),
-              });
-              break;
-            case 'email':
-              this.$refs.obs.setErrors({
-                email: this.$errors.form.invalid(field, 'other'),
-              });
-              break;
-            case 'password':
-              this.$refs.obs.setErrors({
-                password: this.$errors.form.invalid(field, 'password'),
-              });
-              break;
-            default:
-              break;
-            }
+          await store.dispatch("users/signUp", {
+            name: name.value,
+            email: email.value,
+            username: username.value,
+            password: password.value,
+            confirmPassword: passwordConfirm.value,
+            emailMarketing: acceptMarketing.value,
           });
-        } else if (error.response.status === 409) {
-          error.response.data.forEach((field) => {
-            switch (field) {
-            case 'username':
-              this.$refs.obs.setErrors({
-                username: this.$errors.form.conflict(field),
-              });
-              break;
-            case 'email':
-              this.$refs.obs.setErrors({
-                email: this.$errors.form.conflict(field),
-              });
-              break;
-            default:
-              break;
-            }
-          });
-        } else {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.addUser);
+          overlay.value = !overlay.value;
+          showMessage.value = !showMessage.value;
+          store.dispatch(
+            "snackbar/showSnackbarSuccessAction",
+            INotificationsSuccess.addUser,
+          );
+        } catch (e: any) {
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.addUser,
+          );
+          if (e.response.status === 409) {
+            e.response.data.forEach((field: string) => {
+              if (field === "username") setUsernameError("This username already exists");
+              else if (field === "name") setNameError("This name already exists");
+              else if (field === "email") setEmailError("This email already exists");
+              else if (field === "password") setPasswordError("This password already exists");
+            });
+          } else if (e.response.status === 400) {
+            e.response.data.forEach((field: string) => {
+              if (field === "username") setUsernameError("This username is invalid !");
+              else if (field === "name") setNameError("This name is invalid !");
+              else if (field === "email") setEmailError("This email is invalid !");
+              else if (field === "password") setPasswordError("This password is invalid !");
+            });
+          }
         }
       }
-    },
+    };
+    return {
+      Logo,
+      showPassword,
+      name,
+      nameError,
+      username,
+      usernameError,
+      email,
+      emailError,
+      password,
+      passwordError,
+      passwordConfirm,
+      passwordConfirmError,
+      showConfirmPassword,
+      createAccount,
+      store,
+      showMessage,
+      delay,
+      overlay,
+      isCloud,
+      acceptMarketing,
+      acceptPrivacyPolicy,
+      privacyPolicyError,
+    };
   },
-};
-
+  components: { AccountCreated },
+});
 </script>
+
+<style>
+.full-height {
+  height: 100vh;
+}
+
+.v-field__append-inner {
+  cursor: pointer;
+}
+</style>

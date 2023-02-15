@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`Terminal Renders the component 1`] = `
-<div>
-  <sessiondetails-stub data-test="sessionDetails-component"></sessiondetails-stub>
-</div>
-`;

@@ -1,137 +1,149 @@
 <template>
-  <v-layout
-    align-center
-    justify-center
-  >
-    <v-flex
-      xs12
-      sm8
-      md4
-      lg3
-      xl2
-    >
-      <v-card class="pa-6">
-        <v-container>
-          <v-layout
-            align-center
-            justify-center
-            column
-          >
-            <v-flex class="text-center primary--text">
-              <v-img
-                v-if="getStatusDarkMode"
-                src="@/assets/logo-inverted.png"
-                max-width="220"
-              />
+  <v-app>
+    <v-main>
+      <v-container class="full-height d-flex justify-center align-center" fluid>
+        <v-row align="center" justify="center">
+          <v-col cols="12" sm="8" md="4">
+            <v-card theme="dark" class="pa-6 bg-v-theme-surface" rounded="lg">
+              <v-card-title class="d-flex justify-center align-center mt-4">
+                <v-img
+                  :src="Logo"
+                  max-width="220"
+                  alt="logo do ShellHub, uma nuvem de com a escrita ShellHub Admin ao lado"
+                />
+              </v-card-title>
+              <v-container>
+                <v-card-title class="text-center">
+                  Forgot your password
+                </v-card-title>
+                <v-card-text class="text-center mt-2">
+                  Please insert the e-mail associated to the account you'd like
+                  to request an password reset for
+                </v-card-text>
+                <form @submit.prevent="sendEmail">
+                  <v-container>
+                    <v-text-field
+                      color="primary"
+                      prepend-icon="mdi-account"
+                      v-model="account"
+                      :error-messages="accountError"
+                      required
+                      label="Username or email address"
+                      variant="underlined"
+                      data-test="account-text"
+                    />
+                    <v-card-actions class="justify-center">
+                      <v-btn
+                        data-test="login-btn"
+                        color="primary"
+                        variant="tonal"
+                        block
+                        @click="sendEmail"
+                      >
+                        RESET PASSWORD
+                      </v-btn>
+                    </v-card-actions>
 
-              <v-img
-                v-else
-                src="@/assets/logo.png"
-                max-width="220"
-              />
-            </v-flex>
-          </v-layout>
-        </v-container>
-
-        <v-card-title class="justify-center">
-          Forgot your password
-        </v-card-title>
-
-        <ValidationObserver
-          ref="obs"
-          v-slot="{ passes }"
-        >
-          <v-card-text>
-            <div class="d-flex align-center justify-center mb-6">
-              Please enter the email address you'd like your password reset information send to
-            </div>
-
-            <ValidationProvider
-              v-slot="{ errors }"
-              ref="providerEmail"
-              name="Priority"
-              vid="email"
-              rules="required|email"
-            >
-              <v-text-field
-                v-model="email"
-                prepend-icon="email"
-                label="Email"
-                type="text"
-                autocomplete="email"
-                :error-messages="errors"
-                data-test="email-text"
-              />
-            </ValidationProvider>
-          </v-card-text>
-
-          <v-card-actions class="justify-center">
-            <v-btn
-              type="submit"
-              color="primary"
-              data-test="login-btn"
-              @click="passes(recoverPassword)"
-            >
-              RESET PASSWORD
-            </v-btn>
-          </v-card-actions>
-
-          <v-card-subtitle
-            class="d-flex align-center justify-center pa-4 mx-auto pt-2"
-            data-test="isCloud-card"
-          >
-            Back to
-            <router-link
-              class="ml-1"
-              :to="{ name: 'login' }"
-            >
-              Login
-            </router-link>
-          </v-card-subtitle>
-        </ValidationObserver>
-      </v-card>
-    </v-flex>
-  </v-layout>
+                    <v-card-subtitle
+                      class="d-flex align-center justify-center pa-4 mx-auto"
+                      data-test="isCloud-card"
+                    >
+                      Back to
+                      <router-link class="ml-1" :to="{ name: 'login' }">
+                        Login
+                      </router-link>
+                    </v-card-subtitle>
+                  </v-container>
+                </form>
+              </v-container>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
-<script>
-
+<script lang="ts">
+import { defineComponent } from "vue";
+import { useField } from "vee-validate";
+import * as yup from "yup";
+import Logo from "../assets/logo-inverted.png";
+import { useStore } from "../store";
 import {
-  ValidationObserver,
-  ValidationProvider,
-} from 'vee-validate';
+  INotificationsError,
+  INotificationsSuccess,
+} from "../interfaces/INotifications";
 
-export default {
-  name: 'ForgotPasswordView',
+export default defineComponent({
+  setup() {
+    const store = useStore();
 
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
+    const { value: account, errorMessage: accountError } = useField<
+      string | undefined
+    >(
+      "account",
+      yup
+        .string()
+        .required()
+        .min(3)
+        .max(255)
+        .test(
+          "account-error",
+          "The field only accepts the special characters _, ., - and @.",
+          (value) => {
+            const regex = /^[a-zA-Z0-9_.@-\s]*$/;
+            return regex.test(value || "");
+          },
+        )
+        .test(
+          "white-spaces",
+          "The field cannot contain white spaces.",
+          (value) => {
+            const regex = /\s/;
+            return !regex.test(value || "");
+          },
+        ),
+      {
+        initialValue: "",
+      },
+    );
 
-  data() {
+    const sendEmail = async () => {
+      if (!accountError.value) {
+        try {
+          await store.dispatch("users/recoverPassword", account.value);
+          store.dispatch(
+            "snackbar/showSnackbarSuccessAction",
+            INotificationsSuccess.recoverPassword,
+          );
+        } catch (error: any) {
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.recoverPassword,
+          );
+          throw new Error(error);
+        }
+      }
+    };
+
     return {
-      email: '',
+      Logo,
+      account,
+      accountError,
+      sendEmail,
+      store,
     };
   },
-
-  computed: {
-    getStatusDarkMode() {
-      return this.$store.getters['layout/getStatusDarkMode'];
-    },
-  },
-
-  methods: {
-    async recoverPassword() {
-      try {
-        await this.$store.dispatch('users/recoverPassword', this.email);
-
-        this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.recoverPassword);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.snackbar.recoverPassword);
-      }
-    },
-  },
-};
-
+});
 </script>
+
+<style>
+.full-height {
+  height: 100vh;
+}
+
+.v-field__append-inner {
+  cursor: pointer;
+}
+</style>

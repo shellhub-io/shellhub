@@ -1,101 +1,72 @@
 <template>
-  <v-container>
-    <v-card
-      :elevation="0"
-    >
-      <v-app-bar
-        flat
-        color="transparent"
+  <v-card class="bg-v-theme-surface">
+    <v-tabs background-color="secondary" stacked color="primary" align-tabs="center">
+      <v-tab
+        v-for="item in visibleItems"
+        :key="item.title"
+        :to="item.path"
+        :data-test="item.title + '-tab'"
       >
-        <v-tabs
-          centered
-        >
-          <v-tab
-            v-for="item in visibleItems"
-            :key="item.title"
-            :to="item.path"
-            :data-test="item.title+'-tab'"
-          >
-            {{ item.title }}
-          </v-tab>
-        </v-tabs>
-      </v-app-bar>
+        {{ item.title }}
+      </v-tab>
+    </v-tabs>
 
-      <v-divider />
+    <v-divider />
+  </v-card>
 
-      <v-container
-        class="pa-0"
-        fluid
-      >
-        <router-view />
-      </v-container>
-    </v-card>
-  </v-container>
+  <v-card class="bg-v-theme-surface">
+    <router-view />
+  </v-card>
 </template>
 
-<script>
+<script lang="ts">
+import { computed, defineComponent } from "vue";
+import { envVariables } from "../envVariables";
+import { useStore } from "../store";
 
-export default {
-  name: 'SettingsView',
+export default defineComponent({
+  setup() {
+    const store = useStore();
 
-  data() {
+    const currentInANamespace = computed(() => localStorage.getItem("tenant") !== "");
+
+    const hasNamespace = computed(() => store.getters["namespaces/getNumberNamespaces"] !== 0);
+
+    const items = computed(() => [
+      {
+        title: "Profile",
+        path: "/settings",
+      },
+      {
+        title: "Namespace",
+        path: "/settings/namespace-manager",
+        hidden: !currentInANamespace.value,
+      },
+      {
+        title: "Private Keys",
+        path: "/settings/private-keys",
+      },
+      {
+        title: "Tags",
+        path: "/settings/tags",
+      },
+      {
+        title: "Billing",
+        path: "/settings/billing",
+        hidden: !(
+          envVariables.billingEnable
+          && envVariables.isCloud
+          && hasNamespace.value
+        ),
+      },
+    ]);
+
+    const visibleItems = computed(() => items.value.filter((item) => !item.hidden));
+
     return {
-      drawer: true,
-      clipped: false,
+      items,
+      visibleItems,
     };
   },
-
-  computed: {
-    visibleItems() {
-      return this.items.filter((item) => !item.hidden);
-    },
-
-    currentInANamespace() {
-      return localStorage.getItem('tenant') !== '';
-    },
-
-    hasNamespace() {
-      return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
-    },
-
-    items() {
-      return [
-        {
-          title: 'Profile',
-          path: '/settings',
-        },
-        {
-          title: 'Namespace',
-          path: '/settings/namespace-manager',
-          hidden: !this.currentInANamespace,
-        },
-        {
-          title: 'Private Keys',
-          path: '/settings/private-keys',
-        },
-        {
-          title: 'Tags',
-          path: '/settings/tags',
-        },
-        {
-          title: 'Billing',
-          path: '/settings/billing',
-          hidden: !(this.$env.billingEnable && this.$env.isCloud && this.hasNamespace),
-        },
-      ];
-    },
-  },
-};
-
+});
 </script>
-
-<style>
-.v-list-active {
-  border-left: 4px solid var(--v-primary-base);
-}
-
-.text-shadow {
-  text-shadow: #000 0 0 6px;
-  color: transparent;
-}
-</style>
