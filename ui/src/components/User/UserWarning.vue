@@ -55,7 +55,6 @@ export default defineComponent({
     const hasWarning = computed(
       () => store.getters["devices/getDeviceChooserStatus"],
     );
-    const openVersion = computed(() => !envVariables.isEnterprise);
     const stats = computed(() => store.getters["stats/stats"]);
     const announcements = computed(() => store.getters["announcement/list"]);
     const announcement = computed(() => store.getters["announcement/get"]);
@@ -104,7 +103,7 @@ export default defineComponent({
     };
 
     const ShowAnnouncementsCheck = async () => {
-      if (!envVariables.announcementsEnable || openVersion.value) {
+      if (!envVariables.announcementsEnable) {
         return;
       }
 
