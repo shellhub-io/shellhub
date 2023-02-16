@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import SettingOwnerInfo from "../../../src/components/Setting/SettingOwnerInfo.vue";
+import { mount, VueWrapper } from "@vue/test-utils";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createStore } from "vuex";
+import SettingOwnerInfo from "../../../src/components/Setting/SettingOwnerInfo.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -16,9 +16,9 @@ describe("SettingOwnerInfo", () => {
     name: "namespace1",
     owner: "124",
     members: [
-      { id: "124", name: "user4" },
-      { id: "123", name: "user1" },
-      { id: "125", name: "user5" },
+      { id: "124", username: "user4", role: "owner" },
+      { id: "123", username: "user1", role: "operator" },
+      { id: "125", username: "user5", role: "administrator" },
     ],
     tenant_id: "a736a52b-5777-4f92-b0b8-e359bf484713",
   };
@@ -61,7 +61,7 @@ describe("SettingOwnerInfo", () => {
       expect(wrapper.html()).toMatchSnapshot();
     });
 
-    ///////s
+    ///////
     // Data checking
     //////
     it("Data is defined", () => {
@@ -105,7 +105,7 @@ describe("SettingOwnerInfo", () => {
       expect(wrapper.html()).toMatchSnapshot();
     });
 
-    ///////s
+    ///////
     // Data checking
     //////
     it("Data is defined", () => {
@@ -118,8 +118,8 @@ describe("SettingOwnerInfo", () => {
 
     it("Renders the template with data", () => {
       expect(wrapper.find('[data-test="message-div"]').exists()).toBe(true);
-      const namespaceOwnerMessage = `Contact ${namespace.members[0].name} user for more information.`;
-      expect(wrapper.find('[data-test=contactUser-p]').text()).toEqual(namespaceOwnerMessage);
+      const namespaceOwnerMessage = `Contact ${namespace.members[0].username} user for more information.`;
+      expect(wrapper.find("[data-test=contactUser-p]").text()).toEqual(namespaceOwnerMessage);
     });
   });
 });
