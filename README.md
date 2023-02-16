@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="https://shellhub.io">ShellHub Cloud</a> •
+  <a href="https://cloud.shellhub.io">ShellHub Cloud</a> •
   <a href="http://docs.shellhub.io">Documentation</a> •
   <a href="#contributing">Contributing</a> •
   <a href="#getting-help">Getting Help</a>
