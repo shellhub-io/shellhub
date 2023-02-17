@@ -6,7 +6,6 @@ import { setupInterceptorsTo } from "./interceptors";
 
 const configuration = new Configuration();
 configuration.basePath = `${window.location.protocol}//${window.location.host}`;
-// configuration.basePath = `${window.location.protocol}//localhost:4010`;
 configuration.accessToken = localStorage.getItem("token") || "";
 
 let sessionsApi = new axiosTs.SessionsApi(configuration);
@@ -18,12 +17,14 @@ let tagsApi = new axiosTs.TagsApi(configuration);
 let usersApi = new axiosTs.UsersApi(configuration);
 let billingApi = new axiosTs.BillingApi(configuration);
 let rulesApi = new axiosTs.RulesApi(configuration);
-let announcementApi = new axiosTs.AnnouncementsApi(configuration);
+
+const configurationAnnouncements = new Configuration();
+configurationAnnouncements.basePath = `https://cloud.shellhub.io`;
+let announcementApi = new axiosTs.AnnouncementsApi(configurationAnnouncements);
 
 export const createNewClient = () => {
   const newConfiguration = new Configuration();
   newConfiguration.basePath = `${window.location.protocol}//${window.location.host}`;
-  // newConfiguration.basePath = `${window.location.protocol}//localhost:4010`;
   newConfiguration.accessToken = localStorage.getItem("token") || "";
 
   sessionsApi = new axiosTs.SessionsApi(newConfiguration);
@@ -35,7 +36,7 @@ export const createNewClient = () => {
   usersApi = new axiosTs.UsersApi(newConfiguration);
   billingApi = new axiosTs.BillingApi(newConfiguration);
   rulesApi = new axiosTs.RulesApi(newConfiguration);
-  announcementApi = new axiosTs.AnnouncementsApi(newConfiguration);
+
   return newConfiguration;
 };
 
