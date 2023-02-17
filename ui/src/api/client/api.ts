@@ -627,6 +627,19 @@ export interface GetSessionData401Response {
 /**
  * 
  * @export
+ * @interface GetSessionData500Response
+ */
+export interface GetSessionData500Response {
+    /**
+     * Error message.
+     * @type {string}
+     * @memberof GetSessionData500Response
+     */
+    'message'?: string;
+}
+/**
+ * 
+ * @export
  * @interface GetStatusDevices200Response
  */
 export interface GetStatusDevices200Response {
@@ -754,19 +767,6 @@ export interface InfoEndpoints {
      * @memberof InfoEndpoints
      */
     'api'?: string;
-}
-/**
- * 
- * @export
- * @interface ListAnnouncements500Response
- */
-export interface ListAnnouncements500Response {
-    /**
-     * Error message.
-     * @type {string}
-     * @memberof ListAnnouncements500Response
-     */
-    'message'?: string;
 }
 /**
  * 
