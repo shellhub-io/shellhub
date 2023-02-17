@@ -44,48 +44,52 @@ export default defineComponent({
   components: { Card },
   setup() {
     const store = useStore();
-    const items = ref<ItemCard[]>([]);
     const hasStatus = ref(false);
     const itemsStats = computed(() => store.getters["stats/stats"]);
+    const hasNamespace = computed(
+      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
+    );
+    const items = computed(() => [
+      {
+        id: 1,
+        title: "Registered Devices",
+        fieldObject: "registered_devices",
+        content: "Registered devices into the tenancy account",
+        icon: "mdi-devices",
+        stats: itemsStats.value.registered_devices || 0,
+        buttonName: "Add Device",
+        pathName: "devices",
+        nameUseTest: "registeredDevices-btn",
+      },
+      {
+        id: 2,
+        title: "Online Devices",
+        fieldObject: "online_devices",
+        content: "Devices are online and ready for connecting",
+        icon: "mdi-devices",
+        stats: itemsStats.value.online_devices || 0,
+        buttonName: "View all Devices",
+        pathName: "devices",
+        nameUseTest: "viewOnlineDevices-btn",
+      },
+      {
+        id: 3,
+        title: "Active Sessions",
+        fieldObject: "active_sessions",
+        content: "Active SSH Sessions opened by users",
+        icon: "mdi-devices",
+        stats: itemsStats.value.active_sessions || 0,
+        buttonName: "View all Sessions",
+        pathName: "sessions",
+        nameUseTest: "viewActiveSession-btn",
+      },
+    ] as ItemCard[]);
 
     onMounted(async () => {
+      if (!hasNamespace.value) return;
+
       try {
         await store.dispatch("stats/get");
-        items.value = [
-          {
-            id: 1,
-            title: "Registered Devices",
-            fieldObject: "registered_devices",
-            content: "Registered devices into the tenancy account",
-            icon: "mdi-devices",
-            stats: itemsStats.value.registered_devices ?? 0,
-            buttonName: "Add Device",
-            pathName: "devices",
-            nameUseTest: "registeredDevices-btn",
-          },
-          {
-            id: 2,
-            title: "Online Devices",
-            fieldObject: "online_devices",
-            content: "Devices are online and ready for connecting",
-            icon: "mdi-devices",
-            stats: itemsStats.value.online_devices ?? 0,
-            buttonName: "View all Devices",
-            pathName: "devices",
-            nameUseTest: "viewOnlineDevices-btn",
-          },
-          {
-            id: 3,
-            title: "Active Sessions",
-            fieldObject: "active_sessions",
-            content: "Active SSH Sessions opened by users",
-            icon: "mdi-devices",
-            stats: itemsStats.value.active_sessions ?? 0,
-            buttonName: "View all Sessions",
-            pathName: "sessions",
-            nameUseTest: "viewActiveSession-btn",
-          },
-        ];
       } catch (error: any) {
         switch (true) {
           case error.response && error.response.status === 403: {

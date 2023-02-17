@@ -39,5 +39,9 @@ export const stats: Module<StatsState, State> = {
         throw error;
       }
     },
+
+    async clear({ commit }) {
+      commit("clearListState");
+    },
   },
 };
