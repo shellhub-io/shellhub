@@ -122,6 +122,7 @@ export default defineComponent({
     const logout = async () => {
       try {
         await store.dispatch("auth/logout");
+        await store.dispatch("stats/clear");
         await store.dispatch("namespaces/clearNamespaceList");
         await router.push({ name: "login" });
         createNewClient();

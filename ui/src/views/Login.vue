@@ -169,6 +169,8 @@ export default defineComponent({
       if (route.query.token) {
         store.dispatch("layout/setLayout", "simpleLayout");
         loginToken.value = true;
+        await store.dispatch("stats/clear");
+        await store.dispatch("namespaces/clearNamespaceList");
         await store.dispatch("auth/logout");
         createNewClient();
 
