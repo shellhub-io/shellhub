@@ -50,7 +50,7 @@
     "xterm-addon-fit": "^0.7.0"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^14.1.0",
+    "@rollup/plugin-node-resolve": "^15.0.1",
     "@types/node": "^18.8.1",
     "@types/node-rsa": "^1.1.1",
     "@types/sshpk": "^1.17.0",
