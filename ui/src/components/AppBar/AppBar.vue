@@ -8,13 +8,27 @@
 
     <v-spacer />
 
-    <v-btn
+    <!-- <v-btn
       :size="defaultSize"
       class="ml-1 mr-1 js-gitter-toggle-chat-button"
       color="primary"
       aria-label="gitter-help-icon"
       icon="mdi-help-circle"
-    />
+    /> -->
+    <v-tooltip location="bottom" class="text-center">
+      <template v-slot:activator="{ props }">
+        <v-btn
+          v-bind="props"
+          :size="defaultSize"
+          class="ml-1 mr-1"
+          color="primary"
+          aria-label="community-help-icon"
+          icon="mdi-help-circle"
+          @click="openShellhubHelp()"
+        />
+      </template>
+      <span>Report an issue or make a question for the shellhub team</span>
+    </v-tooltip>
 
     <Notification data-test="notification-component" />
 
@@ -141,6 +155,13 @@ export default defineComponent({
       store.dispatch("layout/setStatusNavigationDrawer", true);
     };
 
+    const openShellhubHelp = () => {
+      window.open(
+        "https://github.com/shellhub-io/shellhub/issues/new/choose",
+        "_blank",
+      );
+    };
+
     onMounted(async () => {
       chat.value = await new GitterSidecar({
         room: "shellhub-io/community",
@@ -174,6 +195,7 @@ export default defineComponent({
       defaultSize,
       toggleDarkMode,
       updateDrawer,
+      openShellhubHelp,
     };
   },
   components: {
