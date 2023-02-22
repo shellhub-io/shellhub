@@ -14,6 +14,7 @@
         <v-card class="pa-2" tile :elevation="0">
           <strong>Hostname</strong>
         </v-card>
+        <v-divider />
         <v-card
           class="pa-2"
           tile
@@ -27,6 +28,7 @@
         <v-card class="pa-2" tile :elevation="0">
           <strong>Operation System</strong>
         </v-card>
+        <v-divider />
         <v-card
           class="pa-2"
           tile
