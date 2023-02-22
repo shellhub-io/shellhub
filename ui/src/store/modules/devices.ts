@@ -232,9 +232,9 @@ export const devices: Module<DevicesState, State> = {
         const res = await apiDevice.fetchDevices(
           1,
           1,
-          null,
+          undefined,
           "pending",
-          null,
+          undefined,
           "",
         );
         context.commit("setDevice", res.data[0]);

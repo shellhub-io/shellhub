@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import WelcomeThirdScreen from "../../../src/components/Welcome/WelcomeThirdScreen.vue";
 import { createStore } from "vuex";
+import WelcomeThirdScreen from "../../../src/components/Welcome/WelcomeThirdScreen.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -66,14 +66,14 @@ describe("WelcomeThirdScreen", () => {
   it("Data is defined", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
-  it('Process data in the computed', () => {
+  it("Process data in the computed", () => {
     expect(wrapper.vm.getPendingDevice).toEqual(device);
   });
-    //////
+  //////
   // HTML validation
   //////
 
-  it('Renders the template with data', () => {
+  it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="deviceName-field"]').text()).toEqual(device.name);
     expect(wrapper.find('[data-test="devicePrettyName-field"]').text()).toEqual(device.info.pretty_name);
   });
