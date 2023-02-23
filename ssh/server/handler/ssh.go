@@ -187,7 +187,7 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 
 	defer agent.Close()
 
-	go session.HandleRequests(ctx, reqs, api)
+	go session.HandleRequests(ctx, reqs, api, ctx.Done())
 
 	metadata.MaybeStoreEstablished(ctx.(gliderssh.Context), true)
 

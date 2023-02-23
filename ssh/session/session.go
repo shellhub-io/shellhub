@@ -259,7 +259,7 @@ func loadEnv(env []string) map[string]string {
 	return m
 }
 
-func HandleRequests(ctx context.Context, reqs <-chan *gossh.Request, c internalclient.Client) {
+func HandleRequests(ctx context.Context, reqs <-chan *gossh.Request, c internalclient.Client, done <-chan struct{}) {
 	for {
 		select {
 		case req := <-reqs:
@@ -285,7 +285,7 @@ func HandleRequests(ctx context.Context, reqs <-chan *gossh.Request, c internalc
 					}
 				}
 			}
-		case <-ctx.Done():
+		case <-done:
 			return
 		}
 	}

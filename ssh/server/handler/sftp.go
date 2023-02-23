@@ -108,7 +108,7 @@ func connectSFTP(ctx context.Context, client gliderssh.Session, sess *session.Se
 		return err
 	}
 
-	go session.HandleRequests(ctx, reqs, api)
+	go session.HandleRequests(ctx, reqs, api, ctx.Done())
 
 	if errs := api.SessionAsAuthenticated(sess.UID); len(errs) > 0 {
 		return errs[0]
