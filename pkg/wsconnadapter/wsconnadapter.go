@@ -101,5 +101,8 @@ func (a *Adapter) SetReadDeadline(t time.Time) error {
 }
 
 func (a *Adapter) SetWriteDeadline(t time.Time) error {
+	a.writeMutex.Lock()
+	defer a.writeMutex.Unlock()
+
 	return a.conn.SetWriteDeadline(t)
 }
