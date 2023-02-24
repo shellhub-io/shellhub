@@ -105,7 +105,7 @@
                     <span class="caption">
                       I agree to the
                       <a
-                        href="https://website-git-fork-antonyrafael-feat-privacy-policy-page-shellhub.vercel.app/privacy-policy"
+                        href="https://www.shellhub.io/privacy-policy"
                         target="_blank"
                         rel="noopener noreferrer"
                       >Privacy Policy</a
