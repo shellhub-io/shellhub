@@ -31,3 +31,5 @@ require (
 )
 
 replace github.com/shellhub-io/shellhub => ../
+
+replace github.com/gliderlabs/ssh => github.com/shellhub-io/ssh v0.0.0-20230224143412-edd48dfd6eea
