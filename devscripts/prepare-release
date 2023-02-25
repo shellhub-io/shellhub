@@ -3,6 +3,7 @@
 prepare_go_dir() {
     (
         cd $1
+        rm -f go.sum
         go mod tidy
     )
 }
