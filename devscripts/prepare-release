@@ -3,7 +3,7 @@
 prepare_go_dir() {
     (
         cd $1
-        go mod tidy
+        go mod tidy -compat=1.17
     )
 }
 
