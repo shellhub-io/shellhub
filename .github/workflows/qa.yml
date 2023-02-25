@@ -81,7 +81,7 @@ jobs:
         if: matrix.project != 'ui' &&  github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: |
-          go mod tidy
+          ../devscripts/prepare-release
           if [ -n "$(git status --porcelain)" ]; then
               echo "Missing dependencies on 'go.mod'"
               exit 1
