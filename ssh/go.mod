@@ -40,7 +40,7 @@ require (
 	golang.org/x/exp v0.0.0-20210916165020-5cb4fee858ee // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/text v0.3.8 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
