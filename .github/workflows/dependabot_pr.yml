@@ -9,23 +9,31 @@ on:
 
 jobs:
   go-mod-tidy:
+    name: Update Go modules
     if: contains(github.head_ref, 'dependabot/go_modules/') && github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.head_ref }}
+          fetch-depth: 2
+          token: ${{ secrets.PAT }}
       - uses: actions/setup-go@v3
         with:
           go-version: 1.17
       - name: Run prepare-release script to update Go modules
         run: |
           ./devscripts/prepare-release
-      - name: Create diff artifact
+      - name: Get last commit message
+        id: last-commit-message
         run: |
-          git diff > /tmp/diff
-      - uses: actions/upload-artifact@v2
+          echo "msg=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          name: diff
-          path: /tmp/diff
-          retention-days: 1
+          branch: ${{ github.event.workflow_run.head_branch }}
+          file_pattern: '**/go.mod **/go.sum'
+          commit_message: ${{ steps.last-commit-message.outputs.msg }}
+          commit_options: '--amend --no-edit'
+          push_options: '--force'
+          skip_fetch: true
