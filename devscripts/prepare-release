@@ -19,3 +19,5 @@ echo "Running Go related tasks"
 for d in $go_dirs; do
     prepare_go_dir $d
 done
+
+prepare_go_dir .
