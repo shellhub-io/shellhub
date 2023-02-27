@@ -79,7 +79,7 @@ export const tags: Module<TagsState, State> = {
       context.commit("setTags", data);
     },
 
-    remove: async (context, name) => {
+    remove: async (context, name: string) => {
       try {
         await apiTags.removeTag(name);
       } catch (error) {

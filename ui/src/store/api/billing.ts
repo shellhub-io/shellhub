@@ -1,8 +1,9 @@
+import { ChoiceDevicesRequest } from "@/api/client";
 import { billingApi } from "../../api/http";
 
-export const subscritionPaymentMethod = async (data: any) => billingApi.createSubscription({ payment_method_id: data });
+export const subscritionPaymentMethod = async (data: string) => billingApi.createSubscription({ payment_method_id: data });
 
-export const postDevicesChooser = async (data: any) => billingApi.choiceDevices(data);
+export const postDevicesChooser = async (data: ChoiceDevicesRequest) => billingApi.choiceDevices(data);
 
 export const getSubscriptionInfo = async () => billingApi.getSubscription();
 

@@ -5,13 +5,13 @@ import getStats from "../api/stats";
 import { IStats } from "../../interfaces/IStats";
 
 export interface StatsState {
-  stats: IStats | object;
+  stats: IStats;
 }
 
 export const stats: Module<StatsState, State> = {
   namespaced: true,
   state: {
-    stats: {},
+    stats: {} as IStats,
   },
 
   getters: {
@@ -24,7 +24,7 @@ export const stats: Module<StatsState, State> = {
     },
 
     clearListState: (state) => {
-      state.stats = {};
+      state.stats = {} as IStats;
     },
   },
 
