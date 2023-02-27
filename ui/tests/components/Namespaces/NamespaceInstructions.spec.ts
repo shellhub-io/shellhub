@@ -1,12 +1,12 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import NamespaceInstructions from "../../../src/components/Namespace/NamespaceInstructions.vue";
 import routes from "../../../src/router";
 import { envVariables } from "../../../src/envVariables";
 
 describe("NamespaceInstructions", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceInstructions>>;
   const vuetify = createVuetify();
   envVariables.isEnterprise = true;
   const show = true;
@@ -56,7 +56,7 @@ describe("NamespaceInstructions", () => {
     // HTML validation
     //////
 
-    //Todo
+    // Todo
   });
 
   ///////
@@ -78,7 +78,7 @@ describe("NamespaceInstructions", () => {
       envVariables.isEnterprise = false;
     });
 
-      ///////
+    ///////
     // Component Rendering
     //////
 
@@ -105,6 +105,6 @@ describe("NamespaceInstructions", () => {
     // HTML validation
     //////
 
-    //Todo
+    // Todo
   });
 });

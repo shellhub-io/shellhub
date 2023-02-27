@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import BillingPaymentMethod from "../../../src/components/Billing/BillingPaymentMethod.vue";
 import { createStore } from "vuex";
+import BillingPaymentMethod from "../../../src/components/Billing/BillingPaymentMethod.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -32,7 +32,7 @@ const store = createStore({
 // In this case, it's testing the button rendering.
 ///////
 describe("BillingDialogPaymentMethod", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof BillingPaymentMethod>>;
   const vuetify = createVuetify();
   ///////
   // In this case, it's testing the button rendering.
@@ -132,10 +132,8 @@ describe("BillingDialogPaymentMethod", () => {
         171: 426.7,
       };
       Reflect.ownKeys(priceTable).forEach((k) => {
-        // @ts-ignore
-        expect(wrapper.vm.priceEstimator(parseInt(k, 10))).toContain(
-          // @ts-ignore
-          priceTable[k]
+        expect(wrapper.vm.priceEstimator(parseInt(k as string, 10))).toContain(
+          priceTable[k],
         );
       });
     });

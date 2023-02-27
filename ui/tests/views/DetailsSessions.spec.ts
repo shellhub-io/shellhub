@@ -7,7 +7,7 @@ import { key } from "../../src/store";
 import routes from "../../src/router";
 
 describe("DetailsSessions", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof DetailsSessions>>;
   const vuetify = createVuetify();
 
   const sessionGlobal = {
@@ -126,7 +126,7 @@ describe("DetailsSessions", () => {
       variables: {
         session: {
           ...sessionGlobal,
-          device: { online: false },
+          device: { ...sessionGlobal.device, online: false },
           active: false,
           recorded: false,
         },
@@ -136,7 +136,7 @@ describe("DetailsSessions", () => {
         uid: sessionGlobal.uid,
         session: {
           ...sessionGlobal,
-          device: { online: false },
+          device: { ...sessionGlobal.device, online: false },
           active: false,
           recorded: false,
         },
@@ -242,7 +242,7 @@ describe("DetailsSessions", () => {
     },
   ];
 
-  const store = (session: any, currentRole: any) => createStore({
+  const store = (session: typeof sessionGlobal, currentRole: string) => createStore({
     state: {
       session,
       currentRole,

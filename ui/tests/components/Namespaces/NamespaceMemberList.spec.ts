@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NamespaceMemberList from "../../../src/components/Namespace/NamespaceMemberList.vue";
 import { createStore } from "vuex";
+import NamespaceMemberList from "../../../src/components/Namespace/NamespaceMemberList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -87,26 +87,24 @@ const tests = [
   },
 ];
 
-const store = (tenant: any, currentRole: any) => {
-  return createStore({
-    state: {
-      tenant,
-      currentRole,
-    },
-    getters: {
-      "auth/tenant": (state) => state.tenant,
-      "auth/role": (state) => state.currentRole,
-    },
-    actions: {
-      "snackbar/showSnackbarErrorAssociation": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-      "namespaces/get": vi.fn(),
-    },
-  });
-};
+const store = (tenant: string, currentRole: string) => createStore({
+  state: {
+    tenant,
+    currentRole,
+  },
+  getters: {
+    "auth/tenant": (state) => state.tenant,
+    "auth/role": (state) => state.currentRole,
+  },
+  actions: {
+    "snackbar/showSnackbarErrorAssociation": vi.fn(),
+    "snackbar/showSnackbarErrorAction": vi.fn(),
+    "namespaces/get": vi.fn(),
+  },
+});
 
 describe("NamespaceMemberList", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceMemberList>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -144,13 +142,13 @@ describe("NamespaceMemberList", () => {
       it("Data is defined", () => {
         expect(wrapper.vm.$data).toBeDefined();
       });
-      it('Receive data in props', () => {
+      it("Receive data in props", () => {
         expect(wrapper.vm.namespace).toStrictEqual(test.props.namespace);
       });
       it("Compare data with default value", () => {
         expect(wrapper.vm.headers).toStrictEqual(test.data.headers);
       });
-      it('Process data in the computed', () => {
+      it("Process data in the computed", () => {
         expect(wrapper.vm.tenant).toStrictEqual(test.computed.tenant);
         expect(wrapper.vm.members).toStrictEqual(test.computed.members);
         expect(wrapper.vm.hasAuthorizationEditMember()).toStrictEqual(test.computed.hasAuthorizationEditMember);

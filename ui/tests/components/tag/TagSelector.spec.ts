@@ -1,13 +1,13 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import TagSelector from "../../../src/components/Tags/TagSelector.vue";
 import { createStore } from "vuex";
+import TagSelector from "../../../src/components/Tags/TagSelector.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("TagSelector", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof TagSelector>>;
   const vuetify = createVuetify();
 
   const tagsGlobal = ["ShellHub", "Shell", "Hub"];
@@ -41,29 +41,30 @@ describe("TagSelector", () => {
       computed: {
         getListTags: tagsGlobal,
       },
+      template: {
+        "tags-btn": true,
+      },
     },
   ];
 
-  const store = (tags: any, selectedTags?: any) => {
-    return createStore({
-      state: {
-        tags,
-        selectedTags,
-      },
-      getters: {
-        "tags/list": (state) => state.tags,
-        "tags/selected": (state) => state.selectedTags,
-      },
-      actions: {
-        "tags/setSelected": vi.fn(),
-        "tags/fetch": vi.fn(),
-        "devices/setFilter": vi.fn(),
-        "devices/refresh": vi.fn(),
-        "snackbar/showSnackbarErrorAssociation": vi.fn(),
-        "snackbar/showSnackbarErrorDefault": vi.fn(),
-      },
-    });
-  };
+  const store = (tags: Array<string>, selectedTags?: Array<string>) => createStore({
+    state: {
+      tags,
+      selectedTags,
+    },
+    getters: {
+      "tags/list": (state) => state.tags,
+      "tags/selected": (state) => state.selectedTags,
+    },
+    actions: {
+      "tags/setSelected": vi.fn(),
+      "tags/fetch": vi.fn(),
+      "devices/setFilter": vi.fn(),
+      "devices/refresh": vi.fn(),
+      "snackbar/showSnackbarErrorAssociation": vi.fn(),
+      "snackbar/showSnackbarErrorDefault": vi.fn(),
+    },
+  });
 
   tests.forEach((test, index) => {
     describe(`${test.description}`, () => {
@@ -113,7 +114,7 @@ describe("TagSelector", () => {
       });
       it("Compare data with default value", () => {
         expect(wrapper.vm.prevSelectedLength).toBe(
-          test.data.prevSelectedLength
+          test.data.prevSelectedLength,
         );
       });
 
@@ -123,11 +124,9 @@ describe("TagSelector", () => {
 
       it("Renders the template with data", () => {
         if (index === 0) {
-          // @ts-ignore
           Object.keys(test.template).forEach((item) => {
             expect(wrapper.find(`[data-test="${item}"]`).exists()).toBe(
-              // @ts-ignore
-              test.template[item]
+              test.template[item],
             );
           });
         }

@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NamespaceAdd from "../../../src/components/Namespace/NamespaceAdd.vue";
 import { createStore } from "vuex";
+import NamespaceAdd from "../../../src/components/Namespace/NamespaceAdd.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 import { envVariables } from "../../../src/envVariables";
@@ -65,7 +65,7 @@ const store = createStore({
 });
 
 describe("NamespaceAdd", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceAdd>>;
   const vuetify = createVuetify();
 
   ///////
@@ -121,7 +121,7 @@ describe("NamespaceAdd", () => {
 
     it("Renders the template with data", () => {
       expect(wrapper.find('[data-test="namespaceAdd-card"]').exists()).toBe(
-        false
+        false,
       );
       expect(wrapper.find('[data-test="namespace-text"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="close-btn"]').exists()).toBe(false);
@@ -140,7 +140,7 @@ describe("NamespaceAdd", () => {
         global: {
           plugins: [[store, key], routes, vuetify],
         },
-        props: { show: show, firstNamespace },
+        props: { show, firstNamespace },
         shallow: true,
       });
       wrapper.vm.showDialog = true;
@@ -196,7 +196,7 @@ describe("NamespaceAdd", () => {
       wrapper.vm.namespaceName = "ShelHub..";
       await flushPromises();
       expect(wrapper.vm.namespaceNameError).toBe(
-        "The name must not contain dots"
+        "The name must not contain dots",
       );
     });
 
@@ -205,7 +205,7 @@ describe("NamespaceAdd", () => {
         wrapper.vm.namespaceName = character;
         await flushPromises();
         expect(wrapper.vm.namespaceNameError).toBe(
-          "this must be at most 30 characters"
+          "this must be at most 30 characters",
         );
       });
     });

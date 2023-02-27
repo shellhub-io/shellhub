@@ -1,13 +1,13 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SettingSecurity from "../../../src/components/Setting/SettingSecurity.vue";
 import { createStore } from "vuex";
+import SettingSecurity from "../../../src/components/Setting/SettingSecurity.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("SettingSecurity", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SettingSecurity>>;
   const vuetify = createVuetify();
 
   const role = ["owner", "operator"];
@@ -29,23 +29,21 @@ describe("SettingSecurity", () => {
     },
   ];
 
-  const store = (sessionRecord: any, currentrole: any) => {
-    return createStore({
-      state: {
-        sessionRecord,
-        currentrole,
-      },
-      getters: {
-        "security/get": (state) => state.sessionRecord,
-        "auth/role": (state) => state.currentrole,
-      },
-      actions: {
-        "security/set": vi.fn(),
-        "security/get": vi.fn(),
-        "snackbar/showSnackbarErrorDefault": vi.fn(),
-      },
-    });
-  };
+  const store = (sessionRecord: boolean, currentrole: string) => createStore({
+    state: {
+      sessionRecord,
+      currentrole,
+    },
+    getters: {
+      "security/get": (state) => state.sessionRecord,
+      "auth/role": (state) => state.currentrole,
+    },
+    actions: {
+      "security/set": vi.fn(),
+      "security/get": vi.fn(),
+      "snackbar/showSnackbarErrorDefault": vi.fn(),
+    },
+  });
 
   tests.forEach((test) => {
     role.forEach((currentrole) => {
@@ -76,7 +74,7 @@ describe("SettingSecurity", () => {
           expect(wrapper.html()).toMatchSnapshot();
         });
 
-        ///////s
+        /// ////s
         // Data checking
         //////
         it("Data is defined", () => {
@@ -85,8 +83,7 @@ describe("SettingSecurity", () => {
         it("Receive data in props", () => {
           expect(wrapper.vm.hasTenant).toBe(test.props.hasTenant);
         });
-        it('Process data in the computed', () => {
-          // @ts-ignore
+        it("Process data in the computed", () => {
           expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentrole]);
         });
       });

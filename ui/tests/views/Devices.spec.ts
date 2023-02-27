@@ -1,13 +1,13 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Devices from "../../src/views/Devices.vue";
 import { createStore } from "vuex";
+import Devices from "../../src/views/Devices.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 
 describe("Devices", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Devices>>;
   const vuetify = createVuetify();
 
   const pendingDevices = 2;
@@ -75,18 +75,18 @@ describe("Devices", () => {
 
   it("Renders the template with components", () => {
     expect(wrapper.find('[data-test="tagSelector-component"]').exists()).toBe(
-      false
+      false,
     );
     expect(
-      wrapper.find('[data-test="boxMessageDevice-component"]').exists()
+      wrapper.find('[data-test="boxMessageDevice-component"]').exists(),
     ).toBe(false);
     expect(wrapper.find('[data-test="search-text"]').exists()).toBe(true);
   });
 
-  it('Renders the template with data', () => {
+  it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="search-text"]').exists()).toBe(true);
     const textInputSearch = wrapper.find('[data-test="search-text"]');
-    textInputSearch.element.textContent = 'ShellHub';
-    expect(textInputSearch.text()).toBe('ShellHub');
+    textInputSearch.element.textContent = "ShellHub";
+    expect(textInputSearch.text()).toBe("ShellHub");
   });
 });

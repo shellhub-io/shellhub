@@ -1,11 +1,11 @@
-import { envVariables } from "./../../../../src/envVariables";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Notification from "../../../../src/components/AppBar/Notifications/Notification.vue";
 import { createStore } from "vuex";
+import Notification from "../../../../src/components/AppBar/Notifications/Notification.vue";
 import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
+import { IStats } from "@/interfaces/IStats";
 
 const role = ["owner", "operator"];
 
@@ -128,35 +128,33 @@ const tests = [
 ];
 
 const store = (
-  notifications: any,
+  notifications: typeof notificationsGlobal,
   numberNotifications: number,
-  stats: any,
-  currentrole: string
-) =>
-  createStore({
-    state: {
-      notifications,
-      numberNotifications,
-      stats,
-      currentrole,
-    },
-    getters: {
-      "notifications/list": (state) => state.notifications,
-      "notifications/getNumberNotifications": (state) =>
-        state.numberNotifications,
-      "stats/stats": (state) => state.stats,
-      "auth/role": (state) => state.currentrole,
-    },
-    actions: {
-      "notifications/fetch": vi.fn(),
-      "stats/get": vi.fn(),
-      "snackbar/showSnackbarErrorAssociation": vi.fn(),
-      "snackbar/showSnackbarErrorLoading": vi.fn(),
-    },
-  });
+  stats: IStats,
+  currentrole: string,
+) => createStore({
+  state: {
+    notifications,
+    numberNotifications,
+    stats,
+    currentrole,
+  },
+  getters: {
+    "notifications/list": (state) => state.notifications,
+    "notifications/getNumberNotifications": (state) => state.numberNotifications,
+    "stats/stats": (state) => state.stats,
+    "auth/role": (state) => state.currentrole,
+  },
+  actions: {
+    "notifications/fetch": vi.fn(),
+    "stats/get": vi.fn(),
+    "snackbar/showSnackbarErrorAssociation": vi.fn(),
+    "snackbar/showSnackbarErrorLoading": vi.fn(),
+  },
+});
 
 describe("Notification", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Notification>>;
 
   tests.forEach((test) => {
     role.forEach((currentrole) => {
@@ -172,7 +170,7 @@ describe("Notification", () => {
                     test.variables.listNotifications,
                     test.variables.numberNotifications,
                     test.variables.stats,
-                    currentrole
+                    currentrole,
                   ),
                   key,
                 ],
@@ -196,7 +194,7 @@ describe("Notification", () => {
 
         ///////
         // Data checking
-        ////// TODO
+        /// /// TODO
 
         // it('Compare data with default value', () => {
         //   Object.keys(test.data).forEach((item) => {
@@ -208,7 +206,7 @@ describe("Notification", () => {
 
         //////
         // HTML validation
-        ////// TODO: fix this test
+        /// /// TODO: fix this test
 
         // it('Renders the template with data', () => {
         //   Object.keys(test.template).forEach((item) => {

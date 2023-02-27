@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NamespaceRename from "../../../src/components/Namespace/NamespaceRename.vue";
 import { createStore } from "vuex";
+import NamespaceRename from "../../../src/components/Namespace/NamespaceRename.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -119,30 +119,28 @@ const tests = [
   },
 ];
 
-const store = (namespace: any, tenant: any, currentrole: any) => {
-  return createStore({
-    state: {
-      namespace,
-      tenant,
-      currentrole,
-    },
-    getters: {
-      "namespaces/get": (state) => state.namespace,
-      "auth/tenant": (state) => state.tenant,
-      "auth/role": (state) => state.currentrole,
-    },
-    actions: {
-      "namespaces/put": vi.fn(),
-      "namespaces/get": vi.fn(),
-      "namespaces/removeUser": vi.fn(),
-      "snackbar/showSnackbarSuccessAction": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
-};
+const store = (namespace: typeof openNamespace, tenant: string, currentrole: string) => createStore({
+  state: {
+    namespace,
+    tenant,
+    currentrole,
+  },
+  getters: {
+    "namespaces/get": (state) => state.namespace,
+    "auth/tenant": (state) => state.tenant,
+    "auth/role": (state) => state.currentrole,
+  },
+  actions: {
+    "namespaces/put": vi.fn(),
+    "namespaces/get": vi.fn(),
+    "namespaces/removeUser": vi.fn(),
+    "snackbar/showSnackbarSuccessAction": vi.fn(),
+    "snackbar/showSnackbarErrorAction": vi.fn(),
+  },
+});
 
 describe("NamespaceRename", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceRename>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -156,7 +154,7 @@ describe("NamespaceRename", () => {
                   store(
                     test.variables.namespace,
                     test.variables.tenant,
-                    currentrole
+                    currentrole,
                   ),
                   key,
                 ],
@@ -209,7 +207,7 @@ describe("NamespaceRename", () => {
           await flushPromises();
           expect(wrapper.vm.nameError).toBe("The name must not contain dots");
         });
-        
+
         // TODO check later
         // it("Show validation messages", () => {
         //   wrapper.vm.name = "";

@@ -46,7 +46,7 @@ const itemsTable = [
 ];
 
 describe("DataTable", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof DataTable>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();

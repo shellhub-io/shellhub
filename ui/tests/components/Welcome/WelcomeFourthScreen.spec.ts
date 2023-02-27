@@ -1,11 +1,11 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import WelcomeFourthScreen from "../../../src/components/Welcome/WelcomeFourthScreen.vue";
 import routes from "../../../src/router";
 
 describe("WelcomeFourthScreen", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof WelcomeFourthScreen>>;
   const vuetify = createVuetify();
 
   const uid = "a582b47a42d";
@@ -47,7 +47,7 @@ describe("WelcomeFourthScreen", () => {
   // HTML checking
   //////
 
-  it('Renders the template with data', () => {
+  it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="welcome-fourth-succesfully"]').exists()).toBeTruthy();
     expect(wrapper.find('[data-test="welcome-fourth-links"]').exists()).toBeTruthy();
     expect(wrapper.find('[data-test="welcome-fourth-thanks"]').exists()).toBeTruthy();

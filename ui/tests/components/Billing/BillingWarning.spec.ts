@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import BillingWarning from "../../../src/components/Billing/BillingWarning.vue";
 import { createStore } from "vuex";
+import BillingWarning from "../../../src/components/Billing/BillingWarning.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -17,29 +17,25 @@ const stats = {
   rejected_devices: 0,
 };
 
-const store = (statsData: any, billingEnabled: any, role: any) => {
-  return createStore({
-    state: {
-      stateBilling: billingEnabled,
-      role,
-      stats: statsData,
-      statusUpdateAccountDialog,
-      statusUpdateAccountDialogByDeviceAction,
-    },
-    getters: {
-      "billing/active": (state) => state.stateBilling,
-      "stats/stats": (state) => state.stats,
-      "auth/role": (state) => state.role,
-      "users/statusUpdateAccountDialog": (state) =>
-        state.statusUpdateAccountDialog,
-      "users/statusUpdateAccountDialogByDeviceAction": (state) =>
-        state.statusUpdateAccountDialogByDeviceAction,
-    },
-    actions: {
-      "users/setStatusUpdateAccountDialog": vi.fn(),
-    },
-  });
-};
+const store = (statsData: typeof stats, billingEnabled: boolean, role: string) => createStore({
+  state: {
+    stateBilling: billingEnabled,
+    role,
+    stats: statsData,
+    statusUpdateAccountDialog,
+    statusUpdateAccountDialogByDeviceAction,
+  },
+  getters: {
+    "billing/active": (state) => state.stateBilling,
+    "stats/stats": (state) => state.stats,
+    "auth/role": (state) => state.role,
+    "users/statusUpdateAccountDialog": (state) => state.statusUpdateAccountDialog,
+    "users/statusUpdateAccountDialogByDeviceAction": (state) => state.statusUpdateAccountDialogByDeviceAction,
+  },
+  actions: {
+    "users/setStatusUpdateAccountDialog": vi.fn(),
+  },
+});
 
 const tests = [
   {
@@ -130,7 +126,7 @@ const tests = [
 ];
 
 describe("BillingWarning", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof BillingWarning>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -139,6 +135,7 @@ describe("BillingWarning", () => {
         wrapper = mount(BillingWarning, {
           global: {
             plugins: [
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               [store(...Object.values(test.storeData)), key],
               routes,
@@ -169,7 +166,6 @@ describe("BillingWarning", () => {
       });
       it("Process data in the computed", () => {
         Reflect.ownKeys(test.computed).forEach((c) => {
-          // @ts-ignore
           expect(wrapper.vm[c]).toEqual(test.computed[c]);
         });
       });

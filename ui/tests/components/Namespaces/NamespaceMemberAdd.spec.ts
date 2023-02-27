@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NamespaceMemberAdd from "../../../src/components/Namespace/NamespaceMemberAdd.vue";
 import { createStore } from "vuex";
+import NamespaceMemberAdd from "../../../src/components/Namespace/NamespaceMemberAdd.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -106,26 +106,24 @@ const tests = [
   },
 ];
 
-const store = (namespace: any, currentRole: string) => {
-  return createStore({
-    state: {
-      namespace,
-      currentRole,
-    },
-    getters: {
-      "namespaces/get": (state) => state.namespace,
-      "auth/role": (state) => state.currentRole,
-    },
-    actions: {
-      "namespaces/adduser": vi.fn(),
-      "snackbar/showSnackbarSuccessAction": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
-};
+const store = (namespace: typeof namespaceGlobal, currentRole: string) => createStore({
+  state: {
+    namespace,
+    currentRole,
+  },
+  getters: {
+    "namespaces/get": (state) => state.namespace,
+    "auth/role": (state) => state.currentRole,
+  },
+  actions: {
+    "namespaces/adduser": vi.fn(),
+    "snackbar/showSnackbarSuccessAction": vi.fn(),
+    "snackbar/showSnackbarErrorAction": vi.fn(),
+  },
+});
 
 describe("NamespaceMemberAdd", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceMemberAdd>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {

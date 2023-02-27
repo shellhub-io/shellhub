@@ -7,7 +7,7 @@ import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("Welcome", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Welcome>>;
   const vuetify = createVuetify();
 
   const show = true;

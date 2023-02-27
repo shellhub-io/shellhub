@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Namespace from "../../../src/components/Namespace/Namespace.vue";
 import { createStore } from "vuex";
+import Namespace from "../../../src/components/Namespace/Namespace.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 import { envVariables } from "../../../src/envVariables";
@@ -24,17 +24,17 @@ const store = createStore({
     "namespaces/get": (state) => state.namespace,
   },
   actions: {
-    "namespaces/fetch": () => {},
-    "namespaces/get": () => {},
-    "namespaces/switchNamespace": () => {},
-    "namespaces/setOwnerStatus": () => {},
-    "snackbar/showSnackbarErrorLoading": () => {},
-    "snackbar/showSnackbarErrorAssociation": () => {},
+    "namespaces/fetch": () => vi.fn(),
+    "namespaces/get": () => vi.fn(),
+    "namespaces/switchNamespace": () => vi.fn(),
+    "namespaces/setOwnerStatus": () => vi.fn(),
+    "snackbar/showSnackbarErrorLoading": () => vi.fn(),
+    "snackbar/showSnackbarErrorAssociation": () => vi.fn(),
   },
 });
 
 describe("Namespace", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Namespace>>;
   const vuetify = createVuetify();
 
   ///////

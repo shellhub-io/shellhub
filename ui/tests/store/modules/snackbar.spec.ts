@@ -99,5 +99,4 @@ describe("Snackbar", () => {
 
     expect(store.getters["snackbar/snackbarError"]).toEqual(true);
   });
-
 });

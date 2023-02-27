@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import PrivateKeyList from "../../../src/components/PrivateKeys/PrivateKeyList.vue";
 import { createStore } from "vuex";
+import PrivateKeyList from "../../../src/components/PrivateKeys/PrivateKeyList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -86,17 +86,14 @@ const store = createStore({
 });
 
 describe("Private Key List", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof PrivateKeyList>>;
   const vuetify = createVuetify();
 
-  
   beforeEach(async () => {
-    vi.mock("window.global", () => {
-      return {
-        convertKeyToFingerprint: vi.fn().mockReturnValue(privateKeyFingerpint),
-      };
-    });
-    
+    vi.mock("window.global", () => ({
+      convertKeyToFingerprint: vi.fn().mockReturnValue(privateKeyFingerpint),
+    }));
+
     wrapper = mount(PrivateKeyList, {
       global: {
         plugins: [[store, key], routes, vuetify],
@@ -136,7 +133,7 @@ describe("Private Key List", () => {
   it("Check the function convertToFingerprint return the correct value", () => {
     for (let i = 0; i < numberOfKeys; i++) {
       expect(wrapper.vm.convertToFingerprint(privateKeyList[i].data)).toBe(
-        privateKeyFingerpint
+        privateKeyFingerpint,
       );
     }
   });

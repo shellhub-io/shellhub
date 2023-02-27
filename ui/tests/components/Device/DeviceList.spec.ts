@@ -5,6 +5,7 @@ import { createStore } from "vuex";
 import DeviceList from "../../../src/components/Devices/DeviceList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
+import { IRole } from "@/interfaces/IRole";
 
 const numberDevicesGlobal = 2;
 
@@ -146,7 +147,7 @@ const tests = [
   },
 ];
 
-const store = (devices: any, numberDevices: any, currentRole: any) => createStore({
+const store = (devices: typeof devicesGlobal, numberDevices: number, currentRole: IRole) => createStore({
   state: {
     devices,
     numberDevices,
@@ -171,7 +172,7 @@ const store = (devices: any, numberDevices: any, currentRole: any) => createStor
 
 tests.forEach((test) => {
   describe(`${test.description}`, () => {
-    let wrapper: VueWrapper<any>;
+    let wrapper: VueWrapper<InstanceType<typeof DeviceList>>;
 
     beforeEach(() => {
       const vuetify = createVuetify();
@@ -225,6 +226,7 @@ tests.forEach((test) => {
       expect(wrapper.vm.loading).toEqual(false);
     });
     it("Process data in methods", () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       devicesGlobal.forEach((device: any) => {
         const address = `${device.namespace}.${device.name}@localhost`;
         expect(wrapper.vm.sshidAddress(device)).toEqual(address);

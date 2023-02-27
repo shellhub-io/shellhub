@@ -7,7 +7,7 @@ import { key } from "../../src/store";
 import routes from "../../src/router";
 
 describe("Dashboard", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Dashboard>>;
   const vuetify = createVuetify();
 
   const numberNamespaces1 = 3;

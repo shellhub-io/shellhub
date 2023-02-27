@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SessionPlay from "../../../src/components/Sessions/SessionPlay.vue";
 import { createStore } from "vuex";
+import SessionPlay from "../../../src/components/Sessions/SessionPlay.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 import { envVariables } from "../../../src/envVariables";
@@ -157,23 +157,22 @@ const tests = [
   },
 ];
 
-const store = (session: any) =>
-  createStore({
-    state: {
-      session,
-    },
-    getters: {
-      "sessions/get": (state) => state.session,
-    },
-    actions: {
-      "sessions/getLogSession": vi.fn(),
-      
-      "snackbar/showSnackbarErrorLoading": vi.fn(),
-    },
-  });
+const store = (session: typeof sessionGlobal) => createStore({
+  state: {
+    session,
+  },
+  getters: {
+    "sessions/get": (state) => state.session,
+  },
+  actions: {
+    "sessions/getLogSession": vi.fn(),
+
+    "snackbar/showSnackbarErrorLoading": vi.fn(),
+  },
+});
 
 describe("SessionPlay", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper:VueWrapper<InstanceType<typeof SessionPlay>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -216,12 +215,12 @@ describe("SessionPlay", () => {
       it("Data is defined", () => {
         expect(wrapper.vm.$data).toBeDefined();
       });
-      it('Receive data in props', () => {
+      it("Receive data in props", () => {
         expect(wrapper.vm.recorded).toEqual(test.props.recorded);
         expect(wrapper.vm.uid).toEqual(test.props.uid);
         expect(wrapper.vm.notHasAuthorization).toEqual(test.props.notHasAuthorization);
       });
-      it('Compare data with default value', () => {
+      it("Compare data with default value", () => {
         expect(wrapper.vm.currentTime).toEqual(test.data.currentTime);
         expect(wrapper.vm.totalLength).toEqual(test.data.totalLength);
         expect(wrapper.vm.endTimerDisplay).toEqual(test.data.endTimerDisplay);

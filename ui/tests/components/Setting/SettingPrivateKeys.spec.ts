@@ -1,13 +1,13 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import SettingPrivateKeys from "../../../src/components/Setting/SettingPrivateKeys.vue";
+import { mount, VueWrapper } from "@vue/test-utils";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createStore } from "vuex";
+import SettingPrivateKeys from "../../../src/components/Setting/SettingPrivateKeys.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("SettingPrivateKeys", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SettingPrivateKeys>>;
   const vuetify = createVuetify();
 
   const numberPrivateKeys = 2;
@@ -82,7 +82,7 @@ describe("SettingPrivateKeys", () => {
       expect(wrapper.html()).toMatchSnapshot();
     });
 
-    ///////s
+    /// ////s
     // Data checking
     //////
     it("Data is defined", () => {

@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import PublicKeyAdd from "../../../src/components/PublicKeys/PublicKeyAdd.vue";
 import { createStore } from "vuex";
+import PublicKeyAdd from "../../../src/components/PublicKeys/PublicKeyAdd.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -111,29 +111,27 @@ const tests = [
   },
 ];
 
-const store = (currentrole: string) => {
-  return createStore({
-    state: {
-      currentrole,
-    },
-    getters: {
-      "auth/role": (state) => state.currentrole,
-    },
-    actions: {
-      "publicKeys/post": vi.fn(),
-      "publicKeys/put": vi.fn(),
-      "privateKey/set": vi.fn(),
-      "privateKey/edit": vi.fn(),
-      "snackbar/showSnackbarSuccessAction": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-      "snackbar/showSnackbarSuccessNotRequest": vi.fn(),
-      "snackbar/showSnackbarErrorNotRequest": vi.fn(),
-    },
-  });
-};
+const store = (currentrole: string) => createStore({
+  state: {
+    currentrole,
+  },
+  getters: {
+    "auth/role": (state) => state.currentrole,
+  },
+  actions: {
+    "publicKeys/post": vi.fn(),
+    "publicKeys/put": vi.fn(),
+    "privateKey/set": vi.fn(),
+    "privateKey/edit": vi.fn(),
+    "snackbar/showSnackbarSuccessAction": vi.fn(),
+    "snackbar/showSnackbarErrorAction": vi.fn(),
+    "snackbar/showSnackbarSuccessNotRequest": vi.fn(),
+    "snackbar/showSnackbarErrorNotRequest": vi.fn(),
+  },
+});
 
 describe("PublicKeyFormDialogAdd", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof PublicKeyAdd>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -178,7 +176,7 @@ describe("PublicKeyFormDialogAdd", () => {
 
       it("Compare the computed with the default value", () => {
         expect(wrapper.vm.hasAuthorization).toEqual(
-          test.computed.hasAuthorization
+          test.computed.hasAuthorization,
         );
       });
 

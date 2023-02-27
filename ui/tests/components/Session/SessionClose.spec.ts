@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SessionClose from "../../../src/components/Sessions/SessionClose.vue";
 import { createStore } from "vuex";
+import SessionClose from "../../../src/components/Sessions/SessionClose.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -55,7 +55,7 @@ const store = createStore({
 });
 
 describe("SessionClose", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SessionClose>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -93,12 +93,12 @@ describe("SessionClose", () => {
       it("Data is defined", () => {
         expect(wrapper.vm.$data).toBeDefined();
       });
-      it('Receive data in props', () => {
+      it("Receive data in props", () => {
         expect(wrapper.vm.uid).toEqual(test.props.uid);
         expect(wrapper.vm.device).toEqual(test.props.device);
         expect(wrapper.vm.notHasAuthorization).toEqual(test.props.notHasAuthorization);
       });
-      it('Compare data with default value', () => {
+      it("Compare data with default value", () => {
         expect(wrapper.vm.showDialog).toEqual(test.data.showDialog);
       });
 

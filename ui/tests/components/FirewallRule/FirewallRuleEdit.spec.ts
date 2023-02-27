@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import FirewallRuleEdit from "../../../src/components/firewall/FirewallRuleEdit.vue";
 import { createStore } from "vuex";
+import FirewallRuleEdit from "../../../src/components/firewall/FirewallRuleEdit.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -141,7 +141,7 @@ const store = createStore({
 });
 
 describe("FirewallRuleFormDialog", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof FirewallRuleEdit>>;
 
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
@@ -180,9 +180,9 @@ describe("FirewallRuleFormDialog", () => {
       //////
 
       it("Compare data with default value", () => {
-        for (const [key, value] of Object.entries(test.data)) {
-          expect(wrapper.vm[key]).toEqual(value);
-        }
+        Object.keys(test.data).forEach((key) => {
+          expect(wrapper.vm[key]).toEqual(test.data[key]);
+        });
       });
 
       //////

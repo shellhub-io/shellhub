@@ -1,14 +1,14 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Login from "../../src/views/Login.vue";
 import { createStore } from "vuex";
+import Login from "../../src/views/Login.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 import { envVariables } from "../../src/envVariables";
 
 describe("Login is cloud", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Login>>;
   const vuetify = createVuetify();
 
   const statusDarkMode = true;
@@ -63,9 +63,9 @@ describe("Login is cloud", () => {
     it("Data is defined", () => {
       expect(wrapper.vm.$data).toBeDefined();
     });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.username).toEqual('');
-      expect(wrapper.vm.password).toEqual('');
+    it("Compare data with default value", () => {
+      expect(wrapper.vm.username).toEqual("");
+      expect(wrapper.vm.password).toEqual("");
       expect(wrapper.vm.usernameError).toEqual(undefined);
       expect(wrapper.vm.passwordError).toEqual(undefined);
       expect(wrapper.vm.showPassword).toEqual(false);
@@ -75,11 +75,11 @@ describe("Login is cloud", () => {
     // HTML validation
     //////
 
-    it('Renders the template with components', () => {
+    it("Renders the template with components", () => {
       // todo - account created
       // expect(wrapper.find('[data-test="accountCreated-component"]').exists()).toEqual(true);
     });
-    it('Renders the template with data', () => {
+    it("Renders the template with data", () => {
       expect(wrapper.find('[data-test="username-text"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="password-text"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
@@ -93,7 +93,7 @@ describe("Login is cloud", () => {
   // In this case, user tries to login but your account has not been activated.
   //////
 
-  describe('Account has not been activated', () => {
+  describe("Account has not been activated", () => {
     beforeEach(async () => {
       wrapper = mount(Login, {
         global: {
@@ -121,9 +121,9 @@ describe("Login is cloud", () => {
     it("Data is defined", () => {
       expect(wrapper.vm.$data).toBeDefined();
     });
-    it('Compare data with default value', () => {
-      expect(wrapper.vm.username).toEqual('');
-      expect(wrapper.vm.password).toEqual('');
+    it("Compare data with default value", () => {
+      expect(wrapper.vm.username).toEqual("");
+      expect(wrapper.vm.password).toEqual("");
       expect(wrapper.vm.usernameError).toEqual(undefined);
       expect(wrapper.vm.passwordError).toEqual(undefined);
       expect(wrapper.vm.showPassword).toEqual(false);
@@ -133,11 +133,11 @@ describe("Login is cloud", () => {
     // HTML validation
     //////
 
-    it('Renders the template with components', () => {
+    it("Renders the template with components", () => {
       // todo - account created
       // expect(wrapper.find('[data-test="accountCreated-component"]').exists()).toEqual(true);
     });
-    it('Renders the template with data', () => {
+    it("Renders the template with data", () => {
       expect(wrapper.find('[data-test="username-text"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="password-text"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);

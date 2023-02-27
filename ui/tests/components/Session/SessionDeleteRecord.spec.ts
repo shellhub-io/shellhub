@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SessionDelete from "../../../src/components/Sessions/SessionDelete.vue";
 import { createStore } from "vuex";
+import SessionDelete from "../../../src/components/Sessions/SessionDelete.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -65,7 +65,7 @@ const store = createStore({
 });
 
 describe("SessionDeleteRecord", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SessionDelete>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -83,7 +83,6 @@ describe("SessionDeleteRecord", () => {
         });
 
         if (test.data.showDialog) wrapper.vm.showDialog = true;
-
       });
 
       ///////
@@ -106,12 +105,12 @@ describe("SessionDeleteRecord", () => {
       it("Receive data in props", () => {
         expect(wrapper.vm.uid).toEqual(test.props.uid);
         expect(wrapper.vm.notHasAuthorization).toEqual(
-          test.props.notHasAuthorization
+          test.props.notHasAuthorization,
         );
       });
-    it("Compare data with default value", () => {
-      expect(wrapper.vm.showDialog).toEqual(test.data.showDialog);
-    });
+      it("Compare data with default value", () => {
+        expect(wrapper.vm.showDialog).toEqual(test.data.showDialog);
+      });
 
     // todo html checking
     });

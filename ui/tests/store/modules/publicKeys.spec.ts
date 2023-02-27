@@ -47,10 +47,10 @@ describe("publicKeys", () => {
     expect(store.getters["publicKeys/get"]).toEqual({});
     expect(store.getters["publicKeys/getNumberPublicKeys"]).toEqual(0);
     expect(store.getters["publicKeys/getPage"]).toEqual(
-      pagePerpageInitialValue.page
+      pagePerpageInitialValue.page,
     );
     expect(store.getters["publicKeys/getPerPage"]).toEqual(
-      pagePerpageInitialValue.perPage
+      pagePerpageInitialValue.perPage,
     );
   });
   it("Verify initial state change for setPublicKeys mutation", () => {
@@ -60,7 +60,7 @@ describe("publicKeys", () => {
     });
     expect(store.getters["publicKeys/list"]).toEqual(publicKeys);
     expect(store.getters["publicKeys/getNumberPublicKeys"]).toEqual(
-      numberPublicKeys
+      numberPublicKeys,
     );
   });
   it("Verify inital state change for setPublicKey mutation", () => {
@@ -71,22 +71,22 @@ describe("publicKeys", () => {
     store.commit("publicKeys/setPagePerpage", pagePerpageValue);
     expect(store.getters["publicKeys/getPage"]).toEqual(pagePerpageValue.page);
     expect(store.getters["publicKeys/getPerPage"]).toEqual(
-      pagePerpageValue.perPage
+      pagePerpageValue.perPage,
     );
   });
   it("Verify inital state change for resetPagePerpage mutation", () => {
     store.commit("publicKeys/resetPagePerpage");
     expect(store.getters["publicKeys/getPage"]).toEqual(
-      pagePerpageInitialValue.page
+      pagePerpageInitialValue.page,
     );
     expect(store.getters["publicKeys/getPerPage"]).toEqual(
-      pagePerpageInitialValue.perPage
+      pagePerpageInitialValue.perPage,
     );
   });
   it("Verify remove public key item from list for removePublicKey mutation", () => {
     store.commit("publicKeys/removePublicKey", publicKey.id);
     expect(store.getters["publicKeys/list"].length).toEqual(
-      numberPublicKeys - 1
+      numberPublicKeys - 1,
     );
   });
   it("Verify changed public key object state for clearObjectPublicKey mutation", () => {

@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import PrivateKeyAdd from "../../../src/components/PrivateKeys/PrivateKeyAdd.vue";
 import { createStore } from "vuex";
+import PrivateKeyAdd from "../../../src/components/PrivateKeys/PrivateKeyAdd.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -109,7 +109,7 @@ const store = createStore({
 });
 
 describe("PrivateKeyFormDialogAdd", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof PrivateKeyAdd>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -141,7 +141,7 @@ describe("PrivateKeyFormDialogAdd", () => {
       // Data checking
       //////
 
-      it('Compare data with default value', () => {
+      it("Compare data with default value", () => {
         expect(wrapper.vm.name).toBe(test.data.privateKey.name);
         expect(wrapper.vm.privateKeyData).toBe(test.data.privateKey.data);
         expect(wrapper.vm.supportedKeys).toBe(test.data.supportedKeys);
@@ -156,7 +156,6 @@ describe("PrivateKeyFormDialogAdd", () => {
       //////
 
       // TODO
-
     });
-  }); 
+  });
 });

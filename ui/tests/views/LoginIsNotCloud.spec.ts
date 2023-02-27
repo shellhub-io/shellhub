@@ -1,14 +1,14 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Login from "../../src/views/Login.vue";
 import { createStore } from "vuex";
+import Login from "../../src/views/Login.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 import { envVariables } from "../../src/envVariables";
 
 describe("Login is not cloud", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Login>>;
   const vuetify = createVuetify();
 
   const statusDarkMode = true;
@@ -76,7 +76,7 @@ describe("Login is not cloud", () => {
 
     it("Renders the template with components", () => {
       expect(
-        wrapper.find('[data-test="accountCreated-component"]').exists()
+        wrapper.find('[data-test="accountCreated-component"]').exists(),
       ).toEqual(false);
     });
     it("Renders the template with data", () => {
@@ -84,14 +84,14 @@ describe("Login is not cloud", () => {
       expect(wrapper.find('[data-test="password-text"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="unknownReason-card"]').exists()).toBe(
-        false
+        false,
       );
       expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(
-        false
+        false,
       );
       expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="loadingToken-alert"]').exists()).toBe(
-        false
+        false,
       );
     });
   });

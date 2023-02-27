@@ -1,6 +1,6 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import BillingIcon from "../../../src/components/Billing/BillingIcon.vue";
 import routes from "../../../src/router";
 
@@ -17,7 +17,7 @@ const cardIcon = {
 };
 
 describe("BillingIcon", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof BillingIcon>>;
   const vuetify = createVuetify();
 
   beforeEach(() => {

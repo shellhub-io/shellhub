@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import PublicKeyList from "../../../src/components/PublicKeys/PublicKeysList.vue";
 import { createStore } from "vuex";
+import PublicKeyList from "../../../src/components/PublicKeys/PublicKeysList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -110,34 +110,32 @@ const tests = [
 ];
 
 const store = (
-  publicKeys: any,
-  numberPublicKeys: any,
-  status: any,
-  currentRole: any
-) => {
-  return createStore({
-    state: {
-      publicKeys,
-      numberPublicKeys,
-      status,
-      currentRole,
-    },
-    getters: {
-      "publicKeys/list": (state) => state.publicKeys,
-      "publicKeys/getNumberPublicKeys": (state) => state.numberPublicKeys,
-      "box/getStatus": (state) => state.status,
-      "auth/role": (state) => state.currentRole,
-    },
-    actions: {
-      "publicKeys/fetch": vi.fn(),
-      "snackbar/showSnackbarErrorLoading": vi.fn(),
-      "box/setStatus": vi.fn(),
-    },
-  });
-};
+  publicKeys: typeof publicKeysGlobal,
+  numberPublicKeys: number,
+  status: string,
+  currentRole: boolean,
+) => createStore({
+  state: {
+    publicKeys,
+    numberPublicKeys,
+    status,
+    currentRole,
+  },
+  getters: {
+    "publicKeys/list": (state) => state.publicKeys,
+    "publicKeys/getNumberPublicKeys": (state) => state.numberPublicKeys,
+    "box/getStatus": (state) => state.status,
+    "auth/role": (state) => state.currentRole,
+  },
+  actions: {
+    "publicKeys/fetch": vi.fn(),
+    "snackbar/showSnackbarErrorLoading": vi.fn(),
+    "box/setStatus": vi.fn(),
+  },
+});
 
 describe("PublicKeyList", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof PublicKeyList>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -151,7 +149,7 @@ describe("PublicKeyList", () => {
                   test.variables.publicKeysGlobal,
                   test.variables.numberPublicKeysGlobal,
                   test.role.type,
-                  test.role.permission
+                  test.role.permission,
                 ),
                 key,
               ],
@@ -192,7 +190,7 @@ describe("PublicKeyList", () => {
       it("Compare the computed with the default value", () => {
         expect(wrapper.vm.publicKeys).toStrictEqual(test.computed.publicKeys);
         expect(wrapper.vm.getNumberPublicKeys).toStrictEqual(
-          test.computed.getNumberPublicKeys
+          test.computed.getNumberPublicKeys,
         );
       });
 
@@ -200,7 +198,7 @@ describe("PublicKeyList", () => {
       // HTML validation
       //////
 
-      it('Renders the template with data', () => {
+      it("Renders the template with data", () => {
         const dt = wrapper.find('[data-test="publicKeys-list"]');
         expect(dt.exists()).toBeTruthy();
       });

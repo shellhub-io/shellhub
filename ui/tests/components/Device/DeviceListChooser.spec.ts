@@ -1,13 +1,13 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import DeviceListChooser from "../../../src/components/Devices/DeviceListChooser.vue";
 import { createStore } from "vuex";
+import DeviceListChooser from "../../../src/components/Devices/DeviceListChooser.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 const numberDevices = 2;
-const devicesSelected: any = [];
+const devicesSelected = [];
 const disableShowSelect = true;
 const action = "suggestedDevices";
 
@@ -101,7 +101,7 @@ const store = createStore({
 });
 
 describe("Suggested devices", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof DeviceListChooser>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -159,7 +159,7 @@ describe("Suggested devices", () => {
 
   it("Renders the template with components", async () => {
     expect(wrapper.find('[data-test="devices-list-chooser"]').exists()).toEqual(
-      true
+      true,
     );
   });
 });

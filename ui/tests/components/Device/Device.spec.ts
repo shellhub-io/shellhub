@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Devices from "../../../src/components/Devices/Device.vue";
 import { createStore } from "vuex";
+import Devices from "../../../src/components/Devices/Device.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -29,7 +29,7 @@ const store = createStore({
 });
 
 describe("Device", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Devices>>;
   const vuetify = createVuetify();
 
   beforeEach(() => {

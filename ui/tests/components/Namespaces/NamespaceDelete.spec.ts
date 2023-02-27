@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NamespaceDelete from "../../../src/components/Namespace/NamespaceDelete.vue";
 import { createStore } from "vuex";
+import NamespaceDelete from "../../../src/components/Namespace/NamespaceDelete.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 import { envVariables } from "../../../src/envVariables";
@@ -180,39 +180,37 @@ const tests = [
 
 const store = (
   active: boolean,
-  billing: any,
-  currentrole: any,
-  namespace: any,
-  info: any
-) => {
-  return createStore({
-    state: {
-      active,
-      billing,
-      currentrole,
-      namespace,
-      info,
-    },
-    getters: {
-      "billing/active": (state) => state.active,
-      "billing/get": (state) => state.billing,
-      "auth/role": (state) => state.currentrole,
-      "namespaces/get": (state) => state.namespace,
-      "billing/getBillInfoData": (state) => state.info,
-    },
-    actions: {
-      "namespaces/remove": vi.fn(),
-      "auth/logout": vi.fn(),
-      "billing/getSubscription": vi.fn(),
-      "snackbar/showSnackbarSuccessAction": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-      "snackbar/showSnackbarErrorDefault": vi.fn(),
-    },
-  });
-};
+  billing: typeof getter.billingActive[0],
+  currentrole: string,
+  namespace: typeof namespaceObject,
+  info: typeof infoData | {},
+) => createStore({
+  state: {
+    active,
+    billing,
+    currentrole,
+    namespace,
+    info,
+  },
+  getters: {
+    "billing/active": (state) => state.active,
+    "billing/get": (state) => state.billing,
+    "auth/role": (state) => state.currentrole,
+    "namespaces/get": (state) => state.namespace,
+    "billing/getBillInfoData": (state) => state.info,
+  },
+  actions: {
+    "namespaces/remove": vi.fn(),
+    "auth/logout": vi.fn(),
+    "billing/getSubscription": vi.fn(),
+    "snackbar/showSnackbarSuccessAction": vi.fn(),
+    "snackbar/showSnackbarErrorAction": vi.fn(),
+    "snackbar/showSnackbarErrorDefault": vi.fn(),
+  },
+});
 
 describe("NamespaceDelete", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceDelete>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -228,7 +226,7 @@ describe("NamespaceDelete", () => {
                     test.computed.billing,
                     currentrole,
                     test.namespace,
-                    test.info
+                    test.info,
                   ),
                   key,
                 ],
@@ -272,7 +270,6 @@ describe("NamespaceDelete", () => {
 
         it("Receive data in props", () => {
           Object.keys(test.props).forEach((item) => {
-            // @ts-ignore
             expect(wrapper.vm[item]).toEqual(test.props[item]);
           });
         });

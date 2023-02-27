@@ -7,7 +7,7 @@ import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("SettingProfile", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SettingProfile>>;
   const vuetify = createVuetify();
 
   const username = "ShellHub";

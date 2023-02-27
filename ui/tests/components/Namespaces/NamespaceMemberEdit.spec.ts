@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NamespaceMemberEdit from "../../../src/components/Namespace/NamespaceMemberEdit.vue";
 import { createStore } from "vuex";
+import NamespaceMemberEdit from "../../../src/components/Namespace/NamespaceMemberEdit.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -94,24 +94,22 @@ const tests = [
   },
 ];
 
-const store = (namespace: any) => {
-  return createStore({
-    state: {
-      namespace,
-    },
-    getters: {
-      "namespaces/get": (state) => state.namespace,
-    },
-    actions: {
-      "namespaces/adduser": vi.fn(),
-      "snackbar/showSnackbarSuccessAction": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
-};
+const store = (namespace: typeof namespaceGlobal) => createStore({
+  state: {
+    namespace,
+  },
+  getters: {
+    "namespaces/get": (state) => state.namespace,
+  },
+  actions: {
+    "namespaces/adduser": vi.fn(),
+    "snackbar/showSnackbarSuccessAction": vi.fn(),
+    "snackbar/showSnackbarErrorAction": vi.fn(),
+  },
+});
 
 describe("NamespaceMemberEdit", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceMemberEdit>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -165,8 +163,8 @@ describe("NamespaceMemberEdit", () => {
       //////
 
       it("Renders the template with data", async () => {
-        expect(wrapper.find(`[data-test="namespace-edit-icon"]`)).toBeTruthy();
-        expect(wrapper.find(`[data-test="namespace-edit-title"]`)).toBeTruthy();
+        expect(wrapper.find("[data-test=\"namespace-edit-icon\"]")).toBeTruthy();
+        expect(wrapper.find("[data-test=\"namespace-edit-title\"]")).toBeTruthy();
       });
     });
   });

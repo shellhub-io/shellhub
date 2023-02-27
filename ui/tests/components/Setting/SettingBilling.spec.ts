@@ -1,11 +1,11 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SettingBilling from "../../../src/components/Setting/SettingBilling.vue";
 import { createStore } from "vuex";
+import SettingBilling from "../../../src/components/Setting/SettingBilling.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
-import { envVariables } from "../../../src/envVariables";
+// import { envVariables } from "../../../src/envVariables";
 
 const role = ["owner", "operator"];
 
@@ -235,33 +235,31 @@ const tests = [
   },
 ];
 
-const store = (billing: any, currentrole: any, info: any) => {
-  return createStore({
-    state: {
-      billing,
-      currentrole,
-      info,
-    },
-    getters: {
-      "billing/active": (state) => state.billing.active || false,
-      "billing/status": (state) => state.billing.state || "inactive",
-      "billing/get": (state) => state.billing,
-      "auth/role": (state) => state.currentrole,
-      "billing/getBillInfoData": (state) => state.info,
-      "billing/getInvoices": (state) => state.info.invoices,
-    },
-    actions: {
-      "billing/getSubscription": () => stripeData,
-      "namespaces/get": () => {},
-      "snackbar/showSnackbarSuccessAction": () => {},
-      "snackbar/showSnackbarErrorAction": () => {},
-      "snackbar/showSnackbarErrorDefault": () => {},
-    },
-  });
-};
+const store = (billing, currentrole: string, info: typeof infoData) => createStore({
+  state: {
+    billing,
+    currentrole,
+    info,
+  },
+  getters: {
+    "billing/active": (state) => state.billing.active || false,
+    "billing/status": (state) => state.billing.state || "inactive",
+    "billing/get": (state) => state.billing,
+    "auth/role": (state) => state.currentrole,
+    "billing/getBillInfoData": (state) => state.info,
+    "billing/getInvoices": (state) => state.info.invoices,
+  },
+  actions: {
+    "billing/getSubscription": () => stripeData,
+    "namespaces/get": () => vi.fn(),
+    "snackbar/showSnackbarSuccessAction": () => vi.fn(),
+    "snackbar/showSnackbarErrorAction": () => vi.fn(),
+    "snackbar/showSnackbarErrorDefault": () => vi.fn(),
+  },
+});
 
 describe("SettingBilling", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SettingBilling>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -291,7 +289,6 @@ describe("SettingBilling", () => {
           if (test.data.renderData) {
             wrapper.vm.renderData = true;
           }
-
         });
 
         ///////
@@ -305,7 +302,7 @@ describe("SettingBilling", () => {
           expect(wrapper.html()).toMatchSnapshot();
         });
 
-        ///////s
+        /// ////s
         // Data checking
         //////
         it("Data is defined", () => {
@@ -315,7 +312,7 @@ describe("SettingBilling", () => {
           expect(wrapper.vm.renderData).toBe(test.data.renderData);
           expect(wrapper.vm.warningTitle).toBe(test.data.warningTitle);
         });
-        it('Process data in the computed', () => {
+        it("Process data in the computed", () => {
           expect(wrapper.vm.active).toBe(test.computed.active);
           expect(wrapper.vm.state).toBe(test.computed.state);
         });

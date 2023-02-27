@@ -71,7 +71,7 @@ const store = (currentrole: string) => createStore({
 });
 
 describe("BillingCancel", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof BillingCancel>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {

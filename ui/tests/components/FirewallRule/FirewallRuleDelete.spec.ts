@@ -1,10 +1,11 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import FirewallRuleDelete from "../../../src/components/firewall/FirewallRuleDelete.vue";
 import { createStore } from "vuex";
+import FirewallRuleDelete from "../../../src/components/firewall/FirewallRuleDelete.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
+import { IRole } from "@/interfaces/IRole";
 
 const usernameFieldChoices = [
   {
@@ -146,25 +147,23 @@ const tests = [
   },
 ];
 
-const store = (currentrole: any) => {
-  return createStore({
-    state: {
-      currentrole,
-    },
-    getters: {
-      "auth/role": (state) => state.currentrole,
-    },
-    actions: {
-      "firewallrules/post": vi.fn(),
-      "firewallrules/put": vi.fn(),
-      "snackbar/showSnackbarSuccessAction": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
-};
+const store = (currentrole: IRole) => createStore({
+  state: {
+    currentrole,
+  },
+  getters: {
+    "auth/role": (state) => state.currentrole,
+  },
+  actions: {
+    "firewallrules/post": vi.fn(),
+    "firewallrules/put": vi.fn(),
+    "snackbar/showSnackbarSuccessAction": vi.fn(),
+    "snackbar/showSnackbarErrorAction": vi.fn(),
+  },
+});
 
 describe("FirewallRuleFormDialog", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof FirewallRuleDelete>>;
 
   tests.forEach((test) => {
     describe(`${test.description} - ${test.role.type}`, () => {
@@ -206,15 +205,15 @@ describe("FirewallRuleFormDialog", () => {
     //////
 
     it("Compare data with default value", () => {
-      for (const [key, value] of Object.entries(test.data)) {
-        expect(wrapper.vm[key]).toEqual(value);
-      }
+      Object.keys(test.data).forEach((key) => {
+        expect(wrapper.vm[key]).toEqual(test.data[key]);
+      });
     });
 
     it("Compare computed with default value", () => {
-      for (const [key, value] of Object.entries(test.computed)) {
-        expect(wrapper.vm[key]).toEqual(value);
-      }
+      Object.keys(test.computed).forEach((key) => {
+        expect(wrapper.vm[key]).toEqual(test.computed[key]);
+      });
     });
 
     //////

@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import PrivateKeyDelete from "../../../src/components/PrivateKeys/PrivateKeyDelete.vue";
 import { createStore } from "vuex";
+import PrivateKeyDelete from "../../../src/components/PrivateKeys/PrivateKeyDelete.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -62,7 +62,7 @@ const store = createStore({
 });
 
 describe("PrivateKeyDelete", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof PrivateKeyDelete>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {

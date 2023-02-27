@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import DeviceAdd from "../../../src/components/Devices/DeviceAdd.vue";
 import { createStore } from "vuex";
+import DeviceAdd from "../../../src/components/Devices/DeviceAdd.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -76,27 +76,25 @@ const tests = [
   },
 ];
 
-const store = (addDevice: any, tenant: any, currentrole: any) => {
-  return createStore({
-    state: {
-      tenant,
-      addDevice,
-      currentrole,
-    },
-    getters: {
-      "auth/tenant": (state) => state.tenant,
-      "modals/addDevice": (state) => state.addDevice,
-      "auth/role": (state) => state.currentrole,
-    },
-    actions: {
-      "modals/showAddDevice": vi.fn(),
-      "snackbar/showSnackbarCopy": vi.fn(),
-    },
-  });
-};
+const store = (addDevice: boolean, tenant: string, currentrole: string) => createStore({
+  state: {
+    tenant,
+    addDevice,
+    currentrole,
+  },
+  getters: {
+    "auth/tenant": (state) => state.tenant,
+    "modals/addDevice": (state) => state.addDevice,
+    "auth/role": (state) => state.currentrole,
+  },
+  actions: {
+    "modals/showAddDevice": vi.fn(),
+    "snackbar/showSnackbarCopy": vi.fn(),
+  },
+});
 
 describe("DeviceAdd", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof DeviceAdd>>;
 
   tests.forEach((test) => {
     role.forEach((currentrole) => {
@@ -112,7 +110,7 @@ describe("DeviceAdd", () => {
                   store(
                     test.variables.addDevice,
                     test.variables.tenant,
-                    currentrole
+                    currentrole,
                   ),
                   key,
                 ],
@@ -173,7 +171,7 @@ describe("DeviceAdd", () => {
 
         it("Has the correct HTML", () => {
           expect(
-            wrapper.find('[data-test="device-add-btn"]').exists()
+            wrapper.find('[data-test="device-add-btn"]').exists(),
           ).toBeTruthy();
         });
       });

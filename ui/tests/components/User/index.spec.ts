@@ -1,9 +1,9 @@
-import { envVariables } from "./../../../src/envVariables";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import UserWarning from "../../../src/components/User/UserWarning.vue";
 import { createStore } from "vuex";
+import UserWarning from "../../../src/components/User/UserWarning.vue";
+import { envVariables } from "./../../../src/envVariables";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -35,39 +35,49 @@ const statsWithDevices = {
   rejected_devices: 0,
 };
 
-const announcements = 
-  [
-    {
-      uuid: "52088548-2b99-4f38-ac09-3a8f8988476f",
-      title: "This is a announcement",
-      content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
-      date: "2022-12-15T19:45:45.618Z"
-    },
-    {
-      uuid: "52188548-2b99-4f38-ac09-3a8f8988476f",
-      title: "This is a new announcement",
-      content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
-      date: "2022-12-15T19:46:45.618Z"
-    },
-  ];
-
-  const announcement = {
+const announcements = [
+  {
     uuid: "52088548-2b99-4f38-ac09-3a8f8988476f",
     title: "This is a announcement",
     content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
-    date: "2022-12-15T19:45:45.618Z"
-  };
+    date: "2022-12-15T19:45:45.618Z",
+  },
+  {
+    uuid: "52188548-2b99-4f38-ac09-3a8f8988476f",
+    title: "This is a new announcement",
+    content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
+    date: "2022-12-15T19:46:45.618Z",
+  },
+];
+
+const announcement = {
+  uuid: "52088548-2b99-4f38-ac09-3a8f8988476f",
+  title: "This is a announcement",
+  content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
+  date: "2022-12-15T19:45:45.618Z",
+};
+
+interface IStore {
+  numberNamespaces: number;
+  statusSpinner: boolean;
+  stats: typeof statsWithoutDevices;
+  activeBilling: boolean;
+  namespace: typeof namespace;
+  DeviceChooserStatus: boolean;
+  announcements: typeof announcements;
+  announcement: typeof announcement;
+}
 
 const getters = {
   "auth/isLoggedIn": () => true,
-  "namespaces/getNumberNamespaces": (state: any) => state.numberNamespaces,
-  "spinner/getStatus": (state: any) => state.statusSpinner,
-  "stats/stats": (state: any) => state.stats,
-  "billing/active": (state: any) => !state.activeBilling,
-  "namespaces/get": (state: any) => state.namespace,
-  "devices/getDeviceChooserStatus": (state: any) => state.DeviceChooserStatus,
-  "announcement/list": (state: any) => state.announcements,
-  "announcement/get": (state: any) => state.announcement,
+  "namespaces/getNumberNamespaces": (state: IStore) => state.numberNamespaces,
+  "spinner/getStatus": (state: IStore) => state.statusSpinner,
+  "stats/stats": (state: IStore) => state.stats,
+  "billing/active": (state: IStore) => !state.activeBilling,
+  "namespaces/get": (state: IStore) => state.namespace,
+  "devices/getDeviceChooserStatus": (state: IStore) => state.DeviceChooserStatus,
+  "announcement/list": (state: IStore) => state.announcements,
+  "announcement/get": (state: IStore) => state.announcement,
 };
 
 const actions = {
@@ -102,7 +112,7 @@ const storeWithDevicesInactive = createStore({
     numberNamespaces: 3,
     statusSpinner,
     stats: statsWithDevices,
-    active: false,
+    activeBilling: false,
     namespace,
     DeviceChooserStatus,
     announcements,
@@ -110,7 +120,7 @@ const storeWithDevicesInactive = createStore({
   },
   getters: {
     ...getters,
-    "billing/active": (state) => state.active,
+    "billing/active": (state) => state.activeBilling,
     "devices/getDeviceChooserStatus": (state) => !state.DeviceChooserStatus,
   },
   actions,
@@ -121,7 +131,7 @@ const storeWithDevicesActive = createStore({
     numberNamespaces: 3,
     statusSpinner,
     stats: statsWithDevices,
-    active: true,
+    activeBilling: true,
     namespace,
     DeviceChooserStatus,
     announcements,
@@ -129,13 +139,13 @@ const storeWithDevicesActive = createStore({
   },
   getters: {
     ...getters,
-    "billing/active": (state) => state.active,
+    "billing/active": (state) => state.activeBilling,
   },
   actions,
 });
 
 describe("Without devices and billing disabled", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof UserWarning>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -191,7 +201,7 @@ describe("Without devices and billing disabled", () => {
 
     localStorage.setItem(
       "namespacesWelcome",
-      JSON.stringify({ ...{ [namespace.tenant_id]: true } })
+      JSON.stringify({ ...{ [namespace.tenant_id]: true } }),
     );
 
     await wrapper.vm.showScreenWelcome();
@@ -200,7 +210,7 @@ describe("Without devices and billing disabled", () => {
 });
 
 describe("Without devices", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof UserWarning>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -245,17 +255,17 @@ describe("Without devices", () => {
 
   it("Renders the template with components", () => {
     expect(wrapper.find('[data-test="deviceChooser-component"]').exists()).toBe(
-      false
+      false,
     );
     expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
     expect(
-      wrapper.find('[data-test="namespaceInstructions-component"]').exists()
+      wrapper.find('[data-test="namespaceInstructions-component"]').exists(),
     ).toBe(true);
     expect(
-      wrapper.find('[data-test="billingWarning-component"]').exists()
+      wrapper.find('[data-test="billingWarning-component"]').exists(),
     ).toBe(true);
     expect(
-      wrapper.find('[data-test="announcementsModal-component"]').exists()
+      wrapper.find('[data-test="announcementsModal-component"]').exists(),
     ).toBe(true);
   });
   it("Renders the template with data", async () => {
@@ -264,7 +274,7 @@ describe("Without devices", () => {
 
     localStorage.setItem(
       "namespacesWelcome",
-      JSON.stringify({ ...{ [namespace.tenant_id]: true } })
+      JSON.stringify({ ...{ [namespace.tenant_id]: true } }),
     );
 
     await wrapper.vm.showScreenWelcome();
@@ -273,7 +283,7 @@ describe("Without devices", () => {
 });
 
 describe("With devices and inactive billing", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof UserWarning>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -327,14 +337,14 @@ describe("With devices and inactive billing", () => {
 
   it("Renders the template with components", () => {
     expect(wrapper.find('[data-test="deviceChooser-component"]').exists()).toBe(
-      true
+      true,
     );
     expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
     expect(
-      wrapper.find('[data-test="namespaceInstructions-component"]').exists()
+      wrapper.find('[data-test="namespaceInstructions-component"]').exists(),
     ).toBe(true);
     expect(
-      wrapper.find('[data-test="billingWarning-component"]').exists()
+      wrapper.find('[data-test="billingWarning-component"]').exists(),
     ).toBe(true);
   });
 
@@ -344,18 +354,16 @@ describe("With devices and inactive billing", () => {
     localStorage.setItem(
       "namespacesWelcome",
       JSON.stringify({
-        // @ts-ignore
-        ...JSON.parse(localStorage.getItem("namespacesWelcome")),
+        ...JSON.parse(localStorage.getItem("namespacesWelcome") || "{}"),
         ...{ [namespace.tenant_id]: true },
-      })
+      }),
     );
 
     expect(wrapper.vm.namespaceHasBeenShown(namespace.tenant_id)).toBe(true);
 
     await wrapper.vm.showScreenWelcome();
     expect(
-      // @ts-ignore
-      Object.keys(JSON.parse(localStorage.getItem("namespacesWelcome")))
+      Object.keys(JSON.parse(localStorage.getItem("namespacesWelcome") || "{}")),
     ).toHaveLength(1);
   });
 });
@@ -367,7 +375,7 @@ describe("With devices and inactive billing", () => {
 ///////
 
 describe("With devices and active billing", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof UserWarning>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -425,14 +433,14 @@ describe("With devices and active billing", () => {
 
   it("Renders the template with components", () => {
     expect(wrapper.find('[data-test="deviceChooser-component"]').exists()).toBe(
-      false
+      false,
     );
     expect(wrapper.find('[data-test="welcome-component"]').exists()).toBe(true);
     expect(
-      wrapper.find('[data-test="namespaceInstructions-component"]').exists()
+      wrapper.find('[data-test="namespaceInstructions-component"]').exists(),
     ).toBe(true);
     expect(
-      wrapper.find('[data-test="billingWarning-component"]').exists()
+      wrapper.find('[data-test="billingWarning-component"]').exists(),
     ).toBe(true);
   });
 
@@ -442,18 +450,16 @@ describe("With devices and active billing", () => {
     localStorage.setItem(
       "namespacesWelcome",
       JSON.stringify({
-        // @ts-ignore
-        ...JSON.parse(localStorage.getItem("namespacesWelcome")),
+        ...JSON.parse(localStorage.getItem("namespacesWelcome") || "{}"),
         ...{ [namespace.tenant_id]: true },
-      })
+      }),
     );
 
     expect(wrapper.vm.namespaceHasBeenShown(namespace.tenant_id)).toBe(true);
 
     await wrapper.vm.showScreenWelcome();
     expect(
-      // @ts-ignore
-      Object.keys(JSON.parse(localStorage.getItem("namespacesWelcome")))
+      Object.keys(JSON.parse(localStorage.getItem("namespacesWelcome") || "{}")),
     ).toHaveLength(1);
   });
 });

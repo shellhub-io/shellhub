@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import BillingInvoiceList from "../../../src/components/Billing/BillingInvoiceList.vue";
 import { createStore } from "vuex";
+import BillingInvoiceList from "../../../src/components/Billing/BillingInvoiceList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -95,7 +95,7 @@ const store = createStore({
 });
 
 describe("BillingInvoiceList", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof BillingInvoiceList>>;
   const vuetify = createVuetify();
 
   beforeEach(() => {
