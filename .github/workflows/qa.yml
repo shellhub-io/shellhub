@@ -118,7 +118,7 @@ jobs:
 
       - name: Cache node modules [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ui/node_modules
           key: ${{ runner.OS }}-ui-${{ hashFiles('**/package-lock.json') }}
