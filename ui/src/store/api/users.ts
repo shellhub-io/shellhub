@@ -1,6 +1,7 @@
+import { IUSerRecoverPassword, IUser, IUserPutSecurity, IUserUpdatePassword, IUserSignUp } from "@/interfaces/IUSer";
 import { usersApi } from "../../api/http";
 
-export const signUp = async (data : any) => usersApi.registerUser({
+export const signUp = async (data : IUserSignUp) => usersApi.registerUser({
   name: data.name,
   email: data.email,
   username: data.username,
@@ -8,28 +9,28 @@ export const signUp = async (data : any) => usersApi.registerUser({
   email_marketing: data.emailMarketing || false,
 });
 
-export const postResendEmail = async (username : any) => usersApi.resendEmail({ username });
+export const postResendEmail = async (username : string) => usersApi.resendEmail({ username });
 
 export const postRecoverPassword = async (username : string) => usersApi.recoverPassword({ username });
 
-export const postValidationAccount = async (data : any) => usersApi.getValidateAccount(data.email, data.token);
+export const postValidationAccount = async (data : IUser) => usersApi.getValidateAccount(data.email, data.token);
 
-export const putSecurity = async (data : any) => usersApi.setSessionRecord(data.id, { session_record: data.status });
+export const putSecurity = async (data : IUserPutSecurity) => usersApi.setSessionRecord(data.id, { session_record: data.status });
 
 export const getSecurity = async () => usersApi.getSessionRecord();
 
-export const postUpdatePassword = async (data : any) => usersApi.updateRecoverPassword(data.id, {
+export const postUpdatePassword = async (data : IUserUpdatePassword) => usersApi.updateRecoverPassword(data.id, {
   token: data.token,
   password: data.password,
 });
 
-export const patchUserData = async (data : any) => usersApi.updateUserData(data.id, {
+export const patchUserData = async (data : IUser) => usersApi.updateUserData(data.id, {
   name: data.name,
   username: data.username,
   email: data.email,
 });
 
-export const patchUserPassword = async (data : any) => usersApi.updateUserPassword(data.id, {
+export const patchUserPassword = async (data : IUSerRecoverPassword) => usersApi.updateUserPassword(data.id, {
   current_password: data.currentPassword,
   new_password: data.newPassword,
 });

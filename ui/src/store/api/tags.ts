@@ -1,7 +1,12 @@
 import { tagsApi } from "../../api/http";
 
-export const updateTag = async (data : any) => tagsApi.renameTag(data.oldTag, { tag: data.newTag });
+interface UpdateTagResponse {
+  oldTag: string;
+  newTag: string;
+}
 
-export const removeTag = async (tag : any) => tagsApi.deleteTag(tag);
+export const updateTag = async (data : UpdateTagResponse) => tagsApi.renameTag(data.oldTag, { tag: data.newTag });
+
+export const removeTag = async (tag : string) => tagsApi.deleteTag(tag);
 
 export const getTags = async () => tagsApi.getTags();

@@ -1,6 +1,7 @@
 import { Module } from "vuex";
 import { State } from "./../index";
 import * as apiAuth from "../api/auth";
+import { IUserLogin } from "@/interfaces/IUserLogin";
 
 export interface AuthState {
   status: string;
@@ -75,7 +76,7 @@ export const auth: Module<AuthState, State> = {
   },
 
   actions: {
-    async login(context, user) {
+    async login(context, user: IUserLogin) {
       context.commit("authRequest");
 
       try {

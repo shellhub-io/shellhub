@@ -1,14 +1,15 @@
+import { IDevicePostTag, IDeviceRename, IUpdateDeviceTag } from "@/interfaces/IDevice";
 import { devicesApi, tagsApi } from "../../api/http";
 
-export const postTag = async (data: any) => tagsApi.createDeviceTag(data.uid, data.name);
+export const postTag = async (data: IDevicePostTag) => tagsApi.createDeviceTag(data.uid, data.name);
 
 export const fetchDevices = async (
-  page : any,
-  perPage: any,
-  filter : any,
-  status : any,
-  sortStatusField : any,
-  sortStatusString : any,
+  page : number,
+  perPage: number,
+  filter : string | undefined,
+  status : "accepted" | "rejected" | "pending" | "unused",
+  sortStatusField : string | undefined,
+  sortStatusString : "asc" | "desc" | "",
 ) => {
   if (sortStatusField && sortStatusString) {
     return devicesApi.getDevices(
@@ -24,14 +25,14 @@ export const fetchDevices = async (
   return devicesApi.getDevices(filter, page, perPage, status);
 };
 
-export const getDevice = async (uid : any) => devicesApi.getDevice(uid);
+export const getDevice = async (uid : string) => devicesApi.getDevice(uid);
 
-export const renameDevice = async (data : any) => devicesApi.updateDeviceName(data.uid, data.name);
+export const renameDevice = async (data : IDeviceRename) => devicesApi.updateDeviceName(data.uid, data.name);
 
-export const acceptDevice = async (uid : any) => devicesApi.updateDeviceStatus(uid, "accept");
+export const acceptDevice = async (uid : string) => devicesApi.updateDeviceStatus(uid, "accept");
 
-export const rejectDevice = async (uid : any) => devicesApi.updateDeviceStatus(uid, "reject");
+export const rejectDevice = async (uid : string) => devicesApi.updateDeviceStatus(uid, "reject");
 
-export const updateDeviceTag = async (data : any) => devicesApi.updateTagsDevice(data.uid, data.tags);
+export const updateDeviceTag = async (data : IUpdateDeviceTag) => devicesApi.updateTagsDevice(data.uid, data.tags);
 
-export const removeDevice = async (uid : any) => devicesApi.deleteDevice(uid);
+export const removeDevice = async (uid : string) => devicesApi.deleteDevice(uid);

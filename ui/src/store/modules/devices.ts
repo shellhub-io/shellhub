@@ -11,10 +11,10 @@ export interface DevicesState {
   numberDevices: number;
   page: number;
   perPage: number;
-  filter: null | string;
-  status: string;
-  sortStatusField: null | string;
-  sortStatusString: string;
+  filter: undefined | string;
+  status: "accepted" | "rejected" | "pending" | "unused";
+  sortStatusField: undefined | string;
+  sortStatusString: "asc" | "desc" | "";
   deviceChooserStatus: boolean;
   devicesForUserToChoose: Array<IDevice>;
   numberdevicesForUserToChoose: number;
@@ -30,8 +30,8 @@ export const devices: Module<DevicesState, State> = {
     page: 1,
     perPage: 10,
     filter: "",
-    status: "",
-    sortStatusField: null,
+    status: "accepted",
+    sortStatusField: undefined,
     sortStatusString: "",
     deviceChooserStatus: false,
     devicesForUserToChoose: [],
