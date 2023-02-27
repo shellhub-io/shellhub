@@ -8,7 +8,7 @@ import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 const numberDevices = 2;
-const devicesSelected: any = [];
+const devicesSelected = [];
 const action = "suggestedDevices";
 
 const headers = [
@@ -97,7 +97,7 @@ const store = createStore({
 });
 
 describe("Devices Pending List", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof DeviceRejectedList>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();

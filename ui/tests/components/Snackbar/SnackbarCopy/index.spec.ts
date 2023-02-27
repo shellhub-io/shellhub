@@ -25,7 +25,7 @@ const store = createStore({
 });
 
 describe("Device Icon", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SnackbarCopy>>;
 
   beforeEach(() => {
     wrapper = mount(SnackbarCopy, {

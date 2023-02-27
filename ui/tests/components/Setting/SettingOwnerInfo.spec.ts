@@ -7,7 +7,7 @@ import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("SettingOwnerInfo", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SettingOwnerInfo>>;
   const vuetify = createVuetify();
 
   const isOwner = true;

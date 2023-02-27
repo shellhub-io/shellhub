@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Account from "../../../src/components/Account/AccountCreated.vue";
 import { createStore } from "vuex";
+import Account from "../../../src/components/Account/AccountCreated.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -17,7 +17,7 @@ const store = createStore({
 });
 
 describe("Account Render", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Account>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -45,16 +45,16 @@ describe("Account Render", () => {
   });
   it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="accountCreated-card"]').exists()).toEqual(
-      true
+      true,
     );
     expect(wrapper.find('[data-test="resendEmail-btn"]').exists()).toEqual(
-      true
+      true,
     );
   });
 });
 
 describe("Doesn't render component", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Account>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -84,10 +84,10 @@ describe("Doesn't render component", () => {
 
   it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="accountCreated-card"]').exists()).toEqual(
-      false
+      false,
     );
     expect(wrapper.find('[data-test="resendEmail-btn"]').exists()).toEqual(
-      false
+      false,
     );
   });
 });

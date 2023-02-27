@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import PrivateKeyEdit from "../../../src/components/PrivateKeys/PrivateKeyEdit.vue";
 import { createStore } from "vuex";
+import PrivateKeyEdit from "../../../src/components/PrivateKeys/PrivateKeyEdit.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -77,7 +77,7 @@ const store = createStore({
 });
 
 describe("PrivateKeyFormDialogEdit", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof PrivateKeyEdit>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {

@@ -35,7 +35,7 @@ const iconsMap = {
 };
 
 describe("DeviceIcon", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof DeviceIcon>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -131,7 +131,7 @@ describe("DeviceIcon", () => {
 });
 
 describe("DeviceIcon icon not found", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof DeviceIcon>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();

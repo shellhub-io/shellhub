@@ -1,11 +1,10 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import DeviceActionButton from "../../../src/components/Devices/DeviceActionButton.vue";
 import { createStore } from "vuex";
+import DeviceActionButton from "../../../src/components/Devices/DeviceActionButton.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
-import { authorizer, actions } from "../../../src/authorizer";
 
 const role = ["owner", "observer"];
 
@@ -130,35 +129,33 @@ const tests = [
   },
 ];
 
-const store = (isActive: any, currentRole: any) => {
-  return createStore({
-    state: {
-      isActive,
-      currentRole,
-    },
-    getters: {
-      isActive: (state) => state.isActive,
-      "auth/role": (state) => state.currentRole,
-    },
-    actions: {
-      "devices/refresh": vi.fn(),
-      "devices/accept": vi.fn(),
-      "users/setStatusUpdateAccountDialog": vi.fn(),
-      "devices/reject": vi.fn(),
-      "devices/remove": vi.fn(),
-      "notifications/fetch": vi.fn(),
-      "stats/get": vi.fn(),
-      "snackbar/showSnackbarErrorDefault": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-      "snackbar/showSnackbarErrorLoading": vi.fn(),
-    },
-  });
-};
+const store = (isActive: boolean, currentRole: string) => createStore({
+  state: {
+    isActive,
+    currentRole,
+  },
+  getters: {
+    isActive: (state) => state.isActive,
+    "auth/role": (state) => state.currentRole,
+  },
+  actions: {
+    "devices/refresh": vi.fn(),
+    "devices/accept": vi.fn(),
+    "users/setStatusUpdateAccountDialog": vi.fn(),
+    "devices/reject": vi.fn(),
+    "devices/remove": vi.fn(),
+    "notifications/fetch": vi.fn(),
+    "stats/get": vi.fn(),
+    "snackbar/showSnackbarErrorDefault": vi.fn(),
+    "snackbar/showSnackbarErrorAction": vi.fn(),
+    "snackbar/showSnackbarErrorLoading": vi.fn(),
+  },
+});
 
 tests.forEach((test) => {
   role.forEach((currentRole) => {
     describe(`DeviceActionButton: ${test.description} - ${currentRole}`, () => {
-      let wrapper: VueWrapper<any>;
+      let wrapper: VueWrapper<InstanceType<typeof DeviceActionButton>>;
 
       beforeEach(() => {
         const vuetify = createVuetify();
@@ -202,14 +199,13 @@ tests.forEach((test) => {
       it("Renders the component with the correct data", () => {
         expect(wrapper.vm.uid).toBe(test.props.uid);
         expect(wrapper.vm.notificationStatus).toBe(
-          test.props.notificationStatus
+          test.props.notificationStatus,
         );
         expect(wrapper.vm.action).toBe(test.props.action);
       });
 
-      it('Process data in the computed', () => {
-        if (!(test.props.action === 'remove' && currentRole === 'operator')) {
-          // @ts-ignore
+      it("Process data in the computed", () => {
+        if (!(test.props.action === "remove" && currentRole === "operator")) {
           expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization[currentRole]);
         } else {
           expect(wrapper.vm.hasAuthorization).toEqual(false);

@@ -1,13 +1,12 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import PublicKeyEdit from "../../../src/components/PublicKeys/PublicKeyEdit.vue";
 import { createStore } from "vuex";
+import PublicKeyEdit from "../../../src/components/PublicKeys/PublicKeyEdit.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
-const supportedKeys =
-  "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.";
+const supportedKeys = "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.";
 
 const keyObject = {
   name: "ShellHub",
@@ -135,7 +134,7 @@ const store = createStore({
 });
 
 describe("PublicKeyFormDialogEdit", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof PublicKeyEdit>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {

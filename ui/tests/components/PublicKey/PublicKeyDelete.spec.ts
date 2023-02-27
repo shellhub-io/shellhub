@@ -1,10 +1,11 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import PublicKeyDelete from "../../../src/components/PublicKeys/PublicKeyDelete.vue";
 import { createStore } from "vuex";
+import PublicKeyDelete from "../../../src/components/PublicKeys/PublicKeyDelete.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
+
 const tests = [
   {
     description: "Dialog closed",
@@ -56,7 +57,7 @@ const store = createStore({
   },
 });
 describe("PublicKeyDelete", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof PublicKeyDelete>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -97,11 +98,11 @@ describe("PublicKeyDelete", () => {
       it("Renders the correct HTML", () => {
         expect(wrapper.find('[data-test="remove-icon"]').exists()).toBeTruthy();
         expect(
-          wrapper.find('[data-test="remove-title"]').exists()
+          wrapper.find('[data-test="remove-title"]').exists(),
         ).toBeTruthy();
       });
 
-      //todo
+      // todo
     });
   });
 });

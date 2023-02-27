@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import Card from "../../../src/components/Card/Card.vue";
 
 describe("Card", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Card>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -12,7 +12,7 @@ describe("Card", () => {
     wrapper = mount(Card, {
       props: {
         id: 0,
-        title: "Registered Users", 
+        title: "Registered Users",
         fieldObject: "registered_users",
         content: "Registered users",
         icon: "mdi-account-group",

@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import BoxMessage from "../../../src/components/Box/BoxMessage.vue";
+import { describe, expect, it, vi } from "vitest";
 import { createStore } from "vuex";
+import BoxMessage from "../../../src/components/Box/BoxMessage.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -18,7 +18,7 @@ const store = createStore({
 });
 
 describe("BoxMessage Render", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof BoxMessage>>;
 
   const typeMessage = {
     device: "device",
@@ -116,26 +116,26 @@ describe("BoxMessage Render", () => {
     const lenDeviceText = items.device.text.length;
 
     expect(wrapper.find('[data-test="boxMessage-icon"]').classes()[0]).toEqual(
-      items.device.icon
+      items.device.icon,
     );
     expect(wrapper.find('[data-test="boxMessage-title"]').text()).toEqual(
-      title
+      title,
     );
 
-    Object.keys(items.device.text).forEach((index: any) => {
+    Object.keys(items.device.text).forEach((index: string) => {
       expect(
-        wrapper.find(`[data-test="${index}-boxMessage-text"]`).text()
+        wrapper.find(`[data-test="${index}-boxMessage-text"]`).text(),
       ).toEqual(items.device.text[index]);
     });
-    Object.keys(items.firewall.textWithLink).forEach((index: any) => {
+    Object.keys(items.firewall.textWithLink).forEach((index: string) => {
       expect(
         wrapper
           .find(
             `[data-test="${
               lenDeviceText + parseInt(index, 10)
-            }-boxMessage-text"]`
+            }-boxMessage-text"]`,
           )
-          .text()
+          .text(),
       ).toEqual(items.device.textWithLink[index]);
     });
   });
@@ -156,26 +156,26 @@ describe("BoxMessage Render", () => {
     const lenSessionText = items.session.text.length;
 
     expect(wrapper.find('[data-test="boxMessage-icon"]').classes()[0]).toEqual(
-      items.session.icon
+      items.session.icon,
     );
     expect(wrapper.find('[data-test="boxMessage-title"]').text()).toEqual(
-      title
+      title,
     );
 
-    Object.keys(items.session.text).forEach((index: any) => {
+    Object.keys(items.session.text).forEach((index: string) => {
       expect(
-        wrapper.find(`[data-test="${index}-boxMessage-text"]`).text()
+        wrapper.find(`[data-test="${index}-boxMessage-text"]`).text(),
       ).toEqual(items.session.text[index]);
     });
-    Object.keys(items.firewall.textWithLink).forEach((index: any) => {
+    Object.keys(items.firewall.textWithLink).forEach((index: string) => {
       expect(
         wrapper
           .find(
             `[data-test="${
               lenSessionText + parseInt(index, 10)
-            }-boxMessage-text"]`
+            }-boxMessage-text"]`,
           )
-          .text()
+          .text(),
       ).toEqual(items.device.textWithLink[index]);
     });
   });
@@ -192,31 +192,30 @@ describe("BoxMessage Render", () => {
       },
     });
 
-
     const title = `Looks like you don't have any ${items.firewall.title}`;
     const lenFirewallText = items.firewall.text.length;
 
     expect(wrapper.find('[data-test="boxMessage-icon"]').classes()[0]).toEqual(
-      items.firewall.icon
+      items.firewall.icon,
     );
     expect(wrapper.find('[data-test="boxMessage-title"]').text()).toEqual(
-      title
+      title,
     );
 
-    Object.keys(items.firewall.text).forEach((index: any) => {
+    Object.keys(items.firewall.text).forEach((index: string) => {
       expect(
-        wrapper.find(`[data-test="${index}-boxMessage-text"]`).text()
+        wrapper.find(`[data-test="${index}-boxMessage-text"]`).text(),
       ).toEqual(items.firewall.text[index]);
     });
-    Object.keys(items.firewall.textWithLink).forEach((index: any) => {
+    Object.keys(items.firewall.textWithLink).forEach((index: string) => {
       expect(
         wrapper
           .find(
             `[data-test="${
               lenFirewallText + parseInt(index, 10)
-            }-boxMessage-text"]`
+            }-boxMessage-text"]`,
           )
-          .text()
+          .text(),
       ).toEqual(items.firewall.textWithLink[index]);
     });
   });
@@ -239,27 +238,27 @@ describe("BoxMessage Render", () => {
     expect(wrapper.html()).toMatchSnapshot();
 
     expect(wrapper.find('[data-test="boxMessage-icon"]').classes()[0]).toEqual(
-      items.publicKey.icon
+      items.publicKey.icon,
     );
     expect(wrapper.find('[data-test="boxMessage-title"]').text()).toEqual(
-      title
+      title,
     );
 
-    Object.keys(items.publicKey.text).forEach((index: any) => {
+    Object.keys(items.publicKey.text).forEach((index: string) => {
       expect(
-        wrapper.find(`[data-test="${index}-boxMessage-text"]`).text()
+        wrapper.find(`[data-test="${index}-boxMessage-text"]`).text(),
       ).toEqual(items.publicKey.text[index]);
     });
 
-    Object.keys(items.publicKey.textWithLink).forEach((index: any) => {
+    Object.keys(items.publicKey.textWithLink).forEach((index: string) => {
       expect(
         wrapper
           .find(
             `[data-test="${
               lenPublicKeyText + parseInt(index, 10)
-            }-boxMessage-text"]`
+            }-boxMessage-text"]`,
           )
-          .text()
+          .text(),
       ).toEqual(items.publicKey.textWithLink[index]);
     });
   });

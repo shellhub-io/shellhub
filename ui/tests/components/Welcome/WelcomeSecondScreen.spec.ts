@@ -1,17 +1,16 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import WelcomeSecondScreen from "../../../src/components/Welcome/WelcomeSecondScreen.vue";
 import { createStore } from "vuex";
+import WelcomeSecondScreen from "../../../src/components/Welcome/WelcomeSecondScreen.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("WelcomeSecondScreen", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof WelcomeSecondScreen>>;
   const vuetify = createVuetify();
 
-  const command =
-    'curl -sSf "http://localhost/install.sh?tenant_id=a582b47a42e" | sh';
+  const command = 'curl -sSf "http://localhost/install.sh?tenant_id=a582b47a42e" | sh';
 
   const store = createStore({
     state: {},
@@ -53,12 +52,11 @@ describe("WelcomeSecondScreen", () => {
     expect(wrapper.vm.command).toEqual(command);
   });
 
-
   //////
   // HTML validation
   //////
 
-  it('Renders the template with data', () => {
+  it("Renders the template with data", () => {
     const commandText = wrapper.find('[data-test="command-field"]');
     expect(commandText.exists()).toBe(true);
   });

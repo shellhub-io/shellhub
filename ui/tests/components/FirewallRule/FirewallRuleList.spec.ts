@@ -1,10 +1,11 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import FirewallRule from "../../../src/components/firewall/FirewallRuleList.vue";
 import { createStore } from "vuex";
+import FirewallRule from "../../../src/components/firewall/FirewallRuleList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
+import { IRole } from "@/interfaces/IRole";
 
 const statusGlobal = true;
 
@@ -141,36 +142,34 @@ const tests = [
 ];
 
 const store = (
-  firewalls: any,
-  numberFirewalls: any,
-  status: any,
-  currentrole: any
-) => {
-  return createStore({
-    state: {
-      firewalls,
-      numberFirewalls,
-      status,
-      currentrole,
-    },
-    getters: {
-      "firewallrules/list": (state) => state.firewalls,
-      "firewallrules/getNumberFirewalls": (state) => state.numberFirewalls,
-      "boxs/getStatus": (state) => state.status,
-      "auth/role": (state) => state.currentrole,
-    },
-    actions: {
-      "firewallrules/fetch": vi.fn(),
-      "boxs/setStatus": vi.fn(),
-      "snackbar/showSnackbarErrorAssociation": vi.fn(),
-      "snackbar/showSnackbarErrorLoading": vi.fn(),
-    },
-  });
-};
+  firewalls: typeof firewallsGlobal,
+  numberFirewalls: number,
+  status: boolean,
+  currentrole: IRole,
+) => createStore({
+  state: {
+    firewalls,
+    numberFirewalls,
+    status,
+    currentrole,
+  },
+  getters: {
+    "firewallrules/list": (state) => state.firewalls,
+    "firewallrules/getNumberFirewalls": (state) => state.numberFirewalls,
+    "boxs/getStatus": (state) => state.status,
+    "auth/role": (state) => state.currentrole,
+  },
+  actions: {
+    "firewallrules/fetch": vi.fn(),
+    "boxs/setStatus": vi.fn(),
+    "snackbar/showSnackbarErrorAssociation": vi.fn(),
+    "snackbar/showSnackbarErrorLoading": vi.fn(),
+  },
+});
 
 tests.forEach((test) => {
   describe(`${test.description}`, () => {
-    let wrapper: VueWrapper<any>;
+    let wrapper: VueWrapper<InstanceType<typeof FirewallRule>>;
 
     beforeEach(() => {
       const vuetify = createVuetify();
@@ -182,7 +181,7 @@ tests.forEach((test) => {
                 test.variables.firewallsGlobal,
                 test.variables.numberFirewallsGlobal,
                 test.variables.statusGlobal,
-                test.role
+                test.role,
               ),
               key,
             ],
@@ -222,7 +221,7 @@ tests.forEach((test) => {
     it("Compare data with default value", () => {
       expect(wrapper.vm.headers).toEqual(test.data.headers);
       expect(wrapper.vm.getNumberFirewallRules).toEqual(
-        test.data.getNumberFirewallRules
+        test.data.getNumberFirewallRules,
       );
       expect(wrapper.vm.page).toEqual(test.data.page);
       expect(wrapper.vm.itemsPerPage).toEqual(test.data.itemsPerPage);
@@ -231,10 +230,10 @@ tests.forEach((test) => {
       expect(wrapper.vm.nextPage).toEqual(test.data.nextPage);
       expect(wrapper.vm.previousPage).toEqual(test.data.previousPage);
       expect(wrapper.vm.changeItemsPerPage).toEqual(
-        test.data.changeItemsPerPage
+        test.data.changeItemsPerPage,
       );
       expect(wrapper.vm.refreshFirewallRules).toEqual(
-        test.data.refreshFirewallRules
+        test.data.refreshFirewallRules,
       );
       expect(wrapper.vm.loading).toEqual(test.data.loading);
     });
@@ -242,13 +241,13 @@ tests.forEach((test) => {
     it("Compare the computed with the default value", () => {
       expect(wrapper.vm.firewallRules).toEqual(test.computed.firewallRules);
       expect(wrapper.vm.getNumberFirewallRules).toEqual(
-        test.computed.getNumberFirewallRules
+        test.computed.getNumberFirewallRules,
       );
       expect(wrapper.vm.hasAuthorizationFormDialogEdit).toEqual(
-        test.computed.hasAuthorizationFormDialogEdit
+        test.computed.hasAuthorizationFormDialogEdit,
       );
       expect(wrapper.vm.hasAuthorizationFormDialogRemove).toEqual(
-        test.computed.hasAuthorizationFormDialogRemove
+        test.computed.hasAuthorizationFormDialogRemove,
       );
     });
 
@@ -256,10 +255,10 @@ tests.forEach((test) => {
     // HTML validation
     //////
 
-    it('Renders the template with data', () => {
+    it("Renders the template with data", () => {
       const dt = wrapper.find('[data-test="firewallRules-list"]');
       const dataTableProps = dt.attributes();
-      
+
       expect(dt.exists()).toBeTruthy();
       expect(+dataTableProps.totalcount).toBe(test.variables.numberFirewallsGlobal);
     });

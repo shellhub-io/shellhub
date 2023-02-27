@@ -1,13 +1,13 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import TagFormUpdate from "../../../src/components/Tags/TagFormUpdate.vue";
 import { createStore } from "vuex";
+import TagFormUpdate from "../../../src/components/Tags/TagFormUpdate.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("TagFormUpdate", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof TagFormUpdate>>;
   const vuetify = createVuetify();
 
   const tests = [
@@ -137,7 +137,7 @@ describe("TagFormUpdate", () => {
         expect(wrapper.vm.inputTags).toStrictEqual(test.data.listTagLocal);
         expect(wrapper.vm.tagsError).toBe(test.data.errorMsg);
       });
-      it('Process data in the computed', () => {
+      it("Process data in the computed", () => {
         expect(wrapper.vm.hasTags).toBe(test.computed.hasTag);
       });
     });

@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint --ext .ts,.vue --ignore-path .gitignore --no-fix src",
     "lint-fix": "eslint --ext .ts,.vue --ignore-path .gitignore --fix src",
+    "lint-fix:test": "eslint --ext .ts,.vue --ignore-path .gitignore --fix tests",
     "test": "TZ=UTC vitest",
     "test-ui": "TZ=UTC vitest --ui",
     "test-coverage": "vitest run --coverage"

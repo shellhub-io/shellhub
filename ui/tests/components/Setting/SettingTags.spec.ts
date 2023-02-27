@@ -1,13 +1,11 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount, VueWrapper } from "@vue/test-utils";
+import { beforeEach, describe, expect, it } from "vitest";
 import SettingTags from "../../../src/components/Setting/SettingTags.vue";
-import { createStore } from "vuex";
-import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("SettingTags", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SettingTags>>;
   const vuetify = createVuetify();
 
   beforeEach(() => {
@@ -30,7 +28,7 @@ describe("SettingTags", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  ///////s
+  /// ////s
   // Data checking
   //////
   it("Data is defined", () => {

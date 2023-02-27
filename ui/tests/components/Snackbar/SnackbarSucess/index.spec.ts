@@ -26,7 +26,7 @@ const store = createStore({
 });
 
 describe("Device Icon", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SnackbarSucess>>;
 
   beforeEach(() => {
     const vuetify = createVuetify();

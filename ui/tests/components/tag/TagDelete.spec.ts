@@ -7,7 +7,7 @@ import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("TagDelete", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof TagRemove>>;
   const vuetify = createVuetify();
 
   const tests = [

@@ -7,7 +7,7 @@ import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("WelcomeThirdScreen", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof WelcomeThirdScreen>>;
   const vuetify = createVuetify();
 
   const device = {

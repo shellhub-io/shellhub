@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import TerminalDialog from "../../../src/components/Terminal/TerminalDialog.vue";
 import { createStore } from "vuex";
+import TerminalDialog from "../../../src/components/Terminal/TerminalDialog.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -37,7 +37,7 @@ const store = createStore({
 });
 
 describe("TerminalDialog", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof TerminalDialog>>;
   const vuetify = createVuetify();
 
   ///////
@@ -106,7 +106,7 @@ describe("TerminalDialog", () => {
       expect(wrapper.find('[data-test="console-icon"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="console-item"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="terminal-dialog"]').exists()).toBe(
-        false
+        false,
       );
     });
   });
@@ -172,7 +172,7 @@ describe("TerminalDialog", () => {
       expect(wrapper.find('[data-test="console-icon"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="console-item"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="terminal-dialog"]').exists()).toBe(
-        false
+        false,
       );
     });
   });
@@ -195,8 +195,8 @@ describe("TerminalDialog", () => {
         data() {
           return {
             showTerminal: false,
-          }
-        }
+          };
+        },
       });
     });
 

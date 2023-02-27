@@ -1,13 +1,13 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import FirewallRules from "../../src/views/FirewallRules.vue";
 import { createStore } from "vuex";
+import FirewallRules from "../../src/views/FirewallRules.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 
 describe("FirewallRules", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof FirewallRules>>;
   const vuetify = createVuetify();
 
   const numberFirewallsEqualZero = 0;
@@ -89,7 +89,7 @@ describe("FirewallRules", () => {
     it("Renders the template with components", () => {
       expect(wrapper.find('[data-test="device-add-btn"]').exists()).toBe(true);
       expect(
-        wrapper.find('[data-test="BoxMessageFirewall-component"]').exists()
+        wrapper.find('[data-test="BoxMessageFirewall-component"]').exists(),
       ).toBe(true);
     });
   });
@@ -141,7 +141,7 @@ describe("FirewallRules", () => {
     it("Renders the template with components", () => {
       expect(wrapper.find('[data-test="device-add-btn"]').exists()).toBe(true);
       expect(
-        wrapper.find('[data-test="BoxMessageFirewall-component"]').exists()
+        wrapper.find('[data-test="BoxMessageFirewall-component"]').exists(),
       ).toBe(false);
     });
   });

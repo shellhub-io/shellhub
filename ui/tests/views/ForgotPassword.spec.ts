@@ -7,7 +7,7 @@ import { key } from "../../src/store";
 import routes from "../../src/router";
 
 describe("ForgotPassword", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof ForgotPassword>>;
   const vuetify = createVuetify();
 
   const statusDarkMode = true;

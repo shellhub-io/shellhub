@@ -5,9 +5,10 @@ import { createStore } from "vuex";
 import DetailsDevice from "../../src/views/DetailsDevice.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
+import { IRole } from "@/interfaces/IRole";
 
 describe("DetailsDevice", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof DetailsDevice>>;
   const vuetify = createVuetify();
 
   const deviceOnline = {
@@ -121,7 +122,7 @@ describe("DetailsDevice", () => {
     },
   ];
 
-  const store = (device: any, currentRole: any) => createStore({
+  const store = (device: typeof deviceOnline, currentRole: IRole) => createStore({
     state: {
       device,
       currentRole,

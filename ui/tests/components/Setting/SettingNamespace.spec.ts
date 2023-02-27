@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SettingNamespace from "../../../src/components/Setting/SettingNamespace.vue";
 import { createStore } from "vuex";
+import SettingNamespace from "../../../src/components/Setting/SettingNamespace.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 import { envVariables } from "../../../src/envVariables";
@@ -96,29 +96,27 @@ const tests = [
   },
 ];
 
-const store = (namespace: any, authID: any, tenant: any) => {
-  return createStore({
-    state: {
-      namespace,
-      authID,
-      tenant,
-    },
-    getters: {
-      "namespaces/get": (state) => state.namespace,
-      "auth/tenant": (state) => state.tenant,
-    },
-    actions: {
-      "namespaces/get": () => {},
-      "namespaces/removeUser": () => {},
-      "snackbar/showSnackbarSuccessAction": () => {},
-      "snackbar/showSnackbarErrorAction": () => {},
-      "snackbar/showSnackbarErrorAssociation": () => {},
-    },
-  });
-};
+const store = (namespace: typeof openNamespace, authID: string, tenant: string) => createStore({
+  state: {
+    namespace,
+    authID,
+    tenant,
+  },
+  getters: {
+    "namespaces/get": (state) => state.namespace,
+    "auth/tenant": (state) => state.tenant,
+  },
+  actions: {
+    "namespaces/get": () => vi.fn(),
+    "namespaces/removeUser": () => vi.fn(),
+    "snackbar/showSnackbarSuccessAction": () => vi.fn(),
+    "snackbar/showSnackbarErrorAction": () => vi.fn(),
+    "snackbar/showSnackbarErrorAssociation": () => vi.fn(),
+  },
+});
 
 describe("SettingNamespace", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SettingNamespace>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -131,7 +129,7 @@ describe("SettingNamespace", () => {
                 store(
                   test.variables.namespace,
                   test.variables.authID,
-                  test.variables.tenant
+                  test.variables.tenant,
                 ),
                 key,
               ],
@@ -165,7 +163,7 @@ describe("SettingNamespace", () => {
         expect(wrapper.html()).toMatchSnapshot();
       });
 
-      ///////s
+      /// ////s
       // Data checking
       //////
       it("Data is defined", () => {

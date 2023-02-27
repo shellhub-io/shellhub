@@ -1,13 +1,13 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Sessions from "../../src/views/Sessions.vue";
 import { createStore } from "vuex";
+import Sessions from "../../src/views/Sessions.vue";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 
 describe("Sessions", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof Sessions>>;
   const vuetify = createVuetify();
 
   const numberSessionsEqualZero = 0;
@@ -90,7 +90,7 @@ describe("Sessions", () => {
 
     it("Renders the template with components", () => {
       expect(
-        wrapper.find('[data-test="BoxMessageSession-component"]').exists()
+        wrapper.find('[data-test="BoxMessageSession-component"]').exists(),
       ).toBe(true);
     });
   });
@@ -100,7 +100,7 @@ describe("Sessions", () => {
   // device.
   ///////
 
-  describe('With sessions', () => {
+  describe("With sessions", () => {
     beforeEach(async () => {
       wrapper = mount(Sessions, {
         global: {
@@ -113,10 +113,10 @@ describe("Sessions", () => {
     // Component Rendering
     //////
 
-    it('Is a Vue instance', () => {
+    it("Is a Vue instance", () => {
       expect(wrapper).toBeTruthy();
     });
-    it('Renders the component', () => {
+    it("Renders the component", () => {
       expect(wrapper.html()).toMatchSnapshot();
     });
 
@@ -124,13 +124,13 @@ describe("Sessions", () => {
     // Data checking
     //////
 
-    it('Data is defined', () => {
+    it("Data is defined", () => {
       expect(wrapper.vm.$data).toBeDefined();
     });
-    it('Compare data with the default and defined value', () => {
+    it("Compare data with the default and defined value", () => {
       expect(wrapper.vm.show).toEqual(true);
     });
-    it('Process data in the computed', () => {
+    it("Process data in the computed", () => {
       expect(wrapper.vm.hasSession).toEqual(true);
       expect(wrapper.vm.showBoxMessage).toEqual(false);
     });
@@ -139,7 +139,7 @@ describe("Sessions", () => {
     // HTML validation
     //////
 
-    it('Renders the template with components', () => {
+    it("Renders the template with components", () => {
       expect(wrapper.find('[data-test="BoxMessageSession-component"]').exists()).toBe(false);
     });
   });

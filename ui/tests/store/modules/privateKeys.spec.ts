@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { store } from "../../../src/store";
 
 describe("PrivateKeys", () => {
@@ -39,15 +39,14 @@ describe("PrivateKeys", () => {
   });
   it("Verify remove private key item from list for removePrivateKey mutation", () => {
     const currentPrivateKeys = store.getters["privateKey/list"];
-    const currentNumberPrivateKeys =
-      store.getters["privateKey/getNumberPrivateKeys"];
+    const currentNumberPrivateKeys = store.getters["privateKey/getNumberPrivateKeys"];
 
     store.commit("privateKey/removePrivateKey", privateKey2.data);
     expect(store.getters["privateKey/list"]).toEqual(
-      currentPrivateKeys.filter((pk) => pk.data !== privateKey2.data)
+      currentPrivateKeys.filter((pk) => pk.data !== privateKey2.data),
     );
     expect(store.getters["privateKey/getNumberPrivateKeys"]).toEqual(
-      currentNumberPrivateKeys - 1
+      currentNumberPrivateKeys - 1,
     );
   });
 

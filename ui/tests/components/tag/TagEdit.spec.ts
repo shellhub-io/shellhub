@@ -1,13 +1,13 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import TagEdit from "../../../src/components/Tags/TagEdit.vue";
 import { createStore } from "vuex";
+import TagEdit from "../../../src/components/Tags/TagEdit.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("TagEdit", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof TagEdit>>;
   const vuetify = createVuetify();
 
   const invalidName = ["xxx/", "xxx@", "xxx&", "xxx:"];
@@ -109,7 +109,7 @@ describe("TagEdit", () => {
       it("Receive data in props", () => {
         expect(wrapper.vm.tag).toEqual(test.props.tagName);
         expect(wrapper.vm.notHasAuthorization).toEqual(
-          test.props.notHasAuthorization
+          test.props.notHasAuthorization,
         );
       });
       it("Compare data with default value", () => {

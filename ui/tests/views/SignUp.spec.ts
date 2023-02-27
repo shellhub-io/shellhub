@@ -1,14 +1,14 @@
-import { envVariables } from './../../src/envVariables';
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SignUp from "../../src/views/SignUp.vue";
 import { createStore } from "vuex";
+import SignUp from "../../src/views/SignUp.vue";
+import { envVariables } from "./../../src/envVariables";
 import { key } from "../../src/store";
 import routes from "../../src/router";
 
 describe("SignUp", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SignUp>>;
   const vuetify = createVuetify();
 
   const newUser = {
@@ -99,7 +99,7 @@ describe("SignUp", () => {
     await flushPromises();
 
     expect(wrapper.vm.passwordError).toBe(
-      "Your password should be 5-30 characters long"
+      "Your password should be 5-30 characters long",
     );
 
     wrapper.vm.password = "123456789123456789123456789123456789123456789";
@@ -107,7 +107,7 @@ describe("SignUp", () => {
     await flushPromises();
 
     expect(wrapper.vm.passwordError).toBe(
-      "Your password should be 5-30 characters long"
+      "Your password should be 5-30 characters long",
     );
   });
 

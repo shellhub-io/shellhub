@@ -1,8 +1,7 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount, VueWrapper } from "@vue/test-utils";
+import { beforeEach, describe, expect, it } from "vitest";
 import BillingPaymentList from "../../../src/components/Billing/BillingPaymentList.vue";
-import { createStore } from "vuex";
 import { store, key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -61,13 +60,13 @@ const headers = [
 ];
 
 describe("BillingPaymentList", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof BillingPaymentList>>;
   const vuetify = createVuetify();
 
   beforeEach(() => {
     wrapper = mount(BillingPaymentList, {
       global: {
-        plugins: [[store, key],routes, vuetify],
+        plugins: [[store, key], routes, vuetify],
       },
       props: { cards: pms },
       shallow: false,
@@ -91,13 +90,13 @@ describe("BillingPaymentList", () => {
   it("Data is defined", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
-  it('Compares data with default value', () => {
+  it("Compares data with default value", () => {
     expect(wrapper.vm.headers).toStrictEqual(headers);
   });
-  it('Process data in the computed', () => {
+  it("Process data in the computed", () => {
     expect(wrapper.vm.paymentList).toStrictEqual(pms);
   });
-  it('Process data in props', () => {
+  it("Process data in props", () => {
     expect(wrapper.props("cards")).toStrictEqual(pms);
   });
 
@@ -105,7 +104,7 @@ describe("BillingPaymentList", () => {
   // HTML validation
   //////
 
-  it('Renders the template with data', () => {
+  it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="dataTable-field"]').exists()).toBe(true);
   });
 });

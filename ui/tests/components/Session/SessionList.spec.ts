@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SessionList from "../../../src/components/Sessions/SessionList.vue";
 import { createStore } from "vuex";
+import SessionList from "../../../src/components/Sessions/SessionList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -196,31 +196,29 @@ const tests = [
   },
 ];
 
-const store = (sessions: any, numberSessions: any, currentRole: any) => {
-  return createStore({
-    state: {
-      sessions,
-      numberSessions,
-      currentRole,
-    },
-    getters: {
-      "sessions/list": (state) => state.sessions,
-      "sessions/getNumberSessions": (state) => state.numberSessions,
-      "box/getStatus": () => true,
-      "auth/role": (state) => state.currentRole,
-    },
-    actions: {
-      "sessions/fetch": vi.fn(),
-      "sessions/close": vi.fn(),
-      "snackbar/showSnackbarErrorAssociation": vi.fn(),
-      "snackbar/showSnackbarErrorLoading": vi.fn(),
-      "snackbar/setSnackbarErrorDefault": vi.fn(),
-      "box/setStatus": vi.fn(),
-    },
-  });
-};
+const store = (sessions: typeof sessionsGlobal, numberSessions: number, currentRole: string) => createStore({
+  state: {
+    sessions,
+    numberSessions,
+    currentRole,
+  },
+  getters: {
+    "sessions/list": (state) => state.sessions,
+    "sessions/getNumberSessions": (state) => state.numberSessions,
+    "box/getStatus": () => true,
+    "auth/role": (state) => state.currentRole,
+  },
+  actions: {
+    "sessions/fetch": vi.fn(),
+    "sessions/close": vi.fn(),
+    "snackbar/showSnackbarErrorAssociation": vi.fn(),
+    "snackbar/showSnackbarErrorLoading": vi.fn(),
+    "snackbar/setSnackbarErrorDefault": vi.fn(),
+    "box/setStatus": vi.fn(),
+  },
+});
 describe("SessionList", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SessionList>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -233,7 +231,7 @@ describe("SessionList", () => {
                 store(
                   test.variables.sessions,
                   test.variables.numberSessions,
-                  test.role.type
+                  test.role.type,
                 ),
                 key,
               ],
@@ -271,7 +269,7 @@ describe("SessionList", () => {
       it("Check the computed", () => {
         expect(wrapper.vm.sessions).toEqual(test.computed.getListSessions);
         expect(wrapper.vm.numberSessions).toEqual(
-          test.computed.getNumberSessions
+          test.computed.getNumberSessions,
         );
       });
 
@@ -281,7 +279,7 @@ describe("SessionList", () => {
 
       it("Renders the template with data", () => {
         expect(
-          wrapper.find('[data-test="sessions-list"]').exists()
+          wrapper.find('[data-test="sessions-list"]').exists(),
         ).toBeTruthy();
       });
     });

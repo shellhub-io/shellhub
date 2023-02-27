@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NamespaceMemberDelete from "../../../src/components/Namespace/NamespaceMemberDelete.vue";
 import { createStore } from "vuex";
+import NamespaceMemberDelete from "../../../src/components/Namespace/NamespaceMemberDelete.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
@@ -67,26 +67,24 @@ const tests = [
   },
 ];
 
-const store = (namespace: any, tenant: any) => {
-  return createStore({
-    state: {
-      namespace,
-      tenant,
-    },
-    getters: {
-      "namespaces/get": (state) => state.namespace,
-      "auth/tenant": (state) => state.tenant,
-    },
-    actions: {
-      "namespaces/removeUser": vi.fn(),
-      "snackbar/showSnackbarSuccessAction": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
-};
+const store = (namespace: typeof namespaceGlobal, tenant: string) => createStore({
+  state: {
+    namespace,
+    tenant,
+  },
+  getters: {
+    "namespaces/get": (state) => state.namespace,
+    "auth/tenant": (state) => state.tenant,
+  },
+  actions: {
+    "namespaces/removeUser": vi.fn(),
+    "snackbar/showSnackbarSuccessAction": vi.fn(),
+    "snackbar/showSnackbarErrorAction": vi.fn(),
+  },
+});
 
 describe("NamespaceMemberDelete", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceMemberDelete>>;
   const vuetify = createVuetify();
 
   tests.forEach((test) => {
@@ -98,7 +96,7 @@ describe("NamespaceMemberDelete", () => {
               [
                 store(
                   test.variables.namespace,
-                  test.variables.namespace.tenant_id
+                  test.variables.namespace.tenant_id,
                 ),
                 key,
               ],
@@ -133,7 +131,7 @@ describe("NamespaceMemberDelete", () => {
       it("Receive data in props", () => {
         expect(wrapper.vm.member).toEqual(test.props.member);
         expect(wrapper.vm.hasAuthorization).toEqual(
-          test.props.hasAuthorization
+          test.props.hasAuthorization,
         );
       });
 
@@ -143,10 +141,10 @@ describe("NamespaceMemberDelete", () => {
 
       it("Renders the correct HTML", () => {
         expect(
-          wrapper.find('[data-test="namespace-delete-icon"]').exists()
+          wrapper.find('[data-test="namespace-delete-icon"]').exists(),
         ).toBeTruthy();
         expect(
-          wrapper.find('[data-test="namespace-delete-title"]').exists()
+          wrapper.find('[data-test="namespace-delete-title"]').exists(),
         ).toBeTruthy();
       });
     });

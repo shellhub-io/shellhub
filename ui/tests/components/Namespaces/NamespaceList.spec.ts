@@ -1,8 +1,8 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NamespaceList from "../../../src/components/Namespace/NamespaceList.vue";
 import { createStore } from "vuex";
+import NamespaceList from "../../../src/components/Namespace/NamespaceList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 import { envVariables } from "../../../src/envVariables";
@@ -39,13 +39,13 @@ const store = createStore({
     "namespaces/get": (state) => state.namespace,
   },
   actions: {
-    "namespaces/switchNamespace": () => {},
-    "snackbar/showSnackbarErrorLoading": () => {},
+    "namespaces/switchNamespace": () => vi.fn(),
+    "snackbar/showSnackbarErrorLoading": () => vi.fn(),
   },
 });
 
 describe("Namespace", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceList>>;
   const vuetify = createVuetify();
 
   ///////
@@ -83,7 +83,7 @@ describe("Namespace", () => {
     it("Process data in the computed", () => {
       expect(wrapper.vm.namespace).toEqual(namespace);
       expect(wrapper.vm.namespaces).toEqual(
-        namespaces.filter((el) => el.name !== namespace.name)
+        namespaces.filter((el) => el.name !== namespace.name),
       );
     });
     //////
@@ -92,16 +92,14 @@ describe("Namespace", () => {
 
     it("Renders the template with data", async () => {
       const namespacesLocal = namespaces.filter(
-        (el) => el.name !== namespace.name
+        (el) => el.name !== namespace.name,
       );
 
       Object.keys(namespacesLocal).forEach((item) => {
         expect(
           wrapper
-            // @ts-ignore
             .find(`[data-test="${namespacesLocal[item].name}-namespace"]`)
-            .text()
-          // @ts-ignore
+            .text(),
         ).toEqual(namespacesLocal[item].name);
       });
     });
@@ -121,8 +119,7 @@ describe("Namespace", () => {
       });
 
       envVariables.isEnterprise = false;
-      vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(namespace.tenant_id);
-
+      vi.spyOn(Storage.prototype, "getItem").mockReturnValue(namespace.tenant_id);
     });
 
     ///////
@@ -145,7 +142,7 @@ describe("Namespace", () => {
     it("Process data in the computed", () => {
       expect(wrapper.vm.namespace).toEqual(namespace);
       expect(wrapper.vm.namespaces).toEqual(
-        namespaces.filter((el) => el.name !== namespace.name)
+        namespaces.filter((el) => el.name !== namespace.name),
       );
     });
     //////
@@ -154,16 +151,14 @@ describe("Namespace", () => {
 
     it("Renders the template with data", async () => {
       const namespacesLocal = namespaces.filter(
-        (el) => el.name !== namespace.name
+        (el) => el.name !== namespace.name,
       );
 
       Object.keys(namespacesLocal).forEach((item) => {
         expect(
           wrapper
-            // @ts-ignore
             .find(`[data-test="${namespacesLocal[item].name}-namespace"]`)
-            .text()
-          // @ts-ignore
+            .text(),
         ).toEqual(namespacesLocal[item].name);
       });
     });

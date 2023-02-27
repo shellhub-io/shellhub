@@ -1,10 +1,11 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import DeviceChooser from "../../../src/components/Devices/DeviceChooser.vue";
 import { createStore } from "vuex";
+import DeviceChooser from "../../../src/components/Devices/DeviceChooser.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
+import { IDevice } from "@/interfaces/IDevice";
 
 const role = ["owner", "administrator"];
 
@@ -57,44 +58,42 @@ const tests = [
 ];
 
 const store = (
-  deviceChooserStatus: any,
-  devicesSelected: any,
-  filter: any,
-  devices: any,
-  currentrole: any
-) => {
-  return createStore({
-    state: {
-      deviceChooserStatus,
-      devicesSelected,
-      filter,
-      devices,
-      currentrole,
-    },
-    getters: {
-      "devices/getDeviceChooserStatus": (state) => state.deviceChooserStatus,
-      "devices/getDevicesSelected": (state) => state.devicesSelected,
-      "devices/getFilter": (state) => state.filter,
-      "devices/list": (state) => state.devices,
-      "auth/role": (state) => state.currentrole,
-    },
-    actions: {
-      "stats/get": vi.fn(),
-      "devices/getDevicesMostUsed": vi.fn(),
-      "devices/postDevicesChooser": vi.fn(),
-      "devices/setDevicesForUserToChoose": vi.fn(),
-      "devices/setDeviceChooserStatus": vi.fn(),
-      "snackbar/showSnackbarDeviceChooser": vi.fn(),
-      "snackbar/showSnackbarErrorAssociation": vi.fn(),
-      "snackbar/showSnackbarErrorLoading": vi.fn(),
-    },
-  });
-};
+  deviceChooserStatus: boolean,
+  devicesSelected: string | never[],
+  filter: string | never[],
+  devices: IDevice | never[],
+  currentrole: string,
+) => createStore({
+  state: {
+    deviceChooserStatus,
+    devicesSelected,
+    filter,
+    devices,
+    currentrole,
+  },
+  getters: {
+    "devices/getDeviceChooserStatus": (state) => state.deviceChooserStatus,
+    "devices/getDevicesSelected": (state) => state.devicesSelected,
+    "devices/getFilter": (state) => state.filter,
+    "devices/list": (state) => state.devices,
+    "auth/role": (state) => state.currentrole,
+  },
+  actions: {
+    "stats/get": vi.fn(),
+    "devices/getDevicesMostUsed": vi.fn(),
+    "devices/postDevicesChooser": vi.fn(),
+    "devices/setDevicesForUserToChoose": vi.fn(),
+    "devices/setDeviceChooserStatus": vi.fn(),
+    "snackbar/showSnackbarDeviceChooser": vi.fn(),
+    "snackbar/showSnackbarErrorAssociation": vi.fn(),
+    "snackbar/showSnackbarErrorLoading": vi.fn(),
+  },
+});
 
 tests.forEach((test) => {
   role.forEach((currentrole) => {
     describe(`${test.description} ${currentrole}`, () => {
-      let wrapper: VueWrapper<any>;
+      let wrapper: VueWrapper<InstanceType<typeof DeviceChooser>>;
 
       beforeEach(() => {
         const vuetify = createVuetify();
@@ -110,7 +109,7 @@ tests.forEach((test) => {
                   test.variables.devicesSelected,
                   test.variables.filter,
                   test.variables.devices,
-                  currentrole
+                  currentrole,
                 ),
                 key,
               ],
@@ -151,12 +150,12 @@ tests.forEach((test) => {
 
       it("Process data in the computed", () => {
         expect(wrapper.vm.disableTooltipOrButton).toBe(
-          test.computed.disableTooltipOrButton
+          test.computed.disableTooltipOrButton,
         );
         expect(wrapper.vm.equalThreeDevices).toBe(
-          test.computed.equalThreeDevices
+          test.computed.equalThreeDevices,
         );
-        expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization["owner"]);
+        expect(wrapper.vm.hasAuthorization).toEqual(hasAuthorization.owner);
       });
 
       //////

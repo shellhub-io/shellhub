@@ -1,13 +1,17 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import TagList from "../../../src/components/Tags/TagList.vue";
 import { createStore } from "vuex";
+import TagList from "../../../src/components/Tags/TagList.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
+interface TagObject {
+  name: string;
+}
+
 describe("TagList", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof TagList>>;
   const vuetify = createVuetify();
 
   const numberTagsGlobal = 3;
@@ -70,24 +74,22 @@ describe("TagList", () => {
     },
   ];
 
-  const store = (tags: any, numberTags: any, hasAuthorizationRemove: any) => {
-    return createStore({
-      state: {
-        tags,
-        numberTags,
-        hasAuthorizationRemove,
-      },
-      getters: {
-        "tags/list": (state) => state.tags,
-        "tags/getNumberTags": (state) => state.numberTags,
-        "tags/hasAuthorizationRemove": (state) => state.hasAuthorizationRemove,
-      },
-      actions: {
-        "tags/fetch": () => {},
-        "snackbar/showSnackbarErrorLoading": () => {},
-      },
-    });
-  };
+  const store = (tags: Array<TagObject>, numberTags: number, hasAuthorizationRemove: string) => createStore({
+    state: {
+      tags,
+      numberTags,
+      hasAuthorizationRemove,
+    },
+    getters: {
+      "tags/list": (state) => state.tags,
+      "tags/getNumberTags": (state) => state.numberTags,
+      "tags/hasAuthorizationRemove": (state) => state.hasAuthorizationRemove,
+    },
+    actions: {
+      "tags/fetch": () => vi.fn(),
+      "snackbar/showSnackbarErrorLoading": () => vi.fn(),
+    },
+  });
 
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
@@ -99,7 +101,7 @@ describe("TagList", () => {
                 store(
                   test.variables.tagsObject,
                   test.variables.numberTagsGlobal,
-                  test.role.type
+                  test.role.type,
                 ),
                 key,
               ],
@@ -140,7 +142,7 @@ describe("TagList", () => {
 
       it("Renders the template with data", () => {
         expect(
-          wrapper.find('[data-test="tagListList-dataTable"]').exists()
+          wrapper.find('[data-test="tagListList-dataTable"]').exists(),
         ).toBeTruthy();
       });
     });

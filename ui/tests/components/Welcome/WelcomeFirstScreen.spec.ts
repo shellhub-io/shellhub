@@ -1,13 +1,13 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import WelcomeFirstScreen from "../../../src/components/Welcome/WelcomeFirstScreen.vue";
+import { mount, VueWrapper } from "@vue/test-utils";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createStore } from "vuex";
+import WelcomeFirstScreen from "../../../src/components/Welcome/WelcomeFirstScreen.vue";
 import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 describe("WelcomeFirstScreen", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof WelcomeFirstScreen>>;
   const vuetify = createVuetify();
 
   const user = "ShellHub";
@@ -50,7 +50,7 @@ describe("WelcomeFirstScreen", () => {
   it("Data is defined", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
-  it('Process data in the computed', () => {
+  it("Process data in the computed", () => {
     expect(wrapper.vm.name).toEqual(user);
   });
 });

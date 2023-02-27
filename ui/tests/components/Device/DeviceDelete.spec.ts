@@ -89,7 +89,7 @@ const store = createStore({
 
 tests.forEach((test) => {
   describe(`${test.description}`, () => {
-    let wrapper: VueWrapper<any>;
+    let wrapper: VueWrapper<InstanceType<typeof DeviceDelete>>;
 
     beforeEach(() => {
       const vuetify = createVuetify();
