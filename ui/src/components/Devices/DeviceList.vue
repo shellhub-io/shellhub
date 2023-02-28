@@ -154,6 +154,7 @@ import {
 import TerminalDialog from "../Terminal/TerminalDialog.vue";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "@/utils/permission";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -182,12 +183,12 @@ export default defineComponent({
           sortStatusField: "",
           sortStatusString: "",
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceList,
         );
-        throw new Error(error);
+        handleError(error);
       } finally {
         loading.value = false;
       }
@@ -211,12 +212,12 @@ export default defineComponent({
         }
 
         loading.value = false;
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceList,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 
@@ -243,9 +244,9 @@ export default defineComponent({
     const prev = async () => {
       try {
         if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch("snackbar/setSnackbarErrorDefault");
-        throw new Error(error);
+        handleError(error);
       }
     };
 

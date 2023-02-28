@@ -57,7 +57,9 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from "vue";
 import { AnyObject } from "yup/lib/object";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   inheritAttrs: true,
@@ -95,13 +97,16 @@ export default defineComponent({
 
       try {
         store.dispatch("devices/refresh");
-      } catch (error: any) {
-        if (error.response.status === 403) {
-          store.dispatch("snackbar/showSnackbarErrorAssociation");
-          throw new Error(error);
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response?.status === 403) {
+            store.dispatch("snackbar/showSnackbarErrorAssociation");
+            handleError(error);
+          }
         } else {
           store.dispatch("snackbar/showSnackbarErrorDefault");
-          throw new Error(error);
+          handleError(error);
         }
       }
     };

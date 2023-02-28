@@ -52,6 +52,7 @@ import hasPermission from "../../utils/permission";
 import { useStore } from "../../store";
 import formatCurrency from "@/utils/currency";
 import { INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -89,9 +90,9 @@ export default defineComponent({
 
         store.dispatch("devices/setDeviceChooserStatus", store.getters["stats/stats"].registered_devices > 3);
         router.push({ name: "profileSettings" });
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.cancelSubscription);
-        throw new Error(error);
+        handleError(error);
       }
     };
     return {

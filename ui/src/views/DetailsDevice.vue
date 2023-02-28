@@ -129,6 +129,7 @@ import DeviceRename from "../components/Devices/DeviceRename.vue";
 import { INotificationsError } from "../interfaces/INotifications";
 import TerminalDialog from "../components/Terminal/TerminalDialog.vue";
 import { formatDate } from "@/utils/formateDate";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   name: "DeviceDetails",
@@ -142,12 +143,12 @@ export default defineComponent({
     onMounted(async () => {
       try {
         await store.dispatch("devices/get", deviceId.value);
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceDetails,
         );
-        throw new Error(error);
+        handleError(error);
       }
     });
     const deviceIsEmpty = computed(
@@ -158,12 +159,12 @@ export default defineComponent({
     const refreshUsers = async () => {
       try {
         await store.dispatch("devices/get", deviceId.value);
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceDetails,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

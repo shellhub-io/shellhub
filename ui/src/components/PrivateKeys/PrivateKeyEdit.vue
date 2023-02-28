@@ -80,6 +80,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -147,12 +148,12 @@ export default defineComponent({
             INotificationsSuccess.privateKeyEditing,
           );
           update();
-        } catch (error: any) {
+        } catch (error: unknown) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.publicKeyEditing,
           );
-          throw new Error(error);
+          handleError(error);
         }
       }
     };

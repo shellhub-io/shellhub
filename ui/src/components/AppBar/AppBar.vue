@@ -96,6 +96,7 @@ import { RouteLocationRaw, useRouter } from "vue-router";
 import GitterSidecar from "gitter-sidecar";
 import { useStore } from "../../store";
 import { createNewClient } from "../../api/http";
+import handleError from "@/utils/handleError";
 
 type MenuItem = {
   title: string;
@@ -141,8 +142,8 @@ export default defineComponent({
         await router.push({ name: "login" });
         createNewClient();
         store.dispatch("layout/setLayout", "simpleLayout");
-      } catch (error: any) {
-        throw new Error(error);
+      } catch (error: unknown) {
+        handleError(error);
       }
     };
 

@@ -74,6 +74,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -117,12 +118,12 @@ export default defineComponent({
             "snackbar/showSnackbarSuccessAction",
             INotificationsSuccess.recoverPassword,
           );
-        } catch (error: any) {
+        } catch (error: unknown) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.recoverPassword,
           );
-          throw new Error(error);
+          handleError(error);
         }
       }
     };

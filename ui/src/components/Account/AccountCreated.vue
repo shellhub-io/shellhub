@@ -39,6 +39,7 @@
 import { defineComponent, computed } from "vue";
 import { INotificationsSuccess } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -67,9 +68,9 @@ export default defineComponent({
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.resendEmail,
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch("snackbar/showSnackbarErrorDefault");
-        throw new Error(error);
+        handleError(error);
       }
     };
 

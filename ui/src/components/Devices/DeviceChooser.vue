@@ -70,11 +70,13 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from "vue";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import DeviceListChooser from "./DeviceListChooser.vue";
 import hasPermision from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
 import { INotificationsSuccess, INotificationsError } from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -138,15 +140,19 @@ export default defineComponent({
 
         try {
           await store.dispatch("devices/setDevicesForUserToChoose", data);
-        } catch (error: any) {
-          if (error.response.status === 403) {
-            store.dispatch("snackbar/showSnackbarErrorAssociation");
-          } else {
-            store.dispatch(
-              "snackbar/showSnackbarErrorLoading",
-              INotificationsError.deviceList,
-            );
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 403) {
+              store.dispatch("snackbar/showSnackbarErrorAssociation");
+            } else {
+              store.dispatch(
+                "snackbar/showSnackbarErrorLoading",
+                INotificationsError.deviceList,
+              );
+            }
           }
+          handleError(error);
         }
       } else {
         store.dispatch(
@@ -173,9 +179,9 @@ export default defineComponent({
         store.dispatch("devices/refresh");
 
         close();
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.deviceChooser);
-        throw new Error(error);
+        handleError(error);
       }
 
       store.dispatch("stats/get");

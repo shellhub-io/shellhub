@@ -143,12 +143,14 @@ import { computed, defineComponent, onMounted, ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { useRoute, useRouter } from "vue-router";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../store";
 import Logo from "../assets/logo-inverted.png";
 import { envVariables } from "../envVariables";
 import { createNewClient } from "../api/http";
 import { INotificationsError } from "../interfaces/INotifications";
 import AccountCreated from "../components/Account/AccountCreated.vue";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   name: "Login",
@@ -221,23 +223,29 @@ export default defineComponent({
           } else {
             router.push("/");
           }
-        } catch (error: any) {
-          switch (true) {
-            case error.response.status === 401: {
-              store.dispatch(
-                "snackbar/showSnackbarErrorIncorrect",
-                INotificationsError.loginFailed,
-              );
-              break;
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            switch (true) {
+              case axiosError.response?.status === 401: {
+                store.dispatch(
+                  "snackbar/showSnackbarErrorIncorrect",
+                  INotificationsError.loginFailed,
+                );
+                break;
+              }
+              case axiosError.response?.status === 403: {
+                showMessage.value = !showMessage.value;
+                break;
+              }
+              default: {
+                store.dispatch("snackbar/showSnackbarErrorDefault");
+                handleError(error);
+              }
             }
-            case error.response.status === 403: {
-              showMessage.value = !showMessage.value;
-              break;
-            }
-            default: {
-              store.dispatch("snackbar/showSnackbarErrorDefault");
-              throw new Error(error);
-            }
+          } else {
+            store.dispatch("snackbar/showSnackbarErrorDefault");
+            handleError(error);
           }
         }
       } else {

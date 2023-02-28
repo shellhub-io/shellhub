@@ -30,11 +30,13 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, watch, onMounted } from "vue";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import { envVariables } from "../../envVariables";
 import { INotificationsError } from "../../interfaces/INotifications";
 import NamespaceList from "./NamespaceList.vue";
 import NamespaceAdd from "./NamespaceAdd.vue";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   inheritAttrs: false,
@@ -58,23 +60,32 @@ export default defineComponent({
           page: 1,
           perPage: 30,
         });
-      } catch (error: any) {
-        switch (true) {
-          case !inANamespace.value && error.response.status === 403: {
-            // dialog pops
-            break;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          switch (true) {
+            case !inANamespace.value && axiosError.response?.status === 403: {
+              // dialog pops
+              break;
+            }
+            case axiosError.response?.status === 403: {
+              store.dispatch("snackbar/showSnackbarErrorAssociation");
+              break;
+            }
+            default: {
+              store.dispatch(
+                "snackbar/showSnackbarErrorLoading",
+                INotificationsError.namespaceList,
+              );
+              handleError(error);
+            }
           }
-          case error.response.status === 403: {
-            store.dispatch("snackbar/showSnackbarErrorAssociation");
-            break;
-          }
-          default: {
-            store.dispatch(
-              "snackbar/showSnackbarErrorLoading",
-              INotificationsError.namespaceList,
-            );
-            throw new Error(error);
-          }
+        } else {
+          store.dispatch(
+            "snackbar/showSnackbarErrorLoading",
+            INotificationsError.namespaceList,
+          );
+          handleError(error);
         }
       }
     };
@@ -84,12 +95,12 @@ export default defineComponent({
           tenant_id: tenantId,
         });
         window.location.reload();
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.namespaceSwitch,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 
@@ -112,25 +123,28 @@ export default defineComponent({
 
       try {
         await store.dispatch("namespaces/get", tenant.value);
-      } catch (error: any) {
-        switch (true) {
-          case error.response.status === 404: {
-            // detects namespace inserted
-            const namespaceFind = store.getters["namespaces/list"][0];
-            if (tenant.value === "" && namespaceFind !== undefined) {
-              switchIn(namespaceFind.tenant_id);
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          switch (true) {
+            case axiosError.response?.status === 404: {
+              // detects namespace inserted
+              const namespaceFind = store.getters["namespaces/list"][0];
+              if (tenant.value === "" && namespaceFind !== undefined) {
+                switchIn(namespaceFind.tenant_id);
+              }
+              break;
             }
-            break;
-          }
-          case error.response.status === 500 && tenant.value === null: {
-            break;
-          }
-          default: {
-            store.dispatch(
-              "snackbar/showSnackbarErrorLoading",
-              INotificationsError.namespaceLoad,
-            );
-            throw new Error(error);
+            case axiosError.response?.status === 500 && tenant.value === null: {
+              break;
+            }
+            default: {
+              store.dispatch(
+                "snackbar/showSnackbarErrorLoading",
+                INotificationsError.namespaceLoad,
+              );
+              handleError(error);
+            }
           }
         }
       }

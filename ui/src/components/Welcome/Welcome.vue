@@ -95,6 +95,9 @@ import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
 import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
 import WelcomeFourthScreen from "./WelcomeFourthScreen.vue";
+import handleError from "@/utils/handleError";
+
+type Timer = ReturnType<typeof setInterval>;
 
 export default defineComponent({
   props: {
@@ -107,7 +110,7 @@ export default defineComponent({
   setup(props, ctx) {
     const store = useStore();
     const el = ref<number>(1);
-    const polling = ref<any>(null);
+    const polling = ref<Timer | null>(null);
     const enable = ref(false);
     const showWelcome = computed({
       get() {
@@ -131,11 +134,11 @@ export default defineComponent({
           enable.value = store.getters["stats/stats"].pending_devices !== 0;
           if (enable.value) {
             el.value = 3;
-            clearTimeout(polling.value);
+            clearTimeout(polling.value?.ref());
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           store.dispatch("snackbar/showSnackbarErrorDefault");
-          throw new Error(error);
+          handleError(error);
         }
       }, 3000);
     };
@@ -154,12 +157,12 @@ export default defineComponent({
         store.dispatch("stats/get");
 
         el.value = 4;
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceAccepting,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 
@@ -173,7 +176,7 @@ export default defineComponent({
     const close = () => {
       ctx.emit("update", false);
       showWelcome.value = false;
-      clearTimeout(polling.value);
+      clearTimeout(polling.value?.ref());
     };
 
     return {

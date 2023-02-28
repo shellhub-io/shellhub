@@ -50,11 +50,13 @@
 import { defineComponent, ref } from "vue";
 import * as yup from "yup";
 import { useField } from "vee-validate";
+import axios, { AxiosError } from "axios";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   inheritAttrs: false,
@@ -106,12 +108,12 @@ export default defineComponent({
           tenant_id: tenant,
         });
         window.location.reload();
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.namespaceSwitch,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 
@@ -147,21 +149,24 @@ export default defineComponent({
             "snackbar/showSnackbarSuccessAction",
             INotificationsSuccess.namespaceCreating,
           );
-        } catch (error: any) {
-          if (error.response.status === 400) {
-            setNamespaceNameError(
-              "Your namespace should be 3-30 characters long",
-            );
-          } else if (error.response.status === 403) {
-            setNamespaceNameError("Update your plan to create more namespaces");
-          } else if (error.response.status === 409) {
-            setNamespaceNameError("namespace already exists");
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 400) {
+              setNamespaceNameError(
+                "Your namespace should be 3-30 characters long",
+              );
+            } else if (axiosError.response?.status === 403) {
+              setNamespaceNameError("Update your plan to create more namespaces");
+            } else if (axiosError.response?.status === 409) {
+              setNamespaceNameError("namespace already exists");
+            }
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorAction",
               INotificationsError.namespaceCreating,
             );
-            throw new Error(error);
+            handleError(error);
           }
         }
       }

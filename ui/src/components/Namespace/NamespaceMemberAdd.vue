@@ -57,6 +57,7 @@
 import { defineComponent, ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
+import axios, { AxiosError } from "axios";
 import hasPermission from "../../utils/permission";
 import { useStore } from "../../store";
 import { actions, authorizer } from "../../authorizer";
@@ -64,6 +65,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   emits: ["update"],
@@ -148,19 +150,22 @@ export default defineComponent({
           );
           update();
           resetFields();
-        } catch (error: any) {
-          if (error.response.status === 404) {
-            setUsernameError("This username doesn't exist.");
-          } else if (error.response.status === 409) {
-            setUsernameError(
-              "This user is already a member of this namespace.",
-            );
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 404) {
+              setUsernameError("This username doesn't exist.");
+            } else if (axiosError.response?.status === 409) {
+              setUsernameError(
+                "This user is already a member of this namespace.",
+              );
+            }
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorAction",
               INotificationsError.namespaceNewMember,
             );
-            throw new Error(error);
+            handleError(error);
           }
         }
       }

@@ -64,6 +64,7 @@ import DeviceAdd from "../Devices/DeviceAdd.vue";
 import FirewallRuleAdd from "../firewall/FirewallRuleAdd.vue";
 import PublicKeyAdd from "../PublicKeys/PublicKeyAdd.vue";
 import { INotificationsError } from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 const items = {
   device: {
@@ -190,24 +191,24 @@ export default defineComponent({
     const refreshFirewallRule = async () => {
       try {
         await store.dispatch("firewallRules/refresh");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.firewallRuleList,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 
     const refreshPublicKey = async () => {
       try {
         await store.dispatch("publicKeys/refresh");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.publicKeyList,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

@@ -51,11 +51,13 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from "vue";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import { authorizer, actions } from "../../authorizer";
 import hasPermission from "../../utils/permission";
 import { INotificationsError } from "../../interfaces/INotifications";
 import { capitalizeText } from "../../utils/string";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -107,9 +109,9 @@ export default defineComponent({
     const refreshStats = async () => {
       try {
         await store.dispatch("stats/get");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch("snackbar/showSnackbarErrorDefault");
-        throw new Error(error);
+        handleError(error);
       }
     };
 
@@ -125,12 +127,12 @@ export default defineComponent({
         }
 
         close();
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.deviceList,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 
@@ -138,14 +140,14 @@ export default defineComponent({
       try {
         await store.dispatch("devices/remove", props.uid);
         refreshDevices();
-      } catch (error: any) {
+      } catch (error: unknown) {
         close();
 
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceDelete,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 
@@ -154,14 +156,14 @@ export default defineComponent({
         await store.dispatch("devices/reject", props.uid);
         refreshStats();
         refreshDevices();
-      } catch (error: any) {
+      } catch (error: unknown) {
         close();
 
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceRejecting,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 
@@ -170,12 +172,12 @@ export default defineComponent({
         await store.dispatch("devices/accept", props.uid);
         refreshStats();
         refreshDevices();
-      } catch (error: any) {
-        if (error.response.status === 402) {
-          store.dispatch(
-            "users/setStatusUpdateAccountDialogByDeviceAction",
-            true,
-          );
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response?.status === 402) {
+            store.dispatch("users/setStatusUpdateAccountDialogByDeviceAction", true);
+          }
         }
         close();
 
@@ -183,7 +185,7 @@ export default defineComponent({
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceAccepting,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

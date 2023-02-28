@@ -143,6 +143,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -205,7 +206,7 @@ export default defineComponent({
       value: name,
       errorMessage: nameError,
       setErrors: setnameError,
-    } = useField<string | undefined>("name", yup.string().required(), {
+    } = useField<string>("name", yup.string().required(), {
       initialValue: props.keyObject.name,
     });
 
@@ -217,7 +218,7 @@ export default defineComponent({
       value: username,
       errorMessage: usernameError,
       setErrors: setUsernameError,
-    } = useField<string | undefined>("username", yup.string().required(), {
+    } = useField<string>("username", yup.string().required(), {
       initialValue: props.keyObject.username,
     });
 
@@ -229,7 +230,7 @@ export default defineComponent({
       value: hostname,
       errorMessage: hostnameError,
       setErrors: setHostnameError,
-    } = useField<string | undefined>("hostname", yup.string().required(), {
+    } = useField<string>("hostname", yup.string().required(), {
       initialValue: props.keyObject.filter?.hostname || "",
     });
 
@@ -400,12 +401,12 @@ export default defineComponent({
             INotificationsSuccess.publicKeyEditing,
           );
           update();
-        } catch (error: any) {
+        } catch (error: unknown) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.publicKeyEditing,
           );
-          throw new Error(error);
+          handleError(error);
         }
       }
     };

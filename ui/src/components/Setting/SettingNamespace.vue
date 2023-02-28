@@ -88,6 +88,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, computed } from "vue";
+import axios, { AxiosError } from "axios";
 import { envVariables } from "../../envVariables";
 import { useStore } from "../../store";
 import NamespaceRename from "../Namespace/NamespaceRename.vue";
@@ -99,6 +100,7 @@ import {
   INotificationsCopy,
   INotificationsError,
 } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -120,15 +122,18 @@ export default defineComponent({
     const getNamespace = async () => {
       try {
         await store.dispatch("namespaces/get", tenant.value);
-      } catch (error: any) {
-        if (error.response.status === 403) {
-          store.dispatch("snackbar/showSnackbarErrorAssociation");
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response?.status === 403) {
+            store.dispatch("snackbar/showSnackbarErrorAssociation");
+          }
         } else {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.namespaceLoad,
           );
-          throw new Error(error);
+          handleError(error);
         }
       }
     };

@@ -28,6 +28,7 @@ import BoxMessage from "../components/Box/BoxMessage.vue";
 import PublicKeyAdd from "../components/PublicKeys/PublicKeyAdd.vue";
 import PublicKeysList from "../components/PublicKeys/PublicKeysList.vue";
 import { INotificationsError } from "../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -41,12 +42,12 @@ export default defineComponent({
     const refresh = async () => {
       try {
         await store.dispatch("publicKeys/refresh");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.firewallRuleList,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

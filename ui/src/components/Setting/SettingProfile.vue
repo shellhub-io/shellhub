@@ -260,6 +260,7 @@ export default defineComponent({
             INotificationsSuccess.profileData,
           );
           enableEdit("data");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
           if (error.code === 409) {
             error.body.forEach((field: string) => {
@@ -312,6 +313,7 @@ export default defineComponent({
           );
           enableEdit("password");
           resetPasswordFields();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
           if (error.response.status === 403) {
             // failed password

@@ -71,6 +71,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -109,9 +110,9 @@ export default defineComponent({
       if (billingActive.value) {
         try {
           await store.dispatch("billing/getSubscription");
-        } catch (error: any) {
+        } catch (error: unknown) {
           store.dispatch("snackbar/showSnackbarErrorDefault");
-          throw new Error(error);
+          handleError(error);
         }
       }
     };
@@ -137,12 +138,12 @@ export default defineComponent({
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.namespaceDelete,
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.namespaceDelete,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

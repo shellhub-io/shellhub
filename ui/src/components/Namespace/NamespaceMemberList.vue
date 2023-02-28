@@ -97,12 +97,14 @@
 
 <script lang="ts">
 import { defineComponent, computed } from "vue";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
 import NamespaceMemberDelete from "./NamespaceMemberDelete.vue";
 import NamespaceMemberEdit from "./NamespaceMemberEdit.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -138,16 +140,19 @@ export default defineComponent({
     const getNamespace = async () => {
       try {
         await store.dispatch("namespaces/get", tenant.value);
-      } catch (error: any) {
-        if (error.response.status === 403) {
-          store.dispatch("snackbar/showSnackbarErrorAssociation");
-          throw new Error(error);
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response?.status === 403) {
+            store.dispatch("snackbar/showSnackbarErrorAssociation");
+            handleError(error);
+          }
         } else {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.namespaceLoad,
           );
-          throw new Error(error);
+          handleError(error);
         }
       }
     };

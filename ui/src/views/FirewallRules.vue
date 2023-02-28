@@ -45,6 +45,7 @@ import BoxMessage from "../components/Box/BoxMessage.vue";
 import FirewallRuleList from "../components/firewall/FirewallRuleList.vue";
 import FirewallRuleAdd from "../components/firewall/FirewallRuleAdd.vue";
 import { INotificationsError } from "../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -59,12 +60,12 @@ export default defineComponent({
     const refresh = async () => {
       try {
         await store.dispatch("firewallRules/refresh");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.firewallRuleList,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 
@@ -75,8 +76,8 @@ export default defineComponent({
         await refresh();
         store.dispatch("tags/fetch");
         show.value = true;
-      } catch (error: any) {
-        throw new Error(error);
+      } catch (error: unknown) {
+        handleError(error);
       }
     });
 

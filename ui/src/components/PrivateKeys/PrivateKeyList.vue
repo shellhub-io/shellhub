@@ -65,6 +65,7 @@ import { useStore } from "../../store";
 import { convertToFingerprint } from "../../utils/validate";
 import PrivateKeyDelete from "./PrivateKeyDelete.vue";
 import PrivateKeyEdit from "./PrivateKeyEdit.vue";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -74,8 +75,8 @@ export default defineComponent({
     const getPrivateKeys = async () => {
       try {
         await store.dispatch("privateKey/fetch");
-      } catch (error: any) {
-        throw new Error(error);
+      } catch (error: unknown) {
+        handleError(error);
       }
     };
 

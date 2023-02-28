@@ -48,6 +48,7 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -83,12 +84,12 @@ export default defineComponent({
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.namespaceDelete,
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.namespaceRemoveUser,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

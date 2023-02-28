@@ -52,11 +52,13 @@
 import { defineComponent, ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -104,17 +106,21 @@ export default defineComponent({
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.deviceRename,
         );
-      } catch (error: any) {
-        if (error.response.status === 400) {
-          setEditNameError("nonStandardCharacters");
-        } else if (error.response.status === 409) {
-          setEditNameError("The name already exists in the namespace");
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response?.status === 400) {
+            setEditNameError("nonStandardCharacters");
+          } else if (error.response?.status === 409) {
+            setEditNameError("The name already exists in the namespace");
+          }
+          handleError(error);
         } else {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.deviceRename,
           );
-          throw new Error(error);
+          handleError(error);
         }
       }
     };

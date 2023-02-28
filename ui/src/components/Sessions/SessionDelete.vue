@@ -52,6 +52,7 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -78,12 +79,12 @@ export default defineComponent({
           INotificationsSuccess.sessionRemoveRecord,
         );
         ctx.emit("update");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.sessionRemoveRecord,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

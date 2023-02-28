@@ -114,7 +114,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
+import { computed, defineComponent, ref, watch } from "vue";
 import { actions, authorizer } from "../../authorizer";
 import { filterType } from "../../interfaces/IFirewallRule";
 import { useStore } from "../../store";
@@ -130,6 +130,7 @@ import DataTable from "../DataTable.vue";
 import PublicKeyDelete from "./PublicKeyDelete.vue";
 import PublicKeyEdit from "./PublicKeyEdit.vue";
 import { INotificationsError } from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -178,12 +179,12 @@ export default defineComponent({
             page.value--;
           }
           loading.value = false;
-        } catch (error: any) {
+        } catch (error: unknown) {
           store.dispatch(
             "snackbar/showSnackbarErrorLoading",
             INotificationsError.publicKeyList,
           );
-          throw new Error(error);
+          handleError(error);
         }
       } else {
         store.dispatch("box/setStatus", false);
@@ -197,9 +198,9 @@ export default defineComponent({
     const prev = async () => {
       try {
         if (page.value > 1) await getPublicKeysList(itemsPerPage.value, --page.value);
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch("snackbar/setSnackbarErrorDefault");
-        throw new Error(error);
+        handleError(error);
       }
     };
 

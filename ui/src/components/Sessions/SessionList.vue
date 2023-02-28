@@ -147,6 +147,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, watch, computed } from "vue";
+import axios, { AxiosError } from "axios";
 import { useRouter } from "vue-router";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
@@ -158,6 +159,7 @@ import DataTable from "../DataTable.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -184,15 +186,18 @@ export default defineComponent({
           if (!hasSessions) {
             page.value--;
           }
-        } catch (error: any) {
-          if (error.response.status === 403) {
-            store.dispatch("snackbar/showSnackbarErrorAssociation");
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 403) {
+              store.dispatch("snackbar/showSnackbarErrorAssociation");
+            }
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorLoading",
               INotificationsError.sessionList,
             );
-            throw new Error(error);
+            handleError(error);
           }
         } finally {
           loading.value = false;

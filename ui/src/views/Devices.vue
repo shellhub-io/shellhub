@@ -39,11 +39,13 @@
 <script lang="ts">
 import { defineComponent, onMounted, computed, ref, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../store";
 import Device from "../components/Devices/Device.vue";
 import DeviceAdd from "../components/Devices/DeviceAdd.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   name: "Devices",
@@ -91,13 +93,14 @@ export default defineComponent({
       try {
         await store.dispatch("stats/get");
         show.value = true;
-      } catch (error: any) {
-        if (error.response.status === 403) {
-          store.dispatch("snackbar/showSnackbarErrorAssociation");
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response?.status === 403) store.dispatch("snackbar/showSnackbarErrorAssociation");
         } else {
           store.dispatch("snackbar/showSnackbarErrorDefault");
         }
-        throw new Error(error);
+        handleError(error);
       }
     });
 
