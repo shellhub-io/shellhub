@@ -69,17 +69,19 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, ref } from "vue";
+import axios, { AxiosError } from "axios";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { IMember } from "../../interfaces/IMember";
 import { useStore } from "../../store";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
     member: {
-      type: Object as any,
+      type: Object as () => IMember,
       required: false,
       default: {} as IMember,
     },
@@ -130,19 +132,22 @@ export default defineComponent({
           INotificationsSuccess.namespaceEditMember,
         );
         update();
-      } catch (error: any) {
-        if (error.response.status === 400) {
-          errorMessage.value = "The user isn't linked to the namespace.";
-        } else if (error.response.status === 403) {
-          errorMessage.value = "You don't have permission to assign a role to the user.";
-        } else if (error.response.status === 404) {
-          errorMessage.value = "The username doesn't exist.";
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response?.status === 400) {
+            errorMessage.value = "The user isn't linked to the namespace.";
+          } else if (axiosError.response?.status === 403) {
+            errorMessage.value = "You don't have permission to assign a role to the user.";
+          } else if (axiosError.response?.status === 404) {
+            errorMessage.value = "The username doesn't exist.";
+          }
         } else {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.namespaceEditMember,
           );
-          throw new Error(error);
+          handleError(error);
         }
       }
     };

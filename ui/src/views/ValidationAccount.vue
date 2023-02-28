@@ -71,12 +71,14 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import axios, { AxiosError } from "axios";
 import Logo from "../assets/logo-inverted.png";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../interfaces/INotifications";
 import { useStore } from "../store";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -98,12 +100,12 @@ export default defineComponent({
 
         activationProcessingStatus.value = "success";
         setTimeout(() => router.push({ path: "/login" }), 4000);
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.validationAccount,
         );
-        if (error && error.response) {
+        if (error && axios.isAxiosError(error) && error.response) {
           switch (error.response.status) {
             case 400:
               activationProcessingStatus.value = "failed";
@@ -118,7 +120,7 @@ export default defineComponent({
         } else {
           activationProcessingStatus.value = "failed";
         }
-        throw new Error(error);
+        handleError(error);
       }
     };
 

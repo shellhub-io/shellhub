@@ -83,6 +83,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onBeforeMount, onMounted } from "vue";
 import { StripeElements, StripeElement } from "vue-stripe-js";
+import axios, { AxiosError } from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 import formatCurrency from "@/utils/currency";
 import { useStore } from "../../store";
@@ -91,6 +92,7 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { envVariables } from "@/envVariables";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -136,8 +138,8 @@ export default defineComponent({
     onMounted(() => {
       try {
         store.dispatch("stats/get");
-      } catch (error: any) {
-        throw new Error(error);
+      } catch (error: unknown) {
+        handleError(error);
       }
     });
 
@@ -148,7 +150,7 @@ export default defineComponent({
       });
     });
 
-    const displayError = (e: any) => {
+    const displayError = (e) => {
       if (e.error) {
         elementError.value = e.error.message;
       } else {
@@ -156,7 +158,7 @@ export default defineComponent({
       }
     };
 
-    const showError = (e: any) => {
+    const showError = (e) => {
       elementError.value = e.response.data;
     };
 
@@ -239,15 +241,18 @@ export default defineComponent({
             "snackbar/showSnackbarSuccessAction",
             INotificationsSuccess.subscription,
           );
-        } catch (error: any) {
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 400 || axiosError.response?.status === 423) {
+              showError(error);
+            }
+          }
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.subscription,
           );
-          const { status } = error.response;
-          if (status === 400 || status === 423) {
-            showError(error);
-          }
+          handleError(error);
         }
       } else {
         displayError(result.error);
@@ -275,17 +280,18 @@ export default defineComponent({
           );
           ctx.emit("update");
           dialog.value = false;
-        } catch (error: any) {
+        } catch (error: unknown) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.updatePaymentMethod,
           );
-
-          const { status } = error.response;
-          if (status === 400 || status === 423) {
-            showError(error);
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 400 || axiosError.response?.status === 423) {
+              showError(error);
+            }
           }
-          throw new Error(error);
+          handleError(error);
         }
       } else {
         displayError(result.error);

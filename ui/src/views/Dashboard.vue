@@ -23,9 +23,11 @@
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from "vue";
+import axios, { AxiosError } from "axios";
 import { INotificationsError } from "../interfaces/INotifications";
 import Card from "../components/Card/Card.vue";
 import { useStore } from "../store";
+import handleError from "@/utils/handleError";
 
 type ItemCard = {
   id: number;
@@ -90,22 +92,25 @@ export default defineComponent({
 
       try {
         await store.dispatch("stats/get");
-      } catch (error: any) {
-        switch (true) {
-          case error.response && error.response.status === 403: {
-            hasStatus.value = true;
-            break;
-          }
-          default: {
-            hasStatus.value = true;
-            store.dispatch(
-              "snackbar/showSnackbarErrorAction",
-              INotificationsError.dashboard,
-            );
-            break;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          switch (true) {
+            case axiosError.response && axiosError.response?.status === 403: {
+              hasStatus.value = true;
+              break;
+            }
+            default: {
+              hasStatus.value = true;
+              store.dispatch(
+                "snackbar/showSnackbarErrorAction",
+                INotificationsError.dashboard,
+              );
+              break;
+            }
           }
         }
-        throw new Error(error);
+        handleError(error);
       }
     });
 

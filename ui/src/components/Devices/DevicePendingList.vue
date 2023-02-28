@@ -87,6 +87,7 @@ import {
   INotificationsError,
 } from "../../interfaces/INotifications";
 import DeviceActionButton from "./DeviceActionButton.vue";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -115,12 +116,12 @@ export default defineComponent({
           sortStatusField: "",
           sortStatusString: "",
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.devicePending,
         );
-        throw new Error(error);
+        handleError(error);
       } finally {
         loading.value = false;
       }
@@ -144,12 +145,12 @@ export default defineComponent({
         }
 
         loading.value = false;
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.devicePending,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 
@@ -176,9 +177,9 @@ export default defineComponent({
     const prev = async () => {
       try {
         if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch("snackbar/setSnackbarErrorDefault");
-        throw new Error(error);
+        handleError(error);
       }
     };
 

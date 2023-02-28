@@ -44,6 +44,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, watch } from "vue";
 import { useField } from "vee-validate";
+import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
@@ -52,6 +53,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -112,17 +114,26 @@ export default defineComponent({
             "snackbar/showSnackbarSuccessAction",
             INotificationsSuccess.namespaceEdit,
           );
-        } catch (error: any) {
-          if (error.response.status === 400) {
-            setNameError("This name is not valid");
-          } else if (error.response.status === 409) {
-            setNameError("name used already");
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 400) {
+              setNameError("This name is not valid");
+            } else if (axiosError.response?.status === 409) {
+              setNameError("name used already");
+            } else {
+              store.dispatch(
+                "snackbar/showSnackbarErrorAction",
+                INotificationsError.namespaceEdit,
+              );
+              handleError(error);
+            }
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorAction",
               INotificationsError.namespaceEdit,
             );
-            throw new Error(error);
+            handleError(error);
           }
         }
       }

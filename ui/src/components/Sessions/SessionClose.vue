@@ -53,6 +53,7 @@ import {
 } from "../../interfaces/INotifications";
 import { IDevice } from "../../interfaces/IDevice";
 import { useStore } from "../../store";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -86,12 +87,12 @@ export default defineComponent({
           INotificationsSuccess.sessionClose,
         );
         ctx.emit("update");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.sessionClose,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

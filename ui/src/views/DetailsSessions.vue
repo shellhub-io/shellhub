@@ -168,6 +168,7 @@ import SessionDelete from "../components/Sessions/SessionDelete.vue";
 import SessionClose from "../components/Sessions/SessionClose.vue";
 import SessionPlay from "../components/Sessions/SessionPlay.vue";
 import { INotificationsError } from "../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -180,12 +181,12 @@ export default defineComponent({
       try {
         await store.dispatch("sessions/get", sessionId.value);
         session.value = store.getters["sessions/get"];
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.sessionDetails,
         );
-        throw new Error(error);
+        handleError(error);
       }
     });
 
@@ -198,12 +199,12 @@ export default defineComponent({
       try {
         await store.dispatch("sessions/get", sessionId.value);
         session.value = store.getters["sessions/get"];
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.sessionDetails,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

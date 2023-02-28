@@ -48,6 +48,7 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -69,12 +70,12 @@ export default defineComponent({
           INotificationsSuccess.privateKeyDeleting,
         );
         ctx.emit("update");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.privateKeyDeleting,
         );
-        throw new Error(error);
+        handleError(error);
       } finally {
         showDialog.value = false;
       }

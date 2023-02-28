@@ -66,6 +66,7 @@ import hasPermission from "../../utils/permission";
 import TagRemove from "./TagRemove.vue";
 import TagEdit from "./TagEdit.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   inheritAttrs: true,
@@ -89,12 +90,12 @@ export default defineComponent({
     const getTags = async () => {
       try {
         await store.dispatch("tags/fetch");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.deviceTagList,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
     onMounted(() => {

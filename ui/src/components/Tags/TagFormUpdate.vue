@@ -62,11 +62,13 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref, watch } from "vue";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -128,33 +130,42 @@ export default defineComponent({
         );
 
         ctx.emit("update");
-      } catch (error: any) {
-        switch (error.response.status) {
-          // when the name the format is invalid.
-          case 400: {
-            tagsError.value = "The format is invalid. Min 3, Max 255 characters!";
-            break;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          switch (axiosError.response?.status) {
+            // when the name the format is invalid.
+            case 400: {
+              tagsError.value = "The format is invalid. Min 3, Max 255 characters!";
+              break;
+            }
+            // when the user is not authorized.
+            case 403: {
+              store.dispatch(
+                "snackbar/showSnackbarErrorAction",
+                INotificationsError.deviceTagUpdate,
+              );
+              break;
+            }
+            // When the array tag size reached the max capacity.
+            case 406: {
+              tagsError.value = "The maximum capacity has reached.";
+              break;
+            }
+            default: {
+              store.dispatch(
+                "snackbar/showSnackbarErrorAction",
+                INotificationsError.deviceTagUpdate,
+              );
+              handleError(axiosError);
+            }
           }
-          // when the user is not authorized.
-          case 403: {
-            store.dispatch(
-              "snackbar/showSnackbarErrorAction",
-              INotificationsError.deviceTagUpdate,
-            );
-            break;
-          }
-          // When the array tag size reached the max capacity.
-          case 406: {
-            tagsError.value = "The maximum capacity has reached.";
-            break;
-          }
-          default: {
-            store.dispatch(
-              "snackbar/showSnackbarErrorAction",
-              INotificationsError.deviceTagUpdate,
-            );
-            throw new Error(error);
-          }
+        } else {
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.deviceTagUpdate,
+          );
+          handleError(error);
         }
       }
     };

@@ -62,11 +62,13 @@ import {
 } from "@/interfaces/INotifications";
 import { useStore } from "../../store";
 import BillingIcon from "./BillingIcon.vue";
+import handleError from "@/utils/handleError";
+import { IBIllingDataCard } from "@/interfaces/IBilling";
 
 export default defineComponent({
   props: {
     cards: {
-      type: Array as any,
+      type: Array as () => IBIllingDataCard[],
       required: true,
     },
   },
@@ -82,12 +84,12 @@ export default defineComponent({
           INotificationsSuccess.updateSubscription,
         );
         ctx.emit("update");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.subscription,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
     const deletePaymentMethod = async (paymentMethodId: string) => {
@@ -98,12 +100,12 @@ export default defineComponent({
           INotificationsSuccess.updateSubscription,
         );
         ctx.emit("update");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deletePaymentMethod,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
     return {

@@ -132,6 +132,7 @@
 import { useField } from "vee-validate";
 import { computed, defineComponent, nextTick, ref, watch } from "vue";
 import * as yup from "yup";
+import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "../../authorizer";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
@@ -140,6 +141,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -370,15 +372,18 @@ export default defineComponent({
           );
           update();
           resetFields();
-        } catch (error: any) {
-          if (error.response.status === 409) {
-            setPublicKeyDataError("Public Key data already exists");
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 409) {
+              setPublicKeyDataError("Public Key data already exists");
+            }
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorAction",
               INotificationsError.publicKeyCreating,
             );
-            throw new Error(error);
+            handleError(error);
           }
         }
       }

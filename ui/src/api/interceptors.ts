@@ -7,7 +7,7 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
   return config;
 };
 
-const onRequestError = (error: AxiosError): any => {
+const onRequestError = (error: AxiosError) => {
   store.dispatch("spinner/setStatus", false);
   Promise.reject(error);
 };

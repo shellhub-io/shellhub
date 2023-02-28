@@ -237,6 +237,7 @@ import BillingCancel from "../Billing/BillingCancel.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
 import BillingPaymentList from "../Billing/BillingPaymentList.vue";
 import { envVariables } from "@/envVariables";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -326,10 +327,10 @@ export default defineComponent({
         try {
           await store.dispatch("billing/getSubscription");
           renderData.value = true;
-        } catch (error: any) {
+        } catch (error: unknown) {
           renderData.value = false;
           store.dispatch("snackbar/showSnackbarErrorDefault");
-          throw new Error(error);
+          handleError(error);
         }
       }
     };
@@ -337,12 +338,12 @@ export default defineComponent({
     const updateNamespace = async () => {
       try {
         await store.dispatch("namespaces/get", localStorage.getItem("tenant"));
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.namespaceLoad,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

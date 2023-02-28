@@ -126,6 +126,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref, watch } from "vue";
+import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "../../authorizer";
 import { filterType } from "../../interfaces/IFirewallRule";
 import { useStore } from "../../store";
@@ -137,6 +138,7 @@ import DataTable from "../DataTable.vue";
 import FirewallRuleDelete from "./FirewallRuleDelete.vue";
 import FirewallRuleEdit from "./FirewallRuleEdit.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -164,16 +166,19 @@ export default defineComponent({
           if (!hasRules) {
             page.value--;
           }
-        } catch (error: any) {
-          if (error.response.status === 403) {
-            store.dispatch("snackbar/showSnackbarErrorAssociation");
-            throw new Error(error);
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 403) {
+              store.dispatch("snackbar/showSnackbarErrorAssociation");
+              handleError(error);
+            }
           } else {
             store.dispatch(
               "snackbar/showSnackbarErrorLoading",
               INotificationsError.firewallRuleList,
             );
-            throw new Error(error);
+            handleError(error);
           }
         } finally {
           loading.value = false;
@@ -208,9 +213,9 @@ export default defineComponent({
       try {
         await store.dispatch("firewallRules/refresh");
         // getFirewalls(itemsPerPage.value, page.value);
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch("snackbar/setSnackbarErrorDefault");
-        throw new Error(error);
+        handleError(error);
       }
     };
 

@@ -169,6 +169,7 @@ export default defineComponent({
           );
           ctx.emit("update");
           close();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
           switch (true) {
             case error.message === "both": {

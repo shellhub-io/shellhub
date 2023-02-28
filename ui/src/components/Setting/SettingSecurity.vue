@@ -29,6 +29,7 @@ import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
 import { useStore } from "../../store";
 import { INotificationsSuccess } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -53,9 +54,9 @@ export default defineComponent({
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.namespaceEdit,
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch("snackbar/showSnackbarErrorDefault");
-        throw new Error(error);
+        handleError(error);
       }
     });
 
@@ -75,9 +76,9 @@ export default defineComponent({
         if (props.hasTenant) {
           await store.dispatch("security/get");
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch("snackbar/showSnackbarErrorDefault");
-        throw new Error(error);
+        handleError(error);
       }
     });
 

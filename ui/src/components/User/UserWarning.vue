@@ -39,6 +39,7 @@ import { envVariables } from "../../envVariables";
 import BillingWarning from "../Billing/BillingWarning.vue";
 import DeviceChooser from "../Devices/DeviceChooser.vue";
 import AnnouncementsModal from "../Announcements/AnnouncementsModal.vue";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   inheritAttrs: false,
@@ -127,8 +128,8 @@ export default defineComponent({
             showAnnouncements.value = true;
           }
         }
-      } catch (error: any) {
-        throw new Error(error);
+      } catch (error: unknown) {
+        handleError(error);
       }
     };
 
@@ -154,12 +155,12 @@ export default defineComponent({
           // this shows the namespace instructions when the user has no namespace
           showInstructions.value = true;
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.namespaceList,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

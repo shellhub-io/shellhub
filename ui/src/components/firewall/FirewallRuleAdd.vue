@@ -176,6 +176,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export interface FirewallRuleType {
   policy?: string;
@@ -432,12 +433,12 @@ export default defineComponent({
             INotificationsSuccess.firewallRuleCreating,
           );
           update();
-        } catch (error: any) {
+        } catch (error: unknown) {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.firewallRuleCreating,
           );
-          throw new Error(error);
+          handleError(error);
         }
       }
     };

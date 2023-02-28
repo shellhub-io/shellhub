@@ -59,6 +59,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from "vue";
+import axios, { AxiosError } from "axios";
 import {
   INotificationsCopy,
   INotificationsError,
@@ -66,6 +67,7 @@ import {
 import { useStore } from "../../store";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -123,16 +125,19 @@ export default defineComponent({
         }
 
         loading.value = false;
-      } catch (error: any) {
-        if (error.response.status === 403) {
-          store.dispatch("snackbar/showSnackbarErrorAssociation");
-          throw new Error(error);
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response?.status === 403) {
+            store.dispatch("snackbar/showSnackbarErrorAssociation");
+            handleError(error);
+          }
         } else {
           store.dispatch(
             "snackbar/showSnackbarErrorLoading",
             INotificationsError.deviceList,
           );
-          throw new Error(error);
+          handleError(error);
         }
       }
     };

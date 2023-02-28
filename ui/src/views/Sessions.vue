@@ -21,6 +21,7 @@ import BoxMessage from "../components/Box/BoxMessage.vue";
 import { useStore } from "../store";
 import SessionList from "../components/Sessions/SessionList.vue";
 import { INotificationsError } from "../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -34,12 +35,12 @@ export default defineComponent({
 
         await store.dispatch("sessions/refresh");
         show.value = true;
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.sessionList,
         );
-        throw new Error(error);
+        handleError(error);
       }
     });
 

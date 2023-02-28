@@ -103,13 +103,14 @@ import {
   ref,
   computed,
   watch,
-  defineAsyncComponent,
 } from "vue";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../../../store";
 import { authorizer, actions } from "../../../authorizer";
 import hasPermission from "../../../utils/permission";
 import { INotificationsError } from "../../../interfaces/INotifications";
 import DeviceActionButton from "../../../components/Devices/DeviceActionButton.vue";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   name: "Notification",
@@ -170,23 +171,33 @@ export default defineComponent({
         try {
           await store.dispatch("notifications/fetch");
           show.value = true;
-        } catch (error: any) {
-          switch (true) {
-            case !inANamespace.value && error.response.status === 403: {
-              // dialog pops
-              break;
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            switch (true) {
+              case !inANamespace.value && axiosError.response?.status === 403: {
+                // dialog pops
+                break;
+              }
+              case axiosError.response?.status === 403: {
+                store.dispatch("snackbar/showSnackbarErrorAssociation");
+                handleError(error);
+                break;
+              }
+              default: {
+                store.dispatch(
+                  "snackbar/showSnackbarErrorLoading",
+                  INotificationsError.notificationList,
+                );
+                handleError(error);
+              }
             }
-            case error.response.status === 403: {
-              store.dispatch("snackbar/showSnackbarErrorAssociation");
-              throw new Error(error);
-            }
-            default: {
-              store.dispatch(
-                "snackbar/showSnackbarErrorLoading",
-                INotificationsError.notificationList,
-              );
-              throw new Error(error);
-            }
+          } else {
+            store.dispatch(
+              "snackbar/showSnackbarErrorLoading",
+              INotificationsError.notificationList,
+            );
+            handleError(error);
           }
         }
       }

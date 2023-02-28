@@ -17,6 +17,7 @@
 import { defineComponent, computed } from "vue";
 import { useStore } from "../../store";
 import { INotificationsError } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   inheritAttrs: false,
@@ -36,12 +37,12 @@ export default defineComponent({
         });
 
         window.location.reload();
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.namespaceSwitch,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
     return {

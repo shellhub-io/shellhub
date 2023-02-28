@@ -101,6 +101,7 @@ import {
   INotificationsSuccess,
 } from "../interfaces/INotifications";
 import { useStore } from "../store";
+import handleError from "@/utils/handleError";
 
 type TUpdatePassword = {
   id: LocationQueryValue | LocationQueryValue[];
@@ -206,12 +207,12 @@ export default defineComponent({
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.updatingAccount,
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.updatingAccount,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

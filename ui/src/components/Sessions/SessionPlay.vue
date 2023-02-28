@@ -126,6 +126,7 @@ import { FitAddon } from "xterm-addon-fit";
 import moment from "moment";
 import { useStore } from "../../store";
 import { INotificationsError } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -218,12 +219,12 @@ export default defineComponent({
         await nextTick().then(() => {
           connect();
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorLoading",
           INotificationsError.sessionPlay,
         );
-        throw new Error(error);
+        handleError(error);
       }
     };
 

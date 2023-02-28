@@ -56,6 +56,7 @@ import {
   INotificationsSuccess,
 } from "@/interfaces/INotifications";
 import { useStore } from "../../store";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -95,12 +96,12 @@ export default defineComponent({
           INotificationsSuccess.deviceDelete,
         );
         ctx.emit("update");
-      } catch (error: any) {
+      } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.deviceDelete,
         );
-        throw new Error(error);
+        handleError(error);
       } finally {
         showDialog.value = false;
       }
