@@ -554,6 +554,10 @@ func (s *Server) CloseSession(id string) {
 	}
 }
 
+func (s *Server) Listen(l net.Listener) error {
+	return s.sshd.Serve(l)
+}
+
 func (s *Server) ListenAndServe() error {
 	return s.sshd.ListenAndServe()
 }

@@ -189,8 +189,10 @@ func NewAgentServer() *Agent {
 				"sshid":          sshid,
 			}).Info("Server connection established")
 
-			if err := tun.Listen(listener); err != nil {
-				continue
+			if err := serv.Listen(listener); err != nil {
+				log.WithFields(log.Fields{
+					"err": err,
+				}).Error("Failed to listen to server")
 			}
 		}
 	}()
