@@ -142,6 +142,19 @@ func NewAgentServer() *Agent {
 
 	tun := tunnel.NewTunnel()
 	tun.ConnHandler = func(w http.ResponseWriter, r *http.Request) {
+		hj, ok := w.(http.Hijacker)
+		if !ok {
+			http.Error(w, "webserver doesn't support hijacking", http.StatusInternalServerError)
+
+			return
+		}
+
+		if _, _, err := hj.Hijack(); err != nil {
+			http.Error(w, "failed to hijack connection", http.StatusInternalServerError)
+
+			return
+		}
+
 		vars := mux.Vars(r)
 		conn, ok := r.Context().Value("http-conn").(net.Conn)
 		if !ok {
@@ -154,6 +167,8 @@ func NewAgentServer() *Agent {
 
 		serv.Sessions[vars["id"]] = conn
 		serv.HandleConn(conn)
+
+		conn.Close()
 	}
 	tun.CloseHandler = func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
