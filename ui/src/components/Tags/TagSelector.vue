@@ -56,7 +56,6 @@
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from "vue";
-import { AnyObject } from "yup/lib/object";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import handleError from "@/utils/handleError";
@@ -70,9 +69,9 @@ export default defineComponent({
 
     const getListTags = computed(() => store.getters["tags/list"]);
 
-    const selectedTags = computed(() => store.getters["tags/selected"]);
+    const selectedTags = computed<Array<string>>(() => store.getters["tags/selected"]);
 
-    const setSelectedTags = (item: any) => {
+    const setSelectedTags = (item: Array<string>) => {
       store.dispatch("tags/setSelected", item);
     };
 
@@ -82,7 +81,7 @@ export default defineComponent({
       await store.dispatch("tags/fetch");
     };
 
-    const getDevices = async (item: AnyObject) => {
+    const getDevices = async (item: Array<string>) => {
       let encodedFilter : string | null = null;
 
       const filter = [

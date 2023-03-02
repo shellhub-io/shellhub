@@ -71,7 +71,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import Logo from "../assets/logo-inverted.png";
 import {
   INotificationsError,

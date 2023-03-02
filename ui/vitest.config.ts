@@ -23,7 +23,7 @@ export default defineConfig({
           ],
         },
       }),
-    } as any,
+    },
     // Vue3
     vue(),
     // Vuetify Loader

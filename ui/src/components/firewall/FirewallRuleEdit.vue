@@ -173,7 +173,7 @@ import handleError from "@/utils/handleError";
 export default defineComponent({
   props: {
     firewallRule: {
-      type: Object as any,
+      type: Object as () => FirewallRuleType,
       required: false,
       default: null,
     },
@@ -192,7 +192,7 @@ export default defineComponent({
     const choiceUsername = ref("all");
     const choiceFilter = ref("all");
     const choiceIP = ref("all");
-    const tagChoices = ref([]);
+    const tagChoices = ref<Array<string>>([]);
 
     const sourceIPFieldChoices = ref([
       {
@@ -377,10 +377,10 @@ export default defineComponent({
         username.value = ".*";
       }
 
-      if (!!filter.hostname && filter.hostname !== ".*") {
+      if (filter && !!filter.hostname && filter.hostname !== ".*") {
         choiceFilter.value = "hostname";
         filterField.value = filter.hostname;
-      } else if (filter.tags) {
+      } else if (filter && filter.tags) {
         choiceFilter.value = "tags";
         tagChoices.value = filter.tags;
       }
@@ -399,7 +399,7 @@ export default defineComponent({
 
       ruleFirewallLocal.value = {
         ...fr,
-        username,
+        username: username.value,
         filter: filtObj,
         status,
         policy: action,

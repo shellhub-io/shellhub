@@ -13,4 +13,5 @@ export interface IFirewallRule {
   source_ip: string;
   tenant_ip: string;
   username: string;
+  status: string;
 }

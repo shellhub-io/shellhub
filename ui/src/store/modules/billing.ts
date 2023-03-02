@@ -50,7 +50,7 @@ export const billing: Module<NamespacesState, State> = {
 
     setDeletePaymentMethod: (state, id) => {
       const { cards } = state.billInfoData;
-      const newCards = cards.filter((c: any) => c.id !== id);
+      const newCards = cards.filter((c: IBIllingDataCard) => c.id !== id);
 
       state.billInfoData = {
         ...state.billInfoData,

@@ -8,7 +8,7 @@ export type FilterHostname = {
 }
 
 export type FilterTags = {
-  tags: Set<string>;
+  tags: Set<string> | Array<string>;
 }
 
 export interface IPublicKey {

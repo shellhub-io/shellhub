@@ -77,6 +77,7 @@ import hasPermision from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
 import { INotificationsSuccess, INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import { IDevice } from "@/interfaces/IDevice";
 
 export default defineComponent({
   setup() {
@@ -166,8 +167,8 @@ export default defineComponent({
       store.dispatch("devices/setDeviceChooserStatus", false);
     };
 
-    const sendDevicesChoice = async (devices: Array<any>) => {
-      const choices: any = [];
+    const sendDevicesChoice = async (devices: Array<IDevice>) => {
+      const choices: Array<string> = [];
       devices.forEach((device) => {
         choices.push(device.uid);
       });

@@ -85,6 +85,8 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { validateKey } from "../../utils/validate";
+import { IPrivateKeyError } from "@/interfaces/IPrivateKey";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   props: {
@@ -169,19 +171,19 @@ export default defineComponent({
           );
           ctx.emit("update");
           close();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
+        } catch (error) {
+          const pkError = error as IPrivateKeyError;
           switch (true) {
-            case error.message === "both": {
+            case pkError.message === "both": {
               setnameError("Name is already used");
               setPrivateKeyDataError("Public key data is already used");
               break;
             }
-            case error.message === "name": {
+            case pkError.message === "name": {
               setnameError("Name is already used");
               break;
             }
-            case error.message === "private_key": {
+            case pkError.message === "private_key": {
               setPrivateKeyDataError("Public key data is already used");
               break;
             }
@@ -190,7 +192,7 @@ export default defineComponent({
                 "snackbar/showSnackbarErrorNotRequest",
                 INotificationsError.privateKeyCreating,
               );
-              throw new Error(error);
+              handleError(error);
             }
           }
         }

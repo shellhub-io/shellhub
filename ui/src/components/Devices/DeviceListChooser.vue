@@ -68,6 +68,7 @@ import { useStore } from "../../store";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import handleError from "@/utils/handleError";
+import { IDevice } from "@/interfaces/IDevice";
 
 export default defineComponent({
   props: {
@@ -178,7 +179,7 @@ export default defineComponent({
       await getDevices(itemsPerPage.value, page.value);
     });
 
-    const address = (item: any) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+    const address = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
     const copyText = (value: string | undefined) => {
       if (value) {
@@ -188,10 +189,6 @@ export default defineComponent({
           INotificationsCopy.deviceSSHID,
         );
       }
-    };
-
-    const refreshUsers = () => {
-      getDevices(itemsPerPage.value, page.value);
     };
 
     return {

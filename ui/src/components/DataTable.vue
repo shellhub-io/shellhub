@@ -83,7 +83,7 @@ export default defineComponent({
       required: true,
     },
     comboboxOptions: {
-      type: Array as PropType<any[]>,
+      type: Array as PropType<number[]>,
       required: false,
       default: () => [10, 20, 50, 100],
     },

@@ -142,11 +142,14 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { defineComponent, ref, computed, onMounted } from "vue";
 import { useField } from "vee-validate";
+import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useStore } from "../../store";
 import { INotificationsSuccess } from "../../interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 export default defineComponent({
   setup() {
@@ -260,32 +263,36 @@ export default defineComponent({
             INotificationsSuccess.profileData,
           );
           enableEdit("data");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-          if (error.code === 409) {
-            error.body.forEach((field: string) => {
-              if (field === "username") setUsernameError("This username already exists");
-              else if (field === "name") setNameError("This name already exists");
-              else if (field === "email") setEmailError("This email already exists");
-            });
-          } else if (error.code === 400) {
-            error.body.forEach((field: string) => {
-              if (field === "username") setUsernameError("This username is invalid !");
-              else if (field === "name") setNameError("This name is invalid !");
-              else if (field === "email") setEmailError("This email is invalid !");
-            });
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 409) {
+              // @ts-expect-error axiosError.response.data is an array
+              axiosError.response.data.forEach((field: string) => {
+                if (field === "username") setUsernameError("This username already exists");
+                else if (field === "name") setNameError("This name already exists");
+                else if (field === "email") setEmailError("This email already exists");
+              });
+            } else if (axiosError.response?.status === 400) {
+              // @ts-expect-error axiosError.response.data is an array
+              axiosError.response.data.forEach((field: string) => {
+                if (field === "username") setUsernameError("This username is invalid !");
+                else if (field === "name") setNameError("This name is invalid !");
+                else if (field === "email") setEmailError("This email is invalid !");
+              });
+            }
           } else {
             store.dispatch("snackbar/showSnackbarErrorDefault");
-            throw new Error(error);
+            handleError(error);
           }
         }
       }
     };
 
     const hasUpdatePasswordError = computed(() => (
-      currentPasswordError.value
-        || newPasswordError.value
-        || newPasswordConfirmError.value
+      Boolean(currentPasswordError.value)
+        || Boolean(newPasswordError.value)
+        || Boolean(newPasswordConfirmError.value)
         || newPassword.value === ""
         || newPasswordConfirm.value === ""
         || currentPassword.value === ""
@@ -313,15 +320,17 @@ export default defineComponent({
           );
           enableEdit("password");
           resetPasswordFields();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-          if (error.response.status === 403) {
-            // failed password
-            setNewPasswordError("Your password doesn't match");
-            setNewPasswordConfirmError("Your password doesn't match");
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 403) {
+              // failed password
+              setNewPasswordError("Your password doesn't match");
+              setNewPasswordConfirmError("Your password doesn't match");
+            }
           } else {
             store.dispatch("snackbar/showSnackbarErrorDefault");
-            throw new Error(error);
+            handleError(error);
           }
         }
       }
@@ -330,13 +339,9 @@ export default defineComponent({
     const cancel = (type: string) => {
       if (type === "data") {
         setUserData();
-        // this.$refs.obs.reset();
         editDataStatus.value = !editDataStatus.value;
       } else if (type === "password") {
-        currentPassword.value = "";
-        newPassword.value = "";
-        newPasswordConfirm.value = "";
-        // $refs.pass.reset();
+        resetPasswordFields();
         editPasswordStatus.value = !editPasswordStatus.value;
       }
     };

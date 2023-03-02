@@ -192,7 +192,7 @@ export default defineComponent({
         filterText: "Restrict access using a regexp for username",
       },
     ]);
-    const tagChoices = ref([]);
+    const tagChoices = ref<Array<string>>([]);
     const keyLocal = ref<Partial<IPublicKey>>({
       name: "",
       username: "",

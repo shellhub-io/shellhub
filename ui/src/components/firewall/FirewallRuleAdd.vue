@@ -177,14 +177,17 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import { filterType } from "@/interfaces/IFirewallRule";
 
 export interface FirewallRuleType {
+  action?: string;
+  active?: boolean;
   policy?: string;
   priority?: number;
   status?: string;
   source_ip?: string;
   username?: string;
-  filter?: any;
+  filter?: filterType;
 }
 
 export default defineComponent({

@@ -224,7 +224,7 @@ import {
   onMounted,
   watch,
 } from "vue";
-import { loadStripe } from "@stripe/stripe-js";
+import { Stripe, StripeCardElement, StripeElements, loadStripe } from "@stripe/stripe-js";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
@@ -242,11 +242,11 @@ import handleError from "@/utils/handleError";
 export default defineComponent({
   setup() {
     const store = useStore();
-    const card = ref(null);
+    const card = ref<StripeCardElement>({} as StripeCardElement);
     const cards = ref(null);
     const pollMax = ref(4);
     const retrials = ref(0);
-    const elements = ref<any>(null);
+    const elements = ref<StripeElements>({} as StripeElements);
     const renderData = ref(false);
     const warningTitle = ref("Payment failed");
     const warningMessage = ref(`Please update your payment method
@@ -261,8 +261,8 @@ export default defineComponent({
     const infoBillingData = computed(() => billingData.value.info);
     const cardBillingData = computed(() => billingData.value.cards);
     const cardBillingDefault = computed(() => billingData.value.defaultCard);
-    const stripeKey = computed(() => envVariables.stripeKey);
-    let polling: any;
+    const stripeKey = computed<string>(() => envVariables.stripeKey);
+    let polling;
     const hasAuthorization = computed(() => {
       const role = store.getters["auth/role"];
       if (role !== "") {
@@ -317,8 +317,8 @@ export default defineComponent({
     };
 
     const mountStripeElements = async () => {
-      const stripe = await loadStripe(stripeKey.value || "");
-      elements.value = stripe?.elements();
+      const stripe = await loadStripe(stripeKey.value || "") as Stripe;
+      elements.value = stripe.elements();
       card.value = elements.value.create("card");
     };
 

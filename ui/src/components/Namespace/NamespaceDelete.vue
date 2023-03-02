@@ -125,8 +125,6 @@ export default defineComponent({
       name.value = store.getters["namespaces/get"].name;
     });
 
-    const getDueAmount = (data: any) => data.upcoming_invoice.amount_due;
-
     const remove = async () => {
       try {
         dialog.value = !dialog.value;
@@ -157,7 +155,6 @@ export default defineComponent({
       billingActive,
       isBillingEnabled,
       getSubscriptionInfo,
-      getDueAmount,
       displayOnlyTenCharacters,
       formatCurrency,
       remove,

@@ -120,7 +120,6 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
-    const numberNotifications = ref(0);
     const show = ref(false);
     const inANamespace = ref(false);
     const defaultSize = ref(24);

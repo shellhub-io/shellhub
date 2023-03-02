@@ -111,7 +111,6 @@
 </template>
 
 <script lang="ts">
-/* eslint-disable */
 import {
   computed,
   defineComponent,
@@ -127,6 +126,9 @@ import moment from "moment";
 import { useStore } from "../../store";
 import { INotificationsError } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import { ITerminalFrames, ITerminalLog } from "@/interfaces/ITerminal";
+
+type Timer = ReturnType<typeof setTimeout>;
 
 export default defineComponent({
   props: {
@@ -146,7 +148,7 @@ export default defineComponent({
   emits: ["update"],
   setup(props, ctx) {
     const showDialog = ref(false);
-    const terminal = ref<any>(null);
+    const terminal = ref<HTMLElement>({} as HTMLElement);
     const currentTime = ref(0);
     const totalLength = ref(0);
     const endTimerDisplay = ref<string | number>(0);
@@ -155,102 +157,29 @@ export default defineComponent({
     const previousPause = ref(false);
     const sliderChange = ref(false);
     const speedList = ref([0.5, 1, 1.5, 2, 4]);
-    const logs = ref([]);
-    const frames = ref<any>([]);
+    const logs = ref<Array<ITerminalLog>>([]);
+    const frames = ref<Array<ITerminalFrames>>([]);
     const defaultSpeed = ref(1);
     const transition = ref(false);
-    const xterm = ref<any>();
-    const fitAddon = ref<any>(null);
-    const iterativeTimer = ref<any>();
-    const iterativePrinting = ref<any>();
+    const xterm = ref<Terminal>({} as Terminal);
+    const fitAddon = ref<FitAddon>({} as FitAddon);
+    const iterativeTimer = ref<Timer>();
+    const iterativePrinting = ref<Timer>();
 
     const store = useStore();
     const length = computed(() => logs.value.length);
     const nowTimerDisplay = computed(() => getTimerNow.value);
 
-    watch(showDialog, (value) => {
-      if (!value) {
-        close();
-        showDialog.value = false;
-      } else {
-        displayDialog();
-      }
-    });
-
-    onUpdated(() => {
-      if (showDialog.value) {
-        setSliderDiplayTime(currentTime.value);
-      }
-    });
-
-    const openPlay = async () => {
-      if (props.recorded) {
-        await store.dispatch("sessions/getLogSession", props.uid);
-        logs.value = store.getters["sessions/get"];
-        // @ts-ignore
-        totalLength.value = getSliderIntervalLength(null);
-        setSliderDiplayTime(null);
-        setSliderDiplayTime(currentTime.value);
-
-        frames.value = createFrames();
-
-        xterm.value = new Terminal({
-          cursorBlink: true,
-          fontFamily: "monospace",
-          theme: {
-            background: "#0f1526",
-          },
-        });
-
-        fitAddon.value = new FitAddon();
-        xterm.value.loadAddon(fitAddon.value); // adjust screen in container
-
-        if (xterm.value.element) {
-          xterm.value.reset();
-        }
-      }
-    };
-
-    const displayDialog = async () => {
-      // await to change dialog for the connection
-      try {
-        await openPlay();
-
-        await nextTick().then(() => {
-          connect();
-        });
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.sessionPlay,
-        );
-        handleError(error);
-      }
-    };
-
-    const connect = async () => {
-      if (!xterm.value.element) {
-        xterm.value.open(terminal.value);
-        fitAddon.value.fit();
-        xterm.value.focus();
-        print(0, logs.value);
-        timer();
-      }
-    };
-
     const getSliderIntervalLength = (timeMs: number | null) => {
-      let interval;
+      let interval: number;
       if (!timeMs && logs.value.length > 0) {
-        // not params, will return metrics to max timelengtht
-        // @ts-ignore
+        // not params, will return metrics to max timelength
         const max = new Date(logs.value[length.value - 1].time);
-        // @ts-ignore'
         const min = new Date(logs.value[0].time);
-        // @ts-ignore
-        interval = max - min;
+        interval = +max - +min;
       } else {
         // it will format to the time argument passed
-        interval = timeMs;
+        interval = timeMs || 0;
       }
 
       return interval;
@@ -281,23 +210,18 @@ export default defineComponent({
       let message = "";
       const arrFrames = [
         {
-          // @ts-ignore
           incMessage: (message += logs.value[0].message),
           incTime: time,
         },
       ];
 
       for (let i = 1; i < logs.value.length; i += 1) {
-        // @ts-ignore
         const future = new Date(logs.value[i].time);
-        // @ts-ignore
         const now = new Date(logs.value[i - 1].time);
         const interval = moment
-          // @ts-ignore
-          .duration(future - now, "milliseconds")
+          .duration(+future - +now, "milliseconds")
           .asMilliseconds();
         time += interval;
-        // @ts-ignore
         message += logs.value[i].message;
         arrFrames.push({
           incMessage: message,
@@ -305,11 +229,6 @@ export default defineComponent({
         });
       }
       return arrFrames;
-    };
-
-    const speedChange = (speed: number) => {
-      defaultSpeed.value = speed;
-      xtermSyncFrame(currentTime.value);
     };
 
     const timer = () => {
@@ -328,54 +247,9 @@ export default defineComponent({
       );
     };
 
-    const changeSliderTime = () => {
-      sliderChange.value = true;
-      xtermSyncFrame(currentTime.value);
-    };
-
-    const pauseHandler = () => {
-      paused.value = !paused.value;
-      xtermSyncFrame(currentTime.value);
-    };
-
-    const close = async () => {
-      transition.value = true;
-      if (xterm.value) {
-        xterm.value.reset();
-        xterm.value.element?.remove();
-      }
-      clear();
-      currentTime.value = 0;
-      paused.value = false;
-      defaultSpeed.value = 1;
-
-      ctx.emit("update");
-    };
-
-    const clear = () => {
-      // Ensure to clear functions for syncronism
-      clearInterval(iterativePrinting.value);
-      clearInterval(iterativeTimer.value);
-    };
-
-    const xtermSyncFrame = (givenTime: any) => {
-      if (xterm.value) {
-        xterm.value.write("\u001Bc"); // clean screen
-        const frame = searchClosestFrame(givenTime, frames.value);
-        clear();
-        xterm.value.write(frame.message); // write frame on xterm
-        iterativeTimer.value = setTimeout(timer.bind(null), 1);
-        iterativePrinting.value = setTimeout(
-          print.bind(null, frame.index + 1, logs.value),
-          // @ts-ignore
-          frame.waitForPrint * (1 / defaultSpeed.value),
-        );
-      }
-    };
-
-    const searchClosestFrame = (givenTime: any, frames: any) => {
+    const searchClosestFrame = (givenTime: number, frames: Array<ITerminalFrames>) => {
       // applies a binary search to find nearest frame
-      let between;
+      let between: number;
       let lowerBound = 0;
       let higherBound = frames.length - 1;
       let nextTimeSetPrint;
@@ -398,7 +272,7 @@ export default defineComponent({
       };
     };
 
-    const print = (i: any, logsArray: any) => {
+    const print = (i: number, logsArray: Array<ITerminalLog>) => {
       // Writes iteratevely on xterm as time progresses
       sliderChange.value = false;
       if (!paused.value) {
@@ -406,15 +280,131 @@ export default defineComponent({
         if (i === logsArray.length - 1) return;
         const nowTimerDisplay = new Date(logsArray[i].time);
         const future = new Date(logsArray[i + 1].time);
-        // @ts-ignore
-        const interval = future - nowTimerDisplay;
-        // @ts-ignore
+        const interval = +future - +nowTimerDisplay;
         iterativePrinting.value = setTimeout(
           print.bind(null, i + 1, logsArray),
           interval * (1 / defaultSpeed.value),
         );
       }
     };
+
+    const clear = () => {
+      // Ensure to clear functions for syncronism
+      clearInterval(iterativePrinting.value);
+      clearInterval(iterativeTimer.value);
+    };
+
+    const xtermSyncFrame = (givenTime: number) => {
+      if (xterm.value) {
+        xterm.value.write("\u001Bc"); // clean screen
+        const frame = searchClosestFrame(givenTime, frames.value);
+        clear();
+        xterm.value.write(frame.message); // write frame on xterm
+        iterativeTimer.value = setTimeout(timer.bind(null), 1);
+        iterativePrinting.value = setTimeout(
+          print.bind(null, frame.index + 1, logs.value),
+          frame.waitForPrint * (1 / defaultSpeed.value),
+        );
+      }
+    };
+
+    const speedChange = (speed: number) => {
+      defaultSpeed.value = speed;
+      xtermSyncFrame(currentTime.value);
+    };
+
+    const changeSliderTime = () => {
+      sliderChange.value = true;
+      xtermSyncFrame(currentTime.value);
+    };
+
+    const pauseHandler = () => {
+      paused.value = !paused.value;
+      xtermSyncFrame(currentTime.value);
+    };
+
+    onUpdated(() => {
+      if (showDialog.value) {
+        setSliderDiplayTime(currentTime.value);
+      }
+    });
+
+    const openPlay = async () => {
+      if (props.recorded) {
+        await store.dispatch("sessions/getLogSession", props.uid);
+        logs.value = store.getters["sessions/get"];
+        totalLength.value = getSliderIntervalLength(null);
+        setSliderDiplayTime(null);
+        setSliderDiplayTime(currentTime.value);
+
+        frames.value = createFrames();
+
+        xterm.value = new Terminal({
+          cursorBlink: true,
+          fontFamily: "monospace",
+          theme: {
+            background: "#0f1526",
+          },
+        });
+
+        fitAddon.value = new FitAddon();
+        xterm.value.loadAddon(fitAddon.value); // adjust screen in container
+
+        if (xterm.value.element) {
+          xterm.value.reset();
+        }
+      }
+    };
+
+    const connect = async () => {
+      if (!xterm.value.element) {
+        xterm.value.open(terminal.value);
+        fitAddon.value.fit();
+        xterm.value.focus();
+        print(0, logs.value);
+        timer();
+      }
+    };
+
+    const displayDialog = async () => {
+      // await to change dialog for the connection
+      try {
+        await openPlay();
+
+        await nextTick().then(() => {
+          connect();
+        });
+      } catch (error: unknown) {
+        store.dispatch(
+          "snackbar/showSnackbarErrorLoading",
+          INotificationsError.sessionPlay,
+        );
+        handleError(error);
+      }
+    };
+
+    const close = async () => {
+      transition.value = true;
+      if (xterm.value) {
+        xterm.value.reset();
+        xterm.value.element?.remove();
+      }
+      clear();
+      currentTime.value = 0;
+      paused.value = false;
+      defaultSpeed.value = 1;
+
+      ctx.emit("update");
+    };
+
+    watch(showDialog, (value) => {
+      if (!value) {
+        close();
+        showDialog.value = false;
+      } else {
+        displayDialog();
+      }
+    });
 
     return {
       showDialog,
