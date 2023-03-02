@@ -72,6 +72,7 @@ import {
 } from "../../interfaces/INotifications";
 import DeviceActionButton from "./DeviceActionButton.vue";
 import handleError from "@/utils/handleError";
+import { IDevice } from "@/interfaces/IDevice";
 
 export default defineComponent({
   setup() {
@@ -185,7 +186,7 @@ export default defineComponent({
       getDevices(itemsPerPage.value, page.value);
     };
 
-    const sshidAddress = (item: any) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+    const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
     const copyText = (value: string | undefined) => {
       if (value) {

@@ -155,6 +155,7 @@ import TerminalDialog from "../Terminal/TerminalDialog.vue";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
+import { IDevice } from "@/interfaces/IDevice";
 
 export default defineComponent({
   setup() {
@@ -266,7 +267,7 @@ export default defineComponent({
       router.push({ name: "detailsDevice", params: { id: deviceId } });
     };
 
-    const sshidAddress = (item: any) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+    const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
     const copyText = (value: string | undefined) => {
       if (value) {

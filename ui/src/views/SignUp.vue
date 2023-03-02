@@ -174,6 +174,7 @@
 import { computed, defineComponent, ref, watch } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
+import axios, { AxiosError } from "axios";
 import Logo from "../assets/logo-inverted.png";
 import { useStore } from "../store";
 import {
@@ -336,26 +337,31 @@ export default defineComponent({
             "snackbar/showSnackbarSuccessAction",
             INotificationsSuccess.addUser,
           );
-        } catch (e: any) {
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 409) {
+              // @ts-expect-error axiosError.response.data is an array
+              axiosError.response.data.forEach((field: string) => {
+                if (field === "username") setUsernameError("This username already exists");
+                else if (field === "name") setNameError("This name already exists");
+                else if (field === "email") setEmailError("This email already exists");
+                else if (field === "password") setPasswordError("This password already exists");
+              });
+            } else if (axiosError.response?.status === 400) {
+              // @ts-expect-error axiosError.response.data is an array
+              axiosError.response.data.forEach((field: string) => {
+                if (field === "username") setUsernameError("This username is invalid !");
+                else if (field === "name") setNameError("This name is invalid !");
+                else if (field === "email") setEmailError("This email is invalid !");
+                else if (field === "password") setPasswordError("This password is invalid !");
+              });
+            }
+          }
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.addUser,
           );
-          if (e.response.status === 409) {
-            e.response.data.forEach((field: string) => {
-              if (field === "username") setUsernameError("This username already exists");
-              else if (field === "name") setNameError("This name already exists");
-              else if (field === "email") setEmailError("This email already exists");
-              else if (field === "password") setPasswordError("This password already exists");
-            });
-          } else if (e.response.status === 400) {
-            e.response.data.forEach((field: string) => {
-              if (field === "username") setUsernameError("This username is invalid !");
-              else if (field === "name") setNameError("This name is invalid !");
-              else if (field === "email") setEmailError("This email is invalid !");
-              else if (field === "password") setPasswordError("This password is invalid !");
-            });
-          }
         }
       }
     };

@@ -38,7 +38,7 @@ export default defineComponent({
       default: false,
     },
   },
-  setup(props: { hasTenant: any }) {
+  setup(props: { hasTenant: boolean }) {
     const store = useStore();
 
     const sessionRecord = ref(store.getters["security/get"]);

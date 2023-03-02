@@ -47,16 +47,14 @@ export const privateKey: Module<PrivateKeyState, State> = {
 
   actions: {
     fetch: async (context) => {
-      // @ts-ignore
-      const privateKeys = JSON.parse(localStorage.getItem("privateKeys"));
+      const privateKeys = JSON.parse(localStorage.getItem("privateKeys") || "");
       if (privateKeys !== null) { context.commit("fetchPrivateKey", privateKeys); }
     },
 
     set: async (context, privateKey) => {
-      // @ts-ignore
-      const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
+      const privateKeys = JSON.parse(localStorage.getItem("privateKeys") || "") || [];
 
-      privateKeys.forEach((pk : any) => {
+      privateKeys.forEach((pk : IPrivateKey) => {
         if (pk.data === privateKey.data && pk.name === privateKey.name) {
           throw new Error("both");
         }
@@ -90,7 +88,7 @@ export const privateKey: Module<PrivateKeyState, State> = {
       const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
 
       if (privateKeys !== null) {
-        privateKeys.splice(privateKeys.findIndex((d: any) => d.data === data), 1);
+        privateKeys.splice(privateKeys.findIndex((d: IPrivateKey) => d.data === data), 1);
       }
 
       localStorage.setItem("privateKeys", JSON.stringify(privateKeys));

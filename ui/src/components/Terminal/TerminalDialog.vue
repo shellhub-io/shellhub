@@ -152,6 +152,9 @@ import {
   createSignerPrivateKey,
   parsePrivateKeySsh,
 } from "../../utils/validate";
+import { IPrivateKey } from "@/interfaces/IPrivateKey";
+import { IParams } from "@/interfaces/IParams";
+import { IConnectToTerminal } from "@/interfaces/ITerminal";
 
 export default defineComponent({
   inheritAttrs: false,
@@ -185,11 +188,11 @@ export default defineComponent({
     const showPassword = ref(false);
     const showLoginForm = ref(true);
     const privateKey = ref("");
-    const xterm = ref<any>(null);
-    const ws = ref<any>(null);
-    const fitAddon = ref<any>(null);
-    const terminal = ref<any>(null);
-    const attachAddon = ref<any>(null);
+    const xterm = ref<(Terminal)>({} as Terminal);
+    const ws = ref<WebSocket>({} as WebSocket);
+    const fitAddon = ref<FitAddon>({} as FitAddon);
+    const terminal = ref<HTMLElement>({} as HTMLElement);
+    const attachAddon = ref<AttachAddon | null>({} as AttachAddon);
 
     const showTerminal = ref(store.getters["modal/terminal"] === props.uid);
 
@@ -218,26 +221,26 @@ export default defineComponent({
 
     const nameOfPrivateKeys = computed(() => {
       const list = getListPrivateKeys.value;
-      return list.map((item: any) => item.name);
+      return list.map((item: IPrivateKey) => item.name);
     });
 
     watch(showTerminal, (value) => {
       if (!value) {
         if (ws.value) ws.value.close();
         if (xterm.value) {
-          xterm.value = null;
+          xterm.value.dispose();
         }
       } else {
         showLoginForm.value = true;
       }
     });
 
-    const encodeURLParams = (params: any) => Object.entries(params)
+    const encodeURLParams = (params: IParams) => Object.entries(params)
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
 
-    const connect = async (params: any) => {
-      if (params.passwd && !username.value && !password.value) {
+    const connect = async (params: IConnectToTerminal) => {
+      if (params.password && !username.value && !password.value) {
         return;
       }
 
@@ -325,7 +328,7 @@ export default defineComponent({
 
     const findPrivateKeyByName = (name: string) => {
       const list = getListPrivateKeys.value;
-      return list.find((item: any) => item.name === name);
+      return list.find((item: IPrivateKey) => item.name === name);
     };
 
     const connectWithPrivateKey = async () => {
