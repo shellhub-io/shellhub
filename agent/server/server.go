@@ -303,12 +303,19 @@ func (s *Server) sessionHandler(session gliderssh.Session) {
 			stdin.Close()
 		}()
 
+		wg := &sync.WaitGroup{}
+		wg.Add(1)
+
 		go func() {
 			combinedOutput := io.MultiReader(stdout, stderr)
 			if _, err := io.Copy(session, combinedOutput); err != nil {
 				fmt.Println(err) //nolint:forbidigo
 			}
+
+			wg.Done()
 		}()
+
+		wg.Wait()
 
 		err = cmd.Wait()
 		if err != nil {
