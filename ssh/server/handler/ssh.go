@@ -385,15 +385,16 @@ func exec(api internalclient.Client, uid string, agent *gossh.Session, client gl
 		return err
 	}
 
-	done := make(chan bool)
+	waitPipeIn := make(chan bool)
+	waitPipeOut := make(chan bool)
 
-	go flw.PipeIn(client, done)
-	go flw.PipeOut(client, nil)
+	go flw.PipeIn(client, waitPipeIn)
+	go flw.PipeOut(client, waitPipeOut)
 	go flw.PipeErr(client, nil)
 
 	go func() {
 		// When the client stop to send data, it means that the command has finished and the process should be closed.
-		<-done
+		<-waitPipeIn
 
 		agent.Close()
 	}()
@@ -406,6 +407,8 @@ func exec(api internalclient.Client, uid string, agent *gossh.Session, client gl
 
 		return err
 	}
+
+	<-waitPipeOut
 
 	err = agent.Wait()
 	if err != nil {
