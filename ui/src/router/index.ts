@@ -16,31 +16,47 @@ import SettingNamespace from "@/components/Setting/SettingNamespace.vue";
 import SettingPrivateKeys from "@/components/Setting/SettingPrivateKeys.vue";
 import SettingTags from "@/components/Setting/SettingTags.vue";
 import SettingBilling from "@/components/Setting/SettingBilling.vue";
+import { store } from "@/store";
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/login",
     name: "login",
+    meta: {
+      external: true,
+    },
     component: () => import("../views/Login.vue"),
   },
   {
     path: "/forgot-pass",
     name: "ForgotPassword",
+    meta: {
+      external: true,
+    },
     component: () => import("../views/ForgotPassword.vue"),
   },
   {
     path: "/validation-account",
     name: "ValidationAccount",
+    meta: {
+      external: true,
+    },
     component: () => import("../views/ValidationAccount.vue"),
   },
   {
     path: "/update-password",
     name: "UpdatePassword",
+    meta: {
+      external: true,
+    },
     component: () => import("../views/UpdatePassword.vue"),
   },
   {
     path: "/sign-up",
     name: "SignUp",
+    meta: {
+      external: true,
+    },
     component: () => import("../views/SignUp.vue"),
   },
   {
@@ -148,11 +164,34 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  if (to.matched.length === 0) {
-    next({ path: "/" });
+router.beforeEach((to, _, next) => {
+  const isLoggedIn = store.getters["auth/isLoggedIn"];
+  const isExternal = to.meta.external;
+
+  if (isExternal) {
+    store
+      .dispatch("layout/setLayout", "simpleLayout")
+      .then(() => {
+        next();
+      })
+      .catch((error) => {
+        console.log(error);
+        next({ name: "login" });
+      });
   } else {
-    next();
+    store
+      .dispatch("layout/setLayout", "appLayout")
+      .then(() => {
+        if (isLoggedIn) {
+          next();
+        } else {
+          next({ name: "login" });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        next({ name: "login" });
+      });
   }
 });
 

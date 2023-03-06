@@ -24,10 +24,10 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from "vue";
 import axios, { AxiosError } from "axios";
-import { INotificationsError } from "../interfaces/INotifications";
 import Card from "../components/Card/Card.vue";
 import { useStore } from "../store";
 import handleError from "@/utils/handleError";
+import { INotificationsSuccess, INotificationsError } from "@/interfaces/INotifications";
 
 type ItemCard = {
   id: number;

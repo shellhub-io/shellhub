@@ -26,8 +26,6 @@ describe("Login is not cloud", () => {
       "auth/loginToken": vi.fn(),
       "notifications/fetch": vi.fn(),
       "layout/setLayout": vi.fn(),
-      "snackbar/showSnackbarErrorIncorrect": vi.fn(),
-      "snackbar/showSnackbarErrorDefault": vi.fn(),
     },
   });
 
