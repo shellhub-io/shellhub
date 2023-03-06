@@ -1,4 +1,4 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Sessions > With sessions > Renders the component 1`] = `
 "<div class=\\"d-flex flex-column justify-space-between align-center flex-sm-row mb-2\\">
@@ -6,41 +6,41 @@ exports[`Sessions > With sessions > Renders the component 1`] = `
 </div>
 <div>
   <div data-v-459ab1b4=\\"\\">
-    <div class=\\"bg-v-theme-surface\\" data-test=\\"sessions-list\\" data-v-046d4556=\\"\\" data-v-459ab1b4=\\"\\">
-      <div class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\" data-v-046d4556=\\"\\">
+    <div data-v-046d4556=\\"\\" data-v-459ab1b4=\\"\\" class=\\"bg-v-theme-surface\\" data-test=\\"sessions-list\\">
+      <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
         <!---->
         <div class=\\"v-table__wrapper\\">
           <table>
             <thead data-v-046d4556=\\"\\">
               <tr data-v-046d4556=\\"\\">
-                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Active</span></th>
-                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Device</span></th>
-                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Username</span></th>
-                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Authenticated</span></th>
-                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">IP Address</span></th>
-                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Started</span></th>
-                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Last Seen</span></th>
-                <th class=\\"text-center\\" data-v-046d4556=\\"\\"><span data-v-046d4556=\\"\\">Actions</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Active</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Device</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Username</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Authenticated</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">IP Address</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Started</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Last Seen</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Actions</span></th>
               </tr>
             </thead>
-            <div class=\\"pa-4 text-subtitle-2\\" data-v-046d4556=\\"\\">
+            <div data-v-046d4556=\\"\\" class=\\"pa-4 text-subtitle-2\\">
               <p data-v-046d4556=\\"\\">No data available</p>
             </div>
           </table>
         </div>
         <!---->
       </div>
-      <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\" data-v-046d4556=\\"\\">
+      <hr data-v-046d4556=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
       <!--v-if-->
-      <div class=\\"d-flex w-100 justify-end align-center\\" data-v-046d4556=\\"\\"><span class=\\"text-subtitle-2 mr-4\\" data-v-046d4556=\\"\\">Items per page:</span>
+      <div data-v-046d4556=\\"\\" class=\\"d-flex w-100 justify-end align-center\\"><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2 mr-4\\">Items per page:</span>
         <div data-v-046d4556=\\"\\">
-          <div class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-text-field v-text-field--flush-details v-combobox v-combobox--single mb-4\\" data-v-046d4556=\\"\\">
+          <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-text-field v-text-field--flush-details v-combobox v-combobox--single mb-4\\">
             <!---->
             <div class=\\"v-input__control\\">
               <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light\\" role=\\"textbox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\">
                 <div class=\\"v-field__overlay\\"></div>
                 <div class=\\"v-field__loader\\">
-                  <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                     <!---->
                     <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                     <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -63,7 +63,7 @@ exports[`Sessions > With sessions > Renders the component 1`] = `
                     <!---->
                     <!--teleport start-->
                     <!--teleport end-->
-                    <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" outlined=\\"\\">
+                    <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" outlined=\\"\\">
                   </div>
                   <!---->
                 </div>
@@ -81,11 +81,11 @@ exports[`Sessions > With sessions > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <div class=\\"d-flex align-center\\" data-v-046d4556=\\"\\"><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" data-v-046d4556=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div data-v-046d4556=\\"\\" class=\\"d-flex align-center\\"><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
             <!---->
             <!---->
-          </button><span class=\\"text-subtitle-2\\" data-v-046d4556=\\"\\">0 of 1</span><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" data-v-046d4556=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          </button><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2\\">0 of 1</span><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
             <!---->
             <!---->
@@ -106,7 +106,7 @@ exports[`Sessions > Without sessions > Renders the component 1`] = `
   <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border\\" data-test=\\"BoxMessageSession-component\\">
     <!---->
     <div class=\\"v-card__loader\\">
-      <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
         <!---->
         <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
         <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -130,7 +130,7 @@ exports[`Sessions > Without sessions > Renders the component 1`] = `
       <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">
         <!----><span class=\\"v-list-item__underlay\\"></span>
         <!---->
-        <div class=\\"v-list-item__content\\">
+        <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
           <!---->
           <!---->
           <div data-test=\\"0-boxMessage-text\\">An SSH session is created when a connection is made to any registered device.</div>
@@ -143,7 +143,7 @@ exports[`Sessions > Without sessions > Renders the component 1`] = `
       <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix mt-n3\\">
         <!----><span class=\\"v-list-item__underlay\\"></span>
         <!---->
-        <div class=\\"v-list-item__content\\">
+        <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
           <!---->
           <!---->
           <div class=\\"justify-center\\" data-test=\\"0-boxMessage-text\\">

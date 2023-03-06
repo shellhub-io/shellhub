@@ -1,4 +1,4 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`DetailsDevice > Offline Device > Renders the component 1`] = `
 "<div class=\\"d-flex pa-0 align-center\\">
@@ -7,7 +7,7 @@ exports[`DetailsDevice > Offline Device > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -48,7 +48,7 @@ exports[`DetailsDevice > Offline Device > Renders the component 1`] = `
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-2\\" style=\\"font-size: 20px;\\"></i><span>Linux</span></div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1 mr-2\\" style=\\"font-size: 18px;\\"></i><span>Linux</span></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Agent Version:</div>
@@ -58,13 +58,13 @@ exports[`DetailsDevice > Offline Device > Renders the component 1`] = `
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Tags:</div>
-      <div data-test=\\"deviceTags-field\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-2\\"><!----><span class=\\"v-chip__underlay\\"></span>
+      <div data-test=\\"deviceTags-field\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-5\\"><!----><span class=\\"v-chip__underlay\\"></span>
         <!---->
         <!---->device1
         <!---->
         <!----></span>
         <!--teleport start-->
-        <!--teleport end--><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-4\\"><!----><span class=\\"v-chip__underlay\\"></span>
+        <!--teleport end--><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-7\\"><!----><span class=\\"v-chip__underlay\\"></span>
         <!---->
         <!---->device2
         <!---->
@@ -92,7 +92,7 @@ exports[`DetailsDevice > Online Device and owner > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -139,7 +139,7 @@ exports[`DetailsDevice > Online Device and owner > Renders the component 1`] = `
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-2\\" style=\\"font-size: 20px;\\"></i><span>Linux</span></div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1 mr-2\\" style=\\"font-size: 18px;\\"></i><span>Linux</span></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Agent Version:</div>
@@ -149,13 +149,13 @@ exports[`DetailsDevice > Online Device and owner > Renders the component 1`] = `
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Tags:</div>
-      <div data-test=\\"deviceTags-field\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-3\\"><!----><span class=\\"v-chip__underlay\\"></span>
+      <div data-test=\\"deviceTags-field\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-6\\"><!----><span class=\\"v-chip__underlay\\"></span>
         <!---->
         <!---->device1
         <!---->
         <!----></span>
         <!--teleport start-->
-        <!--teleport end--><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-5\\"><!----><span class=\\"v-chip__underlay\\"></span>
+        <!--teleport end--><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-8\\"><!----><span class=\\"v-chip__underlay\\"></span>
         <!---->
         <!---->device2
         <!---->
