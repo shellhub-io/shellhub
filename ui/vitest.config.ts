@@ -44,6 +44,6 @@ export default defineConfig({
     },
     exclude: ["**/node_modules/**"],
     update: true,
-    threads: false,
+    threads: true,
   },
 });
