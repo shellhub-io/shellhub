@@ -5,7 +5,31 @@ output:
   uniq-by-line: true
   sort-results: true
 
+linters:
+  disable-all: true
+  enable:
+    - gofmt
+    - revive
+    - gosimple
+    - govet
+    - ineffassign
+    - exportloopref
+    - staticcheck
+    - unconvert
+    - unused
+    - misspell
+    - goimports
+    - typecheck
+    - errcheck
+    - whitespace
+    - depguard
+    - stylecheck
+    - nlreturn
+    - nilerr
+
 linters-settings:
+  staticcheck:
+    checks: ["all", "-SA1029"]
   depguard:
     list-type: blacklist
     include-go-root: true
@@ -15,74 +39,9 @@ linters-settings:
     packages-with-error-message:
       - github.com/satori/go.uuid: "Uuid generation is only allowed using 'github.com/shellhub-io/shellhub/pkg/uuid'"
       - github.com/dgrijalva/jwt-go: "dgrijalva/jwt-go is deprecated please use 'github.com/golang-jwt/jwt'"
-
-  stylecheck:
-    # Select the Go version to target. The default is '1.13'.
-    go: "1.20"
-    # https://staticcheck.io/docs/options#checks
-    checks: [ "all", "-ST1000", "-ST1003", "-ST1016", "-ST1020", "-ST1021", "-ST1022" ]
-    # https://staticcheck.io/docs/options#dot_import_whitelist
-    dot-import-whitelist:
-      - fmt
-    # https://staticcheck.io/docs/options#initialisms
-    initialisms: [ "ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "QPS", "RAM", "RPC", "SLA", "SMTP", "SQL", "SSH", "TCP", "TLS", "TTL", "UDP", "UI", "GID", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XMPP", "XSRF", "XSS" ]
-    # https://staticcheck.io/docs/options#http_status_code_whitelist
-    http-status-code-whitelist: [ "200", "400", "404", "500" ]
-
-  unused:
-    # Select the Go version to target. The default is '1.13'.
-    go: "1.20"
-
   whitespace:
-    multi-if: true   # Enforces newlines (or comments) after every multi-line if statement
-    multi-func: true # Enforces newlines (or comments) after every multi-line function signature
-
-linters:
-  enable-all: true
-  disable:
-    - gomoddirectives
-    - bodyclose
-    - cyclop
-    - dupl
-    - errorlint
-    - exhaustivestruct
-    - funlen
-    - gci
-    - gocognit
-    - godox
-    - goerr113
-    - golint
-    - gomnd
-    - interfacer
-    - lll
-    - maligned
-    - noctx
-    - paralleltest
-    - testpackage
-    - wrapcheck
-    - wsl
-
-    # we use it inside pkg/
-    - gochecknoinits
-    - gochecknoglobals
-    - tagliatelle
-
-issues:
-  exclude:
-    # govet: unkeyed fields use
-    - composite
-    - Using the variable on range scope `tc` in function literal
-
-  exclude-rules:
-    - linters:
-        - staticcheck
-
-      # TODO: We should rework the code to avoid this issue; this will be done
-      # during more deep code rework so for now, we'll skip it.
-      text: "SA1029:"
-
-    - linters:
-        - govet
-
-      # validate is unknown but it is a valid tag.
-      text: "structtag: struct field tag .* validate:"
+    multi-if: true
+    multi-func: true
+  govet:
+    disable:
+      - composites
