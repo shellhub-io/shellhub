@@ -106,7 +106,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           working-directory: ${{ matrix.project }}
-          version: v1.42.1
+          version: v3.4.0
           args: ${{ matrix.lint_args }}
           skip-pkg-cache: true
 
