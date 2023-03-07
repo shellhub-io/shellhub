@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/ssh
 
-go 1.17
+go 1.18
 
 require (
 	github.com/gliderlabs/ssh v0.3.5

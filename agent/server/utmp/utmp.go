@@ -218,7 +218,7 @@ func updWtmp(u Utmpx) {
 		}).Warn("Lock failed")
 	}
 
-	fileSize, err := file.Seek(0, os.SEEK_END)
+	fileSize, err := file.Seek(0, io.SeekEnd)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": WtmpxFile,
