@@ -150,8 +150,6 @@ func TestCreateSession(t *testing.T) {
 
 	ctx := context.TODO()
 
-	// ip := net.ParseIP("127.0.0.1")
-
 	type Expected struct {
 		session *models.Session
 		err     error
@@ -175,7 +173,7 @@ func TestCreateSession(t *testing.T) {
 			name:    "CreateSession fails",
 			session: req,
 			requiredMocks: func() {
-				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
+				locator.On("GetPosition", net.ParseIP(model.IPAddress)).
 					Return(geoip.Position{}, nil).Once()
 				mock.On("SessionCreate", ctx, model).
 					Return(nil, Err).Once()
@@ -189,7 +187,7 @@ func TestCreateSession(t *testing.T) {
 			name:    "CreateSession succeeds",
 			session: req,
 			requiredMocks: func() {
-				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
+				locator.On("GetPosition", net.ParseIP(model.IPAddress)).
 					Return(geoip.Position{}, nil).Once()
 				mock.On("SessionCreate", ctx, model).
 					Return(&model, nil).Once()
@@ -204,7 +202,7 @@ func TestCreateSession(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			returnedSession, err := s.CreateSession(ctx, tc.session, "127.0.0.1")
+			returnedSession, err := s.CreateSession(ctx, tc.session)
 			assert.Equal(t, tc.expected, Expected{returnedSession, err})
 		})
 	}

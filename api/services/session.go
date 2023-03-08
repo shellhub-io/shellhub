@@ -13,7 +13,7 @@ import (
 type SessionService interface {
 	ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error)
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
-	CreateSession(ctx context.Context, session request.SessionCreate, ip string) (*models.Session, error)
+	CreateSession(ctx context.Context, session request.SessionCreate) (*models.Session, error)
 	DeactivateSession(ctx context.Context, uid models.UID) error
 	KeepAliveSession(ctx context.Context, uid models.UID) error
 	SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error
@@ -27,8 +27,8 @@ func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Sessi
 	return s.store.SessionGet(ctx, uid)
 }
 
-func (s *service) CreateSession(ctx context.Context, session request.SessionCreate, ip string) (*models.Session, error) {
-	position, _ := s.locator.GetPosition(net.ParseIP(ip))
+func (s *service) CreateSession(ctx context.Context, session request.SessionCreate) (*models.Session, error) {
+	position, _ := s.locator.GetPosition(net.ParseIP(session.IPAddress))
 
 	return s.store.SessionCreate(ctx, models.Session{
 		UID:       session.UID,
