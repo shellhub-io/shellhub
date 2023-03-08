@@ -58,6 +58,10 @@ ShellHub provides native SSH support, allowing you to access any device behind t
 
 ShellHub offers SCP/SFTP support, allowing you to copy files to and from your devices using industry standard tools without the need for any additional third-party applications. This makes it easy to transfer files securely to and from your servers and devices, ensuring that your data remains safe and secure throughout the process.
 
+### :arrows_counterclockwise: SSH port forwarding
+
+ShellHub allows you to securely forward TCP traffic from a local port on your machine to a remote port on a device behind the ShellHub gateway. This can be useful for a variety of purposes, such as accessing remote services.
+
 ### :key: Public-key authentication
 
 ShellHub supports public-key authentication, which allows multiple users to log in as the same system user without having to share a single password. This can make it easier to manage access for multiple users, as you can revoke a single user's access without affecting the access of other users. Additionally, public-key authentication can make it easier for a single user to log in to many accounts without having to manage multiple passwords.
