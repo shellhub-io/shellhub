@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"errors"
 	"net/http"
 
 	jwt "github.com/golang-jwt/jwt"
@@ -8,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/mitchellh/mapstructure"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	errors "github.com/shellhub-io/shellhub/api/routes/errors"
+	errs "github.com/shellhub-io/shellhub/api/routes/errors"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/request"
@@ -111,7 +112,11 @@ func (h *Handler) AuthUser(c gateway.Context) error {
 
 	res, err := h.service.AuthUser(c.Ctx(), req)
 	if err != nil {
-		return errors.NewErrUnauthorized(err)
+		if errors.Is(err, svc.ErrUserNotFound) {
+			return errs.NewErrUnauthorized(err)
+		}
+
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
