@@ -12,6 +12,7 @@ import (
 type Tunnel struct {
 	router       *mux.Router
 	srv          *http.Server
+	HTTPHandler  func(w http.ResponseWriter, r *http.Request)
 	ConnHandler  func(w http.ResponseWriter, r *http.Request)
 	CloseHandler func(w http.ResponseWriter, r *http.Request)
 }
@@ -27,6 +28,9 @@ func NewTunnel() *Tunnel {
 				return context.WithValue(ctx, "http-conn", c) //nolint:revive
 			},
 		},
+		HTTPHandler: func(w http.ResponseWriter, r *http.Request) {
+			panic("HTTPHandler can not be nil")
+		},
 		ConnHandler: func(w http.ResponseWriter, r *http.Request) {
 			panic("connHandler can not be nil")
 		},
@@ -34,6 +38,9 @@ func NewTunnel() *Tunnel {
 			panic("closeHandler can not be nil")
 		},
 	}
+	t.router.HandleFunc("/ssh/http", func(w http.ResponseWriter, r *http.Request) {
+		t.HTTPHandler(w, r)
+	})
 	t.router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
 		t.ConnHandler(w, r)
 	})

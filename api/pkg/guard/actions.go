@@ -13,7 +13,7 @@ type AllActions struct {
 }
 
 type DeviceActions struct {
-	Accept, Reject, Remove, Connect, Rename, CreateTag, UpdateTag, RemoveTag, RenameTag, DeleteTag int
+	Accept, Reject, Update, Remove, Connect, Rename, CreateTag, UpdateTag, RemoveTag, RenameTag, DeleteTag int
 }
 
 type SessionActions struct {
@@ -42,6 +42,7 @@ var Actions = AllActions{
 	Device: DeviceActions{
 		Accept:    DeviceAccept,
 		Reject:    DeviceReject,
+		Update:    DeviceUpdate,
 		Remove:    DeviceRemove,
 		Connect:   DeviceConnect,
 		Rename:    DeviceRename,

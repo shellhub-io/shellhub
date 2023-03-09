@@ -1099,6 +1099,20 @@ func (_m *Service) UpdateDataUser(ctx context.Context, id string, userData reque
 	return r0, r1
 }
 
+// UpdateDevice provides a mock function with given fields: ctx, tenant, uid, name, publicURL
+func (_m *Service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {
+	ret := _m.Called(ctx, tenant, uid, name, publicURL)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, *string, *bool) error); ok {
+		r0 = rf(ctx, tenant, uid, name, publicURL)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateDeviceStatus provides a mock function with given fields: ctx, uid, online
 func (_m *Service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
 	ret := _m.Called(ctx, uid, online)

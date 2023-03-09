@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strings"
 
@@ -25,6 +26,7 @@ type DeviceService interface {
 	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant string) error
 	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
 	DeviceHeartbeat(ctx context.Context, uid models.UID) error
+	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 }
 
 func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filter []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
@@ -224,4 +226,30 @@ func (s *service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
 	}
 
 	return nil
+}
+
+func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {
+	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
+	if err != nil {
+		return NewErrDeviceNotFound(uid, err)
+	}
+
+	if name != nil {
+		*name = strings.ToLower(*name)
+
+		if device.Name == *name {
+			return nil
+		}
+
+		otherDevice, err := s.store.DeviceGetByName(ctx, *name, tenant)
+		if err != nil && err != store.ErrNoDocuments {
+			return NewErrDeviceNotFound(models.UID(device.UID), fmt.Errorf("failed to get device by name: %w", err))
+		}
+
+		if otherDevice != nil {
+			return NewErrDeviceDuplicated(otherDevice.Name, err)
+		}
+	}
+
+	return s.store.DeviceUpdate(ctx, uid, name, publicURL)
 }

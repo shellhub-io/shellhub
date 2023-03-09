@@ -331,6 +331,7 @@ func TestCheckPermission(t *testing.T) {
 				Actions.Device.Reject,
 				Actions.Device.Connect,
 				Actions.Device.Rename,
+				Actions.Device.Update,
 
 				Actions.Device.CreateTag,
 				Actions.Device.UpdateTag,
@@ -353,6 +354,7 @@ func TestCheckPermission(t *testing.T) {
 				Actions.Device.Remove,
 				Actions.Device.Connect,
 				Actions.Device.Rename,
+				Actions.Device.Update,
 
 				Actions.Device.CreateTag,
 				Actions.Device.UpdateTag,
@@ -392,6 +394,7 @@ func TestCheckPermission(t *testing.T) {
 				Actions.Device.Remove,
 				Actions.Device.Connect,
 				Actions.Device.Rename,
+				Actions.Device.Update,
 
 				Actions.Device.CreateTag,
 				Actions.Device.UpdateTag,

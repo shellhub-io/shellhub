@@ -89,3 +89,14 @@ type DeviceAuth struct {
 	PublicKey string          `json:"public_key" validate:"required"`
 	TenantID  string          `json:"tenant_id" validate:"required"`
 }
+
+type DeviceGetPublicURL struct {
+	DeviceParam
+}
+
+type DeviceUpdate struct {
+	DeviceParam
+	// NOTICE: the pointers here help to distinguish between the zero value and the absence of the field.
+	Name      *string `json:"name"`
+	PublicURL *bool   `json:"public_url"`
+}

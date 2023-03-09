@@ -22,6 +22,7 @@ type Device struct {
 	RemoteAddr string          `json:"remote_addr" bson:"remote_addr"`
 	Position   *DevicePosition `json:"position" bson:"position"`
 	Tags       []string        `json:"tags" bson:"tags,omitempty"`
+	PublicURL  bool            `json:"public_url" bson:"public_url,omitempty"`
 }
 
 type DeviceAuthClaims struct {

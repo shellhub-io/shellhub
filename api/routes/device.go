@@ -25,6 +25,7 @@ const (
 	CreateTagURL       = "/devices/:uid/tags"      // Add a tag to a device.
 	UpdateTagURL       = "/devices/:uid/tags"      // Update device's tags with a new set.
 	RemoveTagURL       = "/devices/:uid/tags/:tag" // Delete a tag from a device.
+	UpdateDevice       = "/devices/:uid"
 )
 
 const (
@@ -276,6 +277,30 @@ func (h *Handler) UpdateDeviceTag(c gateway.Context) error {
 		return h.service.UpdateDeviceTag(c.Ctx(), models.UID(req.UID), req.Tags)
 	})
 	if err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) UpdateDevice(c gateway.Context) error {
+	var req request.DeviceUpdate
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	var tenant string
+	if c.Tenant() != nil {
+		tenant = c.Tenant().ID
+	}
+
+	if err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Update, func() error {
+		return h.service.UpdateDevice(c.Ctx(), tenant, models.UID(req.UID), req.Name, req.PublicURL)
+	}); err != nil {
 		return err
 	}
 
