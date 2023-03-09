@@ -5,6 +5,7 @@ type Permissions []int
 const (
 	DeviceAccept = iota + 1
 	DeviceReject
+	DeviceUpdate
 	DeviceRemove
 	DeviceConnect
 	DeviceRename
@@ -66,6 +67,7 @@ var operatorPermissions = Permissions{
 	DeviceConnect,
 	DeviceRename,
 	DeviceDetails,
+	DeviceUpdate,
 
 	DeviceCreateTag,
 	DeviceUpdateTag,
@@ -83,12 +85,15 @@ var adminPermissions = Permissions{
 	DeviceConnect,
 	DeviceRename,
 	DeviceDetails,
+	DeviceUpdate,
 
 	DeviceCreateTag,
 	DeviceUpdateTag,
 	DeviceRemoveTag,
 	DeviceRenameTag,
 	DeviceDeleteTag,
+
+	DeviceUpdate,
 
 	SessionPlay,
 	SessionClose,
@@ -123,12 +128,15 @@ var ownerPermissions = Permissions{
 	DeviceConnect,
 	DeviceRename,
 	DeviceDetails,
+	DeviceUpdate,
 
 	DeviceCreateTag,
 	DeviceUpdateTag,
 	DeviceRemoveTag,
 	DeviceRenameTag,
 	DeviceDeleteTag,
+
+	DeviceUpdate,
 
 	SessionPlay,
 	SessionClose,

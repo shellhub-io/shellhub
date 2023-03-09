@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -442,4 +443,31 @@ func (s *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []str
 	}
 
 	return nil
+}
+
+func (s *Store) DeviceUpdate(ctx context.Context, uid models.UID, name *string, publicURL *bool) error {
+	session, err := s.db.Client().StartSession()
+	if err != nil {
+		return err
+	}
+
+	defer session.EndSession(ctx)
+
+	err = mongo.WithSession(ctx, session, func(sessionContext mongo.SessionContext) error {
+		if name != nil {
+			if _, err := s.db.Collection("devices").UpdateOne(sessionContext, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": *name}}); err != nil {
+				return err
+			}
+		}
+
+		if publicURL != nil {
+			if _, err := s.db.Collection("devices").UpdateOne(sessionContext, bson.M{"uid": uid}, bson.M{"$set": bson.M{"public_url": *publicURL}}); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	return FromMongoError(err)
 }

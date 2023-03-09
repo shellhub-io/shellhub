@@ -11,6 +11,7 @@ import (
 type DeviceStore interface {
 	DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error)
 	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
+	DeviceUpdate(ctx context.Context, uid models.UID, name *string, publicURL *bool) error
 	DeviceDelete(ctx context.Context, uid models.UID) error
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error

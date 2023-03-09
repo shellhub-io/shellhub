@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -9,14 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/loglevel"
-
 	"github.com/Masterminds/semver"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/shellhub-io/shellhub/agent/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/agent/selfupdater"
 	"github.com/shellhub-io/shellhub/agent/server"
+	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -65,7 +66,7 @@ type ConfigOptions struct {
 }
 
 // NewAgentServer creates a new agent server instance.
-func NewAgentServer() *Agent {
+func NewAgentServer() *Agent { // nolint:gocyclo
 	opts := ConfigOptions{}
 
 	// Process unprefixed env vars for backward compatibility
@@ -169,6 +170,59 @@ func NewAgentServer() *Agent {
 		serv.HandleConn(conn)
 
 		conn.Close()
+	}
+	tun.HTTPHandler = func(w http.ResponseWriter, r *http.Request) {
+		replyError := func(err error, msg string, code int) {
+			log.WithError(err).WithFields(log.Fields{
+				"remote":    r.RemoteAddr,
+				"namespace": r.Header.Get("X-Namespace"),
+				"path":      r.Header.Get("X-Path"),
+				"version":   AgentVersion,
+			}).Error(msg)
+
+			http.Error(w, msg, code)
+		}
+
+		in, err := net.Dial("tcp", ":8080")
+		if err != nil {
+			replyError(err, "failed to connect to HTTP the server on device", http.StatusInternalServerError)
+
+			return
+		}
+
+		defer in.Close()
+
+		url, err := r.URL.Parse(r.Header.Get("X-Path"))
+		if err != nil {
+			replyError(err, "failed to parse URL", http.StatusInternalServerError)
+
+			return
+		}
+
+		r.URL.Scheme = "http"
+		r.URL = url
+
+		if err := r.Write(in); err != nil {
+			replyError(err, "failed to write request to the server on device", http.StatusInternalServerError)
+
+			return
+		}
+
+		ctr := http.NewResponseController(w)
+		out, _, err := ctr.Hijack()
+		if err != nil {
+			replyError(err, "failed to hijack connection", http.StatusInternalServerError)
+
+			return
+		}
+
+		defer out.Close() // nolint:errcheck
+
+		if _, err := io.Copy(out, in); errors.Is(err, io.ErrUnexpectedEOF) {
+			replyError(err, "failed to copy response from device service to client", http.StatusInternalServerError)
+
+			return
+		}
 	}
 	tun.CloseHandler = func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)

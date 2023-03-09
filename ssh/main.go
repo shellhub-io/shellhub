@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -66,6 +68,74 @@ func main() {
 		request, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", vars["uid"]), nil)
 		if err := request.Write(conn); err != nil {
 			exit(response, http.StatusInternalServerError, err)
+
+			return
+		}
+	})
+
+	router.HandleFunc("/ssh/http", func(w http.ResponseWriter, r *http.Request) {
+		replyError := func(err error, msg string, code int) {
+			log.WithError(err).WithFields(log.Fields{
+				"remote":    r.RemoteAddr,
+				"namespace": r.Header.Get("X-Namespace"),
+				"device":    r.Header.Get("X-Device"),
+				"path":      r.Header.Get("X-Path"),
+			}).Error(msg)
+			http.Error(w, msg, code)
+		}
+
+		uid, errs := tunnel.API.Lookup(
+			map[string]string{
+				"domain": r.Header.Get("X-Namespace"),
+				"name":   r.Header.Get("X-Device"),
+			},
+		)
+		if len(errs) > 0 {
+			replyError(errs[0], "failed find the device on this namespace", http.StatusInternalServerError)
+
+			return
+		}
+
+		dev, err := tunnel.API.GetDevice(uid)
+		if err != nil {
+			replyError(err, "failed to get device data", http.StatusInternalServerError)
+
+			return
+		}
+
+		if !dev.PublicURL {
+			replyError(err, "this device is not accessible via public URL", http.StatusForbidden)
+
+			return
+		}
+
+		in, err := tunnel.Dial(r.Context(), dev.UID)
+		if err != nil {
+			replyError(err, "failed to connect to device", http.StatusInternalServerError)
+
+			return
+		}
+
+		defer in.Close() // nolint:errcheck
+
+		if err := r.Write(in); err != nil {
+			replyError(err, "failed to write request to device", http.StatusInternalServerError)
+
+			return
+		}
+
+		ctr := http.NewResponseController(w)
+		out, _, err := ctr.Hijack()
+		if err != nil {
+			replyError(err, "failed to hijack response", http.StatusInternalServerError)
+
+			return
+		}
+
+		defer out.Close() // nolint:errcheck
+
+		if _, err := io.Copy(out, in); errors.Is(err, io.ErrUnexpectedEOF) {
+			replyError(err, "failed to copy response from device service to client", http.StatusInternalServerError)
 
 			return
 		}

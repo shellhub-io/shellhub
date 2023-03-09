@@ -206,6 +206,7 @@ func startServer(cfg *config) error {
 	publicAPI.GET(routes.GetDeviceURL,
 		apiMiddleware.Authorize(gateway.Handler(handler.GetDevice)))
 	publicAPI.DELETE(routes.DeleteDeviceURL, gateway.Handler(handler.DeleteDevice))
+	publicAPI.PUT(routes.UpdateDevice, gateway.Handler(handler.UpdateDevice))
 	publicAPI.PATCH(routes.RenameDeviceURL, gateway.Handler(handler.RenameDevice))
 	internalAPI.POST(routes.OfflineDeviceURL, gateway.Handler(handler.OfflineDevice))
 	internalAPI.POST(routes.HeartbeatDeviceURL, gateway.Handler(handler.HeartbeatDevice))
