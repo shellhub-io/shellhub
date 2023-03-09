@@ -39,7 +39,7 @@ func (s *service) CreateSession(ctx context.Context, session request.SessionCrea
 		Term:      session.Term,
 		Position: models.SessionPosition{
 			Longitude: position.Longitude,
-			Latitude:  position.Longitude,
+			Latitude:  position.Latitude,
 		},
 	})
 }
