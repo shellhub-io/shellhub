@@ -183,7 +183,7 @@ func NewAgentServer() *Agent { // nolint:gocyclo
 			http.Error(w, msg, code)
 		}
 
-		in, err := net.Dial("tcp", ":8080")
+		in, err := net.Dial("tcp", ":80")
 		if err != nil {
 			replyError(err, "failed to connect to HTTP the server on device", http.StatusInternalServerError)
 
