@@ -60,7 +60,7 @@ ShellHub offers SCP/SFTP support, allowing you to copy files to and from your de
 
 ### :arrows_counterclockwise: SSH port forwarding
 
-ShellHub allows you to securely forward TCP traffic from a local port on your machine to a remote port on a device behind the ShellHub gateway. This can be useful for a variety of purposes, such as accessing remote services.
+ShellHub allows you to securely forward TCP traffic from a local port on your machine to a remote port on a device behind the ShellHub gateway. This can be useful for a variety of purposes, such as accessing remote services that are not directly accessible from your local machine, securely transferring data between two hosts over an untrusted network and use SOCKS Proxy. 
 
 ### :key: Public-key authentication
 
