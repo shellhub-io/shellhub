@@ -66,6 +66,8 @@ services:
     image: shellhubio/gateway:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
+      - SHELLHUB_DOMAIN=${SHELLHUB_DOMAIN}
+      - SHELLHUB_PUBLIC_URL_DOMAIN=${SHELLHUB_PUBLIC_URL_DOMAIN}
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - SHELLHUB_SSH_PORT=${SHELLHUB_SSH_PORT}
       - SHELLHUB_PROXY=${SHELLHUB_PROXY}
