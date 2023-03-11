@@ -81,6 +81,8 @@ describe("Devices", () => {
     expect(store.getters["devices/getPerPage"]).toEqual(10);
     expect(store.getters["devices/getFilter"]).toEqual("");
     expect(store.getters["devices/getStatus"]).toEqual("accepted");
+    expect(store.getters["devices/getSortStatusField"]).toEqual(undefined);
+    expect(store.getters["devices/getSortStatusString"]).toEqual("asc");
     expect(store.getters["devices/getFirstPending"]).toEqual({});
   });
   it("Verify initial states change for mutation setDevices", () => {

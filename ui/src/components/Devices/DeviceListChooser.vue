@@ -116,8 +116,8 @@ export default defineComponent({
             perPage: perPagaeValue,
             page: pageValue,
             filter: filter.value,
-            sortStatusField: store.getters["devices/sortStatusField"],
-            sortStatusString: store.getters["devices/sortStatusString"],
+            sortStatusField: store.getters["devices/getSortStatusField"],
+            sortStatusString: store.getters["devices/getSortStatusString"],
           },
         );
 
@@ -144,13 +144,23 @@ export default defineComponent({
     };
 
     const sortByItem = async (field: string) => {
-      let sortStatusString = store.getters["devices/sortStatusString"];
+      let sortStatusString = store.getters["devices/getSortStatusString"];
+      const sortStatusField = store.getters["devices/getSortStatusField"];
+
+      if (field !== sortStatusField && sortStatusField) {
+        if (sortStatusString === "asc") {
+          sortStatusString = "desc";
+        } else {
+          sortStatusString = "asc";
+        }
+      }
+
       if (sortStatusString === "") {
         sortStatusString = "asc";
       } else if (sortStatusString === "asc") {
         sortStatusString = "desc";
       } else {
-        sortStatusString = "";
+        sortStatusString = "asc";
       }
       await store.dispatch("devices/setSortStatus", {
         sortStatusField: field,
