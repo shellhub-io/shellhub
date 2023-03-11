@@ -21,7 +21,7 @@ export interface DevicesState {
 }
 
 export function createDeviceModule() {
-  const devices: Module<DevicesState, any> = {
+  const devices: Module<DevicesState, IDevice> = {
     namespaced: true,
     state: {
       devices: [],
@@ -32,7 +32,7 @@ export function createDeviceModule() {
       filter: "",
       status: "accepted",
       sortStatusField: undefined,
-      sortStatusString: "",
+      sortStatusString: "asc",
       deviceChooserStatus: false,
       devicesForUserToChoose: [],
       numberdevicesForUserToChoose: 0,
@@ -47,6 +47,8 @@ export function createDeviceModule() {
       getPerPage: (state) => state.perPage,
       getFilter: (state) => state.filter,
       getStatus: (state) => state.status,
+      getSortStatusField: (state) => state.sortStatusField,
+      getSortStatusString: (state) => state.sortStatusString,
       getFirstPending: (state) => state.device,
       getDeviceChooserStatus: (state) => state.deviceChooserStatus,
       getDevicesForUserToChoose: (state) => state.devicesForUserToChoose,
