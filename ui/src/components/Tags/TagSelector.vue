@@ -22,7 +22,7 @@
           </v-btn>
         </v-badge>
       </template>
-      <v-list shaped density="compact">
+      <v-list shaped density="compact" class="bg-v-theme-surface">
         <div>
           <template v-for="(item, i) in getListTags">
             <v-divider v-if="!item" :key="`divider-${i}`" />
@@ -31,7 +31,7 @@
               v-else
               :key="`item-${i}`"
               :value="item"
-              active-class="text-deep-purple"
+              active-color="primary"
               @click="selectTag(item)"
             >
               <template v-slot:default="{}">
@@ -39,6 +39,7 @@
                   <v-list-item-action>
                     <v-checkbox
                       :model-value="tagIsSelected(item)"
+                      color="primary"
                       hide-details
                     />
 
