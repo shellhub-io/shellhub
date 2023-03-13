@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -53,7 +52,7 @@ func downloadGeoLite2Db(maxmindDBLicense, maxmindDBType string) error {
 	}
 
 	// Create a temporary directory to untar downloaded .tar.gz with database.
-	tempDir, err := ioutil.TempDir("", "geoip")
+	tempDir := os.TempDir()
 	// Delete temporary directory.
 	defer func(tempDir string) {
 		err := os.RemoveAll(tempDir)
@@ -62,11 +61,11 @@ func downloadGeoLite2Db(maxmindDBLicense, maxmindDBType string) error {
 		}
 	}(tempDir)
 	if err != nil {
-		return err
+		return errors.New("unable to create temporary directory to download GeoLite2 database")
 	}
 
 	// Create a temporary file to store downloaded .tar.gz with database.
-	tempFile, err := ioutil.TempFile("", "geoip*.tar.gz")
+	tempFile, err := os.CreateTemp("", "geoip*.tar.gz")
 	// Delete temporary file.
 	defer func(tempFile *os.File) {
 		err := os.Remove(tempFile.Name())
