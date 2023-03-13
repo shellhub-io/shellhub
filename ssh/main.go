@@ -76,27 +76,14 @@ func main() {
 	router.HandleFunc("/ssh/http", func(w http.ResponseWriter, r *http.Request) {
 		replyError := func(err error, msg string, code int) {
 			log.WithError(err).WithFields(log.Fields{
-				"remote":    r.RemoteAddr,
-				"namespace": r.Header.Get("X-Namespace"),
-				"device":    r.Header.Get("X-Device"),
-				"path":      r.Header.Get("X-Path"),
+				"remote":  r.RemoteAddr,
+				"address": r.Header.Get("X-Public-Address"),
+				"path":    r.Header.Get("X-Path"),
 			}).Error(msg)
 			http.Error(w, msg, code)
 		}
 
-		uid, errs := tunnel.API.Lookup(
-			map[string]string{
-				"domain": r.Header.Get("X-Namespace"),
-				"name":   r.Header.Get("X-Device"),
-			},
-		)
-		if len(errs) > 0 {
-			replyError(errs[0], "failed find the device on this namespace", http.StatusInternalServerError)
-
-			return
-		}
-
-		dev, err := tunnel.API.GetDevice(uid)
+		dev, err := tunnel.API.GetDeviceByPublicURLAddress(r.Header.Get("X-Public-URL-Address"))
 		if err != nil {
 			replyError(err, "failed to get device data", http.StatusInternalServerError)
 

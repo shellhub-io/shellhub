@@ -100,3 +100,7 @@ type DeviceUpdate struct {
 	Name      *string `json:"name"`
 	PublicURL *bool   `json:"public_url"`
 }
+
+type DevicePublicURLAddress struct {
+	PublicURLAddress string `param:"address" validate:"required"`
+}
