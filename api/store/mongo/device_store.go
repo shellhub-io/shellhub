@@ -2,6 +2,8 @@ package mongo
 
 import (
 	"context"
+	"crypto/md5"
+	"fmt"
 	"strings"
 	"time"
 
@@ -610,4 +612,22 @@ func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, pagination
 	}
 
 	return devices, len(devices), nil
+}
+
+func (s *Store) DeviceCreatePublicURLAddress(ctx context.Context, uid models.UID) error {
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"public_url_address": fmt.Sprintf("%x", md5.Sum([]byte(uid)))}})
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) DeviceGetByPublicURLAddress(ctx context.Context, address string) (*models.Device, error) {
+	device := new(models.Device)
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"public_url_address": address}).Decode(&device); err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	return device, nil
 }

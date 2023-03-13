@@ -60,6 +60,7 @@ func NewClient(opts ...Opt) Client {
 type commonAPI interface {
 	ListDevices() ([]models.Device, error)
 	GetDevice(uid string) (*models.Device, error)
+	GetDeviceByPublicURLAddress(address string) (*models.Device, error)
 }
 
 type client struct {
@@ -90,6 +91,27 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 
 	switch resp.StatusCode() {
 	case 400:
+		return nil, ErrNotFound
+	case 200:
+		return device, nil
+	default:
+		return nil, ErrUnknown
+	}
+}
+
+func (c *client) GetDeviceByPublicURLAddress(address string) (*models.Device, error) {
+	httpClient := resty.New()
+
+	var device *models.Device
+	resp, err := httpClient.R().
+		SetResult(&device).
+		Get(buildURL(c, fmt.Sprintf("/internal/devices/public/%s", address)))
+	if err != nil {
+		return nil, ErrConnectionFailed
+	}
+
+	switch resp.StatusCode() {
+	case 404:
 		return nil, ErrNotFound
 	case 200:
 		return device, nil

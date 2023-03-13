@@ -18,22 +18,23 @@ const (
 
 type Device struct {
 	// UID is the unique identifier for a device.
-	UID        string          `json:"uid"`
-	Name       string          `json:"name" bson:"name,omitempty" validate:"required,hostname_rfc1123,excludes=."`
-	Identity   *DeviceIdentity `json:"identity"`
-	Info       *DeviceInfo     `json:"info"`
-	PublicKey  string          `json:"public_key" bson:"public_key"`
-	TenantID   string          `json:"tenant_id" bson:"tenant_id"`
-	LastSeen   time.Time       `json:"last_seen" bson:"last_seen"`
-	Online     bool            `json:"online" bson:",omitempty"`
-	Namespace  string          `json:"namespace" bson:",omitempty"`
-	Status     DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
-	CreatedAt  time.Time       `json:"created_at" bson:"created_at,omitempty"`
-	RemoteAddr string          `json:"remote_addr" bson:"remote_addr"`
-	Position   *DevicePosition `json:"position" bson:"position"`
-	Tags       []string        `json:"tags" bson:"tags,omitempty"`
-	PublicURL  bool            `json:"public_url" bson:"public_url,omitempty"`
-	Acceptable bool            `json:"acceptable" bson:"acceptable,omitempty"`
+	UID              string          `json:"uid"`
+	Name             string          `json:"name" bson:"name,omitempty" validate:"required,hostname_rfc1123,excludes=."`
+	Identity         *DeviceIdentity `json:"identity"`
+	Info             *DeviceInfo     `json:"info"`
+	PublicKey        string          `json:"public_key" bson:"public_key"`
+	TenantID         string          `json:"tenant_id" bson:"tenant_id"`
+	LastSeen         time.Time       `json:"last_seen" bson:"last_seen"`
+	Online           bool            `json:"online" bson:",omitempty"`
+	Namespace        string          `json:"namespace" bson:",omitempty"`
+	Status           DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
+	CreatedAt        time.Time       `json:"created_at" bson:"created_at,omitempty"`
+	RemoteAddr       string          `json:"remote_addr" bson:"remote_addr"`
+	Position         *DevicePosition `json:"position" bson:"position"`
+	Tags             []string        `json:"tags" bson:"tags,omitempty"`
+	PublicURL        bool            `json:"public_url" bson:"public_url,omitempty"`
+	PublicURLAddress string          `json:"public_url_address" bson:"public_url_address,omitempty"`
+	Acceptable       bool            `json:"acceptable" bson:"acceptable,omitempty"`
 }
 
 type DeviceAuthClaims struct {

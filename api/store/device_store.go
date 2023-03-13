@@ -41,4 +41,6 @@ type DeviceStore interface {
 	DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error
 	DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error
 	DeviceRemovedList(ctx context.Context, tenant string, pagination paginator.Query, filters []models.Filter, sort string, order string) ([]models.DeviceRemoved, int, error)
+	DeviceCreatePublicURLAddress(ctx context.Context, uid models.UID) error
+	DeviceGetByPublicURLAddress(ctx context.Context, address string) (*models.Device, error)
 }

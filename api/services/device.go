@@ -21,6 +21,7 @@ const StatusAccepted = "accepted"
 type DeviceService interface {
 	ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status models.DeviceStatus, sort, order string) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
+	GetDeviceByPublicURLAddress(ctx context.Context, address string) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
@@ -68,6 +69,15 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 	device, err := s.store.DeviceGet(ctx, uid)
 	if err != nil {
 		return nil, NewErrDeviceNotFound(uid, err)
+	}
+
+	return device, nil
+}
+
+func (s *service) GetDeviceByPublicURLAddress(ctx context.Context, address string) (*models.Device, error) {
+	device, err := s.store.DeviceGetByPublicURLAddress(ctx, address)
+	if err != nil {
+		return nil, NewErrDeviceNotFound(models.UID(address), err)
 	}
 
 	return device, nil
@@ -327,6 +337,14 @@ func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UI
 
 		if otherDevice != nil {
 			return NewErrDeviceDuplicated(otherDevice.Name, err)
+		}
+	}
+
+	if publicURL != nil {
+		if device.PublicURLAddress == "" && *publicURL {
+			if err := s.store.DeviceCreatePublicURLAddress(ctx, models.UID(device.UID)); err != nil {
+				return err
+			}
 		}
 	}
 
