@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -202,7 +201,7 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 	defer rd.Close()
 
 	// Wait for image to pull
-	_, err = io.Copy(ioutil.Discard, rd)
+	_, err = io.Copy(io.Discard, rd)
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,6 @@ package dockerutils
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 )
@@ -22,7 +21,7 @@ func CurrentContainerID() (string, error) {
 	defer fMountInfo.Close()
 
 	reader := io.MultiReader(fCgroup, fMountInfo)
-	content, err := ioutil.ReadAll(reader)
+	content, err := io.ReadAll(reader)
 	if err != nil {
 		return "", err
 	}

@@ -2,9 +2,9 @@ package sysinfo
 
 import (
 	"errors"
-	"io/ioutil"
 	"math"
 	"net"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -65,7 +65,7 @@ func PrimaryInterface() (*net.Interface, error) {
 }
 
 func readSysFs(iface, file string) (string, error) {
-	data, err := ioutil.ReadFile(filepath.Join("/sys/class/net", iface, file))
+	data, err := os.ReadFile(filepath.Join("/sys/class/net", iface, file))
 
 	return strings.TrimSpace(string(data)), err
 }
