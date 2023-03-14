@@ -602,6 +602,32 @@ func (_m *Service) GetDevice(ctx context.Context, uid models.UID) (*models.Devic
 	return r0, r1
 }
 
+// GetDeviceByPublicURLAddress provides a mock function with given fields: ctx, address
+func (_m *Service) GetDeviceByPublicURLAddress(ctx context.Context, address string) (*models.Device, error) {
+	ret := _m.Called(ctx, address)
+
+	var r0 *models.Device
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.Device, error)); ok {
+		return rf(ctx, address)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Device); ok {
+		r0 = rf(ctx, address)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Device)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, address)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetNamespace provides a mock function with given fields: ctx, tenantID
 func (_m *Service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, tenantID)

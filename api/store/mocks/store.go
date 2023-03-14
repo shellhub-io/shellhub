@@ -151,6 +151,20 @@ func (_m *Store) DeviceCreate(ctx context.Context, d models.Device, hostname str
 	return r0
 }
 
+// DeviceCreatePublicURLAddress provides a mock function with given fields: ctx, uid
+func (_m *Store) DeviceCreatePublicURLAddress(ctx context.Context, uid models.UID) error {
+	ret := _m.Called(ctx, uid)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
+		r0 = rf(ctx, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeviceCreateTag provides a mock function with given fields: ctx, uid, tag
 func (_m *Store) DeviceCreateTag(ctx context.Context, uid models.UID, tag string) error {
 	ret := _m.Called(ctx, uid, tag)
@@ -250,6 +264,32 @@ func (_m *Store) DeviceGetByName(ctx context.Context, name string, tenantID stri
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, name, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeviceGetByPublicURLAddress provides a mock function with given fields: ctx, address
+func (_m *Store) DeviceGetByPublicURLAddress(ctx context.Context, address string) (*models.Device, error) {
+	ret := _m.Called(ctx, address)
+
+	var r0 *models.Device
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.Device, error)); ok {
+		return rf(ctx, address)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Device); ok {
+		r0 = rf(ctx, address)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Device)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, address)
 	} else {
 		r1 = ret.Error(1)
 	}
