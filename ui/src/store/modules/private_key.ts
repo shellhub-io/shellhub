@@ -50,14 +50,16 @@ export function createPrivateKeyModule() {
 
     actions: {
       fetch: async (context) => {
-        const privateKeys = JSON.parse(localStorage.getItem("privateKeys") || "");
+        // @ts-expect-error
+        const privateKeys = JSON.parse(localStorage.getItem("privateKeys"));
         if (privateKeys !== null) {
           context.commit("fetchPrivateKey", privateKeys);
         }
       },
 
       set: async (context, privateKey) => {
-        const privateKeys = JSON.parse(localStorage.getItem("privateKeys") || "") || [];
+        // @ts-expect-error
+        const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
 
         privateKeys.forEach((pk: IPrivateKey) => {
           if (pk.data === privateKey.data && pk.name === privateKey.name) {
@@ -89,7 +91,7 @@ export function createPrivateKeyModule() {
       },
 
       remove: async (context, data) => {
-        // @ts-ignore
+        // @ts-expect-error
         const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
 
         if (privateKeys !== null) {
