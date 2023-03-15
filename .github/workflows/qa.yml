@@ -73,12 +73,12 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Get Go dependencies [Go]
-        if: matrix.project != 'ui' && github.event.pull_request.draft == false
+        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: go mod download
 
       - name: Ensure Go dependencies are complete [Go]
-        if: matrix.project != 'ui' &&  github.event.pull_request.draft == false
+        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: |
           ../devscripts/prepare-release
