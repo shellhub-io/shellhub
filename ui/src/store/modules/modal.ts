@@ -1,43 +1,40 @@
 import { Module } from "vuex";
+import { State } from "..";
 
 export interface ModalState {
   terminal: string;
   addDevice: boolean;
 }
 
-export function createModalModule() {
-  const modal: Module<ModalState, any> = {
-    namespaced: true,
-    state: {
-      terminal: "",
-      addDevice: false,
+export const modal: Module<ModalState, State> = {
+  namespaced: true,
+  state: {
+    terminal: "",
+    addDevice: false,
+  },
+
+  getters: {
+    terminal: (state) => state.terminal,
+    addDevice: (state) => state.addDevice,
+  },
+
+  mutations: {
+    setTerminal: (state, data) => {
+      state.terminal = data;
     },
 
-    getters: {
-      terminal: (state) => state.terminal,
-      addDevice: (state) => state.addDevice,
+    setAddDevice: (state, data) => {
+      state.addDevice = data;
+    },
+  },
+
+  actions: {
+    toggleTerminal: (context, value) => {
+      context.commit("setTerminal", value);
     },
 
-    mutations: {
-      setTerminal: (state, data) => {
-        state.terminal = data;
-      },
-
-      setAddDevice: (state, data) => {
-        state.addDevice = data;
-      },
+    showAddDevice: (context, value) => {
+      context.commit("setAddDevice", value);
     },
-
-    actions: {
-      toggleTerminal: (context, value) => {
-        context.commit("setTerminal", value);
-      },
-
-      showAddDevice: (context, value) => {
-        context.commit("setAddDevice", value);
-      },
-    },
-  };
-
-  return modal;
-}
+  },
+};
