@@ -1,6 +1,7 @@
 import { Module } from "vuex";
 import * as apiTags from "../api/tags";
 import * as apiDevice from "../api/devices";
+import { State } from "..";
 
 export interface TagsState {
   tags: Array<string>;
@@ -8,90 +9,87 @@ export interface TagsState {
   selected: Array<string>;
 }
 
-export function createTagsModule() {
-  const tags: Module<TagsState, any> = {
-    namespaced: true,
-    state: {
-      tags: [],
-      numberTags: 0,
-      selected: [],
+export const tags: Module<TagsState, State> = {
+  namespaced: true,
+  state: {
+    tags: [],
+    numberTags: 0,
+    selected: [],
+  },
+
+  getters: {
+    list: (state) => state.tags,
+    getNumberTags: (state) => state.numberTags,
+    selected: (state) => state.selected,
+  },
+
+  mutations: {
+    setTags: (state, res) => {
+      state.tags = res.data;
+      state.numberTags = parseInt(res.headers["x-total-count"], 10);
     },
 
-    getters: {
-      list: (state) => state.tags,
-      getNumberTags: (state) => state.numberTags,
-      selected: (state) => state.selected,
+    setSelected: (state, data) => {
+      if (state.selected.includes(data)) {
+        state.selected.splice(state.selected.indexOf(data), 1);
+      } else {
+        state.selected = [...state.selected, data];
+      }
+    },
+    clearSelected: (state) => {
+      state.selected = [];
+    },
+  },
+
+  actions: {
+    post: async (context, data) => {
+      try {
+        await apiDevice.postTag(data);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
     },
 
-    mutations: {
-      setTags: (state, res) => {
-        state.tags = res.data;
-        state.numberTags = parseInt(res.headers["x-total-count"], 10);
-      },
-
-      setSelected: (state, data) => {
-        if (state.selected.includes(data)) {
-          state.selected.splice(state.selected.indexOf(data), 1);
-        } else {
-          state.selected = [...state.selected, data];
-        }
-      },
-      clearSelected: (state) => {
-        state.selected = [];
-      },
+    setSelected: async (context, data) => {
+      context.commit("setSelected", data);
     },
 
-    actions: {
-      post: async (context, data) => {
-        try {
-          await apiDevice.postTag(data);
-        } catch (error) {
-          console.error(error);
-          throw error;
-        }
-      },
+    fetch: async (context) => {
+      try {
+        const res = await apiTags.getTags();
 
-      setSelected: async (context, data) => {
-        context.commit("setSelected", data);
-      },
-
-      fetch: async (context) => {
-        try {
-          const res = await apiTags.getTags();
-
-          context.commit("setTags", res);
-        } catch (error) {
-          console.error(error);
-          throw error;
-        }
-      },
-
-      edit: async (context, data) => {
-        try {
-          await apiTags.updateTag(data);
-        } catch (error) {
-          console.error(error);
-          throw error;
-        }
-      },
-
-      setTags: (context, data) => {
-        context.commit("setTags", data);
-      },
-
-      remove: async (context, name: string) => {
-        try {
-          await apiTags.removeTag(name);
-        } catch (error) {
-          console.error(error);
-          throw error;
-        }
-      },
-
-      clearSelectedTags: (context) => {
-        context.commit("clearSelected");
-      },
+        context.commit("setTags", res);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
     },
-  };
-  return tags;
-}
+
+    edit: async (context, data) => {
+      try {
+        await apiTags.updateTag(data);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+
+    setTags: (context, data) => {
+      context.commit("setTags", data);
+    },
+
+    remove: async (context, name: string) => {
+      try {
+        await apiTags.removeTag(name);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+
+    clearSelectedTags: (context) => {
+      context.commit("clearSelected");
+    },
+  },
+};

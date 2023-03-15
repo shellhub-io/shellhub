@@ -32,7 +32,7 @@ export const devices: Module<DevicesState, State> = {
     filter: "",
     status: "accepted",
     sortStatusField: undefined,
-    sortStatusString: "",
+    sortStatusString: "asc",
     deviceChooserStatus: false,
     devicesForUserToChoose: [],
     numberdevicesForUserToChoose: 0,
