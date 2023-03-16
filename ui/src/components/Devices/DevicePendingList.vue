@@ -18,7 +18,14 @@
     >
       <template v-slot:rows>
         <tr v-for="(item, i) in devices" :key="i">
-          <td class="text-center">{{ item.name }}</td>
+          <td class="text-center">
+            <router-link
+              :to="{ name: 'detailsDevice', params: { id: item.uid } }"
+              :data-test="item.uid + '-field'"
+            >
+              {{ item.name }}
+            </router-link>
+          </td>
           <td class="text-center">
             <DeviceIcon :icon="item.info.id" class="mr-2" />
             <span>{{ item.info.pretty_name }}</span>
