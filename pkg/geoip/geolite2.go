@@ -52,7 +52,11 @@ func downloadGeoLite2Db(maxmindDBLicense, maxmindDBType string) error {
 	}
 
 	// Create a temporary directory to untar downloaded .tar.gz with database.
-	tempDir := os.TempDir()
+	tempDir, err := os.MkdirTemp("", "geoip")
+	if err != nil {
+		return err
+	}
+
 	// Delete temporary directory.
 	defer func(tempDir string) {
 		err := os.RemoveAll(tempDir)
