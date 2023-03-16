@@ -110,11 +110,11 @@ jobs:
           args: ${{ matrix.lint_args }}
           skip-pkg-cache: true
 
-      - name: Set up Node.JS 17.9.1 [UI]
+      - name: Set up Node.JS 18.4.0 [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         uses: actions/setup-node@v3
         with:
-          node-version: "17.9.1"
+          node-version: "18.4.0"
 
       - name: Cache node modules [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
