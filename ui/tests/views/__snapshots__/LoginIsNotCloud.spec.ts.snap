@@ -143,7 +143,7 @@ exports[`Login is not cloud > Login screen > Renders the component 1`] = `
                         <!---->
                       </div>
                     </div>
-                    <div class=\\"v-card-actions justify-center\\"><button type=\\"submit\\" class=\\"v-btn v-btn--block v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" data-test=\\"login-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                    <div class=\\"v-card-actions justify-center\\"><button type=\\"button\\" class=\\"v-btn v-btn--block v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" data-test=\\"login-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                         <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> LOGIN </span>
                         <!---->
                         <!---->
