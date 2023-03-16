@@ -1,4 +1,4 @@
-package request
+package requests
 
 // SessionIDParam is a structure to represent and validate a session UID as path param.
 type SessionIDParam struct {

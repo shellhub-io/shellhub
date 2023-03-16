@@ -7,8 +7,8 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
-	"github.com/shellhub-io/shellhub/pkg/api/response"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/errors"
@@ -301,8 +301,8 @@ func TestUpdatePublicKeys(t *testing.T) {
 	ctx := context.TODO()
 	err := errors.New("error", "", 0)
 
-	keyUpdateWithTags := request.PublicKeyUpdate{
-		Filter: request.PublicKeyFilter{
+	keyUpdateWithTags := requests.PublicKeyUpdate{
+		Filter: requests.PublicKeyFilter{
 			Tags: []string{"tag1", "tag2"},
 		},
 	}
@@ -314,8 +314,8 @@ func TestUpdatePublicKeys(t *testing.T) {
 		},
 	}
 
-	keyUpdateWithHostname := request.PublicKeyUpdate{
-		Filter: request.PublicKeyFilter{
+	keyUpdateWithHostname := requests.PublicKeyUpdate{
+		Filter: requests.PublicKeyFilter{
 			Hostname: ".*",
 		},
 	}
@@ -326,8 +326,8 @@ func TestUpdatePublicKeys(t *testing.T) {
 			},
 		},
 	}
-	keyInvalidUpdateTagsEmpty := request.PublicKeyUpdate{
-		Filter: request.PublicKeyFilter{
+	keyInvalidUpdateTagsEmpty := requests.PublicKeyUpdate{
+		Filter: requests.PublicKeyFilter{
 			Tags: []string{},
 		},
 	}
@@ -341,7 +341,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 		description   string
 		fingerprint   string
 		tenantID      string
-		keyUpdate     request.PublicKeyUpdate
+		keyUpdate     requests.PublicKeyUpdate
 		requiredMocks func()
 		expected      Expected
 	}{
@@ -555,35 +555,35 @@ func TestCreatePublicKeys(t *testing.T) {
 	data := ssh.MarshalAuthorizedKey(pubKey)
 	fingerprint := ssh.FingerprintLegacyMD5(pubKey)
 
-	keyInvalidData := request.PublicKeyCreate{
+	keyInvalidData := requests.PublicKeyCreate{
 		Data:        nil,
 		Fingerprint: fingerprint,
 		TenantID:    "tenant",
-		Filter: request.PublicKeyFilter{
+		Filter: requests.PublicKeyFilter{
 			Hostname: ".*",
 		},
 	}
-	keyInvalidEmptyTags := request.PublicKeyCreate{
+	keyInvalidEmptyTags := requests.PublicKeyCreate{
 		Data:        data,
 		Fingerprint: fingerprint,
 		TenantID:    "tenant",
-		Filter: request.PublicKeyFilter{
+		Filter: requests.PublicKeyFilter{
 			Tags: []string{},
 		},
 	}
-	keyInvalidNotFound := request.PublicKeyCreate{
+	keyInvalidNotFound := requests.PublicKeyCreate{
 		Data:        data,
 		Fingerprint: fingerprint,
 		TenantID:    "tenant",
-		Filter: request.PublicKeyFilter{
+		Filter: requests.PublicKeyFilter{
 			Tags: []string{"tag1", "tag2", "tag4"},
 		},
 	}
-	keyWithTags := request.PublicKeyCreate{
+	keyWithTags := requests.PublicKeyCreate{
 		Data:        data,
 		Fingerprint: fingerprint,
 		TenantID:    "tenant",
-		Filter: request.PublicKeyFilter{
+		Filter: requests.PublicKeyFilter{
 			Tags: []string{"tag1", "tag2"},
 		},
 	}
@@ -598,11 +598,11 @@ func TestCreatePublicKeys(t *testing.T) {
 			},
 		},
 	}
-	keyWithHostname := request.PublicKeyCreate{
+	keyWithHostname := requests.PublicKeyCreate{
 		Data:        data,
 		Fingerprint: fingerprint,
 		TenantID:    "tenant",
-		Filter: request.PublicKeyFilter{
+		Filter: requests.PublicKeyFilter{
 			Hostname: ".*",
 		},
 	}
@@ -618,18 +618,18 @@ func TestCreatePublicKeys(t *testing.T) {
 		},
 	}
 
-	resWithHostnameModel := &response.PublicKeyCreate{
+	resWithHostnameModel := &responses.PublicKeyCreate{
 		Data:        keyWithHostnameModel.Data,
-		Filter:      response.PublicKeyFilter(keyWithHostnameModel.Filter),
+		Filter:      responses.PublicKeyFilter(keyWithHostnameModel.Filter),
 		Name:        keyWithHostnameModel.Name,
 		Username:    keyWithHostnameModel.Username,
 		TenantID:    keyWithHostnameModel.TenantID,
 		Fingerprint: keyWithHostnameModel.Fingerprint,
 	}
 
-	resWithTagsModel := &response.PublicKeyCreate{
+	resWithTagsModel := &responses.PublicKeyCreate{
 		Data:        keyWithTagsModel.Data,
-		Filter:      response.PublicKeyFilter(keyWithTagsModel.Filter),
+		Filter:      responses.PublicKeyFilter(keyWithTagsModel.Filter),
 		Name:        keyWithTagsModel.Name,
 		Username:    keyWithTagsModel.Username,
 		TenantID:    keyWithTagsModel.TenantID,
@@ -637,14 +637,14 @@ func TestCreatePublicKeys(t *testing.T) {
 	}
 
 	type Expected struct {
-		res *response.PublicKeyCreate
+		res *responses.PublicKeyCreate
 		err error
 	}
 
 	cases := []struct {
 		description   string
 		tenantID      string
-		req           request.PublicKeyCreate
+		req           requests.PublicKeyCreate
 		requiredMocks func()
 		expected      Expected
 	}{

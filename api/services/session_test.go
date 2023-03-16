@@ -9,7 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
@@ -155,7 +155,7 @@ func TestCreateSession(t *testing.T) {
 		err     error
 	}
 
-	req := request.SessionCreate{UID: "uid"}
+	req := requests.SessionCreate{UID: "uid"}
 	model := models.Session{UID: "uid", Position: models.SessionPosition{
 		Latitude:  0,
 		Longitude: 0,
@@ -165,7 +165,7 @@ func TestCreateSession(t *testing.T) {
 
 	cases := []struct {
 		name          string
-		session       request.SessionCreate
+		session       requests.SessionCreate
 		requiredMocks func()
 		expected      Expected
 	}{

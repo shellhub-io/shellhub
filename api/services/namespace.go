@@ -8,7 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -17,7 +17,7 @@ import (
 
 type NamespaceService interface {
 	ListNamespaces(ctx context.Context, pagination paginator.Query, filter []models.Filter, export bool) ([]models.Namespace, int, error)
-	CreateNamespace(ctx context.Context, namespace request.NamespaceCreate, userID string) (*models.Namespace, error)
+	CreateNamespace(ctx context.Context, namespace requests.NamespaceCreate, userID string) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
 	EditNamespace(ctx context.Context, tenantID, name string) (*models.Namespace, error)
@@ -55,7 +55,7 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 }
 
 // CreateNamespace creates a new namespace.
-func (s *service) CreateNamespace(ctx context.Context, namespace request.NamespaceCreate, userID string) (*models.Namespace, error) {
+func (s *service) CreateNamespace(ctx context.Context, namespace requests.NamespaceCreate, userID string) (*models.Namespace, error) {
 	user, _, err := s.store.UserGetByID(ctx, userID, false)
 	if err != nil || user == nil {
 		return nil, NewErrUserNotFound(userID, err)

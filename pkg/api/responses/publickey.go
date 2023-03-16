@@ -1,4 +1,4 @@
-package response
+package responses
 
 type PublicKeyFilter struct {
 	Hostname string `json:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`

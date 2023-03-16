@@ -1,4 +1,4 @@
-package request
+package requests
 
 // FingerprintParam is a structure to represent and validate a public key fingerprint as path param.
 type FingerprintParam struct {

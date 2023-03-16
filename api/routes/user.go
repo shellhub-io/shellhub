@@ -5,7 +5,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/services"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 )
 
@@ -20,7 +20,7 @@ const (
 )
 
 func (h *Handler) UpdateUserData(c gateway.Context) error {
-	var req request.UserDataUpdate
+	var req requests.UserDataUpdate
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (h *Handler) UpdateUserData(c gateway.Context) error {
 }
 
 func (h *Handler) UpdateUserPassword(c gateway.Context) error {
-	var req request.UserPasswordUpdate
+	var req requests.UserPasswordUpdate
 	if err := c.Bind(&req); err != nil {
 		return err
 	}

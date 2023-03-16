@@ -8,7 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -57,7 +57,7 @@ func (h *Handler) GetNamespaceList(c gateway.Context) error {
 }
 
 func (h *Handler) CreateNamespace(c gateway.Context) error {
-	var req request.NamespaceCreate
+	var req requests.NamespaceCreate
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (h *Handler) CreateNamespace(c gateway.Context) error {
 }
 
 func (h *Handler) GetNamespace(c gateway.Context) error {
-	var req request.NamespaceGet
+	var req requests.NamespaceGet
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func (h *Handler) GetNamespace(c gateway.Context) error {
 }
 
 func (h *Handler) DeleteNamespace(c gateway.Context) error {
-	var req request.NamespaceDelete
+	var req requests.NamespaceDelete
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (h *Handler) DeleteNamespace(c gateway.Context) error {
 }
 
 func (h *Handler) EditNamespace(c gateway.Context) error {
-	var req request.NamespaceEdit
+	var req requests.NamespaceEdit
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func (h *Handler) EditNamespace(c gateway.Context) error {
 }
 
 func (h *Handler) AddNamespaceUser(c gateway.Context) error {
-	var req request.NamespaceAddUser
+	var req requests.NamespaceAddUser
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ func (h *Handler) AddNamespaceUser(c gateway.Context) error {
 }
 
 func (h *Handler) RemoveNamespaceUser(c gateway.Context) error {
-	var req request.NamespaceRemoveUser
+	var req requests.NamespaceRemoveUser
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func (h *Handler) RemoveNamespaceUser(c gateway.Context) error {
 }
 
 func (h *Handler) EditNamespaceUser(c gateway.Context) error {
-	var req request.NamespaceEditUser
+	var req requests.NamespaceEditUser
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -272,7 +272,7 @@ func (h *Handler) EditNamespaceUser(c gateway.Context) error {
 }
 
 func (h *Handler) EditSessionRecordStatus(c gateway.Context) error {
-	var req request.SessionEditRecordStatus
+	var req requests.SessionEditRecordStatus
 	if err := c.Bind(&req); err != nil {
 		return err
 	}

@@ -4,17 +4,17 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type SetupService interface {
-	Setup(ctx context.Context, req request.Setup) error
+	Setup(ctx context.Context, req requests.Setup) error
 }
 
-func (s *service) Setup(ctx context.Context, req request.Setup) error {
+func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 	userData := models.UserData{
 		Name:     req.Name,
 		Email:    req.Email,

@@ -1,4 +1,4 @@
-package request
+package requests
 
 // TagParam is a structure to represent and validate a tag as path param.
 type TagParam struct {

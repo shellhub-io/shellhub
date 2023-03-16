@@ -7,7 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -29,13 +29,13 @@ func TestSetup(t *testing.T) {
 
 	cases := []struct {
 		description   string
-		req           request.Setup
+		req           requests.Setup
 		requiredMocks func()
 		expected      error
 	}{
 		{
 			description: "Fail when cannot create the user",
-			req: request.Setup{
+			req: requests.Setup{
 				Email:     "teste@google.com",
 				Name:      "userteste",
 				Username:  "userteste",
@@ -62,7 +62,7 @@ func TestSetup(t *testing.T) {
 		},
 		{
 			description: "Fail when cannot create namespace",
-			req: request.Setup{
+			req: requests.Setup{
 				Email:     "teste@google.com",
 				Name:      "userteste",
 				Username:  "userteste",
@@ -103,7 +103,7 @@ func TestSetup(t *testing.T) {
 		},
 		{
 			description: "Success to create the user and namespace",
-			req: request.Setup{
+			req: requests.Setup{
 				Email:     "teste@google.com",
 				Name:      "userteste",
 				Username:  "userteste",

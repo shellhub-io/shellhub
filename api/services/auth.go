@@ -15,7 +15,7 @@ import (
 
 	"github.com/cnf/structhash"
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -24,16 +24,16 @@ type AuthService interface {
 	AuthCacheToken(ctx context.Context, tenant, id, token string) error
 	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
-	AuthDevice(ctx context.Context, req request.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
-	AuthUser(ctx context.Context, req request.UserAuth) (*models.UserAuthResponse, error)
+	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
+	AuthUser(ctx context.Context, req requests.UserAuth) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
-	AuthPublicKey(ctx context.Context, req request.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
+	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
 	AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }
 
-func (s *service) AuthDevice(ctx context.Context, req request.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
+func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
 	var identity *models.DeviceIdentity
 	if req.Identity != nil {
 		identity = &models.DeviceIdentity{
@@ -136,7 +136,7 @@ func (s *service) AuthDevice(ctx context.Context, req request.DeviceAuth, remote
 	}, nil
 }
 
-func (s *service) AuthUser(ctx context.Context, req request.UserAuth) (*models.UserAuthResponse, error) {
+func (s *service) AuthUser(ctx context.Context, req requests.UserAuth) (*models.UserAuthResponse, error) {
 	user, err := s.store.UserGetByUsername(ctx, strings.ToLower(req.Username))
 	if err != nil {
 		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(req.Username))
@@ -260,7 +260,7 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 	}, nil
 }
 
-func (s *service) AuthPublicKey(ctx context.Context, req request.PublicKeyAuth) (*models.PublicKeyAuthResponse, error) {
+func (s *service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error) {
 	privKey, err := s.store.PrivateKeyGet(ctx, req.Fingerprint)
 	if err != nil {
 		return nil, NewErrPublicKeyNotFound(req.Fingerprint, err)

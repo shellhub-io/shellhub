@@ -10,9 +10,9 @@ import (
 
 	paginator "github.com/shellhub-io/shellhub/pkg/api/paginator"
 
-	request "github.com/shellhub-io/shellhub/pkg/api/request"
+	request "github.com/shellhub-io/shellhub/pkg/api/requests"
 
-	response "github.com/shellhub-io/shellhub/pkg/api/response"
+	response "github.com/shellhub-io/shellhub/pkg/api/responses"
 
 	rsa "crypto/rsa"
 )

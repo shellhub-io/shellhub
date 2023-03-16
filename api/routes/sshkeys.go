@@ -8,8 +8,8 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
-	"github.com/shellhub-io/shellhub/pkg/api/response"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -50,7 +50,7 @@ func (h *Handler) GetPublicKeys(c gateway.Context) error {
 }
 
 func (h *Handler) GetPublicKey(c gateway.Context) error {
-	var req request.PublicKeyGet
+	var req requests.PublicKeyGet
 	err := c.Bind(&req)
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func (h *Handler) GetPublicKey(c gateway.Context) error {
 }
 
 func (h *Handler) CreatePublicKey(c gateway.Context) error {
-	var req request.PublicKeyCreate
+	var req requests.PublicKeyCreate
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (h *Handler) CreatePublicKey(c gateway.Context) error {
 		req.TenantID = tenant
 	}
 
-	var res *response.PublicKeyCreate
+	var res *responses.PublicKeyCreate
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.PublicKey.Create, func() error {
 		var err error
 		res, err = h.service.CreatePublicKey(c.Ctx(), req, tenant)
@@ -104,7 +104,7 @@ func (h *Handler) CreatePublicKey(c gateway.Context) error {
 }
 
 func (h *Handler) UpdatePublicKey(c gateway.Context) error {
-	var req request.PublicKeyUpdate
+	var req requests.PublicKeyUpdate
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (h *Handler) UpdatePublicKey(c gateway.Context) error {
 }
 
 func (h *Handler) DeletePublicKey(c gateway.Context) error {
-	var req request.PublicKeyDelete
+	var req requests.PublicKeyDelete
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func (h *Handler) EvaluateKey(c gateway.Context) error {
 }
 
 func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
-	var req request.PublicKeyTagAdd
+	var req requests.PublicKeyTagAdd
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -218,7 +218,7 @@ func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
 }
 
 func (h *Handler) RemovePublicKeyTag(c gateway.Context) error {
-	var req request.PublicKeyTagRemove
+	var req requests.PublicKeyTagRemove
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -243,7 +243,7 @@ func (h *Handler) RemovePublicKeyTag(c gateway.Context) error {
 }
 
 func (h *Handler) UpdatePublicKeyTags(c gateway.Context) error {
-	var req request.PublicKeyTagsUpdate
+	var req requests.PublicKeyTagsUpdate
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
