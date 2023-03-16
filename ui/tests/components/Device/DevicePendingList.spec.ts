@@ -115,7 +115,6 @@ describe("Devices Pending List", () => {
           devices,
         };
       },
-      shallow: true,
     });
   });
 
@@ -152,9 +151,13 @@ describe("Devices Pending List", () => {
   });
   it("Renders the template with data", () => {
     const dataTable = wrapper.find('[data-test="devices-list"]');
-    const dataTableAttr = dataTable.attributes();
+    const dataTableAttr = dataTable.getCurrentComponent()?.props;
     expect(dataTable.exists()).toEqual(true);
-    expect(+dataTableAttr.totalcount).toBe(numberDevices);
-    expect(+dataTableAttr.actualpage).toBe(1);
+    if (dataTableAttr) {
+      expect(dataTableAttr.items).toEqual(devices);
+      expect(dataTableAttr.headers).toEqual(headers);
+      expect(dataTableAttr.totalCount).toBe(numberDevices);
+      expect(dataTableAttr.actualPage).toBe(1);
+    }
   });
 });
