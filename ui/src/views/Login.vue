@@ -38,7 +38,7 @@
           </v-col>
         </v-row>
 
-        <v-row align="center" justify="center">
+        <v-row align="center" justify="center" v-if="!showMessage">
           <v-col cols="12" sm="8" md="4">
             <v-card theme="dark" class="pa-6 bg-v-theme-surface" rounded="lg">
               <v-card-title class="d-flex justify-center align-center mt-4">
@@ -80,7 +80,6 @@
                     />
                     <v-card-actions class="justify-center">
                       <v-btn
-                        type="submit"
                         data-test="login-btn"
                         color="primary"
                         variant="tonal"

@@ -97,6 +97,7 @@ describe("Login is cloud", () => {
         global: {
           plugins: [[store, key], vuetify, routes],
         },
+        shallow: true,
       });
 
       wrapper.vm.showMessage = true;
@@ -136,11 +137,11 @@ describe("Login is cloud", () => {
       // expect(wrapper.find('[data-test="accountCreated-component"]').exists()).toEqual(true);
     });
     it("Renders the template with data", () => {
-      expect(wrapper.find('[data-test="username-text"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="password-text"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="username-text"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="password-text"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="loadingToken-alert"]').exists()).toBe(false);
     });
   });
