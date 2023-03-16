@@ -1,4 +1,4 @@
-package request
+package requests
 
 // AuthTokenGet is the structure to represent the request data for get auth token endpoint.
 type AuthTokenGet struct {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 )
 
 const (
@@ -35,7 +35,7 @@ func (h *Handler) GetTags(c gateway.Context) error {
 }
 
 func (h *Handler) RenameTag(c gateway.Context) error {
-	var req request.TagRename
+	var req requests.TagRename
 	var tenant string
 	if t := c.Tenant(); t != nil {
 		tenant = t.ID
@@ -60,7 +60,7 @@ func (h *Handler) RenameTag(c gateway.Context) error {
 }
 
 func (h *Handler) DeleteTag(c gateway.Context) error {
-	var req request.TagDelete
+	var req requests.TagDelete
 	if err := c.Bind(&req); err != nil {
 		return err
 	}

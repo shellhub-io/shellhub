@@ -3,23 +3,23 @@ package services
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type UserService interface {
-	UpdateDataUser(ctx context.Context, id string, userData request.UserDataUpdate) ([]string, error)
+	UpdateDataUser(ctx context.Context, id string, userData requests.UserDataUpdate) ([]string, error)
 	UpdatePasswordUser(ctx context.Context, id string, currentPassword, newPassword string) error
 }
 
 // UpdateDataUser update user data.
 //
-// It receives a context, used to "control" the request flow, the user's ID, and a request.UserDataUpdate struct with
+// It receives a context, used to "control" the request flow, the user's ID, and a requests.UserDataUpdate struct with
 // fields to update in the models.User.
 //
 // It returns a slice of strings with the fields that contains data duplicated in the database, and an error.
-func (s *service) UpdateDataUser(ctx context.Context, id string, userData request.UserDataUpdate) ([]string, error) {
+func (s *service) UpdateDataUser(ctx context.Context, id string, userData requests.UserDataUpdate) ([]string, error) {
 	if _, _, err := s.store.UserGetByID(ctx, id, false); err != nil {
 		return nil, NewErrUserNotFound(id, nil)
 	}

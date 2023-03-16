@@ -12,7 +12,7 @@ import (
 	"github.com/cnf/structhash"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -30,9 +30,9 @@ func TestAuthDevice(t *testing.T) {
 
 	ctx := context.TODO()
 
-	authReq := request.DeviceAuth{
+	authReq := requests.DeviceAuth{
 		TenantID: "tenant",
-		Identity: &request.DeviceIdentity{
+		Identity: &requests.DeviceIdentity{
 			MAC: "mac",
 		},
 		Sessions: []string{"session"},
@@ -98,7 +98,7 @@ func TestAuthUser(t *testing.T) {
 
 	ctx := context.TODO()
 
-	authReq := request.UserAuth{
+	authReq := requests.UserAuth{
 		Username: "user",
 		Password: "passwd",
 	}
@@ -161,7 +161,7 @@ func TestAuthUser(t *testing.T) {
 
 	tests := []struct {
 		description   string
-		args          request.UserAuth
+		args          requests.UserAuth
 		requiredMocks func()
 		expected      Expected
 	}{

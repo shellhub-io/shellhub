@@ -1,4 +1,4 @@
-package request
+package requests
 
 type Setup struct {
 	Email     string `json:"email" validate:"required,email"`

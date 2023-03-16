@@ -10,8 +10,8 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
-	"github.com/shellhub-io/shellhub/pkg/api/response"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"golang.org/x/crypto/ssh"
@@ -22,8 +22,8 @@ type SSHKeysService interface {
 	EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error)
 	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
 	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
-	CreatePublicKey(ctx context.Context, req request.PublicKeyCreate, tenant string) (*response.PublicKeyCreate, error)
-	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key request.PublicKeyUpdate) (*models.PublicKey, error)
+	CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error)
+	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error)
 	DeletePublicKey(ctx context.Context, fingerprint, tenant string) error
 	CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error)
 }
@@ -75,7 +75,7 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
 }
 
-func (s *service) CreatePublicKey(ctx context.Context, req request.PublicKeyCreate, tenant string) (*response.PublicKeyCreate, error) {
+func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error) {
 	// Checks if public key filter type is Tags.
 	// If it is, checks if there are, at least, one tag on the public key filter and if the all tags exist on database.
 	if req.Filter.Tags != nil {
@@ -127,9 +127,9 @@ func (s *service) CreatePublicKey(ctx context.Context, req request.PublicKeyCrea
 		return nil, err
 	}
 
-	return &response.PublicKeyCreate{
+	return &responses.PublicKeyCreate{
 		Data:        model.Data,
-		Filter:      response.PublicKeyFilter(model.Filter),
+		Filter:      responses.PublicKeyFilter(model.Filter),
 		Name:        model.Name,
 		Username:    model.Username,
 		TenantID:    model.TenantID,
@@ -141,7 +141,7 @@ func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query
 	return s.store.PublicKeyList(ctx, pagination)
 }
 
-func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key request.PublicKeyUpdate) (*models.PublicKey, error) {
+func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error) {
 	// Checks if public key filter type is Tags. If it is, checks if there are, at least, one tag on the public key
 	// filter and if the all tags exist on database.
 	if key.Filter.Tags != nil {

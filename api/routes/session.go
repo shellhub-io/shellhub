@@ -6,7 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -45,7 +45,7 @@ func (h *Handler) GetSessionList(c gateway.Context) error {
 }
 
 func (h *Handler) GetSession(c gateway.Context) error {
-	var req request.SessionGet
+	var req requests.SessionGet
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (h *Handler) GetSession(c gateway.Context) error {
 }
 
 func (h *Handler) SetSessionAuthenticated(c gateway.Context) error {
-	var req request.SessionAuthenticatedSet
+	var req requests.SessionAuthenticatedSet
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (h *Handler) SetSessionAuthenticated(c gateway.Context) error {
 }
 
 func (h *Handler) CreateSession(c gateway.Context) error {
-	var req request.SessionCreate
+	var req requests.SessionCreate
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (h *Handler) CreateSession(c gateway.Context) error {
 }
 
 func (h *Handler) FinishSession(c gateway.Context) error {
-	var req request.SessionFinish
+	var req requests.SessionFinish
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (h *Handler) FinishSession(c gateway.Context) error {
 }
 
 func (h *Handler) KeepAliveSession(c gateway.Context) error {
-	var req request.SessionKeepAlive
+	var req requests.SessionKeepAlive
 	if err := c.Bind(&req); err != nil {
 		return err
 	}

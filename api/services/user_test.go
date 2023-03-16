@@ -6,7 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -27,7 +27,7 @@ func TestUpdateDataUser(t *testing.T) {
 	cases := []struct {
 		description   string
 		id            string
-		data          request.UserDataUpdate
+		data          requests.UserDataUpdate
 		requiredMocks func()
 		expected      Expected
 	}{
@@ -45,7 +45,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when username already exists",
 			id:          "1",
-			data: request.UserDataUpdate{
+			data: requests.UserDataUpdate{
 				Username: "new",
 				Email:    "test@test.com",
 			},
@@ -77,7 +77,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when email already exists",
 			id:          "1",
-			data: request.UserDataUpdate{
+			data: requests.UserDataUpdate{
 				Username: "test",
 				Email:    "new@test.com",
 			},
@@ -107,7 +107,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when username and email already exists",
 			id:          "1",
-			data: request.UserDataUpdate{
+			data: requests.UserDataUpdate{
 				Username: "new",
 				Email:    "new@test.com",
 			},
@@ -139,7 +139,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when could not update user",
 			id:          "1",
-			data: request.UserDataUpdate{
+			data: requests.UserDataUpdate{
 				Username: "new",
 				Email:    "new@test.com",
 			},
@@ -172,7 +172,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Success to update user",
 			id:          "1",
-			data: request.UserDataUpdate{
+			data: requests.UserDataUpdate{
 				Username: "new",
 				Email:    "new@test.com",
 			},

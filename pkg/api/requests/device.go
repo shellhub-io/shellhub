@@ -1,4 +1,4 @@
-package request
+package requests
 
 // DeviceParam is a structure to represent and validate a device UID as path param.
 type DeviceParam struct {

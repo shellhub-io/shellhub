@@ -12,7 +12,7 @@ import (
 	errs "github.com/shellhub-io/shellhub/api/routes/errors"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -77,7 +77,7 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 }
 
 func (h *Handler) AuthDevice(c gateway.Context) error {
-	var req request.DeviceAuth
+	var req requests.DeviceAuth
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (h *Handler) AuthDevice(c gateway.Context) error {
 }
 
 func (h *Handler) AuthUser(c gateway.Context) error {
-	var req request.UserAuth
+	var req requests.UserAuth
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func (h *Handler) AuthUserInfo(c gateway.Context) error {
 }
 
 func (h *Handler) AuthGetToken(c gateway.Context) error {
-	var req request.AuthTokenGet
+	var req requests.AuthTokenGet
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func (h *Handler) AuthGetToken(c gateway.Context) error {
 }
 
 func (h *Handler) AuthSwapToken(c gateway.Context) error {
-	var req request.AuthTokenSwap
+	var req requests.AuthTokenSwap
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func (h *Handler) AuthSwapToken(c gateway.Context) error {
 }
 
 func (h *Handler) AuthPublicKey(c gateway.Context) error {
-	var req request.PublicKeyAuth
+	var req requests.PublicKeyAuth
 	if err := c.Bind(&req); err != nil {
 		return err
 	}

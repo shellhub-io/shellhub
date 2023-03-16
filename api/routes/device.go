@@ -9,7 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -76,7 +76,7 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 }
 
 func (h *Handler) GetDevice(c gateway.Context) error {
-	var req request.DeviceGet
+	var req requests.DeviceGet
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (h *Handler) GetDevice(c gateway.Context) error {
 }
 
 func (h *Handler) DeleteDevice(c gateway.Context) error {
-	var req request.DeviceDelete
+	var req requests.DeviceDelete
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (h *Handler) DeleteDevice(c gateway.Context) error {
 }
 
 func (h *Handler) RenameDevice(c gateway.Context) error {
-	var req request.DeviceRename
+	var req requests.DeviceRename
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func (h *Handler) RenameDevice(c gateway.Context) error {
 }
 
 func (h *Handler) OfflineDevice(c gateway.Context) error {
-	var req request.DeviceOffline
+	var req requests.DeviceOffline
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func (h *Handler) OfflineDevice(c gateway.Context) error {
 }
 
 func (h *Handler) LookupDevice(c gateway.Context) error {
-	var req request.DeviceLookup
+	var req requests.DeviceLookup
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func (h *Handler) LookupDevice(c gateway.Context) error {
 }
 
 func (h *Handler) UpdatePendingStatus(c gateway.Context) error {
-	var req request.DevicePendingStatus
+	var req requests.DevicePendingStatus
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func (h *Handler) UpdatePendingStatus(c gateway.Context) error {
 }
 
 func (h *Handler) HeartbeatDevice(c gateway.Context) error {
-	var req request.DeviceHeartbeat
+	var req requests.DeviceHeartbeat
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func (h *Handler) HeartbeatDevice(c gateway.Context) error {
 }
 
 func (h *Handler) CreateDeviceTag(c gateway.Context) error {
-	var req request.DeviceCreateTag
+	var req requests.DeviceCreateTag
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -249,7 +249,7 @@ func (h *Handler) CreateDeviceTag(c gateway.Context) error {
 }
 
 func (h *Handler) RemoveDeviceTag(c gateway.Context) error {
-	var req request.DeviceRemoveTag
+	var req requests.DeviceRemoveTag
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func (h *Handler) RemoveDeviceTag(c gateway.Context) error {
 }
 
 func (h *Handler) UpdateDeviceTag(c gateway.Context) error {
-	var req request.DeviceUpdateTag
+	var req requests.DeviceUpdateTag
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -289,7 +289,7 @@ func (h *Handler) UpdateDeviceTag(c gateway.Context) error {
 }
 
 func (h *Handler) UpdateDevice(c gateway.Context) error {
-	var req request.DeviceUpdate
+	var req requests.DeviceUpdate
 	if err := c.Bind(&req); err != nil {
 		return err
 	}

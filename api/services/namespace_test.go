@@ -11,7 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
-	"github.com/shellhub-io/shellhub/pkg/api/request"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -300,7 +300,7 @@ func TestCreateNamespace(t *testing.T) {
 
 	user := &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"}
 
-	namespace := request.NamespaceCreate{
+	namespace := requests.NamespaceCreate{
 		Name:     "namespace",
 		TenantID: "xxxxx",
 	}
@@ -320,7 +320,7 @@ func TestCreateNamespace(t *testing.T) {
 		requiredMocks func()
 		ownerID       string
 		expected      Expected
-		namespace     request.NamespaceCreate
+		namespace     requests.NamespaceCreate
 	}{
 		{
 			name:      "CreateNamespace fails when store user get has no documents",
@@ -349,7 +349,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			name:    "CreateNamespace fails when a namespace field is invalid",
 			ownerID: user.ID,
-			namespace: request.NamespaceCreate{
+			namespace: requests.NamespaceCreate{
 				Name: "name.with.dot",
 			},
 			requiredMocks: func() {
@@ -418,7 +418,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			name:    "CreateNamespace generates namespace with random tenant",
 			ownerID: user.ID,
-			namespace: request.NamespaceCreate{
+			namespace: requests.NamespaceCreate{
 				Name: "namespace",
 			},
 			requiredMocks: func() {

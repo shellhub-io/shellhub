@@ -1,5 +1,5 @@
 // Package requests defines structures to represent requests' bodies from API.
-package request
+package requests
 
 type UserParam struct {
 	ID string `param:"id" validate:"required"`

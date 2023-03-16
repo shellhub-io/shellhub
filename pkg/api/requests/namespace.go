@@ -1,4 +1,4 @@
-package request
+package requests
 
 // TenantParam is a structure to represent and validate a namespace tenant as path param.
 type TenantParam struct {
