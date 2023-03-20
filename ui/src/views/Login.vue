@@ -176,11 +176,10 @@ export default defineComponent({
         await store.dispatch("auth/logout");
         createNewClient();
 
-        store.dispatch("auth/loginToken", route.query.token);
         await store.dispatch("auth/loginToken", route.query.token).then(async () => {
           createNewClient();
           await router.push("/");
-          store.dispatch("layout/setLayout", "appLayout");
+          await store.dispatch("layout/setLayout", "appLayout");
         });
       }
     });
