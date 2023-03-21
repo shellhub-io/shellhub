@@ -85,6 +85,7 @@
                         variant="tonal"
                         block
                         @click="login"
+                        type="submit"
                       >
                         LOGIN
                       </v-btn>
