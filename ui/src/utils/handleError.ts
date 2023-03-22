@@ -1,6 +1,9 @@
 import { AxiosError } from "axios";
 
 function handleError(error: unknown): never {
+  console.log(">>>>>>>>>>>>>>>>>>>>>");
+  console.log(error);
+  console.log(">>>>>>>>>>>>>>>>>>>>>");
   if (error instanceof AxiosError) throw new Error(`Axios error: ${error.status} - ${error.message}`);
 
   if (error instanceof Error) throw new Error(error.message);

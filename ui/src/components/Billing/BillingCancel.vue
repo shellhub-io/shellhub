@@ -87,9 +87,7 @@ export default defineComponent({
         await store.dispatch("billing/cancelSubscription");
         dialog.value = false;
         store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.cancelSubscription);
-
         store.dispatch("devices/setDeviceChooserStatus", store.getters["stats/stats"].registered_devices > 3);
-        router.push({ name: "profileSettings" });
       } catch (error: unknown) {
         store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.cancelSubscription);
         handleError(error);
