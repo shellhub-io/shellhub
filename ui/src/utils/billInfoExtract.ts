@@ -42,17 +42,7 @@ export default function infoExtract(data, periodEnd) {
     nextPaymentPaid: upcomingInvoice.amount_paid,
   };
 
-  const defaultCard = {
-    brand: pm.card.brand,
-    expYear: pm.card.exp_year,
-    default: true,
-    expMonth: pm.card.exp_month,
-    last4: pm.card.last4,
-    id: pm.id,
-  };
-
   const cards = [
-    defaultCard,
     ...pms.map((v) => ({
       id: v.id,
       brand: v.card.brand,
@@ -65,7 +55,6 @@ export default function infoExtract(data, periodEnd) {
 
   return {
     info,
-    defaultCard,
     cards,
     warning,
     invoices: parseInvoices(invoices),

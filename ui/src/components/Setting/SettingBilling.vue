@@ -29,7 +29,7 @@
             </v-alert>
           </div>
 
-          <v-row class="mt-4">
+          <v-row class="mt-4 justify-center align-center">
             <v-col>
               <h3>Subscription info</h3>
             </v-col>
@@ -37,10 +37,18 @@
             <v-spacer />
 
             <v-col v-if="state === 'inactive'" md="auto" class="ml-auto">
-              <BillingPaymentMethod
-                type-operation="subscription"
-                data-test="subscriptionPaymentMethod-component"
-              />
+              <v-col align="left">
+                <v-btn
+                  color="primary"
+                  class="text-none text-uppercase"
+                  :disabled="state === ''"
+                  @click="checkout"
+                  data-test="checkout-button"
+                >
+                  <v-icon class="mr-2">mdi-credit-card</v-icon>
+                  Subscribe
+                </v-btn>
+              </v-col>
             </v-col>
           </v-row>
 
@@ -84,6 +92,22 @@
                 </p>
               </div>
             </div>
+
+            <div class="mt-4 mb-4">
+              <h4 class="">Billing Portal</h4>
+              <p>ShellHub patterns with Stripe payment and invoicing. To update your payment method, or downloading previous invoices
+                click on the button bellow.</p>
+              <v-btn
+                color="primary"
+                class="mt-2 text-none text-uppercase"
+                @click="portal"
+                data-test="portal-button"
+              >
+                <v-icon class="mr-2">mdi-account</v-icon>
+                Open Billing Portal
+              </v-btn>
+            </div>
+
           </div>
 
           <div
@@ -129,46 +153,6 @@
 
             <v-divider />
             <v-divider />
-
-            <div class="mt-6 mb-6">
-              <v-row>
-                <v-col>
-                  <h3>Latest invoices</h3>
-                </v-col>
-              </v-row>
-            </div>
-
-            <BillingInvoiceList data-test="invoiceList-component" />
-
-            <v-divider />
-            <v-divider />
-            <div class="mt-6 mb-2">
-              <v-row>
-                <v-col>
-                  <h3>Payment methods</h3>
-                </v-col>
-
-                <v-spacer />
-
-                <v-col md="auto" class="ml-auto">
-                  <BillingPaymentMethod
-                    type-operation="update"
-                    data-test="updatePaymentMethod-component"
-                    @update="getSubscriptionInfo()"
-                  />
-                </v-col>
-              </v-row>
-            </div>
-
-            <div>
-              <BillingPaymentList
-                data-test="paymentMethods-component"
-                v-model:cards="cardBillingData"
-              />
-
-              <v-divider />
-              <v-divider />
-            </div>
 
             <div data-test="cancel-div" class="mt-6">
               <v-row>
@@ -222,7 +206,7 @@ import {
   ref,
   computed,
   onMounted,
-  watch,
+  watch, onUnmounted,
 } from "vue";
 import { Stripe, StripeCardElement, StripeElements, loadStripe } from "@stripe/stripe-js";
 import { useStore } from "../../store";
@@ -232,18 +216,16 @@ import SettingOwnerInfo from "./SettingOwnerInfo.vue";
 import BillingPaymentMethod from "../Billing/BillingPaymentMethod.vue";
 import formatCurrency from "@/utils/currency";
 import { formatDateWithoutDayAndHours } from "../../utils/formateDate";
-import BillingInvoiceList from "../Billing/BillingInvoiceList.vue";
 import BillingCancel from "../Billing/BillingCancel.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
-import BillingPaymentList from "../Billing/BillingPaymentList.vue";
 import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
+import axios from "axios";
 
 export default defineComponent({
   setup() {
     const store = useStore();
     const card = ref<StripeCardElement>({} as StripeCardElement);
-    const cards = ref(null);
     const pollMax = ref(4);
     const retrials = ref(0);
     const elements = ref<StripeElements>({} as StripeElements);
@@ -260,7 +242,6 @@ export default defineComponent({
     const state = computed(() => store.getters["billing/status"]);
     const infoBillingData = computed(() => billingData.value.info);
     const cardBillingData = computed(() => billingData.value.cards);
-    const cardBillingDefault = computed(() => billingData.value.defaultCard);
     const stripeKey = computed<string>(() => envVariables.stripeKey);
     let polling;
     const hasAuthorization = computed(() => {
@@ -274,15 +255,15 @@ export default defineComponent({
       return false;
     });
     watch(state, (val) => {
-      if (val === "pending") {
-        startPolling();
-      } else {
-        clearInterval(polling);
-        if (state.value === "processed") {
-          getSubscriptionInfo();
-        }
-        retrials.value = 0;
-      }
+      // if (val === "inactive") {
+      //   startPolling();
+      // } else {
+      //   clearInterval(polling);
+      //   if (state.value === "processed") {
+      //     getSubscriptionInfo();
+      //   }
+      //   retrials.value = 0;
+      // }
     });
     watch(hasPermission, (status: any) => {
       if (status) {
@@ -295,18 +276,20 @@ export default defineComponent({
       }
     });
     onMounted(() => {
+      console.log("Mounted")
       if (hasAuthorization.value) {
         stripeData();
       }
+      startPolling();
+    });
+    onUnmounted(() => {
+      console.log("Unmounted")
+      clearInterval(polling);
     });
     const startPolling = () => {
       polling = setInterval(() => {
-        if (retrialExceeded.value) {
-          clearInterval(polling);
-        } else {
-          updateNamespace();
-          retrials.value += 1;
-        }
+        console.log("polling")
+        updateNamespace();
       }, 3000);
     };
     const stripeData = () => {
@@ -346,6 +329,33 @@ export default defineComponent({
         handleError(error);
       }
     };
+    const checkout = async () => {
+      try {
+        const res = await axios.post("/api/billing/checkout", {}, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+
+        const { url } = res.data;
+
+        window.open(url, "_self");
+      } catch (error: unknown) {
+        handleError(error);
+      }
+    };
+
+    const portal = async () => {
+      try {
+        const res = await axios.post("/api/billing/portal", {}, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+
+        const { url } = res.data;
+
+        window.open(url, "_self");
+      } catch (error: unknown) {
+        handleError(error);
+      }
+    };
 
     return {
       warningTitle,
@@ -361,14 +371,14 @@ export default defineComponent({
       getSubscriptionInfo,
       renderData,
       cardBillingData,
+      checkout,
+      portal
     };
   },
   components: {
     SettingOwnerInfo,
     BillingPaymentMethod,
-    BillingInvoiceList,
     BillingCancel,
-    BillingPaymentList,
   },
 });
 </script>
