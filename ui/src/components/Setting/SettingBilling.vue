@@ -1,5 +1,29 @@
 <template>
   <v-container>
+    <v-dialog
+      v-model="statusCheckout"
+      max-width="600px"
+      min-width="50vw"
+      persistent
+    >
+      <v-card class="bg-v-theme-surface">
+        <v-card-title class="bg-primary">
+          Payment pending
+        </v-card-title>
+        <v-card-text>
+          <p>
+            You have a payment pending! Access the Billing Portal to regularize your payment status to create a new subscription.
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" data-test="close-btn" @click="statusCheckout = !statusCheckout">
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-row align="center" justify="center" class="mt-4 mb-4">
       <v-col sm="8">
         <SettingOwnerInfo
@@ -202,7 +226,8 @@ import BillingCancel from "../Billing/BillingCancel.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
 import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
-import axios from "axios";
+import axios, {AxiosError} from "axios";
+import AnnouncementsModal from "@/components/Announcements/AnnouncementsModal.vue";
 
 export default defineComponent({
   setup() {
@@ -212,6 +237,7 @@ export default defineComponent({
     const retrials = ref(0);
     const elements = ref<StripeElements>({} as StripeElements);
     const renderData = ref(false);
+    const statusCheckout = ref(false);
     const warningTitle = ref("Payment failed");
     const warningMessage = ref(`Please update your payment method
         by adding a new card, or attempt to pay failed latest
@@ -321,7 +347,18 @@ export default defineComponent({
 
         window.open(url, "_self");
       } catch (error: unknown) {
-        handleError(error);
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          switch (true) {
+            case axiosError.response?.status === 403: {
+              statusCheckout.value = true;
+              break;
+            }
+            default:
+              handleError(error);
+          }
+        }
+
       }
     };
 
@@ -354,10 +391,12 @@ export default defineComponent({
       renderData,
       cardBillingData,
       checkout,
-      portal
+      portal,
+      statusCheckout
     };
   },
   components: {
+    AnnouncementsModal,
     SettingOwnerInfo,
     BillingPaymentMethod,
     BillingCancel,
