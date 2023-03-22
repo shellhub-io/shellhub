@@ -36,7 +36,7 @@
 
             <v-spacer />
 
-            <v-col v-if="state === 'inactive'" md="auto" class="ml-auto">
+            <v-col v-if="state === 'inactive' || state === 'pending'" md="auto" class="ml-auto">
               <v-col align="left">
                 <v-btn
                   color="primary"
@@ -53,25 +53,7 @@
           </v-row>
 
           <div class="mt-6 pl-4 pr-4">
-            <div
-              v-if="state === 'pending' && !retrialExceeded"
-              data-test="pendingRetrial-div"
-            >
-              <p class="ma-4">
-                You have a pending request, please wait a while ...
-              </p>
-            </div>
-
-            <div
-              v-else-if="state === 'pending' && retrialExceeded"
-              data-test="pendingExceeded-div"
-            >
-              <p class="ma-4">
-                Couldn't proccess your last request, please try again later.
-              </p>
-            </div>
-
-            <div v-else-if="state === 'inactive'">
+            <div v-if="state === 'inactive' || state === 'pending' ">
               <div data-test="freePlan-div">
                 <p>Plan: <b> Free </b></p>
 
