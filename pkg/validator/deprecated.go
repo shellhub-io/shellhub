@@ -12,7 +12,22 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-var ErrInvalidFields = errors.New("invalid fields")
+// regexpValidator is a function used to validate a regexp.
+func regexpValidator(field validator.FieldLevel) bool {
+	_, err := regexp.Compile(field.Field().String())
+
+	return err == nil
+}
+
+// usernameValidator is a function used to validate ShellHub's username.
+func usernameValidator(field validator.FieldLevel) bool {
+	return regexp.MustCompile(`^([a-zA-Z0-9-_.@]){3,30}$`).MatchString(field.Field().String())
+}
+
+var (
+	ErrInvalidFields = errors.New("invalid fields")
+	ErrInvalidError  = errors.New("this error is not from a field validation")
+)
 
 var instance *validator.Validate
 
@@ -163,3 +178,10 @@ func FormatUser(user *models.User) {
 		user.Password = HashPassword(user.Password)
 	}
 }
+
+const (
+	// TagRegexp is the tag used to validate a regexp.
+	TagRegexp = "regexp"
+	// TagUsername is the tag used to validate ShellHub's username.
+	TagUsername = "username"
+)
