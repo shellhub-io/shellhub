@@ -15,7 +15,7 @@ type Rule struct {
 }
 
 // Rules is a slice that contains all validation rules.
-var Rules []Rule = []Rule{
+var Rules = []Rule{
 	{
 		Tag: "regexp",
 		Handler: func(field validator.FieldLevel) bool {
