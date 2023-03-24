@@ -121,7 +121,12 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 }
 
 func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
-	return s.store.DeviceSetOnline(ctx, uid, online)
+	err := s.store.DeviceSetOnline(ctx, uid, online)
+	if err == store.ErrNoDocuments {
+		return NewErrDeviceNotFound(uid, err)
+	}
+
+	return err
 }
 
 func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant string) error {
