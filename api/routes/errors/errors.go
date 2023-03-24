@@ -18,13 +18,13 @@ const (
 )
 
 type ErrDataInvalidEntity struct {
-	Fields []string
+	Fields []string `json:"fields"`
 }
 
 var (
-	ErrUnprocessableEntity = errors.New("Unprocessable entity", ErrLayer, ErrCodeUnprocessableEntity)
-	ErrInvalidEntity       = errors.New("Invalid entity", ErrLayer, ErrCodeInvalidEntity)
-	ErrUnauthorized        = errors.New("Unauthorized", ErrLayer, ErrCodeUnauthorized)
+	ErrUnprocessableEntity = errors.New("unprocessable entity", ErrLayer, ErrCodeUnprocessableEntity)
+	ErrInvalidEntity       = errors.New("invalid entity", ErrLayer, ErrCodeInvalidEntity)
+	ErrUnauthorized        = errors.New("unauthorized", ErrLayer, ErrCodeUnauthorized)
 )
 
 // NewErrUnprocessableEntity returns an error when input model has syntax errors.

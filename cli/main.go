@@ -87,7 +87,7 @@ func main() {
 		Use:     "create <username> <password> <email>",
 		Short:   "Create an user",
 		Long:    `Create an user`,
-		Example: `cli user create shellhub password`,
+		Example: `cli user create myuser mypassword`,
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
@@ -120,7 +120,7 @@ func main() {
 		Use:     "delete <username>",
 		Short:   "Delete an user",
 		Long:    `Delete an user`,
-		Example: `cli user delete shellhub`,
+		Example: `cli user delete myuser`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
@@ -149,7 +149,7 @@ func main() {
 		Use:     "password <username> <password>",
 		Short:   "Change user password",
 		Long:    `Change user password`,
-		Example: `cli user password shellhub newpassword`,
+		Example: `cli user password myuser mynewpassword`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
@@ -185,7 +185,7 @@ func main() {
 		Use:     "create <namespace> <owner> [tenant]",
 		Short:   "create a namespace",
 		Long:    `create a namespace`,
-		Example: `cli namespace create namespace shellhub`,
+		Example: `cli namespace create mynamespace myuser`,
 		Args:    cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Avoid panic when TenantID isn't provided.
@@ -224,7 +224,7 @@ func main() {
 		Use:     "delete <namespace>",
 		Short:   "Delete a namespace",
 		Long:    `Delete a namespace`,
-		Example: `cli namespace delete namespace`,
+		Example: `cli namespace delete mynamespace`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
@@ -259,7 +259,7 @@ func main() {
 		Use:     "add <username> <namespace> <role>",
 		Short:   "Add a member",
 		Long:    `Add a member`,
-		Example: `cli member add shellhub namespace observer`,
+		Example: `cli member add myuser mynamespace observer`,
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
@@ -294,7 +294,7 @@ func main() {
 		Use:     "remove <username> <namespace>",
 		Short:   "Remove a member",
 		Long:    `Remove a member`,
-		Example: `cli member remove shellhub namespace`,
+		Example: `cli member remove memberusername mynamespace`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
