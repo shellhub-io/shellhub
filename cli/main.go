@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/cli/services"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	mgo "go.mongodb.org/mongo-driver/mongo"
@@ -43,6 +44,15 @@ func bind(args []string, input interface{}) error {
 	return nil
 }
 
+func validate(input interface{}) error {
+	v := validator.New()
+	if ok, err := v.Struct(input); !ok || err != nil {
+		return validator.GetFirstFieldError(errors.Unwrap(err))
+	}
+
+	return nil
+}
+
 func main() {
 	var cfg config
 	if err := envconfig.Process("cli", &cfg); err != nil {
@@ -64,7 +74,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	services := services.NewService(mongo.NewStore(client.Database(connStr.Database), cache))
+	service := services.NewService(mongo.NewStore(client.Database(connStr.Database), cache))
 
 	rootCmd := &cobra.Command{Use: "cli"}
 	userCmd := &cobra.Command{
@@ -81,16 +91,20 @@ func main() {
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
-				Username string
-				Password string
-				Email    string
+				Username string `validate:"required,username"`
+				Password string `validate:"required,password"`
+				Email    string `validate:"required,email"`
 			}
 
 			if err := bind(args, &input); err != nil {
 				return err
 			}
 
-			user, err := services.UserCreate(input.Username, input.Password, input.Email)
+			if err := validate(input); err != nil {
+				return err
+			}
+
+			user, err := service.UserCreate(input.Username, input.Password, input.Email)
 			if err != nil {
 				return err
 			}
@@ -110,19 +124,23 @@ func main() {
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
-				Username string
+				Username string `validate:"required,username"`
 			}
 
 			if err := bind(args, &input); err != nil {
 				return err
 			}
 
-			if err := services.UserDelete(input.Username); err != nil {
+			if err := validate(input); err != nil {
+				return err
+			}
+
+			if err := service.UserDelete(input.Username); err != nil {
 				return err
 			}
 
 			cmd.Println("User deleted successfully")
-			cmd.Println("Username:", args[0])
+			cmd.Println("Username:", input.Username)
 
 			return nil
 		},
@@ -131,24 +149,28 @@ func main() {
 		Use:     "password <username> <password>",
 		Short:   "Change user password",
 		Long:    `Change user password`,
-		Example: `cli user password shellhub password`,
+		Example: `cli user password shellhub newpassword`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
-				Username string
-				Password string
+				Username string `validate:"required,username"`
+				Password string `validate:"required,password"`
 			}
 
 			if err := bind(args, &input); err != nil {
 				return err
 			}
 
-			if err := services.UserUpdate(input.Username, input.Password); err != nil {
+			if err := validate(input); err != nil {
+				return err
+			}
+
+			if err := service.UserUpdate(input.Username, input.Password); err != nil {
 				return err
 			}
 
 			cmd.Println("User password changed successfully")
-			cmd.Println("Username:", args[0])
+			cmd.Println("Username:", input.Username)
 
 			return nil
 		},
@@ -163,7 +185,7 @@ func main() {
 		Use:     "create <namespace> <owner> [tenant]",
 		Short:   "create a namespace",
 		Long:    `create a namespace`,
-		Example: `cli namespace create shellhubspace shellhub`,
+		Example: `cli namespace create namespace shellhub`,
 		Args:    cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Avoid panic when TenantID isn't provided.
@@ -173,15 +195,19 @@ func main() {
 
 			var input struct {
 				Namespace string
-				Owner     string
-				TenantID  string
+				Owner     string `validate:"required,username"`
+				TenantID  string `validate:"required,uuid4"`
 			}
 
 			if err := bind(args, &input); err != nil {
 				return err
 			}
 
-			namespace, err := services.NamespaceCreate(input.Namespace, input.Owner, input.TenantID)
+			if err := validate(input); err != nil {
+				return err
+			}
+
+			namespace, err := service.NamespaceCreate(input.Namespace, input.Owner, input.TenantID)
 			if err != nil {
 				return err
 			}
@@ -198,7 +224,7 @@ func main() {
 		Use:     "delete <namespace>",
 		Short:   "Delete a namespace",
 		Long:    `Delete a namespace`,
-		Example: `cli namespace delete shellhubspace`,
+		Example: `cli namespace delete namespace`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
@@ -209,12 +235,16 @@ func main() {
 				return err
 			}
 
-			if err := services.NamespaceDelete(input.Namespace); err != nil {
+			if err := validate(input); err != nil {
+				return err
+			}
+
+			if err := service.NamespaceDelete(input.Namespace); err != nil {
 				return err
 			}
 
 			cmd.Println("Namespace deleted successfully")
-			cmd.Println("Namespace:", args[0])
+			cmd.Println("Namespace:", input.Namespace)
 
 			return nil
 		},
@@ -229,11 +259,11 @@ func main() {
 		Use:     "add <username> <namespace> <role>",
 		Short:   "Add a member",
 		Long:    `Add a member`,
-		Example: `cli member add shellhub shellhubspace`,
+		Example: `cli member add shellhub namespace observer`,
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
-				Username  string
+				Username  string `validate:"required,username"`
 				Namespace string
 				Role      string
 			}
@@ -242,7 +272,11 @@ func main() {
 				return err
 			}
 
-			namespace, err := services.NamespaceAddMember(input.Username, input.Namespace, input.Role)
+			if err := validate(input); err != nil {
+				return err
+			}
+
+			namespace, err := service.NamespaceAddMember(input.Username, input.Namespace, input.Role)
 			if err != nil {
 				return err
 			}
@@ -250,8 +284,8 @@ func main() {
 			cmd.Println("Member added successfully")
 			cmd.Println("Namespace:", namespace.Name)
 			cmd.Println("Tenant:", namespace.TenantID)
-			cmd.Println("Member:", args[0])
-			cmd.Println("Role:", args[2])
+			cmd.Println("Member:", input.Username)
+			cmd.Println("Role:", input.Role)
 
 			return nil
 		},
@@ -260,11 +294,11 @@ func main() {
 		Use:     "remove <username> <namespace>",
 		Short:   "Remove a member",
 		Long:    `Remove a member`,
-		Example: `cli member remove shellhub shellhubspace`,
+		Example: `cli member remove shellhub namespace`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input struct {
-				Username  string
+				Username  string `validate:"required,username"`
 				Namespace string
 			}
 
@@ -272,7 +306,11 @@ func main() {
 				return err
 			}
 
-			namespace, err := services.NamespaceRemoveMember(input.Username, input.Namespace)
+			if err := validate(input); err != nil {
+				return err
+			}
+
+			namespace, err := service.NamespaceRemoveMember(input.Username, input.Namespace)
 			if err != nil {
 				return err
 			}
@@ -280,7 +318,7 @@ func main() {
 			cmd.Println("Member removed successfully")
 			cmd.Println("Namespace:", namespace.Name)
 			cmd.Println("Tenant:", namespace.TenantID)
-			cmd.Println("Member:", args[0])
+			cmd.Println("Member:", input.Username)
 
 			return nil
 		},
@@ -296,7 +334,7 @@ func main() {
 		Short:      "Usage: <username> <password> <email>",
 		Args:       cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			user, err := services.UserCreate(args[0], args[1], args[2])
+			user, err := service.UserCreate(args[0], args[1], args[2])
 			if err != nil {
 				return err
 			}
@@ -314,7 +352,7 @@ func main() {
 			Short:      "Usage: <username>",
 			Args:       cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := services.UserDelete(args[0]); err != nil {
+				if err := service.UserDelete(args[0]); err != nil {
 					return err
 				}
 
@@ -329,7 +367,7 @@ func main() {
 			Short:      "Usage: <username> <password>",
 			Args:       cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := services.UserUpdate(args[0], args[1]); err != nil {
+				if err := service.UserUpdate(args[0], args[1]); err != nil {
 					return err
 				}
 
@@ -349,7 +387,7 @@ func main() {
 					args = append(args, "")
 				}
 
-				namespace, err := services.NamespaceCreate(args[0], args[1], args[2])
+				namespace, err := service.NamespaceCreate(args[0], args[1], args[2])
 				if err != nil {
 					return err
 				}
@@ -367,7 +405,7 @@ func main() {
 			Short:      "Usage: <username> <namespace> <role>",
 			Args:       cobra.ExactArgs(3),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				ns, err := services.NamespaceAddMember(args[0], args[1], args[2])
+				ns, err := service.NamespaceAddMember(args[0], args[1], args[2])
 				if err != nil {
 					return err
 				}
@@ -385,7 +423,7 @@ func main() {
 			Short:      "Usage <username> <namespace>",
 			Args:       cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				ns, err := services.NamespaceRemoveMember(args[0], args[1])
+				ns, err := service.NamespaceRemoveMember(args[0], args[1])
 				if err != nil {
 					return err
 				}
@@ -402,7 +440,7 @@ func main() {
 			Short:      "Usage: <namespace>",
 			Args:       cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := services.NamespaceDelete(args[0]); err != nil {
+				if err := service.NamespaceDelete(args[0]); err != nil {
 					return err
 				}
 
