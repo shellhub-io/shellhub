@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/sirupsen/logrus"
@@ -61,6 +63,15 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
+	// If the namespace has a limit of devices, we change the device's slot status to removed.
+	// This way, we can keep track of the number of devices that were removed from the namespace and void the device
+	// switching.
+	if envs.IsCloud() && ns.MaxDevices > 0 {
+		if err := s.store.DeviceRemovedInsert(ctx, tenant, models.UID(device.UID)); err != nil {
+			return NewErrDeviceRemovedInsert(err)
+		}
+	}
+
 	if err = createReportUsage(s.client.(req.Client), ns, false, device); err != nil {
 		return err
 	}
@@ -75,16 +86,21 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 	}
 
 	updatedDevice := &models.Device{
-		UID:       device.UID,
-		Name:      strings.ToLower(name),
-		Identity:  device.Identity,
-		Info:      device.Info,
-		PublicKey: device.PublicKey,
-		TenantID:  device.TenantID,
-		LastSeen:  device.LastSeen,
-		Online:    device.Online,
-		Namespace: device.Namespace,
-		Status:    device.Status,
+		UID:        device.UID,
+		Name:       strings.ToLower(name),
+		Identity:   device.Identity,
+		Info:       device.Info,
+		PublicKey:  device.PublicKey,
+		TenantID:   device.TenantID,
+		LastSeen:   device.LastSeen,
+		Online:     device.Online,
+		Namespace:  device.Namespace,
+		Status:     device.Status,
+		CreatedAt:  time.Time{},
+		RemoteAddr: "",
+		Position:   &models.DevicePosition{},
+		Tags:       []string{},
+		PublicURL:  false,
 	}
 
 	if data, err := validator.ValidateStructFields(updatedDevice); err != nil {
@@ -149,8 +165,37 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 		return NewErrDeviceStatusAccepted(nil)
 	}
 
+	ns, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil {
+		return NewErrNamespaceNotFound(tenant, err)
+	}
+
 	if status != StatusAccepted {
 		return s.store.DeviceUpdateStatus(ctx, uid, status)
+	}
+
+	// NOTICE: The logic below is only executed when the new status is "accepted".
+
+	if envs.IsCloud() && ns.MaxDevices > 0 {
+		removed, err := s.store.DeviceRemovedGet(ctx, tenant, uid)
+		if err != nil && err != store.ErrNoDocuments {
+			return NewErrDeviceRemovedGet(err)
+		}
+
+		if removed != nil {
+			if err := s.store.DeviceRemovedDelete(ctx, tenant, uid); err != nil {
+				return NewErrDeviceRemovedDelete(err)
+			}
+		} else {
+			removed, err := s.store.DeviceRemovedList(ctx, tenant)
+			if err != nil {
+				return NewErrDeviceRemovedList(err)
+			}
+
+			if (ns.DevicesCount + len(removed)) >= ns.MaxDevices {
+				return NewErrDeviceRemovedFull(ns.MaxDevices, nil)
+			}
+		}
 	}
 
 	sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")

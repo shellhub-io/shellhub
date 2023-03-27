@@ -109,6 +109,11 @@ var (
 	ErrAuthInvalid               = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthUnathorized           = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
 	ErrNamespaceLimitReached     = errors.New("namespace limit reached", ErrLayer, ErrCodeLimit)
+	ErrDeviceRemovedList         = errors.New("device removed list", ErrLayer, ErrCodeNotFound)
+	ErrDeviceRemovedInsert       = errors.New("device removed insert", ErrLayer, ErrCodeStore)
+	ErrDeviceRemovedFull         = errors.New("device removed full", ErrLayer, ErrCodePayment)
+	ErrDeviceRemovedDelete       = errors.New("device removed delete", ErrLayer, ErrCodeStore)
+	ErrDeviceRemovedGet          = errors.New("device removed get", ErrLayer, ErrCodeNotFound)
 )
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
@@ -371,4 +376,24 @@ func NewErrAuthUnathorized(err error) error {
 // NewErrNamespaceLimitReached a error to be used when the user namespace limit number is reached.
 func NewErrNamespaceLimitReached(limit int, err error) error {
 	return NewErrLimit(ErrNamespaceLimitReached, limit, err)
+}
+
+func NewErrDeviceRemovedList(next error) error {
+	return NewErrInvalid(ErrDeviceRemovedList, nil, next)
+}
+
+func NewErrDeviceRemovedInsert(next error) error {
+	return NewErrInvalid(ErrDeviceRemovedInsert, nil, next)
+}
+
+func NewErrDeviceRemovedFull(limit int, next error) error {
+	return NewErrLimit(ErrDeviceRemovedFull, limit, next)
+}
+
+func NewErrDeviceRemovedDelete(next error) error {
+	return NewErrInvalid(ErrDeviceRemovedDelete, nil, next)
+}
+
+func NewErrDeviceRemovedGet(next error) error {
+	return NewErrInvalid(ErrDeviceRemovedGet, nil, next)
 }

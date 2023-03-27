@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
@@ -170,10 +171,12 @@ func TestDeleteDevice(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
+	envs.DefaultBackend = envMock
+
 	ctx := context.TODO()
 
 	user := &models.User{UserData: models.UserData{Name: "name", Email: "", Username: "username"}, ID: "id"}
-	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}}
+	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}, MaxDevices: 3}
 	device := &models.Device{UID: "uid", TenantID: "tenant", CreatedAt: time.Time{}}
 
 	Err := errors.New("error", "", 0)
@@ -197,14 +200,44 @@ func TestDeleteDevice(t *testing.T) {
 			expected: NewErrDeviceNotFound(models.UID("_uid"), Err),
 		},
 		{
+			name:   "DeleteDevice fails when the store namespace get fails",
+			uid:    models.UID(device.UID),
+			tenant: namespace.TenantID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(nil, Err).Once()
+			},
+			id:       user.ID,
+			expected: NewErrNamespaceNotFound(namespace.TenantID, Err),
+		},
+		{
+			name:   "DeleteDevice fails when device removed insert return error",
+			uid:    models.UID(device.UID),
+			tenant: namespace.TenantID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
+				mock.On("DeviceRemovedInsert", ctx, namespace.TenantID, models.UID(device.UID)).
+					Return(Err).Once()
+			},
+			id:       user.ID,
+			expected: NewErrDeviceRemovedInsert(Err),
+		},
+		{
 			name:   "DeleteDevice fails when the store device delete fails",
 			uid:    models.UID(device.UID),
 			tenant: namespace.TenantID,
 			requiredMocks: func() {
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
-					Return(nil, nil).Once()
+					Return(device, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespace, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(Err).Once()
 			},
@@ -217,9 +250,10 @@ func TestDeleteDevice(t *testing.T) {
 			tenant: namespace.TenantID,
 			requiredMocks: func() {
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
-					Return(nil, nil).Once()
+					Return(device, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(&models.Namespace{TenantID: namespace.TenantID}, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(nil).Once()
 			},
@@ -242,6 +276,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(device, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespaceBilling, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 				clockMock.On("Now").Return(now).Twice()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportUsage", &models.UsageRecord{
@@ -269,6 +304,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(device, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespaceBilling, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 				clockMock.On("Now").Return(now).Twice()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportUsage", &models.UsageRecord{
@@ -544,8 +580,11 @@ func TestUpdatePendingStatus(t *testing.T) {
 	mock := &mocks.Store{}
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
+	envs.DefaultBackend = envMock
+
 	user := &models.User{UserData: models.UserData{Name: "name", Username: "username"}, ID: "id"}
 	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", MaxDevices: -1, Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}}
+	namespaceWithLimit := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", MaxDevices: 3, DevicesCount: 1, Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}}
 	identity := &models.DeviceIdentity{MAC: "mac"}
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: identity, CreatedAt: time.Time{}}
 
@@ -606,6 +645,106 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
 		{
+			name:   "UpdatePendingStatus fail when could not get namespace",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespace.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(nil, Err).Once()
+			},
+			expected: NewErrNamespaceNotFound(namespace.TenantID, Err),
+		},
+		{
+			name:   "Test should fail when device removed get return a error that is not store.ErrNoDocuments",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
+				mock.On("DeviceRemovedGet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID)).
+					Return(nil, Err).Once()
+			},
+			expected: NewErrDeviceRemovedGet(Err),
+		},
+		{
+			name:   "Test should fail when device is not removed, but device removed list return a error",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
+				mock.On("DeviceRemovedGet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID)).
+					Return(nil, store.ErrNoDocuments).Once()
+				mock.On("DeviceRemovedList", ctx, namespaceWithLimit.TenantID).
+					Return(nil, Err).Once()
+			},
+			expected: NewErrDeviceRemovedList(Err),
+		},
+		{
+			name:   "Test should fail when device is not removed, but the device limit has been reached",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
+				mock.On("DeviceRemovedGet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID)).
+					Return(nil, store.ErrNoDocuments).Once()
+				mock.On("DeviceRemovedList", ctx, namespaceWithLimit.TenantID).
+					Return([]models.DeviceRemoved{
+						{
+							UID:    models.UID("1"),
+							Tenant: namespaceWithLimit.TenantID,
+						},
+						{
+							UID:    models.UID("2"),
+							Tenant: namespaceWithLimit.TenantID,
+						},
+					}, nil).Once()
+			},
+			expected: NewErrDeviceRemovedFull(namespaceWithLimit.MaxDevices, nil),
+		},
+		{
+			name:   "Test should fail when device was removed, but device removed delete return a error",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
+				mock.On("DeviceRemovedGet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID)).
+					Return(&models.DeviceRemoved{
+						UID:    models.UID(device.UID),
+						Tenant: namespaceWithLimit.TenantID,
+					}, nil).Once()
+				mock.On("DeviceRemovedDelete", ctx, namespaceWithLimit.TenantID, models.UID(device.UID)).
+					Return(Err).Once()
+			},
+			expected: NewErrDeviceRemovedDelete(Err),
+		},
+		{
 			name:   "UpdatePendingStatus fails when the limit is exceeded",
 			uid:    models.UID("uid_limit"),
 			status: "accepted",
@@ -614,10 +753,11 @@ func TestUpdatePendingStatus(t *testing.T) {
 			requiredMocks: func() {
 				namespaceExceedLimit := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: 3, DevicesCount: 3, Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}}
 				deviceExceed := &models.Device{UID: "uid_limit", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
-				mock.On("NamespaceGet", ctx, deviceExceed.TenantID).
-					Return(namespaceExceedLimit, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(deviceExceed.UID), deviceExceed.TenantID).
 					Return(deviceExceed, nil).Once()
+				mock.On("NamespaceGet", ctx, deviceExceed.TenantID).
+					Return(namespaceExceedLimit, nil).Twice()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 				mock.On("DeviceGetByMac", ctx, "mac", deviceExceed.TenantID, "accepted").
 					Return(nil, nil).Once()
 			},
@@ -631,8 +771,11 @@ func TestUpdatePendingStatus(t *testing.T) {
 			id:     user.ID,
 			requiredMocks: func() {
 				oldDevice := &models.Device{UID: "uid2", Name: "name", TenantID: "tenant", Identity: identity}
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
 					Return(oldDevice, nil).Once()
 				mock.On("SessionUpdateDeviceUID", ctx, models.UID(oldDevice.UID), models.UID(device.UID)).
@@ -657,6 +800,9 @@ func TestUpdatePendingStatus(t *testing.T) {
 				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespaceBilling, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceBilling.TenantID).
+					Return(namespaceBilling, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
 					Return(device, nil).Once()
 				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
@@ -685,6 +831,9 @@ func TestUpdatePendingStatus(t *testing.T) {
 				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
 				mock.On("NamespaceGet", ctx, device.TenantID).
 					Return(namespaceBilling, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceBilling.TenantID).
+					Return(namespaceBilling, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
 					Return(device, nil).Once()
 				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").

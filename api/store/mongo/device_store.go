@@ -471,3 +471,50 @@ func (s *Store) DeviceUpdate(ctx context.Context, uid models.UID, name *string, 
 
 	return FromMongoError(err)
 }
+
+func (s *Store) DeviceRemovedList(ctx context.Context, tenant string) ([]models.DeviceRemoved, error) {
+	slots, err := s.db.Collection("removed_devices").Find(ctx, bson.M{"tenant_id": tenant})
+	if err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	var slotsList []models.DeviceRemoved
+	for slots.Next(ctx) {
+		var slot models.DeviceRemoved
+		if err := slots.Decode(&slot); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		slotsList = append(slotsList, slot)
+	}
+
+	return slotsList, nil
+}
+
+func (s *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error) {
+	var slot models.DeviceRemoved
+	err := s.db.Collection("removed_devices").FindOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}).Decode(&slot)
+	if err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	return &slot, nil
+}
+
+func (s *Store) DeviceRemovedInsert(ctx context.Context, tenant string, uid models.UID) error {
+	_, err := s.db.Collection("removed_devices").UpdateOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": bson.M{"timestamp": time.Now()}}, options.Update().SetUpsert(true))
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error {
+	_, err := s.db.Collection("removed_devices").DeleteOne(ctx, bson.M{"tenant_id": tenant, "uid": uid})
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
+}
