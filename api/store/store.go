@@ -15,4 +15,5 @@ type Store interface {
 	PrivateKeyStore
 	LicenseStore
 	StatsStore
+	SlotStore
 }

@@ -109,6 +109,10 @@ var (
 	ErrAuthInvalid               = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthUnathorized           = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
 	ErrNamespaceLimitReached     = errors.New("namespace limit reached", ErrLayer, ErrCodeLimit)
+	ErrSlotList                  = errors.New("slot list", ErrLayer, ErrCodeNotFound)
+	ErrSlotSet                   = errors.New("slot set", ErrLayer, ErrCodeStore)
+	ErrSlotOccupied              = errors.New("slot occupied", ErrLayer, ErrCodeInvalid)
+	ErrSlotsFull                 = errors.New("slots full", ErrLayer, ErrCodePayment)
 )
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
@@ -371,4 +375,24 @@ func NewErrAuthUnathorized(err error) error {
 // NewErrNamespaceLimitReached a error to be used when the user namespace limit number is reached.
 func NewErrNamespaceLimitReached(limit int, err error) error {
 	return NewErrLimit(ErrNamespaceLimitReached, limit, err)
+}
+
+// ErrSlotList is the error returned when the slot list fails.
+func NewErrSlotList(next error) error {
+	return NewErrInvalid(ErrSlotList, nil, next)
+}
+
+// NewErrSlotSet returns an error to be used when the slot set fails.
+func NewErrSlotSet(next error) error {
+	return NewErrInvalid(ErrSlotSet, nil, next)
+}
+
+// NewErrSlotOccupied returns an error to be used when the slot is occupied.
+func NewErrSlotOccupied(next error) error {
+	return NewErrInvalid(ErrSlotOccupied, nil, next)
+}
+
+// NewErrSlotsFull returns an error to be used when the slots are full.
+func NewErrSlotsFull(next error, limit int) error {
+	return NewErrLimit(ErrSlotsFull, limit, next)
 }

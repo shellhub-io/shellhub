@@ -173,7 +173,7 @@ func TestDeleteDevice(t *testing.T) {
 	ctx := context.TODO()
 
 	user := &models.User{UserData: models.UserData{Name: "name", Email: "", Username: "username"}, ID: "id"}
-	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}}
+	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}, MaxDevices: 3}
 	device := &models.Device{UID: "uid", TenantID: "tenant", CreatedAt: time.Time{}}
 
 	Err := errors.New("error", "", 0)
@@ -197,14 +197,44 @@ func TestDeleteDevice(t *testing.T) {
 			expected: NewErrDeviceNotFound(models.UID("_uid"), Err),
 		},
 		{
+			name:   "DeleteDevice fails when the store namespace get fails",
+			uid:    models.UID(device.UID),
+			tenant: namespace.TenantID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(nil, Err).Once()
+			},
+			id:       user.ID,
+			expected: NewErrNamespaceNotFound(namespace.TenantID, Err),
+		},
+		{
+			name:   "DeleteDevice fails when the store slot set fails",
+			uid:    models.UID(device.UID),
+			tenant: namespace.TenantID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
+				mock.On("SlotSet", ctx, namespace.TenantID, models.UID(device.UID), "removed").
+					Return(Err).Once()
+			},
+			id:       user.ID,
+			expected: NewErrSlotSet(Err),
+		},
+		{
 			name:   "DeleteDevice fails when the store device delete fails",
 			uid:    models.UID(device.UID),
 			tenant: namespace.TenantID,
 			requiredMocks: func() {
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
-					Return(nil, nil).Once()
+					Return(device, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespace, nil).Once()
+				mock.On("SlotSet", ctx, namespace.TenantID, models.UID(device.UID), "removed").
+					Return(nil).Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
 					Return(Err).Once()
 			},
@@ -217,7 +247,7 @@ func TestDeleteDevice(t *testing.T) {
 			tenant: namespace.TenantID,
 			requiredMocks: func() {
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
-					Return(nil, nil).Once()
+					Return(device, nil).Once()
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(&models.Namespace{TenantID: namespace.TenantID}, nil).Once()
 				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
@@ -546,6 +576,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 
 	user := &models.User{UserData: models.UserData{Name: "name", Username: "username"}, ID: "id"}
 	namespace := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", MaxDevices: -1, Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}}
+	namespaceWithLimit := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant", MaxDevices: 3, Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}}
 	identity := &models.DeviceIdentity{MAC: "mac"}
 	device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: identity, CreatedAt: time.Time{}}
 
@@ -606,6 +637,237 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
 		{
+			name:   "UpdatePendingStatus fail when could not get namespace",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespace.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(nil, Err).Once()
+			},
+			expected: NewErrNamespaceNotFound(namespace.TenantID, Err),
+		},
+		{
+			name:   "UpdatePendingStatus failed to get slots list",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				mock.On("SlotsList", ctx, namespaceWithLimit.TenantID).
+					Return(nil, Err).Once()
+			},
+			expected: NewErrSlotList(Err),
+		},
+		{
+			name:   "UpdatePendingStatus fails when slots is empty and status is to accepted",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				mock.On("SlotsList", ctx, namespaceWithLimit.TenantID).
+					Return([]models.Slot{}, nil).Once()
+				mock.On("SlotSet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID), "accepted").
+					Return(Err).Once()
+			},
+			expected: NewErrSlotSet(Err),
+		},
+		{
+			name:   "UpdatePendingStatus fails when slots is full and status is to accepted",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				mock.On("SlotsList", ctx, namespaceWithLimit.TenantID).
+					Return([]models.Slot{
+						{
+							UID:       models.UID("1"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "removed",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+						{
+							UID:       models.UID("2"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "removed",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+						{
+							UID:       models.UID("3"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "accepted",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+					}, nil).Once()
+			},
+			expected: NewErrSlotsFull(nil, 3),
+		},
+		{
+			name:   "UpdatePendingStatus fails to delete slot when slots is full, but there is a expired slot and status is to accepted",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				mock.On("SlotsList", ctx, namespaceWithLimit.TenantID).
+					Return([]models.Slot{
+						{
+							UID:       models.UID("1"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "removed",
+							UpdatedAt: time.Date(200, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+						{
+							UID:       models.UID("2"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "removed",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+						{
+							UID:       models.UID("3"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "accepted",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+					}, nil).Once()
+				mock.On("SlotDelete", ctx, namespaceWithLimit.TenantID, models.UID("1")).
+					Return(Err).Once()
+			},
+			expected: Err,
+		},
+		{
+			name:   "UpdatePendingStatus fails to set slot when slots is full, but there is a expired slot and status is to accepted",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				mock.On("SlotsList", ctx, namespaceWithLimit.TenantID).
+					Return([]models.Slot{
+						{
+							UID:       models.UID("1"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "removed",
+							UpdatedAt: time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+						{
+							UID:       models.UID("2"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "removed",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+						{
+							UID:       models.UID("3"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "accepted",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+					}, nil).Once()
+				mock.On("SlotDelete", ctx, namespaceWithLimit.TenantID, models.UID("1")).
+					Return(nil).Once()
+				mock.On("SlotSet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID), "accepted").
+					Return(Err).Once()
+			},
+			expected: NewErrSlotSet(Err),
+		},
+		{
+			name:   "UpdatePendingStatus fails to update slot status when slot is occupied and its status is removed and the new status is accepted",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				mock.On("SlotsList", ctx, namespaceWithLimit.TenantID).
+					Return([]models.Slot{
+						{
+							UID:       models.UID(device.UID),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "removed",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+						{
+							UID:       models.UID("2"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "removed",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+						{
+							UID:       models.UID("3"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "accepted",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+					}, nil).Once()
+				mock.On("SlotSet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID), "accepted").
+					Return(Err).Once()
+			},
+			expected: NewErrSlotSet(Err),
+		},
+		{
+			name:   "UpdatePendingStatus fails to update slot status when slot is occupied and its status is removed and the new status is accepted",
+			uid:    models.UID(device.UID),
+			status: "accepted",
+			tenant: namespaceWithLimit.TenantID,
+			id:     user.ID,
+			requiredMocks: func() {
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespaceWithLimit.TenantID).
+					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceWithLimit.TenantID).
+					Return(namespaceWithLimit, nil).Once()
+				mock.On("SlotsList", ctx, namespaceWithLimit.TenantID).
+					Return([]models.Slot{
+						{
+							UID:       models.UID(device.UID),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "accepted",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+						{
+							UID:       models.UID("2"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "removed",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+						{
+							UID:       models.UID("3"),
+							Tenant:    namespaceWithLimit.TenantID,
+							Status:    "accepted",
+							UpdatedAt: time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC),
+						},
+					}, nil).Once()
+			},
+			expected: NewErrSlotOccupied(nil),
+		},
+		{
 			name:   "UpdatePendingStatus fails when the limit is exceeded",
 			uid:    models.UID("uid_limit"),
 			status: "accepted",
@@ -614,10 +876,16 @@ func TestUpdatePendingStatus(t *testing.T) {
 			requiredMocks: func() {
 				namespaceExceedLimit := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: 3, DevicesCount: 3, Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}}
 				deviceExceed := &models.Device{UID: "uid_limit", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
-				mock.On("NamespaceGet", ctx, deviceExceed.TenantID).
-					Return(namespaceExceedLimit, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(deviceExceed.UID), deviceExceed.TenantID).
 					Return(deviceExceed, nil).Once()
+				mock.On("NamespaceGet", ctx, deviceExceed.TenantID).
+					Return(namespaceExceedLimit, nil).Once()
+				mock.On("SlotsList", ctx, namespaceExceedLimit.TenantID).
+					Return([]models.Slot{}, nil).Once()
+				mock.On("SlotSet", ctx, namespaceExceedLimit.TenantID, models.UID(deviceExceed.UID), "accepted").
+					Return(nil).Once()
+				mock.On("NamespaceGet", ctx, deviceExceed.TenantID).
+					Return(namespaceExceedLimit, nil).Once()
 				mock.On("DeviceGetByMac", ctx, "mac", deviceExceed.TenantID, "accepted").
 					Return(nil, nil).Once()
 			},
@@ -631,8 +899,10 @@ func TestUpdatePendingStatus(t *testing.T) {
 			id:     user.ID,
 			requiredMocks: func() {
 				oldDevice := &models.Device{UID: "uid2", Name: "name", TenantID: "tenant", Identity: identity}
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
+				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), namespace.TenantID).
 					Return(device, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
 				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
 					Return(oldDevice, nil).Once()
 				mock.On("SessionUpdateDeviceUID", ctx, models.UID(oldDevice.UID), models.UID(device.UID)).
@@ -656,6 +926,8 @@ func TestUpdatePendingStatus(t *testing.T) {
 				namespaceBilling := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: -1, DevicesCount: 10, Billing: &models.Billing{Active: true}, Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}}
 				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
 				mock.On("NamespaceGet", ctx, device.TenantID).
+					Return(namespaceBilling, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceBilling.TenantID).
 					Return(namespaceBilling, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
 					Return(device, nil).Once()
@@ -684,6 +956,8 @@ func TestUpdatePendingStatus(t *testing.T) {
 				namespaceBilling := &models.Namespace{Name: "group1", Owner: "id", TenantID: "tenant_max", MaxDevices: -1, DevicesCount: 10, Billing: &models.Billing{Active: true}, Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}}}
 				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant_max", Identity: identity, Status: "pending"}
 				mock.On("NamespaceGet", ctx, device.TenantID).
+					Return(namespaceBilling, nil).Once()
+				mock.On("NamespaceGet", ctx, namespaceBilling.TenantID).
 					Return(namespaceBilling, nil).Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
 					Return(device, nil).Once()

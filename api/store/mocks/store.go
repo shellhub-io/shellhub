@@ -1541,6 +1541,60 @@ func (_m *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, 
 	return r0
 }
 
+// SlotDelete provides a mock function with given fields: ctx, tenant, uid
+func (_m *Store) SlotDelete(ctx context.Context, tenant string, uid models.UID) error {
+	ret := _m.Called(ctx, tenant, uid)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) error); ok {
+		r0 = rf(ctx, tenant, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SlotSet provides a mock function with given fields: ctx, tenant, uid, status
+func (_m *Store) SlotSet(ctx context.Context, tenant string, uid models.UID, status string) error {
+	ret := _m.Called(ctx, tenant, uid, status)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, string) error); ok {
+		r0 = rf(ctx, tenant, uid, status)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SlotsList provides a mock function with given fields: ctx, tenatn
+func (_m *Store) SlotsList(ctx context.Context, tenatn string) ([]models.Slot, error) {
+	ret := _m.Called(ctx, tenatn)
+
+	var r0 []models.Slot
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]models.Slot, error)); ok {
+		return rf(ctx, tenatn)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []models.Slot); ok {
+		r0 = rf(ctx, tenatn)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Slot)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenatn)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // TagDelete provides a mock function with given fields: ctx, tenant, tag
 func (_m *Store) TagDelete(ctx context.Context, tenant string, tag string) error {
 	ret := _m.Called(ctx, tenant, tag)

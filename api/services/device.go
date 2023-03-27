@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -61,6 +62,15 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
+	// If the namespace has a limit of devices, we change the device's slot status to removed.
+	// This way, we can keep track of the number of devices that were removed from the namespace and void the device
+	// switching.
+	if ns.MaxDevices > 0 {
+		if err := s.store.SlotSet(ctx, tenant, models.UID(device.UID), "removed"); err != nil {
+			return NewErrSlotSet(err)
+		}
+	}
+
 	if err = createReportUsage(s.client.(req.Client), ns, false, device); err != nil {
 		return err
 	}
@@ -75,16 +85,21 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 	}
 
 	updatedDevice := &models.Device{
-		UID:       device.UID,
-		Name:      strings.ToLower(name),
-		Identity:  device.Identity,
-		Info:      device.Info,
-		PublicKey: device.PublicKey,
-		TenantID:  device.TenantID,
-		LastSeen:  device.LastSeen,
-		Online:    device.Online,
-		Namespace: device.Namespace,
-		Status:    device.Status,
+		UID:        device.UID,
+		Name:       strings.ToLower(name),
+		Identity:   device.Identity,
+		Info:       device.Info,
+		PublicKey:  device.PublicKey,
+		TenantID:   device.TenantID,
+		LastSeen:   device.LastSeen,
+		Online:     device.Online,
+		Namespace:  device.Namespace,
+		Status:     device.Status,
+		CreatedAt:  time.Time{},
+		RemoteAddr: "",
+		Position:   &models.DevicePosition{},
+		Tags:       []string{},
+		PublicURL:  false,
 	}
 
 	if data, err := validator.ValidateStructFields(updatedDevice); err != nil {
@@ -147,6 +162,102 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 
 	if device.Status == StatusAccepted {
 		return NewErrDeviceStatusAccepted(nil)
+	}
+
+	ns, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil {
+		return NewErrNamespaceNotFound(tenant, err)
+	}
+
+	// Here I introduce the concept of "slot", which is a way to control the number of devices that a namespace can
+	// have in a given time and when there is a device limitation. The "slot" is a document that is created when a
+	// device is "accepted" and its status change to "removed" when the device is deleted.
+	// A "slot" with the status "removed" expires after a period of time, allowing a new device to be accepted at its
+	// place.
+	if ns.MaxDevices > 0 && status == StatusAccepted {
+		// List all devices' slots.
+		slots, err := s.store.SlotsList(ctx, tenant)
+		if err != nil {
+			return NewErrSlotList(err)
+		}
+
+		// When we set it to true, it means that the device's slot was updated either because it already exists or
+		// another slot has expired.
+		var set bool
+
+		// NOTICE: I have those functions to improve the readability of the code, as I believe that it is easier to
+		// understand what is going on when we have a function with a name that describes what it does.
+
+		// isSlotRemoved checks if the slot's status is removed.
+		isSlotRemoved := func(slot *models.Slot) bool {
+			return slot.Status == "removed"
+		}
+
+		// isSlotAccepted checks if the slot's status is accepted.
+		isSlotAccepted := func(slot *models.Slot) bool {
+			return slot.Status == "accepted"
+		}
+
+		// isSlotExpired checks if the slot's has expired.
+		// It is expired if the current time is after the slot's updated time plus the slot's duration.
+		isSlotExpired := func(slot *models.Slot, duration time.Duration) bool {
+			return time.Now().After(slot.UpdatedAt.Add(duration))
+		}
+
+		for _, slot := range slots {
+			// Check if the device is into a slot.
+			if models.UID(device.UID) == slot.UID {
+				// If the device is into the slot and its status is accepted, we return an error.
+				if isSlotAccepted(&slot) && status == StatusAccepted {
+					return NewErrSlotOccupied(nil)
+				}
+
+				// Otherwise, if the device is into the slot, but the slot's status is removed, we update the slot
+				// status to the new one.
+				if isSlotRemoved(&slot) && status == StatusAccepted {
+					if err := s.store.SlotSet(ctx, tenant, models.UID(device.UID), status); err != nil {
+						return NewErrSlotSet(err)
+					}
+
+					// We set the variable to avoid creating a new slot for the device.
+					set = true
+
+					break
+				}
+			}
+
+			// If the device is not into the slot, but there is a device's slot with its status as removed, and it is
+			// expired, we need to delete the slot and create a new one for the device.
+			// TODO: What could be the best way to get the slot's duration? A environment variable? A value hardcoded?
+			if isSlotRemoved(&slot) && isSlotExpired(&slot, 20*time.Minute) && status == StatusAccepted {
+				if err := s.store.SlotDelete(ctx, tenant, slot.UID); err != nil {
+					return err
+				}
+
+				if err := s.store.SlotSet(ctx, tenant, models.UID(device.UID), status); err != nil {
+					return NewErrSlotSet(err)
+				}
+
+				// We set the variable to avoid creating a new slot for the device.
+				set = true
+
+				break
+			}
+		}
+
+		// If the device's slot does not apply to any of the above cases, we need to create a new slot for it.
+		if !set {
+			// The number of slots must be less than the maximum number of devices allowed to avoid device siting.
+			if len(slots) >= ns.MaxDevices {
+				return NewErrSlotsFull(nil, ns.MaxDevices)
+			}
+
+			if status == StatusAccepted {
+				if err := s.store.SlotSet(ctx, tenant, models.UID(device.UID), status); err != nil {
+					return NewErrSlotSet(err)
+				}
+			}
+		}
 	}
 
 	if status != StatusAccepted {
