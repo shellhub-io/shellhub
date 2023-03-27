@@ -31,21 +31,7 @@
             <span>{{ item.info.pretty_name }}</span>
           </td>
           <td class="text-center">
-            <v-chip>
-              <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
-                  <span
-                    v-bind="props"
-                    @click="copyText(sshidAddress(item))"
-                    @keypress="copyText(sshidAddress(item))"
-                    class="hover-text"
-                  >
-                    {{ sshidAddress(item) }}
-                  </span>
-                </template>
-                <span>Copy ID</span>
-              </v-tooltip>
-            </v-chip>
+            {{ formatDate(item.last_seen) }}
           </td>
 
           <td class="text-center">
