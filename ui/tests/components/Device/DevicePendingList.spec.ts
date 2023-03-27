@@ -135,11 +135,6 @@ describe("Devices Pending List", () => {
     expect(wrapper.vm.numberDevices).toEqual(numberDevices);
   });
 
-  it("Process data in methods", () => {
-    const address = `${devices[0].namespace}.${devices[0].name}@localhost`;
-    expect(wrapper.vm.sshidAddress(devices[0])).toEqual(address);
-  });
-
   //////
   // HTML validation
   //////
