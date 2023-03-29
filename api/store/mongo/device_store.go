@@ -194,7 +194,7 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 		return FromMongoError(err)
 	}
 
-	if err := s.cache.Delete(ctx, string(uid)); err != nil {
+	if err := s.cache.Delete(ctx, strings.Join([]string{"device", string(uid)}, "/")); err != nil {
 		logrus.Error(err)
 	}
 
