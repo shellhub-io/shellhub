@@ -29,6 +29,8 @@ func TestListDevices(t *testing.T) {
 
 	Err := errors.New("error", "", 0)
 
+	tenant := "tenant"
+
 	devices := []models.Device{
 		{UID: "uid"},
 		{UID: "uid2"},
@@ -48,6 +50,10 @@ func TestListDevices(t *testing.T) {
 	sort := "name"
 	order := []string{"asc", "desc"}
 
+	namespace := &models.Namespace{
+		TenantID: tenant,
+	}
+
 	type Expected struct {
 		devices []models.Device
 		count   int
@@ -56,21 +62,31 @@ func TestListDevices(t *testing.T) {
 
 	cases := []struct {
 		name                string
+		tenant              string
 		pagination          paginator.Query
-		requiredMocks       func()
-		expected            Expected
 		filter              []models.Filter
 		status, sort, order string
+		requiredMocks       func()
+		expected            Expected
 	}{
 		{
-			name:       "ListDevices fails when the store device list fails",
+			name:       "ListDevices fails when the store device list fails when status is pending",
+			tenant:     tenant,
 			pagination: query,
 			filter:     filters,
 			status:     status[0],
 			sort:       sort,
 			order:      order[0],
 			requiredMocks: func() {
-				mock.On("DeviceList", ctx, query, filters, status[0], sort, order[0]).
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
+				mock.On("DeviceRemovedList", ctx, namespace.TenantID).
+					Return([]models.DeviceRemoved{
+						{
+							UID: "uid",
+						},
+					}, nil).Once()
+				mock.On("DeviceList", ctx, query, filters, status[0], sort, order[0], true).
 					Return(nil, 0, Err).Once()
 			},
 			expected: Expected{
@@ -80,14 +96,59 @@ func TestListDevices(t *testing.T) {
 			},
 		},
 		{
-			name:       "ListDevices succeeds",
+			name:       "ListDevices fails when the store device list fails when status is not pending",
+			tenant:     tenant,
+			pagination: query,
+			filter:     filters,
+			status:     status[1],
+			sort:       sort,
+			order:      order[1],
+			requiredMocks: func() {
+				mock.On("DeviceList", ctx, query, filters, status[1], sort, order[1], false).
+					Return(nil, 0, Err).Once()
+			},
+			expected: Expected{
+				nil,
+				0,
+				Err,
+			},
+		},
+		{
+			name:       "ListDevices succeeds when status is pending",
+			tenant:     tenant,
 			pagination: query,
 			filter:     filters,
 			status:     status[0],
 			sort:       sort,
 			order:      order[0],
 			requiredMocks: func() {
-				mock.On("DeviceList", ctx, query, filters, status[0], sort, order[0]).
+				mock.On("NamespaceGet", ctx, namespace.TenantID).
+					Return(namespace, nil).Once()
+				mock.On("DeviceRemovedList", ctx, namespace.TenantID).
+					Return([]models.DeviceRemoved{
+						{
+							UID: "uid",
+						},
+					}, nil).Once()
+				mock.On("DeviceList", ctx, query, filters, status[0], sort, order[0], true).
+					Return(devices, len(devices), nil).Once()
+			},
+			expected: Expected{
+				devices,
+				len(devices),
+				nil,
+			},
+		},
+		{
+			name:       "ListDevices succeeds when status is not pending",
+			tenant:     tenant,
+			pagination: query,
+			filter:     filters,
+			status:     status[1],
+			sort:       sort,
+			order:      order[1],
+			requiredMocks: func() {
+				mock.On("DeviceList", ctx, query, filters, status[1], sort, order[1], false).
 					Return(devices, len(devices), nil).Once()
 			},
 			expected: Expected{
@@ -101,7 +162,7 @@ func TestListDevices(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(*testing.T) {
 			tc.requiredMocks()
-			returnedDevices, count, err := s.ListDevices(ctx, tc.pagination, tc.filter, tc.status, tc.sort, tc.order)
+			returnedDevices, count, err := s.ListDevices(ctx, tc.tenant, tc.pagination, tc.filter, tc.status, tc.sort, tc.order)
 			assert.Equal(t, tc.expected, Expected{returnedDevices, count, err})
 		})
 	}

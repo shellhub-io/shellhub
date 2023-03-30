@@ -220,7 +220,7 @@ func TestDevicesList(t *testing.T) {
 	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	devices, count, err := mongostore.DeviceList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
+	devices, count, err := mongostore.DeviceList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc", false)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count)
 	assert.NotEmpty(t, devices)
@@ -305,7 +305,7 @@ func TestDeviceChooser(t *testing.T) {
 	err = mongostore.DeviceChooser(data.Context, data.Namespace.TenantID, []string{"uid1", "uid2", "uid5"})
 	assert.NoError(t, err)
 
-	devices, _, err = mongostore.DeviceList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc")
+	devices, _, err = mongostore.DeviceList(data.Context, paginator.Query{Page: -1, PerPage: -1}, nil, "", "last_seen", "asc", false)
 	assert.NoError(t, err)
 
 	pending := make([]string, 0)
