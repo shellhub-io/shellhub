@@ -495,23 +495,13 @@ func (s *Store) DeviceUpdate(ctx context.Context, uid models.UID, name *string, 
 	return FromMongoError(err)
 }
 
-func (s *Store) DeviceRemovedList(ctx context.Context, tenant string) ([]models.DeviceRemoved, error) {
-	slots, err := s.db.Collection("removed_devices").Find(ctx, bson.M{"tenant_id": tenant})
+func (s *Store) DeviceRemovedCount(ctx context.Context, tenant string) (int64, error) {
+	count, err := s.db.Collection("removed_devices").CountDocuments(ctx, bson.M{"tenant_id": tenant})
 	if err != nil {
-		return nil, FromMongoError(err)
+		return 0, FromMongoError(err)
 	}
 
-	var slotsList []models.DeviceRemoved
-	for slots.Next(ctx) {
-		var slot models.DeviceRemoved
-		if err := slots.Decode(&slot); err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		slotsList = append(slotsList, slot)
-	}
-
-	return slotsList, nil
+	return count, nil
 }
 
 func (s *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error) {

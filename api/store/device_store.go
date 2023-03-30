@@ -26,7 +26,7 @@ type DeviceStore interface {
 	DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error
 	DeviceListByUsage(ctx context.Context, tenantID string) ([]models.UID, error)
 	DeviceChooser(ctx context.Context, tenantID string, chosen []string) error
-	DeviceRemovedList(ctx context.Context, tenant string) ([]models.DeviceRemoved, error)
+	DeviceRemovedCount(ctx context.Context, tenant string) (int64, error)
 	DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error)
 	DeviceRemovedInsert(ctx context.Context, tenant string, uid models.UID) error
 	DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error

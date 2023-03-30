@@ -380,6 +380,30 @@ func (_m *Store) DeviceRemoveTag(ctx context.Context, uid models.UID, tag string
 	return r0
 }
 
+// DeviceRemovedCount provides a mock function with given fields: ctx, tenant
+func (_m *Store) DeviceRemovedCount(ctx context.Context, tenant string) (int64, error) {
+	ret := _m.Called(ctx, tenant)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (int64, error)); ok {
+		return rf(ctx, tenant)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) int64); ok {
+		r0 = rf(ctx, tenant)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenant)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeviceRemovedDelete provides a mock function with given fields: ctx, tenant, uid
 func (_m *Store) DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error {
 	ret := _m.Called(ctx, tenant, uid)
@@ -432,32 +456,6 @@ func (_m *Store) DeviceRemovedInsert(ctx context.Context, tenant string, uid mod
 	}
 
 	return r0
-}
-
-// DeviceRemovedList provides a mock function with given fields: ctx, tenant
-func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string) ([]models.DeviceRemoved, error) {
-	ret := _m.Called(ctx, tenant)
-
-	var r0 []models.DeviceRemoved
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]models.DeviceRemoved, error)); ok {
-		return rf(ctx, tenant)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []models.DeviceRemoved); ok {
-		r0 = rf(ctx, tenant)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.DeviceRemoved)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenant)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // DeviceRename provides a mock function with given fields: ctx, uid, hostname

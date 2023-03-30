@@ -109,7 +109,7 @@ var (
 	ErrAuthInvalid               = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthUnathorized           = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
 	ErrNamespaceLimitReached     = errors.New("namespace limit reached", ErrLayer, ErrCodeLimit)
-	ErrDeviceRemovedList         = errors.New("device removed list", ErrLayer, ErrCodeNotFound)
+	ErrDeviceRemovedCount        = errors.New("device removed count", ErrLayer, ErrCodeNotFound)
 	ErrDeviceRemovedInsert       = errors.New("device removed insert", ErrLayer, ErrCodeStore)
 	ErrDeviceRemovedFull         = errors.New("device removed full", ErrLayer, ErrCodePayment)
 	ErrDeviceRemovedDelete       = errors.New("device removed delete", ErrLayer, ErrCodeStore)
@@ -378,8 +378,8 @@ func NewErrNamespaceLimitReached(limit int, err error) error {
 	return NewErrLimit(ErrNamespaceLimitReached, limit, err)
 }
 
-func NewErrDeviceRemovedList(next error) error {
-	return NewErrInvalid(ErrDeviceRemovedList, nil, next)
+func NewErrDeviceRemovedCount(next error) error {
+	return NewErrInvalid(ErrDeviceRemovedCount, nil, next)
 }
 
 func NewErrDeviceRemovedInsert(next error) error {

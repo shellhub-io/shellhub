@@ -80,12 +80,8 @@ func TestListDevices(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("DeviceRemovedList", ctx, namespace.TenantID).
-					Return([]models.DeviceRemoved{
-						{
-							UID: "uid",
-						},
-					}, nil).Once()
+				mock.On("DeviceRemovedCount", ctx, namespace.TenantID).
+					Return(int64(1), nil).Once()
 				mock.On("DeviceList", ctx, query, filters, status[0], sort, order[0], true).
 					Return(nil, 0, Err).Once()
 			},
@@ -124,12 +120,8 @@ func TestListDevices(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespace, nil).Once()
-				mock.On("DeviceRemovedList", ctx, namespace.TenantID).
-					Return([]models.DeviceRemoved{
-						{
-							UID: "uid",
-						},
-					}, nil).Once()
+				mock.On("DeviceRemovedCount", ctx, namespace.TenantID).
+					Return(int64(1), nil).Once()
 				mock.On("DeviceList", ctx, query, filters, status[0], sort, order[0], true).
 					Return(devices, len(devices), nil).Once()
 			},
@@ -750,10 +742,10 @@ func TestUpdatePendingStatus(t *testing.T) {
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 				mock.On("DeviceRemovedGet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID)).
 					Return(nil, store.ErrNoDocuments).Once()
-				mock.On("DeviceRemovedList", ctx, namespaceWithLimit.TenantID).
-					Return(nil, Err).Once()
+				mock.On("DeviceRemovedCount", ctx, namespaceWithLimit.TenantID).
+					Return(int64(0), Err).Once()
 			},
-			expected: NewErrDeviceRemovedList(Err),
+			expected: NewErrDeviceRemovedCount(Err),
 		},
 		{
 			name:   "Test should fail when device is not removed, but the device limit has been reached",
@@ -769,17 +761,8 @@ func TestUpdatePendingStatus(t *testing.T) {
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 				mock.On("DeviceRemovedGet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID)).
 					Return(nil, store.ErrNoDocuments).Once()
-				mock.On("DeviceRemovedList", ctx, namespaceWithLimit.TenantID).
-					Return([]models.DeviceRemoved{
-						{
-							UID:    models.UID("1"),
-							Tenant: namespaceWithLimit.TenantID,
-						},
-						{
-							UID:    models.UID("2"),
-							Tenant: namespaceWithLimit.TenantID,
-						},
-					}, nil).Once()
+				mock.On("DeviceRemovedCount", ctx, namespaceWithLimit.TenantID).
+					Return(int64(2), nil).Once()
 			},
 			expected: NewErrDeviceRemovedFull(namespaceWithLimit.MaxDevices, nil),
 		},
