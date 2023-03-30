@@ -38,12 +38,12 @@ func (s *service) ListDevices(ctx context.Context, tenant string, pagination pag
 			return nil, 0, NewErrNamespaceNotFound(tenant, err)
 		}
 
-		removed, err := s.store.DeviceRemovedList(ctx, ns.TenantID)
+		count, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
 		if err != nil {
-			return nil, 0, NewErrDeviceRemovedList(err)
+			return nil, 0, NewErrDeviceRemovedCount(err)
 		}
 
-		if (ns.DevicesCount + len(removed)) >= ns.MaxDevices {
+		if (int64(ns.DevicesCount) + count) >= int64(ns.MaxDevices) {
 			return s.store.DeviceList(ctx, pagination, filter, status, sort, order, true)
 		}
 	}
@@ -203,12 +203,12 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 				return NewErrDeviceRemovedDelete(err)
 			}
 		} else {
-			removed, err := s.store.DeviceRemovedList(ctx, tenant)
+			count, err := s.store.DeviceRemovedCount(ctx, tenant)
 			if err != nil {
-				return NewErrDeviceRemovedList(err)
+				return NewErrDeviceRemovedCount(err)
 			}
 
-			if (ns.DevicesCount + len(removed)) >= ns.MaxDevices {
+			if (int64(ns.DevicesCount) + count) >= int64(ns.MaxDevices) {
 				return NewErrDeviceRemovedFull(ns.MaxDevices, nil)
 			}
 		}
