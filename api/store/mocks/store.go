@@ -281,32 +281,32 @@ func (_m *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID st
 	return r0, r1
 }
 
-// DeviceList provides a mock function with given fields: ctx, pagination, filters, status, sort, _a5
-func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, _a5 string) ([]models.Device, int, error) {
-	ret := _m.Called(ctx, pagination, filters, status, sort, _a5)
+// DeviceList provides a mock function with given fields: ctx, pagination, filters, status, sort, _a5, removed
+func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, _a5 string, removed bool) ([]models.Device, int, error) {
+	ret := _m.Called(ctx, pagination, filters, status, sort, _a5, removed)
 
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, string, string, string) ([]models.Device, int, error)); ok {
-		return rf(ctx, pagination, filters, status, sort, _a5)
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, string, string, string, bool) ([]models.Device, int, error)); ok {
+		return rf(ctx, pagination, filters, status, sort, _a5, removed)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, string, string, string) []models.Device); ok {
-		r0 = rf(ctx, pagination, filters, status, sort, _a5)
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, string, string, string, bool) []models.Device); ok {
+		r0 = rf(ctx, pagination, filters, status, sort, _a5, removed)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, string, string, string) int); ok {
-		r1 = rf(ctx, pagination, filters, status, sort, _a5)
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, string, string, string, bool) int); ok {
+		r1 = rf(ctx, pagination, filters, status, sort, _a5, removed)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, string, string, string) error); ok {
-		r2 = rf(ctx, pagination, filters, status, sort, _a5)
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, string, string, string, bool) error); ok {
+		r2 = rf(ctx, pagination, filters, status, sort, _a5, removed)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -378,6 +378,86 @@ func (_m *Store) DeviceRemoveTag(ctx context.Context, uid models.UID, tag string
 	}
 
 	return r0
+}
+
+// DeviceRemovedDelete provides a mock function with given fields: ctx, tenant, uid
+func (_m *Store) DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error {
+	ret := _m.Called(ctx, tenant, uid)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) error); ok {
+		r0 = rf(ctx, tenant, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeviceRemovedGet provides a mock function with given fields: ctx, tenant, uid
+func (_m *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error) {
+	ret := _m.Called(ctx, tenant, uid)
+
+	var r0 *models.DeviceRemoved
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) (*models.DeviceRemoved, error)); ok {
+		return rf(ctx, tenant, uid)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) *models.DeviceRemoved); ok {
+		r0 = rf(ctx, tenant, uid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DeviceRemoved)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, models.UID) error); ok {
+		r1 = rf(ctx, tenant, uid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeviceRemovedInsert provides a mock function with given fields: ctx, tenant, uid
+func (_m *Store) DeviceRemovedInsert(ctx context.Context, tenant string, uid models.UID) error {
+	ret := _m.Called(ctx, tenant, uid)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) error); ok {
+		r0 = rf(ctx, tenant, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeviceRemovedList provides a mock function with given fields: ctx, tenant
+func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string) ([]models.DeviceRemoved, error) {
+	ret := _m.Called(ctx, tenant)
+
+	var r0 []models.DeviceRemoved
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]models.DeviceRemoved, error)); ok {
+		return rf(ctx, tenant)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []models.DeviceRemoved); ok {
+		r0 = rf(ctx, tenant)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.DeviceRemoved)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenant)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // DeviceRename provides a mock function with given fields: ctx, uid, hostname
@@ -1539,86 +1619,6 @@ func (_m *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, 
 	}
 
 	return r0
-}
-
-// SlotDelete provides a mock function with given fields: ctx, tenant, uid
-func (_m *Store) DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error {
-	ret := _m.Called(ctx, tenant, uid)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) error); ok {
-		r0 = rf(ctx, tenant, uid)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SlotGet provides a mock function with given fields: ctx, tenant, uid
-func (_m *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error) {
-	ret := _m.Called(ctx, tenant, uid)
-
-	var r0 *models.DeviceRemoved
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) (*models.DeviceRemoved, error)); ok {
-		return rf(ctx, tenant, uid)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) *models.DeviceRemoved); ok {
-		r0 = rf(ctx, tenant, uid)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.DeviceRemoved)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, models.UID) error); ok {
-		r1 = rf(ctx, tenant, uid)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SlotPut provides a mock function with given fields: ctx, tenant, uid
-func (_m *Store) DeviceRemovedInsert(ctx context.Context, tenant string, uid models.UID) error {
-	ret := _m.Called(ctx, tenant, uid)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) error); ok {
-		r0 = rf(ctx, tenant, uid)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SlotsList provides a mock function with given fields: ctx, tenant
-func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string) ([]models.DeviceRemoved, error) {
-	ret := _m.Called(ctx, tenant)
-
-	var r0 []models.DeviceRemoved
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]models.DeviceRemoved, error)); ok {
-		return rf(ctx, tenant)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []models.DeviceRemoved); ok {
-		r0 = rf(ctx, tenant)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.DeviceRemoved)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenant)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // TagDelete provides a mock function with given fields: ctx, tenant, tag

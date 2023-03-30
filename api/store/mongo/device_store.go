@@ -16,7 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
+func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string, removed bool) ([]models.Device, int, error) {
 	queryMatch, err := queries.BuildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
@@ -82,6 +82,29 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 		query = append(query, bson.M{
 			"$sort": bson.M{"last_seen": -1},
 		})
+	}
+
+	if removed {
+		query = append(query, []bson.M{
+			{
+				"$lookup": bson.M{
+					"from":         "removed_devices",
+					"localField":   "uid",
+					"foreignField": "uid",
+					"as":           "removed",
+				},
+			},
+			{
+				"$match": bson.M{
+					"removed": bson.M{
+						"$ne": bson.A{},
+					},
+				},
+			},
+			{
+				"$unset": "removed",
+			},
+		}...)
 	}
 
 	// Apply filters if any

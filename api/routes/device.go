@@ -60,7 +60,12 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 		return err
 	}
 
-	devices, count, err := h.service.ListDevices(c.Ctx(), query.Query, filter, query.Status, query.SortBy, query.OrderBy)
+	var tenant string
+	if c.Tenant() != nil {
+		tenant = c.Tenant().ID
+	}
+
+	devices, count, err := h.service.ListDevices(c.Ctx(), tenant, query.Query, filter, query.Status, query.SortBy, query.OrderBy)
 	if err != nil {
 		return err
 	}

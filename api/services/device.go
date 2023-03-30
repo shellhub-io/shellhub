@@ -19,7 +19,7 @@ import (
 const StatusAccepted = "accepted"
 
 type DeviceService interface {
-	ListDevices(ctx context.Context, pagination paginator.Query, filter []models.Filter, status string, sort string, order string) ([]models.Device, int, error)
+	ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status, sort, order string) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
@@ -31,8 +31,24 @@ type DeviceService interface {
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 }
 
-func (s *service) ListDevices(ctx context.Context, pagination paginator.Query, filter []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
-	return s.store.DeviceList(ctx, pagination, filter, status, sort, order)
+func (s *service) ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status, sort, order string) ([]models.Device, int, error) {
+	if status == "pending" {
+		ns, err := s.store.NamespaceGet(ctx, tenant)
+		if err != nil {
+			return nil, 0, NewErrNamespaceNotFound(tenant, err)
+		}
+
+		removed, err := s.store.DeviceRemovedList(ctx, ns.TenantID)
+		if err != nil {
+			return nil, 0, NewErrDeviceRemovedList(err)
+		}
+
+		if (ns.DevicesCount + len(removed)) >= ns.MaxDevices {
+			return s.store.DeviceList(ctx, pagination, filter, status, sort, order, true)
+		}
+	}
+
+	return s.store.DeviceList(ctx, pagination, filter, status, sort, order, false)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
