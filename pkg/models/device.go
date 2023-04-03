@@ -23,6 +23,7 @@ type Device struct {
 	Position   *DevicePosition `json:"position" bson:"position"`
 	Tags       []string        `json:"tags" bson:"tags,omitempty"`
 	PublicURL  bool            `json:"public_url" bson:"public_url,omitempty"`
+	Acceptable bool            `json:"acceptable" bson:"acceptable,omitempty"`
 }
 
 type DeviceAuthClaims struct {

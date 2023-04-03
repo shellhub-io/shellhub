@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -16,7 +17,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string, removed bool) ([]models.Device, int, error) {
+// DeviceList returns a list of devices based on the given filters, pagination and sorting.
+func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string, mode store.DeviceListMode) ([]models.Device, int, error) {
 	queryMatch, err := queries.BuildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
@@ -67,6 +69,50 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 				"status": status,
 			},
 		}}, query...)
+
+		// As we have added to device the field called "acceptable" we needed, also, to add the correct value to it.
+		// The value of "acceptable" is based on the device status and the list mode. If the list status is "accepted"
+		// we need to add the field "acceptable" with the value "false", because the device is already accepted.
+		// Otherwise, if the list status is "pending" or "rejected" we evaluate the list mode. When it is
+		// store.DeviceListModeMaxDeviceReached we need to check if the device is in the removed devices list.
+		// If it is, the device is only acceptable if it is in the removed devices list. Otherwise, the device is
+		// unacceptable.
+		switch status {
+		case "accepted":
+			query = append(query, bson.M{
+				"$addFields": bson.M{
+					"acceptable": false,
+				},
+			})
+		case "pending", "rejected":
+			switch mode {
+			case store.DeviceListModeMaxDeviceReached:
+				query = append(query, []bson.M{
+					{
+						"$lookup": bson.M{
+							"from":         "removed_devices",
+							"localField":   "uid",
+							"foreignField": "uid",
+							"as":           "removed",
+						},
+					},
+					{
+						"$addFields": bson.M{
+							"acceptable": bson.M{"$anyElementTrue": []interface{}{"$removed"}},
+						},
+					},
+					{
+						"$unset": "removed",
+					},
+				}...)
+			default:
+				query = append(query, bson.M{
+					"$addFields": bson.M{
+						"acceptable": true,
+					},
+				})
+			}
+		}
 	}
 
 	orderVal := map[string]int{
@@ -82,29 +128,6 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 		query = append(query, bson.M{
 			"$sort": bson.M{"last_seen": -1},
 		})
-	}
-
-	if removed {
-		query = append(query, []bson.M{
-			{
-				"$lookup": bson.M{
-					"from":         "removed_devices",
-					"localField":   "uid",
-					"foreignField": "uid",
-					"as":           "removed",
-				},
-			},
-			{
-				"$match": bson.M{
-					"removed": bson.M{
-						"$ne": bson.A{},
-					},
-				},
-			},
-			{
-				"$unset": "removed",
-			},
-		}...)
 	}
 
 	// Apply filters if any
