@@ -32,7 +32,7 @@ type DeviceService interface {
 }
 
 func (s *service) ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status, sort, order string) ([]models.Device, int, error) {
-	if status == "pending" {
+	if status == "pending" || status == "rejected" {
 		ns, err := s.store.NamespaceGet(ctx, tenant)
 		if err != nil {
 			return nil, 0, NewErrNamespaceNotFound(tenant, err)
@@ -44,11 +44,11 @@ func (s *service) ListDevices(ctx context.Context, tenant string, pagination pag
 		}
 
 		if (int64(ns.DevicesCount) + count) >= int64(ns.MaxDevices) {
-			return s.store.DeviceList(ctx, pagination, filter, status, sort, order, true)
+			return s.store.DeviceList(ctx, pagination, filter, status, sort, order, store.DeviceListModeMaxDeviceReached)
 		}
 	}
 
-	return s.store.DeviceList(ctx, pagination, filter, status, sort, order, false)
+	return s.store.DeviceList(ctx, pagination, filter, status, sort, order, store.DeviceListModeDefault)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {

@@ -82,7 +82,7 @@ func TestListDevices(t *testing.T) {
 					Return(namespace, nil).Once()
 				mock.On("DeviceRemovedCount", ctx, namespace.TenantID).
 					Return(int64(1), nil).Once()
-				mock.On("DeviceList", ctx, query, filters, status[0], sort, order[0], true).
+				mock.On("DeviceList", ctx, query, filters, status[0], sort, order[0], store.DeviceListModeMaxDeviceReached).
 					Return(nil, 0, Err).Once()
 			},
 			expected: Expected{
@@ -100,7 +100,7 @@ func TestListDevices(t *testing.T) {
 			sort:       sort,
 			order:      order[1],
 			requiredMocks: func() {
-				mock.On("DeviceList", ctx, query, filters, status[1], sort, order[1], false).
+				mock.On("DeviceList", ctx, query, filters, status[1], sort, order[1], store.DeviceListModeDefault).
 					Return(nil, 0, Err).Once()
 			},
 			expected: Expected{
@@ -122,7 +122,7 @@ func TestListDevices(t *testing.T) {
 					Return(namespace, nil).Once()
 				mock.On("DeviceRemovedCount", ctx, namespace.TenantID).
 					Return(int64(1), nil).Once()
-				mock.On("DeviceList", ctx, query, filters, status[0], sort, order[0], true).
+				mock.On("DeviceList", ctx, query, filters, status[0], sort, order[0], store.DeviceListModeMaxDeviceReached).
 					Return(devices, len(devices), nil).Once()
 			},
 			expected: Expected{
@@ -140,7 +140,7 @@ func TestListDevices(t *testing.T) {
 			sort:       sort,
 			order:      order[1],
 			requiredMocks: func() {
-				mock.On("DeviceList", ctx, query, filters, status[1], sort, order[1], false).
+				mock.On("DeviceList", ctx, query, filters, status[1], sort, order[1], store.DeviceListModeDefault).
 					Return(devices, len(devices), nil).Once()
 			},
 			expected: Expected{

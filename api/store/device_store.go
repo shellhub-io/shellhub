@@ -8,8 +8,18 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+type DeviceListMode uint
+
+const (
+	DeviceListModeDefault DeviceListMode = iota + 1
+	// DeviceListModeMaxDeviceReached is used to indicate to the DeviceList method that the namepsace's device maxium
+	// number of devices has been reached and should set the "acceptable" value to true for devices that were recently
+	// removed.
+	DeviceListModeMaxDeviceReached
+)
+
 type DeviceStore interface {
-	DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string, removed bool) ([]models.Device, int, error)
+	DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string, mode DeviceListMode) ([]models.Device, int, error)
 	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeviceUpdate(ctx context.Context, uid models.UID, name *string, publicURL *bool) error
 	DeviceDelete(ctx context.Context, uid models.UID) error
