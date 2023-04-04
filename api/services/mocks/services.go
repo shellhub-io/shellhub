@@ -776,16 +776,16 @@ func (_m *Service) KeepAliveSession(ctx context.Context, uid models.UID) error {
 }
 
 // ListDevices provides a mock function with given fields: ctx, tenant, pagination, filter, status, sort, order
-func (_m *Service) ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status string, sort string, order string) ([]models.Device, int, error) {
+func (_m *Service) ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status models.DeviceStatus, sort string, order string) ([]models.Device, int, error) {
 	ret := _m.Called(ctx, tenant, pagination, filter, status, sort, order)
 
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, paginator.Query, []models.Filter, string, string, string) ([]models.Device, int, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, paginator.Query, []models.Filter, models.DeviceStatus, string, string) ([]models.Device, int, error)); ok {
 		return rf(ctx, tenant, pagination, filter, status, sort, order)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, paginator.Query, []models.Filter, string, string, string) []models.Device); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, paginator.Query, []models.Filter, models.DeviceStatus, string, string) []models.Device); ok {
 		r0 = rf(ctx, tenant, pagination, filter, status, sort, order)
 	} else {
 		if ret.Get(0) != nil {
@@ -793,13 +793,13 @@ func (_m *Service) ListDevices(ctx context.Context, tenant string, pagination pa
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, paginator.Query, []models.Filter, string, string, string) int); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, paginator.Query, []models.Filter, models.DeviceStatus, string, string) int); ok {
 		r1 = rf(ctx, tenant, pagination, filter, status, sort, order)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string, paginator.Query, []models.Filter, string, string, string) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, string, paginator.Query, []models.Filter, models.DeviceStatus, string, string) error); ok {
 		r2 = rf(ctx, tenant, pagination, filter, status, sort, order)
 	} else {
 		r2 = ret.Error(2)
@@ -1156,11 +1156,11 @@ func (_m *Service) UpdatePasswordUser(ctx context.Context, id string, currentPas
 }
 
 // UpdatePendingStatus provides a mock function with given fields: ctx, uid, status, tenant
-func (_m *Service) UpdatePendingStatus(ctx context.Context, uid models.UID, status string, tenant string) error {
+func (_m *Service) UpdatePendingStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error {
 	ret := _m.Called(ctx, uid, status, tenant)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DeviceStatus, string) error); ok {
 		r0 = rf(ctx, uid, status, tenant)
 	} else {
 		r0 = ret.Error(0)

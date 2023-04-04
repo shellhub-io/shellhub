@@ -19,7 +19,7 @@ const (
 )
 
 type DeviceStore interface {
-	DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string, mode DeviceListMode) ([]models.Device, int, error)
+	DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status models.DeviceStatus, sort string, order string, mode DeviceListMode) ([]models.Device, int, error)
 	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeviceUpdate(ctx context.Context, uid models.UID, name *string, publicURL *bool) error
 	DeviceDelete(ctx context.Context, uid models.UID) error
@@ -29,8 +29,8 @@ type DeviceStore interface {
 	DeviceSetOnline(ctx context.Context, uid models.UID, online bool) error
 	DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error
 	DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error
-	DeviceUpdateStatus(ctx context.Context, uid models.UID, status string) error
-	DeviceGetByMac(ctx context.Context, mac string, tenantID string, status string) (*models.Device, error)
+	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error
+	DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error)
 	DeviceGetByName(ctx context.Context, name string, tenantID string) (*models.Device, error)
 	DeviceGetByUID(ctx context.Context, uid models.UID, tenantID string) (*models.Device, error)
 	DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error

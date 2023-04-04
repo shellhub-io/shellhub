@@ -19,20 +19,20 @@ import (
 const StatusAccepted = "accepted"
 
 type DeviceService interface {
-	ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status, sort, order string) ([]models.Device, int, error)
+	ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status models.DeviceStatus, sort, order string) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
-	UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant string) error
+	UpdatePendingStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error
 	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
 	DeviceHeartbeat(ctx context.Context, uid models.UID) error
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 }
 
-func (s *service) ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status, sort, order string) ([]models.Device, int, error) {
-	if status == "pending" || status == "rejected" {
+func (s *service) ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status models.DeviceStatus, sort, order string) ([]models.Device, int, error) {
+	if status == models.DeviceStatusPending || status == models.DeviceStatusRejected {
 		ns, err := s.store.NamespaceGet(ctx, tenant)
 		if err != nil {
 			return nil, 0, NewErrNamespaceNotFound(tenant, err)
@@ -161,15 +161,15 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online
 	return err
 }
 
-func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status, tenant string) error {
+func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error {
 	validateStatus := map[string]bool{
 		"accepted": true,
 		"pending":  true,
 		"rejected": true,
 	}
 
-	if _, ok := validateStatus[status]; !ok {
-		return NewErrDeviceStatusInvalid(status, nil)
+	if _, ok := validateStatus[string(status)]; !ok {
+		return NewErrDeviceStatusInvalid(string(status), nil)
 	}
 
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
@@ -177,7 +177,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 		return NewErrDeviceNotFound(uid, err)
 	}
 
-	if device.Status == StatusAccepted {
+	if device.Status == models.DeviceStatusAccepted {
 		return NewErrDeviceStatusAccepted(nil)
 	}
 
@@ -186,7 +186,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
-	if status != StatusAccepted {
+	if status != models.DeviceStatusAccepted {
 		return s.store.DeviceUpdateStatus(ctx, uid, status)
 	}
 

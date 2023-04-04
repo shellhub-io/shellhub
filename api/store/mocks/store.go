@@ -206,15 +206,15 @@ func (_m *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device,
 }
 
 // DeviceGetByMac provides a mock function with given fields: ctx, mac, tenantID, status
-func (_m *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status string) (*models.Device, error) {
+func (_m *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error) {
 	ret := _m.Called(ctx, mac, tenantID, status)
 
 	var r0 *models.Device
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (*models.Device, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, models.DeviceStatus) (*models.Device, error)); ok {
 		return rf(ctx, mac, tenantID, status)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *models.Device); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, models.DeviceStatus) *models.Device); ok {
 		r0 = rf(ctx, mac, tenantID, status)
 	} else {
 		if ret.Get(0) != nil {
@@ -222,7 +222,7 @@ func (_m *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, models.DeviceStatus) error); ok {
 		r1 = rf(ctx, mac, tenantID, status)
 	} else {
 		r1 = ret.Error(1)
@@ -284,16 +284,16 @@ func (_m *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID st
 }
 
 // DeviceList provides a mock function with given fields: ctx, pagination, filters, status, sort, _a5, mode
-func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, _a5 string, mode store.DeviceListMode) ([]models.Device, int, error) {
+func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status models.DeviceStatus, sort string, _a5 string, mode store.DeviceListMode) ([]models.Device, int, error) {
 	ret := _m.Called(ctx, pagination, filters, status, sort, _a5, mode)
 
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, string, string, string, store.DeviceListMode) ([]models.Device, int, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) ([]models.Device, int, error)); ok {
 		return rf(ctx, pagination, filters, status, sort, _a5, mode)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, string, string, string, store.DeviceListMode) []models.Device); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) []models.Device); ok {
 		r0 = rf(ctx, pagination, filters, status, sort, _a5, mode)
 	} else {
 		if ret.Get(0) != nil {
@@ -301,13 +301,13 @@ func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, fil
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, string, string, string, store.DeviceListMode) int); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) int); ok {
 		r1 = rf(ctx, pagination, filters, status, sort, _a5, mode)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, string, string, string, store.DeviceListMode) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) error); ok {
 		r2 = rf(ctx, pagination, filters, status, sort, _a5, mode)
 	} else {
 		r2 = ret.Error(2)
@@ -545,11 +545,11 @@ func (_m *Store) DeviceUpdateOnline(ctx context.Context, uid models.UID, online 
 }
 
 // DeviceUpdateStatus provides a mock function with given fields: ctx, uid, status
-func (_m *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status string) error {
+func (_m *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error {
 	ret := _m.Called(ctx, uid, status)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DeviceStatus) error); ok {
 		r0 = rf(ctx, uid, status)
 	} else {
 		r0 = ret.Error(0)

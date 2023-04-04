@@ -46,7 +46,7 @@ func TestListDevices(t *testing.T) {
 
 	query := paginator.Query{Page: 1, PerPage: 10}
 
-	status := []string{"pending", "accepted", "rejected"}
+	status := []models.DeviceStatus{models.DeviceStatusPending, models.DeviceStatusAccepted, models.DeviceStatusRejected}
 	sort := "name"
 	order := []string{"asc", "desc"}
 
@@ -61,13 +61,14 @@ func TestListDevices(t *testing.T) {
 	}
 
 	cases := []struct {
-		name                string
-		tenant              string
-		pagination          paginator.Query
-		filter              []models.Filter
-		status, sort, order string
-		requiredMocks       func()
-		expected            Expected
+		name          string
+		tenant        string
+		pagination    paginator.Query
+		filter        []models.Filter
+		status        models.DeviceStatus
+		sort, order   string
+		requiredMocks func()
+		expected      Expected
 	}{
 		{
 			name:       "ListDevices fails when the store device list fails when status is pending",
@@ -646,17 +647,18 @@ func TestUpdatePendingStatus(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
-		name               string
-		uid                models.UID
-		status, tenant, id string
-		requiredMocks      func()
-		expected           error
+		name          string
+		uid           models.UID
+		status        models.DeviceStatus
+		tenant, id    string
+		requiredMocks func()
+		expected      error
 	}{
 		{
 			name:   "UpdatePendingStatus fails when the status is invalid",
 			uid:    models.UID("uid"),
 			tenant: namespace.TenantID,
-			status: "invalid",
+			status: models.DeviceStatus("invalid"),
 			id:     user.ID,
 			requiredMocks: func() {
 			},
@@ -666,7 +668,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			name:   "UpdatePendingStatus fails when the store get by uid fails",
 			uid:    models.UID("uid"),
 			tenant: namespace.TenantID,
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			id:     user.ID,
 			requiredMocks: func() {
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), namespace.TenantID).
@@ -677,7 +679,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus fails when device already accepted",
 			uid:    models.UID("uid"),
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			tenant: namespace.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
@@ -689,7 +691,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus fails to update accept",
 			uid:    models.UID("uid"),
-			status: "pending",
+			status: models.DeviceStatusPending,
 			tenant: namespace.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
@@ -700,7 +702,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus fail when could not get namespace",
 			uid:    models.UID(device.UID),
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			tenant: namespace.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
@@ -714,7 +716,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "Test should fail when device removed get return a error that is not store.ErrNoDocuments",
 			uid:    models.UID(device.UID),
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			tenant: namespaceWithLimit.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
@@ -731,7 +733,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "Test should fail when device is not removed, but device removed list return a error",
 			uid:    models.UID(device.UID),
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			tenant: namespaceWithLimit.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
@@ -750,7 +752,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "Test should fail when device is not removed, but the device limit has been reached",
 			uid:    models.UID(device.UID),
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			tenant: namespaceWithLimit.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
@@ -769,7 +771,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "Test should fail when device was removed, but device removed delete return a error",
 			uid:    models.UID(device.UID),
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			tenant: namespaceWithLimit.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
@@ -791,7 +793,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus fails when the limit is exceeded",
 			uid:    models.UID("uid_limit"),
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			tenant: "tenant_max",
 			id:     user.ID,
 			requiredMocks: func() {
@@ -802,7 +804,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				mock.On("NamespaceGet", ctx, deviceExceed.TenantID).
 					Return(namespaceExceedLimit, nil).Twice()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				mock.On("DeviceGetByMac", ctx, "mac", deviceExceed.TenantID, "accepted").
+				mock.On("DeviceGetByMac", ctx, "mac", deviceExceed.TenantID, models.DeviceStatusAccepted).
 					Return(nil, nil).Once()
 			},
 			expected: NewErrDeviceLimit(3, nil),
@@ -810,7 +812,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus succeeds",
 			uid:    models.UID("uid"),
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			tenant: namespace.TenantID,
 			id:     user.ID,
 			requiredMocks: func() {
@@ -820,7 +822,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespace, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
+				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, models.DeviceStatusAccepted).
 					Return(oldDevice, nil).Once()
 				mock.On("SessionUpdateDeviceUID", ctx, models.UID(oldDevice.UID), models.UID(device.UID)).
 					Return(nil).Once()
@@ -828,7 +830,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 					Return(nil).Once()
 				mock.On("DeviceRename", ctx, models.UID(device.UID), oldDevice.Name).
 					Return(nil).Once()
-				mock.On("DeviceUpdateStatus", ctx, models.UID(device.UID), "accepted").
+				mock.On("DeviceUpdateStatus", ctx, models.UID(device.UID), models.DeviceStatusAccepted).
 					Return(nil).Once()
 			},
 			expected: nil,
@@ -836,7 +838,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus reports usage",
 			uid:    models.UID("uid"),
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			tenant: "tenant_max",
 			id:     user.ID,
 			requiredMocks: func() {
@@ -849,7 +851,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
 					Return(device, nil).Once()
-				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
+				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, models.DeviceStatusAccepted).
 					Return(nil, nil).Once()
 				clockMock.On("Now").Return(now).Twice()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
@@ -859,7 +861,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 					Namespace: namespaceBilling,
 					Timestamp: now.Unix(),
 				}).Return(200, nil).Once()
-				mock.On("DeviceUpdateStatus", ctx, models.UID(device.UID), "accepted").
+				mock.On("DeviceUpdateStatus", ctx, models.UID(device.UID), models.DeviceStatusAccepted).
 					Return(nil).Once()
 			},
 			expected: nil,
@@ -867,7 +869,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		{
 			name:   "UpdatePendingStatus fails to reports usage",
 			uid:    models.UID("uid"),
-			status: "accepted",
+			status: models.DeviceStatusAccepted,
 			tenant: "tenant_max",
 			id:     user.ID,
 			requiredMocks: func() {
@@ -880,7 +882,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
 					Return(device, nil).Once()
-				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, "accepted").
+				mock.On("DeviceGetByMac", ctx, "mac", device.TenantID, models.DeviceStatusAccepted).
 					Return(nil, nil).Once()
 				clockMock.On("Now").Return(now).Twice()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
