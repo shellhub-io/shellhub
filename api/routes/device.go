@@ -35,10 +35,10 @@ const (
 )
 
 type filterQuery struct {
-	Filter  string `query:"filter"`
-	Status  string `query:"status"`
-	SortBy  string `query:"sort_by"`
-	OrderBy string `query:"order_by"`
+	Filter  string              `query:"filter"`
+	Status  models.DeviceStatus `query:"status"`
+	SortBy  string              `query:"sort_by"`
+	OrderBy string              `query:"order_by"`
 	paginator.Query
 }
 
@@ -204,7 +204,7 @@ func (h *Handler) UpdatePendingStatus(c gateway.Context) error {
 		"unused":  "unused",
 	}
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Accept, func() error {
-		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(req.UID), status[req.Status], tenant)
+		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(req.UID), models.DeviceStatus(status[req.Status]), tenant)
 
 		return err
 	})

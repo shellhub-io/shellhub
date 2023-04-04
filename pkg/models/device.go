@@ -6,6 +6,15 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 )
 
+type DeviceStatus string
+
+const (
+	DeviceStatusAccepted DeviceStatus = "accepted"
+	DeviceStatusPending  DeviceStatus = "pending"
+	DeviceStatusRejected DeviceStatus = "rejected"
+	DeviceStatusUnused   DeviceStatus = "unused"
+)
+
 type Device struct {
 	// UID is the unique identifier for a device.
 	UID        string          `json:"uid"`
@@ -17,7 +26,7 @@ type Device struct {
 	LastSeen   time.Time       `json:"last_seen" bson:"last_seen"`
 	Online     bool            `json:"online" bson:",omitempty"`
 	Namespace  string          `json:"namespace" bson:",omitempty"`
-	Status     string          `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
+	Status     DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
 	CreatedAt  time.Time       `json:"created_at" bson:"created_at,omitempty"`
 	RemoteAddr string          `json:"remote_addr" bson:"remote_addr"`
 	Position   *DevicePosition `json:"position" bson:"position"`

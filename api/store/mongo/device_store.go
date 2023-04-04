@@ -18,7 +18,7 @@ import (
 )
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
-func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status string, sort string, order string, mode store.DeviceListMode) ([]models.Device, int, error) {
+func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status models.DeviceStatus, sort string, order string, mode store.DeviceListMode) ([]models.Device, int, error) {
 	queryMatch, err := queries.BuildFilterQuery(filters)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
@@ -78,13 +78,13 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 		// If it is, the device is only acceptable if it is in the removed devices list. Otherwise, the device is
 		// unacceptable.
 		switch status {
-		case "accepted":
+		case models.DeviceStatusAccepted:
 			query = append(query, bson.M{
 				"$addFields": bson.M{
 					"acceptable": false,
 				},
 			})
-		case "pending", "rejected":
+		case models.DeviceStatusPending, models.DeviceStatusRejected:
 			switch mode {
 			case store.DeviceListModeMaxDeviceReached:
 				query = append(query, []bson.M{
@@ -323,7 +323,7 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 		UID:      device.UID,
 		TenantID: device.TenantID,
 		LastSeen: clock.Now(),
-		Status:   device.Status,
+		Status:   string(device.Status),
 	}
 
 	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
@@ -345,7 +345,7 @@ func (s *Store) DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts tim
 	return FromMongoError(err)
 }
 
-func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status string) error {
+func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
 		return FromMongoError(err)
@@ -361,7 +361,7 @@ func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status s
 		UID:      device.UID,
 		TenantID: device.TenantID,
 		LastSeen: clock.Now(),
-		Status:   status,
+		Status:   string(status),
 	}
 
 	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
@@ -417,7 +417,7 @@ func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.
 	return uids, nil
 }
 
-func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status string) (*models.Device, error) {
+func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error) {
 	device := new(models.Device)
 	if status != "" {
 		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "identity": bson.M{"mac": mac}, "status": status}).Decode(&device); err != nil {
