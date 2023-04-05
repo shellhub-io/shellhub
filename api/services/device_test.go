@@ -51,7 +51,9 @@ func TestListDevices(t *testing.T) {
 	order := []string{"asc", "desc"}
 
 	namespace := &models.Namespace{
-		TenantID: tenant,
+		TenantID:     tenant,
+		MaxDevices:   3,
+		DevicesCount: 3,
 	}
 
 	type Expected struct {
