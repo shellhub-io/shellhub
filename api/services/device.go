@@ -43,7 +43,7 @@ func (s *service) ListDevices(ctx context.Context, tenant string, pagination pag
 			return nil, 0, NewErrDeviceRemovedCount(err)
 		}
 
-		if (int64(ns.DevicesCount) + count) >= int64(ns.MaxDevices) {
+		if ns.HasMaxDevicesReached(count) {
 			return s.store.DeviceList(ctx, pagination, filter, status, sort, order, store.DeviceListModeMaxDeviceReached)
 		}
 	}
@@ -192,7 +192,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 
 	// NOTICE: The logic below is only executed when the new status is "accepted".
 
-	if envs.IsCloud() && ns.MaxDevices > 0 {
+	if envs.IsCloud() && ns.HasMaxDevices() {
 		removed, err := s.store.DeviceRemovedGet(ctx, tenant, uid)
 		if err != nil && err != store.ErrNoDocuments {
 			return NewErrDeviceRemovedGet(err)
@@ -208,7 +208,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 				return NewErrDeviceRemovedCount(err)
 			}
 
-			if (int64(ns.DevicesCount) + count) >= int64(ns.MaxDevices) {
+			if ns.HasMaxDevicesReached(count) {
 				return NewErrDeviceRemovedFull(ns.MaxDevices, nil)
 			}
 		}
