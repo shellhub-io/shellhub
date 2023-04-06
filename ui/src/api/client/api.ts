@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * ShellHub Cloud
- * ShellHub Cloud documentation.  It documents all routes provided by ShellHub Cloud.   NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR. 
+ * ShellHub Cloud OpenAPI
+ * > NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.  ShellHub Cloud OpenAPI specification.  It documents all routes provided by ShellHub Cloud. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.2
  * Contact: contato@ossystems.com.br
@@ -121,6 +121,112 @@ export interface AnnouncementShort {
      * @memberof AnnouncementShort
      */
     'date'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface AuthDevice200Response
+ */
+export interface AuthDevice200Response {
+    /**
+     * Device\'s UID
+     * @type {string}
+     * @memberof AuthDevice200Response
+     */
+    'uid'?: string;
+    /**
+     * Device\'s token
+     * @type {string}
+     * @memberof AuthDevice200Response
+     */
+    'token'?: string;
+    /**
+     * Device\'s name   By default, the name is the device\'s MAC address when it just added. 
+     * @type {string}
+     * @memberof AuthDevice200Response
+     */
+    'name'?: string;
+    /**
+     * Device\'s namespace name
+     * @type {string}
+     * @memberof AuthDevice200Response
+     */
+    'namespace'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface AuthDeviceRequest
+ */
+export interface AuthDeviceRequest {
+    /**
+     * 
+     * @type {DeviceInfo}
+     * @memberof AuthDeviceRequest
+     */
+    'info': DeviceInfo;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof AuthDeviceRequest
+     */
+    'sessions'?: Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof AuthDeviceRequest
+     */
+    'hostname': string;
+    /**
+     * 
+     * @type {DeviceIdentity}
+     * @memberof AuthDeviceRequest
+     */
+    'identity'?: DeviceIdentity;
+    /**
+     * Device\'s public key.
+     * @type {string}
+     * @memberof AuthDeviceRequest
+     */
+    'public_key': string;
+    /**
+     * Namespace\'s tenant ID
+     * @type {string}
+     * @memberof AuthDeviceRequest
+     */
+    'tenant_id': string;
+}
+/**
+ * 
+ * @export
+ * @interface AuthSSHPublicKey200Response
+ */
+export interface AuthSSHPublicKey200Response {
+    /**
+     * Device\'s signature.
+     * @type {string}
+     * @memberof AuthSSHPublicKey200Response
+     */
+    'signature'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface AuthSSHPublicKeyRequest
+ */
+export interface AuthSSHPublicKeyRequest {
+    /**
+     * Public key\'s fingerprint.
+     * @type {string}
+     * @memberof AuthSSHPublicKeyRequest
+     */
+    'fingerprint': string;
+    /**
+     * Public key\'s data.
+     * @type {string}
+     * @memberof AuthSSHPublicKeyRequest
+     */
+    'data': string;
 }
 /**
  * 
@@ -377,7 +483,7 @@ export interface Device {
      */
     'public_url'?: boolean;
     /**
-     * Device\'s acceptablle
+     * Device\'s acceptable  The value \"acceptable\" is based on the number of devices removed and already accepted into a namespace. All devices are \"acceptable\" unless the \"namespace.max_devices\" is reached. This limit is set based on the sum up of accepted and removed devices into the namespace. When this limit is reached, only removed devices between 720 hours or 30 days are set to \"acceptable\". 
      * @type {boolean}
      * @memberof Device
      */
@@ -749,7 +855,7 @@ export interface GetSubscription200ResponseInvoicesInner {
  */
 export interface Info {
     /**
-     * ShellHub instance version.
+     * ShellHub version.
      * @type {string}
      * @memberof Info
      */
@@ -783,19 +889,19 @@ export interface InfoEndpoints {
 /**
  * 
  * @export
- * @interface Login
+ * @interface LoginRequest
  */
-export interface Login {
+export interface LoginRequest {
     /**
-     * Username
+     * User\'s username.
      * @type {string}
-     * @memberof Login
+     * @memberof LoginRequest
      */
     'username': string;
     /**
-     * Password
+     * User\'s password.
      * @type {string}
-     * @memberof Login
+     * @memberof LoginRequest
      */
     'password': string;
 }
@@ -909,82 +1015,8 @@ export interface NamespaceSettings {
     'session_record'?: boolean;
 }
 /**
- * 
- * @export
- * @interface PostAuthDevice200Response
- */
-export interface PostAuthDevice200Response {
-    /**
-     * Device\'s UID
-     * @type {string}
-     * @memberof PostAuthDevice200Response
-     */
-    'uid'?: string;
-    /**
-     * Device\'s token
-     * @type {string}
-     * @memberof PostAuthDevice200Response
-     */
-    'token'?: string;
-    /**
-     * Device\'s name   By default, the name is the device\'s MAC address when it just added. 
-     * @type {string}
-     * @memberof PostAuthDevice200Response
-     */
-    'name'?: string;
-    /**
-     * Device\'s namespace name
-     * @type {string}
-     * @memberof PostAuthDevice200Response
-     */
-    'namespace'?: string;
-}
-/**
- * 
- * @export
- * @interface PostAuthDeviceRequest
- */
-export interface PostAuthDeviceRequest {
-    /**
-     * 
-     * @type {DeviceInfo}
-     * @memberof PostAuthDeviceRequest
-     */
-    'info': DeviceInfo;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof PostAuthDeviceRequest
-     */
-    'sessions'?: Array<string>;
-    /**
-     * 
-     * @type {string}
-     * @memberof PostAuthDeviceRequest
-     */
-    'hostname': string;
-    /**
-     * 
-     * @type {DeviceIdentity}
-     * @memberof PostAuthDeviceRequest
-     */
-    'identity'?: DeviceIdentity;
-    /**
-     * Device\'s public key.
-     * @type {string}
-     * @memberof PostAuthDeviceRequest
-     */
-    'public_key': string;
-    /**
-     * Namespace\'s tenant ID
-     * @type {string}
-     * @memberof PostAuthDeviceRequest
-     */
-    'tenant_id': string;
-}
-/**
  * @type PublicKeyFilter
- * Public key\'s filter rule.   The `filter`` rule defines how if the public key is valid to a device.  - When `hostname` object is set, the public key will be used in a device what matches with hostname. - When `tags` object is set, it matches the device what contains at least one of that tags.  
+ * Public key\'s filter rule.   The `filter`` rule defines how if the public key is valid to a device.  - When `hostname` object is set, the public key will be used in a device what matches with hostname. - When `tags` object is set, it matches the device what contains at least one of that tags. 
  * @export
  */
 export type PublicKeyFilter = PublicKeyFilterOneOf | PublicKeyFilterOneOf1;
@@ -1374,38 +1406,6 @@ export interface SessionPosition {
 /**
  * 
  * @export
- * @interface SetSSHKey200Response
- */
-export interface SetSSHKey200Response {
-    /**
-     * Device signature
-     * @type {string}
-     * @memberof SetSSHKey200Response
-     */
-    'signature'?: string;
-}
-/**
- * 
- * @export
- * @interface SetSSHKeyRequest
- */
-export interface SetSSHKeyRequest {
-    /**
-     * Device fingerprint
-     * @type {string}
-     * @memberof SetSSHKeyRequest
-     */
-    'fingerprint'?: string;
-    /**
-     * Device SSH public key
-     * @type {string}
-     * @memberof SetSSHKeyRequest
-     */
-    'data'?: string;
-}
-/**
- * 
- * @export
  * @interface SetSessionAuthenticationStatusRequest
  */
 export interface SetSessionAuthenticationStatusRequest {
@@ -1428,19 +1428,6 @@ export interface SetSessionRecordRequest {
      * @memberof SetSessionRecordRequest
      */
     'session_record'?: boolean;
-}
-/**
- * 
- * @export
- * @interface UpdateDeviceNameRequest
- */
-export interface UpdateDeviceNameRequest {
-    /**
-     * Device\'s new name.
-     * @type {string}
-     * @memberof UpdateDeviceNameRequest
-     */
-    'name': string;
 }
 /**
  * 
@@ -1638,23 +1625,29 @@ export interface UserAuth {
      */
     'token'?: string;
     /**
+     * User\'s ID.
+     * @type {string}
+     * @memberof UserAuth
+     */
+    'id'?: string;
+    /**
      * User\'s username.
      * @type {string}
      * @memberof UserAuth
      */
     'user'?: string;
     /**
-     * User\'s display name.
+     * User\'s name.
      * @type {string}
      * @memberof UserAuth
      */
     'name'?: string;
     /**
-     * User\'s ID.
+     * User\'s E-mail.
      * @type {string}
      * @memberof UserAuth
      */
-    'id'?: string;
+    'email'?: string;
     /**
      * Namespace\'s tenant ID
      * @type {string}
@@ -1667,12 +1660,6 @@ export interface UserAuth {
      * @memberof UserAuth
      */
     'role'?: NamespaceMemberRole;
-    /**
-     * User\'s E-mail.
-     * @type {string}
-     * @memberof UserAuth
-     */
-    'email'?: string;
 }
 
 /**
@@ -4228,7 +4215,7 @@ export class CloudApi extends BaseAPI {
 export const DefaultApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Get info about ShellHub instance.
+         * Get information about ShellHub instance like version, SSH and API addresses.
          * @summary Get info
          * @param {string} [agentVersion] Agent\&#39;s version.
          * @param {*} [options] Override http request option.
@@ -4273,7 +4260,7 @@ export const DefaultApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = DefaultApiAxiosParamCreator(configuration)
     return {
         /**
-         * Get info about ShellHub instance.
+         * Get information about ShellHub instance like version, SSH and API addresses.
          * @summary Get info
          * @param {string} [agentVersion] Agent\&#39;s version.
          * @param {*} [options] Override http request option.
@@ -4294,7 +4281,7 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = DefaultApiFp(configuration)
     return {
         /**
-         * Get info about ShellHub instance.
+         * Get information about ShellHub instance like version, SSH and API addresses.
          * @summary Get info
          * @param {string} [agentVersion] Agent\&#39;s version.
          * @param {*} [options] Override http request option.
@@ -4314,7 +4301,7 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
  */
 export class DefaultApi extends BaseAPI {
     /**
-     * Get info about ShellHub instance.
+     * Get information about ShellHub instance like version, SSH and API addresses.
      * @summary Get info
      * @param {string} [agentVersion] Agent\&#39;s version.
      * @param {*} [options] Override http request option.
@@ -4365,6 +4352,92 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authDevice: async (xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/devices/auth`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (xRealIP !== undefined && xRealIP !== null) {
+                localVarHeaderParameter['X-Real-IP'] = String(xRealIP);
+            }
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(authDeviceRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authDevice_1: async (xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/auth/device`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (xRealIP !== undefined && xRealIP !== null) {
+                localVarHeaderParameter['X-Real-IP'] = String(xRealIP);
+            }
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(authDeviceRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -4630,92 +4703,6 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Auth a device.  Every 30 seconds, this route is hit by internal ShellHub to check device availability. 
-         * @summary Auth device
-         * @param {string} [xRealIP] 
-         * @param {PostAuthDeviceRequest} [postAuthDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        postAuthDevice: async (xRealIP?: string, postAuthDeviceRequest?: PostAuthDeviceRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/devices/auth`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-            if (xRealIP !== undefined && xRealIP !== null) {
-                localVarHeaderParameter['X-Real-IP'] = String(xRealIP);
-            }
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(postAuthDeviceRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Auth a device.  Every 30 seconds, this route is hit by internal ShellHub to check device availability. 
-         * @summary Auth device
-         * @param {string} [xRealIP] 
-         * @param {PostAuthDeviceRequest} [postAuthDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        postAuthDevice_1: async (xRealIP?: string, postAuthDeviceRequest?: PostAuthDeviceRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/auth/device`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-            if (xRealIP !== undefined && xRealIP !== null) {
-                localVarHeaderParameter['X-Real-IP'] = String(xRealIP);
-            }
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(postAuthDeviceRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Update device\'s data.
          * @summary Update device
          * @param {string} uid Device\&#39;s UID
@@ -4751,48 +4738,6 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(updateDeviceRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Update device\'s name.
-         * @summary Update device name
-         * @param {string} uid Device\&#39;s UID
-         * @param {UpdateDeviceNameRequest} [updateDeviceNameRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateDeviceName: async (uid: string, updateDeviceNameRequest?: UpdateDeviceNameRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('updateDeviceName', 'uid', uid)
-            const localVarPath = `/api/devices/{uid}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateDeviceNameRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -4943,6 +4888,30 @@ export const DevicesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authDevice(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthDevice200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authDevice(xRealIP, authDeviceRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authDevice_1(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthDevice200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authDevice_1(xRealIP, authDeviceRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Create a tag
          * @summary Create a tag
          * @param {string} uid Device\&#39;s UID
@@ -5015,30 +4984,6 @@ export const DevicesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Auth a device.  Every 30 seconds, this route is hit by internal ShellHub to check device availability. 
-         * @summary Auth device
-         * @param {string} [xRealIP] 
-         * @param {PostAuthDeviceRequest} [postAuthDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async postAuthDevice(xRealIP?: string, postAuthDeviceRequest?: PostAuthDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PostAuthDevice200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.postAuthDevice(xRealIP, postAuthDeviceRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Auth a device.  Every 30 seconds, this route is hit by internal ShellHub to check device availability. 
-         * @summary Auth device
-         * @param {string} [xRealIP] 
-         * @param {PostAuthDeviceRequest} [postAuthDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async postAuthDevice_1(xRealIP?: string, postAuthDeviceRequest?: PostAuthDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PostAuthDevice200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.postAuthDevice_1(xRealIP, postAuthDeviceRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * Update device\'s data.
          * @summary Update device
          * @param {string} uid Device\&#39;s UID
@@ -5048,18 +4993,6 @@ export const DevicesApiFp = function(configuration?: Configuration) {
          */
         async updateDevice(uid: string, updateDeviceRequest?: UpdateDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateDevice(uid, updateDeviceRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Update device\'s name.
-         * @summary Update device name
-         * @param {string} uid Device\&#39;s UID
-         * @param {UpdateDeviceNameRequest} [updateDeviceNameRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async updateDeviceName(uid: string, updateDeviceNameRequest?: UpdateDeviceNameRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateDeviceName(uid, updateDeviceNameRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -5116,6 +5049,28 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
          */
         acceptDevice(uid: string, options?: any): AxiosPromise<void> {
             return localVarFp.acceptDevice(uid, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authDevice(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: any): AxiosPromise<AuthDevice200Response> {
+            return localVarFp.authDevice(xRealIP, authDeviceRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authDevice_1(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: any): AxiosPromise<AuthDevice200Response> {
+            return localVarFp.authDevice_1(xRealIP, authDeviceRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Create a tag
@@ -5184,28 +5139,6 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getStatusDevices(options).then((request) => request(axios, basePath));
         },
         /**
-         * Auth a device.  Every 30 seconds, this route is hit by internal ShellHub to check device availability. 
-         * @summary Auth device
-         * @param {string} [xRealIP] 
-         * @param {PostAuthDeviceRequest} [postAuthDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        postAuthDevice(xRealIP?: string, postAuthDeviceRequest?: PostAuthDeviceRequest, options?: any): AxiosPromise<PostAuthDevice200Response> {
-            return localVarFp.postAuthDevice(xRealIP, postAuthDeviceRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Auth a device.  Every 30 seconds, this route is hit by internal ShellHub to check device availability. 
-         * @summary Auth device
-         * @param {string} [xRealIP] 
-         * @param {PostAuthDeviceRequest} [postAuthDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        postAuthDevice_1(xRealIP?: string, postAuthDeviceRequest?: PostAuthDeviceRequest, options?: any): AxiosPromise<PostAuthDevice200Response> {
-            return localVarFp.postAuthDevice_1(xRealIP, postAuthDeviceRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Update device\'s data.
          * @summary Update device
          * @param {string} uid Device\&#39;s UID
@@ -5215,17 +5148,6 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
          */
         updateDevice(uid: string, updateDeviceRequest?: UpdateDeviceRequest, options?: any): AxiosPromise<void> {
             return localVarFp.updateDevice(uid, updateDeviceRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Update device\'s name.
-         * @summary Update device name
-         * @param {string} uid Device\&#39;s UID
-         * @param {UpdateDeviceNameRequest} [updateDeviceNameRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateDeviceName(uid: string, updateDeviceNameRequest?: UpdateDeviceNameRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.updateDeviceName(uid, updateDeviceNameRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Update device\'s status.
@@ -5279,6 +5201,32 @@ export class DevicesApi extends BaseAPI {
      */
     public acceptDevice(uid: string, options?: AxiosRequestConfig) {
         return DevicesApiFp(this.configuration).acceptDevice(uid, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+     * @summary Auth device
+     * @param {string} [xRealIP] 
+     * @param {AuthDeviceRequest} [authDeviceRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DevicesApi
+     */
+    public authDevice(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: AxiosRequestConfig) {
+        return DevicesApiFp(this.configuration).authDevice(xRealIP, authDeviceRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+     * @summary Auth device
+     * @param {string} [xRealIP] 
+     * @param {AuthDeviceRequest} [authDeviceRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DevicesApi
+     */
+    public authDevice_1(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: AxiosRequestConfig) {
+        return DevicesApiFp(this.configuration).authDevice_1(xRealIP, authDeviceRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5360,32 +5308,6 @@ export class DevicesApi extends BaseAPI {
     }
 
     /**
-     * Auth a device.  Every 30 seconds, this route is hit by internal ShellHub to check device availability. 
-     * @summary Auth device
-     * @param {string} [xRealIP] 
-     * @param {PostAuthDeviceRequest} [postAuthDeviceRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof DevicesApi
-     */
-    public postAuthDevice(xRealIP?: string, postAuthDeviceRequest?: PostAuthDeviceRequest, options?: AxiosRequestConfig) {
-        return DevicesApiFp(this.configuration).postAuthDevice(xRealIP, postAuthDeviceRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Auth a device.  Every 30 seconds, this route is hit by internal ShellHub to check device availability. 
-     * @summary Auth device
-     * @param {string} [xRealIP] 
-     * @param {PostAuthDeviceRequest} [postAuthDeviceRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof DevicesApi
-     */
-    public postAuthDevice_1(xRealIP?: string, postAuthDeviceRequest?: PostAuthDeviceRequest, options?: AxiosRequestConfig) {
-        return DevicesApiFp(this.configuration).postAuthDevice_1(xRealIP, postAuthDeviceRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * Update device\'s data.
      * @summary Update device
      * @param {string} uid Device\&#39;s UID
@@ -5396,19 +5318,6 @@ export class DevicesApi extends BaseAPI {
      */
     public updateDevice(uid: string, updateDeviceRequest?: UpdateDeviceRequest, options?: AxiosRequestConfig) {
         return DevicesApiFp(this.configuration).updateDevice(uid, updateDeviceRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Update device\'s name.
-     * @summary Update device name
-     * @param {string} uid Device\&#39;s UID
-     * @param {UpdateDeviceNameRequest} [updateDeviceNameRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof DevicesApi
-     */
-    public updateDeviceName(uid: string, updateDeviceNameRequest?: UpdateDeviceNameRequest, options?: AxiosRequestConfig) {
-        return DevicesApiFp(this.configuration).updateDeviceName(uid, updateDeviceNameRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5452,11 +5361,307 @@ export class DevicesApi extends BaseAPI {
 
 
 /**
+ * ExternalApi - axios parameter creator
+ * @export
+ */
+export const ExternalApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * @summary Login
+         * @param {LoginRequest} [loginRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login: async (loginRequest?: LoginRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/login`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(loginRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * @summary Login
+         * @param {LoginRequest} [loginRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login_1: async (loginRequest?: LoginRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/auth/user`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(loginRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ExternalApi - functional programming interface
+ * @export
+ */
+export const ExternalApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ExternalApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * @summary Login
+         * @param {LoginRequest} [loginRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async login(loginRequest?: LoginRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.login(loginRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * @summary Login
+         * @param {LoginRequest} [loginRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async login_1(loginRequest?: LoginRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.login_1(loginRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * ExternalApi - factory interface
+ * @export
+ */
+export const ExternalApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ExternalApiFp(configuration)
+    return {
+        /**
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * @summary Login
+         * @param {LoginRequest} [loginRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login(loginRequest?: LoginRequest, options?: any): AxiosPromise<UserAuth> {
+            return localVarFp.login(loginRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * @summary Login
+         * @param {LoginRequest} [loginRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login_1(loginRequest?: LoginRequest, options?: any): AxiosPromise<UserAuth> {
+            return localVarFp.login_1(loginRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ExternalApi - object-oriented interface
+ * @export
+ * @class ExternalApi
+ * @extends {BaseAPI}
+ */
+export class ExternalApi extends BaseAPI {
+    /**
+     * Authenticate a user, returning the session\'s JWT token and data about the user.
+     * @summary Login
+     * @param {LoginRequest} [loginRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ExternalApi
+     */
+    public login(loginRequest?: LoginRequest, options?: AxiosRequestConfig) {
+        return ExternalApiFp(this.configuration).login(loginRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Authenticate a user, returning the session\'s JWT token and data about the user.
+     * @summary Login
+     * @param {LoginRequest} [loginRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ExternalApi
+     */
+    public login_1(loginRequest?: LoginRequest, options?: AxiosRequestConfig) {
+        return ExternalApiFp(this.configuration).login_1(loginRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
  * InternalApi - axios parameter creator
  * @export
  */
 export const InternalApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authDevice: async (xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/devices/auth`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (xRealIP !== undefined && xRealIP !== null) {
+                localVarHeaderParameter['X-Real-IP'] = String(xRealIP);
+            }
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(authDeviceRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authDevice_1: async (xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/auth/device`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (xRealIP !== undefined && xRealIP !== null) {
+                localVarHeaderParameter['X-Real-IP'] = String(xRealIP);
+            }
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(authDeviceRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Authenticate a SSH public key to ShellHub server.
+         * @summary Auth SSH public key
+         * @param {AuthSSHPublicKeyRequest} [authSSHPublicKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authSSHPublicKey: async (authSSHPublicKeyRequest?: AuthSSHPublicKeyRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/auth/ssh`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(authSSHPublicKeyRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * Update device\'s status to offiline.
          * @summary Update device status to offline
@@ -5506,6 +5711,41 @@ export const InternalApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = InternalApiAxiosParamCreator(configuration)
     return {
         /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authDevice(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthDevice200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authDevice(xRealIP, authDeviceRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authDevice_1(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthDevice200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authDevice_1(xRealIP, authDeviceRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Authenticate a SSH public key to ShellHub server.
+         * @summary Auth SSH public key
+         * @param {AuthSSHPublicKeyRequest} [authSSHPublicKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authSSHPublicKey(authSSHPublicKeyRequest?: AuthSSHPublicKeyRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthSSHPublicKey200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authSSHPublicKey(authSSHPublicKeyRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Update device\'s status to offiline.
          * @summary Update device status to offline
          * @param {string} uid Device\&#39;s UID
@@ -5527,6 +5767,38 @@ export const InternalApiFactory = function (configuration?: Configuration, baseP
     const localVarFp = InternalApiFp(configuration)
     return {
         /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authDevice(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: any): AxiosPromise<AuthDevice200Response> {
+            return localVarFp.authDevice(xRealIP, authDeviceRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+         * @summary Auth device
+         * @param {string} [xRealIP] 
+         * @param {AuthDeviceRequest} [authDeviceRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authDevice_1(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: any): AxiosPromise<AuthDevice200Response> {
+            return localVarFp.authDevice_1(xRealIP, authDeviceRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Authenticate a SSH public key to ShellHub server.
+         * @summary Auth SSH public key
+         * @param {AuthSSHPublicKeyRequest} [authSSHPublicKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authSSHPublicKey(authSSHPublicKeyRequest?: AuthSSHPublicKeyRequest, options?: any): AxiosPromise<AuthSSHPublicKey200Response> {
+            return localVarFp.authSSHPublicKey(authSSHPublicKeyRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Update device\'s status to offiline.
          * @summary Update device status to offline
          * @param {string} uid Device\&#39;s UID
@@ -5546,6 +5818,44 @@ export const InternalApiFactory = function (configuration?: Configuration, baseP
  * @extends {BaseAPI}
  */
 export class InternalApi extends BaseAPI {
+    /**
+     * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+     * @summary Auth device
+     * @param {string} [xRealIP] 
+     * @param {AuthDeviceRequest} [authDeviceRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InternalApi
+     */
+    public authDevice(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: AxiosRequestConfig) {
+        return InternalApiFp(this.configuration).authDevice(xRealIP, authDeviceRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Authenticate a ShellHub agent into the ShellHub server.  Every 30 seconds, this route is hit by ShellHub agent to inform device availability. 
+     * @summary Auth device
+     * @param {string} [xRealIP] 
+     * @param {AuthDeviceRequest} [authDeviceRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InternalApi
+     */
+    public authDevice_1(xRealIP?: string, authDeviceRequest?: AuthDeviceRequest, options?: AxiosRequestConfig) {
+        return InternalApiFp(this.configuration).authDevice_1(xRealIP, authDeviceRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Authenticate a SSH public key to ShellHub server.
+     * @summary Auth SSH public key
+     * @param {AuthSSHPublicKeyRequest} [authSSHPublicKeyRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InternalApi
+     */
+    public authSSHPublicKey(authSSHPublicKeyRequest?: AuthSSHPublicKeyRequest, options?: AxiosRequestConfig) {
+        return InternalApiFp(this.configuration).authSSHPublicKey(authSSHPublicKeyRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Update device\'s status to offiline.
      * @summary Update device status to offline
@@ -7617,6 +7927,44 @@ export const SshApiAxiosParamCreator = function (configuration?: Configuration) 
             };
         },
         /**
+         * Authenticate a SSH public key to ShellHub server.
+         * @summary Auth SSH public key
+         * @param {AuthSSHPublicKeyRequest} [authSSHPublicKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authSSHPublicKey: async (authSSHPublicKeyRequest?: AuthSSHPublicKeyRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/auth/ssh`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(authSSHPublicKeyRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Create a new public key.
          * @summary Create public key
          * @param {PublicKeyRequest} [publicKeyRequest] 
@@ -7784,44 +8132,6 @@ export const SshApiAxiosParamCreator = function (configuration?: Configuration) 
             };
         },
         /**
-         * Set a SSH public key.
-         * @summary Set SSH key
-         * @param {SetSSHKeyRequest} [setSSHKeyRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        setSSHKey: async (setSSHKeyRequest?: SetSSHKeyRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/auth/ssh`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(setSSHKeyRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Update a public key.
          * @summary Update public key
          * @param {string} fingerprint Public key\&#39;s fingerprint.
@@ -7928,6 +8238,17 @@ export const SshApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Authenticate a SSH public key to ShellHub server.
+         * @summary Auth SSH public key
+         * @param {AuthSSHPublicKeyRequest} [authSSHPublicKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authSSHPublicKey(authSSHPublicKeyRequest?: AuthSSHPublicKeyRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthSSHPublicKey200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authSSHPublicKey(authSSHPublicKeyRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Create a new public key.
          * @summary Create public key
          * @param {PublicKeyRequest} [publicKeyRequest] 
@@ -7972,17 +8293,6 @@ export const SshApiFp = function(configuration?: Configuration) {
          */
         async removeTagPublicKey(fingerprint: string, tag: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.removeTagPublicKey(fingerprint, tag, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Set a SSH public key.
-         * @summary Set SSH key
-         * @param {SetSSHKeyRequest} [setSSHKeyRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async setSSHKey(setSSHKeyRequest?: SetSSHKeyRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SetSSHKey200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.setSSHKey(setSSHKeyRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -8031,6 +8341,16 @@ export const SshApiFactory = function (configuration?: Configuration, basePath?:
             return localVarFp.addTagPublicKey(fingerprint, addTagPublicKeyRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Authenticate a SSH public key to ShellHub server.
+         * @summary Auth SSH public key
+         * @param {AuthSSHPublicKeyRequest} [authSSHPublicKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authSSHPublicKey(authSSHPublicKeyRequest?: AuthSSHPublicKeyRequest, options?: any): AxiosPromise<AuthSSHPublicKey200Response> {
+            return localVarFp.authSSHPublicKey(authSSHPublicKeyRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Create a new public key.
          * @summary Create public key
          * @param {PublicKeyRequest} [publicKeyRequest] 
@@ -8072,16 +8392,6 @@ export const SshApiFactory = function (configuration?: Configuration, basePath?:
          */
         removeTagPublicKey(fingerprint: string, tag: string, options?: any): AxiosPromise<void> {
             return localVarFp.removeTagPublicKey(fingerprint, tag, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Set a SSH public key.
-         * @summary Set SSH key
-         * @param {SetSSHKeyRequest} [setSSHKeyRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        setSSHKey(setSSHKeyRequest?: SetSSHKeyRequest, options?: any): AxiosPromise<SetSSHKey200Response> {
-            return localVarFp.setSSHKey(setSSHKeyRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Update a public key.
@@ -8126,6 +8436,18 @@ export class SshApi extends BaseAPI {
      */
     public addTagPublicKey(fingerprint: string, addTagPublicKeyRequest?: AddTagPublicKeyRequest, options?: AxiosRequestConfig) {
         return SshApiFp(this.configuration).addTagPublicKey(fingerprint, addTagPublicKeyRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Authenticate a SSH public key to ShellHub server.
+     * @summary Auth SSH public key
+     * @param {AuthSSHPublicKeyRequest} [authSSHPublicKeyRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SshApi
+     */
+    public authSSHPublicKey(authSSHPublicKeyRequest?: AuthSSHPublicKeyRequest, options?: AxiosRequestConfig) {
+        return SshApiFp(this.configuration).authSSHPublicKey(authSSHPublicKeyRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -8177,18 +8499,6 @@ export class SshApi extends BaseAPI {
      */
     public removeTagPublicKey(fingerprint: string, tag: string, options?: AxiosRequestConfig) {
         return SshApiFp(this.configuration).removeTagPublicKey(fingerprint, tag, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Set a SSH public key.
-     * @summary Set SSH key
-     * @param {SetSSHKeyRequest} [setSSHKeyRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SshApi
-     */
-    public setSSHKey(setSSHKeyRequest?: SetSSHKeyRequest, options?: AxiosRequestConfig) {
-        return SshApiFp(this.configuration).setSSHKey(setSSHKeyRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -9059,13 +9369,13 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Get data about a user
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
          * @summary Login
-         * @param {Login} [login] 
+         * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login: async (login?: Login, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        login: async (loginRequest?: LoginRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/login`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -9085,7 +9395,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(login, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(loginRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -9093,13 +9403,13 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Get data about a user
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
          * @summary Login
-         * @param {Login} [login] 
+         * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login_1: async (login?: Login, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        login_1: async (loginRequest?: LoginRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/auth/user`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -9119,7 +9429,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(login, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(loginRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -9434,25 +9744,25 @@ export const UsersApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Get data about a user
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
          * @summary Login
-         * @param {Login} [login] 
+         * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async login(login?: Login, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.login(login, options);
+        async login(loginRequest?: LoginRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.login(loginRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Get data about a user
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
          * @summary Login
-         * @param {Login} [login] 
+         * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async login_1(login?: Login, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.login_1(login, options);
+        async login_1(loginRequest?: LoginRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.login_1(loginRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -9577,24 +9887,24 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.getValidateAccount(email, token, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get data about a user
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
          * @summary Login
-         * @param {Login} [login] 
+         * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(login?: Login, options?: any): AxiosPromise<UserAuth> {
-            return localVarFp.login(login, options).then((request) => request(axios, basePath));
+        login(loginRequest?: LoginRequest, options?: any): AxiosPromise<UserAuth> {
+            return localVarFp.login(loginRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get data about a user
+         * Authenticate a user, returning the session\'s JWT token and data about the user.
          * @summary Login
-         * @param {Login} [login] 
+         * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login_1(login?: Login, options?: any): AxiosPromise<UserAuth> {
-            return localVarFp.login_1(login, options).then((request) => request(axios, basePath));
+        login_1(loginRequest?: LoginRequest, options?: any): AxiosPromise<UserAuth> {
+            return localVarFp.login_1(loginRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Send a recovery email to the user.
@@ -9717,27 +10027,27 @@ export class UsersApi extends BaseAPI {
     }
 
     /**
-     * Get data about a user
+     * Authenticate a user, returning the session\'s JWT token and data about the user.
      * @summary Login
-     * @param {Login} [login] 
+     * @param {LoginRequest} [loginRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    public login(login?: Login, options?: AxiosRequestConfig) {
-        return UsersApiFp(this.configuration).login(login, options).then((request) => request(this.axios, this.basePath));
+    public login(loginRequest?: LoginRequest, options?: AxiosRequestConfig) {
+        return UsersApiFp(this.configuration).login(loginRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Get data about a user
+     * Authenticate a user, returning the session\'s JWT token and data about the user.
      * @summary Login
-     * @param {Login} [login] 
+     * @param {LoginRequest} [loginRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    public login_1(login?: Login, options?: AxiosRequestConfig) {
-        return UsersApiFp(this.configuration).login_1(login, options).then((request) => request(this.axios, this.basePath));
+    public login_1(loginRequest?: LoginRequest, options?: AxiosRequestConfig) {
+        return UsersApiFp(this.configuration).login_1(loginRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

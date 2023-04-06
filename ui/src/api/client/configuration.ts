@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * ShellHub Cloud
- * ShellHub Cloud documentation.  It documents all routes provided by ShellHub Cloud.   NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR. 
+ * ShellHub Cloud OpenAPI
+ * > NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.  ShellHub Cloud OpenAPI specification.  It documents all routes provided by ShellHub Cloud. 
  *
  * The version of the OpenAPI document: 1.0.0-alpha.2
  * Contact: contato@ossystems.com.br
