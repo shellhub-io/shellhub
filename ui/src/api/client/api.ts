@@ -376,6 +376,12 @@ export interface Device {
      * @memberof Device
      */
     'public_url'?: boolean;
+    /**
+     * Device\'s acceptablle
+     * @type {boolean}
+     * @memberof Device
+     */
+    'acceptable'?: boolean;
 }
 /**
  * Device\'s identity
