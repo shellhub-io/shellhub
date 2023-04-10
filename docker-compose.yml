@@ -49,6 +49,10 @@ services:
       - api_public_key
     networks:
       - shellhub
+    healthcheck:
+      test: "curl -f http://api:8080/api/healthcheck || exit 1"
+      interval: 30s
+      start_period: 10s
   ui:
     image: shellhubio/ui:${SHELLHUB_VERSION}
     restart: unless-stopped
