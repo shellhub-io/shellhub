@@ -5,7 +5,7 @@
 TENANT_ID=$1
 ID=$(echo "raspbian ubuntucore arch debian ubuntu" | cut -d' ' -f$(shuf -i1-5 -n1))
 PRETTY_NAME=$ID
-MACADDR=$(echo $RANDOM|md5sum|sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/')
+MACADDR=$(echo -n 02; dd bs=1 count=5 if=/dev/random 2>/dev/null | hexdump -v -e '/1 ":%02X"')
 
 PRIVATE_KEY_FILE=$(mktemp -u)
 PUBLIC_KEY_FILE=$(mktemp -u)
@@ -29,7 +29,7 @@ JSON=$(cat <<EOF
   "identity": {
     "mac": "$MACADDR"
   },
-  "public_key": "$PUBLIC_KEY\n",
+  "public_key": "$PUBLIC_KEY",
   "tenant_id": "$TENANT_ID"
 }
 EOF
