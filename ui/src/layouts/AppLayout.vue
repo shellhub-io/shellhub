@@ -47,6 +47,9 @@
           </div>
         </v-list-item>
       </v-list>
+      <div class="d-flex justify-center align-end bottom">
+        <NewConnection />
+      </div>
     </v-navigation-drawer>
 
     <SnackbarComponent />
@@ -80,6 +83,7 @@ import UserWarning from "../components/User/UserWarning.vue";
 import Namespace from "../../src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
 import { envVariables } from "../envVariables";
+import NewConnection from '../components/NewConnection/NewConnection.vue';
 
 const items = [
   {
@@ -172,7 +176,7 @@ export default {
       getStatusDarkMode,
     };
   },
-  components: { UserWarning, Namespace, AppBar },
+  components: { UserWarning, Namespace, AppBar, NewConnection },
 };
 </script>
 

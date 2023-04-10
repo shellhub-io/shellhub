@@ -27,7 +27,7 @@
     </v-table>
     <v-divider />
     <v-progress-linear v-if="loading" indeterminate alt="Data table loading" />
-    <div class="d-flex w-100 justify-end align-center">
+    <div class="d-flex w-100 justify-end align-center" v-if="!itemSelectorDisable == true">
       <span class="text-subtitle-2 mr-4">Items per page:</span>
       <div>
         <v-combobox
@@ -81,6 +81,10 @@ export default defineComponent({
     itemsPerPage: {
       type: Number,
       required: true,
+    },
+    itemSelectorDisable: {
+      type: Boolean,
+      required: false,
     },
     comboboxOptions: {
       type: Array as PropType<number[]>,

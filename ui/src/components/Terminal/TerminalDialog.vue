@@ -3,7 +3,7 @@
     <v-btn
       :disabled="!online"
       :color="online ? 'success' : 'normal'"
-      variant="outlined"
+      variant='outlined'
       density="comfortable"
       data-test="connect-btn"
       @click="open()"
@@ -11,18 +11,6 @@
       {{ online ? "Connect" : "Offline" }}
     </v-btn>
   </template>
-  <template v-else>
-    <span>
-      <v-icon left data-test="console-icon"> mdi-console </v-icon>
-    </span>
-
-    <span>
-      <v-list-item-title class="ml-2" data-test="console-item">
-        Console
-      </v-list-item-title>
-    </span>
-  </template>
-
   <v-dialog
     v-model="showTerminal"
     max-width="1024px"
