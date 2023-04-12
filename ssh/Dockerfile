@@ -15,6 +15,8 @@ COPY ./ssh/go.mod ./ssh/go.sum ./
 
 RUN go mod download
 
+RUN apk add curl
+
 # builder stage
 FROM base AS builder
 
