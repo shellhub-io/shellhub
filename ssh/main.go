@@ -147,6 +147,10 @@ func main() {
 	router.HandleFunc("/ws/ssh", web.HandlerCreateSession(web.CreateSession)).
 		Methods(http.MethodPost)
 
+	router.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	go http.ListenAndServe(":8080", router) // nolint:errcheck
 
 	log.Fatal(server.NewServer(&opts, tunnel.Tunnel).ListenAndServe())
