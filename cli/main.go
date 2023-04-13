@@ -196,7 +196,7 @@ func main() {
 			var input struct {
 				Namespace string
 				Owner     string `validate:"required,username"`
-				TenantID  string `validate:"required,uuid4"`
+				TenantID  string `validate:"required,uuid"`
 			}
 
 			if err := bind(args, &input); err != nil {
