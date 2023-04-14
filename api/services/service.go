@@ -35,6 +35,7 @@ type Service interface {
 	AuthService
 	StatsService
 	SetupService
+	SystemService
 }
 
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}, l geoip.Locator) *APIService {
