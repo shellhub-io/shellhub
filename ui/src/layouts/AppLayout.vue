@@ -61,10 +61,10 @@
       </slot>
     </v-main>
 
-    <v-overlay v-model="hasSpinner">
-      <div class="full-width-height d-flex justify-center align-center">
+    <v-overlay :scrim="false" disabled v-model="hasSpinner">
+      <v-col class="full-width-height d-flex justify-center align-center">
         <v-progress-circular indeterminate size="64" alt="Request loading" />
-      </div>
+      </v-col>
     </v-overlay>
   </v-app>
 
