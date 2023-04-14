@@ -10,9 +10,9 @@ import (
 
 	paginator "github.com/shellhub-io/shellhub/pkg/api/paginator"
 
-	request "github.com/shellhub-io/shellhub/pkg/api/requests"
+	requests "github.com/shellhub-io/shellhub/pkg/api/requests"
 
-	response "github.com/shellhub-io/shellhub/pkg/api/responses"
+	responses "github.com/shellhub-io/shellhub/pkg/api/responses"
 
 	rsa "crypto/rsa"
 )
@@ -77,15 +77,15 @@ func (_m *Service) AuthCacheToken(ctx context.Context, tenant string, id string,
 }
 
 // AuthDevice provides a mock function with given fields: ctx, req, remoteAddr
-func (_m *Service) AuthDevice(ctx context.Context, req request.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
+func (_m *Service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
 	ret := _m.Called(ctx, req, remoteAddr)
 
 	var r0 *models.DeviceAuthResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, request.DeviceAuth, string) (*models.DeviceAuthResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.DeviceAuth, string) (*models.DeviceAuthResponse, error)); ok {
 		return rf(ctx, req, remoteAddr)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, request.DeviceAuth, string) *models.DeviceAuthResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.DeviceAuth, string) *models.DeviceAuthResponse); ok {
 		r0 = rf(ctx, req, remoteAddr)
 	} else {
 		if ret.Get(0) != nil {
@@ -93,7 +93,7 @@ func (_m *Service) AuthDevice(ctx context.Context, req request.DeviceAuth, remot
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, request.DeviceAuth, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, requests.DeviceAuth, string) error); ok {
 		r1 = rf(ctx, req, remoteAddr)
 	} else {
 		r1 = ret.Error(1)
@@ -153,15 +153,15 @@ func (_m *Service) AuthIsCacheToken(ctx context.Context, tenant string, id strin
 }
 
 // AuthPublicKey provides a mock function with given fields: ctx, req
-func (_m *Service) AuthPublicKey(ctx context.Context, req request.PublicKeyAuth) (*models.PublicKeyAuthResponse, error) {
+func (_m *Service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error) {
 	ret := _m.Called(ctx, req)
 
 	var r0 *models.PublicKeyAuthResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, request.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)); ok {
 		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, request.PublicKeyAuth) *models.PublicKeyAuthResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.PublicKeyAuth) *models.PublicKeyAuthResponse); ok {
 		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
@@ -169,7 +169,7 @@ func (_m *Service) AuthPublicKey(ctx context.Context, req request.PublicKeyAuth)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, request.PublicKeyAuth) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, requests.PublicKeyAuth) error); ok {
 		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
@@ -219,15 +219,15 @@ func (_m *Service) AuthUncacheToken(ctx context.Context, tenant string, id strin
 }
 
 // AuthUser provides a mock function with given fields: ctx, req
-func (_m *Service) AuthUser(ctx context.Context, req request.UserAuth) (*models.UserAuthResponse, error) {
+func (_m *Service) AuthUser(ctx context.Context, req requests.UserAuth) (*models.UserAuthResponse, error) {
 	ret := _m.Called(ctx, req)
 
 	var r0 *models.UserAuthResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, request.UserAuth) (*models.UserAuthResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.UserAuth) (*models.UserAuthResponse, error)); ok {
 		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, request.UserAuth) *models.UserAuthResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.UserAuth) *models.UserAuthResponse); ok {
 		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
@@ -235,7 +235,7 @@ func (_m *Service) AuthUser(ctx context.Context, req request.UserAuth) (*models.
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, request.UserAuth) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, requests.UserAuth) error); ok {
 		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
@@ -285,15 +285,15 @@ func (_m *Service) CreateDeviceTag(ctx context.Context, uid models.UID, tag stri
 }
 
 // CreateNamespace provides a mock function with given fields: ctx, namespace, userID
-func (_m *Service) CreateNamespace(ctx context.Context, namespace request.NamespaceCreate, userID string) (*models.Namespace, error) {
+func (_m *Service) CreateNamespace(ctx context.Context, namespace requests.NamespaceCreate, userID string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, namespace, userID)
 
 	var r0 *models.Namespace
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, request.NamespaceCreate, string) (*models.Namespace, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.NamespaceCreate, string) (*models.Namespace, error)); ok {
 		return rf(ctx, namespace, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, request.NamespaceCreate, string) *models.Namespace); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.NamespaceCreate, string) *models.Namespace); ok {
 		r0 = rf(ctx, namespace, userID)
 	} else {
 		if ret.Get(0) != nil {
@@ -301,7 +301,7 @@ func (_m *Service) CreateNamespace(ctx context.Context, namespace request.Namesp
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, request.NamespaceCreate, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, requests.NamespaceCreate, string) error); ok {
 		r1 = rf(ctx, namespace, userID)
 	} else {
 		r1 = ret.Error(1)
@@ -337,23 +337,23 @@ func (_m *Service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, er
 }
 
 // CreatePublicKey provides a mock function with given fields: ctx, req, tenant
-func (_m *Service) CreatePublicKey(ctx context.Context, req request.PublicKeyCreate, tenant string) (*response.PublicKeyCreate, error) {
+func (_m *Service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error) {
 	ret := _m.Called(ctx, req, tenant)
 
-	var r0 *response.PublicKeyCreate
+	var r0 *responses.PublicKeyCreate
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, request.PublicKeyCreate, string) (*response.PublicKeyCreate, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.PublicKeyCreate, string) (*responses.PublicKeyCreate, error)); ok {
 		return rf(ctx, req, tenant)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, request.PublicKeyCreate, string) *response.PublicKeyCreate); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.PublicKeyCreate, string) *responses.PublicKeyCreate); ok {
 		r0 = rf(ctx, req, tenant)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*response.PublicKeyCreate)
+			r0 = ret.Get(0).(*responses.PublicKeyCreate)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, request.PublicKeyCreate, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, requests.PublicKeyCreate, string) error); ok {
 		r1 = rf(ctx, req, tenant)
 	} else {
 		r1 = ret.Error(1)
@@ -363,15 +363,15 @@ func (_m *Service) CreatePublicKey(ctx context.Context, req request.PublicKeyCre
 }
 
 // CreateSession provides a mock function with given fields: ctx, session
-func (_m *Service) CreateSession(ctx context.Context, session request.SessionCreate) (*models.Session, error) {
+func (_m *Service) CreateSession(ctx context.Context, session requests.SessionCreate) (*models.Session, error) {
 	ret := _m.Called(ctx, session)
 
 	var r0 *models.Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, request.SessionCreate) (*models.Session, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.SessionCreate) (*models.Session, error)); ok {
 		return rf(ctx, session)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, request.SessionCreate) *models.Session); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.SessionCreate) *models.Session); ok {
 		r0 = rf(ctx, session)
 	} else {
 		if ret.Get(0) != nil {
@@ -379,7 +379,7 @@ func (_m *Service) CreateSession(ctx context.Context, session request.SessionCre
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, request.SessionCreate) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, requests.SessionCreate) error); ok {
 		r1 = rf(ctx, session)
 	} else {
 		r1 = ret.Error(1)
@@ -1060,11 +1060,11 @@ func (_m *Service) SetSessionAuthenticated(ctx context.Context, uid models.UID, 
 }
 
 // Setup provides a mock function with given fields: ctx, req
-func (_m *Service) Setup(ctx context.Context, req request.Setup) error {
+func (_m *Service) Setup(ctx context.Context, req requests.Setup) error {
 	ret := _m.Called(ctx, req)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, request.Setup) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, requests.Setup) error); ok {
 		r0 = rf(ctx, req)
 	} else {
 		r0 = ret.Error(0)
@@ -1074,15 +1074,15 @@ func (_m *Service) Setup(ctx context.Context, req request.Setup) error {
 }
 
 // UpdateDataUser provides a mock function with given fields: ctx, id, userData
-func (_m *Service) UpdateDataUser(ctx context.Context, id string, userData request.UserDataUpdate) ([]string, error) {
+func (_m *Service) UpdateDataUser(ctx context.Context, id string, userData requests.UserDataUpdate) ([]string, error) {
 	ret := _m.Called(ctx, id, userData)
 
 	var r0 []string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, request.UserDataUpdate) ([]string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, requests.UserDataUpdate) ([]string, error)); ok {
 		return rf(ctx, id, userData)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, request.UserDataUpdate) []string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, requests.UserDataUpdate) []string); ok {
 		r0 = rf(ctx, id, userData)
 	} else {
 		if ret.Get(0) != nil {
@@ -1090,7 +1090,7 @@ func (_m *Service) UpdateDataUser(ctx context.Context, id string, userData reque
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, request.UserDataUpdate) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, requests.UserDataUpdate) error); ok {
 		r1 = rf(ctx, id, userData)
 	} else {
 		r1 = ret.Error(1)
@@ -1170,15 +1170,15 @@ func (_m *Service) UpdatePendingStatus(ctx context.Context, uid models.UID, stat
 }
 
 // UpdatePublicKey provides a mock function with given fields: ctx, fingerprint, tenant, key
-func (_m *Service) UpdatePublicKey(ctx context.Context, fingerprint string, tenant string, key request.PublicKeyUpdate) (*models.PublicKey, error) {
+func (_m *Service) UpdatePublicKey(ctx context.Context, fingerprint string, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error) {
 	ret := _m.Called(ctx, fingerprint, tenant, key)
 
 	var r0 *models.PublicKey
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, request.PublicKeyUpdate) (*models.PublicKey, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, requests.PublicKeyUpdate) (*models.PublicKey, error)); ok {
 		return rf(ctx, fingerprint, tenant, key)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, request.PublicKeyUpdate) *models.PublicKey); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, requests.PublicKeyUpdate) *models.PublicKey); ok {
 		r0 = rf(ctx, fingerprint, tenant, key)
 	} else {
 		if ret.Get(0) != nil {
@@ -1186,7 +1186,7 @@ func (_m *Service) UpdatePublicKey(ctx context.Context, fingerprint string, tena
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, request.PublicKeyUpdate) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, requests.PublicKeyUpdate) error); ok {
 		r1 = rf(ctx, fingerprint, tenant, key)
 	} else {
 		r1 = ret.Error(1)

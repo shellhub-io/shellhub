@@ -83,7 +83,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 	// This way, we can keep track of the number of devices that were removed from the namespace and void the device
 	// switching.
 	if envs.IsCloud() && ns.HasMaxDevices() {
-		if err := s.store.DeviceRemovedInsert(ctx, tenant, models.UID(device.UID)); err != nil {
+		if err := s.store.DeviceRemovedInsert(ctx, tenant, device); err != nil {
 			return NewErrDeviceRemovedInsert(err)
 		}
 	}

@@ -519,7 +519,7 @@ func (s *Store) DeviceUpdate(ctx context.Context, uid models.UID, name *string, 
 }
 
 func (s *Store) DeviceRemovedCount(ctx context.Context, tenant string) (int64, error) {
-	count, err := s.db.Collection("removed_devices").CountDocuments(ctx, bson.M{"tenant_id": tenant})
+	count, err := s.db.Collection("removed_devices").CountDocuments(ctx, bson.M{"device.tenant_id": tenant})
 	if err != nil {
 		return 0, FromMongoError(err)
 	}
@@ -529,7 +529,7 @@ func (s *Store) DeviceRemovedCount(ctx context.Context, tenant string) (int64, e
 
 func (s *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error) {
 	var slot models.DeviceRemoved
-	err := s.db.Collection("removed_devices").FindOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}).Decode(&slot)
+	err := s.db.Collection("removed_devices").FindOne(ctx, bson.M{"device.tenant_id": tenant, "device.uid": uid}).Decode(&slot)
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
@@ -537,8 +537,11 @@ func (s *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.
 	return &slot, nil
 }
 
-func (s *Store) DeviceRemovedInsert(ctx context.Context, tenant string, uid models.UID) error {
-	_, err := s.db.Collection("removed_devices").UpdateOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": bson.M{"timestamp": time.Now()}}, options.Update().SetUpsert(true))
+func (s *Store) DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error { //nolint:revive
+	_, err := s.db.Collection("removed_devices").InsertOne(ctx, models.DeviceRemoved{
+		Timestamp: time.Now(),
+		Device:    *device,
+	})
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -547,7 +550,7 @@ func (s *Store) DeviceRemovedInsert(ctx context.Context, tenant string, uid mode
 }
 
 func (s *Store) DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error {
-	_, err := s.db.Collection("removed_devices").DeleteOne(ctx, bson.M{"tenant_id": tenant, "uid": uid})
+	_, err := s.db.Collection("removed_devices").DeleteOne(ctx, bson.M{"device.tenant_id": tenant, "device.uid": uid})
 	if err != nil {
 		return FromMongoError(err)
 	}

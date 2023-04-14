@@ -38,6 +38,6 @@ type DeviceStore interface {
 	DeviceChooser(ctx context.Context, tenantID string, chosen []string) error
 	DeviceRemovedCount(ctx context.Context, tenant string) (int64, error)
 	DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error)
-	DeviceRemovedInsert(ctx context.Context, tenant string, uid models.UID) error
+	DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error
 	DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error
 }
