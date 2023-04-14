@@ -460,6 +460,39 @@ func (_m *Store) DeviceRemovedInsert(ctx context.Context, tenant string, device 
 	return r0
 }
 
+// DeviceRemovedList provides a mock function with given fields: ctx, tenant, pagination, filters, sort, _a5
+func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string, pagination paginator.Query, filters []models.Filter, sort string, _a5 string) ([]models.DeviceRemoved, int, error) {
+	ret := _m.Called(ctx, tenant, pagination, filters, sort, _a5)
+
+	var r0 []models.DeviceRemoved
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, paginator.Query, []models.Filter, string, string) ([]models.DeviceRemoved, int, error)); ok {
+		return rf(ctx, tenant, pagination, filters, sort, _a5)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, paginator.Query, []models.Filter, string, string) []models.DeviceRemoved); ok {
+		r0 = rf(ctx, tenant, pagination, filters, sort, _a5)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.DeviceRemoved)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, paginator.Query, []models.Filter, string, string) int); ok {
+		r1 = rf(ctx, tenant, pagination, filters, sort, _a5)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, string, paginator.Query, []models.Filter, string, string) error); ok {
+		r2 = rf(ctx, tenant, pagination, filters, sort, _a5)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // DeviceRename provides a mock function with given fields: ctx, uid, hostname
 func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname string) error {
 	ret := _m.Called(ctx, uid, hostname)

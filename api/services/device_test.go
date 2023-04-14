@@ -37,6 +37,12 @@ func TestListDevices(t *testing.T) {
 		{UID: "uid3"},
 	}
 
+	removedDevices := []models.DeviceRemoved{
+		{Device: &devices[0]},
+		{Device: &devices[1]},
+		{Device: &devices[2]},
+	}
+
 	filters := []models.Filter{
 		{
 			Type:   "property",
@@ -46,7 +52,7 @@ func TestListDevices(t *testing.T) {
 
 	query := paginator.Query{Page: 1, PerPage: 10}
 
-	status := []models.DeviceStatus{models.DeviceStatusPending, models.DeviceStatusAccepted, models.DeviceStatusRejected}
+	status := []models.DeviceStatus{models.DeviceStatusPending, models.DeviceStatusAccepted, models.DeviceStatusRejected, models.DeviceStatusRemoved}
 	sort := "name"
 	order := []string{"asc", "desc"}
 
@@ -145,6 +151,42 @@ func TestListDevices(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("DeviceList", ctx, query, filters, status[1], sort, order[1], store.DeviceListModeDefault).
 					Return(devices, len(devices), nil).Once()
+			},
+			expected: Expected{
+				devices,
+				len(devices),
+				nil,
+			},
+		},
+		{
+			name:       "ListDevices fails when status is removed",
+			tenant:     tenant,
+			pagination: query,
+			filter:     filters,
+			status:     status[3],
+			sort:       sort,
+			order:      order[1],
+			requiredMocks: func() {
+				mock.On("DeviceRemovedList", ctx, tenant, query, filters, sort, order[1]).
+					Return(nil, 0, Err).Once()
+			},
+			expected: Expected{
+				nil,
+				0,
+				Err,
+			},
+		},
+		{
+			name:       "ListDevices succeeds when status is removed",
+			tenant:     tenant,
+			pagination: query,
+			filter:     filters,
+			status:     status[3],
+			sort:       sort,
+			order:      order[1],
+			requiredMocks: func() {
+				mock.On("DeviceRemovedList", ctx, tenant, query, filters, sort, order[1]).
+					Return(removedDevices, len(removedDevices), nil).Once()
 			},
 			expected: Expected{
 				devices,
@@ -784,7 +826,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 				mock.On("DeviceRemovedGet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID)).
 					Return(&models.DeviceRemoved{
-						Device: models.Device{
+						Device: &models.Device{
 							UID:      device.UID,
 							TenantID: namespaceWithLimit.TenantID,
 						},
