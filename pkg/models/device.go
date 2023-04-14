@@ -12,6 +12,7 @@ const (
 	DeviceStatusAccepted DeviceStatus = "accepted"
 	DeviceStatusPending  DeviceStatus = "pending"
 	DeviceStatusRejected DeviceStatus = "rejected"
+	DeviceStatusRemoved  DeviceStatus = "removed"
 	DeviceStatusUnused   DeviceStatus = "unused"
 )
 
@@ -87,6 +88,6 @@ type DevicePosition struct {
 }
 
 type DeviceRemoved struct {
-	Device    Device    `json:"device" bson:"device"`
+	Device    *Device   `json:"device" bson:"device"`
 	Timestamp time.Time `json:"timestamp" bson:"timestamp"`
 }
