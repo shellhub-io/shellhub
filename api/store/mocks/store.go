@@ -446,13 +446,13 @@ func (_m *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models
 	return r0, r1
 }
 
-// DeviceRemovedInsert provides a mock function with given fields: ctx, tenant, uid
-func (_m *Store) DeviceRemovedInsert(ctx context.Context, tenant string, uid models.UID) error {
-	ret := _m.Called(ctx, tenant, uid)
+// DeviceRemovedInsert provides a mock function with given fields: ctx, tenant, device
+func (_m *Store) DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error {
+	ret := _m.Called(ctx, tenant, device)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) error); ok {
-		r0 = rf(ctx, tenant, uid)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.Device) error); ok {
+		r0 = rf(ctx, tenant, device)
 	} else {
 		r0 = ret.Error(0)
 	}

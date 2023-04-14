@@ -87,7 +87,6 @@ type DevicePosition struct {
 }
 
 type DeviceRemoved struct {
-	UID       UID       `json:"uid" bson:"uid"`
-	Tenant    string    `json:"tenant_id" bson:"tenant_id"`
+	Device    Device    `json:"device" bson:"device"`
 	Timestamp time.Time `json:"timestamp" bson:"timestamp"`
 }

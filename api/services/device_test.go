@@ -278,7 +278,7 @@ func TestDeleteDevice(t *testing.T) {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).
 					Return(namespace, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
-				mock.On("DeviceRemovedInsert", ctx, namespace.TenantID, models.UID(device.UID)).
+				mock.On("DeviceRemovedInsert", ctx, namespace.TenantID, device).
 					Return(Err).Once()
 			},
 			id:       user.ID,
@@ -784,8 +784,10 @@ func TestUpdatePendingStatus(t *testing.T) {
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 				mock.On("DeviceRemovedGet", ctx, namespaceWithLimit.TenantID, models.UID(device.UID)).
 					Return(&models.DeviceRemoved{
-						UID:    models.UID(device.UID),
-						Tenant: namespaceWithLimit.TenantID,
+						Device: models.Device{
+							UID:      device.UID,
+							TenantID: namespaceWithLimit.TenantID,
+						},
 					}, nil).Once()
 				mock.On("DeviceRemovedDelete", ctx, namespaceWithLimit.TenantID, models.UID(device.UID)).
 					Return(Err).Once()
