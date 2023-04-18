@@ -36,29 +36,29 @@ EOF
 fi
 
 $SUDO docker run -d \
-       --name=shellhub \
-       --restart=on-failure \
-       --privileged \
-       --net=host \
-       --pid=host \
-       -v /:/host \
-       -v /dev:/dev \
-       -v /var/run/docker.sock:/var/run/docker.sock \
-       -v /etc/passwd:/etc/passwd \
-       -v /etc/group:/etc/group \
-       -v /etc/resolv.conf:/etc/resolv.conf \
-       -v /var/run:/var/run \
-       -v /var/log:/var/log \
-       -e SHELLHUB_SERVER_ADDRESS={{scheme}}://{{host}} \
-       -e SHELLHUB_PRIVATE_KEY=/host/etc/shellhub.key \
-       -e SHELLHUB_TENANT_ID={{tenant_id}} \
-       {% if keepalive_interval ~= '' and keepalive_interval ~= nil then %}
-       -e SHELLHUB_KEEPALIVE_INTERVAL={{keepalive_interval}} \
-       {% end %}
-       {% if preferred_hostname ~= '' and preferred_hostname ~= nil then %}
-       -e SHELLHUB_PREFERRED_HOSTNAME={{preferred_hostname}} \
-       {% end %}
-       {% if preferred_identity ~= '' and preferred_identity ~= nil then %}
-       -e SHELLHUB_PREFERRED_IDENTITY={{preferred_identity}} \
-       {% end %}
-       shellhubio/agent:{{version}}
+        --name=shellhub \
+        --restart=on-failure \
+        --privileged \
+        --net=host \
+        --pid=host \
+        -v /:/host \
+        -v /dev:/dev \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v /etc/passwd:/etc/passwd \
+        -v /etc/group:/etc/group \
+        -v /etc/resolv.conf:/etc/resolv.conf \
+        -v /var/run:/var/run \
+        -v /var/log:/var/log \
+        -e SHELLHUB_SERVER_ADDRESS={{.scheme}}://{{.host}} \
+        -e SHELLHUB_PRIVATE_KEY=/host/etc/shellhub.key \
+        -e SHELLHUB_TENANT_ID={{.tenant_id}} \
+        {{ if and (ne .keepalive_interval "") (not (eq .keepalive_interval nil)) -}}
+        -e SHELLHUB_KEEPALIVE_INTERVAL={{ .keepalive_interval }} \
+        {{ end -}}
+        {{ if and (ne .preferred_hostname "") (not (eq .preferred_hostname nil)) -}}
+        -e SHELLHUB_PREFERRED_HOSTNAME={{ .preferred_hostname }} \
+        {{ end -}}
+        {{ if and (ne .preferred_identity "") (not (eq .preferred_identity nil)) -}}
+        -e SHELLHUB_PREFERRED_IDENTITY={{ .preferred_identity }} \
+        {{ end -}}
+        shellhubio/agent:{{.version}}

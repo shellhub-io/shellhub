@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"text/template"
 
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type SystemService interface {
 	SystemGetInfo(ctx context.Context, host string, port int) (*models.SystemInfo, error)
-	SystemDownloadInstallScript(ctx context.Context) error
+	SystemDownloadInstallScript(ctx context.Context, req requests.SystemInstallScript) (*template.Template, map[string]interface{}, error)
 }
 
 // SystemGetInfo returns system instance information.
@@ -39,6 +41,19 @@ func (s *service) SystemGetInfo(ctx context.Context, host string, port int) (*mo
 	return info, nil
 }
 
-func (s *service) SystemDownloadInstallScript(ctx context.Context) error {
-	return nil
+func (s *service) SystemDownloadInstallScript(_ context.Context, req requests.SystemInstallScript) (*template.Template, map[string]interface{}, error) {
+	tmpl, err := template.ParseFiles("./templates/kickstart.sh")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return tmpl, map[string]interface{}{
+		"scheme":             req.Scheme,
+		"host":               req.Host,
+		"tenant_id":          req.TenantID,
+		"keepalive_interval": req.KeepAliveInternavel,
+		"preferred_hostname": req.PreferredHostname,
+		"preferred_identity": req.PreferredIdentity,
+		"version":            envs.DefaultBackend.Get("SHELLHUB_VERSION"),
+	}, nil
 }
