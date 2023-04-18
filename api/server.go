@@ -236,6 +236,7 @@ func startServer(cfg *config) error {
 	publicAPI.GET(routes.GetStatsURL,
 		apiMiddleware.Authorize(gateway.Handler(handler.GetStats)))
 	publicAPI.GET(routes.GetSystemInfoURL, gateway.Handler(handler.GetSystemInfo))
+	publicAPI.GET(routes.GetSystemDownloadInstallScriptURL, gateway.Handler(handler.GetSystemDownloadInstallScript))
 
 	publicAPI.GET(routes.GetPublicKeysURL, gateway.Handler(handler.GetPublicKeys))
 	publicAPI.POST(routes.CreatePublicKeyURL, gateway.Handler(handler.CreatePublicKey))

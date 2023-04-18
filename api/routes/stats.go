@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	GetStatsURL      = "/stats"
-	GetSystemInfoURL = "/info"
+	GetStatsURL                       = "/stats"
+	GetSystemInfoURL                  = "/info"
+	GetSystemDownloadInstallScriptURL = "/install"
 )
 
 func (h *Handler) GetStats(c gateway.Context) error {
@@ -42,4 +43,41 @@ func (h *Handler) GetSystemInfo(c gateway.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, info)
+}
+
+func (h *Handler) GetSystemDownloadInstallScript(c gateway.Context) error {
+	c.Response().Writer.Header().Add("Content-Type", "text/x-shellscript")
+
+	var req struct {
+		Host                string `header:"X-Forwarded-Host"`
+		Scheme              string `header:"X-Forwarded-Proto"`
+		ForwardedPort       string `header:"X-Forwarded-Port"`
+		TenantID            string `query:"tenant_id"`
+		KeepAliveInternavel string `query:"keepalive_interval"`
+		PreferredHostname   string `query:"preferred_hostname"`
+		PreferredIdentity   string `query:"preferred_identity"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if req.Host == "" {
+		req.Host = c.Request().Host
+	}
+
+	if req.Scheme == "" {
+		req.Scheme = "http"
+	}
+
+	if req.ForwardedPort != "" {
+		req.Host = req.Host + ":" + req.ForwardedPort
+	}
+
+	tmpl, data, err := h.service.SystemDownloadInstallScript(c.Ctx(), req)
+	if err != nil {
+		return err
+	}
+
+	return tmpl.Execute(c.Response().Writer, data)
 }
