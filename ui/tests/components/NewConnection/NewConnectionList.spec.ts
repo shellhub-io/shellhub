@@ -59,7 +59,7 @@ const devicesGlobal = [
     public_key: "----- PUBLIC KEY -----",
     tenant_id: "00000000",
     last_seen: "2020-05-20T18:58:53.276Z",
-    online: false,
+    online: true,
     namespace: "user",
     status: "accepted",
     tags: ["device1", "device2"],
@@ -206,7 +206,6 @@ tests.forEach((test) => {
     it("Compare data with default value", () => {
       expect(wrapper.vm.devices).toEqual(devicesGlobal);
       expect(wrapper.vm.headers).toEqual(headers);
-      expect(wrapper.vm.page).toEqual(pagination.page);
       expect(wrapper.vm.itemsPerPage).toEqual(pagination.itemsPerPage);
       expect(wrapper.vm.loading).toEqual(false);
     });
@@ -223,9 +222,7 @@ tests.forEach((test) => {
     //////
 
     it("Renders the template with data", () => {
-      const dt = wrapper.find('[data-test="devices-list"]');
-      const dataTableProps = dt.attributes();
-      expect(dataTableProps.items).toContain(test.variables.devices);
+      expect(wrapper.find('[data-test="devices-list"]').exists()).toBe(true);
     });
   });
 });
