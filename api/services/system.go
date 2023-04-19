@@ -12,16 +12,15 @@ import (
 )
 
 type SystemService interface {
-	SystemGetInfo(ctx context.Context, host string, port int) (*models.SystemInfo, error)
+	SystemGetInfo(ctx context.Context, req requests.SystemGetInfo) (*models.SystemInfo, error)
 	SystemDownloadInstallScript(ctx context.Context, req requests.SystemInstallScript) (*template.Template, map[string]interface{}, error)
 }
 
 // SystemGetInfo returns system instance information.
-// It receives a context (ctx), a host (host) which is used to determine the
-// API and SSH host of the system, and a port (port) that can be specified
-// to override the API port from the host.
-func (s *service) SystemGetInfo(ctx context.Context, host string, port int) (*models.SystemInfo, error) {
-	apiHost := strings.Split(host, ":")[0]
+// It receives a context (ctx) and requests.SystemGetInfo, what contains a host (host) which is used to determine the
+// API and SSH host of the system, and a port (port) that can be specified to override the API port from the host.
+func (s *service) SystemGetInfo(_ context.Context, req requests.SystemGetInfo) (*models.SystemInfo, error) {
+	apiHost := strings.Split(req.Host, ":")[0]
 	sshPort := envs.DefaultBackend.Get("SHELLHUB_SSH_PORT")
 
 	info := &models.SystemInfo{
@@ -32,10 +31,10 @@ func (s *service) SystemGetInfo(ctx context.Context, host string, port int) (*mo
 		},
 	}
 
-	if port > 0 {
-		info.Endpoints.API = fmt.Sprintf("%s:%d", apiHost, port)
+	if req.Port > 0 {
+		info.Endpoints.API = fmt.Sprintf("%s:%d", apiHost, req.Port)
 	} else {
-		info.Endpoints.API = host
+		info.Endpoints.API = req.Host
 	}
 
 	return info, nil

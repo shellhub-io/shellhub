@@ -2,9 +2,9 @@ package routes
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 )
 
 const (
@@ -23,21 +23,17 @@ func (h *Handler) GetStats(c gateway.Context) error {
 }
 
 func (h *Handler) GetSystemInfo(c gateway.Context) error {
-	host := c.Request().Header.Get("X-Forwarded-Host")
-	if host == "" {
-		host = c.Request().Host
+	var req requests.SystemGetInfo
+
+	if err := c.Bind(&req); err != nil {
+		return err
 	}
 
-	var port int
-	if v := c.Request().Header.Get("X-Forwarded-Port"); v != "" {
-		var err error
-		port, err = strconv.Atoi(v)
-		if err != nil {
-			return err
-		}
+	if req.Host == "" {
+		req.Host = c.Request().Host
 	}
 
-	info, err := h.service.SystemGetInfo(c.Ctx(), host, port)
+	info, err := h.service.SystemGetInfo(c.Ctx(), req)
 	if err != nil {
 		return err
 	}
@@ -48,15 +44,7 @@ func (h *Handler) GetSystemInfo(c gateway.Context) error {
 func (h *Handler) GetSystemDownloadInstallScript(c gateway.Context) error {
 	c.Response().Writer.Header().Add("Content-Type", "text/x-shellscript")
 
-	var req struct {
-		Host                string `header:"X-Forwarded-Host"`
-		Scheme              string `header:"X-Forwarded-Proto"`
-		ForwardedPort       string `header:"X-Forwarded-Port"`
-		TenantID            string `query:"tenant_id"`
-		KeepAliveInternavel string `query:"keepalive_interval"`
-		PreferredHostname   string `query:"preferred_hostname"`
-		PreferredIdentity   string `query:"preferred_identity"`
-	}
+	var req requests.SystemInstallScript
 
 	if err := c.Bind(&req); err != nil {
 		return err
