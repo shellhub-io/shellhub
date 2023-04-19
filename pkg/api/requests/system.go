@@ -1,5 +1,10 @@
 package requests
 
+type SystemGetInfo struct {
+	Host string `header:"X-Forwarded-Host"`
+	Port int    `header:"X-Forwarded-Port"`
+}
+
 type SystemInstallScript struct {
 	Host                string `header:"X-Forwarded-Host"`
 	Scheme              string `header:"X-Forwarded-Proto"`

@@ -1110,25 +1110,25 @@ func (_m *Service) SystemDownloadInstallScript(ctx context.Context, req requests
 	return r0, r1, r2
 }
 
-// SystemGetInfo provides a mock function with given fields: ctx, host, port
-func (_m *Service) SystemGetInfo(ctx context.Context, host string, port int) (*models.SystemInfo, error) {
-	ret := _m.Called(ctx, host, port)
+// SystemGetInfo provides a mock function with given fields: ctx, req
+func (_m *Service) SystemGetInfo(ctx context.Context, req requests.SystemGetInfo) (*models.SystemInfo, error) {
+	ret := _m.Called(ctx, req)
 
 	var r0 *models.SystemInfo
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, int) (*models.SystemInfo, error)); ok {
-		return rf(ctx, host, port)
+	if rf, ok := ret.Get(0).(func(context.Context, requests.SystemGetInfo) (*models.SystemInfo, error)); ok {
+		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, int) *models.SystemInfo); ok {
-		r0 = rf(ctx, host, port)
+	if rf, ok := ret.Get(0).(func(context.Context, requests.SystemGetInfo) *models.SystemInfo); ok {
+		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.SystemInfo)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, int) error); ok {
-		r1 = rf(ctx, host, port)
+	if rf, ok := ret.Get(1).(func(context.Context, requests.SystemGetInfo) error); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
 	}
