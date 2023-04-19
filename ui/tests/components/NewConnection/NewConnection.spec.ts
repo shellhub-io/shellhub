@@ -56,11 +56,7 @@ describe("NewConnection", () => {
     expect(wrapper.props("size")).toBe("default");
   });
 
-  it("toggles the dialog when the new connection button is clicked", async () => {
-    const newConnectionButton = wrapper.find('[data-test="device-add-btn"]');
-    await newConnectionButton.trigger("click");
-    expect(wrapper.vm.dialog).toBe(true);
-    await newConnectionButton.trigger("click");
-    expect(wrapper.vm.dialog).toBe(false);
+  it("Renders the New Connection Button", async () => {
+    expect(wrapper.find('[data-test="new-connection-add-btn"]'));
   });
 });

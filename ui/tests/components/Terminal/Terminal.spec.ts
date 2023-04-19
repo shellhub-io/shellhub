@@ -103,7 +103,6 @@ describe("TerminalDialog", () => {
 
     it("Renders the template with data", () => {
       expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="console-icon"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="console-item"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="terminal-dialog"]').exists()).toBe(
         false,
@@ -169,8 +168,6 @@ describe("TerminalDialog", () => {
 
     it("Renders the template with data", () => {
       expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(false);
-      expect(wrapper.find('[data-test="console-icon"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="console-item"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="terminal-dialog"]').exists()).toBe(
         false,
       );
@@ -247,7 +244,6 @@ describe("TerminalDialog", () => {
     it("Renders the template with data", () => {
       // TODO
       expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="console-icon"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="console-item"]').exists()).toBe(false);
     });
   });

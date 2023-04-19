@@ -6,8 +6,7 @@
       tabindex="0"
       variant="elevated"
       aria-label="Dialog New Connection"
-      @keypress.enter="dialog = !dialog"
-      data-test="device-add-btn"
+      data-test="new-connection-add-btn"
       :size="size"
       prepend-icon="mdi-link"
     >
@@ -19,7 +18,7 @@
       width="1000"
       transition="dialog-bottom-transition"
     >
-      <v-card class="bg-v-theme-surface">
+      <v-card class="bg-v-theme-surface content">
         <div class="pa-5">
           <v-row>
             <v-col>
@@ -57,11 +56,33 @@
                 SSHID
               </p>
             </v-col>
+            <v-col>
+              <p class="text-body-2 mr-3 font-weight-bold text-center">
+                Tags
+              </p>
+            </v-col>
           </v-row>
-          <NewConnectionCard ref="list" />
+          <NewConnectionList ref="list" data-test="new-connection-list" />
         </v-card-text>
         <v-card-actions>
-          <v-spacer />
+          <v-row class="ml-2">
+            <v-col>
+              <p class="text-body-2 mb-0 font-weight-bold text-grey-darken-1">
+                <v-icon color="#7284D0" data-test="connect-icon"> mdi-arrow-u-left-bottom </v-icon>To connect</p>
+            </v-col>
+            <v-col>
+              <p class="text-body-2 mb-0 font-weight-bold text-grey-darken-1">
+                <v-icon color="#7284D0" data-test="navigate-up-icon"> mdi-arrow-up </v-icon>
+                <v-icon color="#7284D0" data-test="navigate-down-icon"> mdi-arrow-down  </v-icon>
+                To navigate
+              </p>
+            </v-col>
+            <v-col>
+              <p
+                class="text-body-2 font-weight-bold text-grey-darken-1"
+                data-test="copy-sshid-instructions">Press "Ctrl + C" to copy SSHID</p>
+            </v-col>
+          </v-row>
           <v-btn variant="text" data-test="close-btn" @click="dialog = !dialog">
             Close
           </v-btn>
@@ -77,7 +98,7 @@ import { useMagicKeys } from "@vueuse/core";
 import { defineComponent, onMounted, computed, ref, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
-import NewConnectionCard from "./NewConnectionCard.vue";
+import NewConnectionList from "./NewConnectionList.vue";
 import { useStore } from "../../store";
 import handleError from "../../utils/handleError";
 
@@ -90,7 +111,7 @@ export default defineComponent({
     },
   },
   setup() {
-    const list = ref<InstanceType<typeof NewConnectionCard>>();
+    const list = ref<InstanceType<typeof NewConnectionList>>();
     const dialog = ref(false);
     const store = useStore();
     const router = useRouter();
@@ -111,6 +132,8 @@ export default defineComponent({
 
       try {
         store.dispatch("devices/search", {
+          page: store.getters["devices/getPage"],
+          perPage: store.getters["devices/getPerPage"],
           filter: encodedFilter,
           status: store.getters["devices/getStatus"],
         });
@@ -139,34 +162,29 @@ export default defineComponent({
     onUnmounted(async () => {
       await store.dispatch("devices/setFilter", null);
     });
-    const { ctrlK } = useMagicKeys({
+
+    const { keyboardMacros } = useMagicKeys({
+      passive: false,
       onEventFired(e) {
         if (e.ctrlKey && e.key === "k" && e.type === "keydown") {
-          dialog.value = !dialog.value;
           e.preventDefault();
+          dialog.value = !dialog.value;
+        } else if ((e.key === "ArrowDown" || e.key === "ArrowUp") && e.type === "keydown") {
+          e.preventDefault();
+          list.value?.rootEl?.focus();
         }
       },
     });
-
-    const { arrowUD } = useMagicKeys({
-      onEventFired(e) {
-        if ((e.key === "ArrowDown" || e.key === "ArrowUp") && e.type === "keydown") {
-          console.log(list.value);
-        }
-      },
-    });
-
     return {
       dialog,
       list,
-      ctrlK,
+      keyboardMacros,
       filter,
-      arrowUD,
       searchDevices,
       isDeviceList,
     };
   },
-  components: { NewConnectionCard },
+  components: { NewConnectionList },
 });
 </script>
 
@@ -176,4 +194,11 @@ export default defineComponent({
   font-size: 85%;
   font-weight: normal;
 }
+
+.content {
+  min-height: 70vh;
+  max-height: 70vh;
+  overflow: auto;
+}
+
 </style>

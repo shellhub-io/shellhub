@@ -1,127 +1,129 @@
 <template>
-  <template v-if="enableConnectButton">
-    <v-btn
-      :disabled="!online"
-      :color="online ? 'success' : 'normal'"
-      variant='outlined'
-      density="comfortable"
-      data-test="connect-btn"
-      @click="open()"
-    >
-      {{ online ? "Connect" : "Offline" }}
-    </v-btn>
-  </template>
-  <v-dialog
-    v-model="showTerminal"
-    max-width="1024px"
-    min-width="55vw"
-    @click:outside="close"
-  >
-    <v-card data-test="terminal-dialog" class="bg-v-theme-surface">
-      <v-card-title
-        class="text-h5 pa-4 bg-primary d-flex align-center justify-center"
+  <div>
+    <template v-if="enableConnectButton">
+      <v-btn
+        :disabled="!online"
+        :color="online ? 'success' : 'normal'"
+        variant='outlined'
+        density="comfortable"
+        data-test="connect-btn"
+        @click="open()"
       >
-        Terminal
-        <v-spacer />
-        <v-icon @click="close()" class="bg-primary" size="24">mdi-close</v-icon>
-      </v-card-title>
+        {{ online ? "Connect" : "Offline" }}
+      </v-btn>
+    </template>
+    <v-dialog
+      v-model="showTerminal"
+      max-width="1024px"
+      min-width="55vw"
+      @click:outside="close"
+    >
+      <v-card data-test="terminal-dialog" class="bg-v-theme-surface">
+        <v-card-title
+          class="text-h5 pa-4 bg-primary d-flex align-center justify-center"
+        >
+          Terminal
+          <v-spacer />
+          <v-icon @click="close()" class="bg-primary" size="24">mdi-close</v-icon>
+        </v-card-title>
 
-      <div class="mt-2" v-if="showLoginForm">
-        <v-tabs align-tabs="center" color="primary" v-model="tabActive">
-          <v-tab value="Password" @click="resetFieldValidation">Password</v-tab>
-          <v-tab
-            value="PublicKey"
-            @click="resetFieldValidation"
-          >Private Key</v-tab
-          >
-        </v-tabs>
+        <div class="mt-2" v-if="showLoginForm">
+          <v-tabs align-tabs="center" color="primary" v-model="tabActive">
+            <v-tab value="Password" @click="resetFieldValidation">Password</v-tab>
+            <v-tab
+              value="PublicKey"
+              @click="resetFieldValidation"
+            >Private Key</v-tab
+            >
+          </v-tabs>
 
-        <v-card-text>
-          <v-window v-model="tabActive">
-            <v-window-item value="Password">
-              <v-form lazy-validation @submit.prevent="connectWithPassword()">
-                <v-text-field
-                  v-model="username"
-                  :error-messages="usernameError"
-                  label="Username"
-                  autofocus
-                  variant="underlined"
-                  :validate-on-blur="true"
-                  data-test="username-field"
-                />
+          <v-card-text>
+            <v-window v-model="tabActive">
+              <v-window-item value="Password">
+                <v-form lazy-validation @submit.prevent="connectWithPassword()">
+                  <v-text-field
+                    v-model="username"
+                    :error-messages="usernameError"
+                    label="Username"
+                    autofocus
+                    variant="underlined"
+                    :validate-on-blur="true"
+                    data-test="username-field"
+                  />
 
-                <v-text-field
-                  color="primary"
-                  :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                  v-model="password"
-                  :error-messages="passwordError"
-                  label="Password"
-                  required
-                  variant="underlined"
-                  data-test="password-text"
-                  :type="showPassword ? 'text' : 'password'"
-                  @click:append-inner="showPassword = !showPassword"
-                />
-
-                <v-card-actions>
-                  <v-spacer />
-                  <v-btn
-                    type="submit"
+                  <v-text-field
                     color="primary"
-                    class="mt-4"
-                    variant="flat"
-                    data-test="connect2-btn"
-                  >
-                    Connect
-                  </v-btn>
-                </v-card-actions>
-              </v-form>
-            </v-window-item>
+                    :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                    v-model="password"
+                    :error-messages="passwordError"
+                    label="Password"
+                    required
+                    variant="underlined"
+                    data-test="password-text"
+                    :type="showPassword ? 'text' : 'password'"
+                    @click:append-inner="showPassword = !showPassword"
+                  />
 
-            <v-window-item value="PublicKey">
-              <v-form lazy-validation @submit.prevent="connectWithPrivateKey()">
-                <v-text-field
-                  v-model="username"
-                  :error-messages="usernameError"
-                  label="Username"
-                  autofocus
-                  variant="underlined"
-                  :validate-on-blur="true"
-                  data-test="username-field"
-                />
+                  <v-card-actions>
+                    <v-spacer />
+                    <v-btn
+                      type="submit"
+                      color="primary"
+                      class="mt-4"
+                      variant="flat"
+                      data-test="connect2-btn"
+                    >
+                      Connect
+                    </v-btn>
+                  </v-card-actions>
+                </v-form>
+              </v-window-item>
 
-                <v-select
-                  v-model="privateKey"
-                  :items="nameOfPrivateKeys"
-                  item-text="name"
-                  item-value="data"
-                  variant="underlined"
-                  label="Private Keys"
-                  data-test="privatekeys-select"
-                />
+              <v-window-item value="PublicKey">
+                <v-form lazy-validation @submit.prevent="connectWithPrivateKey()">
+                  <v-text-field
+                    v-model="username"
+                    :error-messages="usernameError"
+                    label="Username"
+                    autofocus
+                    variant="underlined"
+                    :validate-on-blur="true"
+                    data-test="username-field"
+                  />
 
-                <v-card-actions>
-                  <v-spacer />
-                  <v-btn
-                    type="submit"
-                    color="primary"
-                    class="mt-4"
-                    variant="flat"
-                    data-test="connect2-btn"
-                  >
-                    Connect
-                  </v-btn>
-                </v-card-actions>
-              </v-form>
-            </v-window-item>
-          </v-window>
-        </v-card-text>
-      </div>
-    </v-card>
-    <v-card-item class="ma-0 pa-0 w-100">
-      <div ref="terminal" />
-    </v-card-item>
-  </v-dialog>
+                  <v-select
+                    v-model="privateKey"
+                    :items="nameOfPrivateKeys"
+                    item-text="name"
+                    item-value="data"
+                    variant="underlined"
+                    label="Private Keys"
+                    data-test="privatekeys-select"
+                  />
+
+                  <v-card-actions>
+                    <v-spacer />
+                    <v-btn
+                      type="submit"
+                      color="primary"
+                      class="mt-4"
+                      variant="flat"
+                      data-test="connect2-btn"
+                    >
+                      Connect
+                    </v-btn>
+                  </v-card-actions>
+                </v-form>
+              </v-window-item>
+            </v-window>
+          </v-card-text>
+        </div>
+      </v-card>
+      <v-card-item class="ma-0 pa-0 w-100">
+        <div ref="terminal" />
+      </v-card-item>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -140,14 +142,19 @@ import {
   createSignerPrivateKey,
   parsePrivateKeySsh,
 } from "../../utils/validate";
-import { IPrivateKey } from "@/interfaces/IPrivateKey";
-import { IParams } from "@/interfaces/IParams";
-import { IConnectToTerminal } from "@/interfaces/ITerminal";
+import { IPrivateKey } from "../../interfaces/IPrivateKey";
+import { IParams } from "../../interfaces/IParams";
+import { IConnectToTerminal } from "../../interfaces/ITerminal";
 
 export default defineComponent({
   inheritAttrs: false,
   props: {
     enableConnectButton: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    enableConsoleIcon: {
       type: Boolean,
       required: false,
       default: false,
@@ -170,7 +177,7 @@ export default defineComponent({
       default: false,
     },
   },
-  setup(props) {
+  setup(props, context) {
     const store = useStore();
     const tabActive = ref("Password");
     const showPassword = ref(false);
@@ -304,6 +311,8 @@ export default defineComponent({
         xterm.value.reset();
       }
     };
+
+    context.expose({ open });
 
     const resetFieldValidation = () => {
       resetUsername();

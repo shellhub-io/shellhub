@@ -47,9 +47,9 @@
           </div>
         </v-list-item>
       </v-list>
-      <div class="d-flex justify-center align-end bottom">
+      <v-col class="d-flex align-end justify-center">
         <NewConnection />
-      </div>
+      </v-col>
     </v-navigation-drawer>
 
     <SnackbarComponent />
@@ -65,9 +65,9 @@
     </v-main>
 
     <v-overlay :scrim="false" disabled v-model="hasSpinner">
-      <v-col class="full-width-height d-flex justify-center align-center">
+      <div class="full-width-height d-flex justify-center align-center">
         <v-progress-circular indeterminate size="64" alt="Request loading" />
-      </v-col>
+      </div>
     </v-overlay>
   </v-app>
 
@@ -83,7 +83,7 @@ import UserWarning from "../components/User/UserWarning.vue";
 import Namespace from "../../src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
 import { envVariables } from "../envVariables";
-import NewConnection from '../components/NewConnection/NewConnection.vue';
+import NewConnection from "../components/NewConnection/NewConnection.vue";
 
 const items = [
   {
