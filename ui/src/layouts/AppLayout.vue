@@ -65,9 +65,9 @@
     </v-main>
 
     <v-overlay :scrim="false" disabled v-model="hasSpinner">
-      <div class="full-width-height d-flex justify-center align-center">
+      <v-col class="full-width-height d-flex justify-center align-center">
         <v-progress-circular indeterminate size="64" alt="Request loading" />
-      </div>
+      </v-col>
     </v-overlay>
   </v-app>
 
