@@ -50,6 +50,12 @@
           <NewConnection />
         </v-col>
       </v-list>
+<<<<<<< HEAD
+=======
+      <v-col class="d-flex align-end justify-center">
+        <NewConnection />
+      </v-col>
+>>>>>>> 35e061ba (ui: app layout overlay merge conflict)
     </v-navigation-drawer>
 
     <SnackbarComponent />
