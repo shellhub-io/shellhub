@@ -57,6 +57,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 # production stage
 FROM alpine:3.17.3 AS production
 
+RUN apk add curl
+
 RUN apk add --update openssh-client
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/ssh/ssh /ssh
