@@ -57,6 +57,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 # production stage
 FROM alpine:3.17.3 AS production
 
+RUN apk add curl
+
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/api/api /api
 
 ENTRYPOINT /api server
