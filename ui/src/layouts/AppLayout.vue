@@ -46,10 +46,10 @@
             </v-list-item-title>
           </div>
         </v-list-item>
+        <v-col class="d-flex align-end justify-center">
+          <NewConnection />
+        </v-col>
       </v-list>
-      <v-col class="d-flex align-end justify-center">
-        <NewConnection />
-      </v-col>
     </v-navigation-drawer>
 
     <SnackbarComponent />

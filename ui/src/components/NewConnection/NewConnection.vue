@@ -12,7 +12,10 @@
     >
       New Connection
     </v-btn>
-
+    <div>
+      <p
+        class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1">Press "Ctrl + K" to Quick Connect!</p>
+    </div>
     <v-dialog
       v-model="dialog"
       width="1000"
@@ -128,6 +131,10 @@ export default defineComponent({
           },
         ];
         encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
+      }
+
+      if (dialog.value === false) {
+        encodedFilter = "";
       }
 
       try {
