@@ -5,12 +5,15 @@ RUN ["rm", "/etc/nginx/conf.d/default.conf"]
 COPY --from=hairyhenderson/gomplate:v2.5.0-slim /gomplate /bin/gomplate
 
 RUN apk add --no-cache perl curl && opm get bungle/lua-resty-template
+RUN apk add inotify-tools
 
 RUN mkdir -p /etc/nginx/default.d
 
-COPY gateway/nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
-COPY gateway/shellhub.conf /etc/nginx/conf.d/
-COPY gateway/entrypoint.sh /
+RUN mkdir /app
+
+WORKDIR /app
+
+COPY ./gateway/entrypoint.sh /
 
 ENTRYPOINT ["/entrypoint.sh"]
 

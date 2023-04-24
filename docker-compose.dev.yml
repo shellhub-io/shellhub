@@ -53,6 +53,9 @@ services:
     build:
       context: .
       dockerfile: gateway/Dockerfile
+    volumes:
+      - ./gateway/nginx.conf:/app/nginx.conf
+      - ./gateway/conf.d/:/app/conf.d/
     environment:
       - SHELLHUB_VERSION=latest
       - SHELLHUB_ENV=${SHELLHUB_ENV}
