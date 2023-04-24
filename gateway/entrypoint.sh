@@ -27,7 +27,20 @@ export WORKER_PROCESSES
 export MAX_WORKER_OPEN_FILES
 export MAX_WORKER_CONNECTIONS
 
-gomplate -f /usr/local/openresty/nginx/conf/nginx.conf -o /usr/local/openresty/nginx/conf/nginx.conf
-gomplate -f /etc/nginx/conf.d/shellhub.conf -o /etc/nginx/conf.d/shellhub.conf
+generate() {
+	gomplate -f /app/nginx.conf -o /usr/local/openresty/nginx/conf/nginx.conf
+	gomplate -f /app/conf.d/shellhub.conf -o /etc/nginx/conf.d/shellhub.conf
+}
+
+watch () {
+  while inotifywait -q -r -e close_write "/app/nginx.conf" "/app/conf.d/" > /dev/null;
+  do
+	  generate
+	  nginx -s reload
+  done
+}
+
+generate
+watch &
 
 exec "$@"
