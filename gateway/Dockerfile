@@ -6,6 +6,7 @@ COPY --from=hairyhenderson/gomplate:v2.5.0-slim /gomplate /bin/gomplate
 
 RUN apk add --no-cache perl curl && opm get bungle/lua-resty-template
 RUN apk add inotify-tools
+RUN apk add certbot certbot-nginx
 
 RUN mkdir -p /etc/nginx/default.d
 

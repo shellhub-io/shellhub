@@ -2,22 +2,5 @@ version: '3.7'
 
 services:
   gateway:
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/info"]
-      interval: 5s
-      timeout: 10s
-      retries: 10
-  autossl:
-    image: shellhubio/docker-nginx-auto-ssl:1.0.0
-    restart: unless-stopped
-    depends_on:
-      - gateway
-    links:
-      - gateway
     ports:
       - ${SHELLHUB_HTTPS_PORT}:443
-    environment:
-      ALLOWED_DOMAINS: '${SHELLHUB_DOMAIN}'
-      SITES: '${SHELLHUB_DOMAIN}=gateway:80'
-    networks:
-      - shellhub
