@@ -82,9 +82,12 @@ services:
       - SHELLHUB_PROXY=${SHELLHUB_PROXY}
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
+      - SHELLHUB_AUTO_SSL=${SHELLHUB_AUTO_SSL}
     depends_on:
       - api
       - ui
+    ports:
+      - ${SHELLHUB_HTTP_PORT}:80
     networks:
       - shellhub
   cli:
