@@ -1,52 +1,57 @@
 <template>
-  <v-list-item @click="dialog = !dialog">
-    <v-btn
-      v-bind="$attrs"
-      v-if="notificationStatus"
-      size="x-small"
-      color="primary"
-      data-test="notification-btn"
-      @click="doAction()"
-    >
-      <v-icon> {{ icon }} </v-icon>
-      Accept
-    </v-btn>
-    <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization" v-else>
-      <template v-slot:activator="{ props }">
-        <span v-bind="props">
-          <v-list-item-title data-test="action-item" v-on="props">
-            <v-icon> {{ icon }}</v-icon>
-            {{ capitalizeText(action) }}
-          </v-list-item-title>
-        </span>
-      </template>
-      <span> You don't have this kind of authorization. </span>
-    </v-tooltip>
-  </v-list-item>
-  <v-dialog max-width="450px" v-model="dialog" @click:outside="close" v-bind="$attrs">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-5 bg-primary">
-        Are you sure?
-      </v-card-title>
-      <v-divider />
+  <div>
+    <v-list-item v-if="notificationStatus">
+      <v-btn
+        v-bind="$attrs"
+        size="x-small"
+        color="primary"
+        data-test="notification-btn"
+        @click="dialog = !dialog"
+      >
+        <v-icon> {{ icon }} </v-icon>
+        Accept
+      </v-btn>
+    </v-list-item>
+    <v-list-item
+      @click="dialog = !dialog"
+      v-else>
+      <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
+        <template v-slot:activator="{ props }">
+          <span v-bind="props">
+            <v-list-item-title data-test="action-item" v-on="props">
+              <v-icon> {{ icon }}</v-icon>
+              {{ capitalizeText(action) }}
+            </v-list-item-title>
+          </span>
+        </template>
+        <span> You don't have this kind of authorization. </span>
+      </v-tooltip>
+    </v-list-item>
+    <v-dialog max-width="450px" v-model="dialog" @click:outside="close" v-bind="$attrs">
+      <v-card class="bg-v-theme-surface">
+        <v-card-title class="text-h5 pa-5 bg-primary">
+          Are you sure?
+        </v-card-title>
+        <v-divider />
 
-      <v-card-text class="mt-4 mb-0 pb-1">
-        <p class="text-body-2 mb-2">
-          You are about to {{ action }} this device.
-        </p>
-      </v-card-text>
+        <v-card-text class="mt-4 mb-0 pb-1">
+          <p class="text-body-2 mb-2">
+            You are about to {{ action }} this device.
+          </p>
+        </v-card-text>
 
-      <v-card-actions>
-        <v-spacer />
+        <v-card-actions>
+          <v-spacer />
 
-        <v-btn variant="text" @click="close()"> Close </v-btn>
+          <v-btn variant="text" @click="close()"> Close </v-btn>
 
-        <v-btn variant="text" @click="doAction()">
-          {{ action }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+          <v-btn variant="text" @click="doAction()">
+            {{ action }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -57,7 +62,7 @@ import { authorizer, actions } from "../../authorizer";
 import hasPermission from "../../utils/permission";
 import { INotificationsError } from "../../interfaces/INotifications";
 import { capitalizeText } from "../../utils/string";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   props: {

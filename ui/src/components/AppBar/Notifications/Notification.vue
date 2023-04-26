@@ -1,5 +1,5 @@
 <template>
-  <v-menu>
+  <v-menu :close-on-content-click="false">
     <template v-slot:activator="{ props }">
       <v-badge
         v-bind="$props"
@@ -110,7 +110,7 @@ import { authorizer, actions } from "../../../authorizer";
 import hasPermission from "../../../utils/permission";
 import { INotificationsError } from "../../../interfaces/INotifications";
 import DeviceActionButton from "../../../components/Devices/DeviceActionButton.vue";
-import handleError from "@/utils/handleError";
+import handleError from "../../../utils/handleError";
 
 export default defineComponent({
   name: "Notification",
