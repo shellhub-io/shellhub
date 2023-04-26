@@ -27,6 +27,8 @@ export WORKER_PROCESSES
 export MAX_WORKER_OPEN_FILES
 export MAX_WORKER_CONNECTIONS
 
+export HOST_IP=$(route | awk '/default/ { print $2 }')
+
 generate() {
 	gomplate -f /app/nginx.conf -o /usr/local/openresty/nginx/conf/nginx.conf
 	gomplate -f /app/conf.d/shellhub.conf -o /etc/nginx/conf.d/shellhub.conf
