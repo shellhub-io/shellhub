@@ -45,7 +45,7 @@
                 <DeviceActionButton
                   :uid="item.uid"
                   action="accept"
-                  v-model:show="showDeviceAcceptButton"
+                  :show="showDeviceAcceptButton"
                   data-test="DeviceActionButtonAccept-component"
                   @update="refreshDevices"
                 />
@@ -80,7 +80,7 @@ import {
   INotificationsError,
 } from "../../interfaces/INotifications";
 import DeviceActionButton from "./DeviceActionButton.vue";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   setup() {
