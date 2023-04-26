@@ -53,6 +53,7 @@ services:
     build:
       context: .
       dockerfile: gateway/Dockerfile
+      target: development
     volumes:
       - ./gateway/nginx.conf:/app/nginx.conf
       - ./gateway/conf.d/:/app/conf.d/

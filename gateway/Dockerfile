@@ -1,4 +1,4 @@
-FROM openresty/openresty:1.21.4.1-alpine
+FROM openresty/openresty:1.21.4.1-alpine AS base
 
 RUN ["rm", "/etc/nginx/conf.d/default.conf"]
 
@@ -18,3 +18,11 @@ COPY ./gateway/entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["/usr/local/openresty/bin/openresty", "-g", "daemon off;"]
+
+FROM base as development 
+
+FROM base as production
+
+COPY ./gateway/nginx.conf /app/
+
+COPY ./gateway/conf.d /app/conf.d
