@@ -157,6 +157,15 @@ const routes: Array<RouteRecordRaw> = [
       },
     ],
   },
+  {
+    path: "/:catchAll(.*)",
+    redirect: { name: "NotFound" },
+  },
+  {
+    path: "/404",
+    name: "NotFound",
+    component: () => import("../views/NotFound.vue"),
+  },
 ];
 
 const router = createRouter({
