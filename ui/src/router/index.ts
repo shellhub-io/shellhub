@@ -170,39 +170,28 @@ const routes: Array<RouteRecordRaw> = [
 ];
 
 const router = createRouter({
-  history: createWebHistory("/"),
+  history: createWebHistory(),
   routes,
 });
 
-router.beforeEach((to, _, next) => {
+router.beforeEach(async (to, _, next) => {
   const isLoggedIn = store.getters["auth/isLoggedIn"];
   const isExternal = to.meta.external;
 
-  if (isExternal) {
-    store
-      .dispatch("layout/setLayout", "simpleLayout")
-      .then(() => {
-        next();
-      })
-      .catch((error) => {
-        console.log(error);
-        next({ name: "login" });
-      });
-  } else {
-    store
-      .dispatch("layout/setLayout", "appLayout")
-      .then(() => {
-        if (isLoggedIn) {
-          next();
-        } else {
-          next({ name: "login" });
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        next({ name: "login" });
-      });
+  try {
+    await store.dispatch("layout/setLayout", isExternal ? "simpleLayout" : "appLayout");
+
+    if (!isExternal && !isLoggedIn) {
+      next({ name: "login" });
+      return;
+    }
+  } catch (error) {
+    console.log(error);
+    next({ name: "login" });
+    return;
   }
+
+  next();
 });
 
 export default router;
