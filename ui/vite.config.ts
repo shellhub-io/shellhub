@@ -4,7 +4,6 @@ import vue from "@vitejs/plugin-vue";
 import vuetify from "vite-plugin-vuetify";
 import NodeGlobalsPolyfillPlugin from "@esbuild-plugins/node-globals-polyfill";
 import polyfillNode from "rollup-plugin-polyfill-node";
-import { splitVendorChunkPlugin } from "vite";
 import { fileURLToPath, URL } from "url";
 import Markdown from "vite-plugin-vue-markdown";
 
@@ -17,7 +16,6 @@ export default defineConfig({
     },
   },
   plugins: [
-    splitVendorChunkPlugin(),
     vue({
       template: {
         compilerOptions: {
@@ -48,6 +46,30 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      output: {
+        manualChunks: {
+          dashboard: ["@/views/Dashboard.vue"],
+          devices: [
+            "@/views/Devices.vue",
+            "@/components/Devices/DeviceList.vue",
+            "@/components/Devices/DevicePendingList.vue",
+            "@/components/Devices/DeviceRejectedList.vue",
+          ],
+          "details-device": ["@/views/DetailsDevice.vue"],
+          sessions: ["@/views/Sessions.vue"],
+          "details-sessions": ["@/views/DetailsSessions.vue"],
+          "firewall-rules": ["@/views/FirewallRules.vue"],
+          "public-keys": ["@/views/PublicKeys.vue"],
+          settings: [
+            "@/views/Settings.vue",
+            "@/components/Setting/SettingProfile.vue",
+            "@/components/Setting/SettingNamespace.vue",
+            "@/components/Setting/SettingPrivateKeys.vue",
+            "@/components/Setting/SettingTags.vue",
+            "@/components/Setting/SettingBilling.vue",
+          ],
+        },
+      },
       plugins: [
         polyfillNode(),
         NodeGlobalsPolyfillPlugin({
