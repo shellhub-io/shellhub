@@ -1,22 +1,23 @@
 import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
 import { envVariables } from "../envVariables";
-import Dashboard from "@/views/Dashboard.vue";
-import Devices from "@/views/Devices.vue";
-import DeviceList from "@/components/Devices/DeviceList.vue";
-import DevicePendingList from "@/components/Devices/DevicePendingList.vue";
-import DeviceRejectedList from "@/components/Devices/DeviceRejectedList.vue";
-import DetailsDevice from "@/views/DetailsDevice.vue";
-import Sessions from "@/views/Sessions.vue";
-import DetailsSessions from "@/views/DetailsSessions.vue";
-import FirewallRules from "@/views/FirewallRules.vue";
-import PublicKeys from "@/views/PublicKeys.vue";
-import Settings from "@/views/Settings.vue";
-import SettingProfile from "@/components/Setting/SettingProfile.vue";
-import SettingNamespace from "@/components/Setting/SettingNamespace.vue";
-import SettingPrivateKeys from "@/components/Setting/SettingPrivateKeys.vue";
-import SettingTags from "@/components/Setting/SettingTags.vue";
-import SettingBilling from "@/components/Setting/SettingBilling.vue";
 import { store } from "@/store";
+
+const Dashboard = () => import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue");
+const Devices = () => import(/* webpackChunkName: "devices" */ "@/views/Devices.vue");
+const DeviceList = () => import(/* webpackChunkName: "devices" */ "@/components/Devices/DeviceList.vue");
+const DevicePendingList = () => import(/* webpackChunkName: "devices" */ "@/components/Devices/DevicePendingList.vue");
+const DeviceRejectedList = () => import(/* webpackChunkName: "devices" */ "@/components/Devices/DeviceRejectedList.vue");
+const DetailsDevice = () => import(/* webpackChunkName: "device" */ "@/views/DetailsDevice.vue");
+const Sessions = () => import(/* webpackChunkName: "sessions" */ "@/views/Sessions.vue");
+const DetailsSessions = () => import(/* webpackChunkName: "sessions" */ "@/views/DetailsSessions.vue");
+const FirewallRules = () => import(/* webpackChunkName: "firewall-rules" */ "@/views/FirewallRules.vue");
+const PublicKeys = () => import(/* webpackChunkName: "public-keys" */ "@/views/PublicKeys.vue");
+const Settings = () => import(/* webpackChunkName: "settings" */ "@/views/Settings.vue");
+const SettingProfile = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingProfile.vue");
+const SettingNamespace = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingNamespace.vue");
+const SettingPrivateKeys = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingPrivateKeys.vue");
+const SettingTags = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingTags.vue");
+const SettingBilling = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingBilling.vue");
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -25,7 +26,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       external: true,
     },
-    component: () => import("../views/Login.vue"),
+    component: () => import(/* webpackChunkName: "login" */ "../views/Login.vue"),
   },
   {
     path: "/forgot-pass",
@@ -33,7 +34,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       external: true,
     },
-    component: () => import("../views/ForgotPassword.vue"),
+    component: () => import(/* webpackChunkName: "forgot-password" */ "../views/ForgotPassword.vue"),
   },
   {
     path: "/validation-account",
@@ -41,7 +42,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       external: true,
     },
-    component: () => import("../views/ValidationAccount.vue"),
+    component: () => import(/* webpackChunkName: "validation-account" */ "../views/ValidationAccount.vue"),
   },
   {
     path: "/update-password",
@@ -49,7 +50,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       external: true,
     },
-    component: () => import("../views/UpdatePassword.vue"),
+    component: () => import(/* webpackChunkName: "update-password" */ "../views/UpdatePassword.vue"),
   },
   {
     path: "/sign-up",
@@ -57,7 +58,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       external: true,
     },
-    component: () => import("../views/SignUp.vue"),
+    component: () => import(/* webpackChunkName: "sign-up" */ "../views/SignUp.vue"),
   },
   {
     path: "/",
