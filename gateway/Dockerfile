@@ -12,6 +12,8 @@ RUN mkdir -p /etc/nginx/default.d
 
 RUN mkdir /app
 
+VOLUME /etc/letsencrypt
+
 WORKDIR /app
 
 COPY ./gateway/entrypoint.sh /
