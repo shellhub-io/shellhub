@@ -42,7 +42,7 @@ set +o allexport
 
 COMPOSE_FILE="docker-compose.yml"
 
-[ "$SHELLHUB_AUTO_SSL" = "true" ] && SSL_COMPOSE_FILE=autossl || SSL_COMPOSE_FILE=nossl
+[ "$SHELLHUB_AUTO_SSL" = "true" ] && SSL_COMPOSE_FILE=autossl
 
 COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.${SSL_COMPOSE_FILE}.yml"
 
