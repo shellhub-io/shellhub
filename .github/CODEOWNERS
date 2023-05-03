@@ -1,0 +1,4 @@
+* @shellhub-io/team-lead
+api/ @shellhub-io/backend-owners
+ssh/ @shellhub-io/backend-owners
+ui/ @shellhub-io/frontend-owners
