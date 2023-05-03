@@ -41,9 +41,13 @@
         />
       </div>
       <div class="d-flex align-center">
-        <v-btn icon="mdi-chevron-left" variant="plain" @click="$emit('clickPreviousPage')" />
+        <v-btn icon="mdi-chevron-left" variant="plain" @click="$emit('clickPreviousPage')" :disabled="pageQuantity <= 1" />
         <span class="text-subtitle-2">{{ actualPage }} of {{ pageQuantity }}</span>
-        <v-btn icon="mdi-chevron-right" variant="plain" @click="$emit('clickNextPage')" />
+        <v-btn
+          icon="mdi-chevron-right"
+          variant="plain"
+          @click="$emit('clickNextPage')"
+          :disabled="pageQuantity <= 1 || actualPage == pageQuantity" />
       </div>
     </div>
   </div>
