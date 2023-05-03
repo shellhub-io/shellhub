@@ -23,6 +23,7 @@ type service struct {
 	locator geoip.Locator
 }
 
+//go:generate mockery --name Service --dir ./services/ --output ./services/mocks --filename services.go
 type Service interface {
 	TagsService
 	DeviceService

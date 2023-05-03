@@ -1,5 +1,6 @@
 package store
 
+//go:generate mockery --name Store --dir ./store/ --output ./store/mocks --filename store.go
 type Store interface {
 	AnnouncementsStore
 	TagsStore
