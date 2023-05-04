@@ -1,7 +1,26 @@
 version: '3.7'
 
 services:
+  api:
+    image: registry.infra.ossystems.io/cache/shellhubio/api:${SHELLHUB_VERSION}
+
+  ui:
+    image: registry.infra.ossystems.io/cache/shellhubio/ui:${SHELLHUB_VERSION}
+
+  gateway:
+    image: registry.infra.ossystems.io/cache/shellhubio/gateway:${SHELLHUB_VERSION}
+
+  cli:
+    image: registry.infra.ossystems.io/cache/shellhubio/cli:${SHELLHUB_VERSION}
+
+  mongo:
+    image: registry.infra.ossystems.io/cache/mongo:4.4.8
+
+  redis:
+    image: registry.infra.ossystems.io/cache/redis
+
   ssh:
+    image: registry.infra.ossystems.io/cache/shellhubio/ssh:${SHELLHUB_VERSION}
     environment:
       - RECORD_URL=cloud-api:8080
       - BILLING_URL=billing-api:8080
