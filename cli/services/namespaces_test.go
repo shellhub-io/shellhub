@@ -63,6 +63,11 @@ func TestNamespaceCreate(t *testing.T) {
 		Owner:    "",
 		TenantID: "tenantIDInvliad",
 	}
+	namespaceInvalidName := &models.Namespace{
+		Name:     "namespaceUpCase",
+		Owner:    "",
+		TenantID: "tenantIDInvliad",
+	}
 
 	type Expected struct {
 		user *models.Namespace
@@ -93,6 +98,20 @@ func TestNamespaceCreate(t *testing.T) {
 			namespace:   namespaceInvalid.Name,
 			username:    user.Username,
 			tenantID:    namespaceInvalid.TenantID,
+			requiredMocks: func() {
+				envMock := &env_mocks.Backend{}
+				envs.DefaultBackend = envMock
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
+			},
+			expected: Expected{nil, ErrNamespaceInvalid},
+		},
+		{
+			description: "Fails when namespace is not valid due name",
+			namespace:   namespaceInvalidName.Name,
+			username:    user.Username,
+			tenantID:    namespaceInvalidName.TenantID,
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
