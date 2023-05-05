@@ -21,6 +21,7 @@ var migration56 = migrate.Migration{
 		}).Info("Applying migration up")
 		field := "public_url_address"
 		unique := true
+		sparse := true
 
 		if _, err := database.Collection("devices").Indexes().CreateOne(context.Background(), mongo.IndexModel{
 			Keys: bson.M{
@@ -28,6 +29,7 @@ var migration56 = migrate.Migration{
 			},
 			Options: &options.IndexOptions{ //nolint:exhaustruct
 				Unique: &unique,
+				Sparse: &sparse,
 				Name:   &field,
 			},
 		}); err != nil {
