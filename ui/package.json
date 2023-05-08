@@ -40,7 +40,7 @@
     "sass": "^1.55.0",
     "sshpk": "^1.17.0",
     "vee-validate": "^4.6.10",
-    "vite-node": "^0.30.0",
+    "vite-node": "^0.31.0",
     "vue": "^3.2.40",
     "vue-router": "4",
     "vuetify": "^3.0.1",
