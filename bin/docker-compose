@@ -24,7 +24,19 @@ readlink_f() {
      fi)
 }
 
-command -v docker-compose >/dev/null 2>&1 || { echo >&2 "ERROR: Please install docker-compose."; exit 1; }
+# The following code checks if the docker compose plugin or standalone binary
+# supports specification V2 by looking at the version number. If it does,
+# it sets the COMPOSE_COMMAND variable to the corresponding command.
+if grep -q "^2\." <<< $(docker compose version --short 2> /dev/null); then
+    COMPOSE_COMMAND="docker compose"
+elif grep -q "^2\." <<< $(docker-compose version --short 2> /dev/null); then
+    COMPOSE_COMMAND="docker-compose"
+fi
+
+if [ -z "$COMPOSE_COMMAND" ]; then
+    echo >&2 "ERROR: Cannot find Docker Compose compatible with V2 spec"
+    exit 1
+fi
 
 WORKDIR=$(dirname $(readlink_f $0))/../
 
@@ -51,4 +63,4 @@ COMPOSE_FILE="docker-compose.yml"
 
 export COMPOSE_FILE
 
-docker-compose "$@"
+exec $COMPOSE_COMMAND "$@"
