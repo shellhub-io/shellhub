@@ -278,11 +278,6 @@ func (s *Server) sessionHandler(session gliderssh.Session) {
 			return
 		}
 
-		go func() {
-			serverConn.Wait()  // nolint:errcheck
-			cmd.Process.Kill() // nolint:errcheck
-		}()
-
 		log.WithFields(log.Fields{
 			"user":        session.User(),
 			"remoteaddr":  session.RemoteAddr(),
@@ -294,6 +289,11 @@ func (s *Server) sessionHandler(session gliderssh.Session) {
 		if err != nil {
 			log.Warn(err)
 		}
+
+		go func() {
+			serverConn.Wait()  // nolint:errcheck
+			cmd.Process.Kill() // nolint:errcheck
+		}()
 
 		go func() {
 			if _, err := io.Copy(stdin, session); err != nil {
