@@ -231,6 +231,18 @@ func exitCodeFromError(err error) int {
 	return fault.ExitStatus()
 }
 
+// isUnknownError checks if an error is unknown exit error
+// An error is considered known if it is either *gossh.ExitMissingError or *gossh.ExitError.
+func isUnknownExitError(err error) bool {
+	switch err.(type) {
+	case *gossh.ExitMissingError:
+	case *gossh.ExitError:
+		return false
+	}
+
+	return err != nil
+}
+
 // shell handles an interactive terminal session.
 func shell(api internalclient.Client, sess *session.Session, uid string, agent *gossh.Session, client gliderssh.Session, pty gliderssh.Pty, winCh <-chan gliderssh.Window, opts ConfigOptions) error {
 	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
@@ -311,7 +323,8 @@ func shell(api internalclient.Client, sess *session.Session, uid string, agent *
 		return err
 	}
 
-	if err := agent.Wait(); err != nil {
+	err = agent.Wait()
+	if isUnknownExitError(err) {
 		log.WithError(err).WithFields(log.Fields{
 			"client": uid,
 		}).Warning("client remote command returned a error")
@@ -359,7 +372,7 @@ func heredoc(api internalclient.Client, uid string, agent *gossh.Session, client
 	}
 
 	err = agent.Wait()
-	if err != nil {
+	if isUnknownExitError(err) {
 		log.WithError(err).WithFields(log.Fields{
 			"client": uid,
 		}).Warning("command on agent returned an error")
@@ -392,13 +405,6 @@ func exec(api internalclient.Client, uid string, agent *gossh.Session, client gl
 	go flw.PipeOut(client, waitPipeOut)
 	go flw.PipeErr(client, nil)
 
-	go func() {
-		// When the client stop to send data, it means that the command has finished and the process should be closed.
-		<-waitPipeIn
-
-		agent.Close()
-	}()
-
 	if err := agent.Start(client.RawCommand()); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"client":  uid,
@@ -411,7 +417,7 @@ func exec(api internalclient.Client, uid string, agent *gossh.Session, client gl
 	<-waitPipeOut
 
 	err = agent.Wait()
-	if err != nil {
+	if isUnknownExitError(err) {
 		log.WithError(err).WithFields(log.Fields{
 			"client":  uid,
 			"command": client.RawCommand(),
