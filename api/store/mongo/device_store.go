@@ -267,10 +267,11 @@ func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname stri
 
 	q := bson.M{
 		"$setOnInsert": bson.M{
-			"name":       hostname,
-			"status":     "pending",
-			"created_at": clock.Now(),
-			"tags":       []string{},
+			"name":              hostname,
+			"status":            "pending",
+			"status_updated_at": time.Now(),
+			"created_at":        clock.Now(),
+			"tags":              []string{},
 		},
 		"$set": d,
 	}
@@ -355,6 +356,11 @@ func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status m
 
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"status": status}}, opts)
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	_, err = s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"status_updated_at": time.Now()}}, opts)
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -540,15 +546,14 @@ func (s *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.
 }
 
 func (s *Store) DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error { //nolint:revive
-	_, err := s.db.Collection("removed_devices").InsertOne(ctx, models.DeviceRemoved{
-		Timestamp: time.Now(),
-		Device: func() *models.Device {
-			if device != nil {
-				device.Acceptable = true
-			}
+	now := time.Now()
 
-			return device
-		}(),
+	device.Status = models.DeviceStatusRemoved
+	device.StatusUpdatedAt = now
+
+	_, err := s.db.Collection("removed_devices").InsertOne(ctx, models.DeviceRemoved{
+		Timestamp: now,
+		Device:    device,
 	})
 	if err != nil {
 		return FromMongoError(err)
