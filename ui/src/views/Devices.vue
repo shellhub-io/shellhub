@@ -3,7 +3,7 @@
     class="d-flex flex-column justify-space-between align-center flex-sm-row"
   >
     <h1>Devices</h1>
-    <div class="w-50">
+    <v-col md="6" sm="12">
       <v-text-field
         v-if="hasDevice"
         label="Search by hostname"
@@ -17,7 +17,7 @@
         density="comfortable"
         data-test="search-text"
       />
-    </div>
+    </v-col>
 
     <div class="d-flex mt-4">
       <TagSelector v-if="isDeviceList" data-test="tagSelector-component" />
