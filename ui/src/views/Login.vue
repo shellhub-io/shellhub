@@ -3,7 +3,7 @@
     <v-main class="d-flex align-center justify-center">
       <v-container fluid>
         <v-row align="center" justify="center">
-          <v-col cols="12" sm="8" md="4">
+          <v-col cols="12" sm="8" md="8">
             <v-card
               v-if="showMessage && !isCloud"
               class="bg-v-theme-surface"
@@ -39,7 +39,7 @@
         </v-row>
 
         <v-row align="center" justify="center" v-if="!showMessage">
-          <v-col cols="12" sm="8" md="4">
+          <v-col cols="12" sm="8" md="4" xl="3">
             <v-card theme="dark" class="pa-6 bg-v-theme-surface" rounded="lg">
               <v-card-title class="d-flex justify-center align-center mt-4">
                 <v-img
@@ -51,7 +51,7 @@
               <v-container>
                 <SnackbarComponent />
                 <form @submit.prevent="login">
-                  <v-container>
+                  <v-col>
                     <v-text-field
                       color="primary"
                       prepend-icon="mdi-account"
@@ -116,7 +116,7 @@
                         Sign up here
                       </router-link>
                     </v-card-subtitle>
-                  </v-container>
+                  </v-col>
                 </form>
               </v-container>
             </v-card>
