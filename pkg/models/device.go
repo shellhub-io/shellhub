@@ -28,6 +28,7 @@ type Device struct {
 	Online           bool            `json:"online" bson:",omitempty"`
 	Namespace        string          `json:"namespace" bson:",omitempty"`
 	Status           DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
+	StatusUpdatedAt  time.Time       `json:"status_updated_at" bson:"status_updated_at,omitempty"`
 	CreatedAt        time.Time       `json:"created_at" bson:"created_at,omitempty"`
 	RemoteAddr       string          `json:"remote_addr" bson:"remote_addr"`
 	Position         *DevicePosition `json:"position" bson:"position"`
