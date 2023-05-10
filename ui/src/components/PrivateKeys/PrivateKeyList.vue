@@ -53,8 +53,8 @@
         </td>
       </tr>
     </tbody>
-    <div v-else class="text-start mt-2 text-medium-emphasis">
-      <span>No data avaliabe</span>
+    <div v-else sm="12" class="text-start mt-2 text-medium-emphasis">
+      <span>No data avaliable</span>
     </div>
   </v-table>
 </template>
