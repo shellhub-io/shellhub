@@ -9,7 +9,7 @@
     </v-card-title>
 
     <v-card-title class="d-flex justify-center">
-      <div class="text-h5" data-test="boxMessage-title">
+      <div class="text-sm-h5 text-md-h5 text-wrap text-center" data-test="boxMessage-title">
         Looks like you don't have any {{ title() }}
       </div>
     </v-card-title>
