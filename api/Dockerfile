@@ -61,4 +61,8 @@ RUN apk add curl
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/api/api /api
 
+RUN mkdir /templates
+
+COPY ./api/templates /templates
+
 ENTRYPOINT /api server
