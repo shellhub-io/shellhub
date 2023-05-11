@@ -453,6 +453,12 @@ export interface Device {
      */
     'status'?: DeviceStatus;
     /**
+     * Device\'s status update date
+     * @type {string}
+     * @memberof Device
+     */
+    'status_update_at'?: string;
+    /**
      * Device\'s creation date
      * @type {string}
      * @memberof Device
