@@ -78,6 +78,8 @@ func NewErrors(reporter *sentry.Client) func(error, echo.Context) {
 			}
 
 			maybeReport(reporter, converted, ctx.Request())
+		} else if herr, ok := err.(*echo.HTTPError); ok {
+			status = herr.Code
 		} else {
 			status = http.StatusInternalServerError
 
