@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"path"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -121,8 +120,7 @@ func (c *client) GetDeviceByPublicURLAddress(address string) (*models.Device, er
 }
 
 func buildURL(c *client, uri string) string {
-	u, _ := url.Parse(fmt.Sprintf("%s://%s:%d", c.scheme, c.host, c.port))
-	u.Path = path.Join(u.Path, uri)
+	u, _ := url.Parse(fmt.Sprintf("%s://%s:%d%s", c.scheme, c.host, c.port, uri))
 
 	return u.String()
 }
