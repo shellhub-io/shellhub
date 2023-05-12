@@ -27,7 +27,7 @@ export const fetchDevices = async (
 
 export const getDevice = async (uid : string) => devicesApi.getDevice(uid);
 
-export const renameDevice = async (data : IDeviceRename) => devicesApi.updateDeviceName(data.uid, data.name);
+export const renameDevice = async (data : IDeviceRename) => devicesApi.updateDevice(data.uid, data.name);
 
 export const acceptDevice = async (uid : string) => devicesApi.updateDeviceStatus(uid, "accept");
 
