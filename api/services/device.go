@@ -105,14 +105,10 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 	// If the namespace has a limit of devices, we change the device's slot status to removed.
 	// This way, we can keep track of the number of devices that were removed from the namespace and void the device
 	// switching.
-	if envs.IsCloud() && ns.HasMaxDevices() {
+	if envs.IsCloud() && envs.HasBilling() && !ns.Billing.IsActive() {
 		if err := s.store.DeviceRemovedInsert(ctx, tenant, device); err != nil {
 			return NewErrDeviceRemovedInsert(err)
 		}
-	}
-
-	if err = createReportUsage(s.client.(req.Client), ns, false, device); err != nil {
-		return err
 	}
 
 	return s.store.DeviceDelete(ctx, uid)
@@ -204,7 +200,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 		return NewErrDeviceStatusAccepted(nil)
 	}
 
-	ns, err := s.store.NamespaceGet(ctx, tenant)
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
@@ -215,7 +211,7 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 
 	// NOTICE: The logic below is only executed when the new status is "accepted".
 
-	if envs.IsCloud() && ns.HasMaxDevices() {
+	if envs.IsCloud() && envs.HasBilling() && !namespace.Billing.IsActive() {
 		removed, err := s.store.DeviceRemovedGet(ctx, tenant, uid)
 		if err != nil && err != store.ErrNoDocuments {
 			return NewErrDeviceRemovedGet(err)
@@ -231,8 +227,8 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 				return NewErrDeviceRemovedCount(err)
 			}
 
-			if ns.HasMaxDevicesReached(count) {
-				return NewErrDeviceRemovedFull(ns.MaxDevices, nil)
+			if namespace.HasMaxDevicesReached(count) {
+				return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
 			}
 		}
 	}
@@ -254,17 +250,26 @@ func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, statu
 			return err
 		}
 	} else {
-		ns, err := s.store.NamespaceGet(ctx, device.TenantID)
-		if err != nil {
-			return NewErrNamespaceNotFound(device.TenantID, err)
-		}
+		// NOTICE: this 'else' arm seems exist only to report the number of devices in use to billing and block if the
+		// limit is reached, what is not needed for the community edition.
+		if envs.IsCloud() && envs.HasBilling() {
+			// It is passing the responsibility to the billing service to evaluate the namespace's billing.
+			// If it had a billing plan enabled before, check if it is still active. Else, check if it can be accepted,
+			// checking if it has reached the limit.
+			if namespace.Billing.IsActive() {
+				if err := billingReport(s.client.(req.Client), namespace.TenantID, ReportDeviceAccept); err != nil {
+					return err
+				}
+			} else { // However, if it never had a billing plan enabled or it is inactive, check if it can be accepted.
+				ok, err := billingEvaluate(s.client.(req.Client), namespace.TenantID)
+				if err != nil {
+					return err
+				}
 
-		if err := createReportUsage(s.client.(req.Client), ns, true, device); err != nil {
-			return err
-		}
-
-		if ns.MaxDevices > 0 && ns.MaxDevices <= ns.DevicesCount {
-			return NewErrDeviceLimit(ns.MaxDevices, nil)
+				if !ok {
+					return ErrDeviceLimit
+				}
+			}
 		}
 	}
 

@@ -59,3 +59,43 @@ func (c *Context) ID() *models.ID {
 func (c *Context) Ctx() context.Context {
 	return c.Request().Context()
 }
+
+// GetID returns the user's ID got from JWT through gateway.
+func (c *Context) GetID() (string, bool) {
+	ID := c.Request().Header.Get("X-ID")
+	if ID != "" {
+		return ID, true
+	}
+
+	return "", false
+}
+
+// GetTennat returns the namespace's tenant got from JWT through gateway.
+func (c *Context) GetTennat() (string, bool) {
+	tenant := c.Request().Header.Get("X-Tenant-ID")
+	if tenant != "" {
+		return tenant, true
+	}
+
+	return "", false
+}
+
+// GetUsername returns the username got from JWT through gateway.
+func (c *Context) GetUsername() (string, bool) {
+	username := c.Request().Header.Get("X-Username")
+	if username != "" {
+		return username, true
+	}
+
+	return "", false
+}
+
+// GetRole returns the user's namespace role got from JWT through gateway.
+func (c *Context) GetRole() (string, bool) {
+	role := c.Request().Header.Get("X-Role")
+	if role != "" {
+		return role, true
+	}
+
+	return "", false
+}

@@ -908,6 +908,8 @@ func TestDeleteNamespace(t *testing.T) {
 			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: guard.RoleOwner}}},
 			requiredMocks: func(namespace *models.Namespace) {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_BILLING").Return("false").Once()
 				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(errors.New("error")).Once()
 			},
 			expected: errors.New("error"),
@@ -917,36 +919,8 @@ func TestDeleteNamespace(t *testing.T) {
 			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: guard.RoleOwner}}},
 			requiredMocks: func(namespace *models.Namespace) {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
-			},
-			expected: nil,
-		},
-		{
-			description: "avoids report for disabled env",
-			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: guard.RoleOwner}}},
-			requiredMocks: func(namespace *models.Namespace) {
-				user1 := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "user1",
-						Email:    "user1@email.com",
-					},
-					ID: "ID1",
-				}
-
-				ns := &models.Namespace{
-					TenantID: namespace.TenantID,
-					Owner:    user1.ID,
-					Members: []models.Member{
-						{ID: user1.ID, Role: guard.RoleOwner},
-					},
-					Billing: &models.Billing{
-						Active: true,
-					},
-					MaxDevices: -1,
-				}
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(ns, nil).Once()
-				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(false)).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_BILLING").Return("false").Once()
 				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
 			},
 			expected: nil,
@@ -976,6 +950,7 @@ func TestDeleteNamespace(t *testing.T) {
 					MaxDevices: -1,
 				}
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(ns, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(true)).Once()
 				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
 				clientMock.On("ReportDelete", ns).Return(200, nil).Once()
 				mock.On("NamespaceDelete", ctx, namespace.TenantID).Return(nil).Once()
@@ -2037,7 +2012,8 @@ func TestEditSessionRecord(t *testing.T) {
 						ID:   "hash2",
 						Role: guard.RoleObserver,
 					},
-				}},
+				},
+			},
 			requiredMocks: func() {
 				namespace := &models.Namespace{
 					Name:     "group1",

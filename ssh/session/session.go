@@ -150,7 +150,7 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 			return nil, ErrFindDevice
 		}
 
-		if _, status, _ := api.BillingEvaluate(device.TenantID); status != 200 && status != 402 {
+		if evaluatation, status, _ := api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
 			return nil, ErrBillingBlock
 		}
 	}

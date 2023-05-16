@@ -33,7 +33,7 @@ type NamespaceActions struct {
 }
 
 type BillingActions struct {
-	ChooseDevices, AddPaymentMethod, UpdatePaymentMethod, RemovePaymentMethod, CancelSubscription, CreateSubscription, GetSubscription int
+	CreateCustomer, ChooseDevices, AddPaymentMethod, UpdatePaymentMethod, RemovePaymentMethod, CancelSubscription, CreateSubscription, GetSubscription int
 }
 
 // Actions has all available and allowed actions.
@@ -80,6 +80,7 @@ var Actions = AllActions{
 		Delete:              NamespaceDelete,
 	},
 	Billing: BillingActions{
+		CreateCustomer:      BillingCreateCustomer,
 		ChooseDevices:       BillingChooseDevices,
 		AddPaymentMethod:    BillingAddPaymentMethod,
 		UpdatePaymentMethod: BillingUpdatePaymentMethod,
