@@ -45,6 +45,7 @@ const (
 	NamespaceEnableSessionRecord
 	NamespaceDelete
 
+	BillingCreateCustomer
 	BillingChooseDevices
 	BillingAddPaymentMethod
 	BillingUpdatePaymentMethod
@@ -164,6 +165,7 @@ var ownerPermissions = Permissions{
 	NamespaceEnableSessionRecord,
 	NamespaceDelete,
 
+	BillingCreateCustomer,
 	BillingChooseDevices,
 	BillingAddPaymentMethod,
 	BillingUpdatePaymentMethod,

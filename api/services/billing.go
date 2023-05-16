@@ -2,56 +2,35 @@ package services
 
 import (
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-func shouldReport(ns *models.Namespace) bool {
-	if ns == nil || ns.Billing == nil {
-		return false
+// billingEvaluate evaluate in the billing service if the namespace can create accept more devices.
+func billingEvaluate(client req.Client, tenant string) (bool, error) {
+	evaluation, _, err := client.BillingEvaluate(tenant)
+	if err != nil {
+		return false, ErrEvaluate
 	}
 
-	return envs.HasBilling()
+	return evaluation.CanAccept, nil
 }
 
-func createReportUsage(client req.Client, ns *models.Namespace, inc bool, device *models.Device) error {
-	if !shouldReport(ns) {
-		return nil
-	}
+const (
+	ReportDeviceAccept    = "device_accept"
+	ReportNamespaceDelete = "namespace_delete"
+)
 
-	record := &models.UsageRecord{
-		Device:    device,
-		Inc:       inc,
-		Timestamp: clock.Now().Unix(),
-		Namespace: ns,
-	}
-
-	status, err := client.ReportUsage(record)
+func billingReport(client req.Client, tenant string, action string) error {
+	status, err := client.BillingReport(tenant, action)
 	if err != nil {
 		return err
 	}
 
-	return reportStatusToError(status)
-}
-
-func deleteReportUsage(client req.Client, ns *models.Namespace) error {
-	if !shouldReport(ns) {
+	switch status {
+	case 200:
 		return nil
+	case 402:
+		return ErrPaymentRequired
+	default:
+		return ErrReport
 	}
-
-	status, err := client.ReportDelete(ns)
-	if err != nil {
-		return err
-	}
-
-	return reportStatusToError(status)
-}
-
-func reportStatusToError(status int) error {
-	if status == 200 || status == 402 || status == 400 {
-		return nil
-	}
-
-	return ErrReport
 }

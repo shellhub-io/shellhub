@@ -29,7 +29,7 @@ func NewClient(opts ...Opt) Client {
 	httpClient := resty.New()
 	httpClient.SetRetryCount(math.MaxInt32)
 	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
-		if _, ok := err.(net.Error); ok {
+		if _, ok := err.(net.Error); ok { // if the error is a network error, retry.
 			return true
 		}
 

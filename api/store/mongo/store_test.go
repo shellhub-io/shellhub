@@ -188,10 +188,9 @@ func initData() Data {
 		},
 		models.Billing{
 			SubscriptionID:   "subc_1111x",
-			CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
-			PriceID:          "pid_11x",
+			CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC).Unix(),
 			Active:           true,
-			State:            "pending",
+			Status:           "",
 		},
 		models.PublicKey{
 			Data:            []byte("teste"),

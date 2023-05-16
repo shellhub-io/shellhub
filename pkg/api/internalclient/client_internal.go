@@ -34,22 +34,20 @@ type internalAPI interface {
 	FinishSession(uid string) []error
 	KeepAliveSession(uid string) []error
 	RecordSession(session *models.SessionRecorded, recordURL string)
-	BillingEvaluate(tenantID string) (*models.Namespace, int, error)
 	Lookup(lookup map[string]string) (string, []error)
 	DeviceLookup(lookup map[string]string) (*models.Device, []error)
-	ReportUsage(ur *models.UsageRecord) (int, error)
-	ReportDelete(ns *models.Namespace) (int, error)
+	BillingReport(tenant string, action string) (int, error)
+	BillingEvaluate(tenantID string) (*models.BillingEvaluation, int, error)
 }
 
 func (c *client) LookupDevice() {
 }
 
-func (c *client) ReportDelete(ns *models.Namespace) (int, error) {
+func (c *client) BillingReport(tenant string, action string) (int, error) {
 	res, err := c.http.R().
-		SetBody(struct {
-			Namespace *models.Namespace `json:"namespace"`
-		}{Namespace: ns}).
-		Delete(fmt.Sprintf("%s://%s:%d/internal/billing/namespace-subscription", apiScheme, billingURL, apiPort))
+		SetHeader("X-Tenant-ID", tenant).
+		SetQueryParam("action", action).
+		Post(fmt.Sprintf("%s://%s:%d/internal/billing/report", apiScheme, billingURL, apiPort))
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -57,15 +55,17 @@ func (c *client) ReportDelete(ns *models.Namespace) (int, error) {
 	return res.StatusCode(), nil
 }
 
-func (c *client) ReportUsage(ur *models.UsageRecord) (int, error) {
-	res, err := c.http.R().
-		SetBody(ur).
-		Post(fmt.Sprintf("%s://%s:%d/internal/billing/report-usage", apiScheme, billingURL, apiPort))
+func (c *client) BillingEvaluate(tenantID string) (*models.BillingEvaluation, int, error) {
+	var evaluation *models.BillingEvaluation
+	resp, err := c.http.R().
+		SetHeader("X-Tenant-ID", tenantID).
+		SetResult(&evaluation).
+		Post(fmt.Sprintf("%s://%s:%d/internal/billing/evaluate", apiScheme, billingURL, apiPort))
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return evaluation, resp.StatusCode(), err
 	}
 
-	return res.StatusCode(), nil
+	return evaluation, resp.StatusCode(), nil
 }
 
 func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, error) {
@@ -82,19 +82,6 @@ func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, er
 	}
 
 	return pubKey, nil
-}
-
-func (c *client) BillingEvaluate(tenantID string) (*models.Namespace, int, error) {
-	var namespace *models.Namespace
-	resp, err := c.http.R().
-		SetQueryParam("tenant_id", tenantID).
-		SetResult(&namespace).
-		Get(fmt.Sprintf("%s://%s:%d/internal/billing/evaluate", apiScheme, billingURL, apiPort))
-	if err != nil {
-		return namespace, resp.StatusCode(), err
-	}
-
-	return namespace, resp.StatusCode(), nil
 }
 
 func (c *client) EvaluateKey(fingerprint string, dev *models.Device, username string) (bool, error) {

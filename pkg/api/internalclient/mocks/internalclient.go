@@ -13,20 +13,20 @@ type Client struct {
 }
 
 // BillingEvaluate provides a mock function with given fields: tenantID
-func (_m *Client) BillingEvaluate(tenantID string) (*models.Namespace, int, error) {
+func (_m *Client) BillingEvaluate(tenantID string) (*models.BillingEvaluation, int, error) {
 	ret := _m.Called(tenantID)
 
-	var r0 *models.Namespace
+	var r0 *models.BillingEvaluation
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(string) (*models.Namespace, int, error)); ok {
+	if rf, ok := ret.Get(0).(func(string) (*models.BillingEvaluation, int, error)); ok {
 		return rf(tenantID)
 	}
-	if rf, ok := ret.Get(0).(func(string) *models.Namespace); ok {
+	if rf, ok := ret.Get(0).(func(string) *models.BillingEvaluation); ok {
 		r0 = rf(tenantID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Namespace)
+			r0 = ret.Get(0).(*models.BillingEvaluation)
 		}
 	}
 
@@ -43,6 +43,30 @@ func (_m *Client) BillingEvaluate(tenantID string) (*models.Namespace, int, erro
 	}
 
 	return r0, r1, r2
+}
+
+// BillingReport provides a mock function with given fields: tenant, action
+func (_m *Client) BillingReport(tenant string, action string) (int, error) {
+	ret := _m.Called(tenant, action)
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (int, error)); ok {
+		return rf(tenant, action)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) int); ok {
+		r0 = rf(tenant, action)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(tenant, action)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // CreatePrivateKey provides a mock function with given fields:
@@ -335,54 +359,6 @@ func (_m *Client) LookupDevice() {
 // RecordSession provides a mock function with given fields: session, recordURL
 func (_m *Client) RecordSession(session *models.SessionRecorded, recordURL string) {
 	_m.Called(session, recordURL)
-}
-
-// ReportDelete provides a mock function with given fields: ns
-func (_m *Client) ReportDelete(ns *models.Namespace) (int, error) {
-	ret := _m.Called(ns)
-
-	var r0 int
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*models.Namespace) (int, error)); ok {
-		return rf(ns)
-	}
-	if rf, ok := ret.Get(0).(func(*models.Namespace) int); ok {
-		r0 = rf(ns)
-	} else {
-		r0 = ret.Get(0).(int)
-	}
-
-	if rf, ok := ret.Get(1).(func(*models.Namespace) error); ok {
-		r1 = rf(ns)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ReportUsage provides a mock function with given fields: ur
-func (_m *Client) ReportUsage(ur *models.UsageRecord) (int, error) {
-	ret := _m.Called(ur)
-
-	var r0 int
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*models.UsageRecord) (int, error)); ok {
-		return rf(ur)
-	}
-	if rf, ok := ret.Get(0).(func(*models.UsageRecord) int); ok {
-		r0 = rf(ur)
-	} else {
-		r0 = ret.Get(0).(int)
-	}
-
-	if rf, ok := ret.Get(1).(func(*models.UsageRecord) error); ok {
-		r1 = rf(ur)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // SessionAsAuthenticated provides a mock function with given fields: uid

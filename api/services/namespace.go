@@ -137,15 +137,22 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 //
 // It receives a context, used to "control" the request flow and the tenant ID from models.Namespace.
 //
-// DeleteNamespace returns an error.
+// When cloud and billing is enabled, it will try to delete the namespace's billing information from the billing
+// service if it exists.
 func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	if err := deleteReportUsage(s.client.(req.Client), ns); err != nil {
-		return err
+	ableToReportDeleteNamespace := func(ns *models.Namespace) bool {
+		return !ns.Billing.IsNil() && ns.Billing.HasCutomer() && ns.Billing.HasSubscription()
+	}
+
+	if envs.IsCloud() && envs.HasBilling() && ableToReportDeleteNamespace(ns) {
+		if err := billingReport(s.client.(req.Client), tenantID, ReportNamespaceDelete); err != nil {
+			return NewErrBillingReportNamespaceDelete(err)
+		}
 	}
 
 	return s.store.NamespaceDelete(ctx, tenantID)
