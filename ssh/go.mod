@@ -3,6 +3,7 @@ module github.com/shellhub-io/shellhub/ssh
 go 1.20
 
 require (
+	github.com/Masterminds/semver v1.5.0
 	github.com/gliderlabs/ssh v0.3.5
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
