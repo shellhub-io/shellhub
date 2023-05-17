@@ -11,7 +11,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/routes"
-	apiMiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/api/workers"
@@ -115,13 +114,6 @@ func startServer(cfg *config) error {
 
 	log.Info("Starting API server")
 
-	e := echo.New()
-	e.Use(middleware.Log)
-	e.Use(echoMiddleware.RequestID())
-	e.Binder = handlers.NewBinder()
-	e.Validator = handlers.NewValidator()
-	e.HTTPErrorHandler = handlers.NewErrors(reporter)
-
 	log.Trace("Connecting to Redis")
 
 	cache, err := storecache.NewRedisCache(cfg.RedisURI)
@@ -172,7 +164,11 @@ func startServer(cfg *config) error {
 
 	store := mongo.NewStore(client.Database(connStr.Database), cache)
 	service := services.NewService(store, nil, nil, cache, requestClient, locator)
-	handler := routes.NewHandler(service)
+
+	e := routes.NewRouter(service)
+	e.Use(middleware.Log)
+	e.Use(echoMiddleware.RequestID())
+	e.HTTPErrorHandler = handlers.NewErrors(reporter)
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -181,87 +177,6 @@ func startServer(cfg *config) error {
 			return next(apicontext)
 		}
 	})
-
-	// Public routes for external access through API gateway
-	publicAPI := e.Group("/api")
-
-	// Internal routes only accessible by other services in the local container network
-	internalAPI := e.Group("/internal")
-
-	internalAPI.GET(routes.AuthRequestURL, gateway.Handler(handler.AuthRequest), gateway.Middleware(routes.AuthMiddleware))
-	publicAPI.POST(routes.AuthDeviceURL, gateway.Handler(handler.AuthDevice))
-	publicAPI.POST(routes.AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
-	publicAPI.POST(routes.AuthUserURL, gateway.Handler(handler.AuthUser))
-	publicAPI.POST(routes.AuthUserURLV2, gateway.Handler(handler.AuthUser))
-	publicAPI.GET(routes.AuthUserURLV2, gateway.Handler(handler.AuthUserInfo))
-	internalAPI.GET(routes.AuthUserTokenURL, gateway.Handler(handler.AuthGetToken))
-	publicAPI.POST(routes.AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
-	publicAPI.GET(routes.AuthUserTokenURL, gateway.Handler(handler.AuthSwapToken))
-
-	publicAPI.PATCH(routes.UpdateUserDataURL, gateway.Handler(handler.UpdateUserData))
-	publicAPI.PATCH(routes.UpdateUserPasswordURL, gateway.Handler(handler.UpdateUserPassword))
-	publicAPI.PUT(routes.EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus))
-	publicAPI.GET(routes.GetSessionRecordURL, gateway.Handler(handler.GetSessionRecord))
-
-	publicAPI.GET(routes.GetDeviceListURL,
-		apiMiddleware.Authorize(gateway.Handler(handler.GetDeviceList)))
-	publicAPI.GET(routes.GetDeviceURL,
-		apiMiddleware.Authorize(gateway.Handler(handler.GetDevice)))
-	internalAPI.GET(routes.GetDeviceByPublicURLAddress, gateway.Handler(handler.GetDeviceByPublicURLAddress))
-	publicAPI.DELETE(routes.DeleteDeviceURL, gateway.Handler(handler.DeleteDevice))
-	publicAPI.PUT(routes.UpdateDevice, gateway.Handler(handler.UpdateDevice))
-	publicAPI.PATCH(routes.RenameDeviceURL, gateway.Handler(handler.RenameDevice))
-	internalAPI.POST(routes.OfflineDeviceURL, gateway.Handler(handler.OfflineDevice))
-	internalAPI.POST(routes.HeartbeatDeviceURL, gateway.Handler(handler.HeartbeatDevice))
-	internalAPI.GET(routes.LookupDeviceURL, gateway.Handler(handler.LookupDevice))
-	publicAPI.PATCH(routes.UpdateStatusURL, gateway.Handler(handler.UpdatePendingStatus))
-
-	publicAPI.POST(routes.CreateTagURL, gateway.Handler(handler.CreateDeviceTag))
-	publicAPI.DELETE(routes.RemoveTagURL, gateway.Handler(handler.RemoveDeviceTag))
-	publicAPI.PUT(routes.UpdateTagURL, gateway.Handler(handler.UpdateDeviceTag))
-
-	publicAPI.GET(routes.GetTagsURL, gateway.Handler(handler.GetTags))
-	publicAPI.PUT(routes.RenameTagURL, gateway.Handler(handler.RenameTag))
-	publicAPI.DELETE(routes.DeleteTagsURL, gateway.Handler(handler.DeleteTag))
-
-	publicAPI.GET(routes.GetSessionsURL,
-		apiMiddleware.Authorize(gateway.Handler(handler.GetSessionList)))
-	publicAPI.GET(routes.GetSessionURL,
-		apiMiddleware.Authorize(gateway.Handler(handler.GetSession)))
-	internalAPI.PATCH(routes.SetSessionAuthenticatedURL, gateway.Handler(handler.SetSessionAuthenticated))
-	internalAPI.POST(routes.CreateSessionURL, gateway.Handler(handler.CreateSession))
-	internalAPI.POST(routes.FinishSessionURL, gateway.Handler(handler.FinishSession))
-	internalAPI.POST(routes.KeepAliveSessionURL, gateway.Handler(handler.KeepAliveSession))
-	internalAPI.POST(routes.RecordSessionURL, gateway.Handler(handler.RecordSession))
-	publicAPI.GET(routes.PlaySessionURL, gateway.Handler(handler.PlaySession))
-	publicAPI.DELETE(routes.RecordSessionURL, gateway.Handler(handler.DeleteRecordedSession))
-
-	publicAPI.GET(routes.GetStatsURL,
-		apiMiddleware.Authorize(gateway.Handler(handler.GetStats)))
-	publicAPI.GET(routes.GetSystemInfoURL, gateway.Handler(handler.GetSystemInfo))
-	publicAPI.GET(routes.GetSystemDownloadInstallScriptURL, gateway.Handler(handler.GetSystemDownloadInstallScript))
-
-	publicAPI.GET(routes.GetPublicKeysURL, gateway.Handler(handler.GetPublicKeys))
-	publicAPI.POST(routes.CreatePublicKeyURL, gateway.Handler(handler.CreatePublicKey))
-	publicAPI.PUT(routes.UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey))
-	publicAPI.DELETE(routes.DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey))
-	internalAPI.GET(routes.GetPublicKeyURL, gateway.Handler(handler.GetPublicKey))
-	internalAPI.POST(routes.CreatePrivateKeyURL, gateway.Handler(handler.CreatePrivateKey))
-	internalAPI.POST(routes.EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
-
-	publicAPI.POST(routes.AddPublicKeyTagURL, gateway.Handler(handler.AddPublicKeyTag))
-	publicAPI.DELETE(routes.RemovePublicKeyTagURL, gateway.Handler(handler.RemovePublicKeyTag))
-	publicAPI.PUT(routes.UpdatePublicKeyTagsURL, gateway.Handler(handler.UpdatePublicKeyTags))
-
-	publicAPI.GET(routes.ListNamespaceURL, gateway.Handler(handler.GetNamespaceList))
-	publicAPI.GET(routes.GetNamespaceURL, gateway.Handler(handler.GetNamespace))
-	publicAPI.POST(routes.CreateNamespaceURL, gateway.Handler(handler.CreateNamespace))
-	publicAPI.DELETE(routes.DeleteNamespaceURL, gateway.Handler(handler.DeleteNamespace))
-	publicAPI.PUT(routes.EditNamespaceURL, gateway.Handler(handler.EditNamespace))
-	publicAPI.POST(routes.AddNamespaceUserURL, gateway.Handler(handler.AddNamespaceUser))
-	publicAPI.DELETE(routes.RemoveNamespaceUserURL, gateway.Handler(handler.RemoveNamespaceUser))
-	publicAPI.PATCH(routes.EditNamespaceUserURL, gateway.Handler(handler.EditNamespaceUser))
-	publicAPI.GET(routes.HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
 
 	e.Logger.Fatal(e.Start(":8080"))
 
