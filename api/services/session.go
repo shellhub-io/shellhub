@@ -24,7 +24,12 @@ func (s *service) ListSessions(ctx context.Context, pagination paginator.Query) 
 }
 
 func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
-	return s.store.SessionGet(ctx, uid)
+	session, err := s.store.SessionGet(ctx, uid)
+	if err != nil {
+		return nil, NewErrSessionNotFound(uid, err)
+	}
+
+	return session, nil
 }
 
 func (s *service) CreateSession(ctx context.Context, session requests.SessionCreate) (*models.Session, error) {
