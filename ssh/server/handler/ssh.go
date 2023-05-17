@@ -11,6 +11,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -398,6 +399,24 @@ func exec(api internalclient.Client, uid string, agent *gossh.Session, client gl
 		return err
 	}
 
+	dev, err := api.GetDevice(uid)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"client": uid,
+		}).Error("failed to get device")
+
+		return err
+	}
+
+	ver, err := semver.NewVersion(dev.Info.Version)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"client": uid,
+		}).Error("failed to parse device version")
+
+		return err
+	}
+
 	waitPipeIn := make(chan bool)
 	waitPipeOut := make(chan bool)
 
@@ -412,6 +431,15 @@ func exec(api internalclient.Client, uid string, agent *gossh.Session, client gl
 		}).Error("failed to start a command on agent")
 
 		return err
+	}
+
+	// version less 0.9.3 does not support the exec command, what will make some commands to hang forever.
+	if ver.LessThan(semver.MustParse("0.9.3")) {
+		go func() {
+			// When agent stop to send data, it means that the command has finished and the process should be closed.
+			<-waitPipeIn
+			agent.Close()
+		}()
 	}
 
 	<-waitPipeOut
