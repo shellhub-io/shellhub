@@ -2,15 +2,17 @@ package services
 
 import (
 	"context"
-	"errors"
 	"net"
 	"testing"
+
+	goerrors "errors"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -31,7 +33,7 @@ func TestListSessions(t *testing.T) {
 
 	query := paginator.Query{Page: 1, PerPage: 10}
 
-	Err := errors.New("error")
+	Err := goerrors.New("error")
 
 	type Expected struct {
 		sessions []models.Session
@@ -97,7 +99,7 @@ func TestGetSession(t *testing.T) {
 
 	session := &models.Session{UID: "uid"}
 
-	Err := errors.New("error")
+	Err := errors.New("error", "", 0)
 
 	cases := []struct {
 		name          string
@@ -115,7 +117,7 @@ func TestGetSession(t *testing.T) {
 			},
 			expected: Expected{
 				session: nil,
-				err:     Err,
+				err:     NewErrSessionNotFound(models.UID("_uid"), Err),
 			},
 		},
 		{
@@ -161,7 +163,7 @@ func TestCreateSession(t *testing.T) {
 		Longitude: 0,
 	}}
 
-	Err := errors.New("error")
+	Err := goerrors.New("error")
 
 	cases := []struct {
 		name          string
@@ -216,7 +218,7 @@ func TestDeactivateSession(t *testing.T) {
 
 	ctx := context.TODO()
 
-	Err := errors.New("error")
+	Err := goerrors.New("error")
 
 	cases := []struct {
 		name          string
@@ -270,7 +272,7 @@ func TestSetSessionAuthenticated(t *testing.T) {
 
 	ctx := context.TODO()
 
-	Err := errors.New("error")
+	Err := goerrors.New("error")
 
 	cases := []struct {
 		name          string
