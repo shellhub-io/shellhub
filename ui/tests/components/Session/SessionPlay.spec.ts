@@ -178,7 +178,7 @@ describe("SessionPlay", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(async () => {
-        wrapper = mount(SessionPlay, {
+        const wrapper = mount(SessionPlay, {
           global: {
             plugins: [[store(test.variables.session), key], routes, vuetify],
           },

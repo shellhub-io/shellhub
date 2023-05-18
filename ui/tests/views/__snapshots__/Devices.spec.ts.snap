@@ -3,7 +3,7 @@
 exports[`Devices > Renders the component 1`] = `
 "<div class=\\"d-flex flex-column justify-space-between align-center flex-sm-row\\">
   <h1>Devices</h1>
-  <div class=\\"w-50\\">
+  <div class=\\"v-col-sm-12 v-col-md-6 v-col\\">
     <div class=\\"v-input v-input--horizontal v-input--density-comfortable v-text-field v-text-field--flush-details\\" data-test=\\"search-text\\">
       <!---->
       <div class=\\"v-input__control\\">
@@ -92,15 +92,15 @@ exports[`Devices > Renders the component 1`] = `
     <div class=\\"v-slide-group v-tabs v-tabs--horizontal v-tabs--align-tabs-start v-tabs--stacked v-tabs--density-default\\" tabindex=\\"-1\\" role=\\"tablist\\" background-color=\\"secondary\\">
       <!---->
       <div class=\\"v-slide-group__container\\">
-        <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Device List <div class=\\"v-tab__slider\\"></div></span>
             <!---->
             <!---->
-          </a><a class=\\"v-btn v-btn--stacked v-theme--light v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices/pending\\" tabindex=\\"-1\\" role=\\"tab\\" aria-selected=\\"false\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          </a><a class=\\"v-btn v-btn--stacked v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices/pending\\" tabindex=\\"-1\\" role=\\"tab\\" aria-selected=\\"false\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Pending <div class=\\"v-tab__slider\\"></div></span>
             <!---->
             <!---->
-          </a><a class=\\"v-btn v-btn--stacked v-theme--light v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices/rejected\\" tabindex=\\"-1\\" role=\\"tab\\" aria-selected=\\"false\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          </a><a class=\\"v-btn v-btn--stacked v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices/rejected\\" tabindex=\\"-1\\" role=\\"tab\\" aria-selected=\\"false\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Rejected <div class=\\"v-tab__slider\\"></div></span>
             <!---->
             <!---->

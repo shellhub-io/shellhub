@@ -33,8 +33,6 @@ exports[`Card > Renders the component 1`] = `
     </div>
     <div class=\\"v-list-item__append\\">
       <div class=\\"mt-4\\"><i class=\\"mdi-account-group mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" iconname-test=\\"mdi-account-group\\"></i></div>
-      <!---->
-      <!---->
     </div>
   </div>
   <div class=\\"v-card-actions\\"><a class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle\\" tabindex=\\"0\\" buttonname-test=\\"View all Users\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>

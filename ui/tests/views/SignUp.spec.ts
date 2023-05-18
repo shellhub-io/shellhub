@@ -80,10 +80,10 @@ describe("SignUp", () => {
   //////
 
   it("Show empty fields required in validation", async () => {
-    wrapper.vm.name = undefined;
-    wrapper.vm.username = undefined;
-    wrapper.vm.email = undefined;
-    wrapper.vm.password = undefined;
+    wrapper.vm.name = "";
+    wrapper.vm.username = "";
+    wrapper.vm.email = "";
+    wrapper.vm.password = "";
 
     await flushPromises();
 

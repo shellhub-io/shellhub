@@ -1,63 +1,65 @@
 <template>
-  <v-list-item
-    v-bind="$attrs"
-    @click="showDialog = true"
-    :disabled="notHasAuthorization"
-  >
-    <div class="d-flex align-center">
-      <div class="mr-2">
-        <v-icon> mdi-tag </v-icon>
+  <div>
+    <v-list-item
+      v-bind="$attrs"
+      @click="showDialog = true"
+      :disabled="notHasAuthorization"
+    >
+      <div class="d-flex align-center">
+        <div class="mr-2">
+          <v-icon> mdi-tag </v-icon>
+        </div>
+
+        <v-list-item-title data-test="mdi-information-list-item">
+          {{ hasTags ? "Edit tags" : "Add Tags" }}
+        </v-list-item-title>
       </div>
+    </v-list-item>
 
-      <v-list-item-title data-test="mdi-information-list-item">
-        {{ hasTags ? "Edit tags" : "Add Tags" }}
-      </v-list-item-title>
-    </div>
-  </v-list-item>
+    <v-dialog v-model="showDialog" min-width="280" max-width="450">
+      <v-card class="bg-v-theme-surface">
+        <v-card-title class="text-h5 pa-4 bg-primary">
+          {{ hasTags ? "Edit tags" : "Add Tags" }}
+        </v-card-title>
+        <v-divider />
 
-  <v-dialog v-model="showDialog" min-width="280" max-width="450">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary">
-        {{ hasTags ? "Edit tags" : "Add Tags" }}
-      </v-card-title>
-      <v-divider />
+        <v-card-text class="mt-5 w-100">
+          <v-combobox
+            id="targetInput"
+            full-width
+            ref="tags"
+            v-model="inputTags"
+            :error-messages="tagsError"
+            label="Tag"
+            hint="Maximum of 3 tags"
+            multiple
+            chips
+            variant="outlined"
+            data-test="deviceTag-combobox"
+            :deletable-chips="true"
+            :delimiters="[',', ' ']"
+          />
+        </v-card-text>
 
-      <v-card-text class="mt-5 w-100">
-        <v-combobox
-          id="targetInput"
-          full-width
-          ref="tags"
-          v-model="inputTags"
-          :error-messages="tagsError"
-          label="Tag"
-          hint="Maximum of 3 tags"
-          multiple
-          chips
-          variant="outlined"
-          data-test="deviceTag-combobox"
-          :deletable-chips="true"
-          :delimiters="[',', ' ']"
-        />
-      </v-card-text>
+        <v-card-actions>
+          <v-spacer />
 
-      <v-card-actions>
-        <v-spacer />
+          <v-btn
+            variant="text"
+            data-test="close-btn"
+            @click="close()"
+            class="mr-2"
+          >
+            Close
+          </v-btn>
 
-        <v-btn
-          variant="text"
-          data-test="close-btn"
-          @click="close()"
-          class="mr-2"
-        >
-          Close
-        </v-btn>
-
-        <v-btn variant="text" data-test="save-btn" @click="save()">
-          Save
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+          <v-btn variant="text" data-test="save-btn" @click="save()">
+            Save
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -68,7 +70,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   props: {

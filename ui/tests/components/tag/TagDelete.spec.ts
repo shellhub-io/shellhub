@@ -70,7 +70,7 @@ describe("TagDelete", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(() => {
-        wrapper = mount(TagRemove, {
+        const wrapper = mount(TagRemove, {
           global: {
             plugins: [[store, key], routes, vuetify],
           },

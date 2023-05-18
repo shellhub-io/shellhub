@@ -37,10 +37,6 @@ describe("SettingProfile", () => {
     { new: "newpass", confirmNew: "newpass" },
     { new: "changedpassword", confirmNew: "changedpassword" },
   ];
-  const compareOldNewError = [
-    { old: "oldpass", new: "oldpass" },
-    { old: "currentPass", new: "currentPass" },
-  ];
   const compareOldNewSuccess = [
     { old: "oldpass", new: "newpass" },
     { old: "currentPass", new: "newPassword" },
@@ -107,9 +103,9 @@ describe("SettingProfile", () => {
   //////
 
   it("Show validation messages", async () => {
-    wrapper.vm.username = undefined;
-    wrapper.vm.email = undefined;
-    wrapper.vm.currentPassword = undefined;
+    wrapper.vm.username = "";
+    wrapper.vm.email = "";
+    wrapper.vm.currentPassword = "";
 
     await flushPromises();
 

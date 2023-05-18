@@ -140,7 +140,7 @@ describe("PublicKeyFormDialogEdit", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(() => {
-        wrapper = mount(PublicKeyEdit, {
+        const wrapper = mount(PublicKeyEdit, {
           global: {
             plugins: [[store, key], routes, vuetify],
           },

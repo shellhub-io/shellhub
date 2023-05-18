@@ -9,9 +9,6 @@ import routes from "../../../src/router";
 describe("TagEdit", () => {
   let wrapper: VueWrapper<InstanceType<typeof TagEdit>>;
   const vuetify = createVuetify();
-
-  const invalidName = ["xxx/", "xxx@", "xxx&", "xxx:"];
-  const invalidMinAndMaxCharacters = ["x", "xx"];
   const tests = [
     {
       description: "Dialog closed",
@@ -73,7 +70,7 @@ describe("TagEdit", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(() => {
-        wrapper = mount(TagEdit, {
+        const wrapper = mount(TagEdit, {
           global: {
             plugins: [[store, key], routes, vuetify],
           },

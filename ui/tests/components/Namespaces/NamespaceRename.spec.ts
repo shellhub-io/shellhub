@@ -8,11 +8,6 @@ import routes from "../../../src/router";
 
 const role = ["owner", "operator"];
 
-const hasAuthorizationRenameNamespace = {
-  owner: true,
-  operator: false,
-};
-
 const members = [
   {
     id: "xxxxxxxx",
@@ -36,47 +31,6 @@ const openNamespace = {
 };
 
 const hostedNamespace = { ...openNamespace, max_devices: -1 };
-
-const invalidNamespaces = [
-  "'",
-  '"',
-  "!",
-  "@",
-  "#",
-  "$",
-  "%",
-  "¨",
-  "&",
-  "*",
-  "(",
-  ")",
-  "-",
-  "_",
-  "=",
-  "+",
-  "´",
-  "`",
-  "[",
-  "{",
-  "~",
-  "^",
-  "]",
-  ",",
-  "<",
-  "..",
-  ">",
-  ";",
-  ":",
-  "/",
-  "?",
-];
-
-const invalidMinAndMaxCharacters = [
-  "s",
-  "sh",
-  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-];
 
 const tests = [
   {
@@ -147,7 +101,7 @@ describe("NamespaceRename", () => {
     role.forEach((currentrole) => {
       describe(`${test.description} ${currentrole}`, () => {
         beforeEach(async () => {
-          wrapper = mount(NamespaceRename, {
+          const wrapper = mount(NamespaceRename, {
             global: {
               plugins: [
                 [
@@ -196,8 +150,8 @@ describe("NamespaceRename", () => {
         // HTML validation
         //////
         it("Show validation messages", async () => {
-          wrapper.vm.name = "ShelHub";
-          wrapper.vm.name = undefined;
+          wrapper.vm.name = "ShellHub";
+          wrapper.vm.name = "";
           await flushPromises();
           expect(wrapper.vm.nameError).toBe("this is a required field");
         });

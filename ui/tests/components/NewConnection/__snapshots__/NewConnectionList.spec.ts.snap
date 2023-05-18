@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`List data when user has observer role > Renders the component 1`] = `
+"<div data-v-7233d251=\\"\\" totalcount=\\"2\\">
+  <!--v-if-->
+  <v-list-stub data-v-7233d251=\\"\\" bgcolor=\\"transparent\\" disabled=\\"false\\" lines=\\"one\\" nav=\\"true\\" selectstrategy=\\"single-leaf\\" openstrategy=\\"list\\" mandatory=\\"false\\" border=\\"false\\" density=\\"default\\" itemtype=\\"type\\" items=\\"\\" itemtitle=\\"title\\" itemvalue=\\"value\\" itemchildren=\\"children\\" itemprops=\\"props\\" returnobject=\\"false\\" tag=\\"div\\" variant=\\"text\\" class=\\"content-card\\" data-test=\\"devices-list\\"></v-list-stub>
+</div>"
+`;
+
+exports[`List data when user has owner role > Renders the component 1`] = `
+"<div data-v-7233d251=\\"\\" totalcount=\\"2\\">
+  <!--v-if-->
+  <v-list-stub data-v-7233d251=\\"\\" bgcolor=\\"transparent\\" disabled=\\"false\\" lines=\\"one\\" nav=\\"true\\" selectstrategy=\\"single-leaf\\" openstrategy=\\"list\\" mandatory=\\"false\\" border=\\"false\\" density=\\"default\\" itemtype=\\"type\\" items=\\"\\" itemtitle=\\"title\\" itemvalue=\\"value\\" itemchildren=\\"children\\" itemprops=\\"props\\" returnobject=\\"false\\" tag=\\"div\\" variant=\\"text\\" class=\\"content-card\\" data-test=\\"devices-list\\"></v-list-stub>
+</div>"
+`;

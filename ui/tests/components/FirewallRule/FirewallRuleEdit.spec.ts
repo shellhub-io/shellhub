@@ -248,7 +248,6 @@ describe("FirewallRuleFormDialog", () => {
       const ipAddr = "00.00.00";
 
       wrapper.vm.choiceIP = "ipDetails";
-      wrapper.vm.ipField = ipAddr;
 
       wrapper.vm.selectRestriction();
       wrapper.vm.setLocalVariable();

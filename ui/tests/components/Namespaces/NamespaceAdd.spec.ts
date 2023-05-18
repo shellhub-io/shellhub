@@ -10,40 +10,6 @@ import { envVariables } from "../../../src/envVariables";
 const show = true;
 const firstNamespace = true;
 
-const invalidNamespaces = [
-  "'",
-  '"',
-  "!",
-  "@",
-  "#",
-  "$",
-  "%",
-  "¨",
-  "&",
-  "*",
-  "(",
-  ")",
-  "-",
-  "_",
-  "=",
-  "+",
-  "´",
-  "`",
-  "[",
-  "{",
-  "~",
-  "^",
-  "]",
-  ",",
-  "<",
-  "..",
-  ">",
-  ";",
-  ":",
-  "/",
-  "?",
-];
-
 const invalidMinAndMaxCharacters = [
   "s",
   "sh",
@@ -75,7 +41,7 @@ describe("NamespaceAdd", () => {
 
   describe("Doesn't render the dialog", () => {
     beforeEach(() => {
-      wrapper = mount(NamespaceAdd, {
+      const wrapper = mount(NamespaceAdd, {
         global: {
           plugins: [[store, key], routes, vuetify],
         },
@@ -136,7 +102,7 @@ describe("NamespaceAdd", () => {
 
   describe("Dialog", () => {
     beforeEach(() => {
-      wrapper = mount(NamespaceAdd, {
+      const wrapper = mount(NamespaceAdd, {
         global: {
           plugins: [[store, key], routes, vuetify],
         },
@@ -186,8 +152,8 @@ describe("NamespaceAdd", () => {
     //////
 
     it("Show validation messages", async () => {
-      wrapper.vm.namespaceName = "ShelHub";
-      wrapper.vm.namespaceName = undefined;
+      wrapper.vm.namespaceName = "ShellHub";
+      wrapper.vm.namespaceName = "";
       await flushPromises();
       expect(wrapper.vm.namespaceNameError).toBe("this is a required field");
     });

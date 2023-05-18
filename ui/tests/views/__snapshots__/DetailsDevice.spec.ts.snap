@@ -48,7 +48,7 @@ exports[`DetailsDevice > Offline Device > Renders the component 1`] = `
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1 mr-2\\" style=\\"font-size: 18px;\\"></i><span>Linux</span></div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>Linux</span></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Agent Version:</div>
@@ -107,14 +107,16 @@ exports[`DetailsDevice > Online Device and owner > Renders the component 1`] = `
   <!---->
   <!---->
   <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
-    <div class=\\"d-flex align-center\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
+    <div class=\\"d-flex align-center\\">
+      <div><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
+          <!---->
+          <!---->
+        </button>
         <!---->
-        <!---->
-      </button>
-      <!---->
-      <!--teleport start-->
-      <!--teleport end--><span class=\\"ml-2\\">39-5e-2a</span>
+        <!--teleport start-->
+        <!--teleport end-->
+      </div><span class=\\"ml-2\\">39-5e-2a</span>
     </div>
     <div><span class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
       <!---->
@@ -139,7 +141,7 @@ exports[`DetailsDevice > Online Device and owner > Renders the component 1`] = `
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1 mr-2\\" style=\\"font-size: 18px;\\"></i><span>Linux</span></div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>Linux</span></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Agent Version:</div>

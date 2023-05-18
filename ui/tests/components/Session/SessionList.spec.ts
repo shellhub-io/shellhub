@@ -7,9 +7,6 @@ import { key } from "../../../src/store";
 import routes from "../../../src/router";
 
 const numberSessionsGlobal = 2;
-const sessionPlayShow = [false, false];
-const sessionCloseShow = [false, false];
-
 const pagination = {
   groupBy: [],
   groupDesc: [],

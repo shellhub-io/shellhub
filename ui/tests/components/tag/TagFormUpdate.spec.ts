@@ -95,7 +95,7 @@ describe("TagFormUpdate", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(async () => {
-        wrapper = mount(TagFormUpdate, {
+        const wrapper = mount(TagFormUpdate, {
           global: {
             plugins: [[store, key], routes, vuetify],
           },

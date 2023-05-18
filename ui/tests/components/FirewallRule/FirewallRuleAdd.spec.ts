@@ -175,7 +175,7 @@ describe("FirewallRuleFormDialog", () => {
     describe(`${test.description} - ${test.role.type}`, () => {
       beforeEach(() => {
         const vuetify = createVuetify();
-        wrapper = mount(FirewallRuleAdd, {
+        const wrapper = mount(FirewallRuleAdd, {
           global: {
             plugins: [[store(test.role), key], vuetify, routes],
           },
@@ -230,7 +230,7 @@ describe("FirewallRuleFormDialog", () => {
   describe("Update data checks", () => {
     beforeEach(() => {
       const vuetify = createVuetify();
-      wrapper = mount(FirewallRuleAdd, {
+      const wrapper = mount(FirewallRuleAdd, {
         global: {
           plugins: [[store("owner"), key], vuetify, routes],
         },
@@ -260,10 +260,10 @@ describe("FirewallRuleFormDialog", () => {
     it("Should construct filter object for tags", async () => {
       const rf = wrapper.vm.ruleFirewall;
 
-      const tags = ["tag1", "tag2"];
+      const tags: Array<string> = ["tag1", "tag2"];
 
       wrapper.vm.choiceFilter = "tags";
-      wrapper.vm.tagChoices = tags;
+      (wrapper.vm.tagChoices as any[]) = tags;
 
       await wrapper.vm.$nextTick();
       await flushPromises();

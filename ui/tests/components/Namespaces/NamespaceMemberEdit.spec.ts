@@ -115,7 +115,7 @@ describe("NamespaceMemberEdit", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(() => {
-        wrapper = mount(NamespaceMemberEdit, {
+        const wrapper = mount(NamespaceMemberEdit, {
           global: {
             plugins: [
               [store(test.variables.namespaceGlobal), key],
@@ -124,9 +124,7 @@ describe("NamespaceMemberEdit", () => {
             ],
           },
           props: {
-            member: test.props.member,
-            show: test.props.show,
-            notHasAuthorization: test.props.notHasAuthorization,
+            ...test.props,
           },
         });
       });

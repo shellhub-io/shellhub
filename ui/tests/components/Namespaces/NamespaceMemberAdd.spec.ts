@@ -129,7 +129,7 @@ describe("NamespaceMemberAdd", () => {
   tests.forEach((test) => {
     describe(`${test.description} - ${test.role.type}`, () => {
       beforeEach(() => {
-        wrapper = mount(NamespaceMemberAdd, {
+        const wrapper = mount(NamespaceMemberAdd, {
           global: {
             plugins: [
               [store(test.variables.namespaceGlobal, test.role.type), key],

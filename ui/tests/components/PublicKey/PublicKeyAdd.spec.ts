@@ -137,7 +137,7 @@ describe("PublicKeyFormDialogAdd", () => {
   tests.forEach((test) => {
     describe(`${test.description} - ${test.role.type}`, () => {
       beforeEach(() => {
-        wrapper = mount(PublicKeyAdd, {
+        const wrapper = mount(PublicKeyAdd, {
           global: {
             plugins: [[store(test.role.type), key], routes, vuetify],
           },

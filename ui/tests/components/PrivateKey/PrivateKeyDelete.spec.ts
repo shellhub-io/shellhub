@@ -68,7 +68,7 @@ describe("PrivateKeyDelete", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(() => {
-        wrapper = mount(PrivateKeyDelete, {
+        const wrapper = mount(PrivateKeyDelete, {
           global: {
             plugins: [[store, key], routes, vuetify],
           },

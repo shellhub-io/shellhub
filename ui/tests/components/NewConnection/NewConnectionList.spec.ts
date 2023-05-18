@@ -19,31 +19,6 @@ const pagination = {
   sortDesc: [false],
 };
 
-const headers = [
-  {
-    text: "Online",
-    value: "online",
-    sortable: true,
-  },
-  {
-    text: "Hostname",
-    value: "name",
-    sortable: true,
-  },
-  {
-    text: "Operating System",
-    value: "operating_system",
-  },
-  {
-    text: "SSHID",
-    value: "sshid",
-  },
-  {
-    text: "Tags",
-    value: "tags",
-  },
-];
-
 const devicesGlobal = [
   {
     uid: "a582b47a42d",
@@ -97,7 +72,6 @@ const tests = [
       numberDevices: numberDevicesGlobal,
     },
     data: {
-      headers,
       items: devicesGlobal,
       itemsPerPage: 10,
       numberDevices: numberDevicesGlobal,
@@ -121,7 +95,6 @@ const tests = [
       numberDevices: numberDevicesGlobal,
     },
     data: {
-      headers,
       items: devicesGlobal,
       itemsPerPage: 10,
       numberDevices: numberDevicesGlobal,
@@ -205,7 +178,6 @@ tests.forEach((test) => {
 
     it("Compare data with default value", () => {
       expect(wrapper.vm.devices).toEqual(devicesGlobal);
-      expect(wrapper.vm.headers).toEqual(headers);
       expect(wrapper.vm.itemsPerPage).toEqual(pagination.itemsPerPage);
       expect(wrapper.vm.loading).toEqual(false);
     });

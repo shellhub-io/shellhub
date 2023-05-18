@@ -60,6 +60,7 @@ module.exports = {
     "no-confusing-arrow": [0, { allowParens: true, onlyOneSimpleParam: false }],
     "object-curly-newline": [0, "always"],
     "no-plusplus": 0,
+    "no-undef": "error",
     "@typescript-eslint/ban-types": [
       "error",
       {
@@ -70,25 +71,4 @@ module.exports = {
       },
     ],
   },
-
-  overrides: [
-    {
-      files: ["**/__tests__/*.{j,t}s?(x)", "**/tests/unit/**/*.spec.{j,t}s?(x)"],
-      env: {
-        jest: true,
-      },
-    },
-    {
-      files: ["**/__tests__/*.{j,t}s?(x)", "**/tests/unit/**/*.spec.{j,t}s?(x)"],
-      env: {
-        jest: true,
-      },
-    },
-    {
-      files: ["**/__tests__/*.{j,t}s?(x)", "**/tests/unit/**/*.spec.{j,t}s?(x)"],
-      env: {
-        jest: true,
-      },
-    },
-  ],
 };

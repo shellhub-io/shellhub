@@ -91,11 +91,11 @@ exports[`Publickeys > With public key > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <div data-v-046d4556=\\"\\" class=\\"d-flex align-center\\"><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div data-v-046d4556=\\"\\" class=\\"d-flex align-center\\"><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" disabled=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
             <!---->
             <!---->
-          </button><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2\\">1 of 1</span><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          </button><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2\\">1 of 1</span><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" disabled=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
             <!---->
             <!---->
@@ -146,7 +146,7 @@ exports[`Publickeys > Without public key > Renders the component 1`] = `
       <div><i class=\\"mdi-key mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" data-test=\\"boxMessage-icon\\"></i></div>
     </div>
     <div class=\\"v-card-title d-flex justify-center\\">
-      <div class=\\"text-h5\\" data-test=\\"boxMessage-title\\"> Looks like you don't have any Public Keys</div>
+      <div class=\\"text-sm-h5 text-md-h5 text-wrap text-center\\" data-test=\\"boxMessage-title\\"> Looks like you don't have any Public Keys</div>
     </div>
     <div class=\\"d-flex justify-center flex-column\\">
       <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">

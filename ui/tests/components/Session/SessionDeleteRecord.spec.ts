@@ -71,7 +71,7 @@ describe("SessionDeleteRecord", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(() => {
-        wrapper = mount(SessionDelete, {
+        const wrapper = mount(SessionDelete, {
           global: {
             plugins: [[store, key], routes, vuetify],
           },

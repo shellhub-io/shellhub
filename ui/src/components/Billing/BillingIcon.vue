@@ -1,17 +1,19 @@
 <template>
-  <i
-    v-if="isDefaultIcon()"
-    class="fa-regular fa-credit-card"
-    :style="{ fontSize: size }"
-    data-test="default-icon"
-  />
+  <div>
+    <i
+      v-if="isDefaultIcon()"
+      class="fa-regular fa-credit-card"
+      :style="{ fontSize: size }"
+      data-test="default-icon"
+    />
 
-  <i
-    v-if="!isDefaultIcon()"
-    :class="'fab ' + icon()"
-    :style="{ fontSize: size }"
-    data-test="type-icon"
-  />
+    <i
+      v-if="!isDefaultIcon()"
+      :class="'fab ' + icon()"
+      :style="{ fontSize: size }"
+      data-test="type-icon"
+    />
+  </div>
 </template>
 
 <script lang="ts">

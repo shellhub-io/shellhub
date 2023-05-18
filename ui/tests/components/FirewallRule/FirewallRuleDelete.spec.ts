@@ -170,7 +170,7 @@ describe("FirewallRuleFormDialog", () => {
       beforeEach(() => {
         const vuetify = createVuetify();
 
-        wrapper = mount(FirewallRuleDelete, {
+        const wrapper = mount(FirewallRuleDelete, {
           global: {
             plugins: [[store(test.role), key], vuetify, routes],
           },

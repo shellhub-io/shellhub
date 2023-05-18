@@ -83,7 +83,7 @@ describe("PrivateKeyFormDialogEdit", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(() => {
-        wrapper = mount(PrivateKeyEdit, {
+        const wrapper = mount(PrivateKeyEdit, {
           global: {
             plugins: [[store, key], routes, vuetify],
           },

@@ -90,7 +90,7 @@ describe("NamespaceMemberDelete", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(() => {
-        wrapper = mount(NamespaceMemberDelete, {
+        const wrapper = mount(NamespaceMemberDelete, {
           global: {
             plugins: [
               [

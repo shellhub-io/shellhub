@@ -6,7 +6,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
     <main class=\\"v-main d-flex align-center justify-center\\" style=\\"--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 0px; --v-layout-bottom: 0px; transition: none;\\">
       <div class=\\"v-container v-container--fluid\\">
         <div class=\\"v-row align-center justify-center\\">
-          <div class=\\"v-col-sm-8 v-col-md-4 v-col-12\\">
+          <div class=\\"v-col-sm-8 v-col-md-8 v-col-12\\">
             <!--v-if-->
           </div>
         </div>
@@ -16,7 +16,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
           </div>
         </div>
         <div class=\\"v-row align-center justify-center\\">
-          <div class=\\"v-col-sm-8 v-col-md-4 v-col-12\\">
+          <div class=\\"v-col-sm-8 v-col-md-4 v-col-xl-3 v-col-12\\">
             <div class=\\"v-card v-theme--dark v-card--density-default rounded-lg v-card--variant-elevated pa-6 bg-v-theme-surface\\">
               <!---->
               <div class=\\"v-card__loader\\">
@@ -37,7 +37,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
               <div class=\\"v-card-title d-flex justify-center align-center mt-4\\">
                 <div class=\\"v-responsive v-img v-img--booting\\" style=\\"max-width: 220px;\\" aria-label=\\"logo do ShellHub, uma nuvem de com a escrita ShellHub Admin ao lado\\" role=\\"img\\">
                   <div class=\\"v-responsive__sizer\\"></div>
-                  <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"\\" style=\\"display: none;\\"></transition-stub>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"logo do ShellHub, uma nuvem de com a escrita ShellHub Admin ao lado\\" style=\\"display: none;\\"></transition-stub>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                     <!---->
                   </transition-stub>
@@ -50,7 +50,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
               <div class=\\"v-container\\">
                 <snackbarcomponent></snackbarcomponent>
                 <form>
-                  <div class=\\"v-container\\">
+                  <div class=\\"v-col\\">
                     <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--flush-details\\" data-test=\\"username-text\\">
                       <div class=\\"v-input__prepend\\">
                         <!----><i class=\\"mdi-account mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i>
@@ -143,7 +143,7 @@ exports[`Login is cloud > Account has been activated > Renders the component 1`]
                         <!---->
                       </div>
                     </div>
-                    <div class=\\"v-card-actions justify-center\\"><button type=\\"button\\" class=\\"v-btn v-btn--block v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" data-test=\\"login-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                    <div class=\\"v-card-actions justify-center\\"><button type=\\"submit\\" class=\\"v-btn v-btn--block v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" data-test=\\"login-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                         <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> LOGIN </span>
                         <!---->
                         <!---->

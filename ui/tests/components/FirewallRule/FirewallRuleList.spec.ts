@@ -126,8 +126,6 @@ const tests = [
       itemsPerPage: 10,
       next: vi.fn(),
       prev: vi.fn(),
-      nextPage: vi.fn(),
-      previousPage: vi.fn(),
       changeItemsPerPage: vi.fn(),
       refreshFirewallRules: vi.fn(),
       loading: false,
@@ -173,7 +171,7 @@ tests.forEach((test) => {
 
     beforeEach(() => {
       const vuetify = createVuetify();
-      wrapper = mount(FirewallRule, {
+      const wrapper = mount(FirewallRule, {
         global: {
           plugins: [
             [
@@ -227,8 +225,6 @@ tests.forEach((test) => {
       expect(wrapper.vm.itemsPerPage).toEqual(test.data.itemsPerPage);
       expect(wrapper.vm.next).toEqual(test.data.next);
       expect(wrapper.vm.prev).toEqual(test.data.prev);
-      expect(wrapper.vm.nextPage).toEqual(test.data.nextPage);
-      expect(wrapper.vm.previousPage).toEqual(test.data.previousPage);
       expect(wrapper.vm.changeItemsPerPage).toEqual(
         test.data.changeItemsPerPage,
       );

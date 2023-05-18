@@ -30,7 +30,7 @@ exports[`SignUp > Renders the component 1`] = `
           <div class=\\"v-card-title d-flex justify-center align-center\\">
             <div class=\\"v-responsive v-img v-img--booting\\" style=\\"max-width: 220px;\\" aria-label=\\"ShellHub logo, a cloud with a shell in your base write ShellHub in the right side\\" role=\\"img\\">
               <div class=\\"v-responsive__sizer\\"></div>
-              <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"\\" style=\\"display: none;\\"></transition-stub>
+              <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"ShellHub logo, a cloud with a shell in your base write ShellHub in the right side\\" style=\\"display: none;\\"></transition-stub>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                 <!---->
               </transition-stub>

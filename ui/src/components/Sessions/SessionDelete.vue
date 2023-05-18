@@ -52,7 +52,7 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   props: {

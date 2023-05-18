@@ -16,7 +16,9 @@ exports[`BillingPaymentList > Renders the component 1`] = `
       <tbody>
         <tr data-test=\\"dataTable-field\\">
           <td class=\\"text-center\\">
-            <!--v-if--><i class=\\"fab fa-cc-visa\\" style=\\"font-size: 1.5rem;\\" data-test=\\"type-icon\\"></i>
+            <div>
+              <!--v-if--><i class=\\"fab fa-cc-visa\\" style=\\"font-size: 1.5rem;\\" data-test=\\"type-icon\\"></i>
+            </div>
           </td>
           <td class=\\"text-center\\">4042</td>
           <td class=\\"text-center\\">4 / 2024</td>
@@ -31,7 +33,9 @@ exports[`BillingPaymentList > Renders the component 1`] = `
         </tr>
         <tr data-test=\\"dataTable-field\\">
           <td class=\\"text-center\\">
-            <!--v-if--><i class=\\"fab fa-cc-visa\\" style=\\"font-size: 1.5rem;\\" data-test=\\"type-icon\\"></i>
+            <div>
+              <!--v-if--><i class=\\"fab fa-cc-visa\\" style=\\"font-size: 1.5rem;\\" data-test=\\"type-icon\\"></i>
+            </div>
           </td>
           <td class=\\"text-center\\">4042</td>
           <td class=\\"text-center\\">4 / 2028</td>
@@ -46,7 +50,9 @@ exports[`BillingPaymentList > Renders the component 1`] = `
         </tr>
         <tr data-test=\\"dataTable-field\\">
           <td class=\\"text-center\\">
-            <!--v-if--><i class=\\"fab fa-cc-visa\\" style=\\"font-size: 1.5rem;\\" data-test=\\"type-icon\\"></i>
+            <div>
+              <!--v-if--><i class=\\"fab fa-cc-visa\\" style=\\"font-size: 1.5rem;\\" data-test=\\"type-icon\\"></i>
+            </div>
           </td>
           <td class=\\"text-center\\">4042</td>
           <td class=\\"text-center\\">4 / 2029</td>

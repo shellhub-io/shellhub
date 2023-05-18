@@ -9,47 +9,6 @@ import routes from "../../../src/router";
 const name = "39-5e-2a";
 const uid = "a582b47a42d";
 
-const invalidNames = [
-  "'",
-  '"',
-  "!",
-  "@",
-  "#",
-  "$",
-  "%",
-  "¨",
-  "&",
-  "*",
-  "(",
-  ")",
-  "-",
-  "_",
-  "=",
-  "+",
-  "´",
-  "`",
-  "[",
-  "{",
-  "~",
-  "^",
-  "]",
-  ",",
-  "<",
-  "..",
-  ">",
-  ";",
-  ":",
-  "/",
-  "?",
-];
-
-const invalidMinAndMaxCharacters = [
-  "xx",
-  "xx",
-  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-];
-
 const tests = [
   {
     description: "Dialog closed",
@@ -64,9 +23,11 @@ const tests = [
       messages: "Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)",
     },
     computed: {
-      device: {
-        name,
-        uid,
+      device() {
+        return {
+          name,
+          uid,
+        };
       },
     },
     template: {
@@ -93,9 +54,11 @@ const tests = [
       setEditNameError: vi.fn(),
     },
     computed: {
-      device: {
-        name,
-        uid,
+      device() {
+        return {
+          name,
+          uid,
+        };
       },
     },
     template: {
@@ -132,7 +95,7 @@ tests.forEach((test) => {
 
     beforeEach(() => {
       const vuetify = createVuetify();
-      wrapper = mount(DeviceRename, {
+      const wrapper = mount(DeviceRename, {
         global: {
           plugins: [[store, key], routes, vuetify],
           stubs: ["router-link", "router-view"],
@@ -181,11 +144,5 @@ tests.forEach((test) => {
     it("Data is correct in computed", () => {
       expect(wrapper.vm.device).toStrictEqual(test.computed.device);
     });
-
-    //////
-    // HTML validation
-    //////
-
-    // TODO
   });
 });

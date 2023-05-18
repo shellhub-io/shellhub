@@ -61,7 +61,7 @@ describe("Welcome", () => {
   });
 
   beforeEach(() => {
-    wrapper = mount(Welcome, {
+    const wrapper = mount(Welcome, {
       global: {
         plugins: [[store, key], routes, vuetify],
       },

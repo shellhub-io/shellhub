@@ -63,7 +63,7 @@ describe("PublicKeyDelete", () => {
   tests.forEach((test) => {
     describe(`${test.description}`, () => {
       beforeEach(() => {
-        wrapper = mount(PublicKeyDelete, {
+        const wrapper = mount(PublicKeyDelete, {
           global: {
             plugins: [[store, key], routes, vuetify],
           },

@@ -87,7 +87,7 @@ exports[`WelcomeThirdScreen > Renders the component 1`] = `
         </div>
         <!---->
         <!---->
-        <div><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1\\" style=\\"font-size: 18px;\\"></i> Linux</div>
+        <div><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1\\" style=\\"font-size: 20px;\\"></i> Linux</div>
         <!---->
         <!----><span class=\\"v-card__underlay\\"></span>
       </div>

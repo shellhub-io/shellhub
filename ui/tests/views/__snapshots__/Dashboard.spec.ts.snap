@@ -36,8 +36,6 @@ exports[`Dashboard > Renders the component 1`] = `
           </div>
           <div class=\\"v-list-item__append\\">
             <div class=\\"mt-4\\"><i class=\\"mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" iconname-test=\\"mdi-devices\\"></i></div>
-            <!---->
-            <!---->
           </div>
         </div>
         <div class=\\"v-card-actions\\"><button data-v-51a05120=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add device\\" data-test=\\"device-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
@@ -88,8 +86,6 @@ exports[`Dashboard > Renders the component 1`] = `
           </div>
           <div class=\\"v-list-item__append\\">
             <div class=\\"mt-4\\"><i class=\\"mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" iconname-test=\\"mdi-devices\\"></i></div>
-            <!---->
-            <!---->
           </div>
         </div>
         <div class=\\"v-card-actions\\"><a class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle\\" href=\\"/devices\\" tabindex=\\"0\\" buttonname-test=\\"View all Devices\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
@@ -136,8 +132,6 @@ exports[`Dashboard > Renders the component 1`] = `
           </div>
           <div class=\\"v-list-item__append\\">
             <div class=\\"mt-4\\"><i class=\\"mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" iconname-test=\\"mdi-devices\\"></i></div>
-            <!---->
-            <!---->
           </div>
         </div>
         <div class=\\"v-card-actions\\"><a class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle\\" href=\\"/sessions\\" tabindex=\\"0\\" buttonname-test=\\"View all Sessions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
