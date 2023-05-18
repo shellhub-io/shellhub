@@ -203,7 +203,7 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 			return ErrRequestHeredoc
 		}
 	case session.Exec, session.SCP:
-		err := exec(api, sess.UID, agent, client)
+		err := exec(api, sess.UID, metadata.RestoreDevice(ctx.(gliderssh.Context)), agent, client)
 		if err != nil {
 			return ErrRequestExec
 		}
@@ -385,7 +385,7 @@ func heredoc(api internalclient.Client, uid string, agent *gossh.Session, client
 }
 
 // exec handles a non-interactive session.
-func exec(api internalclient.Client, uid string, agent *gossh.Session, client gliderssh.Session) error {
+func exec(api internalclient.Client, uid string, device *models.Device, agent *gossh.Session, client gliderssh.Session) error {
 	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
 		return errs[0]
 	}
@@ -399,7 +399,7 @@ func exec(api internalclient.Client, uid string, agent *gossh.Session, client gl
 		return err
 	}
 
-	dev, err := api.GetDevice(uid)
+	dev, err := api.GetDevice(device.UID)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"client": uid,
