@@ -26,13 +26,13 @@ func CurrentContainerID() (string, error) {
 		return "", err
 	}
 
-	re := regexp.MustCompilePOSIX(`([0-9]+:[a-z_,=]+.*docker[/-]|(/@)?/var/.+/docker(/.+)?/containers/)([0-9a-f]{64})`)
+	re := regexp.MustCompile(`\d+\s\d+\s\d+:\d+\s/var/.+docker/?.+([0-9a-f]{64})/`)
 	match := re.FindSubmatch(content)
-	if match == nil || len(match) != 5 {
+	if match == nil || len(match) != 2 {
 		return "", nil
 	}
 
-	return string(match[4]), nil
+	return string(match[1]), nil
 }
 
 func IsRunningInDocker() bool {
