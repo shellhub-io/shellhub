@@ -1,4 +1,6 @@
 /* eslint-disable */
+declare const window: any;
+
 export const validateKey = (typeKey: string, value: string) => {
   try {
     let x;

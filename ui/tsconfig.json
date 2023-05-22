@@ -20,7 +20,7 @@
     "noImplicitAny": false,
     "sourceRoot": "/",
     "inlineSources": true,
-    "types": ["vuetify"],
+    "types": ["vuetify", "node"],
   },
   "typeAcquisition": { "enable": true },
   "include": [

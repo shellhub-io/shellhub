@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vite preview --host",
-    "build": "vite build",
+    "build": "vue-tsc --noEmit && vite build",
     "dev": "vite --host",
     "preview": "vite preview",
     "lint": "eslint --ext .ts,.vue --ignore-path .gitignore --no-fix src",

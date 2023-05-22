@@ -1,76 +1,76 @@
 <template>
-  <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
-    <template v-slot:activator="{ props }">
-      <div v-bind="props">
-        <v-btn
-          @click="dialog = !dialog"
-          color="primary"
-          tabindex="0"
-          variant="elevated"
-          aria-label="Dialog Add Private Key"
-          :disabled="!hasAuthorization"
-          @keypress.enter="dialog = !dialog"
-          :size="size"
-          data-test="private-key-add-btn"
-        >
-          Add Private Key
-        </v-btn>
-      </div>
-    </template>
-    <span> You don't have this kind of authorization. </span>
-  </v-tooltip>
-
-  <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-3 bg-primary">
-        New Private Key
-      </v-card-title>
-      <form @submit.prevent="create" class="mt-3">
-        <v-card-text>
-          <v-text-field
-            v-model="name"
-            :error-messages="nameError"
-            label="Name"
-            placeholder="Name used to identify the private key"
-            variant="underlined"
-            data-test="name-field"
-          />
-
-          <v-textarea
-            v-model="privateKeyData"
-            label="Private key data"
-            required
-            :messages="supportedKeys"
-            :error-messages="privateKeyDataError"
-            :update:modelValue="validatePrivateKeyData"
-            @change="validatePrivateKeyData"
-            variant="underlined"
-            data-test="data-field"
-            rows="5"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
+  <div>
+    <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
+      <template v-slot:activator="{ props }">
+        <div v-bind="props">
           <v-btn
+            @click="dialog = !dialog"
             color="primary"
-            text
-            @click="close"
-            data-test="device-add-cancel-btn"
+            tabindex="0"
+            variant="elevated"
+            aria-label="Dialog Add Private Key"
+            :disabled="!hasAuthorization"
+            @keypress.enter="dialog = !dialog"
+            :size="size"
+            data-test="private-key-add-btn"
           >
-            Cancel
+            Add Private Key
           </v-btn>
-          <v-btn
-            color="primary"
-            text
-            type="submit"
-            data-test="device-add-save-btn"
-          >
-            Save
-          </v-btn>
-        </v-card-actions>
-      </form>
-    </v-card>
-  </v-dialog>
+        </div>
+      </template>
+      <span> You don't have this kind of authorization. </span>
+    </v-tooltip>
+
+    <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
+      <v-card class="bg-v-theme-surface">
+        <v-card-title class="text-h5 pa-3 bg-primary">
+          New Private Key
+        </v-card-title>
+        <form @submit.prevent="create" class="mt-3">
+          <v-card-text>
+            <v-text-field
+              v-model="name"
+              :error-messages="nameError"
+              label="Name"
+              placeholder="Name used to identify the private key"
+              variant="underlined"
+              data-test="name-field"
+            />
+
+            <v-textarea
+              v-model="privateKeyData"
+              label="Private key data"
+              required
+              :messages="supportedKeys"
+              :error-messages="privateKeyDataError"
+              :update:modelValue="validatePrivateKeyData"
+              @change="validatePrivateKeyData"
+              variant="underlined"
+              data-test="data-field"
+              rows="5"
+            />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              color="primary"
+              @click="close"
+              data-test="device-add-cancel-btn"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="primary"
+              type="submit"
+              data-test="device-add-save-btn"
+            >
+              Save
+            </v-btn>
+          </v-card-actions>
+        </form>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -85,8 +85,8 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { validateKey } from "../../utils/validate";
-import { IPrivateKeyError } from "@/interfaces/IPrivateKey";
-import handleError from "@/utils/handleError";
+import { IPrivateKeyError } from "../../interfaces/IPrivateKey";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   props: {

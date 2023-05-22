@@ -1,131 +1,131 @@
 <template>
-  <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
-    <template v-slot:activator="{ props }">
-      <div v-bind="props">
-        <v-btn
-          @click="dialog = !dialog"
-          color="primary"
-          tabindex="0"
-          variant="elevated"
-          aria-label="Dialog Add Public Key"
-          :disabled="!hasAuthorization"
-          @keypress.enter="dialog = !dialog"
-          :size="size"
-          data-test="public-key-add-btn"
-        >
-          Add Public Key
-        </v-btn>
-      </div>
-    </template>
-    <span> You don't have this kind of authorization. </span>
-  </v-tooltip>
+  <div>
+    <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
+      <template v-slot:activator="{ props }">
+        <div v-bind="props">
+          <v-btn
+            @click="dialog = !dialog"
+            color="primary"
+            tabindex="0"
+            variant="elevated"
+            aria-label="Dialog Add Public Key"
+            :disabled="!hasAuthorization"
+            @keypress.enter="dialog = !dialog"
+            :size="size"
+            data-test="public-key-add-btn"
+          >
+            Add Public Key
+          </v-btn>
+        </div>
+      </template>
+      <span> You don't have this kind of authorization. </span>
+    </v-tooltip>
 
-  <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-3 bg-primary">
-        New Public Key
-      </v-card-title>
-      <form @submit.prevent="create" class="mt-3">
-        <v-card-text>
-          <v-text-field
-            v-model="name"
-            :error-messages="nameError"
-            label="Name"
-            placeholder="Name used to identify the public key"
-            variant="underlined"
-            data-test="name-field"
-          />
-
-          <v-row class="mt-1 px-3">
-            <v-select
-              v-model="choiceUsername"
-              label="Device username access restriction"
-              :items="usernameList"
-              variant="underlined"
-              item-title="filterText"
-              item-value="filterName"
-              data-test="access-restriction-field"
-            />
-          </v-row>
-
-          <v-text-field
-            v-if="choiceUsername === 'username'"
-            v-model="username"
-            label="Rule source IP"
-            variant="underlined"
-            :error-messages="usernameError"
-          />
-
-          <v-row class="mt-1 px-3">
-            <v-select
-              v-model="choiceFilter"
-              label="Device access restriction"
-              :items="filterList"
-              variant="underlined"
-              item-title="filterText"
-              item-value="filterName"
-              data-test="access-restriction-field"
-            />
-          </v-row>
-
-          <v-row class="px-3">
-            <v-select
-              v-if="choiceFilter === 'tags'"
-              v-model="tagChoices"
-              :items="tagNames"
-              data-test="tags-selector"
-              attach
-              chips
-              label="Tags"
-              :rules="[validateLength]"
-              :error-messages="errMsg"
-              variant="underlined"
-              multiple
-            />
+    <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
+      <v-card class="bg-v-theme-surface">
+        <v-card-title class="text-h5 pa-3 bg-primary">
+          New Public Key
+        </v-card-title>
+        <form @submit.prevent="create" class="mt-3">
+          <v-card-text>
             <v-text-field
-              v-if="choiceFilter === 'hostname'"
-              v-model="hostname"
-              label="Hostname"
+              v-model="name"
+              :error-messages="nameError"
+              label="Name"
+              placeholder="Name used to identify the public key"
               variant="underlined"
-              :error-messages="hostnameError"
-              data-test="hostname-field"
+              data-test="name-field"
             />
-          </v-row>
 
-          <v-textarea
-            v-model="publicKeyData"
-            class="mt-5"
-            label="Public key data"
-            :error-messages="publicKeyDataError"
-            required
-            :messages="supportedKeys"
-            variant="underlined"
-            data-test="data-field"
-            rows="2"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="primary"
-            text
-            @click="close"
-            data-test="device-add-cancel-btn"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            color="primary"
-            text
-            type="submit"
-            data-test="device-add-save-btn"
-          >
-            Save
-          </v-btn>
-        </v-card-actions>
-      </form>
-    </v-card>
-  </v-dialog>
+            <v-row class="mt-1 px-3">
+              <v-select
+                v-model="choiceUsername"
+                label="Device username access restriction"
+                :items="usernameList"
+                variant="underlined"
+                item-title="filterText"
+                item-value="filterName"
+                data-test="access-restriction-field"
+              />
+            </v-row>
+
+            <v-text-field
+              v-if="choiceUsername === 'username'"
+              v-model="username"
+              label="Rule source IP"
+              variant="underlined"
+              :error-messages="usernameError"
+            />
+
+            <v-row class="mt-1 px-3">
+              <v-select
+                v-model="choiceFilter"
+                label="Device access restriction"
+                :items="filterList"
+                variant="underlined"
+                item-title="filterText"
+                item-value="filterName"
+                data-test="access-restriction-field"
+              />
+            </v-row>
+
+            <v-row class="px-3">
+              <v-select
+                v-if="choiceFilter === 'tags'"
+                v-model="tagChoices"
+                :items="tagNames"
+                data-test="tags-selector"
+                attach
+                chips
+                label="Tags"
+                :rules="[validateLength]"
+                :error-messages="errMsg"
+                variant="underlined"
+                multiple
+              />
+              <v-text-field
+                v-if="choiceFilter === 'hostname'"
+                v-model="hostname"
+                label="Hostname"
+                variant="underlined"
+                :error-messages="hostnameError"
+                data-test="hostname-field"
+              />
+            </v-row>
+
+            <v-textarea
+              v-model="publicKeyData"
+              class="mt-5"
+              label="Public key data"
+              :error-messages="publicKeyDataError"
+              required
+              :messages="supportedKeys"
+              variant="underlined"
+              data-test="data-field"
+              rows="2"
+            />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              color="primary"
+              @click="close"
+              data-test="device-add-cancel-btn"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="primary"
+              type="submit"
+              data-test="device-add-save-btn"
+            >
+              Save
+            </v-btn>
+          </v-card-actions>
+        </form>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -141,7 +141,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   props: {

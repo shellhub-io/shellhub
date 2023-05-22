@@ -1,47 +1,49 @@
 <template>
-  <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
-    <template v-slot:activator="{ props }">
-      <div v-bind="props">
-        <v-btn
-          :disabled="!hasAuthorization"
-          color="red darken-1"
-          variant="outlined"
-          data-test="cancel-btn"
-          @click="dialog = !dialog"
-        >
-          Cancel
-        </v-btn>
-      </div>
-    </template>
-    <span> You don't have this kind of authorization. </span>
-  </v-tooltip>
+  <div>
+    <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
+      <template v-slot:activator="{ props }">
+        <div v-bind="props">
+          <v-btn
+            :disabled="!hasAuthorization"
+            color="red darken-1"
+            variant="outlined"
+            data-test="cancel-btn"
+            @click="dialog = !dialog"
+          >
+            Cancel
+          </v-btn>
+        </div>
+      </template>
+      <span> You don't have this kind of authorization. </span>
+    </v-tooltip>
 
-  <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-3 bg-primary">
-        Are you sure?
-      </v-card-title>
+    <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
+      <v-card class="bg-v-theme-surface">
+        <v-card-title class="text-h5 pa-3 bg-primary">
+          Are you sure?
+        </v-card-title>
 
-      <v-card-text class="mt-4 mb-0 pb-1">
-        <p class="text-body-2 mb-2">
-          Canceling the subscription will generate an invoice, estimated
-          <b> {{ formatCurrency(nextPaymentDue, currency) }} </b> for the time of use.
-        </p>
-      </v-card-text>
+        <v-card-text class="mt-4 mb-0 pb-1">
+          <p class="text-body-2 mb-2">
+            Canceling the subscription will generate an invoice, estimated
+            <b> {{ formatCurrency(nextPaymentDue, currency) }} </b> for the time of use.
+          </p>
+        </v-card-text>
 
-      <v-card-actions>
-        <v-spacer />
+        <v-card-actions>
+          <v-spacer />
 
-        <v-btn text data-test="close-btn" @click="dialog = !dialog">
-          Close
-        </v-btn>
+          <v-btn data-test="close-btn" @click="dialog = !dialog">
+            Close
+          </v-btn>
 
-        <v-btn text data-test="cancelDialog-btn" @click="cancelSubscription()">
-          Cancel
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+          <v-btn data-test="cancelDialog-btn" @click="cancelSubscription()">
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -50,9 +52,9 @@ import { useRouter } from "vue-router";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "../../utils/permission";
 import { useStore } from "../../store";
-import formatCurrency from "@/utils/currency";
-import { INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
-import handleError from "@/utils/handleError";
+import formatCurrency from "../../utils/currency";
+import { INotificationsError, INotificationsSuccess } from "../../interfaces/INotifications";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   props: {
@@ -98,6 +100,7 @@ export default defineComponent({
       hasAuthorization,
       formatCurrency,
       cancelSubscription,
+      router,
     };
   },
 });

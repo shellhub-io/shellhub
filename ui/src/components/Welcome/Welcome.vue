@@ -8,10 +8,7 @@
   >
     <v-card class="pa-6 bg-grey-darken-4 bg-v-theme-surface">
       <v-card-title class="text-center mb-4">
-        <span>Step</span>
-        {{ el }}
-        <span>of</span>
-        4
+        <span>Step {{ el }} of 4</span>
         <v-divider class="mt-2" />
       </v-card-title>
       <v-window v-model="el">
@@ -20,14 +17,13 @@
             <WelcomeFirstScreen />
           </v-card>
           <v-card-actions class="mt-4">
-            <v-btn text @click="close">Close</v-btn>
+            <v-btn @click="close">Close</v-btn>
             <v-spacer />
             <v-btn
               data-test="firstClick-btn"
               color="primary"
               @click="activePollingDevices()"
-            >Next</v-btn
-            >
+            >Next</v-btn>
           </v-card-actions>
         </v-window-item>
 
@@ -36,15 +32,15 @@
             <WelcomeSecondScreen :command="command()" />
           </v-card>
           <v-card-actions>
-            <v-btn text data-test="close-btn" @click="close"> Close </v-btn>
+            <v-btn data-test="close-btn" @click="close">Close</v-btn>
             <v-spacer />
-            <v-btn text @click="el--">back</v-btn>
-            <v-btn v-if="!enable" disabled> Waiting for Device </v-btn>
+            <v-btn @click="goToPreviousStep">Back</v-btn>
+            <v-btn v-if="!enable" disabled>Waiting for Device</v-btn>
             <v-btn
               v-else
               color="primary"
               data-test="secondClick-btn"
-              @click="el = 3"
+              @click="goToNextStep"
             >
               Next
             </v-btn>
@@ -60,7 +56,7 @@
               Close
             </v-btn>
             <v-spacer />
-            <v-btn variant="text" @click="el--">back</v-btn>
+            <v-btn variant="text" @click="goToPreviousStep">Back</v-btn>
             <v-btn
               color="primary"
               data-test="accept-btn"
@@ -95,7 +91,7 @@ import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
 import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
 import WelcomeFourthScreen from "./WelcomeFourthScreen.vue";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 type Timer = ReturnType<typeof setInterval>;
 
@@ -107,17 +103,17 @@ export default defineComponent({
     },
   },
   emits: ["update"],
-  setup(props, ctx) {
+  setup(props, { emit }) {
     const store = useStore();
     const el = ref<number>(1);
-    const polling = ref<Timer | null>(null);
+    const polling = ref<Timer | undefined>(undefined);
     const enable = ref(false);
-    const showWelcome = computed({
+    const showWelcome = computed<boolean>({
       get() {
         return props.show;
       },
-      set(value: boolean) {
-        ctx.emit("update", value);
+      set(value) {
+        emit("update", value);
       },
     });
 
@@ -134,7 +130,7 @@ export default defineComponent({
           enable.value = store.getters["stats/stats"].pending_devices !== 0;
           if (enable.value) {
             el.value = 3;
-            clearTimeout(polling.value?.ref());
+            clearTimeout(polling.value);
           }
         } catch (error: unknown) {
           store.dispatch("snackbar/showSnackbarErrorDefault");
@@ -151,12 +147,14 @@ export default defineComponent({
     const acceptDevice = async () => {
       const device = store.getters["devices/getFirstPending"];
       try {
-        await store.dispatch("devices/accept", device.uid);
+        if (device) {
+          await store.dispatch("devices/accept", device.uid);
 
-        store.dispatch("notifications/fetch");
-        store.dispatch("stats/get");
+          store.dispatch("notifications/fetch");
+          store.dispatch("stats/get");
 
-        el.value = 4;
+          el.value = 4;
+        }
       } catch (error: unknown) {
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
@@ -174,9 +172,19 @@ export default defineComponent({
     };
 
     const close = () => {
-      ctx.emit("update", false);
+      emit("update", false);
       showWelcome.value = false;
-      clearTimeout(polling.value?.ref());
+      if (polling.value) {
+        clearTimeout(polling.value);
+      }
+    };
+
+    const goToPreviousStep = () => {
+      el.value--;
+    };
+
+    const goToNextStep = () => {
+      el.value++;
     };
 
     return {
@@ -189,6 +197,8 @@ export default defineComponent({
       activePollingDevices,
       acceptDevice,
       command,
+      goToPreviousStep,
+      goToNextStep,
     };
   },
   components: {
