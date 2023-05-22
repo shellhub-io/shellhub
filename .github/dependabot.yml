@@ -47,7 +47,7 @@ updates:
     interval: weekly
   commit-message:
     prefix: "ui"
-  versioning-strategy: increase-if-necessary
+  versioning-strategy: lockfile-only
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
