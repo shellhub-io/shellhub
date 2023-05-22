@@ -7,7 +7,7 @@ exports[`DetailsDevice > Offline Device > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -27,7 +27,8 @@ exports[`DetailsDevice > Offline Device > Renders the component 1`] = `
     </div>
     <div><span class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
       <!---->
-      <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"></i>
+      <!---->
+      <div class=\\"v-chip__content\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"></i></div>
       <!---->
       <!----></span>
       <!--teleport start-->
@@ -48,7 +49,7 @@ exports[`DetailsDevice > Offline Device > Renders the component 1`] = `
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1 mr-2\\" style=\\"font-size: 18px;\\"></i><span>Linux</span></div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>Linux</span></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Agent Version:</div>
@@ -60,13 +61,15 @@ exports[`DetailsDevice > Offline Device > Renders the component 1`] = `
       <div class=\\"text-overline mt-3\\">Tags:</div>
       <div data-test=\\"deviceTags-field\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-5\\"><!----><span class=\\"v-chip__underlay\\"></span>
         <!---->
-        <!---->device1
+        <!---->
+        <div class=\\"v-chip__content\\">device1</div>
         <!---->
         <!----></span>
         <!--teleport start-->
         <!--teleport end--><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-7\\"><!----><span class=\\"v-chip__underlay\\"></span>
         <!---->
-        <!---->device2
+        <!---->
+        <div class=\\"v-chip__content\\">device2</div>
         <!---->
         <!----></span>
         <!--teleport start-->
@@ -92,7 +95,7 @@ exports[`DetailsDevice > Online Device and owner > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -107,18 +110,21 @@ exports[`DetailsDevice > Online Device and owner > Renders the component 1`] = `
   <!---->
   <!---->
   <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
-    <div class=\\"d-flex align-center\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
+    <div class=\\"d-flex align-center\\">
+      <div><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
+          <!---->
+          <!---->
+        </button>
         <!---->
-        <!---->
-      </button>
-      <!---->
-      <!--teleport start-->
-      <!--teleport end--><span class=\\"ml-2\\">39-5e-2a</span>
+        <!--teleport start-->
+        <!--teleport end-->
+      </div><span class=\\"ml-2\\">39-5e-2a</span>
     </div>
     <div><span class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
       <!---->
-      <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i>
+      <!---->
+      <div class=\\"v-chip__content\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
       <!---->
       <!----></span>
       <!--teleport start-->
@@ -139,7 +145,7 @@ exports[`DetailsDevice > Online Device and owner > Renders the component 1`] = `
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1 mr-2\\" style=\\"font-size: 18px;\\"></i><span>Linux</span></div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-archlinux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>Linux</span></div>
     </div>
     <div>
       <div class=\\"text-overline mt-3\\">Agent Version:</div>
@@ -151,13 +157,15 @@ exports[`DetailsDevice > Online Device and owner > Renders the component 1`] = `
       <div class=\\"text-overline mt-3\\">Tags:</div>
       <div data-test=\\"deviceTags-field\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-6\\"><!----><span class=\\"v-chip__underlay\\"></span>
         <!---->
-        <!---->device1
+        <!---->
+        <div class=\\"v-chip__content\\">device1</div>
         <!---->
         <!----></span>
         <!--teleport start-->
         <!--teleport end--><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-8\\"><!----><span class=\\"v-chip__underlay\\"></span>
         <!---->
-        <!---->device2
+        <!---->
+        <div class=\\"v-chip__content\\">device2</div>
         <!---->
         <!----></span>
         <!--teleport start-->

@@ -6,10 +6,10 @@ exports[`SettingSecurity > SettingSecurity operator > Renders the component 1`] 
     <div class=\\"v-col mb-3\\">
       <h3 class=\\"mb-3\\">Security</h3>
       <div class=\\"ml-3\\">
-        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-input--disabled v-checkbox\\">
+        <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-input--dirty v-input--disabled v-checkbox\\">
           <!---->
           <div class=\\"v-input__control\\">
-            <div class=\\"v-selection-control v-selection-control--disabled v-selection-control--inline v-selection-control--density-default v-checkbox-btn\\">
+            <div class=\\"v-selection-control v-selection-control--disabled v-selection-control--density-default v-checkbox-btn\\">
               <div class=\\"v-selection-control__wrapper\\">
                 <!---->
                 <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input disabled=\\"\\" id=\\"checkbox-0\\" aria-disabled=\\"false\\" type=\\"checkbox\\" indeterminateicon=\\"$checkboxIndeterminate\\" aria-describedby=\\"checkbox-0-messages\\" value=\\"true\\">
@@ -36,10 +36,10 @@ exports[`SettingSecurity > SettingSecurity owner > Renders the component 1`] = `
     <div class=\\"v-col mb-3\\">
       <h3 class=\\"mb-3\\">Security</h3>
       <div class=\\"ml-3\\">
-        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-checkbox\\">
+        <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-input--dirty v-checkbox\\">
           <!---->
           <div class=\\"v-input__control\\">
-            <div class=\\"v-selection-control v-selection-control--inline v-selection-control--density-default v-checkbox-btn\\">
+            <div class=\\"v-selection-control v-selection-control--density-default v-checkbox-btn\\">
               <div class=\\"v-selection-control__wrapper\\">
                 <!---->
                 <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-0\\" aria-disabled=\\"false\\" type=\\"checkbox\\" indeterminateicon=\\"$checkboxIndeterminate\\" aria-describedby=\\"checkbox-0-messages\\" value=\\"true\\">

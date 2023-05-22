@@ -22,7 +22,8 @@ exports[`BillingPaymentList > Renders the component 1`] = `
           <td class=\\"text-center\\">4 / 2024</td>
           <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
             <!---->
-            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <div class=\\"v-chip__content\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
             <!---->
             <!----></span>
             <!--teleport start-->
@@ -37,7 +38,8 @@ exports[`BillingPaymentList > Renders the component 1`] = `
           <td class=\\"text-center\\">4 / 2028</td>
           <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-4\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
             <!---->
-            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <div class=\\"v-chip__content\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
             <!---->
             <!----></span>
             <!--teleport start-->
@@ -52,7 +54,8 @@ exports[`BillingPaymentList > Renders the component 1`] = `
           <td class=\\"text-center\\">4 / 2029</td>
           <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-8\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
             <!---->
-            <!----><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i>
+            <!---->
+            <div class=\\"v-chip__content\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
             <!---->
             <!----></span>
             <!--teleport start-->

@@ -4,7 +4,7 @@ exports[`SignUp > Renders the component 1`] = `
 "<div class=\\"v-application v-theme--light v-layout v-layout--full-height v-locale--is-ltr\\" style=\\"z-index: 1000;\\">
   <div class=\\"v-application__wrap\\">
     <main class=\\"v-main d-flex justify-center align-center\\" style=\\"--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 0px; --v-layout-bottom: 0px; transition: none;\\">
-      <div class=\\"v-container v-container--fluid w-auto\\">
+      <div class=\\"v-container v-container--fluid v-locale--is-ltr w-auto\\">
         <div class=\\"text-center\\">
           <!---->
           <!--teleport start-->
@@ -13,7 +13,7 @@ exports[`SignUp > Renders the component 1`] = `
         <div class=\\"v-card v-theme--dark v-card--density-default rounded-lg v-card--variant-elevated pa-6 bg-v-theme-surface\\">
           <!---->
           <div class=\\"v-card__loader\\">
-            <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class=\\"v-progress-linear v-theme--dark v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
               <!---->
               <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -30,7 +30,7 @@ exports[`SignUp > Renders the component 1`] = `
           <div class=\\"v-card-title d-flex justify-center align-center\\">
             <div class=\\"v-responsive v-img v-img--booting\\" style=\\"max-width: 220px;\\" aria-label=\\"ShellHub logo, a cloud with a shell in your base write ShellHub in the right side\\" role=\\"img\\">
               <div class=\\"v-responsive__sizer\\"></div>
-              <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"\\" style=\\"display: none;\\"></transition-stub>
+              <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"ShellHub logo, a cloud with a shell in your base write ShellHub in the right side\\" style=\\"display: none;\\"></transition-stub>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                 <!---->
               </transition-stub>
@@ -40,19 +40,19 @@ exports[`SignUp > Renders the component 1`] = `
               <!---->
             </div>
           </div>
-          <div class=\\"v-container pb-0 mb-0\\">
+          <div class=\\"v-container v-locale--is-ltr pb-0 mb-0\\">
             <form>
               <div class=\\"v-card-title text-center\\">Create Account</div>
-              <div class=\\"v-container\\">
-                <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--flush-details\\" data-test=\\"name-text\\">
+              <div class=\\"v-container v-locale--is-ltr\\">
+                <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--plain-underlined\\" data-test=\\"name-text\\">
                   <div class=\\"v-input__prepend\\">
                     <!----><i class=\\"mdi-account mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i>
                   </div>
                   <div class=\\"v-input__control\\">
-                    <div class=\\"v-field v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
+                    <div class=\\"v-field v-field--variant-underlined v-theme--dark v-locale--is-ltr\\" role=\\"textbox\\">
                       <div class=\\"v-field__overlay\\"></div>
                       <div class=\\"v-field__loader\\">
-                        <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                        <div class=\\"v-progress-linear v-theme--dark v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                           <!---->
                           <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                           <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -89,15 +89,15 @@ exports[`SignUp > Renders the component 1`] = `
                     <!---->
                   </div>
                 </div>
-                <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--flush-details\\" data-test=\\"username-text\\">
+                <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--plain-underlined\\" data-test=\\"username-text\\">
                   <div class=\\"v-input__prepend\\">
                     <!----><i class=\\"mdi-account mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i>
                   </div>
                   <div class=\\"v-input__control\\">
-                    <div class=\\"v-field v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
+                    <div class=\\"v-field v-field--variant-underlined v-theme--dark v-locale--is-ltr\\" role=\\"textbox\\">
                       <div class=\\"v-field__overlay\\"></div>
                       <div class=\\"v-field__loader\\">
-                        <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                        <div class=\\"v-progress-linear v-theme--dark v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                           <!---->
                           <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                           <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -134,15 +134,15 @@ exports[`SignUp > Renders the component 1`] = `
                     <!---->
                   </div>
                 </div>
-                <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--flush-details\\" data-test=\\"email-text\\">
+                <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--plain-underlined\\" data-test=\\"email-text\\">
                   <div class=\\"v-input__prepend\\">
                     <!----><i class=\\"mdi-email mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i>
                   </div>
                   <div class=\\"v-input__control\\">
-                    <div class=\\"v-field v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
+                    <div class=\\"v-field v-field--variant-underlined v-theme--dark v-locale--is-ltr\\" role=\\"textbox\\">
                       <div class=\\"v-field__overlay\\"></div>
                       <div class=\\"v-field__loader\\">
-                        <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                        <div class=\\"v-progress-linear v-theme--dark v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                           <!---->
                           <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                           <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -179,15 +179,15 @@ exports[`SignUp > Renders the component 1`] = `
                     <!---->
                   </div>
                 </div>
-                <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--flush-details\\" data-test=\\"password-text\\">
+                <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--plain-underlined\\" data-test=\\"password-text\\">
                   <div class=\\"v-input__prepend\\">
                     <!----><i class=\\"mdi-lock mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i>
                   </div>
                   <div class=\\"v-input__control\\">
-                    <div class=\\"v-field v-field--appended v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
+                    <div class=\\"v-field v-field--appended v-field--variant-underlined v-theme--dark v-locale--is-ltr\\" role=\\"textbox\\">
                       <div class=\\"v-field__overlay\\"></div>
                       <div class=\\"v-field__loader\\">
-                        <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                        <div class=\\"v-progress-linear v-theme--dark v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                           <!---->
                           <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                           <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -226,15 +226,15 @@ exports[`SignUp > Renders the component 1`] = `
                     <!---->
                   </div>
                 </div>
-                <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--flush-details\\" data-test=\\"password-confirm-text\\">
+                <div class=\\"v-input v-input--horizontal v-input--density-default v-text-field v-text-field--plain-underlined\\" data-test=\\"password-confirm-text\\">
                   <div class=\\"v-input__prepend\\">
                     <!----><i class=\\"mdi-lock mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i>
                   </div>
                   <div class=\\"v-input__control\\">
-                    <div class=\\"v-field v-field--appended v-field--variant-underlined v-theme--dark\\" role=\\"textbox\\">
+                    <div class=\\"v-field v-field--appended v-field--variant-underlined v-theme--dark v-locale--is-ltr\\" role=\\"textbox\\">
                       <div class=\\"v-field__overlay\\"></div>
                       <div class=\\"v-field__loader\\">
-                        <div class=\\"v-progress-linear v-theme--dark\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                        <div class=\\"v-progress-linear v-theme--dark v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                           <!---->
                           <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
                           <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">

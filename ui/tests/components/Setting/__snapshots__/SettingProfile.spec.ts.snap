@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`SettingProfile > Renders the component 1`] = `
-"<div class=\\"v-container\\">
+"<div class=\\"v-container v-locale--is-ltr\\">
   <div class=\\"v-row align-center justify-center mt-4\\">
     <div class=\\"v-col-sm-8 v-col\\">
       <div class=\\"v-row\\">
@@ -18,13 +18,13 @@ exports[`SettingProfile > Renders the component 1`] = `
         </div>
       </div>
       <div class=\\"mt-4 pl-4 pr-4\\">
-        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--disabled v-text-field v-text-field--flush-details\\" data-test=\\"name-text\\">
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--disabled v-text-field v-text-field--plain-underlined\\" data-test=\\"name-text\\">
           <!---->
           <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
+            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -61,13 +61,13 @@ exports[`SettingProfile > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-input--disabled v-text-field v-text-field--flush-details\\" data-test=\\"username-text\\">
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-input--disabled v-text-field v-text-field--plain-underlined\\" data-test=\\"username-text\\">
           <!---->
           <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
+            <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -104,13 +104,13 @@ exports[`SettingProfile > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-input--disabled v-text-field v-text-field--flush-details\\" data-test=\\"email-text\\">
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--dirty v-input--disabled v-text-field v-text-field--plain-underlined\\" data-test=\\"email-text\\">
           <!---->
           <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
+            <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -164,13 +164,13 @@ exports[`SettingProfile > Renders the component 1`] = `
         </div>
       </div>
       <div class=\\"mt-4 pl-4 pr-4\\">
-        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--disabled v-text-field v-text-field--flush-details mb-4\\" data-test=\\"password-text\\">
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--disabled v-text-field v-text-field--plain-underlined mb-4\\" data-test=\\"password-text\\">
           <!---->
           <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
+            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -209,13 +209,13 @@ exports[`SettingProfile > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--disabled v-text-field v-text-field--flush-details mb-4\\" data-test=\\"newPassword-text\\">
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--disabled v-text-field v-text-field--plain-underlined mb-4\\" data-test=\\"newPassword-text\\">
           <!---->
           <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
+            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -254,13 +254,13 @@ exports[`SettingProfile > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--disabled v-text-field v-text-field--flush-details mb-4\\" data-test=\\"confirmNewPassword-text\\">
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-input--disabled v-text-field v-text-field--plain-underlined mb-4\\" data-test=\\"confirmNewPassword-text\\">
           <!---->
           <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
+            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
                   <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">

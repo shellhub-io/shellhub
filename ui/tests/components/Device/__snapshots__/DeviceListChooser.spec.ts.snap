@@ -1,3 +1,3 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Suggested devices > Renders the component 1`] = `"<v-card-stub disabled=\\"false\\" flat=\\"false\\" hover=\\"false\\" ripple=\\"true\\" border=\\"false\\" density=\\"default\\" loading=\\"false\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"elevated\\" class=\\"bg-v-theme-surface\\" data-test=\\"devices-list-chooser\\"></v-card-stub>"`;
+exports[`Suggested devices > Renders the component 1`] = `"<v-card-stub class=\\"bg-v-theme-surface\\" disabled=\\"false\\" flat=\\"false\\" hover=\\"false\\" ripple=\\"true\\" border=\\"false\\" density=\\"default\\" loading=\\"false\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"elevated\\" data-test=\\"devices-list-chooser\\"></v-card-stub>"`;

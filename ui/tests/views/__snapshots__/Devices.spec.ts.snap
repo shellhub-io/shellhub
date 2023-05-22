@@ -3,14 +3,14 @@
 exports[`Devices > Renders the component 1`] = `
 "<div class=\\"d-flex flex-column justify-space-between align-center flex-sm-row\\">
   <h1>Devices</h1>
-  <div class=\\"w-50\\">
-    <div class=\\"v-input v-input--horizontal v-input--density-comfortable v-text-field v-text-field--flush-details\\" data-test=\\"search-text\\">
+  <div class=\\"v-col-sm-12 v-col-md-6 v-col\\">
+    <div class=\\"v-input v-input--horizontal v-input--density-comfortable v-text-field v-text-field--plain-underlined\\" data-test=\\"search-text\\">
       <!---->
       <div class=\\"v-input__control\\">
-        <div class=\\"v-field v-field--appended v-field--single-line v-field--variant-underlined v-theme--light\\" role=\\"textbox\\">
+        <div class=\\"v-field v-field--appended v-field--single-line v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
           <div class=\\"v-field__overlay\\"></div>
           <div class=\\"v-field__loader\\">
-            <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
               <!---->
               <div class=\\"v-progress-linear__background bg-primary\\" style=\\"width: 100%;\\"></div>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -27,7 +27,7 @@ exports[`Devices > Renders the component 1`] = `
             <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
               <!---->Search by hostname
             </label>
-            <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" modelmodifiers=\\"[object Object]\\" class=\\"v-field__input\\">
+            <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" class=\\"v-field__input\\">
             <!---->
           </div>
           <!---->
@@ -58,7 +58,7 @@ exports[`Devices > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -75,7 +75,7 @@ exports[`Devices > Renders the component 1`] = `
   <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
     <!---->
     <div class=\\"v-card__loader\\">
-      <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
         <!---->
         <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
         <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -92,15 +92,15 @@ exports[`Devices > Renders the component 1`] = `
     <div class=\\"v-slide-group v-tabs v-tabs--horizontal v-tabs--align-tabs-start v-tabs--stacked v-tabs--density-default\\" tabindex=\\"-1\\" role=\\"tablist\\" background-color=\\"secondary\\">
       <!---->
       <div class=\\"v-slide-group__container\\">
-        <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Device List <div class=\\"v-tab__slider\\"></div></span>
             <!---->
             <!---->
-          </a><a class=\\"v-btn v-btn--stacked v-theme--light v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices/pending\\" tabindex=\\"-1\\" role=\\"tab\\" aria-selected=\\"false\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          </a><a class=\\"v-btn v-btn--stacked v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices/pending\\" tabindex=\\"-1\\" role=\\"tab\\" aria-selected=\\"false\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Pending <div class=\\"v-tab__slider\\"></div></span>
             <!---->
             <!---->
-          </a><a class=\\"v-btn v-btn--stacked v-theme--light v-btn--density-default rounded-0 v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices/rejected\\" tabindex=\\"-1\\" role=\\"tab\\" aria-selected=\\"false\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          </a><a class=\\"v-btn v-btn--stacked v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices/rejected\\" tabindex=\\"-1\\" role=\\"tab\\" aria-selected=\\"false\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Rejected <div class=\\"v-tab__slider\\"></div></span>
             <!---->
             <!---->
@@ -115,7 +115,7 @@ exports[`Devices > Renders the component 1`] = `
   <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated\\">
     <!---->
     <div class=\\"v-card__loader\\">
-      <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
         <!---->
         <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
         <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
