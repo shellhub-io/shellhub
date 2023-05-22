@@ -1,5 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`SettingNamespace > Hosted version > Renders the component 1`] = `"<v-container-stub data-v-80a16399=\\"\\" fluid=\\"false\\" tag=\\"div\\"></v-container-stub>"`;
-
-exports[`SettingNamespace > Open version > Renders the component 1`] = `"<v-container-stub data-v-80a16399=\\"\\" fluid=\\"false\\" tag=\\"div\\"></v-container-stub>"`;
