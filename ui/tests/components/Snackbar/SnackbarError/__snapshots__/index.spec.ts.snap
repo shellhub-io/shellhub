@@ -1,3 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`Device Icon > Renders the component 1`] = `"<v-snackbar-stub color=\\"#bd4147\\" multiline=\\"false\\" timeout=\\"4000\\" vertical=\\"false\\" location=\\"top\\" variant=\\"elevated\\" absolute=\\"false\\" attach=\\"false\\" closeonback=\\"true\\" contained=\\"false\\" disabled=\\"false\\" modelvalue=\\"true\\" zindex=\\"2000\\" activatorprops=\\"[object Object]\\" openonhover=\\"false\\" closeoncontentclick=\\"false\\" eager=\\"false\\" locationstrategy=\\"static\\" origin=\\"auto\\" transition=\\"slide-x-transition\\"></v-snackbar-stub>"`;

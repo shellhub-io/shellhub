@@ -1,3 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`SettingPrivateKeys > Dialog is true > Renders the component 1`] = `"<v-container-stub fluid=\\"false\\" tag=\\"div\\"></v-container-stub>"`;

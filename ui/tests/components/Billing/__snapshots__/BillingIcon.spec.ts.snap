@@ -1,6 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`BillingIcon > Renders the component 1`] = `
-"<i class=\\"fa-regular fa-credit-card\\" style=\\"font-size: 1.5rem;\\" data-test=\\"default-icon\\"></i>
-<!--v-if-->"
-`;

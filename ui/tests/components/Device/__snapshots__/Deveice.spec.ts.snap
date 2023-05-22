@@ -1,6 +1,0 @@
-// Vitest Snapshot v1
-
-exports[`Device > Renders the component 1`] = `
-"<v-card-stub disabled=\\"false\\" flat=\\"false\\" hover=\\"false\\" ripple=\\"false\\" border=\\"false\\" density=\\"default\\" loading=\\"false\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"elevated\\" class=\\"bg-v-theme-surface\\"></v-card-stub>
-<v-card-stub disabled=\\"false\\" flat=\\"false\\" hover=\\"false\\" ripple=\\"false\\" border=\\"false\\" density=\\"default\\" loading=\\"false\\" replace=\\"false\\" exact=\\"false\\" tag=\\"div\\" variant=\\"elevated\\"></v-card-stub>"
-`;
