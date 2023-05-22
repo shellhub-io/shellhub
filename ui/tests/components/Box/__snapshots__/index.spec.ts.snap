@@ -4,7 +4,7 @@ exports[`BoxMessage Render > Process data in methods PublicKey 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -22,7 +22,7 @@ exports[`BoxMessage Render > Process data in methods PublicKey 1`] = `
     <div><i class=\\"mdi-key mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" data-test=\\"boxMessage-icon\\"></i></div>
   </div>
   <div class=\\"v-card-title d-flex justify-center\\">
-    <div class=\\"text-h5\\" data-test=\\"boxMessage-title\\"> Looks like you don't have any Public Keys</div>
+    <div class=\\"text-sm-h5 text-md-h5 text-wrap text-center\\" data-test=\\"boxMessage-title\\"> Looks like you don't have any Public Keys</div>
   </div>
   <div class=\\"d-flex justify-center flex-column\\">
     <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">
@@ -70,7 +70,7 @@ exports[`BoxMessage Render > Renders the component 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
       <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
@@ -88,7 +88,7 @@ exports[`BoxMessage Render > Renders the component 1`] = `
     <div><i class=\\"mdi-cellphone-link mdi v-icon notranslate v-theme--light v-icon--size-x-large\\" aria-hidden=\\"true\\" data-test=\\"boxMessage-icon\\"></i></div>
   </div>
   <div class=\\"v-card-title d-flex justify-center\\">
-    <div class=\\"text-h5\\" data-test=\\"boxMessage-title\\"> Looks like you don't have any Device</div>
+    <div class=\\"text-sm-h5 text-md-h5 text-wrap text-center\\" data-test=\\"boxMessage-title\\"> Looks like you don't have any Device</div>
   </div>
   <div class=\\"d-flex justify-center flex-column\\">
     <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text text-center listText mg-fix\\">

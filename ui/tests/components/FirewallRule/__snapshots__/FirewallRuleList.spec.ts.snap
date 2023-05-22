@@ -2,12 +2,12 @@
 
 exports[`List data when user has operator role > Renders the component 1`] = `
 "<div>
-  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"[Function]\\" previouspage=\\"[Function]\\" data-test=\\"firewallRules-list\\"></data-table-stub>
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" itemselectordisable=\\"false\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"[Function]\\" previouspage=\\"[Function]\\" data-test=\\"firewallRules-list\\"></data-table-stub>
 </div>"
 `;
 
 exports[`List data when user has owner role > Renders the component 1`] = `
 "<div>
-  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"[Function]\\" previouspage=\\"[Function]\\" data-test=\\"firewallRules-list\\"></data-table-stub>
+  <data-table-stub itemsperpage=\\"10\\" totalcount=\\"2\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"[object Object],[object Object]\\" itemselectordisable=\\"false\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"[Function]\\" previouspage=\\"[Function]\\" data-test=\\"firewallRules-list\\"></data-table-stub>
 </div>"
 `;
