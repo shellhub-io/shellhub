@@ -1,8 +1,8 @@
-import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from "axios";
 import { store } from "../store";
 import router from "../router";
 
-const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
+const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
   store.dispatch("spinner/setStatus", true);
   return config;
 };

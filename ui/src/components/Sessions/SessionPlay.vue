@@ -1,113 +1,115 @@
 <template>
-  <v-list-item
-    @click="showDialog = !showDialog"
-    v-bind="$attrs"
-    :disabled="notHasAuthorization"
-  >
-    <div class="d-flex align-center">
-      <v-icon class="mr-2"> mdi-play </v-icon>
+  <div>
+    <v-list-item
+      @click="showDialog = !showDialog"
+      v-bind="$attrs"
+      :disabled="notHasAuthorization"
+    >
+      <div class="d-flex align-center">
+        <v-icon class="mr-2"> mdi-play </v-icon>
 
-      <v-list-item-title data-test="mdi-information-list-item">
-        Play Session
-      </v-list-item-title>
-    </div>
-  </v-list-item>
+        <v-list-item-title data-test="mdi-information-list-item">
+          Play Session
+        </v-list-item-title>
+      </div>
+    </v-list-item>
 
-  <v-dialog
-    :transition="false"
-    v-model="showDialog"
-    max-width="1024px"
-    min-width="350px"
-  >
-    <v-card class="bg-v-theme-surface">
-      <v-card-title
-        class="text-h5 pa-3 bg-primary d-flex justify-space-between align-center"
-      >
-        Watch Session
-        <v-btn
-          variant="text"
-          data-test="close-btn"
-          icon="mdi-close"
-          @click="showDialog = false"
-        />
-      </v-card-title>
+    <v-dialog
+      :transition="false"
+      v-model="showDialog"
+      max-width="1024px"
+      min-width="350px"
+    >
+      <v-card class="bg-v-theme-surface">
+        <v-card-title
+          class="text-h5 pa-3 bg-primary d-flex justify-space-between align-center"
+        >
+          Watch Session
+          <v-btn
+            variant="text"
+            data-test="close-btn"
+            icon="mdi-close"
+            @click="showDialog = false"
+          />
+        </v-card-title>
 
-      <v-card-item class="ma-0 pa-0 w-100">
-        <div ref="terminal" />
-      </v-card-item>
+        <v-card-item class="ma-0 pa-0 w-100">
+          <div ref="terminal" />
+        </v-card-item>
 
-      <v-card-actions class="bg-v-theme-surface">
-        <v-container>
-          <v-row no-gutters>
-            <v-col cols="2" sm="6" md="1">
-              <div class="pt-4 ml-7">
-                <v-icon
-                  v-if="!paused"
-                  variant="text"
-                  icon="mdi-pause-circle"
-                  class="pl-0"
-                  color="primary"
-                  rounded
-                  size="x-large"
-                  data-test="pause-icon"
-                  @click="pauseHandler"
-                />
-                <v-icon
-                  v-else
-                  variant="text"
-                  icon="mdi-play-circle"
-                  class="pl-0"
-                  color="primary"
-                  rounded
-                  size="x-large"
-                  data-test="play-icon"
-                  @click="pauseHandler"
-                />
-              </div>
-            </v-col>
+        <v-card-actions class="bg-v-theme-surface">
+          <v-container>
+            <v-row no-gutters>
+              <v-col cols="2" sm="6" md="1">
+                <div class="pt-4 ml-7">
+                  <v-icon
+                    v-if="!paused"
+                    variant="text"
+                    icon="mdi-pause-circle"
+                    class="pl-0"
+                    color="primary"
+                    rounded
+                    size="x-large"
+                    data-test="pause-icon"
+                    @click="pauseHandler"
+                  />
+                  <v-icon
+                    v-else
+                    variant="text"
+                    icon="mdi-play-circle"
+                    class="pl-0"
+                    color="primary"
+                    rounded
+                    size="x-large"
+                    data-test="play-icon"
+                    @click="pauseHandler"
+                  />
+                </div>
+              </v-col>
 
-            <v-col cols="6" md="9">
-              <div
-                :elevation="0"
-                class="pt-4 pl-9 mr-5 d-flex align-center"
-                tile
-              >
-                <v-slider
-                  v-model="currentTime"
-                  class="ml-0"
-                  min="0"
-                  :max="totalLength"
-                  :label="`${nowTimerDisplay} - ${endTimerDisplay}`"
-                  hide-details
-                  color="primary"
-                  data-test="time-slider"
-                  @update:model-value="changeSliderTime()"
-                  @mousedown="(previousPause = paused), (paused = true)"
-                  @mouseup="paused = previousPause"
-                  @click="setSliderDiplayTime(currentTime)"
-                />
-              </div>
-            </v-col>
+              <v-col cols="6" md="9">
+                <div
+                  :elevation="0"
+                  class="pt-4 pl-9 mr-5 d-flex align-center"
+                  tile
+                >
+                  <v-slider
+                    v-model="currentTime"
+                    class="ml-0"
+                    min="0"
+                    :max="totalLength"
+                    :label="`${nowTimerDisplay} - ${endTimerDisplay}`"
+                    hide-details
+                    color="primary"
+                    data-test="time-slider"
+                    @update:model-value="changeSliderTime()"
+                    @mousedown="(previousPause = paused), (paused = true)"
+                    @mouseup="paused = previousPause"
+                    @click="setSliderDiplayTime(currentTime)"
+                  />
+                </div>
+              </v-col>
 
-            <v-col cols="6" md="2">
-              <div :elevation="0">
-                <v-select
-                  :items="speedList"
-                  v-model="defaultSpeed"
-                  hide-details
-                  prepend-icon="mdi-speedometer"
-                  data-test="speed-select"
-                  variant="underlined"
-                  color="primary"
-                  @change="speedChange(defaultSpeed)"
-                />
-              </div>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+              <v-col cols="6" md="2">
+                <div :elevation="0">
+                  <v-select
+                    :items="speedList"
+                    v-model="defaultSpeed"
+                    hide-details
+                    prepend-icon="mdi-speedometer"
+                    data-test="speed-select"
+                    variant="underlined"
+                    color="primary"
+                    @change="speedChange(defaultSpeed)"
+                  />
+                </div>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -125,8 +127,8 @@ import { FitAddon } from "xterm-addon-fit";
 import moment from "moment";
 import { useStore } from "../../store";
 import { INotificationsError } from "../../interfaces/INotifications";
-import handleError from "@/utils/handleError";
-import { ITerminalFrames, ITerminalLog } from "@/interfaces/ITerminal";
+import handleError from "../../utils/handleError";
+import { ITerminalFrames, ITerminalLog } from "../../interfaces/ITerminal";
 
 type Timer = ReturnType<typeof setTimeout>;
 
@@ -252,7 +254,7 @@ export default defineComponent({
       let between: number;
       let lowerBound = 0;
       let higherBound = frames.length - 1;
-      let nextTimeSetPrint;
+      let nextTimeSetPrint: any;
 
       for (; higherBound - lowerBound > 1;) {
         // progressive increment search

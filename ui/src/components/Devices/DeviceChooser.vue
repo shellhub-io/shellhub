@@ -44,13 +44,12 @@
       <v-card-actions>
         <v-spacer />
 
-        <v-btn text data-test="close-btn" @click="close()"> Close </v-btn>
+        <v-btn data-test="close-btn" @click="close()"> Close </v-btn>
 
         <v-tooltip :disabled="!disableTooltipOrButton" top>
           <template v-slot:activator="{ props }">
             <span v-on="props">
               <v-btn
-                text
                 v-bind="props"
                 :disabled="disableTooltipOrButton"
                 data-test="accept-btn"
@@ -75,9 +74,9 @@ import { useStore } from "../../store";
 import DeviceListChooser from "./DeviceListChooser.vue";
 import hasPermision from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
-import { INotificationsSuccess, INotificationsError } from "@/interfaces/INotifications";
-import handleError from "@/utils/handleError";
-import { IDevice } from "@/interfaces/IDevice";
+import { INotificationsSuccess, INotificationsError } from "../../interfaces/INotifications";
+import handleError from "../../utils/handleError";
+import { IDevice } from "../../interfaces/IDevice";
 
 export default defineComponent({
   setup() {

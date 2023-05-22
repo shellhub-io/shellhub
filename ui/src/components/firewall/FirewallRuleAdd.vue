@@ -1,168 +1,168 @@
 <template>
-  <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
-    <template v-slot:activator="{ props }">
-      <div v-bind="props">
-        <v-btn
-          v-bind="$attrs"
-          @click="dialog = !dialog"
-          color="primary"
-          tabindex="0"
-          variant="elevated"
-          aria-label="Dialog Add device"
-          :disabled="!hasAuthorization"
-          @keypress.enter="dialog = !dialog"
-          :size="size"
-          data-test="device-add-btn"
-        >
-          Add Rule
-        </v-btn>
-      </div>
-    </template>
-    <span> You don't have this kind of authorization. </span>
-  </v-tooltip>
-
-  <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-3 bg-primary">
-        New Firewall Rule
-      </v-card-title>
-      <form @submit.prevent="create" class="mt-3">
-        <v-card-text>
-          <v-row>
-            <v-col>
-              <v-select
-                v-model="ruleFirewall.status"
-                :items="ruleStatus"
-                item-title="text"
-                item-value="type"
-                label="Rule status"
-                variant="underlined"
-              />
-            </v-col>
-
-            <v-col>
-              <v-text-field
-                v-model="ruleFirewall.priority"
-                label="Rule priority"
-                type="number"
-                variant="underlined"
-                :rules="[rules.required]"
-              />
-            </v-col>
-
-            <v-col>
-              <v-select
-                v-model="ruleFirewall.policy"
-                :items="state"
-                item-title="name"
-                item-value="id"
-                label="Rule policy"
-                variant="underlined"
-              />
-            </v-col>
-          </v-row>
-
-          <v-row class="mt-1 mb-1 px-3">
-            <v-select
-              v-model="choiceIP"
-              label="Source IP access restriction"
-              :items="sourceIPFieldChoices"
-              item-title="filterText"
-              item-value="filterName"
-              variant="underlined"
-              data-test="source_ip-field"
-            />
-          </v-row>
-
-          <v-text-field
-            v-if="choiceIP === 'ipDetails'"
-            v-model="sourceIp"
-            label="Rule source IP"
-            variant="underlined"
-            :error-messages="sourceIpError"
-          />
-
-          <v-row class="mt-1 mb-1 px-3">
-            <v-select
-              v-model="choiceUsername"
-              label="Device username access restriction"
-              :items="usernameFieldChoices"
-              item-title="filterText"
-              item-value="filterName"
-              variant="underlined"
-              data-test="username-field"
-            />
-          </v-row>
-
-          <v-text-field
-            v-if="choiceUsername === 'username'"
-            v-model="username"
-            label="Username access restriction"
-            placeholder="Username used during the connection"
-            variant="underlined"
-            :error-messages="usernameError"
-          />
-
-          <v-row class="mt-2 mb-1 px-3">
-            <v-select
-              v-model="choiceFilter"
-              label="Device access restriction"
-              :items="filterFieldChoices"
-              item-title="filterText"
-              item-value="filterName"
-              variant="underlined"
-              data-test="device-field"
-            />
-          </v-row>
-
-          <v-text-field
-            v-if="choiceFilter === 'hostname'"
-            v-model="filterField"
-            label="Device hostname access restriction"
-            placeholder="Device hostname used during the connection"
-            :error-messages="filterFieldError"
-            variant="underlined"
-            data-test="hostname-field"
-          />
-
-          <v-row v-if="choiceFilter === 'tags'" class="px-3 mt-2">
-            <v-select
-              v-model="tagChoices"
-              :items="tagNames"
-              data-test="tags-selector"
-              attach
-              chips
-              label="Tags"
-              :rules="[validateLength]"
-              :error-messages="errMsg"
-              variant="underlined"
-              multiple
-            />
-          </v-row>
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer />
+  <div>
+    <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
+      <template v-slot:activator="{ props }">
+        <div v-bind="props">
           <v-btn
+            v-bind="$attrs"
+            @click="dialog = !dialog"
             color="primary"
-            text
-            @click="close"
-            data-test="device-add-cancel-btn"
+            tabindex="0"
+            variant="elevated"
+            aria-label="Dialog Add device"
+            :disabled="!hasAuthorization"
+            @keypress.enter="dialog = !dialog"
+            :size="size"
+            data-test="device-add-btn"
           >
-            Cancel
+            Add Rule
           </v-btn>
-          <v-btn
-            color="primary"
-            text
-            type="submit"
-            data-test="device-add-save-btn"
-          >
-            Save
-          </v-btn>
-        </v-card-actions>
-      </form>
-    </v-card>
-  </v-dialog>
+        </div>
+      </template>
+      <span> You don't have this kind of authorization. </span>
+    </v-tooltip>
+
+    <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
+      <v-card class="bg-v-theme-surface">
+        <v-card-title class="text-h5 pa-3 bg-primary">
+          New Firewall Rule
+        </v-card-title>
+        <form @submit.prevent="create" class="mt-3">
+          <v-card-text>
+            <v-row>
+              <v-col>
+                <v-select
+                  v-model="ruleFirewall.status"
+                  :items="ruleStatus"
+                  item-title="text"
+                  item-value="type"
+                  label="Rule status"
+                  variant="underlined"
+                />
+              </v-col>
+
+              <v-col>
+                <v-text-field
+                  v-model="ruleFirewall.priority"
+                  label="Rule priority"
+                  type="number"
+                  variant="underlined"
+                  :rules="[rules.required]"
+                />
+              </v-col>
+
+              <v-col>
+                <v-select
+                  v-model="ruleFirewall.policy"
+                  :items="state"
+                  item-title="name"
+                  item-value="id"
+                  label="Rule policy"
+                  variant="underlined"
+                />
+              </v-col>
+            </v-row>
+
+            <v-row class="mt-1 mb-1 px-3">
+              <v-select
+                v-model="choiceIP"
+                label="Source IP access restriction"
+                :items="sourceIPFieldChoices"
+                item-title="filterText"
+                item-value="filterName"
+                variant="underlined"
+                data-test="source_ip-field"
+              />
+            </v-row>
+
+            <v-text-field
+              v-if="choiceIP === 'ipDetails'"
+              v-model="sourceIp"
+              label="Rule source IP"
+              variant="underlined"
+              :error-messages="sourceIpError"
+            />
+
+            <v-row class="mt-1 mb-1 px-3">
+              <v-select
+                v-model="choiceUsername"
+                label="Device username access restriction"
+                :items="usernameFieldChoices"
+                item-title="filterText"
+                item-value="filterName"
+                variant="underlined"
+                data-test="username-field"
+              />
+            </v-row>
+
+            <v-text-field
+              v-if="choiceUsername === 'username'"
+              v-model="username"
+              label="Username access restriction"
+              placeholder="Username used during the connection"
+              variant="underlined"
+              :error-messages="usernameError"
+            />
+
+            <v-row class="mt-2 mb-1 px-3">
+              <v-select
+                v-model="choiceFilter"
+                label="Device access restriction"
+                :items="filterFieldChoices"
+                item-title="filterText"
+                item-value="filterName"
+                variant="underlined"
+                data-test="device-field"
+              />
+            </v-row>
+
+            <v-text-field
+              v-if="choiceFilter === 'hostname'"
+              v-model="filterField"
+              label="Device hostname access restriction"
+              placeholder="Device hostname used during the connection"
+              :error-messages="filterFieldError"
+              variant="underlined"
+              data-test="hostname-field"
+            />
+
+            <v-row v-if="choiceFilter === 'tags'" class="px-3 mt-2">
+              <v-select
+                v-model="tagChoices"
+                :items="tagNames"
+                data-test="tags-selector"
+                attach
+                chips
+                label="Tags"
+                :rules="[validateLength]"
+                :error-messages="errMsg"
+                variant="underlined"
+                multiple
+              />
+            </v-row>
+          </v-card-text>
+
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              color="primary"
+              @click="close"
+              data-test="device-add-cancel-btn"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="primary"
+              type="submit"
+              data-test="device-add-save-btn"
+            >
+              Save
+            </v-btn>
+          </v-card-actions>
+        </form>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -176,8 +176,8 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import handleError from "@/utils/handleError";
-import { filterType } from "@/interfaces/IFirewallRule";
+import handleError from "../../utils/handleError";
+import { filterType } from "../../interfaces/IFirewallRule";
 
 export interface FirewallRuleType {
   action?: string;

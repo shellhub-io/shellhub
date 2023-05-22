@@ -1,70 +1,72 @@
 <template>
-  <v-list-item
-    @click="showDialog = true"
-    v-bind="$props"
-    :disabled="notHasAuthorization"
-  >
-    <div class="d-flex align-center">
-      <div data-test="namespace-edit-icon" class="mr-2">
-        <v-icon> mdi-pencil </v-icon>
-      </div>
+  <div>
+    <v-list-item
+      @click="showDialog = true"
+      v-bind="$props"
+      :disabled="notHasAuthorization"
+    >
+      <div class="d-flex align-center">
+        <div data-test="namespace-edit-icon" class="mr-2">
+          <v-icon> mdi-pencil </v-icon>
+        </div>
 
-      <v-list-item-title data-test="namespace-edit-title">
-        Edit
-      </v-list-item-title>
-    </div>
-  </v-list-item>
-
-  <v-dialog max-width="450" v-model="showDialog">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary">
-        Update member role
-      </v-card-title>
-      <v-divider />
-
-      <v-card-text class="mt-4 mb-0 pb-1">
-        <v-text-field
-          v-model="memberLocal.username"
-          :disabled="true"
-          variant="underlined"
-          label="Username"
-          :error-messages="errorMessage"
-          require
-          data-test="username-text"
-        />
-
-        <v-row align="center">
-          <v-col cols="12">
-            <v-select
-              v-model="memberLocal.selectedRole"
-              :items="items"
-              label="Role"
-              variant="underlined"
-              :error-messages="errorMessage"
-              require
-              data-test="role-select"
-            />
-          </v-col>
-        </v-row>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" data-test="close-btn" @click="close()">
-          Close
-        </v-btn>
-
-        <v-btn
-          color="primary"
-          variant="text"
-          data-test="edit-btn"
-          @click="editMember()"
-        >
+        <v-list-item-title data-test="namespace-edit-title">
           Edit
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        </v-list-item-title>
+      </div>
+    </v-list-item>
+
+    <v-dialog max-width="450" v-model="showDialog">
+      <v-card class="bg-v-theme-surface">
+        <v-card-title class="text-h5 pa-4 bg-primary">
+          Update member role
+        </v-card-title>
+        <v-divider />
+
+        <v-card-text class="mt-4 mb-0 pb-1">
+          <v-text-field
+            v-model="memberLocal.username"
+            :disabled="true"
+            variant="underlined"
+            label="Username"
+            :error-messages="errorMessage"
+            require
+            data-test="username-text"
+          />
+
+          <v-row align="center">
+            <v-col cols="12">
+              <v-select
+                v-model="memberLocal.selectedRole"
+                :items="items"
+                label="Role"
+                variant="underlined"
+                :error-messages="errorMessage"
+                require
+                data-test="role-select"
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" data-test="close-btn" @click="close()">
+            Close
+          </v-btn>
+
+          <v-btn
+            color="primary"
+            variant="text"
+            data-test="edit-btn"
+            @click="editMember()"
+          >
+            Edit
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -76,7 +78,7 @@ import {
 } from "../../interfaces/INotifications";
 import { IMember } from "../../interfaces/IMember";
 import { useStore } from "../../store";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   props: {
@@ -92,6 +94,10 @@ export default defineComponent({
     notHasAuthorization: {
       type: Boolean,
       default: false,
+    },
+    style: {
+      type: [String, Object],
+      default: undefined,
     },
   },
   emits: ["update"],

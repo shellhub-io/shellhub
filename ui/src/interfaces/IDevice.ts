@@ -1,4 +1,4 @@
-import { CreateDeviceTagRequest, UpdateDeviceNameRequest, UpdateTagsDeviceRequest } from "@/api/client";
+import { CreateDeviceTagRequest, UpdateDeviceRequest, UpdateTagsDeviceRequest } from "@/api/client";
 
 type identity = {
     mac: string;
@@ -41,7 +41,7 @@ export interface IUpdateDeviceTag {
 
 export interface IDeviceRename {
   uid: string;
-  name: UpdateDeviceNameRequest;
+  name: UpdateDeviceRequest;
 }
 
 export interface IDevicePostTag {

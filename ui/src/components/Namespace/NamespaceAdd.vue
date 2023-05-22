@@ -1,49 +1,51 @@
 <template>
-  <v-btn
-    v-if="!firstNamespace"
-    block
-    :size="isSmall ? 'small' : 'default'"
-    color="primary"
-    @click="showDialog = true"
-  >
-    Add Namespace
-  </v-btn>
-
-  <v-list-item-title>
-    <v-dialog
-      v-model="showDialog"
-      @click:outside="update"
-      min-width="350"
-      max-width="450"
-      v-bind="$attrs"
+  <div>
+    <v-btn
+      v-if="!firstNamespace"
+      block
+      :size="isSmall ? 'small' : 'default'"
+      color="primary"
+      @click="showDialog = true"
     >
-      <v-card data-test="namespaceAdd-card" class="bg-v-theme-surface">
-        <v-card-title class="text-headline bg-primary">
-          Enter Namespace
-        </v-card-title>
+      Add Namespace
+    </v-btn>
 
-        <v-card-text>
-          <v-text-field
-            v-model="namespaceName"
-            label="Username"
-            :error-messages="namespaceNameError"
-            required
-            variant="underlined"
-            data-test="username-text"
-          />
-        </v-card-text>
+    <v-list-item-title>
+      <v-dialog
+        v-model="showDialog"
+        @click:outside="update"
+        min-width="350"
+        max-width="450"
+        v-bind="$attrs"
+      >
+        <v-card data-test="namespaceAdd-card" class="bg-v-theme-surface">
+          <v-card-title class="text-headline bg-primary">
+            Enter Namespace
+          </v-card-title>
 
-        <v-card-actions>
-          <v-spacer />
-          <v-btn text data-test="close-btn" @click="update"> Close </v-btn>
+          <v-card-text>
+            <v-text-field
+              v-model="namespaceName"
+              label="Username"
+              :error-messages="namespaceNameError"
+              required
+              variant="underlined"
+              data-test="username-text"
+            />
+          </v-card-text>
 
-          <v-btn color="primary" text data-test="add-btn" @click="addNamespace">
-            Add
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-list-item-title>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn data-test="close-btn" @click="update"> Close </v-btn>
+
+            <v-btn color="primary" data-test="add-btn" @click="addNamespace">
+              Add
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-list-item-title>
+  </div>
 </template>
 
 <script lang="ts">
@@ -56,7 +58,7 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   inheritAttrs: false,

@@ -1,128 +1,128 @@
 <template>
-  <v-list-item
-    @click="showDialog = true"
-    v-bind="$attrs"
-    :disabled="notHasAuthorization"
-  >
-    <div class="d-flex align-center">
-      <div data-test="publicKey-edit-icon" class="mr-2">
-        <v-icon> mdi-pencil </v-icon>
+  <div>
+    <v-list-item
+      @click="showDialog = true"
+      v-bind="$attrs"
+      :disabled="notHasAuthorization"
+    >
+      <div class="d-flex align-center">
+        <div data-test="publicKey-edit-icon" class="mr-2">
+          <v-icon> mdi-pencil </v-icon>
+        </div>
+
+        <v-list-item-title data-test="publicKey-edit-title">
+          Edit
+        </v-list-item-title>
       </div>
+    </v-list-item>
 
-      <v-list-item-title data-test="publicKey-edit-title">
-        Edit
-      </v-list-item-title>
-    </div>
-  </v-list-item>
-
-  <v-dialog v-model="showDialog" width="520" transition="dialog-bottom-transition">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-3 bg-primary">
-        Edit Public Key
-      </v-card-title>
-      <form @submit.prevent="edit" class="mt-3">
-        <v-card-text>
-          <v-text-field
-            v-model="name"
-            label="Key name"
-            placeholder="Name used to identify the public key"
-            :error-messages="nameError"
-            required
-            variant="underlined"
-            data-test="name-field"
-          />
-
-          <v-row class="mt-1 px-3">
-            <v-select
-              v-model="choiceUsername"
-              label="Device username access restriction"
-              :items="usernameList"
-              variant="underlined"
-              item-title="filterText"
-              item-value="filterName"
-              data-test="access-restriction-field"
-            />
-          </v-row>
-
-          <v-text-field
-            v-if="choiceUsername === 'username'"
-            v-model="username"
-            label="Rule source IP"
-            variant="underlined"
-            :error-messages="usernameError"
-          />
-
-          <v-row class="mt-1 px-3">
-            <v-select
-              v-model="choiceFilter"
-              label="Device access restriction"
-              :items="filterList"
-              variant="underlined"
-              item-title="filterText"
-              item-value="filterName"
-              data-test="access-restriction-field"
-            />
-          </v-row>
-
-          <v-row class="px-3">
-            <v-select
-              v-if="choiceFilter === 'tags'"
-              v-model="tagChoices"
-              :items="tagNames"
-              data-test="tags-selector"
-              attach
-              chips
-              label="Tags"
-              :rules="[validateLength]"
-              :error-messages="errMsg"
-              variant="underlined"
-              multiple
-            />
+    <v-dialog v-model="showDialog" width="520" transition="dialog-bottom-transition">
+      <v-card class="bg-v-theme-surface">
+        <v-card-title class="text-h5 pa-3 bg-primary">
+          Edit Public Key
+        </v-card-title>
+        <form @submit.prevent="edit" class="mt-3">
+          <v-card-text>
             <v-text-field
-              v-if="choiceFilter === 'hostname'"
-              v-model="hostname"
-              label="Hostname"
+              v-model="name"
+              label="Key name"
+              placeholder="Name used to identify the public key"
+              :error-messages="nameError"
+              required
               variant="underlined"
-              :error-messages="hostnameError"
-              data-test="hostname-field"
+              data-test="name-field"
             />
-          </v-row>
 
-          <v-textarea
-            v-model="publicKeyData"
-            class="mt-5"
-            label="Public key data"
-            :error-messages="publicKeyDataError"
-            required
-            :messages="supportedKeys"
-            variant="underlined"
-            data-test="data-field"
-            rows="2"
-          />
-        </v-card-text>
+            <v-row class="mt-1 px-3">
+              <v-select
+                v-model="choiceUsername"
+                label="Device username access restriction"
+                :items="usernameList"
+                variant="underlined"
+                item-title="filterText"
+                item-value="filterName"
+                data-test="access-restriction-field"
+              />
+            </v-row>
 
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="primary"
-            text
-            @click="close"
-            data-test="device-add-cancel-btn"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            color="primary"
-            text
-            type="submit"
-            data-test="device-add-save-btn"
-          >
-            Save
-          </v-btn>
-        </v-card-actions>
-      </form>
-    </v-card>
-  </v-dialog>
+            <v-text-field
+              v-if="choiceUsername === 'username'"
+              v-model="username"
+              label="Rule source IP"
+              variant="underlined"
+              :error-messages="usernameError"
+            />
+
+            <v-row class="mt-1 px-3">
+              <v-select
+                v-model="choiceFilter"
+                label="Device access restriction"
+                :items="filterList"
+                variant="underlined"
+                item-title="filterText"
+                item-value="filterName"
+                data-test="access-restriction-field"
+              />
+            </v-row>
+
+            <v-row class="px-3">
+              <v-select
+                v-if="choiceFilter === 'tags'"
+                v-model="tagChoices"
+                :items="tagNames"
+                data-test="tags-selector"
+                attach
+                chips
+                label="Tags"
+                :rules="[validateLength]"
+                :error-messages="errMsg"
+                variant="underlined"
+                multiple
+              />
+              <v-text-field
+                v-if="choiceFilter === 'hostname'"
+                v-model="hostname"
+                label="Hostname"
+                variant="underlined"
+                :error-messages="hostnameError"
+                data-test="hostname-field"
+              />
+            </v-row>
+
+            <v-textarea
+              v-model="publicKeyData"
+              class="mt-5"
+              label="Public key data"
+              :error-messages="publicKeyDataError"
+              required
+              :messages="supportedKeys"
+              variant="underlined"
+              data-test="data-field"
+              rows="2"
+            />
+          </v-card-text>
+
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              color="primary"
+              @click="close"
+              data-test="device-add-cancel-btn"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="primary"
+              type="submit"
+              data-test="device-add-save-btn"
+            >
+              Save
+            </v-btn>
+          </v-card-actions>
+        </form>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -143,7 +143,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   props: {

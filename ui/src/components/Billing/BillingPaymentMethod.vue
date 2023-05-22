@@ -1,83 +1,85 @@
 <template>
-  <v-btn class="bg-primary" data-test="show-btn" @click="dialog = !dialog" v-bind="$attrs">
-    {{ actionButton(typeOperation) }}
-  </v-btn>
+  <div>
+    <v-btn class="bg-primary" data-test="show-btn" @click="dialog = !dialog" v-bind="$attrs">
+      {{ actionButton(typeOperation) }}
+    </v-btn>
 
-  <v-dialog v-model="dialog" max-width="600">
-    <v-card
-      v-model="dialog"
+    <v-dialog v-model="dialog" max-width="600">
+      <v-card
+        v-model="dialog"
 
-      class="bg-v-theme-surface"
-      data-test="BillingDialogPaymentMethod-dialog"
-    >
-      <v-card-title class="bg-primary pa-4" data-test="text-cardTitle">
-        {{ typeTitle(typeOperation) }}
-      </v-card-title>
+        class="bg-v-theme-surface"
+        data-test="BillingDialogPaymentMethod-dialog"
+      >
+        <v-card-title class="bg-primary pa-4" data-test="text-cardTitle">
+          {{ typeTitle(typeOperation) }}
+        </v-card-title>
 
-      <v-card-text class="mt-2 mb-3 pb-1">
-        <div v-if="typeOperation === 'subscription'">
-          <div data-test="subscription-description" class="text-high-emphasis">
-            <h4 class="text-body-1 font-weight-bold">
-              Subscribe to premium plan:
-            </h4>
-            <p data-test="subscription-message" class="text-medium-emphasis">
-              The subscription is charged monthly, based on the number of
-              devices you have in your namespace.
-            </p>
-            <div class="mt-4">
-              <b> Estimated cost: </b>
-              <span>
-                {{ currentQuantity }} devices :
-                {{ priceEstimator(currentQuantity) }} / month
-              </span>
+        <v-card-text class="mt-2 mb-3 pb-1">
+          <div v-if="typeOperation === 'subscription'">
+            <div data-test="subscription-description" class="text-high-emphasis">
+              <h4 class="text-body-1 font-weight-bold">
+                Subscribe to premium plan:
+              </h4>
+              <p data-test="subscription-message" class="text-medium-emphasis">
+                The subscription is charged monthly, based on the number of
+                devices you have in your namespace.
+              </p>
+              <div class="mt-4">
+                <b> Estimated cost: </b>
+                <span>
+                  {{ currentQuantity }} devices :
+                  {{ priceEstimator(currentQuantity) }} / month
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <v-card class="paymentForm mt-6 pa-3 bg-white">
-          <StripeElements
-            v-if="stripeLoaded"
-            v-slot="{ elements }"
-            ref="elms"
-            :stripe-key="stripeKey"
-            :instance-options="instanceOptions"
-            :elements-options="elementsOptions"
-          >
-            <StripeElement
-              ref="card"
-              :elements="elements"
-              :options="cardOptions"
-            />
-          </StripeElements>
-        </v-card>
+          <v-card class="paymentForm mt-6 pa-3 bg-white">
+            <StripeElements
+              v-if="stripeLoaded"
+              v-slot="{ elements }"
+              ref="elms"
+              :stripe-key="stripeKey"
+              :instance-options="instanceOptions"
+              :elements-options="elementsOptions"
+            >
+              <StripeElement
+                ref="card"
+                :elements="elements"
+                :options="cardOptions"
+              />
+            </StripeElements>
+          </v-card>
 
-        <div ref="card-element-errors" class="card-errors mt-4" role="alert" />
+          <div ref="card-element-errors" class="card-errors mt-4" role="alert" />
 
-        <v-spacer />
-
-        <v-row class="mt-2">
           <v-spacer />
-          <v-col md="auto" class="ml-auto" />
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
 
-        <v-btn variant="text" data-test="cancel-btn" @click="dialog = !dialog">
-          Close
-        </v-btn>
+          <v-row class="mt-2">
+            <v-spacer />
+            <v-col md="auto" class="ml-auto" />
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
 
-        <v-btn
-          variant="text"
-          data-test="confirm-btn"
-          :disabled="lockButton"
-          @click="doAction()"
-        >
-          confirm
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+          <v-btn variant="text" data-test="cancel-btn" @click="dialog = !dialog">
+            Close
+          </v-btn>
+
+          <v-btn
+            variant="text"
+            data-test="confirm-btn"
+            :disabled="lockButton"
+            @click="doAction()"
+          >
+            confirm
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -85,14 +87,14 @@ import { defineComponent, ref, computed, onBeforeMount, onMounted } from "vue";
 import { StripeElements, StripeElement } from "vue-stripe-js";
 import axios, { AxiosError } from "axios";
 import { loadStripe } from "@stripe/stripe-js";
-import formatCurrency from "@/utils/currency";
+import formatCurrency from "../../utils/currency";
 import { useStore } from "../../store";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import { envVariables } from "@/envVariables";
-import handleError from "@/utils/handleError";
+import { envVariables } from "../../envVariables";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   props: {
@@ -150,7 +152,7 @@ export default defineComponent({
       });
     });
 
-    const displayError = (e) => {
+    const displayError = (e: any) => {
       if (e.error) {
         elementError.value = e.error.message;
       } else {
@@ -158,7 +160,7 @@ export default defineComponent({
       }
     };
 
-    const showError = (e) => {
+    const showError = (e: any) => {
       elementError.value = e.response.data;
     };
 

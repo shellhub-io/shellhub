@@ -1,56 +1,58 @@
 <template>
-  <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization()">
-    <template v-slot:activator="{ props }">
-      <div v-bind="props">
-        <v-btn
-          :disabled="!hasAuthorization()"
-          color="primary"
-          @click="dialog = !dialog"
-        >
-          Add Member
-        </v-btn>
-      </div>
-    </template>
-    <span> You don't have this kind of authorization. </span>
-  </v-tooltip>
+  <div>
+    <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization()">
+      <template v-slot:activator="{ props }">
+        <div v-bind="props">
+          <v-btn
+            :disabled="!hasAuthorization()"
+            color="primary"
+            @click="dialog = !dialog"
+          >
+            Add Member
+          </v-btn>
+        </div>
+      </template>
+      <span> You don't have this kind of authorization. </span>
+    </v-tooltip>
 
-  <v-dialog v-model="dialog" max-width="450" @click:outside="close()">
-    <v-card data-test="namespaceNewMember-dialog" class="bg-v-theme-surface">
-      <v-card-title class="bg-primary"> Add member to namespace </v-card-title>
+    <v-dialog v-model="dialog" max-width="450" @click:outside="close()">
+      <v-card data-test="namespaceNewMember-dialog" class="bg-v-theme-surface">
+        <v-card-title class="bg-primary"> Add member to namespace </v-card-title>
 
-      <v-card-text>
-        <v-text-field
-          v-model="username"
-          label="Username"
-          :error-messages="usernameError"
-          required
-          variant="underlined"
-          data-test="username-text"
-        />
-      </v-card-text>
+        <v-card-text>
+          <v-text-field
+            v-model="username"
+            label="Username"
+            :error-messages="usernameError"
+            required
+            variant="underlined"
+            data-test="username-text"
+          />
+        </v-card-text>
 
-      <v-card-text class="mt-n10">
-        <v-select
-          v-model="selectedRole"
-          :items="items"
-          label="Role"
-          :error-messages="selectedRoleError"
-          required
-          variant="underlined"
-          data-test="role-select"
-        />
-      </v-card-text>
+        <v-card-text class="mt-n10">
+          <v-select
+            v-model="selectedRole"
+            :items="items"
+            label="Role"
+            :error-messages="selectedRoleError"
+            required
+            variant="underlined"
+            data-test="role-select"
+          />
+        </v-card-text>
 
-      <v-card-actions>
-        <v-spacer />
-        <v-btn text data-test="close-btn" @click="close()"> Close </v-btn>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn data-test="close-btn" @click="close()"> Close </v-btn>
 
-        <v-btn color="primary" text data-test="add-btn" @click="addMember()">
-          Add
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+          <v-btn color="primary" data-test="add-btn" @click="addMember()">
+            Add
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -65,7 +67,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 export default defineComponent({
   emits: ["update"],

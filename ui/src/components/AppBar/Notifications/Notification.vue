@@ -118,6 +118,12 @@ export default defineComponent({
   components: {
     DeviceActionButton,
   },
+  props: {
+    style: {
+      type: [String, Object],
+      default: undefined,
+    },
+  },
   setup() {
     const store = useStore();
     const show = ref(false);

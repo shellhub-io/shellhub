@@ -89,14 +89,12 @@ import {
   defineComponent,
   computed,
   ref,
-  onMounted,
   defineAsyncComponent,
 } from "vue";
 import { RouteLocationRaw, useRouter } from "vue-router";
-import GitterSidecar from "gitter-sidecar";
 import { useStore } from "../../store";
 import { createNewClient } from "../../api/http";
-import handleError from "@/utils/handleError";
+import handleError from "../../utils/handleError";
 
 type MenuItem = {
   title: string;
@@ -119,7 +117,6 @@ export default defineComponent({
     const defaultSize = ref(24);
     const drawer = ref(true);
     const isDarkMode = ref(getStatusDarkMode.value === "dark");
-    const chat = ref(null);
 
     const triggerClick = (item: MenuItem): void => {
       switch (item.type) {
@@ -162,15 +159,6 @@ export default defineComponent({
         "_blank",
       );
     };
-
-    onMounted(async () => {
-      chat.value = await new GitterSidecar({
-        room: "shellhub-io/community",
-        activationElement: false,
-        targetElement: chat.value,
-      });
-    });
-
     return {
       menu: [
         {
