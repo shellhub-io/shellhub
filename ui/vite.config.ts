@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 import vue from "@vitejs/plugin-vue";
 // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
-import vuetify from "vite-plugin-vuetify";
+import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 import NodeGlobalsPolyfillPlugin from "@esbuild-plugins/node-globals-polyfill";
 import polyfillNode from "rollup-plugin-polyfill-node";
 import { fileURLToPath, URL } from "url";
@@ -17,12 +17,10 @@ export default defineConfig({
   },
   plugins: [
     vue({
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => tag.includes("v-list-item-group") || tag.includes("font-awesome-icon"),
-        },
-      },
-      include: [/\.vue$/, /\.md$/],
+      template: { transformAssetUrls }
+    }),
+    vuetify({
+      autoImport: true
     }),
     Markdown({
       markdownItOptions: {
@@ -30,7 +28,6 @@ export default defineConfig({
         typographer: true,
       },
     }),
-    vuetify({ autoImport: true }),
     NodeGlobalsPolyfillPlugin({
       process: true,
       buffer: true,
