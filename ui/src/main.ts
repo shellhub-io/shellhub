@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import * as Sentry from "@sentry/vue";
 import { BrowserTracing } from "@sentry/tracing";
+import { envVariables } from "./envVariables";
 import vuetify from "./plugins/vuetify";
 import { key, store } from "./store";
 import router from "./router";
@@ -14,7 +15,7 @@ const app = createApp(App);
 
 Sentry.init({
   app,
-  dsn: process.env.SHELLHUB_SENTRY_DSN || "",
+  dsn: envVariables.sentryDsn || "",
   integrations: [
     new BrowserTracing({
       routingInstrumentation: Sentry.vueRouterInstrumentation(router),
@@ -23,8 +24,7 @@ Sentry.init({
   tracesSampleRate: 1.0,
   hooks: ["activate", "create", "destroy", "mount", "update"],
   timeout: 500,
-  environment: process.env.SHELLHUB_VERSION || "dev",
-  release: process.env.SHELLHUB_VERSION || "dev",
+  release: envVariables.version || "latest",
 });
 Sentry.setTag("project", "shellhub-ui");
 
