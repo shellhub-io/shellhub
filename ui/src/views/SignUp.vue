@@ -142,6 +142,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
@@ -156,6 +157,7 @@ import { envVariables } from "@/envVariables";
 export default defineComponent({
   setup() {
     const store = useStore();
+    const router = useRouter();
     const showPassword = ref(false);
     const showConfirmPassword = ref(false);
     const showMessage = ref(false);
@@ -306,6 +308,7 @@ export default defineComponent({
             "snackbar/showSnackbarSuccessAction",
             INotificationsSuccess.addUser,
           );
+          await router.push({ name: "ConfirmAccount", query: { username: username.value } });
         } catch (error: unknown) {
           if (axios.isAxiosError(error)) {
             const axiosError = error as AxiosError;
