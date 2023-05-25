@@ -61,6 +61,14 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import(/* webpackChunkName: "sign-up" */ "../views/SignUp.vue"),
   },
   {
+    path: "/confirm-account",
+    name: "ConfirmAccount",
+    meta: {
+      external: true,
+    },
+    component: () => import(/* webpackChunkName: "confirm-account" */ "../views/ConfirmAccount.vue"),
+  },
+  {
     path: "/",
     name: "Dashboard",
     component: Dashboard,

@@ -181,7 +181,7 @@ export default defineComponent({
                 break;
               }
               case axiosError.response?.status === 403: {
-                showMessage.value = !showMessage.value;
+                await router.push({ name: "ConfirmAccount", query: { username: username.value } });
                 break;
               }
               default: {
