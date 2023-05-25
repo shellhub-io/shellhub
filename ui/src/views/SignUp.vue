@@ -393,13 +393,3 @@ export default defineComponent({
   components: { AccountCreated },
 });
 </script>
-
-<style>
-.full-height {
-  height: 100vh;
-}
-
-.v-field__append-inner {
-  cursor: pointer;
-}
-</style>
