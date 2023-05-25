@@ -1,141 +1,90 @@
 <template>
-  <v-app>
-    <v-main class="d-flex align-center justify-center">
-      <v-container fluid>
-        <v-row align="center" justify="center">
-          <v-col cols="12" sm="8" md="8">
-            <v-card
-              v-if="showMessage && !isCloud"
-              class="bg-v-theme-surface"
-              data-test="unknownReason-card"
-            >
-              <v-card-text>
-                <v-card-title class="justify-center">
-                  Activate Account
-                </v-card-title>
+  <v-container>
+    <v-alert
+      v-if="loginToken"
+      data-test="loadingToken-alert"
+      class="pa-6 bg-v-theme-surface"
+    >
+      <div class="text-center">
+        <p>Logging the token in...</p>
 
-                <div class="d-flex align-center justify-center mb-6">
-                  The account is not active for an unknown reason.
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
+        <v-progress-linear
+          indeterminate
+          color="cyan"
+          class="mt-2"
+        />
+      </div>
+    </v-alert>
+    <form @submit.prevent="login">
+      <v-col>
+        <v-text-field
+          color="primary"
+          prepend-icon="mdi-account"
+          v-model="username"
+          :error-messages="usernameError"
+          required
+          label="Username or email address"
+          variant="underlined"
+          data-test="username-text"
+        />
 
-        <v-row align="center" justify="center">
-          <v-col cols="12" sm="8" md="4">
-            <v-alert
-              v-if="loginToken"
-              data-test="loadingToken-alert"
-              class="pa-6 bg-v-theme-surface"
-            >
-              <div class="text-center">
-                <p>Logging the token in...</p>
+        <v-text-field
+          color="primary"
+          prepend-icon="mdi-lock"
+          :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+          v-model="password"
+          :error-messages="passwordError"
+          label="Password"
+          required
+          variant="underlined"
+          data-test="password-text"
+          :type="showPassword ? 'text' : 'password'"
+          @click:append-inner="showPassword = !showPassword"
+        />
+        <v-card-actions class="justify-center">
+          <v-btn
+            data-test="login-btn"
+            color="primary"
+            variant="tonal"
+            block
+            @click="login"
+            type="submit"
+          >
+            LOGIN
+          </v-btn>
+        </v-card-actions>
 
-                <v-progress-linear indeterminate color="cyan" class="mt-2" />
-              </div>
-            </v-alert>
-          </v-col>
-        </v-row>
+        <v-card-subtitle
+          v-if="isCloud"
+          class="d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0"
+          data-test="forgotPassword-card"
+        >
+          Forgot your
+          <router-link
+            class="ml-1"
+            :to="{ name: 'ForgotPassword' }"
+          >
+            Password?
+          </router-link>
+        </v-card-subtitle>
 
-        <v-row align="center" justify="center" v-if="!showMessage">
-          <v-col cols="12" sm="8" md="4" xl="3">
-            <v-card theme="dark" class="pa-6 bg-v-theme-surface" rounded="lg">
-              <v-card-title class="d-flex justify-center align-center mt-4">
-                <v-img
-                  :src="Logo"
-                  max-width="220"
-                  alt="logo do ShellHub, uma nuvem de com a escrita ShellHub Admin ao lado"
-                />
-              </v-card-title>
-              <v-container>
-                <SnackbarComponent />
-                <form @submit.prevent="login">
-                  <v-col>
-                    <v-text-field
-                      color="primary"
-                      prepend-icon="mdi-account"
-                      v-model="username"
-                      :error-messages="usernameError"
-                      required
-                      label="Username or email address"
-                      variant="underlined"
-                      data-test="username-text"
-                    />
+        <v-card-subtitle
+          v-if="isCloud"
+          class="d-flex align-center justify-center pa-4 mx-auto"
+          data-test="isCloud-card"
+        >
+          Don't have an account?
 
-                    <v-text-field
-                      color="primary"
-                      prepend-icon="mdi-lock"
-                      :append-inner-icon="
-                        showPassword ? 'mdi-eye' : 'mdi-eye-off'
-                      "
-                      v-model="password"
-                      :error-messages="passwordError"
-                      label="Password"
-                      required
-                      variant="underlined"
-                      data-test="password-text"
-                      :type="showPassword ? 'text' : 'password'"
-                      @click:append-inner="showPassword = !showPassword"
-                    />
-                    <v-card-actions class="justify-center">
-                      <v-btn
-                        data-test="login-btn"
-                        color="primary"
-                        variant="tonal"
-                        block
-                        @click="login"
-                        type="submit"
-                      >
-                        LOGIN
-                      </v-btn>
-                    </v-card-actions>
-
-                    <v-card-subtitle
-                      v-if="isCloud"
-                      class="d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0"
-                      data-test="forgotPassword-card"
-                    >
-                      Forgot your
-                      <router-link
-                        class="ml-1"
-                        :to="{ name: 'ForgotPassword' }"
-                      >
-                        Password?
-                      </router-link>
-                    </v-card-subtitle>
-
-                    <v-card-subtitle
-                      v-if="isCloud"
-                      class="d-flex align-center justify-center pa-4 mx-auto"
-                      data-test="isCloud-card"
-                    >
-                      Don't have an account?
-
-                      <router-link class="ml-1" :to="{ name: 'SignUp' }">
-                        Sign up here
-                      </router-link>
-                    </v-card-subtitle>
-                  </v-col>
-                </form>
-              </v-container>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <v-row align="center" justify="center">
-          <v-col cols="12" sm="8" md="4">
-            <AccountCreated
-              v-if="isCloud"
-              :show="showMessage"
-              :username="username"
-              data-test="accountCreated-component"
-            />
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-main>
-  </v-app>
+          <router-link
+            class="ml-1"
+            :to="{ name: 'SignUp' }"
+          >
+            Sign up here
+          </router-link>
+        </v-card-subtitle>
+      </v-col>
+    </form>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -145,11 +94,9 @@ import * as yup from "yup";
 import { useRoute, useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../store";
-import Logo from "../assets/logo-inverted.png";
 import { envVariables } from "../envVariables";
 import { createNewClient } from "../api/http";
 import { INotificationsError } from "../interfaces/INotifications";
-import AccountCreated from "../components/Account/AccountCreated.vue";
 import handleError from "@/utils/handleError";
 
 export default defineComponent({
@@ -253,7 +200,6 @@ export default defineComponent({
     };
 
     return {
-      Logo,
       username,
       usernameError,
       password,
@@ -267,6 +213,5 @@ export default defineComponent({
       login,
     };
   },
-  components: { AccountCreated },
 });
 </script>
