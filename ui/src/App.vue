@@ -10,6 +10,8 @@ import SimpleLayout from "./layouts/SimpleLayout.vue";
 import AppLayout from "./layouts/AppLayout.vue";
 import { useStore } from "./store";
 
+import "./assets/global.css";
+
 export default defineComponent({
   name: "App",
   components: {

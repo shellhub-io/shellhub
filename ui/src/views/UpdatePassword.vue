@@ -229,13 +229,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style>
-.full-height {
-  height: 100vh;
-}
-
-.v-field__append-inner {
-  cursor: pointer;
-}
-</style>
