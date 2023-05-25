@@ -1,78 +1,62 @@
 <template>
-  <v-app>
-    <v-main>
-      <v-container class="full-height d-flex justify-center align-center" fluid>
-        <v-row align="center" justify="center">
-          <v-col cols="12" sm="8" md="4">
-            <v-card theme="dark" class="pa-6 bg-v-theme-surface" rounded="lg">
-              <v-card-title class="d-flex justify-center align-center mt-4">
-                <v-img
-                  :src="Logo"
-                  max-width="220"
-                  alt="ShellHub logo, a cloud with a shell in your base write ShellHub in the right side"
-                />
-              </v-card-title>
+  <v-container>
+    <v-card-title class="d-flex justify-center">
+      Verification Account
+    </v-card-title>
 
-              <v-card-title class="d-flex justify-center">
-                Verification Account
-              </v-card-title>
+    <v-card-text
+      v-if="verifyActivationProcessingStatus === 'processing'"
+      class="d-flex align-center justify-center"
+      data-test="processing-cardText"
+    >
+      Processing activation.
+    </v-card-text>
 
-              <v-card-text
-                v-if="verifyActivationProcessingStatus === 'processing'"
-                class="d-flex align-center justify-center"
-                data-test="processing-cardText"
-              >
-                Processing activation.
-              </v-card-text>
+    <v-card-text
+      v-if="verifyActivationProcessingStatus === 'success'"
+      class="d-flex align-center justify-center text-center"
+      data-test="success-cardText"
+    >
+      Congrats and welcome to ShellHub.
+    </v-card-text>
 
-              <v-card-text
-                v-if="verifyActivationProcessingStatus === 'success'"
-                class="d-flex align-center justify-center text-center"
-                data-test="success-cardText"
-              >
-                Congrats and welcome to ShellHub.
-              </v-card-text>
+    <v-card-text
+      v-if="verifyActivationProcessingStatus === 'failed'"
+      class="d-flex align-center justify-center text-center"
+      data-test="failed-cardText"
+    >
+      There was a problem activating your account. Go to the login
+      page, login to receive another email with the activation link.
+    </v-card-text>
 
-              <v-card-text
-                v-if="verifyActivationProcessingStatus === 'failed'"
-                class="d-flex align-center justify-center text-center"
-                data-test="failed-cardText"
-              >
-                There was a problem activating your account. Go to the login
-                page, login to receive another email with the activation link.
-              </v-card-text>
+    <v-card-text
+      v-if="verifyActivationProcessingStatus === 'failed-token'"
+      class="d-flex align-center justify-center text-center"
+      data-test="failed-cardText"
+    >
+      Your account activation token has expired. Go to the login page,
+      login to receive another email with the activation link.
+    </v-card-text>
 
-              <v-card-text
-                v-if="verifyActivationProcessingStatus === 'failed-token'"
-                class="d-flex align-center justify-center text-center"
-                data-test="failed-cardText"
-              >
-                Your account activation token has expired. Go to the login page,
-                login to receive another email with the activation link.
-              </v-card-text>
-
-              <v-card-subtitle
-                class="d-flex align-center justify-center pa-4 mx-auto pt-2"
-                data-test="isCloud-card"
-              >
-                Back to
-                <router-link class="ml-1" :to="{ name: 'login' }">
-                  Login
-                </router-link>
-              </v-card-subtitle>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-main>
-  </v-app>
+    <v-card-subtitle
+      class="d-flex align-center justify-center pa-4 mx-auto pt-2"
+      data-test="isCloud-card"
+    >
+      Back to
+      <router-link
+        class="ml-1"
+        :to="{ name: 'login' }"
+      >
+        Login
+      </router-link>
+    </v-card-subtitle>
+  </v-container>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
-import Logo from "../assets/logo-inverted.png";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -129,7 +113,6 @@ export default defineComponent({
     });
 
     return {
-      Logo,
       verifyActivationProcessingStatus,
     };
   },

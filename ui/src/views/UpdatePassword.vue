@@ -1,93 +1,72 @@
 <template>
-  <v-app>
-    <v-main>
-      <v-container class="full-height d-flex justify-center align-center" fluid>
-        <v-row align="center" justify="center">
-          <v-col cols="12" sm="8" md="4">
-            <v-card theme="dark" class="pa-6 bg-v-theme-surface" rounded="lg">
-              <v-card-title class="d-flex justify-center align-center mt-4">
-                <v-img
-                  :src="Logo"
-                  max-width="220"
-                  alt="ShellHub logo, a cloud with a shell in your base write ShellHub in the right side"
-                />
-              </v-card-title>
+  <v-container>
+    <v-card-title class="d-flex justify-center">
+      Reset your password
+    </v-card-title>
 
-              <v-card-title class="d-flex justify-center">
-                Reset your password
-              </v-card-title>
+    <v-card-text>
+      <div class="d-flex align-center justify-center text-center mb-6">
+        Please insert your new password.
+      </div>
+    </v-card-text>
 
-              <v-card-text>
-                <div
-                  class="d-flex align-center justify-center text-center mb-6"
-                >
-                  Please insert your new password.
-                </div>
-              </v-card-text>
+    <v-card-text>
+      <v-text-field
+        id="password"
+        color="primary"
+        prepend-icon="mdi-lock"
+        :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+        v-model="password"
+        :error-messages="passwordError"
+        label="Password"
+        required
+        variant="underlined"
+        data-test="password-text"
+        :type="showPassword ? 'text' : 'password'"
+        @click:append-inner="showPassword = !showPassword"
+      />
 
-              <v-card-text>
-                <v-text-field
-                  id="password"
-                  color="primary"
-                  prepend-icon="mdi-lock"
-                  :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                  v-model="password"
-                  :error-messages="passwordError"
-                  label="Password"
-                  required
-                  variant="underlined"
-                  data-test="password-text"
-                  :type="showPassword ? 'text' : 'password'"
-                  @click:append-inner="showPassword = !showPassword"
-                />
+      <v-text-field
+        id="password-confirm"
+        color="primary"
+        prepend-icon="mdi-lock"
+        :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
+        v-model="passwordConfirm"
+        :error-messages="passwordConfirmError"
+        label="Confirm Password"
+        required
+        variant="underlined"
+        data-test="password-confirm-text"
+        :type="showConfirmPassword ? 'text' : 'password'"
+        @click:append-inner="showConfirmPassword = !showConfirmPassword"
+      />
+    </v-card-text>
 
-                <v-text-field
-                  id="password-confirm"
-                  color="primary"
-                  prepend-icon="mdi-lock"
-                  :append-inner-icon="
-                    showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'
-                  "
-                  v-model="passwordConfirm"
-                  :error-messages="passwordConfirmError"
-                  label="Confirm Password"
-                  required
-                  variant="underlined"
-                  data-test="password-confirm-text"
-                  :type="showConfirmPassword ? 'text' : 'password'"
-                  @click:append-inner="
-                    showConfirmPassword = !showConfirmPassword
-                  "
-                />
-              </v-card-text>
+    <v-card-actions class="justify-center">
+      <v-btn
+        type="submit"
+        color="primary"
+        variant="tonal"
+        data-test="login-btn"
+        @click="updatePassword"
+      >
+        UPDATE PASSWORD
+      </v-btn>
+    </v-card-actions>
 
-              <v-card-actions class="justify-center">
-                <v-btn
-                  type="submit"
-                  color="primary"
-                  variant="tonal"
-                  data-test="login-btn"
-                  @click="updatePassword"
-                >
-                  UPDATE PASSWORD
-                </v-btn>
-              </v-card-actions>
-
-              <v-card-subtitle
-                class="d-flex align-center justify-center pa-4 mx-auto pt-2"
-                data-test="isCloud-card"
-              >
-                Back to
-                <router-link class="ml-1" :to="{ name: 'login' }">
-                  Login
-                </router-link>
-              </v-card-subtitle>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-main>
-  </v-app>
+    <v-card-subtitle
+      class="d-flex align-center justify-center pa-4 mx-auto pt-2"
+      data-test="isCloud-card"
+    >
+      Back to
+      <router-link
+        class="ml-1"
+        :to="{ name: 'login' }"
+      >
+        Login
+      </router-link>
+    </v-card-subtitle>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -95,7 +74,6 @@ import { useField } from "vee-validate";
 import { defineComponent, onMounted, ref, watch } from "vue";
 import { LocationQueryValue, useRoute, useRouter } from "vue-router";
 import * as yup from "yup";
-import Logo from "../assets/logo-inverted.png";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -217,7 +195,6 @@ export default defineComponent({
     };
 
     return {
-      Logo,
       updatePassword,
       password,
       passwordError,
