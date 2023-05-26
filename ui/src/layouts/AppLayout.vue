@@ -3,64 +3,63 @@
     :theme="getStatusDarkMode"
     v-bind="$attrs"
   >
-    <v-lazy>
-      <v-navigation-drawer
-        theme="dark"
-        v-model="showNavigationDrawer"
-        :permanent="lgAndUp"
-        app
-        class="bg-v-theme-surface"
-      >
-        <v-app-bar-title>
-          <router-link
-            to="/"
-            class="text-decoration-none"
-          >
-            <div class="d-flex justify-center pa-4 pb-2">
-              <v-img
-                class="d-sm-flex hidden-sm-and-down"
-                :src="Logo"
-                max-width="140"
-                alt="Shell logo, a cloud with the writing 'ShellHub' on the right side"
-              />
+    <v-navigation-drawer
+      theme="dark"
+      v-model="showNavigationDrawer"
+      :permanent="lgAndUp"
+      app
+      class="bg-v-theme-surface"
+    >
+      <v-app-bar-title>
+        <router-link
+          to="/"
+          class="text-decoration-none"
+        >
+          <div class="d-flex justify-center pa-4 pb-2">
+            <v-img
+              class="d-sm-flex hidden-sm-and-down"
+              :src="Logo"
+              max-width="140"
+              alt="Shell logo, a cloud with the writing 'ShellHub' on the right side"
+            />
+          </div>
+        </router-link>
+        <v-divider class="ma-2" />
+      </v-app-bar-title>
+
+      <div class="pa-2">
+        <Namespace data-test="namespace-component" />
+        <v-divider class="ma-2" />
+      </div>
+
+      <v-list class="bg-v-theme-surface">
+        <v-list-item
+          v-for="item in visibleItems"
+          :key="item.title"
+          :to="item.path"
+          lines="two"
+          class="mb-2"
+          :disabled="disableItem(item.title)"
+        >
+          <div class="d-flex align-center">
+            <div class="mr-3">
+              <v-icon>
+                {{ item.icon }}
+              </v-icon>
             </div>
-          </router-link>
-          <v-divider class="ma-2" />
-        </v-app-bar-title>
 
-        <div class="pa-2">
-          <Namespace data-test="namespace-component" />
-          <v-divider class="ma-2" />
-        </div>
+            <v-list-item-title :data-test="item.icon + '-listItem'">
+              {{ item.title }}
+            </v-list-item-title>
+          </div>
+        </v-list-item>
+        <v-col class="d-flex align-end justify-center">
+          <NewConnection />
+        </v-col>
 
-        <v-list class="bg-v-theme-surface">
-          <v-list-item
-            v-for="item in visibleItems"
-            :key="item.title"
-            :to="item.path"
-            lines="two"
-            class="mb-2"
-            :disabled="disableItem(item.title)"
-          >
-            <div class="d-flex align-center">
-              <div class="mr-3">
-                <v-icon>
-                  {{ item.icon }}
-                </v-icon>
-              </div>
+      </v-list>
+    </v-navigation-drawer>
 
-              <v-list-item-title :data-test="item.icon + '-listItem'">
-                {{ item.title }}
-              </v-list-item-title>
-            </div>
-          </v-list-item>
-          <v-col class="d-flex align-end justify-center">
-            <NewConnection />
-          </v-col>
-
-        </v-list>
-      </v-navigation-drawer>
-    </v-lazy>
     <SnackbarComponent />
 
     <AppBar v-model="showNavigationDrawer" />
@@ -163,12 +162,8 @@ const disableItem = (item: string) => !hasNamespaces.value && item !== "Dashboar
 </script>
 
 <style lang="css" scoped>
-.admin-name {
-  color: #fff;
-  text-decoration: none;
-}
-
 .full-width-height {
   width: 100vw !important;
   height: 100vh !important;
-}</style>
+}
+</style>
