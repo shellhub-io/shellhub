@@ -7,6 +7,8 @@ export interface snackbarMessageAndContentType {
 }
 
 export interface SnackbarState {
+  message: string,
+  type: string,
   snackbarError: boolean;
   snackbarSuccess: boolean;
   snackbarMessageAndContentType: snackbarMessageAndContentType;
@@ -16,6 +18,8 @@ export interface SnackbarState {
 export const snackbar: Module<SnackbarState, State> = {
   namespaced: true,
   state: {
+    message: "",
+    type: "",
     snackbarError: false,
     snackbarSuccess: false,
     snackbarMessageAndContentType: {
@@ -33,6 +37,11 @@ export const snackbar: Module<SnackbarState, State> = {
   },
 
   mutations: {
+    showMessage: (state, data) => {
+      state.type = data.type;
+      state.message = data.message;
+    },
+
     setSnackbarSuccessAction: (state, data) => {
       state.snackbarMessageAndContentType = data;
       state.snackbarSuccess = true;

@@ -98,6 +98,7 @@ import { envVariables } from "../envVariables";
 import { createNewClient } from "../api/http";
 import { INotificationsError } from "../interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 export default defineComponent({
   name: "Login",
@@ -108,6 +109,7 @@ export default defineComponent({
     const store = useStore();
     const route = useRoute();
     const router = useRouter();
+    const snackbar = useSnackbar();
     const isCloud = computed(() => envVariables.isCloud);
     const hasNamespace = computed(
       () => store.getters["namespaces/getNumberNamespaces"] !== 0,
@@ -185,17 +187,17 @@ export default defineComponent({
                 break;
               }
               default: {
-                store.dispatch("snackbar/showSnackbarErrorDefault");
+                snackbar.showError("The request has failed, please try again");
                 handleError(error);
               }
             }
           } else {
-            store.dispatch("snackbar/showSnackbarErrorDefault");
+            snackbar.showError("The request has failed, please try again");
             handleError(error);
           }
         }
       } else {
-        store.dispatch("snackbar/showSnackbarErrorDefault");
+        snackbar.showError("The request has failed, please try again");
       }
     };
 

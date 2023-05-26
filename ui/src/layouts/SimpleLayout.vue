@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <snackbar-component />
+    <SnackbarNew />
     <v-main class="d-flex justify-center align-center">
       <v-container
         class="full-height d-flex justify-center align-center"
@@ -37,22 +38,12 @@
   </v-app>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import Logo from "../assets/logo-inverted.png";
+import SnackbarNew from "@/components/Snackbar/SnackbarNew.vue";
 
-export default {
-  name: "SimpleLayout",
-  setup() {
-    const router = useRouter();
-
-    const currentRoute = computed(() => router.currentRoute);
-
-    return {
-      currentRoute,
-      Logo,
-    };
-  },
-};
+const router = useRouter();
+const currentRoute = computed(() => router.currentRoute);
 </script>
