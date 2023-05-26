@@ -10,6 +10,7 @@ import App from "./App.vue";
 import { loadFonts } from "./plugins/webfontloader";
 
 import SnackbarComponent from "./components/Snackbar/Snackbar.vue";
+import { SnackbarPlugin } from "./plugins/snackbar";
 
 const app = createApp(App);
 
@@ -34,5 +35,6 @@ app.use(vuetify);
 app.use(router);
 app.use(router);
 app.use(store, key);
+app.use(SnackbarPlugin);
 app.component("SnackbarComponent", SnackbarComponent);
 app.mount("#app");
