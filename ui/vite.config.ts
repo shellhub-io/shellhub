@@ -17,7 +17,10 @@ export default defineConfig({
   },
   plugins: [
     vue({
-      template: { transformAssetUrls }
+      template: { transformAssetUrls },
+      script: {
+        defineModel: true,
+      },
     }),
     vuetify({
       autoImport: true

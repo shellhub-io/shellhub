@@ -14,7 +14,6 @@ import { publicKeys, PublicKeysState } from "./modules/public_keys";
 import { privateKey, PrivateKeyState } from "./modules/private_key";
 import { notifications, NotificationsState } from "./modules/notifications";
 import { modal, ModalState } from "./modules/modal";
-import { mobile, MobileState } from "./modules/mobile";
 import { firewallRules, FirewallRulesState } from "./modules/firewall_rules";
 import { devices, DevicesState } from "./modules/devices";
 import { box, BoxState } from "./modules/box";
@@ -29,7 +28,6 @@ export interface State {
   devices: DevicesState;
   firewallRules: FirewallRulesState;
   layout: LayoutState;
-  mobile: MobileState;
   modal: ModalState;
   namespaces: NamespacesState;
   notifications: NotificationsState;
@@ -55,7 +53,6 @@ export const store = createStore<State>({
     devices,
     firewallRules,
     layout,
-    mobile,
     modal,
     namespaces,
     notifications,

@@ -4,7 +4,6 @@ import { State } from "..";
 export interface LayoutState {
   layout: string;
   statusDarkMode: string;
-  statusNavigationDrawer: boolean;
 }
 
 export const layout: Module<LayoutState, State> = {
@@ -12,12 +11,10 @@ export const layout: Module<LayoutState, State> = {
   state: {
     layout: "appLayout",
     statusDarkMode: localStorage.getItem("statusDarkMode") || "dark",
-    statusNavigationDrawer: true,
   },
   getters: {
     getLayout: (state) => state.layout,
     getStatusDarkMode: (state) => state.statusDarkMode,
-    getStatusNavigationDrawer: (state) => state.statusNavigationDrawer,
   },
   mutations: {
     setLayout: (state, layout) => {
@@ -25,9 +22,6 @@ export const layout: Module<LayoutState, State> = {
     },
     setStatusDarkMode: (state, status) => {
       state.statusDarkMode = status;
-    },
-    setStatusNavigationDrawer: (state, status) => {
-      state.statusNavigationDrawer = status;
     },
   },
 
@@ -40,10 +34,6 @@ export const layout: Module<LayoutState, State> = {
       const statusDarkMode = status ? "dark" : "light";
       commit("setStatusDarkMode", statusDarkMode);
       localStorage.setItem("statusDarkMode", statusDarkMode);
-    },
-
-    setStatusNavigationDrawer(context, status) {
-      context.commit("setStatusNavigationDrawer", status);
     },
   },
 };
