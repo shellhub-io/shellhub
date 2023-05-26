@@ -40,39 +40,43 @@
       data-test="hasNotifications-subheader"
       offset-x="20"
     >
-      <v-card-subtitle>Pending Devices</v-card-subtitle>
-      <v-divider />
 
-      <v-list class="pa-0" density="compact">
-        <v-list-item-group :v-model="1">
-          <v-list-item class="d-flex" v-for="item in listNotifications" :key="item.uid">
-            <template v-slot:prepend>
-              <v-list-item-title>
-                <router-link
-                  :to="{ name: 'detailsDevice', params: { id: item.uid } }"
-                  :data-test="item.uid + '-field'"
-                >
-                  {{ item.name }}
-                </router-link>
-              </v-list-item-title>
-            </template>
+      <v-list
+        class="pa-0"
+        density="compact"
+      >
+        <v-list-subheader>Pending Devices</v-list-subheader>
+        <v-divider />
 
-            <v-list-item-action>
-              <DeviceActionButton
-                v-if="hasAuthorization"
-                :uid="item.uid"
-                :notification-status="true"
-                :show="!getStatusNotifications"
-                action="accept"
-                :data-test="item.uid + '-btn'"
-                @update="refresh"
-              />
-            </v-list-item-action>
-          </v-list-item>
-        </v-list-item-group>
+        <v-list-item
+          class="d-flex"
+          v-for="item in listNotifications"
+          :key="item.uid"
+        >
+          <template v-slot:prepend>
+            <v-list-item-title>
+              <router-link
+                :to="{ name: 'detailsDevice', params: { id: item.uid } }"
+                :data-test="item.uid + '-field'"
+              >
+                {{ item.name }}
+              </router-link>
+            </v-list-item-title>
+          </template>
+
+          <v-list-item-action>
+            <DeviceActionButton
+              v-if="hasAuthorization"
+              :uid="item.uid"
+              :notification-status="true"
+              :show="!getStatusNotifications"
+              action="accept"
+              :data-test="item.uid + '-btn'"
+              @update="refresh"
+            />
+          </v-list-item-action>
+        </v-list-item>
       </v-list>
-
-      <v-divider />
 
       <v-btn
         to="/devices/pending"
