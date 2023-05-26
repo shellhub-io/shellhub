@@ -98,7 +98,7 @@
 <script lang="ts">
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { useMagicKeys } from "@vueuse/core";
-import { defineComponent, onMounted, computed, ref, onUnmounted } from "vue";
+import { defineComponent, watch, computed, ref, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
 import NewConnectionList from "./NewConnectionList.vue";
@@ -151,7 +151,9 @@ export default defineComponent({
 
     const isDeviceList = computed(() => router.currentRoute.value.name === "listDevices");
 
-    onMounted(async () => {
+    watch(dialog, async (value) => {
+      if (!value) return;
+
       try {
         await store.dispatch("stats/get");
         show.value = true;
