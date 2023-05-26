@@ -21,7 +21,7 @@
           color="primary"
           prepend-icon="mdi-account"
           v-model="username"
-          :error-messages="usernameError"
+          :rules="rules"
           required
           label="Username or email address"
           variant="underlined"
@@ -33,7 +33,7 @@
           prepend-icon="mdi-lock"
           :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
           v-model="password"
-          :error-messages="passwordError"
+          :rules="rules"
           label="Password"
           required
           variant="underlined"
@@ -54,166 +54,108 @@
           </v-btn>
         </v-card-actions>
 
-        <v-card-subtitle
-          v-if="isCloud"
-          class="d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0"
-          data-test="forgotPassword-card"
-        >
-          Forgot your
-          <router-link
-            class="ml-1"
-            :to="{ name: 'ForgotPassword' }"
-          >
-            Password?
-          </router-link>
-        </v-card-subtitle>
-
-        <v-card-subtitle
-          v-if="isCloud"
-          class="d-flex align-center justify-center pa-4 mx-auto"
-          data-test="isCloud-card"
-        >
-          Don't have an account?
-
-          <router-link
-            class="ml-1"
-            :to="{ name: 'SignUp' }"
-          >
-            Sign up here
-          </router-link>
-        </v-card-subtitle>
       </v-col>
     </form>
+    <v-col>
+      <v-card-subtitle
+        v-if="cloudEnvironment"
+        class="d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0"
+        data-test="forgotPassword-card"
+      >
+        Forgot your
+        <router-link
+          class="ml-1"
+          :to="{ name: 'ForgotPassword' }"
+        >
+          Password?
+        </router-link>
+      </v-card-subtitle>
+
+      <v-card-subtitle
+        v-if="cloudEnvironment"
+        class="d-flex align-center justify-center pa-4 mx-auto"
+        data-test="isCloud-card"
+      >
+        Don't have an account?
+
+        <router-link
+          class="ml-1"
+          :to="{ name: 'SignUp' }"
+        >
+          Sign up here
+        </router-link>
+      </v-card-subtitle>
+    </v-col>
   </v-container>
 </template>
-
-<script lang="ts">
-import { computed, defineComponent, onMounted, ref } from "vue";
-import { useField } from "vee-validate";
-import * as yup from "yup";
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../store";
-import { envVariables } from "../envVariables";
-import { createNewClient } from "../api/http";
-import { INotificationsError } from "../interfaces/INotifications";
-import handleError from "@/utils/handleError";
-import useSnackbar from "@/helpers/snackbar";
+import isCloudEnvironment from "../utils/cloudUtils";
+import handleError from "../utils/handleError";
+import useSnackbar from "../helpers/snackbar";
 
-export default defineComponent({
-  name: "Login",
-  setup() {
-    const showPassword = ref(false);
-    const loginToken = ref(false);
-    const showMessage = ref(false);
-    const store = useStore();
-    const route = useRoute();
-    const router = useRouter();
-    const snackbar = useSnackbar();
-    const isCloud = computed(() => envVariables.isCloud);
-    const hasNamespace = computed(
-      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
-    );
-    const isTheSameNamespace = computed(() => store.getters["namespaces/get"].tenant_id === localStorage.getItem("tenant"));
+const showPassword = ref(false);
+const loginToken = ref(false);
+const username = ref("");
+const password = ref("");
+const rules = [(v: string) => v ? true : "This is a required field"];
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+const snackbar = useSnackbar();
+const cloudEnvironment = isCloudEnvironment();
 
-    onMounted(async () => {
-      if (route.query.token) {
-        store.dispatch("layout/setLayout", "simpleLayout");
-        loginToken.value = true;
-        await store.dispatch("stats/clear");
-        await store.dispatch("namespaces/clearNamespaceList");
-        await store.dispatch("auth/logout");
-        createNewClient();
+// Test purpose references
+const requireAccountConfirm = ref(false);
+const invalidCredentials = ref(false);
 
-        await store.dispatch("auth/loginToken", route.query.token).then(async () => {
-          createNewClient();
-          await router.push("/");
-          await store.dispatch("layout/setLayout", "appLayout");
-        });
+onMounted(async () => {
+  if (!route.query.token) {
+    return;
+  }
+
+  loginToken.value = true;
+  await store.dispatch("stats/clear");
+  await store.dispatch("namespaces/clearNamespaceList");
+  await store.dispatch("auth/logout");
+  await store.dispatch("auth/loginToken", route.query.token);
+  await router.push("/");
+});
+
+const login = async () => {
+  try {
+    await store.dispatch("auth/login", { username: username.value, password: password.value });
+    router.push(route.query.redirect ? route.query.redirect.toString() : "/");
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      switch (axiosError.response?.status) {
+        case 401:
+          snackbar.showError("Invalid username or password. Please try again.");
+          invalidCredentials.value = true;
+          break;
+        case 403:
+          await router.push({ name: "ConfirmAccount", query: { username: username.value } });
+          requireAccountConfirm.value = true;
+          break;
+        default:
+          snackbar.showError("Something went wrong in our server. Please try again later.");
+          handleError(error);
       }
-    });
+      return;
+    }
 
-    const { value: username, errorMessage: usernameError } = useField<string>(
-      "name",
-      yup.string().required(),
-      { initialValue: "" },
-    );
-    const { value: password, errorMessage: passwordError } = useField<string>(
-      "password",
-      yup.string().required(),
-      { initialValue: "" },
-    );
-    const required = (value: string) => !!value || "Required.";
+    snackbar.showError("Something went wrong. Please try again later.");
+    handleError(error);
+  }
+};
 
-    const hasErrors = () => {
-      if (usernameError.value || passwordError.value) {
-        return true;
-      }
-      return false;
-    };
-
-    const login = async () => {
-      if (!hasErrors() && username.value && password.value) {
-        try {
-          await store.dispatch("auth/login", {
-            username: username.value,
-            password: password.value,
-          });
-          await createNewClient();
-          await store.dispatch("layout/setLayout", "appLayout");
-
-          if (hasNamespace.value && !isTheSameNamespace.value) {
-            await store.dispatch("namespaces/get", localStorage.getItem("tenant"));
-          }
-
-          if (route.query.redirect) {
-            router.push(`${route.query.redirect}`);
-          } else {
-            router.push("/");
-          }
-        } catch (error: unknown) {
-          if (axios.isAxiosError(error)) {
-            const axiosError = error as AxiosError;
-            switch (true) {
-              case axiosError.response?.status === 401: {
-                store.dispatch(
-                  "snackbar/showSnackbarErrorIncorrect",
-                  INotificationsError.loginFailed,
-                );
-                break;
-              }
-              case axiosError.response?.status === 403: {
-                await router.push({ name: "ConfirmAccount", query: { username: username.value } });
-                break;
-              }
-              default: {
-                snackbar.showError("The request has failed, please try again");
-                handleError(error);
-              }
-            }
-          } else {
-            snackbar.showError("The request has failed, please try again");
-            handleError(error);
-          }
-        }
-      } else {
-        snackbar.showError("The request has failed, please try again");
-      }
-    };
-
-    return {
-      username,
-      usernameError,
-      password,
-      passwordError,
-      showPassword,
-      showMessage,
-      loginToken,
-      required,
-      isCloud,
-      store,
-      login,
-    };
-  },
+defineExpose({
+  invalidCredentials,
+  requireAccountConfirm,
+  router,
 });
 </script>

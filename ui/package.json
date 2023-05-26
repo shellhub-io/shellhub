@@ -61,6 +61,7 @@
     "@vitest/coverage-c8": "^0.31.0",
     "@vitest/ui": "^0.28.2",
     "@vue/test-utils": "^2.1.0",
+    "axios-mock-adapter": "^1.21.4",
     "buffer": "^6.0.3",
     "eslint": "^8.24.0",
     "eslint-plugin-vue": "^9.6.0",
