@@ -6,7 +6,7 @@
   >
     <v-app-bar-nav-icon
       class="hidden-lg-and-up"
-      @click.stop="showNavigationDrawer = true"
+      @click.stop="showNavigationDrawer = !showNavigationDrawer"
       aria-label="Toggle Menu"
     />
 
