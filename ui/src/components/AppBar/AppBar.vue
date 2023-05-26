@@ -12,13 +12,6 @@
 
     <v-spacer />
 
-    <!-- <v-btn
-      :size="defaultSize"
-      class="ml-1 mr-1 js-gitter-toggle-chat-button"
-      color="primary"
-      aria-label="gitter-help-icon"
-      icon="mdi-help-circle"
-    /> -->
     <v-tooltip
       location="bottom"
       class="text-center"
@@ -188,8 +181,3 @@ const menu = [
   },
 ];
 </script>
-
-<style lang="scss">
-.gitter-chat-embed {
-  z-index: 9999 !important;
-}</style>
