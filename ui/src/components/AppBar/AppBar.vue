@@ -1,8 +1,12 @@
 <template>
-  <v-app-bar flat floating class="bg-background">
+  <v-app-bar
+    flat
+    floating
+    class="bg-background"
+  >
     <v-app-bar-nav-icon
       class="hidden-lg-and-up"
-      @click.stop="updateDrawer()"
+      @click.stop="showNavigationDrawer = true"
       aria-label="Toggle Menu"
     />
 
@@ -15,7 +19,10 @@
       aria-label="gitter-help-icon"
       icon="mdi-help-circle"
     /> -->
-    <v-tooltip location="bottom" class="text-center">
+    <v-tooltip
+      location="bottom"
+      class="text-center"
+    >
       <template v-slot:activator="{ props }">
         <v-btn
           v-bind="props"
@@ -39,11 +46,19 @@
           v-bind="props"
           class="d-flex align-center justify-center"
         >
-          <v-icon :size="defaultSize" class="mr-2" left> mdi-account </v-icon>
+          <v-icon
+            :size="defaultSize"
+            class="mr-2"
+            left
+          > mdi-account </v-icon>
 
           <div>{{ currentUser || "USER" }}</div>
 
-          <v-icon :size="defaultSize" class="ml-1 mr-1" right>
+          <v-icon
+            :size="defaultSize"
+            class="ml-1 mr-1"
+            right
+          >
             mdi-chevron-down
           </v-icon>
         </v-btn>
@@ -57,7 +72,10 @@
           @click="triggerClick(item)"
         >
           <div class="d-flex align-center">
-            <v-icon :icon="item.icon" class="mr-2" />
+            <v-icon
+              :icon="item.icon"
+              class="mr-2"
+            />
 
             <v-list-item-title>
               {{ item.title }}
@@ -84,17 +102,16 @@
   </v-app-bar>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import {
-  defineComponent,
   computed,
   ref,
-  defineAsyncComponent,
 } from "vue";
 import { RouteLocationRaw, useRouter } from "vue-router";
 import { useStore } from "../../store";
 import { createNewClient } from "../../api/http";
 import handleError from "../../utils/handleError";
+import Notification from "./Notifications/Notification.vue";
 
 type MenuItem = {
   title: string;
@@ -104,99 +121,75 @@ type MenuItem = {
   method: () => void;
 };
 
-export default defineComponent({
-  name: "AppBar",
-  inheritAttrs: true,
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const getStatusDarkMode = computed(
-      () => store.getters["layout/getStatusDarkMode"],
-    );
-    const currentUser = computed(() => store.getters["auth/currentUser"]);
-    const defaultSize = ref(24);
-    const drawer = ref(true);
-    const isDarkMode = ref(getStatusDarkMode.value === "dark");
+const store = useStore();
+const router = useRouter();
+const getStatusDarkMode = computed(
+  () => store.getters["layout/getStatusDarkMode"],
+);
+const currentUser = computed(() => store.getters["auth/currentUser"]);
+const defaultSize = ref(24);
+const isDarkMode = ref(getStatusDarkMode.value === "dark");
 
-    const triggerClick = (item: MenuItem): void => {
-      switch (item.type) {
-        case "path":
-          router.push(item.path);
-          break;
-        case "method":
-          item.method();
-          break;
-        default:
-          break;
-      }
-    };
+const showNavigationDrawer = defineModel<boolean>();
 
-    const logout = async () => {
-      try {
-        await store.dispatch("auth/logout");
-        await store.dispatch("stats/clear");
-        await store.dispatch("namespaces/clearNamespaceList");
-        await router.push({ name: "login" });
-        createNewClient();
-        store.dispatch("layout/setLayout", "simpleLayout");
-      } catch (error: unknown) {
-        handleError(error);
-      }
-    };
+const triggerClick = (item: MenuItem): void => {
+  switch (item.type) {
+    case "path":
+      router.push(item.path);
+      break;
+    case "method":
+      item.method();
+      break;
+    default:
+      break;
+  }
+};
 
-    const toggleDarkMode = () => {
-      isDarkMode.value = !isDarkMode.value;
-      store.dispatch("layout/setStatusDarkMode", isDarkMode.value);
-    };
+const logout = async () => {
+  try {
+    await store.dispatch("auth/logout");
+    await store.dispatch("stats/clear");
+    await store.dispatch("namespaces/clearNamespaceList");
+    await router.push({ name: "login" });
+    createNewClient();
+    store.dispatch("layout/setLayout", "simpleLayout");
+  } catch (error: unknown) {
+    handleError(error);
+  }
+};
 
-    const updateDrawer = () => {
-      store.dispatch("layout/setStatusNavigationDrawer", true);
-    };
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value;
+  store.dispatch("layout/setStatusDarkMode", isDarkMode.value);
+};
 
-    const openShellhubHelp = () => {
-      window.open(
-        "https://github.com/shellhub-io/shellhub/issues/new/choose",
-        "_blank",
-      );
-    };
-    return {
-      menu: [
-        {
-          title: "Settings",
-          type: "path",
-          path: "/settings",
-          icon: "mdi-cog",
-          // eslint-disable-next-line no-void
-          method: () => void 0,
-        },
-        {
-          title: "Logout",
-          type: "method",
-          icon: "mdi-logout",
-          path: "",
-          method: logout,
-        },
-      ],
-      drawer,
-      triggerClick,
-      currentUser,
-      isDarkMode,
-      defaultSize,
-      toggleDarkMode,
-      updateDrawer,
-      openShellhubHelp,
-    };
+const openShellhubHelp = () => {
+  window.open(
+    "https://github.com/shellhub-io/shellhub/issues/new/choose",
+    "_blank",
+  );
+};
+
+const menu = [
+  {
+    title: "Settings",
+    type: "path",
+    path: "/settings",
+    icon: "mdi-cog",
+    // eslint-disable-next-line no-void
+    method: () => void 0,
   },
-  components: {
-    Notification: defineAsyncComponent(
-      () => import("./Notifications/Notification.vue"),
-    ),
+  {
+    title: "Logout",
+    type: "method",
+    icon: "mdi-logout",
+    path: "",
+    method: logout,
   },
-});
+];
 </script>
 
 <style lang="scss">
 .gitter-chat-embed {
   z-index: 9999 !important;
-}
-</style>
+}</style>

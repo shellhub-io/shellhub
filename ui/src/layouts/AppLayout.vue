@@ -1,14 +1,21 @@
 <template>
-  <v-app :theme="getStatusDarkMode" v-bind="$attrs">
+  <v-app
+    :theme="getStatusDarkMode"
+    v-bind="$attrs"
+  >
     <v-lazy>
       <v-navigation-drawer
         theme="dark"
         v-model="showNavigationDrawer"
+        :permanent="lgAndUp"
         app
         class="bg-v-theme-surface"
       >
         <v-app-bar-title>
-          <router-link to="/" class="text-decoration-none">
+          <router-link
+            to="/"
+            class="text-decoration-none"
+          >
             <div class="d-flex justify-center pa-4 pb-2">
               <v-img
                 class="d-sm-flex hidden-sm-and-down"
@@ -56,19 +63,30 @@
     </v-lazy>
     <SnackbarComponent />
 
-    <AppBar />
+    <AppBar v-model="showNavigationDrawer" />
 
     <v-main>
       <slot>
-        <v-container class="pa-8" fluid>
+        <v-container
+          class="pa-8"
+          fluid
+        >
           <router-view :key="currentRoute.value.path" />
         </v-container>
       </slot>
     </v-main>
 
-    <v-overlay :scrim="false" disabled v-model="hasSpinner">
+    <v-overlay
+      :scrim="false"
+      disabled
+      v-model="hasSpinner"
+    >
       <v-col class="full-width-height d-flex justify-center align-center">
-        <v-progress-circular indeterminate size="64" alt="Request loading" />
+        <v-progress-circular
+          indeterminate
+          size="64"
+          alt="Request loading"
+        />
       </v-col>
     </v-overlay>
   </v-app>
@@ -76,9 +94,10 @@
   <UserWarning data-test="userWarning-component" />
 </template>
 
-<script lang="ts">
-import { computed, onBeforeUnmount, onMounted } from "vue";
+<script setup lang="ts">
+import { computed, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useDisplay } from "vuetify";
 import Logo from "../assets/logo-inverted.png";
 import { useStore } from "../store";
 import UserWarning from "../components/User/UserWarning.vue";
@@ -121,65 +140,26 @@ const items = [
   },
 ];
 
-export default {
-  name: "AppLayout",
-  inheritAttrs: false,
-  setup() {
-    const router = useRouter();
-    const store = useStore();
-    const currentRoute = computed(() => router.currentRoute);
-    const visibleItems = computed(() => items.filter((item) => !item.hidden));
-    const hasNamespaces = computed(
-      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
-    );
-    const getStatusDarkMode = computed(
-      () => store.getters["layout/getStatusDarkMode"],
-    );
+const router = useRouter();
+const store = useStore();
+const currentRoute = computed(() => router.currentRoute);
+const visibleItems = computed(() => items.filter((item) => !item.hidden));
+const hasNamespaces = computed(
+  () => store.getters["namespaces/getNumberNamespaces"] !== 0,
+);
+const getStatusDarkMode = computed(
+  () => store.getters["layout/getStatusDarkMode"],
+);
 
-    const showNavigationDrawer = computed({
-      get() {
-        return (
-          !store.getters["mobile/isMobile"]
-          || store.getters["layout/getStatusNavigationDrawer"]
-        );
-      },
-      set(status) {
-        store.dispatch("layout/setStatusNavigationDrawer", status);
-      },
-    });
-    const hasSpinner = computed(() => store.getters["spinner/status"]);
+const { lgAndUp } = useDisplay();
+const showNavigationDrawer = ref(lgAndUp);
+const hasSpinner = computed(() => store.getters["spinner/status"]);
 
-    const onResize = () => {
-      const isMobile = window.innerWidth < 1265;
-      store.dispatch("mobile/setIsMobileStatus", isMobile);
-    };
+onMounted(() => {
+  store.dispatch("privateKey/fetch");
+});
 
-    onMounted(() => {
-      onResize();
-      window.addEventListener("resize", onResize, { passive: true });
-      store.dispatch("privateKey/fetch");
-    });
-
-    onBeforeUnmount(() => {
-      if (typeof window === "undefined") return;
-
-      window.removeEventListener("resize", onResize);
-    });
-
-    const disableItem = (item: string) => !hasNamespaces.value && item !== "Dashboard";
-
-    return {
-      Logo,
-      showNavigationDrawer,
-      currentRoute,
-      visibleItems,
-      hasSpinner,
-      disableItem,
-      getStatusDarkMode,
-    };
-  },
-  components: { UserWarning, Namespace, AppBar, NewConnection },
-};
+const disableItem = (item: string) => !hasNamespaces.value && item !== "Dashboard";
 </script>
 
 <style lang="css" scoped>
@@ -187,8 +167,8 @@ export default {
   color: #fff;
   text-decoration: none;
 }
+
 .full-width-height {
   width: 100vw !important;
   height: 100vh !important;
-}
-</style>
+}</style>
