@@ -6,7 +6,7 @@ require (
 	github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962
 	github.com/Masterminds/semver v1.5.0
 	github.com/creack/pty v1.1.18
-	github.com/docker/docker v24.0.1+incompatible
+	github.com/docker/docker v24.0.2+incompatible
 	github.com/gliderlabs/ssh v0.3.5
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
