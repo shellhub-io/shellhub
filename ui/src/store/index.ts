@@ -20,6 +20,7 @@ import { box, BoxState } from "./modules/box";
 import { namespaces, NamespacesState } from "./modules/namespaces";
 import { billing } from "./modules/billing";
 import { announcement, AnnouncementState } from "./modules/announcement";
+import apiPlugin from "./plugins/api";
 
 export interface State {
   auth: AuthState;
@@ -67,6 +68,9 @@ export const store = createStore<State>({
     users,
     announcement,
   },
+  plugins: [
+    apiPlugin,
+  ],
 });
 
 export function useStore(): Store<State> {
