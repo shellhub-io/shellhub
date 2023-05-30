@@ -1,57 +1,52 @@
-/* eslint-disable */
-// @ts-nocheck
 import * as axiosTs from "./client";
 import { Configuration } from "./client";
 import { setupInterceptorsTo } from "./interceptors";
 
+// This is the default configuration for local instance endpoints
 const configuration = new Configuration();
 configuration.basePath = `${window.location.protocol}//${window.location.host}`;
 configuration.accessToken = localStorage.getItem("token") || "";
 
-let sessionsApi = new axiosTs.SessionsApi(configuration);
-let devicesApi = new axiosTs.DevicesApi(configuration);
-let defaultApi = new axiosTs.DefaultApi(configuration);
-let namespacesApi = new axiosTs.NamespacesApi(configuration);
-let sshApi = new axiosTs.SshApi(configuration);
-let tagsApi = new axiosTs.TagsApi(configuration);
-let usersApi = new axiosTs.UsersApi(configuration);
-let billingApi = new axiosTs.BillingApi(configuration);
-let rulesApi = new axiosTs.RulesApi(configuration);
+// We need a custom configuration for cloud endpoints
+const cloudApiConfiguration = new Configuration();
+cloudApiConfiguration.basePath = "https://cloud.shellhub.io";
 
-const configurationAnnouncements = new Configuration();
-configurationAnnouncements.basePath = `https://cloud.shellhub.io`;
-let announcementApi = new axiosTs.AnnouncementsApi(configurationAnnouncements);
+const sessionsApi = new axiosTs.SessionsApi(configuration);
+const devicesApi = new axiosTs.DevicesApi(configuration);
+const defaultApi = new axiosTs.DefaultApi(configuration);
+const namespacesApi = new axiosTs.NamespacesApi(configuration);
+const sshApi = new axiosTs.SshApi(configuration);
+const tagsApi = new axiosTs.TagsApi(configuration);
+const usersApi = new axiosTs.UsersApi(configuration);
+const billingApi = new axiosTs.BillingApi(configuration);
+const rulesApi = new axiosTs.RulesApi(configuration);
+const announcementApi = new axiosTs.AnnouncementsApi(cloudApiConfiguration);
 
-export const createNewClient = () => {
-  const newConfiguration = new Configuration();
-  newConfiguration.basePath = `${window.location.protocol}//${window.location.host}`;
-  newConfiguration.accessToken = localStorage.getItem("token") || "";
+/**
+ * @deprecated This method is deprecated and no longer performs any action,
+ * kept for backward compatibility but it will be removed in the future.
+**/
+export const createNewClient = () => Function;
 
-  sessionsApi = new axiosTs.SessionsApi(newConfiguration);
-  devicesApi = new axiosTs.DevicesApi(newConfiguration);
-  defaultApi = new axiosTs.DefaultApi(newConfiguration);
-  namespacesApi = new axiosTs.NamespacesApi(newConfiguration);
-  sshApi = new axiosTs.SshApi(newConfiguration);
-  tagsApi = new axiosTs.TagsApi(newConfiguration);
-  usersApi = new axiosTs.UsersApi(newConfiguration);
-  billingApi = new axiosTs.BillingApi(newConfiguration);
-  rulesApi = new axiosTs.RulesApi(newConfiguration);
-
-  return newConfiguration;
-};
-
-setupInterceptorsTo(sessionsApi.axios);
-setupInterceptorsTo(devicesApi.axios);
-setupInterceptorsTo(defaultApi.axios);
-setupInterceptorsTo(namespacesApi.axios);
-setupInterceptorsTo(sshApi.axios);
-setupInterceptorsTo(tagsApi.axios);
-setupInterceptorsTo(usersApi.axios);
-setupInterceptorsTo(billingApi.axios);
-setupInterceptorsTo(rulesApi.axios);
-setupInterceptorsTo(announcementApi.axios);
+[
+  sessionsApi,
+  devicesApi,
+  defaultApi,
+  namespacesApi,
+  sshApi,
+  tagsApi,
+  usersApi,
+  billingApi,
+  rulesApi,
+].forEach((instance) => {
+  /* eslint-disable */
+  // @ts-ignore Ignore next line because 'axios' is a protected property
+  setupInterceptorsTo(instance.axios);
+  /* eslint-enable */
+});
 
 export {
+  configuration,
   sessionsApi,
   devicesApi,
   defaultApi,
