@@ -24,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
     path: "/login",
     name: "login",
     meta: {
-      external: true,
+      layout: "LoginLayout",
     },
     component: () => import(/* webpackChunkName: "login" */ "../views/Login.vue"),
   },
@@ -32,7 +32,7 @@ const routes: Array<RouteRecordRaw> = [
     path: "/forgot-pass",
     name: "ForgotPassword",
     meta: {
-      external: true,
+      layout: "LoginLayout",
     },
     component: () => import(/* webpackChunkName: "forgot-password" */ "../views/ForgotPassword.vue"),
   },
@@ -40,7 +40,7 @@ const routes: Array<RouteRecordRaw> = [
     path: "/validation-account",
     name: "ValidationAccount",
     meta: {
-      external: true,
+      layout: "LoginLayout",
     },
     component: () => import(/* webpackChunkName: "validation-account" */ "../views/ValidationAccount.vue"),
   },
@@ -48,7 +48,7 @@ const routes: Array<RouteRecordRaw> = [
     path: "/update-password",
     name: "UpdatePassword",
     meta: {
-      external: true,
+      layout: "LoginLayout",
     },
     component: () => import(/* webpackChunkName: "update-password" */ "../views/UpdatePassword.vue"),
   },
@@ -56,7 +56,7 @@ const routes: Array<RouteRecordRaw> = [
     path: "/sign-up",
     name: "SignUp",
     meta: {
-      external: true,
+      layout: "LoginLayout",
     },
     component: () => import(/* webpackChunkName: "sign-up" */ "../views/SignUp.vue"),
   },
@@ -64,7 +64,7 @@ const routes: Array<RouteRecordRaw> = [
     path: "/confirm-account",
     name: "ConfirmAccount",
     meta: {
-      external: true,
+      layout: "LoginLayout",
     },
     component: () => import(/* webpackChunkName: "confirm-account" */ "../views/ConfirmAccount.vue"),
   },
@@ -182,24 +182,19 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (to, _, next) => {
+router.beforeEach(async (route) => {
   const isLoggedIn = store.getters["auth/isLoggedIn"];
-  const isExternal = to.meta.external;
+  // defaults to "AppLayout" if route doesn't requires a custom layout
+  const layout = route.meta.layout || "AppLayout";
 
-  try {
-    await store.dispatch("layout/setLayout", isExternal ? "simpleLayout" : "appLayout");
+  await store.dispatch("layout/setLayout", layout);
 
-    if (!isExternal && !isLoggedIn) {
-      next({ name: "login" });
-      return;
-    }
-  } catch (error) {
-    console.log(error);
-    next({ name: "login" });
-    return;
+  // redirect to login page if the user was not logged in and we aren't already on that page
+  if (!isLoggedIn && route.name !== "login") {
+    return { name: "login" };
   }
 
-  next();
+  return true;
 });
 
 export default router;

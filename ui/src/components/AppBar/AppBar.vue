@@ -145,7 +145,6 @@ const logout = async () => {
     await store.dispatch("namespaces/clearNamespaceList");
     await router.push({ name: "login" });
     createNewClient();
-    store.dispatch("layout/setLayout", "simpleLayout");
   } catch (error: unknown) {
     handleError(error);
   }

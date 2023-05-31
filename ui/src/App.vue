@@ -1,30 +1,24 @@
 <template>
   <v-app>
-    <component :is="layout" :data-test="layout + '-component'" />
+    <component
+      :is="layout"
+      :data-test="layout + '-component'"
+    />
   </v-app>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed } from "vue";
-import SimpleLayout from "./layouts/SimpleLayout.vue";
+<script setup lang="ts">
+import { computed } from "vue";
+import LoginLayout from "./layouts/LoginLayout.vue";
 import AppLayout from "./layouts/AppLayout.vue";
 import { useStore } from "./store";
 
 import "./assets/global.css";
 
-export default defineComponent({
-  name: "App",
-  components: {
-    appLayout: AppLayout,
-    simpleLayout: SimpleLayout,
-  },
-  setup() {
-    const store = useStore();
-    const layout = computed(() => store.getters["layout/getLayout"]);
-
-    return {
-      layout,
-    };
-  },
-});
+const components = {
+  AppLayout,
+  LoginLayout,
+};
+const store = useStore();
+const layout = computed(() => components[store.getters["layout/getLayout"]]);
 </script>
