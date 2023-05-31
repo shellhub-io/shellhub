@@ -130,7 +130,6 @@ export default defineComponent({
         dialog.value = !dialog.value;
         await store.dispatch("namespaces/remove", tenant.value);
         await store.dispatch("auth/logout");
-        await store.dispatch("layout/setLayout", "simpleLayout");
         await router.push({ name: "login" });
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
