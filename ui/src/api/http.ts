@@ -1,6 +1,7 @@
 import axios, { AxiosInterface } from "axios";
 import * as axiosTs from "./client";
 import { Configuration } from "./client";
+import { BaseAPI } from "./client/base";
 import { setupInterceptorsTo } from "./interceptors";
 
 // This is the default configuration for local instance endpoints
@@ -75,6 +76,23 @@ const announcementApi = new axiosTs.AnnouncementsApi(
  * kept for backward compatibility but it will be removed in the future.
  **/
 export const createNewClient = () => Function;
+
+/**
+ * Extends the interface BaseAPI to include a new method `getAxios` allowing
+ * access to the protected axios property without the need to access it
+ * directly from outside the class and avoiding a linting error caused by
+ * accessing a protected property.
+ **/
+declare module "./client/base" {
+  interface BaseAPI {
+    getAxios(): AxiosInterface;
+  }
+}
+
+/** Returns the axios instance */
+BaseAPI.prototype.getAxios = function getAxios(this: BaseAPI): AxiosInterface {
+  return this.axios;
+};
 
 export {
   configuration,
