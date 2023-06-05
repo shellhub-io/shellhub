@@ -1,4 +1,4 @@
-import axios, { AxiosInterface } from "axios";
+import axios, { AxiosInstance } from "axios";
 import * as axiosTs from "./client";
 import { Configuration } from "./client";
 import { BaseAPI } from "./client/base";
@@ -14,7 +14,7 @@ const cloudApiConfiguration = new Configuration();
 cloudApiConfiguration.basePath = "https://cloud.shellhub.io";
 
 // Creates a new axios instance and setup interceptors by default
-const newAxiosInstance = (setupInterceptor = true): AxiosInterface => {
+const newAxiosInstance = (setupInterceptor = true): AxiosInstance => {
   const instance = axios.create();
   if (setupInterceptor) setupInterceptorsTo(instance);
   return instance;
@@ -85,12 +85,12 @@ export const createNewClient = () => Function;
  **/
 declare module "./client/base" {
   interface BaseAPI {
-    getAxios(): AxiosInterface;
+    getAxios(): AxiosInstance;
   }
 }
 
 /** Returns the axios instance */
-BaseAPI.prototype.getAxios = function getAxios(this: BaseAPI): AxiosInterface {
+BaseAPI.prototype.getAxios = function getAxios(this: BaseAPI): AxiosInstance {
   return this.axios;
 };
 
