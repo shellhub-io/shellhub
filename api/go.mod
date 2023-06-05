@@ -17,7 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.9.2
 	github.com/spf13/cobra v1.7.0
 	github.com/square/mongo-lock v0.0.0-20201208161834-4db518ed7fb2
-	github.com/stretchr/testify v1.8.3
+	github.com/stretchr/testify v1.8.4
 	github.com/undefinedlabs/go-mpatch v1.0.6
 	github.com/xakep666/mongo-migrate v0.2.1
 	go.mongodb.org/mongo-driver v1.11.6
