@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-card-title class="d-flex justify-center">
-      Account Created
+      Account Activation Required
     </v-card-title>
 
     <v-card-text class="d-flex align-center justify-center text-center">
@@ -14,20 +14,27 @@
       <v-btn
         type="submit"
         color="primary"
-        data-test="resendEmail-btn"
-        @click="resendEmail()"
-      >
-        Login
-      </v-btn>
-      <v-btn
-        type="submit"
-        color="primary"
+        variant="tonal"
+        block
         data-test="resendEmail-btn"
         @click="resendEmail()"
       >
         Resend Email
       </v-btn>
     </v-card-actions>
+
+    <v-card-subtitle
+      class="d-flex align-center justify-center pa-4 mx-auto"
+      data-test="isCloud-card"
+    >
+      Back to
+      <router-link
+        class="ml-1"
+        :to="{ name: 'login' }"
+      >
+        Login
+      </router-link>
+    </v-card-subtitle>
   </v-container>
 </template>
 
