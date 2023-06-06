@@ -19,5 +19,11 @@ func (b *Binder) Bind(s interface{}, c echo.Context) error {
 		return errors.NewErrUnprocessableEntity(err.Unwrap())
 	}
 
+	if err := binder.BindHeaders(c, s); err != nil {
+		err := err.(*echo.HTTPError) //nolint:forcetypeassert
+
+		return errors.NewErrUnprocessableEntity(err.Unwrap())
+	}
+
 	return nil
 }
