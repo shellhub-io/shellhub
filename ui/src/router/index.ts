@@ -70,6 +70,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "ConfirmAccount",
     meta: {
       layout: "LoginLayout",
+      requiresAuth: false,
     },
     component: () => import(/* webpackChunkName: "confirm-account" */ "../views/ConfirmAccount.vue"),
   },
