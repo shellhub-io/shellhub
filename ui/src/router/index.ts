@@ -25,6 +25,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "login",
     meta: {
       layout: "LoginLayout",
+      requiresAuth: false,
     },
     component: () => import(/* webpackChunkName: "login" */ "../views/Login.vue"),
   },
@@ -33,6 +34,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "ForgotPassword",
     meta: {
       layout: "LoginLayout",
+      requiresAuth: false,
     },
     component: () => import(/* webpackChunkName: "forgot-password" */ "../views/ForgotPassword.vue"),
   },
@@ -41,6 +43,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "ValidationAccount",
     meta: {
       layout: "LoginLayout",
+      requiresAuth: false,
     },
     component: () => import(/* webpackChunkName: "validation-account" */ "../views/ValidationAccount.vue"),
   },
@@ -49,6 +52,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "UpdatePassword",
     meta: {
       layout: "LoginLayout",
+      requiresAuth: false,
     },
     component: () => import(/* webpackChunkName: "update-password" */ "../views/UpdatePassword.vue"),
   },
@@ -57,6 +61,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "SignUp",
     meta: {
       layout: "LoginLayout",
+      requiresAuth: false,
     },
     component: () => import(/* webpackChunkName: "sign-up" */ "../views/SignUp.vue"),
   },
@@ -186,11 +191,12 @@ router.beforeEach(async (route) => {
   const isLoggedIn = store.getters["auth/isLoggedIn"];
   // defaults to "AppLayout" if route doesn't requires a custom layout
   const layout = route.meta.layout || "AppLayout";
+  const requiresAuth = route.meta.requiresAuth ?? true;
 
   await store.dispatch("layout/setLayout", layout);
 
-  // redirect to login page if the user was not logged in and we aren't already on that page
-  if (!isLoggedIn && route.name !== "login") {
+  // redirect to login page if the user was not logged in and auth is required
+  if (!isLoggedIn && requiresAuth) {
     return { name: "login" };
   }
 
