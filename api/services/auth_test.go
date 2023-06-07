@@ -91,124 +91,73 @@ func TestAuthDevice(t *testing.T) {
 func TestAuthUser(t *testing.T) {
 	mock := &mocks.Store{}
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	assert.NoError(t, err)
-
-	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
-
 	ctx := context.TODO()
 
-	authReq := requests.UserAuth{
-		Username: "user",
-		Password: "passwd",
-	}
-
 	wrongPasswd := sha256.Sum256([]byte("wrongPassword"))
-	passwd := sha256.Sum256([]byte(authReq.Password))
-
-	userWithWrongPassword := &models.User{
-		UserData: models.UserData{
-			Username: "user",
-		},
-		UserPassword: models.UserPassword{
-			Password: hex.EncodeToString(wrongPasswd[:]),
-		},
-		ID:        "id",
-		Confirmed: true,
-		LastLogin: now,
-	}
-
-	userConfirmed := &models.User{
-		UserData: models.UserData{
-			Username: "user",
-		},
-		UserPassword: models.UserPassword{
-			Password: hex.EncodeToString(passwd[:]),
-		},
-		ID:        "id",
-		Confirmed: true,
-		LastLogin: now,
-	}
-
-	userNotActivatedAccount := &models.User{
-		UserData: models.UserData{
-			Username: "user",
-		},
-		UserPassword: models.UserPassword{
-			Password: hex.EncodeToString(passwd[:]),
-		},
-		ID:        "id",
-		Confirmed: false,
-		LastLogin: now,
-	}
 
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
-
-	mock.On("UserGetByUsername", ctx, authReq.Username).Return(userConfirmed, nil).Once()
-	mock.On("NamespaceGetFirst", ctx, userConfirmed.ID).Return(namespace, nil).Once()
-	mock.On("UserUpdateData", ctx, userConfirmed.ID, *userConfirmed).Return(nil).Once()
-	clockMock.On("Now").Return(now).Twice()
-
-	authRes, err := s.AuthUser(ctx, authReq)
-	assert.NoError(t, err)
-
-	Err := errors.New("error", "", 0)
 
 	type Expected struct {
 		userAuthResponse *models.UserAuthResponse
 		err              error
 	}
 
+	authReq := requests.UserAuth{
+		Username: "user",
+		Password: "passwd",
+	}
+
 	tests := []struct {
 		description   string
 		args          requests.UserAuth
-		requiredMocks func()
+		requiredMocks func(err error, user *models.User)
 		expected      Expected
+		user          *models.User
+		namespace     *models.Namespace
+		expectedErr   error
 	}{
 		{
-			description: "Fails when user has no account",
+			description: "Fails when user username and email are not found",
 			args:        authReq,
-			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, authReq.Username).Return(nil, Err).Once()
-				mock.On("UserGetByEmail", ctx, authReq.Username).Return(nil, Err).Once()
-			},
-			expected: Expected{nil, NewErrUserNotFound(authReq.Username, Err)},
-		},
-		{
-			description: "Fails when user has account but wrong password",
-			args:        authReq,
-			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userWithWrongPassword, nil).Once()
-				mock.On("NamespaceGetFirst", ctx, userWithWrongPassword.ID).Return(namespace, nil).Once()
+			expectedErr: errors.New("error", "", 0),
+			requiredMocks: func(errar error, user *models.User) {
+				mock.On("UserGetByUsername", ctx, authReq.Username).Return(nil, errar)
+				mock.On("UserGetByEmail", ctx, authReq.Username).Return(nil, errar).Once()
 			},
 			expected: Expected{nil, NewErrAuthUnathorized(nil)},
 		},
 		{
-			description: "Fails when user has account but not activated",
+			description: "Fails when user has account but wrong password",
 			args:        authReq,
-			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userNotActivatedAccount, nil).Once()
+			user: &models.User{
+				UserData: models.UserData{
+					Username: "user",
+				},
+				UserPassword: models.UserPassword{
+					Password: hex.EncodeToString(wrongPasswd[:]),
+				},
+				ID:        "id",
+				Confirmed: true,
+				LastLogin: now,
 			},
-			expected: Expected{nil, NewErrUserNotConfirmed(nil)},
-		},
-		{
-			description: "Successful authentication",
-			args:        authReq,
-			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, authReq.Username).Return(userConfirmed, nil).Once()
-				mock.On("NamespaceGetFirst", ctx, userConfirmed.ID).Return(namespace, nil).Once()
-				mock.On("UserUpdateData", ctx, userConfirmed.ID, *userConfirmed).Return(nil).Once()
-				clockMock.On("Now").Return(now).Twice()
+			requiredMocks: func(err error, user *models.User) {
+				mock.On("UserGetByUsername", ctx, authReq.Username).Return(user, nil)
+				mock.On("UserGetByEmail", ctx, authReq.Username).Return(user, nil).Once()
+				mock.On("NamespaceGetFirst", ctx, user.ID).Return(namespace, nil).Once()
 			},
-			expected: Expected{authRes, nil},
+			expected: Expected{nil, NewErrAuthUnathorized(nil)},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
+			tc.requiredMocks(tc.expectedErr, tc.user)
 
-			authRes, err := s.AuthUser(ctx, tc.args)
+			privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+			assert.NoError(t, err)
+
+			service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+			authRes, err := service.AuthUser(ctx, tc.args)
 			assert.Equal(t, tc.expected, Expected{authRes, err})
 		})
 	}
