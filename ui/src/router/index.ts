@@ -19,7 +19,7 @@ const SettingPrivateKeys = () => import(/* webpackChunkName: "settings" */ "@/co
 const SettingTags = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingTags.vue");
 const SettingBilling = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingBilling.vue");
 
-const routes: Array<RouteRecordRaw> = [
+export const routes: Array<RouteRecordRaw> = [
   {
     path: "/login",
     name: "login",
@@ -183,7 +183,7 @@ const routes: Array<RouteRecordRaw> = [
   },
 ];
 
-const router = createRouter({
+export const router = createRouter({
   history: createWebHistory(),
   routes,
 });
@@ -203,5 +203,3 @@ router.beforeEach(async (route) => {
 
   return true;
 });
-
-export default router;
