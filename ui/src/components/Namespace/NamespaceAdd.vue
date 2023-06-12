@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="ml-2 mr-2">
     <v-btn
       v-if="!firstNamespace"
       block

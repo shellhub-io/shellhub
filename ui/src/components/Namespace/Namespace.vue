@@ -1,31 +1,36 @@
 <template>
-  <v-list v-if="hasNamespace">
+  <v-list
+    v-if="hasNamespace"
+    v-model:opened="opened"
+  >
     <v-list-group v-model="listing">
       <template v-slot:activator="{ props }">
-        <v-list-item v-bind="props" class="text-primary icon-primary">
+        <v-list-item
+          v-bind="props"
+          class="text-primary icon-primary"
+        >
           <v-list-item-title> {{ namespace.name }}</v-list-item-title>
+          <v-expand-transition>
+            <v-list-item-subtitle
+              v-if="!isListOpen"
+              class="text-wrap text-caption text-grey-darken-1"
+            >Active Namespace</v-list-item-subtitle>
+          </v-expand-transition>
         </v-list-item>
       </template>
 
       <NamespaceList data-test="namespaceList-component" />
-
-      <v-list-item v-if="isEnterprise">
-        <NamespaceAdd
-          isSmall
-          data-test="namespaceAdd-component"
-          @update="getNamespaces"
-        />
-      </v-list-item>
     </v-list-group>
   </v-list>
-  <div v-else>
+  <v-expand-transition>
     <NamespaceAdd
-      enableSwitchIn
+      v-if="isListOpen"
+      :enableSwitchIn="isEnterprise"
       isSmall
       data-test="namespaceAdd-component"
       @update="getNamespaces"
     />
-  </div>
+  </v-expand-transition>
 </template>
 
 <script lang="ts">
@@ -52,6 +57,8 @@ export default defineComponent({
     const openVersion = computed(() => !envVariables.isEnterprise);
     const tenant = computed(() => localStorage.getItem("tenant"));
     const isEnterprise = computed(() => envVariables.isEnterprise);
+    const opened = ref([]);
+    const isListOpen = computed(() => opened.value.length > 0);
 
     const getNamespaces = async () => {
       try {
@@ -183,6 +190,8 @@ export default defineComponent({
       namespace,
       isEnterprise,
       getNamespaces,
+      opened,
+      isListOpen,
     };
   },
   components: { NamespaceList, NamespaceAdd },
