@@ -13,11 +13,9 @@ import (
 )
 
 func TestAddPublicKeyTag(t *testing.T) {
-	mock := &mocks.Store{}
-	services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
-	err := errors.New("generic errors", "", 0)
 
 	cases := []struct {
 		description   string
@@ -33,9 +31,9 @@ func TestAddPublicKeyTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tag:         "tag",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenant").Return(nil, err).Once()
+				mock.On("NamespaceGet", ctx, "tenant").Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: NewErrNamespaceNotFound("tenant", err),
+			expected: NewErrNamespaceNotFound("tenant", errors.New("error", "", 0)),
 		},
 		{
 			description: "fail when public key was not found",
@@ -46,9 +44,9 @@ func TestAddPublicKeyTag(t *testing.T) {
 				namespace := &models.Namespace{TenantID: "tenant"}
 
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
-				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, err).Once()
+				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: NewErrPublicKeyNotFound("fingerprint", err),
+			expected: NewErrPublicKeyNotFound("fingerprint", errors.New("error", "", 0)),
 		},
 		{
 			description: "fail when the tag limit on public key has reached",
@@ -123,9 +121,9 @@ func TestAddPublicKeyTag(t *testing.T) {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
-				mock.On("PublicKeyAddTag", ctx, "tenant", "fingerprint", "tag").Return(err).Once()
+				mock.On("PublicKeyAddTag", ctx, "tenant", "fingerprint", "tag").Return(errors.New("error", "", 0)).Once()
 			},
-			expected: err,
+			expected: errors.New("error", "", 0),
 		},
 		{
 			description: "success to add a to public key",
@@ -158,6 +156,8 @@ func TestAddPublicKeyTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
+
+			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 			err := services.AddPublicKeyTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -168,10 +168,8 @@ func TestAddPublicKeyTag(t *testing.T) {
 
 func TestRemovePublicKeyTag(t *testing.T) {
 	mock := &mocks.Store{}
-	services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
-	err := errors.New("generic errors", "", 0)
 
 	cases := []struct {
 		description   string
@@ -187,7 +185,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tag:         "tag",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenant").Return(nil, err).Once()
+				mock.On("NamespaceGet", ctx, "tenant").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrNamespaceNotFound("tenant", nil),
 		},
@@ -200,9 +198,9 @@ func TestRemovePublicKeyTag(t *testing.T) {
 				namespace := &models.Namespace{TenantID: "tenant"}
 
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
-				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, err).Once()
+				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: NewErrPublicKeyNotFound("fingerprint", err),
+			expected: NewErrPublicKeyNotFound("fingerprint", errors.New("error", "", 0)),
 		},
 		{
 			description: "fail when the tag does not exist in public key",
@@ -250,9 +248,9 @@ func TestRemovePublicKeyTag(t *testing.T) {
 				}
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
-				mock.On("PublicKeyRemoveTag", ctx, "tenant", "fingerprint", "tag").Return(err).Once()
+				mock.On("PublicKeyRemoveTag", ctx, "tenant", "fingerprint", "tag").Return(errors.New("error", "", 0)).Once()
 			},
-			expected: err,
+			expected: errors.New("error", "", 0),
 		},
 		{
 			description: "success when remove a from public key",
@@ -284,6 +282,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
+			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 			err := services.RemovePublicKeyTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -294,10 +293,8 @@ func TestRemovePublicKeyTag(t *testing.T) {
 
 func TestUpdatePublicKeyTags(t *testing.T) {
 	mock := &mocks.Store{}
-	services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
-	err := errors.New("generic errors", "", 0)
 
 	cases := []struct {
 		description   string
@@ -313,7 +310,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 			fingerprint: "fingerprint",
 			tags:        []string{"tag1", "tag2", "tag3"},
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenant").Return(nil, err).Once()
+				mock.On("NamespaceGet", ctx, "tenant").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrNamespaceNotFound("tenant", nil),
 		},
@@ -326,9 +323,9 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 				namespace := &models.Namespace{TenantID: "tenant"}
 
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
-				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, err).Once()
+				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: NewErrPublicKeyNotFound("fingerprint", err),
+			expected: NewErrPublicKeyNotFound("fingerprint", errors.New("error", "", 0)),
 		},
 		{
 			description: "fail when tags are great the tag limit",
@@ -403,9 +400,9 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Twice()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
-				mock.On("PublicKeyUpdateTags", ctx, "tenant", "fingerprint", []string{"tag1", "tag2", "tag3"}).Return(err).Once()
+				mock.On("PublicKeyUpdateTags", ctx, "tenant", "fingerprint", []string{"tag1", "tag2", "tag3"}).Return(errors.New("error", "", 0)).Once()
 			},
-			expected: err,
+			expected: errors.New("error", "", 0),
 		},
 		{
 			description: "success update tags in public key",
@@ -439,6 +436,8 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
+
+			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 			err := services.UpdatePublicKeyTags(ctx, tc.tenant, tc.fingerprint, tc.tags)
 			assert.Equal(t, tc.expected, err)
 		})

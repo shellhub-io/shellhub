@@ -16,9 +16,8 @@ import (
 
 func TestUpdateDataUser(t *testing.T) {
 	mock := new(mocks.Store)
-	services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
 	ctx := context.Background()
-	err := errors.New("error", "", 0)
 
 	type Expected struct {
 		fields []string
@@ -162,11 +161,11 @@ func TestUpdateDataUser(t *testing.T) {
 				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
 				mock.On("UserGetByUsername", ctx, "new").Return(nil, nil).Once()
 				mock.On("UserGetByEmail", ctx, "new@test.com").Return(nil, nil).Once()
-				mock.On("UserUpdateData", ctx, "1", data).Return(err).Once()
+				mock.On("UserUpdateData", ctx, "1", data).Return(errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{
 				fields: nil,
-				err:    err,
+				err:    errors.New("error", "", 0),
 			},
 		},
 		{
@@ -208,6 +207,7 @@ func TestUpdateDataUser(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
+			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 			fields, err := services.UpdateDataUser(ctx, tc.id, tc.data)
 			assert.Equal(t, tc.expected, Expected{fields, err})
 		})
@@ -218,8 +218,7 @@ func TestUpdateDataUser(t *testing.T) {
 
 func TestUpdatePasswordUser(t *testing.T) {
 	mock := new(mocks.Store)
-	services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-	err := errors.New("error", "", 0)
+
 	ctx := context.Background()
 
 	cases := []struct {
@@ -234,9 +233,9 @@ func TestUpdatePasswordUser(t *testing.T) {
 			description: "Fail when user is not found",
 			id:          "1",
 			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, "1", false).Return(nil, 0, err).Once()
+				mock.On("UserGetByID", ctx, "1", false).Return(nil, 0, errors.New("error", "", 0)).Once()
 			},
-			expected: NewErrUserNotFound("1", err),
+			expected: NewErrUserNotFound("1", errors.New("error", "", 0)),
 		},
 		{
 			description:     "Fail when the current password doesn't match with user's password",
@@ -273,6 +272,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
+			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 			err := services.UpdatePasswordUser(ctx, tc.id, tc.currentPassword, tc.newPassword)
 			assert.Equal(t, tc.expected, err)
 		})
