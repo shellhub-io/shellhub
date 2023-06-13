@@ -1,19 +1,19 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"strings"
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/agent/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/agent/selfupdater"
 	"github.com/shellhub-io/shellhub/agent/server"
@@ -142,91 +142,77 @@ func NewAgentServer() *Agent { // nolint:gocyclo
 	serv := server.NewServer(agent.cli, agent.authData, opts.PrivateKey, opts.KeepAliveInterval, opts.SingleUserPassword)
 
 	tun := tunnel.NewTunnel()
-	tun.ConnHandler = func(w http.ResponseWriter, r *http.Request) {
-		hj, ok := w.(http.Hijacker)
+	tun.ConnHandler = func(c echo.Context) error {
+		hj, ok := c.Response().Writer.(http.Hijacker)
 		if !ok {
-			http.Error(w, "webserver doesn't support hijacking", http.StatusInternalServerError)
-
-			return
+			return c.String(http.StatusInternalServerError, "webserver doesn't support hijacking")
 		}
 
-		if _, _, err := hj.Hijack(); err != nil {
-			http.Error(w, "failed to hijack connection", http.StatusInternalServerError)
-
-			return
+		conn, _, err := hj.Hijack()
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "failed to hijack connection")
 		}
 
-		vars := mux.Vars(r)
-		conn, ok := r.Context().Value("http-conn").(net.Conn)
-		if !ok {
-			log.WithFields(log.Fields{
-				"version": AgentVersion,
-			}).Warning("Type assertion failed")
-
-			return
-		}
-
-		serv.Sessions[vars["id"]] = conn
-		serv.HandleConn(conn)
+		id := c.Param("id")
+		httpConn := c.Request().Context().Value("http-conn").(net.Conn)
+		serv.Sessions[id] = httpConn
+		serv.HandleConn(httpConn)
 
 		conn.Close()
+
+		return nil
 	}
-	tun.HTTPHandler = func(w http.ResponseWriter, r *http.Request) {
-		replyError := func(err error, msg string, code int) {
+
+	tun.HTTPHandler = func(c echo.Context) error {
+		replyError := func(err error, msg string, code int) error {
 			log.WithError(err).WithFields(log.Fields{
-				"remote":    r.RemoteAddr,
-				"namespace": r.Header.Get("X-Namespace"),
-				"path":      r.Header.Get("X-Path"),
+				"remote":    c.Request().RemoteAddr,
+				"namespace": c.Request().Header.Get("X-Namespace"),
+				"path":      c.Request().Header.Get("X-Path"),
 				"version":   AgentVersion,
 			}).Error(msg)
 
-			http.Error(w, msg, code)
+			return c.String(code, msg)
 		}
 
 		in, err := net.Dial("tcp", ":80")
 		if err != nil {
-			replyError(err, "failed to connect to HTTP the server on device", http.StatusInternalServerError)
-
-			return
+			return replyError(err, "failed to connect to HTTP server on device", http.StatusInternalServerError)
 		}
 
 		defer in.Close()
 
-		url, err := r.URL.Parse(r.Header.Get("X-Path"))
+		url, err := url.Parse(c.Request().Header.Get("X-Path"))
 		if err != nil {
-			replyError(err, "failed to parse URL", http.StatusInternalServerError)
-
-			return
+			return replyError(err, "failed to parse URL", http.StatusInternalServerError)
 		}
 
-		r.URL.Scheme = "http"
-		r.URL = url
+		c.Request().URL.Scheme = "http"
+		c.Request().URL = url
 
-		if err := r.Write(in); err != nil {
-			replyError(err, "failed to write request to the server on device", http.StatusInternalServerError)
-
-			return
+		if err := c.Request().Write(in); err != nil {
+			return replyError(err, "failed to write request to the server on device", http.StatusInternalServerError)
 		}
 
-		ctr := http.NewResponseController(w)
-		out, _, err := ctr.Hijack()
+		out, _, err := c.Response().Hijack()
 		if err != nil {
-			replyError(err, "failed to hijack connection", http.StatusInternalServerError)
-
-			return
+			return replyError(err, "failed to hijack connection", http.StatusInternalServerError)
 		}
 
 		defer out.Close() // nolint:errcheck
 
-		if _, err := io.Copy(out, in); errors.Is(err, io.ErrUnexpectedEOF) {
-			replyError(err, "failed to copy response from device service to client", http.StatusInternalServerError)
-
-			return
+		if _, err := io.Copy(out, in); err != nil {
+			return replyError(err, "failed to copy response from device service to client", http.StatusInternalServerError)
 		}
+
+		return nil
 	}
-	tun.CloseHandler = func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		serv.CloseSession(vars["id"])
+
+	tun.CloseHandler = func(c echo.Context) error {
+		id := c.Param("id")
+		serv.CloseSession(id)
+
+		return nil
 	}
 
 	serv.SetDeviceName(agent.authData.Name)

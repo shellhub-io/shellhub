@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	sshTunnel "github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/ssh/server"
@@ -37,105 +36,91 @@ func main() {
 	tunnel := sshTunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
 
 	router := tunnel.GetRouter()
-	router.HandleFunc("/sessions/{uid}/close", func(response http.ResponseWriter, request *http.Request) {
-		exit := func(response http.ResponseWriter, status int, err error) {
-			log.WithError(err).WithFields(log.Fields{
-				"status": status,
-			}).Error("failed to close the session")
+	router.Any("/sessions/:uid/close", func(c echo.Context) error {
+		exit := func(status int, err error) error {
+			log.WithError(err).WithField("status", status).Error("failed to close the session")
 
-			http.Error(response, err.Error(), status)
+			return c.JSON(status, err.Error())
 		}
 
-		vars := mux.Vars(request)
-		decoder := json.NewDecoder(request.Body)
+		uid := c.Param("uid")
 		var closeRequest struct {
 			Device string `json:"device"`
 		}
-
-		if err := decoder.Decode(&closeRequest); err != nil {
-			exit(response, http.StatusBadRequest, err)
-
-			return
+		if err := c.Bind(&closeRequest); err != nil {
+			return exit(http.StatusBadRequest, err)
 		}
 
 		conn, err := tunnel.Dial(context.Background(), closeRequest.Device)
 		if err != nil {
-			exit(response, http.StatusInternalServerError, err)
-
-			return
+			return exit(http.StatusInternalServerError, err)
 		}
 
-		request, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", vars["uid"]), nil)
-		if err := request.Write(conn); err != nil {
-			exit(response, http.StatusInternalServerError, err)
-
-			return
+		req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", uid), nil)
+		if err != nil {
+			return exit(http.StatusInternalServerError, err)
 		}
+
+		if err := req.Write(conn); err != nil {
+			return exit(http.StatusInternalServerError, err)
+		}
+
+		return c.NoContent(http.StatusOK)
 	})
 
-	router.HandleFunc("/ssh/http", func(w http.ResponseWriter, r *http.Request) {
-		replyError := func(err error, msg string, code int) {
+	router.Any("/ssh/http", func(c echo.Context) error {
+		replyError := func(err error, msg string, code int) error {
 			log.WithError(err).WithFields(log.Fields{
-				"remote":  r.RemoteAddr,
-				"address": r.Header.Get("X-Public-Address"),
-				"path":    r.Header.Get("X-Path"),
+				"remote":  c.Request().RemoteAddr,
+				"address": c.Request().Header.Get("X-Public-Address"),
+				"path":    c.Request().Header.Get("X-Path"),
 			}).Error(msg)
-			http.Error(w, msg, code)
+
+			return c.String(code, msg)
 		}
 
-		dev, err := tunnel.API.GetDeviceByPublicURLAddress(r.Header.Get("X-Public-URL-Address"))
+		dev, err := tunnel.API.GetDeviceByPublicURLAddress(c.Request().Header.Get("X-Public-URL-Address"))
 		if err != nil {
-			replyError(err, "failed to get device data", http.StatusInternalServerError)
-
-			return
+			return replyError(err, "failed to get device data", http.StatusInternalServerError)
 		}
 
 		if !dev.PublicURL {
-			replyError(err, "this device is not accessible via public URL", http.StatusForbidden)
-
-			return
+			return replyError(err, "this device is not accessible via public URL", http.StatusForbidden)
 		}
 
-		in, err := tunnel.Dial(r.Context(), dev.UID)
+		in, err := tunnel.Dial(c.Request().Context(), dev.UID)
 		if err != nil {
-			replyError(err, "failed to connect to device", http.StatusInternalServerError)
-
-			return
+			return replyError(err, "failed to connect to device", http.StatusInternalServerError)
 		}
 
-		defer in.Close() // nolint:errcheck
+		defer in.Close()
 
-		if err := r.Write(in); err != nil {
-			replyError(err, "failed to write request to device", http.StatusInternalServerError)
-
-			return
+		if err := c.Request().Write(in); err != nil {
+			return replyError(err, "failed to write request to device", http.StatusInternalServerError)
 		}
 
-		ctr := http.NewResponseController(w)
+		ctr := http.NewResponseController(c.Response())
 		out, _, err := ctr.Hijack()
 		if err != nil {
-			replyError(err, "failed to hijack response", http.StatusInternalServerError)
-
-			return
+			return replyError(err, "failed to hijack response", http.StatusInternalServerError)
 		}
 
-		defer out.Close() // nolint:errcheck
-
+		defer out.Close()
 		if _, err := io.Copy(out, in); errors.Is(err, io.ErrUnexpectedEOF) {
-			replyError(err, "failed to copy response from device service to client", http.StatusInternalServerError)
-
-			return
+			return replyError(err, "failed to copy response from device service to client", http.StatusInternalServerError)
 		}
+
+		return nil
 	})
 
 	// TODO: add `/ws/ssh` route to OpenAPI repository.
-	router.Handle("/ws/ssh", web.HandlerRestoreSession(web.RestoreSession, handler.WebSession)).
-		Methods(http.MethodGet)
-	router.HandleFunc("/ws/ssh", web.HandlerCreateSession(web.CreateSession)).
-		Methods(http.MethodPost)
+	router.GET("/ws/ssh", echo.WrapHandler(web.HandlerRestoreSession(web.RestoreSession, handler.WebSession)))
+	router.POST("/ws/ssh", echo.WrapHandler(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		web.HandlerCreateSession(web.CreateSession)(res, req)
+	})))
 
-	router.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+	router.GET("/healthcheck", func(c echo.Context) error {
+		return c.String(http.StatusOK, "OK")
 	})
 
 	go http.ListenAndServe(":8080", router) // nolint:errcheck
