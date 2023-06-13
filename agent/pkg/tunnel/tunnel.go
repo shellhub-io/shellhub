@@ -5,47 +5,47 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 )
 
 type Tunnel struct {
-	router       *mux.Router
+	router       *echo.Echo
 	srv          *http.Server
-	HTTPHandler  func(w http.ResponseWriter, r *http.Request)
-	ConnHandler  func(w http.ResponseWriter, r *http.Request)
-	CloseHandler func(w http.ResponseWriter, r *http.Request)
+	HTTPHandler  func(e echo.Context) error
+	ConnHandler  func(e echo.Context) error
+	CloseHandler func(e echo.Context) error
 }
 
 func NewTunnel() *Tunnel {
-	router := mux.NewRouter()
+	e := echo.New()
 
 	t := &Tunnel{
-		router: router,
+		router: e,
 		srv: &http.Server{
-			Handler: router,
+			Handler: e,
 			ConnContext: func(ctx context.Context, c net.Conn) context.Context {
 				return context.WithValue(ctx, "http-conn", c) //nolint:revive
 			},
 		},
-		HTTPHandler: func(w http.ResponseWriter, r *http.Request) {
+		HTTPHandler: func(e echo.Context) error {
 			panic("HTTPHandler can not be nil")
 		},
-		ConnHandler: func(w http.ResponseWriter, r *http.Request) {
+		ConnHandler: func(e echo.Context) error {
 			panic("connHandler can not be nil")
 		},
-		CloseHandler: func(w http.ResponseWriter, r *http.Request) {
+		CloseHandler: func(e echo.Context) error {
 			panic("closeHandler can not be nil")
 		},
 	}
-	t.router.HandleFunc("/ssh/http", func(w http.ResponseWriter, r *http.Request) {
-		t.HTTPHandler(w, r)
+	e.GET("/ssh/http", func(e echo.Context) error {
+		return t.HTTPHandler(e)
 	})
-	t.router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
-		t.ConnHandler(w, r)
+	e.GET("/ssh/:id", func(e echo.Context) error {
+		return t.ConnHandler(e)
 	})
-	t.router.HandleFunc("/ssh/close/{id}", func(w http.ResponseWriter, r *http.Request) {
-		t.CloseHandler(w, r)
+	e.GET("/ssh/close/:id", func(e echo.Context) error {
+		return t.CloseHandler(e)
 	})
 
 	return t

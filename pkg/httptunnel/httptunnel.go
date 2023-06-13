@@ -7,8 +7,8 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/connman"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
@@ -67,30 +67,29 @@ func NewTunnel(connectionPath, dialerPath string) *Tunnel {
 }
 
 func (t *Tunnel) Router() http.Handler {
-	router := mux.NewRouter()
+	e := echo.New()
 
-	router.HandleFunc(t.ConnectionPath, func(res http.ResponseWriter, req *http.Request) {
-		conn, err := upgrader.Upgrade(res, req, nil)
+	e.GET(t.ConnectionPath, func(c echo.Context) error {
+		conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 		if err != nil {
-			http.Error(res, err.Error(), http.StatusInternalServerError)
-
-			return
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		id, err := t.ConnectionHandler(req)
+		id, err := t.ConnectionHandler(c.Request())
 		if err != nil {
-			http.Error(res, err.Error(), http.StatusBadRequest)
-			defer conn.Close()
+			conn.Close()
 
-			return
+			return c.String(http.StatusBadRequest, err.Error())
 		}
 
 		t.connman.Set(id, wsconnadapter.New(conn))
-	}).Methods(http.MethodGet)
 
-	router.Handle(t.DialerPath, revdial.ConnHandler(upgrader)).Methods(http.MethodGet)
+		return nil
+	})
 
-	return router
+	e.GET(t.DialerPath, echo.WrapHandler(revdial.ConnHandler(upgrader)))
+
+	return e
 }
 
 func (t *Tunnel) Dial(ctx context.Context, id string) (net.Conn, error) {

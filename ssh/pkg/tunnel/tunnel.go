@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	log "github.com/sirupsen/logrus"
@@ -39,8 +39,8 @@ func NewTunnel(connection, dial string) *Tunnel {
 	return tunnel
 }
 
-func (t *Tunnel) GetRouter() *mux.Router {
-	router, ok := t.Tunnel.Router().(*mux.Router)
+func (t *Tunnel) GetRouter() *echo.Echo {
+	router, ok := t.Tunnel.Router().(*echo.Echo)
 	if !ok {
 		// TODO: should the Connect does not up when this assertion fail?
 		log.Error("type assertion failed")
