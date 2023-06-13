@@ -12,7 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
-	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -20,20 +19,9 @@ import (
 )
 
 func TestListSessions(t *testing.T) {
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
-
-	sessions := []models.Session{
-		{UID: "uid1"},
-		{UID: "uid2"},
-		{UID: "uid3"},
-	}
-
-	query := paginator.Query{Page: 1, PerPage: 10}
-
-	Err := goerrors.New("error")
 
 	type Expected struct {
 		sessions []models.Session
@@ -44,41 +32,56 @@ func TestListSessions(t *testing.T) {
 	cases := []struct {
 		name          string
 		pagination    paginator.Query
-		requiredMocks func()
+		requiredMocks func(query paginator.Query)
 		expected      Expected
 	}{
 		{
 			name:       "ListSessions fails",
-			pagination: query,
-			requiredMocks: func() {
+			pagination: paginator.Query{Page: 1, PerPage: 10},
+			requiredMocks: func(query paginator.Query) {
 				mock.On("SessionList", ctx, query).
-					Return(nil, 0, Err).Once()
+					Return(nil, 0, goerrors.New("error")).Once()
 			},
 			expected: Expected{
 				sessions: nil,
 				count:    0,
-				err:      Err,
+				err:      goerrors.New("error"),
 			},
 		},
 		{
 			name:       "ListSessions succeeds",
-			pagination: query,
-			requiredMocks: func() {
+			pagination: paginator.Query{Page: 1, PerPage: 10},
+			requiredMocks: func(query paginator.Query) {
+				sessions := []models.Session{
+					{UID: "uid1"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				}
 				mock.On("SessionList", ctx, query).
 					Return(sessions, len(sessions), nil).Once()
 			},
 			expected: Expected{
-				sessions: sessions,
-				count:    len(sessions),
-				err:      nil,
+				sessions: []models.Session{
+					{UID: "uid1"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				},
+				count: len([]models.Session{
+					{UID: "uid1"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				}),
+				err: nil,
 			},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			tc.requiredMocks()
-			returnedSessions, count, err := s.ListSessions(ctx, tc.pagination)
+			tc.requiredMocks(tc.pagination)
+
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			returnedSessions, count, err := service.ListSessions(ctx, tc.pagination)
 			assert.Equal(t, tc.expected, Expected{returnedSessions, count, err})
 		})
 	}
@@ -87,8 +90,7 @@ func TestListSessions(t *testing.T) {
 }
 
 func TestGetSession(t *testing.T) {
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
 
@@ -96,10 +98,6 @@ func TestGetSession(t *testing.T) {
 		session *models.Session
 		err     error
 	}
-
-	session := &models.Session{UID: "uid"}
-
-	Err := errors.New("error", "", 0)
 
 	cases := []struct {
 		name          string
@@ -113,22 +111,24 @@ func TestGetSession(t *testing.T) {
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
 				mock.On("SessionGet", ctx, models.UID("_uid")).
-					Return(nil, Err).Once()
+					Return(nil, goerrors.New("error")).Once()
 			},
 			expected: Expected{
 				session: nil,
-				err:     NewErrSessionNotFound(models.UID("_uid"), Err),
+				err:     NewErrSessionNotFound(models.UID("_uid"), goerrors.New("error")),
 			},
 		},
 		{
 			name: "GetSession succeeds",
 			uid:  models.UID("uid"),
 			requiredMocks: func() {
+				session := &models.Session{UID: "uid"}
+
 				mock.On("SessionGet", ctx, models.UID("uid")).
 					Return(session, nil).Once()
 			},
 			expected: Expected{
-				session: session,
+				session: &models.Session{UID: "uid"},
 				err:     nil,
 			},
 		},
@@ -137,7 +137,9 @@ func TestGetSession(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			returnedSession, err := s.GetSession(ctx, tc.uid)
+
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			returnedSession, err := service.GetSession(ctx, tc.uid)
 			assert.Equal(t, tc.expected, Expected{returnedSession, err})
 		})
 	}
@@ -146,11 +148,11 @@ func TestGetSession(t *testing.T) {
 }
 
 func TestCreateSession(t *testing.T) {
-	locator := &mocksGeoIp.Locator{}
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
+
+	locator := &mocksGeoIp.Locator{}
 
 	type Expected struct {
 		session *models.Session
@@ -175,6 +177,7 @@ func TestCreateSession(t *testing.T) {
 			name:    "CreateSession fails",
 			session: req,
 			requiredMocks: func() {
+
 				locator.On("GetPosition", net.ParseIP(model.IPAddress)).
 					Return(geoip.Position{}, nil).Once()
 				mock.On("SessionCreate", ctx, model).
@@ -204,7 +207,9 @@ func TestCreateSession(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			returnedSession, err := s.CreateSession(ctx, tc.session)
+
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+			returnedSession, err := service.CreateSession(ctx, tc.session)
 			assert.Equal(t, tc.expected, Expected{returnedSession, err})
 		})
 	}
@@ -213,12 +218,9 @@ func TestCreateSession(t *testing.T) {
 }
 
 func TestDeactivateSession(t *testing.T) {
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
-
-	Err := goerrors.New("error")
 
 	cases := []struct {
 		name          string
@@ -240,9 +242,9 @@ func TestDeactivateSession(t *testing.T) {
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
 				mock.On("SessionDeleteActives", ctx, models.UID("_uid")).
-					Return(Err).Once()
+					Return(goerrors.New("error")).Once()
 			},
-			expected: Err,
+			expected: goerrors.New("error"),
 		},
 		{
 			name: "DeactivateSession succeeds",
@@ -258,7 +260,9 @@ func TestDeactivateSession(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.DeactivateSession(ctx, tc.uid)
+
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			err := service.DeactivateSession(ctx, tc.uid)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -267,12 +271,9 @@ func TestDeactivateSession(t *testing.T) {
 }
 
 func TestSetSessionAuthenticated(t *testing.T) {
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
-
-	Err := goerrors.New("error")
 
 	cases := []struct {
 		name          string
@@ -285,9 +286,9 @@ func TestSetSessionAuthenticated(t *testing.T) {
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
 				mock.On("SessionSetAuthenticated", ctx, models.UID("_uid"), true).
-					Return(Err).Once()
+					Return(goerrors.New("error")).Once()
 			},
-			expected: Err,
+			expected: goerrors.New("error"),
 		},
 		{
 			name: "SetSessionAuthenticated succeeds",
@@ -303,7 +304,9 @@ func TestSetSessionAuthenticated(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.SetSessionAuthenticated(ctx, tc.uid, true)
+
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			err := service.SetSessionAuthenticated(ctx, tc.uid, true)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

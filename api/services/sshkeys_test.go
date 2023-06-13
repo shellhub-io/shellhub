@@ -27,7 +27,6 @@ const (
 
 func TestEvaluateKeyFilter(t *testing.T) {
 	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	ctx := context.TODO()
 
@@ -35,57 +34,6 @@ func TestEvaluateKeyFilter(t *testing.T) {
 		bool
 		error
 	}
-
-	keyTagsNoExist := &models.PublicKey{
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Tags: []string{"tag1", "tag2"},
-			},
-		},
-	}
-	deviceTagsNoExist := models.Device{
-		Tags: []string{"tag4"},
-	}
-
-	keyTags := &models.PublicKey{
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Tags: []string{"tag1", "tag2"},
-			},
-		},
-	}
-	deviceTags := models.Device{
-		Tags: []string{"tag1"},
-	}
-
-	keyHostname := &models.PublicKey{
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Hostname: ".*",
-			},
-		},
-	}
-	deviceHostname := models.Device{
-		Name: "device",
-	}
-
-	keyHostnameNoMatch := &models.PublicKey{
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Hostname: "roo.*",
-			},
-		},
-	}
-	deviceHostnameNoMatch := models.Device{
-		Name: "device",
-	}
-
-	keyNoFilter := &models.PublicKey{
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{},
-		},
-	}
-	deviceNoFilter := models.Device{}
 
 	cases := []struct {
 		description   string
@@ -96,40 +44,76 @@ func TestEvaluateKeyFilter(t *testing.T) {
 	}{
 		{
 			description: "fail to evaluate when filter hostname no match",
-			key:         keyHostnameNoMatch,
-			device:      deviceHostnameNoMatch,
+			key: &models.PublicKey{
+				PublicKeyFields: models.PublicKeyFields{
+					Filter: models.PublicKeyFilter{
+						Hostname: "roo.*",
+					},
+				},
+			},
+			device: models.Device{
+				Name: "device",
+			},
 			requiredMocks: func() {
 			},
 			expected: Expected{false, nil},
 		},
 		{
 			description: "success to evaluate filter hostname",
-			key:         keyHostname,
-			device:      deviceHostname,
+			key: &models.PublicKey{
+				PublicKeyFields: models.PublicKeyFields{
+					Filter: models.PublicKeyFilter{
+						Hostname: ".*",
+					},
+				},
+			},
+			device: models.Device{
+				Name: "device",
+			},
 			requiredMocks: func() {
 			},
 			expected: Expected{true, nil},
 		},
 		{
 			description: "fail to evaluate filter tags when tag does not exist in device",
-			key:         keyTagsNoExist,
-			device:      deviceTagsNoExist,
+			key: &models.PublicKey{
+				PublicKeyFields: models.PublicKeyFields{
+					Filter: models.PublicKeyFilter{
+						Tags: []string{"tag1", "tag2"},
+					},
+				},
+			},
+			device: models.Device{
+				Tags: []string{"tag4"},
+			},
 			requiredMocks: func() {
 			},
 			expected: Expected{false, nil},
 		},
 		{
 			description: "success to evaluate filter tags",
-			key:         keyTags,
-			device:      deviceTags,
+			key: &models.PublicKey{
+				PublicKeyFields: models.PublicKeyFields{
+					Filter: models.PublicKeyFilter{
+						Tags: []string{"tag1", "tag2"},
+					},
+				},
+			},
+			device: models.Device{
+				Tags: []string{"tag1"},
+			},
 			requiredMocks: func() {
 			},
 			expected: Expected{true, nil},
 		},
 		{
 			description: "success to evaluate when key has no filter",
-			key:         keyNoFilter,
-			device:      deviceNoFilter,
+			key: &models.PublicKey{
+				PublicKeyFields: models.PublicKeyFields{
+					Filter: models.PublicKeyFilter{},
+				},
+			},
+			device: models.Device{},
 			requiredMocks: func() {
 			},
 			expected: Expected{true, nil},
@@ -140,7 +124,8 @@ func TestEvaluateKeyFilter(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			ok, err := s.EvaluateKeyFilter(ctx, tc.key, tc.device)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			ok, err := service.EvaluateKeyFilter(ctx, tc.key, tc.device)
 			assert.Equal(t, tc.expected, Expected{ok, err})
 		})
 	}
@@ -162,11 +147,6 @@ func TestListPublicKeys(t *testing.T) {
 		{Data: []byte("teste2"), Fingerprint: "fingerprint2", CreatedAt: clock.Now(), TenantID: "tenant2", PublicKeyFields: models.PublicKeyFields{Name: "teste2"}},
 	}
 
-	validQuery := paginator.Query{Page: 1, PerPage: 10}
-	invalidQuery := paginator.Query{Page: -1, PerPage: 10}
-
-	Err := errors.New("error", "", 0)
-
 	type Expected struct {
 		returnedKeys []models.PublicKey
 		count        int
@@ -184,20 +164,19 @@ func TestListPublicKeys(t *testing.T) {
 		{
 			description: "Fails when the query is invalid",
 			ctx:         ctx,
-			keys:        keys,
-			query:       invalidQuery,
+			query:       paginator.Query{Page: -1, PerPage: 10},
 			requiredMocks: func() {
-				mock.On("PublicKeyList", ctx, invalidQuery).Return(nil, 0, Err).Once()
+				mock.On("PublicKeyList", ctx, paginator.Query{Page: -1, PerPage: 10}).Return(nil, 0, errors.New("error", "", 0)).Once()
 			},
-			expected: Expected{nil, 0, Err},
+			expected: Expected{nil, 0, errors.New("error", "", 0)},
 		},
 		{
 			description: "Successful list the keys",
 			ctx:         ctx,
 			keys:        keys,
-			query:       validQuery,
+			query:       paginator.Query{Page: 1, PerPage: 10},
 			requiredMocks: func() {
-				mock.On("PublicKeyList", ctx, validQuery).Return(keys, len(keys), nil).Once()
+				mock.On("PublicKeyList", ctx, paginator.Query{Page: 1, PerPage: 10}).Return(keys, len(keys), nil).Once()
 			},
 			expected: Expected{keys, len(keys), nil},
 		},
@@ -213,7 +192,6 @@ func TestListPublicKeys(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
-
 func TestGetPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
 
@@ -223,14 +201,6 @@ func TestGetPublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 
-	namespace := models.Namespace{TenantID: "tenant1"}
-
-	key := models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
-	}
-
-	Err := errors.New("error", "", 0)
-
 	type Expected struct {
 		returnedKey *models.PublicKey
 		err         error
@@ -239,7 +209,6 @@ func TestGetPublicKeys(t *testing.T) {
 	cases := []struct {
 		description   string
 		ctx           context.Context
-		key           *models.PublicKey
 		fingerprint   string
 		tenantID      string
 		requiredMocks func()
@@ -248,37 +217,42 @@ func TestGetPublicKeys(t *testing.T) {
 		{
 			description: invalidTenantIDStr,
 			ctx:         ctx,
-			key:         nil,
-			fingerprint: key.Fingerprint,
+			fingerprint: "fingerprint",
 			tenantID:    InvalidTenantID,
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, InvalidTenantID).Return(nil, Err).Once()
+				mock.On("NamespaceGet", ctx, InvalidTenantID).Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: Expected{nil, NewErrNamespaceNotFound(InvalidTenantID, Err)},
+			expected: Expected{nil, NewErrNamespaceNotFound(InvalidTenantID, errors.New("error", "", 0))},
 		},
 		{
 			description: InvalidFingerprintStr,
 			ctx:         ctx,
-			key:         nil,
 			fingerprint: InvalidFingerprint,
-			tenantID:    key.TenantID,
+			tenantID:    "tenant1",
 			requiredMocks: func() {
+				namespace := models.Namespace{TenantID: "tenant1"}
+
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(&namespace, nil).Once()
-				mock.On("PublicKeyGet", ctx, InvalidFingerprint, key.TenantID).Return(nil, Err).Once()
+				mock.On("PublicKeyGet", ctx, InvalidFingerprint, "tenant1").Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: Expected{nil, Err},
+			expected: Expected{nil, errors.New("error", "", 0)},
 		},
 		{
 			description: "Successful get the key",
 			ctx:         ctx,
-			key:         &key,
-			fingerprint: key.Fingerprint,
-			tenantID:    key.TenantID,
+			fingerprint: "fingerprint",
+			tenantID:    "tenant1",
 			requiredMocks: func() {
+				namespace := models.Namespace{TenantID: "tenant1"}
+				key := models.PublicKey{
+					Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+				}
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(&namespace, nil).Once()
-				mock.On("PublicKeyGet", ctx, key.Fingerprint, key.TenantID).Return(&key, nil).Once()
+				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant1").Return(&key, nil).Once()
 			},
-			expected: Expected{&key, nil},
+			expected: Expected{&models.PublicKey{
+				Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+			}, nil},
 		},
 	}
 
@@ -294,43 +268,11 @@ func TestGetPublicKeys(t *testing.T) {
 }
 
 func TestUpdatePublicKeys(t *testing.T) {
-	mock := &mocks.Store{}
-
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
-	err := errors.New("error", "", 0)
 
-	keyUpdateWithTags := requests.PublicKeyUpdate{
-		Filter: requests.PublicKeyFilter{
-			Tags: []string{"tag1", "tag2"},
-		},
-	}
-	keyUpdateWithTagsModel := &models.PublicKey{
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Tags: []string{"tag1", "tag2"},
-			},
-		},
-	}
-
-	keyUpdateWithHostname := requests.PublicKeyUpdate{
-		Filter: requests.PublicKeyFilter{
-			Hostname: ".*",
-		},
-	}
-	keyUpdateWithHostnameModel := &models.PublicKey{
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Hostname: ".*",
-			},
-		},
-	}
-	keyInvalidUpdateTagsEmpty := requests.PublicKeyUpdate{
-		Filter: requests.PublicKeyFilter{
-			Tags: []string{},
-		},
-	}
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	type Expected struct {
 		key *models.PublicKey
@@ -349,17 +291,25 @@ func TestUpdatePublicKeys(t *testing.T) {
 			description: "fail update the key when filter tags is empty",
 			fingerprint: "fingerprint",
 			tenantID:    "tenant",
-			keyUpdate:   keyInvalidUpdateTagsEmpty,
-			requiredMocks: func() {
-				mock.On("TagsGet", ctx, "tenant").Return([]string{}, 0, err).Once()
+			keyUpdate: requests.PublicKeyUpdate{
+				Filter: requests.PublicKeyFilter{
+					Tags: []string{},
+				},
 			},
-			expected: Expected{nil, NewErrTagEmpty("tenant", err)},
+			requiredMocks: func() {
+				mock.On("TagsGet", ctx, "tenant").Return([]string{}, 0, errors.New("error", "", 0)).Once()
+			},
+			expected: Expected{nil, NewErrTagEmpty("tenant", errors.New("error", "", 0))},
 		},
 		{
 			description: "fail to update the key when a tag does not exist in a device",
 			fingerprint: "fingerprint",
 			tenantID:    "tenant",
-			keyUpdate:   keyUpdateWithTags,
+			keyUpdate: requests.PublicKeyUpdate{
+				Filter: requests.PublicKeyFilter{
+					Tags: []string{"tag1", "tag2"},
+				},
+			},
 			requiredMocks: func() {
 				mock.On("TagsGet", ctx, "tenant").Return([]string{"tag1", "tag4"}, 2, nil).Once()
 			},
@@ -369,7 +319,11 @@ func TestUpdatePublicKeys(t *testing.T) {
 			description: "Fail update the key when filter is tags",
 			fingerprint: "fingerprint",
 			tenantID:    "tenant",
-			keyUpdate:   keyUpdateWithTags,
+			keyUpdate: requests.PublicKeyUpdate{
+				Filter: requests.PublicKeyFilter{
+					Tags: []string{"tag1", "tag2"},
+				},
+			},
 			requiredMocks: func() {
 				model := models.PublicKeyUpdate{
 					PublicKeyFields: models.PublicKeyFields{
@@ -380,17 +334,29 @@ func TestUpdatePublicKeys(t *testing.T) {
 				}
 
 				mock.On("TagsGet", ctx, "tenant").Return([]string{"tag1", "tag2"}, 2, nil).Once()
-				mock.On("PublicKeyUpdate", ctx, "fingerprint", "tenant", &model).Return(nil, err).Once()
+				mock.On("PublicKeyUpdate", ctx, "fingerprint", "tenant", &model).Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: Expected{nil, err},
+			expected: Expected{nil, errors.New("error", "", 0)},
 		},
 		{
 			description: "Successful update the key when filter is tags",
 			fingerprint: "fingerprint",
 			tenantID:    "tenant",
-			keyUpdate:   keyUpdateWithTags,
+			keyUpdate: requests.PublicKeyUpdate{
+				Filter: requests.PublicKeyFilter{
+					Tags: []string{"tag1", "tag2"},
+				},
+			},
 			requiredMocks: func() {
 				model := models.PublicKeyUpdate{
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: []string{"tag1", "tag2"},
+						},
+					},
+				}
+
+				keyUpdateWithTagsModel := &models.PublicKey{
 					PublicKeyFields: models.PublicKeyFields{
 						Filter: models.PublicKeyFilter{
 							Tags: []string{"tag1", "tag2"},
@@ -401,13 +367,23 @@ func TestUpdatePublicKeys(t *testing.T) {
 				mock.On("TagsGet", ctx, "tenant").Return([]string{"tag1", "tag2"}, 2, nil).Once()
 				mock.On("PublicKeyUpdate", ctx, "fingerprint", "tenant", &model).Return(keyUpdateWithTagsModel, nil).Once()
 			},
-			expected: Expected{keyUpdateWithTagsModel, nil},
+			expected: Expected{&models.PublicKey{
+				PublicKeyFields: models.PublicKeyFields{
+					Filter: models.PublicKeyFilter{
+						Tags: []string{"tag1", "tag2"},
+					},
+				},
+			}, nil},
 		},
 		{
 			description: "Fail update the key when filter is hostname",
 			fingerprint: "fingerprint",
 			tenantID:    "tenant",
-			keyUpdate:   keyUpdateWithHostname,
+			keyUpdate: requests.PublicKeyUpdate{
+				Filter: requests.PublicKeyFilter{
+					Hostname: ".*",
+				},
+			},
 			requiredMocks: func() {
 				model := models.PublicKeyUpdate{
 					PublicKeyFields: models.PublicKeyFields{
@@ -417,15 +393,19 @@ func TestUpdatePublicKeys(t *testing.T) {
 					},
 				}
 
-				mock.On("PublicKeyUpdate", ctx, "fingerprint", "tenant", &model).Return(nil, err).Once()
+				mock.On("PublicKeyUpdate", ctx, "fingerprint", "tenant", &model).Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: Expected{nil, err},
+			expected: Expected{nil, errors.New("error", "", 0)},
 		},
 		{
 			description: "Successful update the key when filter is tags",
 			fingerprint: "fingerprint",
 			tenantID:    "tenant",
-			keyUpdate:   keyUpdateWithHostname,
+			keyUpdate: requests.PublicKeyUpdate{
+				Filter: requests.PublicKeyFilter{
+					Hostname: ".*",
+				},
+			},
 			requiredMocks: func() {
 				model := models.PublicKeyUpdate{
 					PublicKeyFields: models.PublicKeyFields{
@@ -435,9 +415,22 @@ func TestUpdatePublicKeys(t *testing.T) {
 					},
 				}
 
+				keyUpdateWithHostnameModel := &models.PublicKey{
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}
 				mock.On("PublicKeyUpdate", ctx, "fingerprint", "tenant", &model).Return(keyUpdateWithHostnameModel, nil).Once()
 			},
-			expected: Expected{keyUpdateWithHostnameModel, nil},
+			expected: Expected{&models.PublicKey{
+				PublicKeyFields: models.PublicKeyFields{
+					Filter: models.PublicKeyFilter{
+						Hostname: ".*",
+					},
+				},
+			}, nil},
 		},
 	}
 
@@ -454,21 +447,13 @@ func TestUpdatePublicKeys(t *testing.T) {
 }
 
 func TestDeletePublicKeys(t *testing.T) {
-	mock := &mocks.Store{}
+	mock := new(mocks.Store)
+
+	ctx := context.TODO()
 
 	clockMock.On("Now").Return(now).Twice()
 
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-
-	ctx := context.TODO()
-
-	namespace := &models.Namespace{TenantID: "tenant1"}
-
-	key := &models.PublicKey{
-		Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
-	}
-
-	Err := errors.New("error", "", 0)
 
 	type Expected struct {
 		err error
@@ -485,45 +470,67 @@ func TestDeletePublicKeys(t *testing.T) {
 		{
 			description: invalidTenantIDStr,
 			ctx:         ctx,
-			fingerprint: key.Fingerprint,
+			fingerprint: "fingerprint",
 			tenantID:    InvalidTenantID,
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, InvalidTenantID).Return(nil, Err).Once()
+				mock.On("NamespaceGet", ctx, InvalidTenantID).Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: Expected{NewErrNamespaceNotFound(InvalidTenantID, Err)},
+			expected: Expected{NewErrNamespaceNotFound(InvalidTenantID, errors.New("error", "", 0))},
 		},
 		{
 			description: InvalidFingerprintStr,
 			ctx:         ctx,
 			fingerprint: InvalidFingerprint,
-			tenantID:    key.TenantID,
+			tenantID:    "tenant1",
 			requiredMocks: func() {
+				namespace := &models.Namespace{TenantID: "tenant1"}
+
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("PublicKeyGet", ctx, InvalidFingerprint, namespace.TenantID).Return(nil, Err).Once()
+				mock.On("PublicKeyGet", ctx, InvalidFingerprint, namespace.TenantID).
+					Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: Expected{NewErrPublicKeyNotFound(InvalidFingerprint, Err)},
+			expected: Expected{NewErrPublicKeyNotFound(InvalidFingerprint, errors.New("error", "", 0))},
 		},
 		{
 			description: "fail to delete the key",
 			ctx:         ctx,
-			fingerprint: key.Fingerprint,
-			tenantID:    key.TenantID,
+			fingerprint: "fingerprint",
+			tenantID:    "tenant1",
 			requiredMocks: func() {
+				namespace := &models.Namespace{TenantID: "tenant1"}
+
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("PublicKeyGet", ctx, key.Fingerprint, namespace.TenantID).Return(key, nil).Once()
-				mock.On("PublicKeyDelete", ctx, key.Fingerprint, key.TenantID).Return(Err).Once()
+				mock.On("PublicKeyGet", ctx, "fingerprint", namespace.TenantID).
+					Return(&models.PublicKey{
+						Data:            []byte("teste"),
+						Fingerprint:     "fingerprint",
+						CreatedAt:       clock.Now(),
+						TenantID:        "tenant1",
+						PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+					}, nil).Once()
+				mock.On("PublicKeyDelete", ctx, "fingerprint", "tenant1").
+					Return(errors.New("error", "", 0)).Once()
 			},
-			expected: Expected{Err},
+			expected: Expected{errors.New("error", "", 0)},
 		},
 		{
 			description: "Successful to delete the key",
 			ctx:         ctx,
-			fingerprint: key.Fingerprint,
-			tenantID:    key.TenantID,
+			fingerprint: "fingerprint",
+			tenantID:    "tenant1",
 			requiredMocks: func() {
+				namespace := &models.Namespace{TenantID: "tenant1"}
+
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("PublicKeyGet", ctx, key.Fingerprint, namespace.TenantID).Return(key, nil).Once()
-				mock.On("PublicKeyDelete", ctx, key.Fingerprint, key.TenantID).Return(nil).Once()
+				mock.On("PublicKeyGet", ctx, "fingerprint", namespace.TenantID).
+					Return(&models.PublicKey{
+						Data:            []byte("teste"),
+						Fingerprint:     "fingerprint",
+						CreatedAt:       clock.Now(),
+						TenantID:        "tenant1",
+						PublicKeyFields: models.PublicKeyFields{Name: "teste"},
+					}, nil).Once()
+				mock.On("PublicKeyDelete", ctx, "fingerprint", "tenant1").Return(nil).Once()
 			},
 			expected: Expected{nil},
 		},
@@ -532,6 +539,7 @@ func TestDeletePublicKeys(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
+
 			err := s.DeletePublicKey(ctx, tc.fingerprint, tc.tenantID)
 			assert.Equal(t, tc.expected, Expected{err})
 		})
@@ -541,100 +549,15 @@ func TestDeletePublicKeys(t *testing.T) {
 }
 
 func TestCreatePublicKeys(t *testing.T) {
-	mock := &mocks.Store{}
+	mock := new(mocks.Store)
+
+	ctx := context.TODO()
 
 	clockMock.On("Now").Return(now)
 
 	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
-	err := errors.New("error", "", 0)
-
-	ctx := context.TODO()
-
 	pubKey, _ := ssh.NewPublicKey(publicKey)
-	data := ssh.MarshalAuthorizedKey(pubKey)
-	fingerprint := ssh.FingerprintLegacyMD5(pubKey)
-
-	keyInvalidData := requests.PublicKeyCreate{
-		Data:        nil,
-		Fingerprint: fingerprint,
-		TenantID:    "tenant",
-		Filter: requests.PublicKeyFilter{
-			Hostname: ".*",
-		},
-	}
-	keyInvalidEmptyTags := requests.PublicKeyCreate{
-		Data:        data,
-		Fingerprint: fingerprint,
-		TenantID:    "tenant",
-		Filter: requests.PublicKeyFilter{
-			Tags: []string{},
-		},
-	}
-	keyInvalidNotFound := requests.PublicKeyCreate{
-		Data:        data,
-		Fingerprint: fingerprint,
-		TenantID:    "tenant",
-		Filter: requests.PublicKeyFilter{
-			Tags: []string{"tag1", "tag2", "tag4"},
-		},
-	}
-	keyWithTags := requests.PublicKeyCreate{
-		Data:        data,
-		Fingerprint: fingerprint,
-		TenantID:    "tenant",
-		Filter: requests.PublicKeyFilter{
-			Tags: []string{"tag1", "tag2"},
-		},
-	}
-	keyWithTagsModel := models.PublicKey{
-		Data:        data,
-		Fingerprint: fingerprint,
-		CreatedAt:   clock.Now(),
-		TenantID:    "tenant",
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Tags: []string{"tag1", "tag2"},
-			},
-		},
-	}
-	keyWithHostname := requests.PublicKeyCreate{
-		Data:        data,
-		Fingerprint: fingerprint,
-		TenantID:    "tenant",
-		Filter: requests.PublicKeyFilter{
-			Hostname: ".*",
-		},
-	}
-	keyWithHostnameModel := models.PublicKey{
-		Data:        data,
-		Fingerprint: fingerprint,
-		CreatedAt:   clock.Now(),
-		TenantID:    "tenant",
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Hostname: ".*",
-			},
-		},
-	}
-
-	resWithHostnameModel := &responses.PublicKeyCreate{
-		Data:        keyWithHostnameModel.Data,
-		Filter:      responses.PublicKeyFilter(keyWithHostnameModel.Filter),
-		Name:        keyWithHostnameModel.Name,
-		Username:    keyWithHostnameModel.Username,
-		TenantID:    keyWithHostnameModel.TenantID,
-		Fingerprint: keyWithHostnameModel.Fingerprint,
-	}
-
-	resWithTagsModel := &responses.PublicKeyCreate{
-		Data:        keyWithTagsModel.Data,
-		Filter:      responses.PublicKeyFilter(keyWithTagsModel.Filter),
-		Name:        keyWithTagsModel.Name,
-		Username:    keyWithTagsModel.Username,
-		TenantID:    keyWithTagsModel.TenantID,
-		Fingerprint: keyWithTagsModel.Fingerprint,
-	}
 
 	type Expected struct {
 		res *responses.PublicKeyCreate
@@ -651,16 +574,30 @@ func TestCreatePublicKeys(t *testing.T) {
 		{
 			description: "fail to create the key when filter tags is empty",
 			tenantID:    "tenant",
-			req:         keyInvalidEmptyTags,
-			requiredMocks: func() {
-				mock.On("TagsGet", ctx, "tenant").Return([]string{}, 0, err).Once()
+			req: requests.PublicKeyCreate{
+				Data:        ssh.MarshalAuthorizedKey(pubKey),
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Tags: []string{},
+				},
 			},
-			expected: Expected{nil, NewErrTagEmpty("tenant", err)},
+			requiredMocks: func() {
+				mock.On("TagsGet", ctx, "tenant").Return([]string{}, 0, errors.New("error", "", 0)).Once()
+			},
+			expected: Expected{nil, NewErrTagEmpty("tenant", errors.New("error", "", 0))},
 		},
 		{
 			description: "fail to create the key when a tags does not exist in a device",
 			tenantID:    "tenant",
-			req:         keyInvalidNotFound,
+			req: requests.PublicKeyCreate{
+				Data:        ssh.MarshalAuthorizedKey(pubKey),
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Tags: []string{"tag1", "tag2", "tag4"},
+				},
+			},
 			requiredMocks: func() {
 				mock.On("TagsGet", ctx, "tenant").Return([]string{"tag1", "tag4"}, 2, nil).Once()
 			},
@@ -669,70 +606,381 @@ func TestCreatePublicKeys(t *testing.T) {
 		{
 			description: "fail when data in public key is not valid",
 			tenantID:    "tenant",
-			req:         keyInvalidData,
+			req: requests.PublicKeyCreate{
+				Data:        nil,
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Hostname: ".*",
+				},
+			},
 			requiredMocks: func() {
 			},
-			expected: Expected{nil, NewErrPublicKeyDataInvalid(keyInvalidData.Data, nil)},
+			expected: Expected{nil, NewErrPublicKeyDataInvalid(requests.PublicKeyCreate{
+				Data:        nil,
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Hostname: ".*",
+				},
+			}.Data, nil)},
 		},
 		{
 			description: "fail when cannot get the public key",
 			tenantID:    "tenant",
-			req:         keyWithHostname,
-			requiredMocks: func() {
-				mock.On("PublicKeyGet", ctx, keyWithHostname.Fingerprint, "tenant").Return(nil, err).Once()
+			req: requests.PublicKeyCreate{
+				Data:        ssh.MarshalAuthorizedKey(pubKey),
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Hostname: ".*",
+				},
 			},
-			expected: Expected{nil, NewErrPublicKeyNotFound(keyWithHostname.Fingerprint, err)},
+			requiredMocks: func() {
+				keyWithHostname := requests.PublicKeyCreate{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					TenantID:    "tenant",
+					Filter: requests.PublicKeyFilter{
+						Hostname: ".*",
+					},
+				}
+
+				mock.On("PublicKeyGet", ctx, keyWithHostname.Fingerprint, "tenant").Return(nil, errors.New("error", "", 0)).Once()
+			},
+			expected: Expected{nil, NewErrPublicKeyNotFound(requests.PublicKeyCreate{
+				Data:        ssh.MarshalAuthorizedKey(pubKey),
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Hostname: ".*",
+				},
+			}.Fingerprint, errors.New("error", "", 0))},
 		},
 		{
 			description: "fail when public key is duplicated",
 			tenantID:    "tenant",
-			req:         keyWithHostname,
+			req: requests.PublicKeyCreate{
+				Data:        ssh.MarshalAuthorizedKey(pubKey),
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Hostname: ".*",
+				},
+			},
 			requiredMocks: func() {
+				keyWithHostname := requests.PublicKeyCreate{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					TenantID:    "tenant",
+					Filter: requests.PublicKeyFilter{
+						Hostname: ".*",
+					},
+				}
+
+				keyWithHostnameModel := models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}
+
 				mock.On("PublicKeyGet", ctx, keyWithHostname.Fingerprint, "tenant").Return(&keyWithHostnameModel, nil).Once()
 			},
-			expected: Expected{nil, NewErrPublicKeyDuplicated([]string{keyWithHostname.Fingerprint}, nil)},
+			expected: Expected{nil, NewErrPublicKeyDuplicated([]string{ssh.FingerprintLegacyMD5(pubKey)}, nil)},
 		},
 		{
 			description: "fail to create a public key when filter is hostname",
 			tenantID:    "tenant",
-			req:         keyWithHostname,
-			requiredMocks: func() {
-				mock.On("PublicKeyGet", ctx, keyWithHostname.Fingerprint, "tenant").Return(nil, nil).Once()
-				mock.On("PublicKeyCreate", ctx, &keyWithHostnameModel).Return(err).Once()
+			req: requests.PublicKeyCreate{
+				Data:        ssh.MarshalAuthorizedKey(pubKey),
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Hostname: ".*",
+				},
 			},
-			expected: Expected{nil, err},
+			requiredMocks: func() {
+				keyWithHostnameModel := models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}
+
+				keyWithHostname := requests.PublicKeyCreate{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					TenantID:    "tenant",
+					Filter: requests.PublicKeyFilter{
+						Hostname: ".*",
+					},
+				}
+
+				mock.On("PublicKeyGet", ctx, keyWithHostname.Fingerprint, "tenant").Return(nil, nil).Once()
+				mock.On("PublicKeyCreate", ctx, &keyWithHostnameModel).Return(errors.New("error", "", 0)).Once()
+			},
+			expected: Expected{nil, errors.New("error", "", 0)},
 		},
 		{
 			description: "success to create a public key when filter is hostname",
 			tenantID:    "tenant",
-			req:         keyWithHostname,
+			req: requests.PublicKeyCreate{
+				Data:        ssh.MarshalAuthorizedKey(pubKey),
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Hostname: ".*",
+				},
+			},
 			requiredMocks: func() {
+				keyWithHostnameModel := models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}
+
+				keyWithHostname := requests.PublicKeyCreate{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					TenantID:    "tenant",
+					Filter: requests.PublicKeyFilter{
+						Hostname: ".*",
+					},
+				}
+
 				mock.On("PublicKeyGet", ctx, keyWithHostname.Fingerprint, "tenant").Return(nil, nil).Once()
 				mock.On("PublicKeyCreate", ctx, &keyWithHostnameModel).Return(nil).Once()
 			},
-			expected: Expected{resWithHostnameModel, nil},
+			expected: Expected{&responses.PublicKeyCreate{
+				Data: models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}.Data,
+				Filter: responses.PublicKeyFilter(models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}.Filter),
+				Name: models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}.Name,
+				Username: models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}.Username,
+				TenantID: models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}.TenantID,
+				Fingerprint: models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}.Fingerprint,
+			}, nil},
 		},
 		{
 			description: "fail to create a public key when filter is tags",
 			tenantID:    "tenant",
-			req:         keyWithTags,
+			req: requests.PublicKeyCreate{
+				Data:        ssh.MarshalAuthorizedKey(pubKey),
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Tags: []string{"tag1", "tag2"},
+				},
+			},
 			requiredMocks: func() {
+				keyWithTags := requests.PublicKeyCreate{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					TenantID:    "tenant",
+					Filter: requests.PublicKeyFilter{
+						Tags: []string{"tag1", "tag2"},
+					},
+				}
+
+				keyWithTagsModel := models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: []string{"tag1", "tag2"},
+						},
+					},
+				}
+
 				mock.On("TagsGet", ctx, keyWithTags.TenantID).Return([]string{"tag1", "tag2"}, 2, nil).Once()
 				mock.On("PublicKeyGet", ctx, keyWithTags.Fingerprint, "tenant").Return(nil, nil).Once()
-				mock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return(err).Once()
+				mock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return(errors.New("error", "", 0)).Once()
 			},
-			expected: Expected{nil, err},
+			expected: Expected{nil, errors.New("error", "", 0)},
 		},
 		{
 			description: "success to create a public key when filter is tags",
 			tenantID:    "tenant",
-			req:         keyWithTags,
+			req: requests.PublicKeyCreate{
+				Data:        ssh.MarshalAuthorizedKey(pubKey),
+				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+				TenantID:    "tenant",
+				Filter: requests.PublicKeyFilter{
+					Tags: []string{"tag1", "tag2"},
+				},
+			},
 			requiredMocks: func() {
+				keyWithTags := requests.PublicKeyCreate{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					TenantID:    "tenant",
+					Filter: requests.PublicKeyFilter{
+						Tags: []string{"tag1", "tag2"},
+					},
+				}
+
+				keyWithTagsModel := models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: []string{"tag1", "tag2"},
+						},
+					},
+				}
+
 				mock.On("TagsGet", ctx, keyWithTags.TenantID).Return([]string{"tag1", "tag2"}, 2, nil).Once()
 				mock.On("PublicKeyGet", ctx, keyWithTags.Fingerprint, "tenant").Return(nil, nil).Once()
 				mock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return(nil).Once()
 			},
-			expected: Expected{resWithTagsModel, nil},
+			expected: Expected{&responses.PublicKeyCreate{
+				Data: models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: []string{"tag1", "tag2"},
+						},
+					},
+				}.Data,
+				Filter: responses.PublicKeyFilter(models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: []string{"tag1", "tag2"},
+						},
+					},
+				}.Filter),
+				Name: models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: []string{"tag1", "tag2"},
+						},
+					},
+				}.Name,
+				Username: models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: []string{"tag1", "tag2"},
+						},
+					},
+				}.Username,
+				TenantID: models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: []string{"tag1", "tag2"},
+						},
+					},
+				}.TenantID,
+				Fingerprint: models.PublicKey{
+					Data:        ssh.MarshalAuthorizedKey(pubKey),
+					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
+					CreatedAt:   clock.Now(),
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Filter: models.PublicKeyFilter{
+							Tags: []string{"tag1", "tag2"},
+						},
+					},
+				}.Fingerprint,
+			}, nil},
 		},
 	}
 

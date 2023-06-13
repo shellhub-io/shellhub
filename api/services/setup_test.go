@@ -11,21 +11,15 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuid_mocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSetup(t *testing.T) {
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-	uuidMock := &uuid_mocks.Uuid{}
-	uuid.DefaultBackend = uuidMock
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
-
-	Err := errors.New("error", "", 0)
 
 	cases := []struct {
 		description   string
@@ -56,9 +50,9 @@ func TestSetup(t *testing.T) {
 					Confirmed: true,
 					CreatedAt: now,
 				}
-				mock.On("UserCreate", ctx, user).Return(Err).Once()
+				mock.On("UserCreate", ctx, user).Return(errors.New("error", "", 0)).Once()
 			},
-			expected: NewErrUserDuplicated([]string{"userteste"}, Err),
+			expected: NewErrUserDuplicated([]string{"userteste"}, errors.New("error", "", 0)),
 		},
 		{
 			description: "Fail when cannot create namespace",
@@ -71,6 +65,7 @@ func TestSetup(t *testing.T) {
 			},
 			requiredMocks: func() {
 				clockMock.On("Now").Return(now).Twice()
+				uuidMock := &uuid_mocks.Uuid{}
 				uuidMock.On("Generate").Return("random_uuid").Once()
 				user := &models.User{
 					UserData: models.UserData{
@@ -97,9 +92,9 @@ func TestSetup(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("UserCreate", ctx, user).Return(nil).Once()
-				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, Err).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, errors.New("error", "", 0)).Once()
 			},
-			expected: NewErrNamespaceDuplicated(Err),
+			expected: NewErrNamespaceDuplicated(errors.New("error", "", 0)),
 		},
 		{
 			description: "Success to create the user and namespace",
@@ -112,6 +107,7 @@ func TestSetup(t *testing.T) {
 			},
 			requiredMocks: func() {
 				clockMock.On("Now").Return(now).Twice()
+				uuidMock := &uuid_mocks.Uuid{}
 				uuidMock.On("Generate").Return("random_uuid").Once()
 				user := &models.User{
 					UserData: models.UserData{
@@ -147,7 +143,10 @@ func TestSetup(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
-			err := s.Setup(ctx, tc.req)
+
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
+			err := service.Setup(ctx, tc.req)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

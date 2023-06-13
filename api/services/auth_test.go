@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"testing"
 	"time"
 
@@ -21,12 +22,7 @@ import (
 )
 
 func TestAuthDevice(t *testing.T) {
-	mock := &mocks.Store{}
-
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	assert.NoError(t, err)
-
-	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
 
@@ -76,7 +72,12 @@ func TestAuthDevice(t *testing.T) {
 	assert.NoError(t, err)
 	defer patch.Unpatch() //nolint:errcheck
 
-	authRes, err := s.AuthDevice(ctx, authReq, "0.0.0.0")
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	assert.NoError(t, err)
+
+	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+
+	authRes, err := service.AuthDevice(ctx, authReq, "0.0.0.0")
 	assert.NoError(t, err)
 
 	assert.Equal(t, device.UID, authRes.UID)
@@ -89,60 +90,62 @@ func TestAuthDevice(t *testing.T) {
 }
 
 func TestAuthUser(t *testing.T) {
-	mock := &mocks.Store{}
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
-
-	wrongPasswd := sha256.Sum256([]byte("wrongPassword"))
-
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
 	type Expected struct {
 		userAuthResponse *models.UserAuthResponse
 		err              error
 	}
 
-	authReq := requests.UserAuth{
-		Username: "user",
-		Password: "passwd",
-	}
-
 	tests := []struct {
 		description   string
-		args          requests.UserAuth
-		requiredMocks func(err error, user *models.User)
+		req           requests.UserAuth
+		requiredMocks func(req requests.UserAuth)
 		expected      Expected
-		user          *models.User
-		namespace     *models.Namespace
 		expectedErr   error
 	}{
 		{
 			description: "Fails when user username and email are not found",
-			args:        authReq,
+			req: requests.UserAuth{
+				Username: "user",
+				Password: "passwd",
+			},
 			expectedErr: errors.New("error", "", 0),
-			requiredMocks: func(errar error, user *models.User) {
-				mock.On("UserGetByUsername", ctx, authReq.Username).Return(nil, errar)
-				mock.On("UserGetByEmail", ctx, authReq.Username).Return(nil, errar).Once()
+			requiredMocks: func(req requests.UserAuth) {
+				mock.On("UserGetByUsername", ctx, req.Username).Return(nil, errors.New("error", "", 0))
+				mock.On("UserGetByEmail", ctx, req.Username).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, NewErrAuthUnathorized(nil)},
 		},
 		{
 			description: "Fails when user has account but wrong password",
-			args:        authReq,
-			user: &models.User{
-				UserData: models.UserData{
-					Username: "user",
-				},
-				UserPassword: models.UserPassword{
-					Password: hex.EncodeToString(wrongPasswd[:]),
-				},
-				ID:        "id",
-				Confirmed: true,
-				LastLogin: now,
+			req: requests.UserAuth{
+				Username: "user",
+				Password: "passwd",
 			},
-			requiredMocks: func(err error, user *models.User) {
-				mock.On("UserGetByUsername", ctx, authReq.Username).Return(user, nil)
-				mock.On("UserGetByEmail", ctx, authReq.Username).Return(user, nil).Once()
+			requiredMocks: func(req requests.UserAuth) {
+				user := &models.User{
+					UserData: models.UserData{
+						Username: "user",
+					},
+					UserPassword: models.UserPassword{
+						Password: fmt.Sprintf("%x", sha256.Sum256([]byte("wrongPassword"))),
+					},
+					ID:        "id",
+					Confirmed: true,
+					LastLogin: now,
+				}
+
+				namespace := &models.Namespace{
+					Name:     "group1",
+					Owner:    "hash1",
+					TenantID: "tenant",
+				}
+
+				mock.On("UserGetByUsername", ctx, req.Username).Return(user, nil)
+				mock.On("UserGetByEmail", ctx, req.Username).Return(user, nil).Once()
 				mock.On("NamespaceGetFirst", ctx, user.ID).Return(namespace, nil).Once()
 			},
 			expected: Expected{nil, NewErrAuthUnathorized(nil)},
@@ -151,13 +154,13 @@ func TestAuthUser(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks(tc.expectedErr, tc.user)
+			tc.requiredMocks(tc.req)
 
 			privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 			assert.NoError(t, err)
 
 			service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
-			authRes, err := service.AuthUser(ctx, tc.args)
+			authRes, err := service.AuthUser(ctx, tc.req)
 			assert.Equal(t, tc.expected, Expected{authRes, err})
 		})
 	}
@@ -166,47 +169,9 @@ func TestAuthUser(t *testing.T) {
 }
 
 func TestAuthUserInfo(t *testing.T) {
-	mock := &mocks.Store{}
-
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	assert.NoError(t, err)
-
-	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+	mock := new(mocks.Store)
 
 	ctx := context.TODO()
-
-	authRes2 := &models.UserAuthResponse{
-		Name:   "user",
-		Token:  "---------------token----------------",
-		User:   "user",
-		Tenant: "xxxxxx",
-		ID:     "id",
-		Role:   "owner",
-		Email:  "email@email.com",
-	}
-
-	user := &models.User{
-		UserData: models.UserData{
-			Username: "user",
-			Name:     "user",
-			Email:    "email@email.com",
-		},
-		ID: "id",
-	}
-
-	namespace := &models.Namespace{
-		Name:     "namespace",
-		Owner:    "id",
-		TenantID: "xxxxxx",
-		Members: []models.Member{
-			{
-				ID:   "id",
-				Role: "owner",
-			},
-		},
-	}
-
-	Err := errors.New("error", "", 0)
 
 	type Expected struct {
 		userAuthResponse *models.UserAuthResponse
@@ -219,35 +184,74 @@ func TestAuthUserInfo(t *testing.T) {
 		tenantID      string
 		requiredMocks func()
 		expected      Expected
+		expectedErr   error
 	}{
 		{
 			description: "Fails to find the user",
 			username:    "notuser",
+			expectedErr: errors.New("error", "", 0),
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "notuser").Return(nil, Err).Once()
+				mock.On("UserGetByUsername", ctx, "notuser").Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: Expected{nil, NewErrUserNotFound("notuser", Err)},
+			expected: Expected{nil, NewErrUserNotFound("notuser", errors.New("error", "", 0))},
 		},
 		{
 			description: "Successful auth login",
 			username:    "user",
-			tenantID:    namespace.TenantID,
+			tenantID:    "xxxxxx",
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				namespace := &models.Namespace{
+					Name:     "namespace",
+					Owner:    "id",
+					TenantID: "xxxxxx",
+					Members: []models.Member{
+						{
+							ID:   "id",
+							Role: "owner",
+						},
+					},
+				}
+
+				mock.On("UserGetByUsername", ctx, "user").Return(&models.User{
+					UserData: models.UserData{
+						Username: "user",
+						Name:     "user",
+						Email:    "email@email.com",
+					},
+					ID: "id",
+				}, nil).Once()
+				mock.On("NamespaceGet", ctx, "xxxxxx").Return(namespace, nil).Once()
 			},
-			expected: Expected{authRes2, nil},
+			expected: Expected{
+				userAuthResponse: &models.UserAuthResponse{
+					Name:   "user",
+					Token:  "---------------token----------------",
+					User:   "user",
+					Tenant: "xxxxxx",
+					ID:     "id",
+					Role:   "owner",
+					Email:  "email@email.com",
+				},
+				err: nil,
+			},
 		},
 	}
 
-	for _, test := range tests {
-		tc := test
+	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
+			mock.ExpectedCalls = nil
 			tc.requiredMocks()
-			authRes, err := s.AuthUserInfo(ctx, tc.username, tc.tenantID, "---------------token----------------")
-			assert.Equal(t, tc.expected, Expected{authRes, err})
+
+			privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+			assert.NoError(t, err)
+
+			service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+
+			authRes, err := service.AuthUserInfo(ctx, tc.username, tc.tenantID, "---------------token----------------")
+			assert.Equal(t, tc.expected.userAuthResponse, authRes)
+			assert.Equal(t, tc.expected.err, err)
+
+			mock.AssertExpectations(t)
 		})
 	}
-
-	mock.AssertExpectations(t)
 }
