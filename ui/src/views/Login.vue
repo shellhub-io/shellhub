@@ -15,7 +15,23 @@
         />
       </div>
     </v-alert>
-    <form @submit.prevent="login">
+    <v-slide-y-reverse-transition>
+      <v-alert
+        v-model="invalidCredentials"
+        type="error"
+        closable
+        variant="tonal"
+        class="mb-4"
+      >
+        <strong>Invalid login credentials:</strong>
+        Your password is incorrect or this account doesn't exists.
+      </v-alert>
+    </v-slide-y-reverse-transition>
+
+    <v-form
+      v-model="validForm"
+      @submit.prevent="login"
+    >
       <v-col>
         <v-text-field
           color="primary"
@@ -43,6 +59,7 @@
         />
         <v-card-actions class="justify-center">
           <v-btn
+            :disabled="!validForm"
             data-test="login-btn"
             color="primary"
             variant="tonal"
@@ -55,19 +72,19 @@
         </v-card-actions>
 
       </v-col>
-    </form>
+    </v-form>
     <v-col>
       <v-card-subtitle
         v-if="cloudEnvironment"
         class="d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0"
         data-test="forgotPassword-card"
       >
-        Forgot your
+        Did you
         <router-link
           class="ml-1"
           :to="{ name: 'ForgotPassword' }"
         >
-          Password?
+          Forgot your Password?
         </router-link>
       </v-card-subtitle>
 
@@ -97,19 +114,18 @@ import isCloudEnvironment from "../utils/cloudUtils";
 import handleError from "../utils/handleError";
 import useSnackbar from "../helpers/snackbar";
 
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+const snackbar = useSnackbar();
+
 const showPassword = ref(false);
 const loginToken = ref(false);
 const username = ref("");
 const password = ref("");
 const rules = [(v: string) => v ? true : "This is a required field"];
-const store = useStore();
-const route = useRoute();
-const router = useRouter();
-const snackbar = useSnackbar();
+const validForm = ref(false);
 const cloudEnvironment = isCloudEnvironment();
-
-// Test purpose references
-const requireAccountConfirm = ref(false);
 const invalidCredentials = ref(false);
 
 onMounted(async () => {
@@ -134,12 +150,10 @@ const login = async () => {
       const axiosError = error as AxiosError;
       switch (axiosError.response?.status) {
         case 401:
-          snackbar.showError("Invalid username or password. Please try again.");
           invalidCredentials.value = true;
           break;
         case 403:
           await router.push({ name: "ConfirmAccount", query: { username: username.value } });
-          requireAccountConfirm.value = true;
           break;
         default:
           snackbar.showError("Something went wrong in our server. Please try again later.");
@@ -155,7 +169,6 @@ const login = async () => {
 
 defineExpose({
   invalidCredentials,
-  requireAccountConfirm,
-  router,
+  validForm,
 });
 </script>

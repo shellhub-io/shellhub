@@ -8,6 +8,7 @@ import { store, key } from "../../src/store";
 import { router } from "../../src/router";
 import { envVariables } from "../../src/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { nextTick } from "vue";
 
 type LoginWrapper = VueWrapper<InstanceType<typeof Login>>;
 
@@ -55,6 +56,14 @@ describe("Login", () => {
     expect(wrapper.find('[data-test="loadingToken-alert"]').exists()).toBe(false);
   });
 
+  it("disables submit button when the form is invalid", async () => {
+    await wrapper.findComponent('[data-test="username-text"]').setValue("");
+    await wrapper.findComponent('[data-test="password-text"]').setValue("");
+    await nextTick();
+
+    expect(wrapper.find('[data-test="login-btn"]').attributes().disabled).toBeDefined();
+  });
+
   it("calls the login action when the form is submitted", async () => {
     const responseData = {
       token: "fake-token",
@@ -74,6 +83,7 @@ describe("Login", () => {
 
     await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
     await wrapper.findComponent('[data-test="password-text"]').setValue("password");
+    await nextTick();
     await wrapper.find('[data-test="login-btn"]').trigger("submit");
 
     vi.runOnlyPendingTimers();
@@ -84,6 +94,7 @@ describe("Login", () => {
       password: "password",
     });
 
+    expect(wrapper.findComponent(".v-alert").exists()).toBeFalsy();
     expect(routerPushSpy).toHaveBeenCalledWith("/");
   });
 
@@ -95,6 +106,7 @@ describe("Login", () => {
 
     await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
     await wrapper.findComponent('[data-test="password-text"]').setValue("password");
+    await nextTick();
     await wrapper.find('[data-test="login-btn"]').trigger("submit");
 
     vi.runOnlyPendingTimers();
@@ -105,8 +117,8 @@ describe("Login", () => {
       password: "password",
     });
 
-    // Check if invalidCredentials is set to true
     expect(wrapper.vm.invalidCredentials).toBe(true);
+    expect(wrapper.findComponent(".v-alert").exists()).toBeTruthy();
   });
 
   it("redirects to ConfirmAccount route on 403 response", async () => {
@@ -118,6 +130,7 @@ describe("Login", () => {
 
     await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
     await wrapper.findComponent('[data-test="password-text"]').setValue("password");
+    await nextTick();
     await wrapper.find('[data-test="login-btn"]').trigger("submit");
 
     vi.runOnlyPendingTimers();
@@ -128,6 +141,8 @@ describe("Login", () => {
       username: "testuser",
       password: "password",
     });
+
+    expect(wrapper.findComponent(".v-alert").exists()).toBeFalsy();
 
     // Assert the redirection
     expect(routerPushSpy).toHaveBeenCalledWith({
