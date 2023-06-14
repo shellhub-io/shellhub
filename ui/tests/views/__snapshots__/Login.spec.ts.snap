@@ -3,7 +3,10 @@
 exports[`Login > Renders the component 1`] = `
 "<div class=\\"v-container v-locale--is-ltr\\">
   <!--v-if-->
-  <form>
+  <transition-stub name=\\"slide-y-reverse-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+    <!---->
+  </transition-stub>
+  <form class=\\"v-form\\" novalidate=\\"\\">
     <div class=\\"v-col\\">
       <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"username-text\\">
         <div class=\\"v-input__prepend\\">
@@ -97,7 +100,7 @@ exports[`Login > Renders the component 1`] = `
           <!---->
         </div>
       </div>
-      <div class=\\"v-card-actions justify-center\\"><button type=\\"submit\\" class=\\"v-btn v-btn--block v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" data-test=\\"login-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <div class=\\"v-card-actions justify-center\\"><button type=\\"submit\\" class=\\"v-btn v-btn--block v-btn--disabled v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" disabled=\\"\\" data-test=\\"login-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> LOGIN </span>
           <!---->
           <!---->
@@ -105,7 +108,7 @@ exports[`Login > Renders the component 1`] = `
     </div>
   </form>
   <div class=\\"v-col\\">
-    <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0\\" data-test=\\"forgotPassword-card\\"> Forgot your <a href=\\"/forgot-pass\\" class=\\"ml-1\\"> Password? </a></div>
+    <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0\\" data-test=\\"forgotPassword-card\\"> Did you <a href=\\"/forgot-pass\\" class=\\"ml-1\\"> Forgot your Password? </a></div>
     <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto\\" data-test=\\"isCloud-card\\"> Don't have an account? <a href=\\"/sign-up\\" class=\\"ml-1\\"> Sign up here </a></div>
   </div>
 </div>"
