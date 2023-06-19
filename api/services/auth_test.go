@@ -102,7 +102,7 @@ func TestAuthUser(t *testing.T) {
 	tests := []struct {
 		description   string
 		req           requests.UserAuth
-		requiredMocks func(req requests.UserAuth)
+		requiredMocks func()
 		expected      Expected
 		expectedErr   error
 	}{
@@ -113,9 +113,9 @@ func TestAuthUser(t *testing.T) {
 				Password: "passwd",
 			},
 			expectedErr: errors.New("error", "", 0),
-			requiredMocks: func(req requests.UserAuth) {
-				mock.On("UserGetByUsername", ctx, req.Username).Return(nil, errors.New("error", "", 0))
-				mock.On("UserGetByEmail", ctx, req.Username).Return(nil, errors.New("error", "", 0)).Once()
+			requiredMocks: func() {
+				mock.On("UserGetByUsername", ctx, "user").Return(nil, errors.New("error", "", 0))
+				mock.On("UserGetByEmail", ctx, "user").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, NewErrAuthUnathorized(nil)},
 		},
@@ -125,7 +125,7 @@ func TestAuthUser(t *testing.T) {
 				Username: "user",
 				Password: "passwd",
 			},
-			requiredMocks: func(req requests.UserAuth) {
+			requiredMocks: func() {
 				user := &models.User{
 					UserData: models.UserData{
 						Username: "user",
@@ -144,8 +144,8 @@ func TestAuthUser(t *testing.T) {
 					TenantID: "tenant",
 				}
 
-				mock.On("UserGetByUsername", ctx, req.Username).Return(user, nil)
-				mock.On("UserGetByEmail", ctx, req.Username).Return(user, nil).Once()
+				mock.On("UserGetByUsername", ctx, "user").Return(user, nil)
+				mock.On("UserGetByEmail", ctx, "user").Return(user, nil).Once()
 				mock.On("NamespaceGetFirst", ctx, user.ID).Return(namespace, nil).Once()
 			},
 			expected: Expected{nil, NewErrAuthUnathorized(nil)},
@@ -154,7 +154,7 @@ func TestAuthUser(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks(tc.req)
+			tc.requiredMocks()
 
 			privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 			assert.NoError(t, err)
