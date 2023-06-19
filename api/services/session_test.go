@@ -177,7 +177,6 @@ func TestCreateSession(t *testing.T) {
 			name:    "CreateSession fails",
 			session: req,
 			requiredMocks: func() {
-
 				locator.On("GetPosition", net.ParseIP(model.IPAddress)).
 					Return(geoip.Position{}, nil).Once()
 				mock.On("SessionCreate", ctx, model).
