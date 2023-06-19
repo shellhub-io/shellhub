@@ -44,7 +44,7 @@ func TestListDevices(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "ListDevices fails when the store device list fails when status is pending",
+			description: "fails when the store device list fails when status is pending",
 			tenant:      "tenant",
 			pagination:  paginator.Query{Page: 1, PerPage: 10},
 			filter: []models.Filter{
@@ -82,7 +82,7 @@ func TestListDevices(t *testing.T) {
 			},
 		},
 		{
-			description: "ListDevices fails when the store device list fails when status is not pending",
+			description: "fails when the store device list fails when status is not pending",
 			tenant:      "tenant",
 			pagination:  paginator.Query{Page: 1, PerPage: 10},
 			filter: []models.Filter{
@@ -112,7 +112,7 @@ func TestListDevices(t *testing.T) {
 			},
 		},
 		{
-			description: "ListDevices succeeds when status is pending",
+			description: "succeeds when status is pending",
 			tenant:      "tenant",
 			pagination:  paginator.Query{Page: 1, PerPage: 10},
 			filter: []models.Filter{
@@ -166,7 +166,7 @@ func TestListDevices(t *testing.T) {
 			},
 		},
 		{
-			description: "ListDevices succeeds when status is not pending",
+			description: "succeeds when status is not pending",
 			tenant:      "tenant",
 			pagination:  paginator.Query{Page: 1, PerPage: 10},
 			filter: []models.Filter{
@@ -210,7 +210,7 @@ func TestListDevices(t *testing.T) {
 			},
 		},
 		{
-			description: "ListDevices fails when status is removed",
+			description: "fails when status is removed",
 			tenant:      "tenant",
 			pagination:  paginator.Query{Page: 1, PerPage: 10},
 			filter: []models.Filter{
@@ -240,7 +240,7 @@ func TestListDevices(t *testing.T) {
 			},
 		},
 		{
-			description: "ListDevices succeeds when status is removed",
+			description: "succeeds when status is removed",
 			tenant:      "tenant",
 			pagination:  paginator.Query{Page: 1, PerPage: 10},
 			filter: []models.Filter{
@@ -320,7 +320,7 @@ func TestGetDevice(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "GetDevice fails when the store get device fails",
+			description: "fails when the store get device fails",
 			requiredMocks: func() {
 				mock.On("DeviceGet", ctx, models.UID("_uid")).
 					Return(nil, errors.New("error", "", 0)).Once()
@@ -332,7 +332,7 @@ func TestGetDevice(t *testing.T) {
 			},
 		},
 		{
-			description: "GetDevice succeeds",
+			description: "succeeds",
 			requiredMocks: func() {
 				device := &models.Device{UID: "uid"}
 
@@ -374,7 +374,7 @@ func TestDeleteDevice(t *testing.T) {
 		expected      error
 	}{
 		{
-			description: "DeleteDevice fails when the store device get by uid fails",
+			description: "fails when the store device get by uid fails",
 			uid:         models.UID("_uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
@@ -384,7 +384,7 @@ func TestDeleteDevice(t *testing.T) {
 			expected: NewErrDeviceNotFound(models.UID("_uid"), errors.New("error", "", 0)),
 		},
 		{
-			description: "DeleteDevice fails when the store namespace get fails",
+			description: "fails when the store namespace get fails",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
@@ -402,7 +402,7 @@ func TestDeleteDevice(t *testing.T) {
 			expected: NewErrNamespaceNotFound("tenant", errors.New("error", "", 0)),
 		},
 		{
-			description: "DeleteDevice fails when device removed insert return error",
+			description: "fails when device removed insert return error",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
@@ -437,7 +437,7 @@ func TestDeleteDevice(t *testing.T) {
 			expected: NewErrDeviceRemovedInsert(errors.New("error", "", 0)),
 		},
 		{
-			description: "DeleteDevice fails when the store device delete fails",
+			description: "fails when the store device delete fails",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
@@ -472,7 +472,7 @@ func TestDeleteDevice(t *testing.T) {
 			expected: errors.New("error", "", 0),
 		},
 		{
-			description: "DeleteDevice succeeds",
+			description: "succeeds",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
@@ -493,7 +493,7 @@ func TestDeleteDevice(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "DeleteDevice fails to report usage",
+			description: "fails to report usage",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
@@ -526,7 +526,7 @@ func TestDeleteDevice(t *testing.T) {
 			expected: ErrReport,
 		},
 		{
-			description: "DeleteDevice reports usage with success",
+			description: "reports usage with success",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
@@ -591,7 +591,7 @@ func TestRenameDevice(t *testing.T) {
 		expected      error
 	}{
 		{
-			description: "RenameDevice fails when store device get fails",
+			description: "fails when store device get fails",
 			tenant:      "tenant",
 			uid:         models.UID("uid"),
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
@@ -601,7 +601,7 @@ func TestRenameDevice(t *testing.T) {
 			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
 		},
 		{
-			description:   "RenameDevice returns nil if the name is the same",
+			description:   "returns nil if the name is the same",
 			tenant:        "tenant",
 			deviceNewName: "name",
 			uid:           models.UID("uid"),
@@ -612,7 +612,7 @@ func TestRenameDevice(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description:   "RenameDevice fails when store get by device name fails",
+			description:   "fails when store get by device name fails",
 			tenant:        "tenant",
 			deviceNewName: "newname",
 			uid:           models.UID("uid"),
@@ -630,7 +630,7 @@ func TestRenameDevice(t *testing.T) {
 			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
 		},
 		{
-			description:   "RenameDevice fails when the name already exists",
+			description:   "fails when the name already exists",
 			tenant:        "tenant",
 			deviceNewName: "newname",
 			uid:           models.UID("uid"),
@@ -648,7 +648,7 @@ func TestRenameDevice(t *testing.T) {
 			expected: NewErrDeviceDuplicated("newname", nil),
 		},
 		{
-			description:   "RenameDevice fails when the store device rename fails",
+			description:   "fails when the store device rename fails",
 			tenant:        "tenant",
 			deviceNewName: "anewname",
 			uid:           models.UID("uid"),
@@ -661,7 +661,7 @@ func TestRenameDevice(t *testing.T) {
 			expected: errors.New("error", "", 0),
 		},
 		{
-			description:   "RenameDevice succeeds",
+			description:   "succeeds",
 			tenant:        "tenant",
 			deviceNewName: "anewname",
 			uid:           models.UID("uid"),
@@ -706,7 +706,7 @@ func TestLookupDevice(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "LookupDevice fails when store device lookup fails",
+			description: "fails when store device lookup fails",
 			namespace:   "namespace",
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
 			requiredMocks: func(device *models.Device, namespace string) {
@@ -718,7 +718,7 @@ func TestLookupDevice(t *testing.T) {
 			},
 		},
 		{
-			description: "LookupDevice fails when the device is not found",
+			description: "fails when the device is not found",
 			namespace:   "namespace",
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
 			requiredMocks: func(device *models.Device, namespace string) {
@@ -731,7 +731,7 @@ func TestLookupDevice(t *testing.T) {
 			},
 		},
 		{
-			description: "LookupDevice succeeds",
+			description: "succeeds",
 			namespace:   "namespace",
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
 			requiredMocks: func(device *models.Device, namespace string) {
@@ -770,7 +770,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		expected      error
 	}{
 		{
-			name: "UpdateDeviceStatus fails when store device online fails",
+			name: "fails when store device online fails",
 			uid:  models.UID("uid"),
 			requiredMocks: func() {
 				mock.On("DeviceSetOnline", ctx, models.UID("uid"), false).
@@ -779,7 +779,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			expected: errors.New("error", "", 0),
 		},
 		{
-			name:   "UpdateDeviceStatus succeeds",
+			name:   "succeeds",
 			uid:    models.UID("uid"),
 			online: true,
 			requiredMocks: func() {
@@ -818,7 +818,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 		expected      error
 	}{
 		{
-			description: "UpdatePendingStatus fails when the status is invalid",
+			description: "fails when the status is invalid",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			status:      models.DeviceStatus("invalid"),
@@ -827,7 +827,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: NewErrDeviceStatusInvalid("invalid", nil),
 		},
 		{
-			description: "UpdatePendingStatus fails when the store get by uid fails",
+			description: "fails when the store get by uid fails",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			status:      models.DeviceStatusAccepted,
@@ -838,7 +838,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: NewErrDeviceNotFound("uid", errors.New("error", "", 0)),
 		},
 		{
-			description: "UpdatePendingStatus fails when device already accepted",
+			description: "fails when device already accepted",
 			uid:         models.UID("uid"),
 			status:      models.DeviceStatusAccepted,
 			tenant:      "tenant",
@@ -849,7 +849,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
 		{
-			description: "UpdatePendingStatus fails to update accept",
+			description: "fails to update accept",
 			uid:         models.UID("uid"),
 			status:      models.DeviceStatusPending,
 			tenant:      "tenant",
@@ -859,7 +859,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
 		{
-			description: "UpdatePendingStatus fail when could not get namespace",
+			description: "fail when could not get namespace",
 			uid:         models.UID("uid"),
 			status:      models.DeviceStatusAccepted,
 			tenant:      "tenant",
@@ -1047,7 +1047,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: NewErrDeviceRemovedDelete(errors.New("error", "", 0)),
 		},
 		{
-			description: "UpdatePendingStatus fails when the limit is exceeded",
+			description: "fails when the limit is exceeded",
 			uid:         models.UID("uid_limit"),
 			status:      models.DeviceStatusAccepted,
 			tenant:      "tenant_max",
@@ -1086,7 +1086,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: NewErrDeviceLimit(3, nil),
 		},
 		{
-			description: "UpdatePendingStatus succeeds",
+			description: "succeeds",
 			uid:         models.UID("uid"),
 			status:      models.DeviceStatusAccepted,
 			tenant:      "tenant",
@@ -1138,7 +1138,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "UpdatePendingStatus reports usage",
+			description: "reports usage",
 			uid:         models.UID("uid"),
 			status:      models.DeviceStatusAccepted,
 			tenant:      "tenant_max",
@@ -1193,7 +1193,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "UpdatePendingStatus fails to reports usage",
+			description: "fails to reports usage",
 			uid:         models.UID("uid"),
 			status:      models.DeviceStatusAccepted,
 			tenant:      "tenant_max",
@@ -1275,7 +1275,7 @@ func TestSetDevicePosition(t *testing.T) {
 		expected      error
 	}{
 		{
-			description: "SetDevicePosition fails when DeviceSetPosition return error",
+			description: "fails when DeviceSetPosition return error",
 			requiredMocks: func() {
 				positionGeoIP := geoip.Position{
 					Longitude: 0,
@@ -1296,7 +1296,7 @@ func TestSetDevicePosition(t *testing.T) {
 			expected: errors.New("error", "", 0),
 		},
 		{
-			description: "SetDevicePosition success",
+			description: "success",
 			requiredMocks: func() {
 				positionGeoIP := geoip.Position{
 					Longitude: 0,
