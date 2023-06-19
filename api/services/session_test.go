@@ -36,7 +36,7 @@ func TestListSessions(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			name:       "ListSessions fails",
+			name:       "fails",
 			pagination: paginator.Query{Page: 1, PerPage: 10},
 			requiredMocks: func(query paginator.Query) {
 				mock.On("SessionList", ctx, query).
@@ -49,7 +49,7 @@ func TestListSessions(t *testing.T) {
 			},
 		},
 		{
-			name:       "ListSessions succeeds",
+			name:       "succeeds",
 			pagination: paginator.Query{Page: 1, PerPage: 10},
 			requiredMocks: func(query paginator.Query) {
 				sessions := []models.Session{
@@ -107,7 +107,7 @@ func TestGetSession(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			name: "GetSession fails",
+			name: "fails when session is not found",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
 				mock.On("SessionGet", ctx, models.UID("_uid")).
@@ -119,7 +119,7 @@ func TestGetSession(t *testing.T) {
 			},
 		},
 		{
-			name: "GetSession succeeds",
+			name: "succeeds",
 			uid:  models.UID("uid"),
 			requiredMocks: func() {
 				session := &models.Session{UID: "uid"}
@@ -174,7 +174,7 @@ func TestCreateSession(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			name:    "CreateSession fails",
+			name:    "fails",
 			session: req,
 			requiredMocks: func() {
 				locator.On("GetPosition", net.ParseIP(model.IPAddress)).
@@ -188,7 +188,7 @@ func TestCreateSession(t *testing.T) {
 			},
 		},
 		{
-			name:    "CreateSession succeeds",
+			name:    "succeeds",
 			session: req,
 			requiredMocks: func() {
 				locator.On("GetPosition", net.ParseIP(model.IPAddress)).
@@ -228,7 +228,7 @@ func TestDeactivateSession(t *testing.T) {
 		expected      error
 	}{
 		{
-			name: "DeactivateSession fails when session is not found",
+			name: "fails when session is not found",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
 				mock.On("SessionDeleteActives", ctx, models.UID("_uid")).
@@ -237,7 +237,7 @@ func TestDeactivateSession(t *testing.T) {
 			expected: NewErrSessionNotFound("_uid", store.ErrNoDocuments),
 		},
 		{
-			name: "DeactivateSession fails",
+			name: "fails",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
 				mock.On("SessionDeleteActives", ctx, models.UID("_uid")).
@@ -246,7 +246,7 @@ func TestDeactivateSession(t *testing.T) {
 			expected: goerrors.New("error"),
 		},
 		{
-			name: "DeactivateSession succeeds",
+			name: "succeeds",
 			uid:  models.UID("uid"),
 			requiredMocks: func() {
 				mock.On("SessionDeleteActives", ctx, models.UID("uid")).
@@ -281,7 +281,7 @@ func TestSetSessionAuthenticated(t *testing.T) {
 		expected      error
 	}{
 		{
-			name: "SetSessionAuthenticated fails",
+			name: "fails",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
 				mock.On("SessionSetAuthenticated", ctx, models.UID("_uid"), true).
@@ -290,7 +290,7 @@ func TestSetSessionAuthenticated(t *testing.T) {
 			expected: goerrors.New("error"),
 		},
 		{
-			name: "SetSessionAuthenticated succeeds",
+			name: "succeeds",
 			uid:  models.UID("uid"),
 			requiredMocks: func() {
 				mock.On("SessionSetAuthenticated", ctx, models.UID("uid"), true).
