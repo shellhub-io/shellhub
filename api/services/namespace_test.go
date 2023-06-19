@@ -1774,7 +1774,6 @@ func TestEditNamespaceUser(t *testing.T) {
 
 				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
 				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
-
 			},
 			Expected: guard.ErrForbidden,
 		},
