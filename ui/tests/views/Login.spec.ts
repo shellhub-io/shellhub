@@ -2,13 +2,13 @@ import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
+import { nextTick } from "vue";
 import Login from "../../src/views/Login.vue";
 import { usersApi } from "@/api/http";
 import { store, key } from "../../src/store";
 import { router } from "../../src/router";
 import { envVariables } from "../../src/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { nextTick } from "vue";
 
 type LoginWrapper = VueWrapper<InstanceType<typeof Login>>;
 
@@ -89,6 +89,7 @@ describe("Login", () => {
     vi.runOnlyPendingTimers();
     await flushPromises();
 
+    // Assert the login action dispatch
     expect(loginSpy).toHaveBeenCalledWith("auth/login", {
       username: "testuser",
       password: "password",
@@ -112,6 +113,7 @@ describe("Login", () => {
     vi.runOnlyPendingTimers();
     await flushPromises();
 
+    // Assert the login action dispatch
     expect(loginSpy).toHaveBeenCalledWith("auth/login", {
       username: "testuser",
       password: "password",

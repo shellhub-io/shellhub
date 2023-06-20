@@ -73,9 +73,8 @@
 
       </v-col>
     </v-form>
-    <v-col>
+    <v-col v-if="cloudEnvironment">
       <v-card-subtitle
-        v-if="cloudEnvironment"
         class="d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0"
         data-test="forgotPassword-card"
       >
@@ -89,7 +88,6 @@
       </v-card-subtitle>
 
       <v-card-subtitle
-        v-if="cloudEnvironment"
         class="d-flex align-center justify-center pa-4 mx-auto"
         data-test="isCloud-card"
       >

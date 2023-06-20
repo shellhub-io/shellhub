@@ -11,8 +11,7 @@
           required
           label="Name"
           variant="underlined"
-          data-test="name-text"
-        />
+          data-test="name-text" />
 
         <v-text-field
           color="primary"
@@ -22,8 +21,7 @@
           required
           label="Username"
           variant="underlined"
-          data-test="username-text"
-        />
+          data-test="username-text" />
 
         <v-text-field
           color="primary"
@@ -33,8 +31,7 @@
           required
           label="Email"
           variant="underlined"
-          data-test="email-text"
-        />
+          data-test="email-text" />
 
         <v-text-field
           color="primary"
@@ -47,8 +44,7 @@
           variant="underlined"
           data-test="password-text"
           :type="showPassword ? 'text' : 'password'"
-          @click:append-inner="showPassword = !showPassword"
-        />
+          @click:append-inner="showPassword = !showPassword" />
 
         <v-text-field
           color="primary"
@@ -61,35 +57,20 @@
           variant="underlined"
           data-test="password-confirm-text"
           :type="showConfirmPassword ? 'text' : 'password'"
-          @click:append-inner="showConfirmPassword = !showConfirmPassword"
-        />
+          @click:append-inner="showConfirmPassword = !showConfirmPassword" />
       </v-container>
 
-      <div v-if="isCloud">
-        <v-checkbox
-          v-model="acceptPrivacyPolicy"
-          color="primary"
-          hide-details
-          data-test="accept-privacy-policy-checkbox"
-        >
+      <div>
+        <v-checkbox v-model="acceptPrivacyPolicy" color="primary" hide-details data-test="accept-privacy-policy-checkbox">
           <template #label>
             <span class="caption">
               I agree to the
-              <a
-                href="https://www.shellhub.io/privacy-policy"
-                target="_blank"
-                rel="noopener noreferrer"
-              >Privacy
+              <a href="https://www.shellhub.io/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy
                 Policy</a>
             </span>
           </template>
         </v-checkbox>
-        <v-checkbox
-          v-model="acceptMarketing"
-          color="primary"
-          hide-details
-          data-test="accept-news-checkbox"
-        >
+        <v-checkbox v-model="acceptMarketing" color="primary" hide-details data-test="accept-news-checkbox">
           <template #label>
             <p>
               I accept to receive news and updates from ShellHub via
@@ -98,269 +79,164 @@
           </template>
         </v-checkbox>
       </div>
-      <v-card-subtitle
-        v-if="privacyPolicyError"
-        class="pa-0 pl-2 font-weight-medium text-error"
-        data-test="privacy-policy-error"
-      >
-        You need to accept the Privacy Policy to create an account.
-      </v-card-subtitle>
 
       <v-card-actions class="justify-center">
-        <v-btn
-          type="submit"
-          data-test="login-btn"
-          color="primary"
-          variant="tonal"
-          block
-        >
+        <v-btn :disabled="!acceptPrivacyPolicy" type="submit" data-test="create-account-btn" color="primary" variant="tonal" block>
           CREATE
         </v-btn>
 
       </v-card-actions>
 
-      <v-card-subtitle
-        class="d-flex align-center justify-center pa-4 mx-auto"
-        data-test="isCloud-card"
-      >
+      <v-card-subtitle class="d-flex align-center justify-center pa-4 mx-auto" data-test="login-btn">
         Do you have account ?
-        <router-link
-          class="ml-1"
-          :to="{ name: 'login' }"
-        >
+        <router-link class="ml-1" :to="{ name: 'login' }">
           Login
         </router-link>
       </v-card-subtitle>
     </form>
-    <AccountCreated
-      :show="showMessage"
-      :username="username"
-      data-test="accountCreated-component"
-    />
+    <AccountCreated :show="showMessage" :username="username" data-test="accountCreated-component" />
   </v-container>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, ref, watch } from "vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../store";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "../interfaces/INotifications";
 import AccountCreated from "../components/Account/AccountCreated.vue";
-import { envVariables } from "@/envVariables";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const showPassword = ref(false);
-    const showConfirmPassword = ref(false);
-    const showMessage = ref(false);
-    const acceptMarketing = ref(false);
-    const acceptPrivacyPolicy = ref(false);
-    const privacyPolicyError = ref(false);
-    const delay = ref(500);
-    const overlay = ref(false);
-    const isCloud = computed(() => envVariables.isCloud);
+const store = useStore();
+const router = useRouter();
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
+const showMessage = ref(false);
+const acceptMarketing = ref(false);
+const acceptPrivacyPolicy = ref(false);
 
-    const {
-      value: name,
-      errorMessage: nameError,
-      setErrors: setNameError,
-    } = useField<string>("name", yup.string().required(), {
-      initialValue: "",
-    });
+const {
+  value: name,
+  errorMessage: nameError,
+  setErrors: setNameError,
+} = useField<string>("name", yup.string().required(), {
+  initialValue: "",
+});
 
-    const {
-      value: username,
-      errorMessage: usernameError,
-      setErrors: setUsernameError,
-    } = useField<string>(
-      "username",
-      yup
-        .string()
-        .required()
-        .min(3)
-        .max(30)
-        .test(
-          "username-error",
-          "The username only accepts the special characters _, ., - and @.",
-          (value) => {
-            const regex = /^[a-zA-Z0-9_.@-\s]*$/;
-            return regex.test(value || "");
-          },
-        )
-        .test(
-          "white-spaces",
-          "The username cannot contain white spaces.",
-          (value) => {
-            const regex = /\s/;
-            return !regex.test(value || "");
-          },
-        ),
-      {
-        initialValue: "",
+const {
+  value: username,
+  errorMessage: usernameError,
+  setErrors: setUsernameError,
+} = useField<string>(
+  "username",
+  yup
+    .string()
+    .required()
+    .min(3)
+    .max(30)
+    .test(
+      "username-error",
+      "The username only accepts the special characters _, ., - and @.",
+      (value) => {
+        const regex = /^[a-zA-Z0-9_.@-\s]*$/;
+        return regex.test(value || "");
       },
-    );
-
-    const {
-      value: email,
-      errorMessage: emailError,
-      setErrors: setEmailError,
-    } = useField<string>("email", yup.string().email().required(), {
-      initialValue: "",
-    });
-
-    const {
-      value: password,
-      errorMessage: passwordError,
-      setErrors: setPasswordError,
-    } = useField<string>(
-      "password",
-      yup
-        .string()
-        .required()
-        .min(5, "Your password should be 5-30 characters long")
-        .max(30, "Your password should be 5-30 characters long"),
-      {
-        initialValue: "",
+    )
+    .test(
+      "white-spaces",
+      "The username cannot contain white spaces.",
+      (value) => {
+        const regex = /\s/;
+        return !regex.test(value || "");
       },
-    );
+    ),
+  {
+    initialValue: "",
+  },
+);
 
-    const {
-      value: passwordConfirm,
-      errorMessage: passwordConfirmError,
-    } = useField<string>(
-      "passwordConfirm",
-      yup
-        .string()
-        .required()
-        .test(
-          "passwords-match",
-          "Passwords do not match",
-          (value) => password.value === value,
-        ),
-      {
-        initialValue: "",
-      },
-    );
+const {
+  value: email,
+  errorMessage: emailError,
+  setErrors: setEmailError,
+} = useField<string>("email", yup.string().email().required(), {
+  initialValue: "",
+});
 
-    watch(overlay, (value) => {
-      if (value) {
-        setTimeout(() => {
-          overlay.value = false;
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.addUser,
-          );
-        }, delay.value);
-      }
-    });
+const {
+  value: password,
+  errorMessage: passwordError,
+  setErrors: setPasswordError,
+} = useField<string>(
+  "password",
+  yup
+    .string()
+    .required()
+    .min(5, "Your password should be 5-30 characters long")
+    .max(30, "Your password should be 5-30 characters long"),
+  {
+    initialValue: "",
+  },
+);
 
-    watch(acceptPrivacyPolicy, (value) => {
-      if (value) {
-        privacyPolicyError.value = false;
-      }
-    });
+const {
+  value: passwordConfirm,
+  errorMessage: passwordConfirmError,
+} = useField<string>(
+  "passwordConfirm",
+  yup
+    .string()
+    .required()
+    .test(
+      "passwords-match",
+      "Passwords do not match",
+      (value) => password.value === value,
+    ),
+  {
+    initialValue: "",
+  },
+);
 
-    const hasErrors = () => {
-      if (
-        nameError.value
-        || usernameError.value
-        || emailError.value
-        || passwordError.value
-        || passwordConfirmError.value
-        || !name.value
-        || !username.value
-        || !email.value
-        || !password.value
-        || !passwordConfirm.value
-      ) {
-        return true;
-      }
-      return false;
-    };
+const hasErrors = () => !!(
+  nameError.value
+    || usernameError.value
+    || emailError.value
+    || passwordError.value
+    || passwordConfirmError.value
+    || !name.value
+    || !username.value
+    || !email.value
+    || !password.value
+    || !passwordConfirm.value
+);
 
-    const createAccount = async () => {
-      if (!hasErrors()) {
-        try {
-          if (isCloud.value && !acceptPrivacyPolicy.value) {
-            privacyPolicyError.value = true;
-            return;
-          }
+const createAccount = async () => {
+  if (!hasErrors()) {
+    try {
+      await store.dispatch("users/signUp", {
+        name: name.value,
+        email: email.value,
+        username: username.value,
+        password: password.value,
+        confirmPassword: passwordConfirm.value,
+        emailMarketing: acceptMarketing.value,
+      });
 
-          await store.dispatch("users/signUp", {
-            name: name.value,
-            email: email.value,
-            username: username.value,
-            password: password.value,
-            confirmPassword: passwordConfirm.value,
-            emailMarketing: acceptMarketing.value,
-          });
-          overlay.value = !overlay.value;
-          showMessage.value = !showMessage.value;
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.addUser,
-          );
-          await router.push({ name: "ConfirmAccount", query: { username: username.value } });
-        } catch (error: unknown) {
-          if (axios.isAxiosError(error)) {
-            const axiosError = error as AxiosError;
-            if (axiosError.response?.status === 409) {
-              // @ts-expect-error axiosError.response.data is an array
-              axiosError.response.data.forEach((field: string) => {
-                if (field === "username") setUsernameError("This username already exists");
-                else if (field === "name") setNameError("This name already exists");
-                else if (field === "email") setEmailError("This email already exists");
-                else if (field === "password") setPasswordError("This password already exists");
-              });
-            } else if (axiosError.response?.status === 400) {
-              // @ts-expect-error axiosError.response.data is an array
-              axiosError.response.data.forEach((field: string) => {
-                if (field === "username") setUsernameError("This username is invalid !");
-                else if (field === "name") setNameError("This name is invalid !");
-                else if (field === "email") setEmailError("This email is invalid !");
-                else if (field === "password") setPasswordError("This password is invalid !");
-              });
-            }
-          }
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.addUser,
-          );
+      showMessage.value = !showMessage.value;
+
+      await router.push({ name: "ConfirmAccount", query: { username: username.value } });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        const responseData = axiosError.response?.data;
+        if (Array.isArray(responseData)) {
+          if (responseData.includes("username")) setUsernameError("This username already exists");
+          if (responseData.includes("name")) setNameError("This name is invalid!");
+          if (responseData.includes("password")) setPasswordError("This password is invalid!");
+          if (responseData.includes("email")) setEmailError("This email is invalid!");
         }
       }
-    };
-    return {
-      showPassword,
-      name,
-      nameError,
-      username,
-      usernameError,
-      email,
-      emailError,
-      password,
-      passwordError,
-      passwordConfirm,
-      passwordConfirmError,
-      showConfirmPassword,
-      createAccount,
-      store,
-      showMessage,
-      delay,
-      overlay,
-      isCloud,
-      acceptMarketing,
-      acceptPrivacyPolicy,
-      privacyPolicyError,
-    };
-  },
-  components: { AccountCreated },
-});
+    }
+  }
+};
 </script>
