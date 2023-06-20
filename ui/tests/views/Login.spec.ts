@@ -83,6 +83,7 @@ describe("Login", () => {
     await wrapper.findComponent('[data-test="form"]').trigger("submit");
     await flushPromises();
 
+    // Assert the login action dispatch
     expect(loginSpy).toHaveBeenCalledWith("auth/login", {
       username: "testuser",
       password: "password",
@@ -103,6 +104,7 @@ describe("Login", () => {
     await wrapper.findComponent('[data-test="form"]').trigger("submit");
     await flushPromises();
 
+    // Assert the login action dispatch
     expect(loginSpy).toHaveBeenCalledWith("auth/login", {
       username: "testuser",
       password: "password",
