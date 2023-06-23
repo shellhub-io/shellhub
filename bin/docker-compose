@@ -27,9 +27,10 @@ readlink_f() {
 # The following code checks if the docker compose plugin or standalone binary
 # supports specification V2 by looking at the version number. If it does,
 # it sets the COMPOSE_COMMAND variable to the corresponding command.
-if grep -q "^2\." <<< $(docker compose version --short 2> /dev/null); then
-    COMPOSE_COMMAND="docker compose"
-elif grep -q "^2\." <<< $(docker-compose version --short 2> /dev/null); then
+if docker compose version --short 2> /dev/null | grep -q "^2\."; then
+    COMPOSE_COMMAND="docker"
+    COMPOSE_ARGS="compose"
+elif docker-compose version --short 2> /dev/null | grep -q "^2\."; then
     COMPOSE_COMMAND="docker-compose"
 fi
 
@@ -63,4 +64,4 @@ COMPOSE_FILE="docker-compose.yml"
 
 export COMPOSE_FILE
 
-exec $COMPOSE_COMMAND "$@"
+exec $COMPOSE_COMMAND $COMPOSE_ARGS "$@"
