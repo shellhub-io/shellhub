@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"strings"
@@ -10,13 +11,13 @@ import (
 )
 
 type Services interface {
-	UserCreate(username, password, email string) (*models.User, error)
-	UserDelete(username string) error
-	UserUpdate(username, password string) error
-	NamespaceCreate(namespace, username, tenant string) (*models.Namespace, error)
-	NamespaceAddMember(username, namespace, role string) (*models.Namespace, error)
-	NamespaceRemoveMember(username, namespace string) (*models.Namespace, error)
-	NamespaceDelete(namespace string) error
+	UserCreate(ctx context.Context, username, password, email string) (*models.User, error)
+	UserDelete(ctx context.Context, username string) error
+	UserUpdate(ctx context.Context, username, password string) error
+	NamespaceCreate(ctx context.Context, namespace, username, tenant string) (*models.Namespace, error)
+	NamespaceAddMember(ctx context.Context, username, namespace, role string) (*models.Namespace, error)
+	NamespaceRemoveMember(ctx context.Context, username, namespace string) (*models.Namespace, error)
+	NamespaceDelete(ctx context.Context, namespace string) error
 }
 
 type service struct {

@@ -10,9 +10,9 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
-func (s *service) UserCreate(username, password, email string) (*models.User, error) {
-	ctx := context.Background()
+const MaxNumberNamespacesCommunity = -1
 
+func (s *service) UserCreate(ctx context.Context, username, password, email string) (*models.User, error) {
 	// returnDuplicatedField checks user's name and user's email already exist in the database.
 	returnDuplicatedField := func(ctx context.Context, username, email string) error {
 		list, _, err := s.store.UserList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil)
@@ -52,8 +52,7 @@ func (s *service) UserCreate(username, password, email string) (*models.User, er
 		Username: name,
 	}
 
-	_, err := validator.ValidateStruct(userData)
-	if err != nil {
+	if _, err := validator.ValidateStruct(userData); err != nil {
 		return nil, ErrUserDataInvalid
 	}
 
@@ -70,10 +69,10 @@ func (s *service) UserCreate(username, password, email string) (*models.User, er
 		UserPassword:  userPass,
 		Confirmed:     true,
 		CreatedAt:     clock.Now(),
-		MaxNamespaces: -1,
+		MaxNamespaces: MaxNumberNamespacesCommunity,
 	}
 
-	err = s.store.UserCreate(ctx, user)
+	err := s.store.UserCreate(ctx, user)
 	if err != nil {
 		if err == store.ErrDuplicate {
 			return nil, returnDuplicatedField(ctx, user.Username, user.Email)
@@ -85,9 +84,7 @@ func (s *service) UserCreate(username, password, email string) (*models.User, er
 	return user, nil
 }
 
-func (s *service) UserDelete(username string) error {
-	ctx := context.Background()
-
+func (s *service) UserDelete(ctx context.Context, username string) error {
 	// Gets the user data.
 	user, err := s.store.UserGetByUsername(ctx, username)
 	if err != nil {
@@ -126,9 +123,7 @@ func (s *service) UserDelete(username string) error {
 	return nil
 }
 
-func (s *service) UserUpdate(username, password string) error {
-	ctx := context.Background()
-
+func (s *service) UserUpdate(ctx context.Context, username, password string) error {
 	ok := validator.ValidateFieldPassword(password)
 	if !ok {
 		return ErrUserPasswordInvalid

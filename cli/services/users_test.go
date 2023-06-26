@@ -128,7 +128,7 @@ func TestDelUser(t *testing.T) {
 		test := ts
 		t.Run(test.description, func(t *testing.T) {
 			test.requiredMocks()
-			err := s.UserDelete(test.username)
+			err := s.UserDelete(ctx, test.username)
 			assert.Equal(t, test.expected, err)
 		})
 	}
@@ -216,7 +216,7 @@ func TestResetUserPassword(t *testing.T) {
 		test := ts
 		t.Run(test.description, func(t *testing.T) {
 			test.requiredMocks()
-			err := s.UserUpdate(test.username, test.password)
+			err := s.UserUpdate(ctx, test.username, test.password)
 			assert.Equal(t, test.expected, err)
 		})
 	}
