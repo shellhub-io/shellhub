@@ -56,7 +56,8 @@ func TestNamespaceCreate(t *testing.T) {
 		Settings: &models.NamespaceSettings{
 			SessionRecord: true,
 		},
-		CreatedAt: now,
+		MaxDevices: MaxNumberDevicesUnlimited,
+		CreatedAt:  now,
 	}
 	namespaceInvalid := &models.Namespace{
 		Name:     "namespaceInvalid@@",
@@ -161,7 +162,7 @@ func TestNamespaceCreate(t *testing.T) {
 				envs.DefaultBackend = envMock
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
-				namespace.MaxDevices = 3
+				namespace.MaxDevices = MaxNumberDevicesLimited
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
 			},
@@ -177,7 +178,7 @@ func TestNamespaceCreate(t *testing.T) {
 				envs.DefaultBackend = envMock
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				namespace.MaxDevices = -1
+				namespace.MaxDevices = MaxNumberDevicesUnlimited
 				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
 				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
 			},
@@ -189,7 +190,7 @@ func TestNamespaceCreate(t *testing.T) {
 		test := ts
 		t.Run(test.description, func(t *testing.T) {
 			test.requiredMocks()
-			ns, err := s.NamespaceCreate(test.namespace, test.username, test.tenantID)
+			ns, err := s.NamespaceCreate(ctx, test.namespace, test.username, test.tenantID)
 			assert.Equal(t, test.expected, Expected{ns, err})
 		})
 	}
@@ -293,7 +294,7 @@ func TestAddUserNamespace(t *testing.T) {
 		test := ts
 		t.Run(test.description, func(t *testing.T) {
 			test.requiredMocks()
-			ns, err := s.NamespaceAddMember(test.username, test.namespace, test.role)
+			ns, err := s.NamespaceAddMember(ctx, test.username, test.namespace, test.role)
 			assert.Equal(t, test.expected, Expected{ns, err})
 		})
 	}
@@ -403,7 +404,7 @@ func TestDelUserNamespace(t *testing.T) {
 		test := ts
 		t.Run(test.description, func(t *testing.T) {
 			test.requiredMocks()
-			ns, err := s.NamespaceRemoveMember(test.username, test.namespace)
+			ns, err := s.NamespaceRemoveMember(ctx, test.username, test.namespace)
 			assert.Equal(t, test.expected, Expected{ns, err})
 		})
 	}
@@ -485,7 +486,7 @@ func TestDelNamespace(t *testing.T) {
 		test := ts
 		t.Run(test.description, func(t *testing.T) {
 			test.requiredMocks()
-			err := s.NamespaceDelete(test.namespace)
+			err := s.NamespaceDelete(ctx, test.namespace)
 			assert.Equal(t, test.expected, err)
 		})
 	}

@@ -11,9 +11,12 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
-func (s *service) NamespaceCreate(namespace, username, tenant string) (*models.Namespace, error) {
-	ctx := context.Background()
+const (
+	MaxNumberDevicesLimited   = 3
+	MaxNumberDevicesUnlimited = -1
+)
 
+func (s *service) NamespaceCreate(ctx context.Context, namespace, username, tenant string) (*models.Namespace, error) {
 	// tenant is optional.
 	if tenant == "" {
 		tenant = uuid.Generate()
@@ -30,12 +33,10 @@ func (s *service) NamespaceCreate(namespace, username, tenant string) (*models.N
 		TenantID: tenant,
 		MaxDevices: func() int {
 			if envs.IsCloud() {
-				return 3
-			} else if envs.IsEnterprise() {
-				return -1
+				return MaxNumberDevicesLimited
 			}
 
-			return 0
+			return MaxNumberDevicesUnlimited
 		}(),
 		Members: []models.Member{
 			{
@@ -62,9 +63,7 @@ func (s *service) NamespaceCreate(namespace, username, tenant string) (*models.N
 	return ns, nil
 }
 
-func (s *service) NamespaceAddMember(username, namespace, role string) (*models.Namespace, error) {
-	ctx := context.Background()
-
+func (s *service) NamespaceAddMember(ctx context.Context, username, namespace, role string) (*models.Namespace, error) {
 	if _, err := validator.ValidateStruct(models.Member{Username: username, Role: role}); err != nil {
 		return nil, ErrInvalidFormat
 	}
@@ -87,9 +86,7 @@ func (s *service) NamespaceAddMember(username, namespace, role string) (*models.
 	return ns, nil
 }
 
-func (s *service) NamespaceRemoveMember(username, namespace string) (*models.Namespace, error) {
-	ctx := context.Background()
-
+func (s *service) NamespaceRemoveMember(ctx context.Context, username, namespace string) (*models.Namespace, error) {
 	if _, err := validator.ValidateVar(username, "username"); err != nil {
 		return nil, ErrInvalidFormat
 	}
@@ -112,9 +109,7 @@ func (s *service) NamespaceRemoveMember(username, namespace string) (*models.Nam
 	return ns, nil
 }
 
-func (s *service) NamespaceDelete(namespace string) error {
-	ctx := context.Background()
-
+func (s *service) NamespaceDelete(ctx context.Context, namespace string) error {
 	ns, err := s.store.NamespaceGetByName(ctx, namespace)
 	if err != nil {
 		return ErrNamespaceNotFound

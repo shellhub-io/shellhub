@@ -104,7 +104,7 @@ func main() {
 				return err
 			}
 
-			user, err := service.UserCreate(input.Username, input.Password, input.Email)
+			user, err := service.UserCreate(cmd.Context(), input.Username, input.Password, input.Email)
 			if err != nil {
 				return err
 			}
@@ -135,7 +135,7 @@ func main() {
 				return err
 			}
 
-			if err := service.UserDelete(input.Username); err != nil {
+			if err := service.UserDelete(cmd.Context(), input.Username); err != nil {
 				return err
 			}
 
@@ -165,7 +165,7 @@ func main() {
 				return err
 			}
 
-			if err := service.UserUpdate(input.Username, input.Password); err != nil {
+			if err := service.UserUpdate(cmd.Context(), input.Username, input.Password); err != nil {
 				return err
 			}
 
@@ -207,7 +207,7 @@ func main() {
 				return err
 			}
 
-			namespace, err := service.NamespaceCreate(input.Namespace, input.Owner, input.TenantID)
+			namespace, err := service.NamespaceCreate(cmd.Context(), input.Namespace, input.Owner, input.TenantID)
 			if err != nil {
 				return err
 			}
@@ -239,7 +239,7 @@ func main() {
 				return err
 			}
 
-			if err := service.NamespaceDelete(input.Namespace); err != nil {
+			if err := service.NamespaceDelete(cmd.Context(), input.Namespace); err != nil {
 				return err
 			}
 
@@ -276,7 +276,7 @@ func main() {
 				return err
 			}
 
-			namespace, err := service.NamespaceAddMember(input.Username, input.Namespace, input.Role)
+			namespace, err := service.NamespaceAddMember(cmd.Context(), input.Username, input.Namespace, input.Role)
 			if err != nil {
 				return err
 			}
@@ -310,7 +310,7 @@ func main() {
 				return err
 			}
 
-			namespace, err := service.NamespaceRemoveMember(input.Username, input.Namespace)
+			namespace, err := service.NamespaceRemoveMember(cmd.Context(), input.Username, input.Namespace)
 			if err != nil {
 				return err
 			}
@@ -334,7 +334,7 @@ func main() {
 		Short:      "Usage: <username> <password> <email>",
 		Args:       cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			user, err := service.UserCreate(args[0], args[1], args[2])
+			user, err := service.UserCreate(cmd.Context(), args[0], args[1], args[2])
 			if err != nil {
 				return err
 			}
@@ -352,7 +352,7 @@ func main() {
 			Short:      "Usage: <username>",
 			Args:       cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := service.UserDelete(args[0]); err != nil {
+				if err := service.UserDelete(cmd.Context(), args[0]); err != nil {
 					return err
 				}
 
@@ -367,7 +367,7 @@ func main() {
 			Short:      "Usage: <username> <password>",
 			Args:       cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := service.UserUpdate(args[0], args[1]); err != nil {
+				if err := service.UserUpdate(cmd.Context(), args[0], args[1]); err != nil {
 					return err
 				}
 
@@ -387,7 +387,7 @@ func main() {
 					args = append(args, "")
 				}
 
-				namespace, err := service.NamespaceCreate(args[0], args[1], args[2])
+				namespace, err := service.NamespaceCreate(cmd.Context(), args[0], args[1], args[2])
 				if err != nil {
 					return err
 				}
@@ -405,7 +405,7 @@ func main() {
 			Short:      "Usage: <username> <namespace> <role>",
 			Args:       cobra.ExactArgs(3),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				ns, err := service.NamespaceAddMember(args[0], args[1], args[2])
+				ns, err := service.NamespaceAddMember(cmd.Context(), args[0], args[1], args[2])
 				if err != nil {
 					return err
 				}
@@ -423,7 +423,7 @@ func main() {
 			Short:      "Usage <username> <namespace>",
 			Args:       cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				ns, err := service.NamespaceRemoveMember(args[0], args[1])
+				ns, err := service.NamespaceRemoveMember(cmd.Context(), args[0], args[1])
 				if err != nil {
 					return err
 				}
@@ -440,7 +440,7 @@ func main() {
 			Short:      "Usage: <namespace>",
 			Args:       cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := service.NamespaceDelete(args[0]); err != nil {
+				if err := service.NamespaceDelete(cmd.Context(), args[0]); err != nil {
 					return err
 				}
 
