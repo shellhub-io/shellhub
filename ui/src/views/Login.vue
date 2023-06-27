@@ -31,6 +31,7 @@
     <v-form
       v-model="validForm"
       @submit.prevent="login"
+      data-test="form"
     >
       <v-col>
         <v-text-field
@@ -64,7 +65,6 @@
             color="primary"
             variant="tonal"
             block
-            @click="login"
             type="submit"
           >
             LOGIN
@@ -153,7 +153,7 @@ const login = async () => {
           invalidCredentials.value = true;
           break;
         case 403:
-          await router.push({ name: "ConfirmAccount", query: { username: username.value } });
+          router.push({ name: "ConfirmAccount", query: { username: username.value } });
           break;
         default:
           snackbar.showError("Something went wrong in our server. Please try again later.");
