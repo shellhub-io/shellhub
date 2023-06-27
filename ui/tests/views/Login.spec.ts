@@ -8,7 +8,6 @@ import { store, key } from "../../src/store";
 import { router } from "../../src/router";
 import { envVariables } from "../../src/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { nextTick } from "vue";
 
 type LoginWrapper = VueWrapper<InstanceType<typeof Login>>;
 
@@ -19,8 +18,6 @@ describe("Login", () => {
   let mock: MockAdapter;
 
   beforeEach(() => {
-    vi.useFakeTimers();
-
     envVariables.isCloud = true;
 
     // Create a mock adapter for the usersApi instance
@@ -34,9 +31,9 @@ describe("Login", () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.restoreAllMocks();
     mock.reset();
+    wrapper.unmount();
   });
 
   it("Is a Vue instance", () => {
@@ -59,7 +56,6 @@ describe("Login", () => {
   it("disables submit button when the form is invalid", async () => {
     await wrapper.findComponent('[data-test="username-text"]').setValue("");
     await wrapper.findComponent('[data-test="password-text"]').setValue("");
-    await nextTick();
 
     expect(wrapper.find('[data-test="login-btn"]').attributes().disabled).toBeDefined();
   });
@@ -83,10 +79,7 @@ describe("Login", () => {
 
     await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
     await wrapper.findComponent('[data-test="password-text"]').setValue("password");
-    await nextTick();
-    await wrapper.find('[data-test="login-btn"]').trigger("submit");
-
-    vi.runOnlyPendingTimers();
+    await wrapper.findComponent('[data-test="form"]').trigger("submit");
     await flushPromises();
 
     expect(loginSpy).toHaveBeenCalledWith("auth/login", {
@@ -106,10 +99,7 @@ describe("Login", () => {
 
     await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
     await wrapper.findComponent('[data-test="password-text"]').setValue("password");
-    await nextTick();
-    await wrapper.find('[data-test="login-btn"]').trigger("submit");
-
-    vi.runOnlyPendingTimers();
+    await wrapper.findComponent('[data-test="form"]').trigger("submit");
     await flushPromises();
 
     expect(loginSpy).toHaveBeenCalledWith("auth/login", {
@@ -130,10 +120,7 @@ describe("Login", () => {
 
     await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
     await wrapper.findComponent('[data-test="password-text"]').setValue("password");
-    await nextTick();
-    await wrapper.find('[data-test="login-btn"]').trigger("submit");
-
-    vi.runOnlyPendingTimers();
+    await wrapper.findComponent('[data-test="form"]').trigger("submit");
     await flushPromises();
 
     // Assert the login action dispatch

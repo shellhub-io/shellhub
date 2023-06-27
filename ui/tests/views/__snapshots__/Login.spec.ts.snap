@@ -6,7 +6,7 @@ exports[`Login > Renders the component 1`] = `
   <transition-stub name=\\"slide-y-reverse-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
     <!---->
   </transition-stub>
-  <form class=\\"v-form\\" novalidate=\\"\\">
+  <form class=\\"v-form\\" novalidate=\\"\\" data-test=\\"form\\">
     <div class=\\"v-col\\">
       <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"username-text\\">
         <div class=\\"v-input__prepend\\">
