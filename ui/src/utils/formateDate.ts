@@ -14,9 +14,9 @@ export const formatDateCompact = (date: string) => {
   return null;
 };
 
-export const formatDateWithoutDayAndHours = (date : string) => {
+export const formatDateWithoutDayAndHours = (date : number) => {
   if (date) {
-    return moment(date).format("MMMM Do YYYY");
+    return moment.unix(date).format("MMM Do YYYY");
   }
   return null;
 };

@@ -66,6 +66,13 @@
 
         <div class="mt-6" data-test="deleteOperation-div">
           <h3 class="mb-2">Danger Zone</h3>
+          <v-alert
+            v-if="billingInDebt"
+            type="error"
+            text="We regret to inform you that it
+            is currently not possible to delete
+            your namespace due to either an outstanding
+            unpaid invoice or an active subscription." />
           <v-row class="mt-2 mb-2">
             <v-col class="ml-3">
               <h4>Delete this namespace</h4>
@@ -77,7 +84,7 @@
             </v-col>
 
             <v-col md="auto" class="ml-auto mb-4">
-              <NamespaceDelete :nsTenant="tenant" />
+              <NamespaceDelete :nsTenant="tenant" @billing-in-debt="billingInDebt = true" />
             </v-col>
           </v-row>
         </div>
@@ -87,7 +94,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, computed } from "vue";
+import { defineComponent, onMounted, computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { envVariables } from "../../envVariables";
 import { useStore } from "../../store";
@@ -108,6 +115,7 @@ export default defineComponent({
     const namespace = computed(() => store.getters["namespaces/get"]);
     const tenant = computed(() => store.getters["auth/tenant"]);
     const isEnterprise = computed(() => envVariables.isEnterprise);
+    const billingInDebt = ref(false);
 
     const copyText = (value: string | undefined) => {
       if (value) {
@@ -157,6 +165,7 @@ export default defineComponent({
       refresh,
       isEnterprise,
       hasTenant,
+      billingInDebt,
     };
   },
   components: {

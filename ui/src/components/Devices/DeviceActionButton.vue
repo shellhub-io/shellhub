@@ -33,22 +33,29 @@
           Are you sure?
         </v-card-title>
         <v-divider />
+        <v-container>
 
-        <v-card-text class="mt-4 mb-0 pb-1">
-          <p class="text-body-2 mb-2">
-            You are about to {{ action }} this device.
-          </p>
-        </v-card-text>
+          <v-alert
+            v-if="billingActive"
+            type="warning"
+            text="Please note that each accepted device will be billed individually.
+          Removing a device later will not affect the charges for that device." />
+          <v-card-text class="mt-4 mb-0 pb-1">
+            <p class="text-body-2 mb-2">
+              You are about to {{ action }} this device.
+            </p>
+          </v-card-text>
 
-        <v-card-actions>
-          <v-spacer />
+          <v-card-actions>
+            <v-spacer />
 
-          <v-btn variant="text" @click="close()"> Close </v-btn>
+            <v-btn variant="text" @click="close()"> Close </v-btn>
 
-          <v-btn variant="text" @click="doAction()">
-            {{ action }}
-          </v-btn>
-        </v-card-actions>
+            <v-btn variant="text" @click="doAction()">
+              {{ action }}
+            </v-btn>
+          </v-card-actions>
+        </v-container>
       </v-card>
     </v-dialog>
   </div>
@@ -91,6 +98,8 @@ export default defineComponent({
   },
   setup(props, ctx) {
     const store = useStore();
+
+    const billingActive = computed(() => store.getters["billing/active"]);
 
     const hasAuthorization = computed(() => {
       const role = store.getters["auth/role"];
@@ -235,6 +244,7 @@ export default defineComponent({
       hasAuthorization,
       capitalizeText,
       dialog,
+      billingActive,
     };
   },
 });

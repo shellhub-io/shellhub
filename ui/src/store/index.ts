@@ -19,12 +19,14 @@ import { devices, DevicesState } from "./modules/devices";
 import { box, BoxState } from "./modules/box";
 import { namespaces, NamespacesState } from "./modules/namespaces";
 import { billing } from "./modules/billing";
+import { customer, CustomerState } from "./modules/customer";
 import { announcement, AnnouncementState } from "./modules/announcement";
 import apiPlugin from "./plugins/api";
 
 export interface State {
   auth: AuthState;
   billing: NamespacesState;
+  customer: CustomerState;
   box: BoxState;
   devices: DevicesState;
   firewallRules: FirewallRulesState;
@@ -49,6 +51,7 @@ export const key: InjectionKey<Store<State>> = Symbol("store");
 export const store = createStore<State>({
   modules: {
     auth,
+    customer,
     billing,
     box,
     devices,

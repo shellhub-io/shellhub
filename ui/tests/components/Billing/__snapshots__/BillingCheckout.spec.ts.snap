@@ -1,0 +1,87 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Billing Checkout > Renders the component 1`] = `
+"<div class=\\"v-container v-locale--is-ltr\\">
+  <div class=\\"v-row\\">
+    <div class=\\"v-col\\">
+      <h2 data-test=\\"title\\">Payment Method:</h2>
+    </div>
+  </div>
+  <div class=\\"v-row\\">
+    <div class=\\"v-col\\">
+      <p data-test=\\"sub-title\\">This is the payment method you have selected for your ShellHub Cloud subscription</p>
+    </div>
+  </div>
+  <div class=\\"v-col\\">
+    <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-flat bg-v-theme-card\\" align=\\"center\\" data-test=\\"card\\">
+      <!---->
+      <div class=\\"v-card__loader\\">
+        <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <!---->
+          <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+          <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+            <div class=\\"v-progress-linear__indeterminate\\">
+              <div class=\\"v-progress-linear__indeterminate long\\"></div>
+              <div class=\\"v-progress-linear__indeterminate short\\"></div>
+            </div>
+          </transition-stub>
+          <!---->
+        </div>
+      </div>
+      <!---->
+      <!---->
+      <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text pl-0 pr-0\\">
+        <!----><span class=\\"v-list-item__underlay\\"></span>
+        <!---->
+        <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+          <!---->
+          <!---->
+          <div class=\\"v-row align-center pa-0 pa-2\\" cols=\\"12\\">
+            <div class=\\"v-col v-col-1\\">
+              <font-awesome-icon icon=\\"far,credit-card\\" style=\\"font-size: 1.5rem;\\" data-test=\\"default-icon\\"></font-awesome-icon>
+            </div>
+            <div class=\\"v-col v-col-4\\"><b></b></div>
+            <div class=\\"v-col v-col-2\\">0/0</div>
+            <div class=\\"v-col v-col-2 d-flex flex-column align-end\\"></div>
+            <div class=\\"v-col v-col-3 d-flex flex-column align-end\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+              <!---->
+              <!---->
+              <div class=\\"v-chip__content\\" aria-describedby=\\"v-tooltip-2\\"><b>default</b>
+                <!---->
+                <!--teleport start-->
+                <!--teleport end-->
+              </div>
+              <!---->
+              <!----></span>
+            </div>
+          </div>
+        </div>
+        <!---->
+      </div>
+      <!---->
+      <!----><span class=\\"v-card__underlay\\"></span>
+    </div>
+  </div>
+  <div class=\\"flex-grow-1 mb-5\\"></div>
+  <div class=\\"v-row\\">
+    <div class=\\"v-col\\">
+      <h3 data-test=\\"additional-information\\">Additional Information:</h3>
+      <div class=\\"flex-grow-1 mb-2\\"></div>
+      <ul data-test=\\"additional-information-list\\">
+        <li>
+          <p>Your selected payment method will be charged automatically on a monthly basis</p>
+        </li>
+        <li>
+          <p>You can manage your payment methods, invoices and subscription details in the <b>Billing Portal.</b></p>
+        </li>
+        <li>
+          <p>Invoices will be generated and available for download at the beginning of each billing cycle.</p>
+        </li>
+        <li>
+          <p>You have the option to cancel your subscription at any time through the <b>Billing Portal.</b></p>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>"
+`;

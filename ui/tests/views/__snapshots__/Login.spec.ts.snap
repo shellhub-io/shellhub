@@ -33,7 +33,8 @@ exports[`Login > Renders the component 1`] = `
               <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
                 <!---->Username or email address
               </label>
-              <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" required=\\"\\" class=\\"v-field__input\\">
+              <!---->
+              <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" required=\\"\\"></div>
               <!---->
             </div>
             <!---->
@@ -78,7 +79,8 @@ exports[`Login > Renders the component 1`] = `
               <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
                 <!---->Password
               </label>
-              <!----><input size=\\"1\\" type=\\"password\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
+              <!---->
+              <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input size=\\"1\\" type=\\"password\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\"></div>
               <!---->
             </div>
             <!---->

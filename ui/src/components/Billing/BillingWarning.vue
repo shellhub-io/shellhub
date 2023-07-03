@@ -6,12 +6,12 @@
     width="520"
     data-test="billingWarning-dialog"
   >
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="pa-3 bg-primary">
+    <v-card class="bg-v-theme-surface" data-test="card-dialog">
+      <v-card-title class="pa-3 bg-primary" data-test="card-title">
         Update account
       </v-card-title>
 
-      <v-card-text class="mt-4 mb-3 pb-1">
+      <v-card-text class="mt-4 mb-3 pb-1" data-test="card-text">
         <p>
           This namespace has maximum number of devices on your free account.
         </p>

@@ -1,18 +1,20 @@
 import { ChoiceDevicesRequest } from "@/api/client";
 import { billingApi } from "../../api/http";
 
-export const subscritionPaymentMethod = async (data: string) => billingApi.createSubscription({ payment_method_id: data });
+export const getCustomer = async () => billingApi.getCustomer();
+
+export const attachPaymentMethod = async (id: string) => billingApi.attachPaymentMethod({ id });
+
+export const detachPaymentMethod = async (id: string) => billingApi.detachPaymentMethod({ id });
+
+export const createSubscription = async () => billingApi.createSubscription();
+
+export const setDefaultPaymentMethod = async (id: string) => billingApi.setDefaultPaymentMethod({ id });
+
+export const createCustomer = async () => billingApi.createCustomer();
 
 export const postDevicesChooser = async (data: ChoiceDevicesRequest) => billingApi.choiceDevices(data);
 
 export const getSubscriptionInfo = async () => billingApi.getSubscription();
 
 export const getDevicesMostUsed = async () => billingApi.getDevicesMostUsed();
-
-export const updatePaymentMethod = async (id: string) => billingApi.updatePaymentMethod(id);
-
-export const addPaymentMethod = async (id: string) => billingApi.addPaymentMethod(id);
-
-export const removePaymentMethod = async (id: string) => billingApi.deattachPaymentMethod(id);
-
-export const cancelSubscription = async () => billingApi.cancelSubscription();

@@ -1,15 +1,13 @@
 import { Module } from "vuex";
 import * as apiNamespace from "../api/namespaces";
 import { INamespace, INamespaceMember } from "@/interfaces/INamespace";
-import { IBIllingDataInvoice, IBilling, IBillingData } from "@/interfaces/IBilling";
+import { IBilling } from "@/interfaces/IBilling";
 import { State } from "..";
 
 export interface NamespacesState {
   namespace: INamespace;
-  billInfoData: IBillingData;
   billing: IBilling;
   namespaces: Array<INamespace>;
-  invoices: Array<IBIllingDataInvoice>;
   defaultPerPage: number;
   invoicesLength: number;
   numberNamespaces: number;
@@ -20,10 +18,8 @@ export const namespaces: Module<NamespacesState, State> = {
   namespaced: true,
   state: {
     namespace: {} as INamespace,
-    billInfoData: {} as IBillingData,
     billing: {} as IBilling,
     namespaces: [],
-    invoices: [],
     defaultPerPage: 3,
     invoicesLength: 0,
     numberNamespaces: 0,

@@ -17,6 +17,7 @@ const light = {
     paymentForm: "#F5F5F5",
     "v-theme-background": "#FFFFFF",
     "v-theme-surface": "#FFFFFF",
+    "v-theme-card": "#FFFFFF",
   },
 };
 
@@ -31,6 +32,7 @@ const dark = {
     paymentForm: "#E0E0E0",
     "v-theme-background": "#1E2127",
     "v-theme-surface": "#1E2127",
+    "v-theme-card": "#22252B",
   },
 };
 
