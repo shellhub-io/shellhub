@@ -1,22 +1,36 @@
 <template>
-  <i
+  <font-awesome-icon
     v-if="isDefaultIcon()"
-    class="fa-regular fa-credit-card"
+    :icon="['far', 'credit-card']"
     :style="{ fontSize: size }"
     data-test="default-icon"
   />
 
-  <i
-    v-if="!isDefaultIcon()"
-    :class="'fab ' + icon()"
+  <font-awesome-icon
+    v-else
+    :icon="['fab', icon()]"
     :style="{ fontSize: size }"
     data-test="type-icon"
   />
+
 </template>
 
 <script lang="ts">
 /* eslint-disable */
 import { defineComponent, ref } from "vue";
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faCreditCard } from '@fortawesome/free-regular-svg-icons';
+import { faCcAmex, faCcDinersClub, faCcDiscover, faCcJcb, faCcMastercard, faCcVisa } from '@fortawesome/free-brands-svg-icons';
+
+library.add(
+  faCreditCard,
+  faCcAmex,
+  faCcDinersClub,
+  faCcDiscover,
+  faCcJcb,
+  faCcMastercard,
+  faCcVisa
+);
 
 export default defineComponent({
   props: {
@@ -42,9 +56,7 @@ export default defineComponent({
     const icon = () =>
       cardIcon.value[convertIconName()] || "credit-card";
     const convertIconName = () => {
-      if (props.iconName === "diners-club") {
-        return "dinersClub";
-      }
+      props.iconName === "diners-club" ? "dinersClub" : props.iconName
 
       return props.iconName;
     };

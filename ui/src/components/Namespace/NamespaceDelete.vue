@@ -24,17 +24,16 @@
 
       <v-card-text class="mt-4 mb-3 pb-1">
         <p
-          v-if="hasAuthorization && billingActive && billingInfo != undefined"
+          v-if="hasAuthorization && billingActive"
           data-test="contentSubscription-p"
         >
-          Deleting the namespace will generate an invoice, estimated
-          <b> {{ formatCurrency(billingInfo.nextPaymentDue, billingInfo.currency) }} </b> for the time
-          of use.
+          To maintain the integrity of your namespace,
+          it is not possible to delete it while you have an active subscription or an unpaid invoice.
         </p>
 
-        <p data-test="content-text">
+        <p data-test="content-text" v-else>
           This action cannot be undone. This will permanently delete the
-          <b> {{ displayOnlyTenCharacters(name) }} </b>and its related data.
+          <b> {{ displayOnlyTenCharacters(name) }} </b> and its related data.
         </p>
       </v-card-text>
 
@@ -50,6 +49,7 @@
           variant="text"
           data-test="remove-btn"
           @click="remove()"
+          :disabled="billingActive"
         >
           Remove
         </v-btn>
@@ -61,6 +61,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
@@ -80,18 +81,15 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  emits: ["billing-in-debt"],
+  setup(props, ctx) {
     const store = useStore();
     const router = useRouter();
     const dialog = ref(false);
     const name = ref("");
-
     const tenant = computed(() => props.nsTenant);
     const billingActive = computed(() => store.getters["billing/active"]);
     const billing = computed(() => store.getters["billing/get"]);
-    const billingInfo = computed(
-      () => store.getters["billing/getBillInfoData"].info,
-    );
 
     const hasAuthorization = computed(() => {
       const role = store.getters["auth/role"];
@@ -136,6 +134,16 @@ export default defineComponent({
           INotificationsSuccess.namespaceDelete,
         );
       } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          switch (axiosError.response?.status) {
+            case 402:
+              ctx.emit("billing-in-debt");
+              break;
+            default:
+              break;
+          }
+        }
         store.dispatch(
           "snackbar/showSnackbarErrorAction",
           INotificationsError.namespaceDelete,
@@ -150,7 +158,6 @@ export default defineComponent({
       name,
       tenant,
       billing,
-      billingInfo,
       billingActive,
       isBillingEnabled,
       getSubscriptionInfo,

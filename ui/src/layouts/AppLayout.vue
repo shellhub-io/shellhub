@@ -3,10 +3,16 @@
     :theme="getStatusDarkMode"
     v-bind="$attrs"
   >
+    <!-- <v-row>
+      <v-col class="d-flex flex-column align-center">
+        <p>dsaasd</p>
+      </v-col>
+    </v-row> -->
     <v-navigation-drawer
       theme="dark"
       v-model="showNavigationDrawer"
       :permanent="lgAndUp"
+      absolute
       app
       class="bg-v-theme-surface"
     >

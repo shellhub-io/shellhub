@@ -1,0 +1,116 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Billing Payment > Renders the component 1`] = `
+"<div data-v-ec12e293=\\"\\" class=\\"v-row\\">
+  <div data-v-ec12e293=\\"\\" class=\\"v-col\\">
+    <div data-v-ec12e293=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--disabled v-text-field\\" data-test=\\"customer-name\\">
+      <!---->
+      <div class=\\"v-input__control\\">
+        <div class=\\"v-field v-field--center-affix v-field--disabled v-field--variant-filled v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
+          <div class=\\"v-field__overlay\\"></div>
+          <div class=\\"v-field__loader\\">
+            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <!---->
+              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                <div class=\\"v-progress-linear__indeterminate\\">
+                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                </div>
+              </transition-stub>
+              <!---->
+            </div>
+          </div>
+          <!---->
+          <div class=\\"v-field__field\\" data-no-activator=\\"\\"><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-0\\">
+              <!---->Name
+            </label><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
+              <!---->Name
+            </label>
+            <!---->
+            <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\"></div>
+            <!---->
+          </div>
+          <!---->
+          <!---->
+          <div class=\\"v-field__outline\\">
+            <!---->
+            <!---->
+          </div>
+        </div>
+      </div>
+      <!---->
+      <div class=\\"v-input__details\\">
+        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-0-messages\\">
+          <!---->
+        </transition-group-stub>
+        <!---->
+      </div>
+    </div>
+  </div>
+  <div data-v-ec12e293=\\"\\" class=\\"v-col\\">
+    <div data-v-ec12e293=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--disabled v-text-field\\" data-test=\\"customer-email\\">
+      <!---->
+      <div class=\\"v-input__control\\">
+        <div class=\\"v-field v-field--center-affix v-field--disabled v-field--variant-filled v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
+          <div class=\\"v-field__overlay\\"></div>
+          <div class=\\"v-field__loader\\">
+            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <!---->
+              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                <div class=\\"v-progress-linear__indeterminate\\">
+                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                </div>
+              </transition-stub>
+              <!---->
+            </div>
+          </div>
+          <!---->
+          <div class=\\"v-field__field\\" data-no-activator=\\"\\"><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-2\\">
+              <!---->E-mail
+            </label><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
+              <!---->E-mail
+            </label>
+            <!---->
+            <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\"></div>
+            <!---->
+          </div>
+          <!---->
+          <!---->
+          <div class=\\"v-field__outline\\">
+            <!---->
+            <!---->
+          </div>
+        </div>
+      </div>
+      <!---->
+      <div class=\\"v-input__details\\">
+        <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-2-messages\\">
+          <!---->
+        </transition-group-stub>
+        <!---->
+      </div>
+    </div>
+  </div>
+</div>
+<div data-v-ec12e293=\\"\\" class=\\"v-col ma-0 pa-0\\">
+  <h4 data-v-ec12e293=\\"\\" data-test=\\"credit-card-text\\">Your credit cards</h4>
+</div>
+<div data-v-ec12e293=\\"\\" class=\\"v-list v-list--nav v-theme--light bg-transparent v-list--density-default v-list--one-line w-100 pa-0 pt-2 content-card\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"payment-methods-list\\"></div>
+<div data-v-ec12e293=\\"\\" class=\\"v-row mt-0 pt-0 pt-0\\" cols=\\"12\\">
+  <div data-v-ec12e293=\\"\\" class=\\"v-col v-col-8 pr-0\\">
+    <!--v-if-->
+  </div>
+  <div data-v-ec12e293=\\"\\" class=\\"v-col v-col-4 d-flex flex-lg-column align-center justify-center pt-0\\"><button data-v-ec12e293=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"add-card-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span><span class=\\"v-btn__prepend\\"><i class=\\"mdi-credit-card-plus mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Add new card </span>
+      <!---->
+      <!---->
+    </button></div>
+</div>
+<div data-v-ec12e293=\\"\\" class=\\"v-row\\">
+  <div data-v-ec12e293=\\"\\" class=\\"v-col\\">
+    <!--v-if-->
+  </div>
+</div>"
+`;
