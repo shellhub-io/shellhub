@@ -371,6 +371,8 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 		}
 	}
 
+	token = strings.Replace(token, "Bearer ", "", 1)
+
 	return &models.UserAuthResponse{
 		Token:  token,
 		Name:   user.Name,
