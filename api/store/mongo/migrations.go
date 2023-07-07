@@ -17,7 +17,7 @@ import (
 func ApplyMigrations(db *mongo.Database) error {
 	logrus.Info("Creating lock for the resource migrations")
 
-	lockClient := lock.NewClient(db.Collection("locks", options.Collection().SetWriteConcern(writeconcern.New(writeconcern.WMajority()))))
+	lockClient := lock.NewClient(db.Collection("locks", options.Collection().SetWriteConcern(writeconcern.Majority())))
 	if err := lockClient.CreateIndexes(context.TODO()); err != nil {
 		logrus.WithError(err).Fatal("Failed to create a lock for the database")
 	}
