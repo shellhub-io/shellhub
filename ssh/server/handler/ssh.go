@@ -408,15 +408,6 @@ func exec(api internalclient.Client, uid string, device *models.Device, agent *g
 		return err
 	}
 
-	ver, err := semver.NewVersion(dev.Info.Version)
-	if err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"client": uid,
-		}).Error("failed to parse device version")
-
-		return err
-	}
-
 	waitPipeIn := make(chan bool)
 	waitPipeOut := make(chan bool)
 
@@ -433,8 +424,21 @@ func exec(api internalclient.Client, uid string, device *models.Device, agent *g
 		return err
 	}
 
+	var ver *semver.Version
+
+	if dev.Info.Version != "latest" {
+		ver, err = semver.NewVersion(dev.Info.Version)
+		if err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"client": uid,
+			}).Error("failed to parse device version")
+
+			return err
+		}
+	}
+
 	// version less 0.9.3 does not support the exec command, what will make some commands to hang forever.
-	if ver.LessThan(semver.MustParse("0.9.3")) {
+	if dev.Info.Version != "latest" && ver.LessThan(semver.MustParse("0.9.3")) {
 		go func() {
 			// When agent stop to send data, it means that the command has finished and the process should be closed.
 			<-waitPipeIn
