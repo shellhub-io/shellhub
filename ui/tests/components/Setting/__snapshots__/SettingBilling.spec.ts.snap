@@ -5,15 +5,38 @@ exports[`Billing Settings Free Mode > Renders the component 1`] = `
   <div data-v-d7a09f69=\\"\\" class=\\"v-container v-locale--is-ltr\\">
     <div data-v-d7a09f69=\\"\\" class=\\"v-row align-center justify-center mt-4 mb-4\\">
       <div data-v-d7a09f69=\\"\\" class=\\"v-col-sm-8 v-col\\">
-        <div data-v-d7a09f69=\\"\\" class=\\"text-center\\" data-test=\\"settingOwnerInfo-component\\">
-          <div data-test=\\"message-div\\">
-            <h3 class=\\"pl-6\\"><span> You're not the owner of this namespace. </span>
-              <p data-test=\\"contactUser-p\\"> Contact user for more information. </p>
-            </h3>
-          </div><br>
+        <!--v-if-->
+        <!--v-if-->
+        <div data-v-d7a09f69=\\"\\" data-test=\\"content-div\\">
+          <div data-v-d7a09f69=\\"\\" class=\\"v-row mt-4 justify-center align-center\\">
+            <div data-v-d7a09f69=\\"\\" class=\\"v-col\\">
+              <h3 data-v-d7a09f69=\\"\\">Subscription info</h3>
+            </div>
+            <div data-v-d7a09f69=\\"\\" class=\\"flex-grow-1\\"></div>
+            <div data-v-d7a09f69=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
+              <div data-v-d7a09f69=\\"\\" class=\\"v-col\\" align=\\"left\\"><button data-v-d7a09f69=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated text-none text-uppercase\\" data-test=\\"subscribe-button\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i data-v-d7a09f69=\\"\\" class=\\"mdi-credit-card mdi v-icon notranslate v-theme--light v-icon--size-default mr-2\\" aria-hidden=\\"true\\"></i> Subscribe </span>
+                  <!---->
+                  <!---->
+                </button></div>
+            </div>
+          </div>
+          <div data-v-d7a09f69=\\"\\" class=\\"mt-6 pl-4 pr-4\\">
+            <div data-v-d7a09f69=\\"\\" data-test=\\"freePlan-div\\">
+              <p data-v-d7a09f69=\\"\\">Plan: <b data-v-d7a09f69=\\"\\">Free</b></p>
+              <p data-v-d7a09f69=\\"\\"> Description: You can add up to 3 devices while using the 'Free' plan. </p>
+            </div>
+            <div data-v-d7a09f69=\\"\\" class=\\"mt-4 mb-4\\" data-test=\\"billing-portal-text\\">
+              <h4 data-v-d7a09f69=\\"\\">Billing Portal</h4>
+              <p data-v-d7a09f69=\\"\\"> ShellHub patterns with Stripe payment and invoicing. To update your payment method or download previous invoices, click on the button below. </p><button data-v-d7a09f69=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated mt-2 text-none text-uppercase\\" data-test=\\"portal-button\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i data-v-d7a09f69=\\"\\" class=\\"mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default mr-2\\" aria-hidden=\\"true\\"></i> Open Billing Portal </span>
+                <!---->
+                <!---->
+              </button>
+            </div>
+          </div>
+          <!--v-if-->
         </div>
-        <!--v-if-->
-        <!--v-if-->
       </div>
     </div>
   </div>

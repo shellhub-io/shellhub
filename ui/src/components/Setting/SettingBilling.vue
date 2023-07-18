@@ -24,7 +24,7 @@
                     class="text-none text-uppercase"
                     :disabled="status === ''"
                     @click="checkout"
-                    data-test="checkout-button"
+                    data-test="subscribe-button"
                   >
                     <v-icon class="mr-2">mdi-credit-card</v-icon>
                     Subscribe
@@ -48,8 +48,8 @@
                 </p>
               </div>
 
-              <div class="mt-4 mb-4">
-                <h4 class="">Billing Portal</h4>
+              <div class="mt-4 mb-4" data-test="billing-portal-text">
+                <h4>Billing Portal</h4>
                 <p>
                   ShellHub patterns with Stripe payment and invoicing. To update your payment method or download previous invoices,
                   click on the button below.
@@ -102,14 +102,14 @@
     <v-dialog v-model="dialogCheckout" persistent width="600" transition="dialog-bottom-transition" data-test="dialog-checkout">
       <v-window v-model="el">
         <v-window-item :value="1">
-          <v-card class="bg-v-theme-surface content">
+          <v-card class="bg-v-theme-surface content" data-test="card-first-page">
             <v-container>
               <v-card-subtitle class="mb-1" style="font-size: 12px;"><b>Welcome</b> > Payment Details > Checkout</v-card-subtitle>
               <BillingLetter />
               <v-row>
                 <v-col>
                   <v-card-actions>
-                    <v-btn color="primary" @click="close()">Close</v-btn>
+                    <v-btn color="primary" @click="close()" data-test="payment-letter-close-button">Close</v-btn>
                   </v-card-actions>
                 </v-col>
                 <v-col>
@@ -117,7 +117,7 @@
                     <v-btn
                       color="primary"
                       @click="goToNextStep"
-                      data-test="payment-details-next-button"
+                      data-test="payment-letter-next-button"
                     >
                       Next
                     </v-btn>
@@ -128,7 +128,7 @@
           </v-card>
         </v-window-item>
         <v-window-item :value="2">
-          <v-card class="bg-v-theme-surface content">
+          <v-card class="bg-v-theme-surface content" data-test="card-second-page">
             <v-container>
               <v-card-subtitle class="mb-1" style="font-size: 12px;">Welcome > <b>Payment Details</b> > Checkout</v-card-subtitle>
               <v-card-title align="center" class="mb-1" data-test="billing-payment-details">Payment Details</v-card-title>
@@ -149,7 +149,7 @@
                       :disabled="!existingDefaultCard"
                       color="primary"
                       @click="goToNextStep"
-                      data-test="checkout-next-button"
+                      data-test="payment-details-next-button"
                     >
                       Next
                     </v-btn>
@@ -160,7 +160,7 @@
           </v-card>
         </v-window-item>
         <v-window-item :value="3">
-          <v-card class="bg-v-theme-surface content">
+          <v-card class="bg-v-theme-surface content" data-test="card-third-page">
             <v-container>
               <v-card-subtitle class="mb-1" style="font-size: 12px;">Welcome > Payment Details > <b>Checkout</b></v-card-subtitle>
               <BillingCheckout :key="componentKey" />
@@ -172,7 +172,7 @@
               <v-row>
                 <v-col>
                   <v-card-actions>
-                    <v-btn color="primary" @click="goToPreviousStep">Back</v-btn>
+                    <v-btn color="primary" @click="goToPreviousStep" data-test="checkout-back-button">Back</v-btn>
                   </v-card-actions>
                 </v-col>
                 <v-col class="d-flex flex-column align-end">
@@ -183,7 +183,7 @@
           </v-card>
         </v-window-item>
         <v-window-item :value="4">
-          <v-card class="bg-v-theme-surface content">
+          <v-card class="bg-v-theme-surface content" data-test="card-fourth-page">
             <v-container>
               <BillingSuccesful />
               <v-row>
@@ -236,6 +236,8 @@ const existingDefaultCard = ref(true);
 const componentKey = ref(0);
 const message = ref("");
 const messageType = ref();
+const formattedDate = ref();
+const formattedCurrency = ref();
 
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
@@ -248,37 +250,38 @@ const hasAuthorization = computed(() => {
   return false;
 });
 
-const formattedDate = ref();
-const formattedCurrency = ref();
+const errorTreatment = async () => {
+  switch (status.value) {
+    // eslint-disable-next-line vue/camelcase, camelcase
+    case "to_cancel_at_end_of_period":
+      message.value = `Your subscription will be canceled at ${formattedDate.value
+      }, if you want to keep subscribing to premium, please, access our billing portal.`;
+      messageType.value = "warning";
+      break;
+    case "past_due":
+      message.value = "Your subscription payment method has failed. Please, access the billing portal to keep your subscription";
+      messageType.value = "warning";
+      break;
+    case "unpaid":
+      // eslint-disable-next-line vue/max-len
+      message.value = "You have unpaid invoices which made your subscription to be canceled. Please, solve this issue opening the billing portal.";
+      messageType.value = "error";
+      break;
+    case "canceled":
+      message.value = "Your subscription was canceled. To continue to use ShellHub premium benefits, please, subscribe to a new one.";
+      messageType.value = "error";
+      break;
+    default:
+      break;
+  }
+};
+
 const getSubscriptionInfo = async () => {
-  if (hasAuthorization.value) {
+  if (active.value && hasAuthorization.value) {
     try {
       await store.dispatch("billing/getSubscription");
       formattedDate.value = formatDateWithoutDayAndHours(billing.value?.end_at);
       formattedCurrency.value = formatCurrency(billing.value?.invoices[0].amount, billing.value?.invoices[0].currency.toUpperCase());
-      switch (status.value) {
-        // eslint-disable-next-line vue/camelcase, camelcase
-        case "to_cancel_at_end_of_period":
-          message.value = `Your subscription will be canceled at ${formattedDate.value
-          }, if you want to keep subscribing to premium, please, access our billing portal.`;
-          messageType.value = "warning";
-          break;
-        case "past_due":
-          message.value = "Your subscription payment method has failed. Please, access the billing portal to keep your subscription";
-          messageType.value = "warning";
-          break;
-        case "unpaid":
-          // eslint-disable-next-line vue/max-len
-          message.value = "You have unpaid invoices which made your subscription to be canceled. Please, solve this issue opening the billing portal.";
-          messageType.value = "error";
-          break;
-        case "canceled":
-          message.value = "Your subscription was canceled. To continue to use ShellHub premium benefits, please, subscribe to a new one.";
-          messageType.value = "error";
-          break;
-        default:
-          break;
-      }
     } catch (error: unknown) {
       handleError(error);
     }
@@ -298,6 +301,7 @@ onMounted(async () => {
     noCustomer.value = true;
   }
   await getSubscriptionInfo();
+  await errorTreatment();
 });
 
 const subscribe = async () => {
@@ -360,6 +364,11 @@ const goToNextStep = () => {
     forceRerender();
   }
 };
+
+defineExpose({
+  dialogCheckout,
+  el,
+});
 </script>
 
 <style scoped>

@@ -220,7 +220,7 @@ const deletePaymentMethod = async (id: string) => {
 onMounted(async () => {
   const tenant = computed(() => localStorage.getItem("tenant"));
   await store.dispatch("namespaces/get", tenant.value);
-  if (namespace.value.billing == null) {
+  if (namespace.value.billing == null || namespace.value.billing.customer_id === "") {
     try {
       await store.dispatch("customer/createCustomer");
       emit("customer-id-created");
@@ -236,10 +236,6 @@ onBeforeMount(() => {
   stripePromise.then(() => {
     stripeLoaded.value = true;
   });
-});
-
-defineExpose({
-  addNewCard,
 });
 </script>
 

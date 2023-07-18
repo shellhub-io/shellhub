@@ -67,7 +67,6 @@ const consumerData = computed(() => store.getters["customer/getCustomer"]);
 
 onMounted(async () => {
   await store.dispatch("customer/fetchCustomer");
-  console.log(consumerData.value.data);
   const customerDetails = consumerData.value.data;
   const pm = customerDetails.payment_methods?.filter((value: IPaymentMethod) => value.default === true)[0];
   paymentMethod.brand = pm?.brand || "";
