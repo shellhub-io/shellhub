@@ -60,11 +60,12 @@ type Server struct {
 // NewServer creates a new server SSH agent server.
 func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, singleUserPassword string) *Server {
 	server := &Server{
-		api:               api,
-		authData:          authData,
-		cmds:              make(map[string]*exec.Cmd),
-		Sessions:          make(map[string]net.Conn),
-		keepAliveInterval: keepAliveInterval,
+		api:                api,
+		authData:           authData,
+		cmds:               make(map[string]*exec.Cmd),
+		Sessions:           make(map[string]net.Conn),
+		keepAliveInterval:  keepAliveInterval,
+		singleUserPassword: singleUserPassword,
 	}
 
 	server.sshd = &gliderssh.Server{

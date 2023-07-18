@@ -20,7 +20,7 @@ type Token struct {
 }
 
 // NewToken creates a new token.
-func NewToken(key *rsa.PrivateKey) (*Token, error) {
+func NewToken(_ *rsa.PrivateKey) (*Token, error) {
 	identifier := uuid.Generate()
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
