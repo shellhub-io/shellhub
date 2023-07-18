@@ -50,7 +50,7 @@ go() {
     echo "Running Golang linter on pkg"
     docker-compose \
 	    -f docker-compose.yml -f docker-compose.dev.yml \
-	    exec api sh -c "(cd ../pkg; golangci-lint run $EXTRA_ARGS )"
+	    exec api sh -c "(cd ../pkg; golangci-lint run $EXTRA_ARGS ./... )"
 }
 
 vue() {
