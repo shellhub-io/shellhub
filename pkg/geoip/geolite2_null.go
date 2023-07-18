@@ -28,11 +28,11 @@ func (g *nullGeoLite) Close() error {
 }
 
 // GetCountry gets an ip and return either an ISO 3166-1 code to a country or an empty string.
-func (g *nullGeoLite) GetCountry(ip net.IP) (string, error) {
+func (g *nullGeoLite) GetCountry(_ net.IP) (string, error) {
 	return "", nil
 }
 
 // GetPosition gets an ip and return a Position structure with Longitude and Latitude with error nil or an empty Position structure with the error.
-func (g *nullGeoLite) GetPosition(ip net.IP) (Position, error) {
+func (g *nullGeoLite) GetPosition(_ net.IP) (Position, error) {
 	return Position{}, nil
 }

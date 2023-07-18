@@ -25,7 +25,7 @@ const (
 //
 // It will reject the channel if the LocalPortForwardingCallback is not set or returns false.
 // Otherwise, it will dial the agent and proxy the channel.
-func DefaultTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
+func DefaultTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
 	type channelData struct {
 		DestAddr   string
 		DestPort   uint32

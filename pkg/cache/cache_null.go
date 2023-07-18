@@ -13,14 +13,14 @@ func NewNullCache() Cache {
 	return &nullCache{}
 }
 
-func (n *nullCache) Get(ctx context.Context, key string, value interface{}) error {
+func (n *nullCache) Get(_ context.Context, _ string, _ interface{}) error {
 	return nil
 }
 
-func (n *nullCache) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+func (n *nullCache) Set(_ context.Context, _ string, _ interface{}, _ time.Duration) error {
 	return nil
 }
 
-func (n *nullCache) Delete(ctx context.Context, key string) error {
+func (n *nullCache) Delete(_ context.Context, _ string) error {
 	return nil
 }

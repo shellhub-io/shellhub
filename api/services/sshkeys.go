@@ -32,7 +32,7 @@ type Request struct {
 	Namespace string
 }
 
-func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
+func (s *service) EvaluateKeyFilter(_ context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
 	if key.Filter.Hostname != "" {
 		ok, err := regexp.MatchString(key.Filter.Hostname, dev.Name)
 		if err != nil {
@@ -53,7 +53,7 @@ func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, 
 	return true, nil
 }
 
-func (s *service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error) {
+func (s *service) EvaluateKeyUsername(_ context.Context, key *models.PublicKey, username string) (bool, error) {
 	if key.Username == "" {
 		return true, nil
 	}
