@@ -34,7 +34,7 @@ FROM base AS development
 
 RUN apk add --update openssl build-base docker-cli
 RUN go install github.com/markbates/refresh@v1.11.1 && \
-    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.3
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 

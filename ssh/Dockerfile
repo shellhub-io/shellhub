@@ -41,7 +41,7 @@ ENV GOPROXY ${GOPROXY}
 
 RUN apk add --update openssl
 RUN go install github.com/markbates/refresh@v1.11.1 && \
-    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1 && \
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.3 && \
     go install github.com/vektra/mockery/v2/...@v2.20.0
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
