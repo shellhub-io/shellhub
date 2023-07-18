@@ -106,8 +106,8 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           working-directory: ${{ matrix.project }}
-          version: v1.51.2
-          args: ${{ matrix.lint_args }}
+          version: v1.53.3
+          args: ${{ matrix.lint_args }} ./...
           skip-pkg-cache: true
 
       - name: Set up Node.JS 18.16.0 [UI]
