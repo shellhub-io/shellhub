@@ -27,8 +27,7 @@ exports[`Billing Payment > Renders the component 1`] = `
             </label><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
               <!---->Name
             </label>
-            <!---->
-            <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\"></div>
+            <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" class=\\"v-field__input\\">
             <!---->
           </div>
           <!---->
@@ -73,8 +72,7 @@ exports[`Billing Payment > Renders the component 1`] = `
             </label><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
               <!---->E-mail
             </label>
-            <!---->
-            <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\"></div>
+            <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" class=\\"v-field__input\\">
             <!---->
           </div>
           <!---->
