@@ -3,13 +3,18 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/go-playground/validator/v10"
 )
 
-// GetInvalidFieldsFromErr gets the invalids fields from an error returned by Struct function.
-// If the error is not from a field validation, it returns an error. Otherwise, it returns the invalid fields.
-func GetInvalidFieldsFromErr(err error) ([]string, error) {
+// GetInvalidFieldsFromErr gets the invalids fields from an error returned by structure validation function.
+//
+// The returned "map"'s key is the value of JSON tag and its value is the value of the tag "validate" from the
+// structure for each invalid field from the error.
+//
+// The error should be from validator.ValidationErrors.
+func GetInvalidFieldsFromErr(structure interface{}, err error) (map[string]string, error) {
 	err = errors.Unwrap(err)
 
 	errs, ok := err.(validator.ValidationErrors)
@@ -17,10 +22,10 @@ func GetInvalidFieldsFromErr(err error) ([]string, error) {
 		return nil, fmt.Errorf("the error is not from a field validation: %w", err)
 	}
 
-	fields := make([]string, len(errs))
-
+	fields := map[string]string{}
 	for _, err := range errs {
-		fields = append(fields, err.Field())
+		field, _ := reflect.TypeOf(structure).Elem().FieldByName(err.Field())
+		fields[field.Tag.Get("json")] = field.Tag.Get("validate")
 	}
 
 	return fields, nil
