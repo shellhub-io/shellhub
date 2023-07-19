@@ -19,7 +19,7 @@ func NewValidator() *Validator {
 func (v *Validator) Validate(structure interface{}) error {
 	// Use the ShellHub package validator to validate the request body.
 	if ok, err := v.validator.Struct(structure); !ok {
-		fields, err := validator.GetInvalidFieldsFromErr(err)
+		fields, err := validator.GetInvalidFieldsFromErr(structure, err)
 		if err != nil {
 			return err
 		}
