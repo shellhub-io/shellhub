@@ -1,6 +1,6 @@
 import { createApp } from "vue";
 import * as Sentry from "@sentry/vue";
-import { BrowserTracing } from "@sentry/tracing";
+import { BrowserTracing } from "@sentry/vue";
 import { envVariables } from "./envVariables";
 import vuetify from "./plugins/vuetify";
 import { key, store } from "./store";
