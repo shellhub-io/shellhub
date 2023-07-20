@@ -120,13 +120,13 @@ var migration57 = migrate.Migration{
 								},
 								{
 									"case": bson.M{
-										"$eq": []string{"$billing.state", "inactive"},
+										"$eq": []string{"$billing.status", "inactive"},
 									},
 									"then": "inactive",
 								},
 								{
 									"case": bson.M{
-										"$eq": []string{"$billing.state", "canceled"},
+										"$eq": []string{"$billing.status", "canceled"},
 									},
 									"then": "canceled",
 								},
