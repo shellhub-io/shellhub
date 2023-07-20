@@ -255,7 +255,7 @@ const errorTreatment = async () => {
     // eslint-disable-next-line vue/camelcase, camelcase
     case "to_cancel_at_end_of_period":
       message.value = `Your subscription will be canceled at ${formattedDate.value
-      }, if you want to keep subscribing to premium, please, access our billing portal.`;
+      }, if you want to renew your subscription to premium, please, access our billing portal.`;
       messageType.value = "warning";
       break;
     case "past_due":
