@@ -1,0 +1,1 @@
+{"name":"DeviceIdentity","fields":[{"name":"MAC","type":"string","tag":"json:\"mac\""}]}

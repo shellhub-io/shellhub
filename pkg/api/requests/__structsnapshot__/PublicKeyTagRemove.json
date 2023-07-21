@@ -1,0 +1,1 @@
+{"name":"PublicKeyTagRemove","fields":[{"name":"Fingerprint","type":"string","tag":"param:\"fingerprint\" validate:\"required\""},{"name":"Tag","type":"string","tag":"param:\"tag\" validate:\"required,min=3,max=255,alphanum,ascii,excludes=/@\u0026:\""}]}

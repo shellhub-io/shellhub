@@ -1,0 +1,1 @@
+{"name":"PublicKeyFilter","fields":[{"name":"Hostname","type":"string","tag":"json:\"hostname,omitempty\" validate:\"required_without=Tags,excluded_with=Tags,regexp\""},{"name":"Tags","type":"[]string","tag":"json:\"tags,omitempty\" validate:\"required_without=Hostname,excluded_with=Hostname,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@\u0026:\""}]}

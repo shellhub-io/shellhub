@@ -1,0 +1,1 @@
+{"name":"FingerprintParam","fields":[{"name":"Fingerprint","type":"string","tag":"param:\"fingerprint\" validate:\"required\""}]}

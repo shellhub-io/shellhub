@@ -1,10 +1,12 @@
 package requests
 
+//go:generate structsnapshot SystemGetInfo
 type SystemGetInfo struct {
 	Host string `header:"X-Forwarded-Host"`
 	Port int    `header:"X-Forwarded-Port"`
 }
 
+//go:generate structsnapshot SystemInstallScript
 type SystemInstallScript struct {
 	Host                string `header:"X-Forwarded-Host"`
 	Scheme              string `header:"X-Forwarded-Proto"`

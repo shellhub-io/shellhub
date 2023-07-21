@@ -1,0 +1,1 @@
+{"name":"DeviceInfo","fields":[{"name":"ID","type":"string","tag":"json:\"id\""},{"name":"PrettyName","type":"string","tag":"json:\"pretty_name\""},{"name":"Version","type":"string","tag":"json:\"version\""},{"name":"Arch","type":"string","tag":"json:\"arch\""},{"name":"Platform","type":"string","tag":"json:\"platform\""}]}

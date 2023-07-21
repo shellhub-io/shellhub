@@ -1,0 +1,1 @@
+{"name":"DeviceCreateTag","fields":[{"name":"UID","type":"string","tag":"param:\"uid\" validate:\"required\""},{"name":"Tag","type":"string","tag":"json:\"tag\" validate:\"required,min=3,max=255,alphanum,ascii,excludes=/@\u0026:\""}]}

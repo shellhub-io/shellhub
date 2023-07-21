@@ -1,0 +1,1 @@
+{"name":"DeviceUpdateStatus","fields":[{"name":"UID","type":"string","tag":"param:\"uid\" validate:\"required\""}]}

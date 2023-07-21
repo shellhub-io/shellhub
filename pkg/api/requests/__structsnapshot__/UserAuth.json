@@ -1,0 +1,1 @@
+{"name":"UserAuth","fields":[{"name":"Username","type":"string","tag":"json:\"username\" validate:\"required\""},{"name":"Password","type":"string","tag":"json:\"password\" validate:\"required\""}]}

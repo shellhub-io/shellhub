@@ -1,0 +1,1 @@
+{"name":"PublicKeyGet","fields":[{"name":"Fingerprint","type":"string","tag":"param:\"fingerprint\" validate:\"required\""},{"name":"Tenant","type":"string","tag":"param:\"tenant\" validate:\"required,min=3,max=255,ascii,excludes=/@\u0026:\""}]}

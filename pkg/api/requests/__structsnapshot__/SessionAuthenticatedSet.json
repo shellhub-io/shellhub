@@ -1,0 +1,1 @@
+{"name":"SessionAuthenticatedSet","fields":[{"name":"UID","type":"string","tag":"param:\"uid\" validate:\"required\""},{"name":"Authenticated","type":"bool","tag":"json:\"authenticated\" validate:\"required\""}]}
