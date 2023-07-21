@@ -1,0 +1,1 @@
+{"name":"DeviceLookup","fields":[{"name":"Domain","type":"string","tag":"query:\"domain\" validate:\"required\""},{"name":"Name","type":"string","tag":"query:\"name\" validate:\"required\""},{"name":"Username","type":"string","tag":"query:\"username\" validate:\"\""},{"name":"IPAddress","type":"string","tag":"query:\"ip_address\" validate:\"\""}]}

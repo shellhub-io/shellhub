@@ -1,0 +1,1 @@
+{"name":"NamespaceCreate","fields":[{"name":"Name","type":"string","tag":"json:\"name\"  validate:\"required,hostname_rfc1123,excludes=.\""},{"name":"TenantID","type":"string","tag":"json:\"tenant\" validate:\"min=3,max=255,ascii,excludes=/@\u0026:\""}]}

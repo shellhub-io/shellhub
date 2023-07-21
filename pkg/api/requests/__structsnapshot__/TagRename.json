@@ -1,0 +1,1 @@
+{"name":"TagRename","fields":[{"name":"Tag","type":"string","tag":"param:\"tag\" validate:\"required,min=3,max=255,alphanum,ascii,excludes=/@\u0026:\""},{"name":"NewTag","type":"string","tag":"json:\"tag\" validate:\"required,min=3,max=255,alphanum,ascii,excludes=/@\u0026:\""}]}

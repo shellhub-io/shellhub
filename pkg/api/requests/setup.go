@@ -1,5 +1,6 @@
 package requests
 
+//go:generate structsnapshot Setup
 type Setup struct {
 	Email     string `json:"email" validate:"required,email"`
 	Name      string `json:"name" validate:"required"`

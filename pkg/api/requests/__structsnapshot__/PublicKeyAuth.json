@@ -1,0 +1,1 @@
+{"name":"PublicKeyAuth","fields":[{"name":"Fingerprint","type":"string","tag":"json:\"fingerprint\" validate:\"required\""},{"name":"Data","type":"string","tag":"json:\"data\" validate:\"required\""}]}

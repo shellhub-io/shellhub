@@ -1,0 +1,1 @@
+{"name":"NamespaceEdit","fields":[{"name":"TenantParam","type":"github.com/shellhub-io/shellhub/pkg/api/requests.TenantParam","tag":""},{"name":"Name","type":"string","tag":"json:\"name\"  validate:\"required,hostname_rfc1123,excludes=.\""}]}

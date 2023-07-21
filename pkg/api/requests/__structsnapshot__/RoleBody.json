@@ -1,0 +1,1 @@
+{"name":"RoleBody","fields":[{"name":"Role","type":"string","tag":"json:\"role\" validate:\"required,oneof=administrator operator observer\""}]}

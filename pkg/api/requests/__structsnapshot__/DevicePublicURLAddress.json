@@ -1,0 +1,1 @@
+{"name":"DevicePublicURLAddress","fields":[{"name":"PublicURLAddress","type":"string","tag":"param:\"address\" validate:\"required\""}]}

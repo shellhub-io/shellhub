@@ -1,0 +1,1 @@
+{"name":"NamespaceDelete","fields":[{"name":"Tenant","type":"string","tag":"param:\"tenant\" validate:\"required,min=3,max=255,ascii,excludes=/@\u0026:\""}]}

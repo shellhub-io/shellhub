@@ -1,0 +1,1 @@
+{"name":"DeviceRename","fields":[{"name":"UID","type":"string","tag":"param:\"uid\" validate:\"required\""},{"name":"Name","type":"string","tag":"json:\"name\" validate:\"required\""}]}
