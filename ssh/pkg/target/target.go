@@ -49,5 +49,5 @@ func (t *Target) SplitSSHID() (string, string, error) {
 		return "", "", fmt.Errorf("cloud not split the target into two parts")
 	}
 
-	return strings.ToLower(parts[NAMESPACE]), strings.ToLower(parts[HOSTNAME]), nil
+	return parts[NAMESPACE], parts[HOSTNAME], nil
 }
