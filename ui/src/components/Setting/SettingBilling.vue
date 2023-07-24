@@ -250,6 +250,15 @@ const hasAuthorization = computed(() => {
   return false;
 });
 
+window.addEventListener("pageshow", (event) => {
+  const historyPage = event.persisted
+  || (typeof window.performance !== "undefined"
+  && (window.performance.getEntries()[0] as PerformanceNavigationTiming).type === "back_forward");
+  if (historyPage) {
+    window.location.reload();
+  }
+});
+
 const errorTreatment = async () => {
   switch (status.value) {
     // eslint-disable-next-line vue/camelcase, camelcase
