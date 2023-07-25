@@ -26,7 +26,7 @@ type DeviceService interface {
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	OffineDevice(ctx context.Context, uid models.UID, online bool) error
-	UpdateDeviceStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error
+	UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error
 	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
 	DeviceHeartbeat(ctx context.Context, uid models.UID) error
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
@@ -45,7 +45,7 @@ func (s *service) ListDevices(ctx context.Context, tenant string, pagination pag
 			return nil, 0, NewErrDeviceRemovedCount(err)
 		}
 
-		if ns.HasMaxDevicesReached(count) {
+		if ns.HasMaxDevices() && int64(ns.DevicesCount)+count >= int64(ns.MaxDevices) {
 			return s.store.DeviceList(ctx, pagination, filter, status, sort, order, store.DeviceListModeMaxDeviceReached)
 		}
 	case models.DeviceStatusRemoved:
@@ -180,15 +180,11 @@ func (s *service) OffineDevice(ctx context.Context, uid models.UID, online bool)
 	return err
 }
 
-func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error {
-	validateStatus := map[string]bool{
-		"accepted": true,
-		"pending":  true,
-		"rejected": true,
-	}
-
-	if _, ok := validateStatus[string(status)]; !ok {
-		return NewErrDeviceStatusInvalid(string(status), nil)
+// UpdateDeviceStatus updates the device status.
+func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error {
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil {
+		return NewErrNamespaceNotFound(tenant, err)
 	}
 
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
@@ -200,75 +196,73 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, status
 		return NewErrDeviceStatusAccepted(nil)
 	}
 
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
-	if err != nil {
-		return NewErrNamespaceNotFound(tenant, err)
+	// NOTICE: when there is an already accepted device with the same MAC address, we need to update the device UID
+	// transfer the sessions and delete the old device.
+
+	sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, models.DeviceStatusAccepted)
+	if err != nil && err != store.ErrNoDocuments {
+		return NewErrDeviceNotFound(models.UID(device.UID), err)
+	}
+
+	if sameMacDev != nil && sameMacDev.UID != device.UID {
+		if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil {
+			return err
+		}
+
+		if err := s.store.DeviceRename(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
+			return err
+		}
+
+		if err := s.store.DeviceDelete(ctx, models.UID(sameMacDev.UID)); err != nil {
+			return err
+		}
+
+		return s.store.DeviceUpdateStatus(ctx, uid, status)
 	}
 
 	if status != models.DeviceStatusAccepted {
 		return s.store.DeviceUpdateStatus(ctx, uid, status)
 	}
 
-	// NOTICE: The logic below is only executed when the new status is "accepted".
-
-	if envs.IsCloud() && envs.HasBilling() && !namespace.Billing.IsActive() {
-		removed, err := s.store.DeviceRemovedGet(ctx, tenant, uid)
-		if err != nil && err != store.ErrNoDocuments {
-			return NewErrDeviceRemovedGet(err)
+	switch {
+	case envs.IsCommunity(), envs.IsEnterprise():
+		if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
+			return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
 		}
-
-		if removed != nil {
-			if err := s.store.DeviceRemovedDelete(ctx, tenant, uid); err != nil {
-				return NewErrDeviceRemovedDelete(err)
+	case envs.IsCloud():
+		if namespace.Billing.IsActive() {
+			if err := billingReport(s.client.(req.Client), namespace.TenantID, ReportDeviceAccept); err != nil {
+				return NewErrBillingReportNamespaceDelete(err)
 			}
 		} else {
-			count, err := s.store.DeviceRemovedCount(ctx, tenant)
-			if err != nil {
-				return NewErrDeviceRemovedCount(err)
+			// TODO: this strategy that stores the removed devices in the database can be simplified.
+			removed, err := s.store.DeviceRemovedGet(ctx, tenant, uid)
+			if err != nil && err != store.ErrNoDocuments {
+				return NewErrDeviceRemovedGet(err)
 			}
 
-			if namespace.HasMaxDevicesReached(count) {
-				return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
-			}
-		}
-	}
-
-	sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, "accepted")
-	if err != nil && err != store.ErrNoDocuments {
-		return NewErrDeviceNotFound(models.UID(device.UID), err)
-	}
-
-	if sameMacDev != nil && sameMacDev.UID != device.UID { //nolint:nestif
-		// TODO: decide what to do with these errors.
-		if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil {
-			return err
-		}
-		if err := s.store.DeviceDelete(ctx, models.UID(sameMacDev.UID)); err != nil {
-			return err
-		}
-		if err := s.store.DeviceRename(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
-			return err
-		}
-	} else {
-		// NOTICE: this 'else' arm seems exist only to report the number of devices in use to billing and block if the
-		// limit is reached, what is not needed for the community edition.
-		if envs.IsCloud() && envs.HasBilling() {
-			// It is passing the responsibility to the billing service to evaluate the namespace's billing.
-			// If it had a billing plan enabled before, check if it is still active. Else, check if it can be accepted,
-			// checking if it has reached the limit.
-			if namespace.Billing.IsActive() {
-				if err := billingReport(s.client.(req.Client), namespace.TenantID, ReportDeviceAccept); err != nil {
-					return err
+			if removed != nil {
+				if err := s.store.DeviceRemovedDelete(ctx, tenant, uid); err != nil {
+					return NewErrDeviceRemovedDelete(err)
 				}
-			} else { // However, if it never had a billing plan enabled or it is inactive, check if it can be accepted.
-				ok, err := billingEvaluate(s.client.(req.Client), namespace.TenantID)
+			} else {
+				count, err := s.store.DeviceRemovedCount(ctx, tenant)
 				if err != nil {
-					return err
+					return NewErrDeviceRemovedCount(err)
 				}
 
-				if !ok {
-					return ErrDeviceLimit
+				if namespace.HasMaxDevices() && int64(namespace.DevicesCount)+count >= int64(namespace.MaxDevices) {
+					return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
 				}
+			}
+
+			ok, err := billingEvaluate(s.client.(req.Client), namespace.TenantID)
+			if err != nil {
+				return NewErrBillingEvaluate(err)
+			}
+
+			if !ok {
+				return ErrDeviceLimit
 			}
 		}
 	}

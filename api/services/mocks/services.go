@@ -1216,13 +1216,13 @@ func (_m *Service) UpdateDevice(ctx context.Context, tenant string, uid models.U
 	return r0
 }
 
-// UpdateDeviceStatus provides a mock function with given fields: ctx, uid, status, tenant
-func (_m *Service) UpdateDeviceStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error {
-	ret := _m.Called(ctx, uid, status, tenant)
+// UpdateDeviceStatus provides a mock function with given fields: ctx, tenant, uid, status
+func (_m *Service) UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error {
+	ret := _m.Called(ctx, tenant, uid, status)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DeviceStatus, string) error); ok {
-		r0 = rf(ctx, uid, status, tenant)
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, models.DeviceStatus) error); ok {
+		r0 = rf(ctx, tenant, uid, status)
 	} else {
 		r0 = ret.Error(0)
 	}

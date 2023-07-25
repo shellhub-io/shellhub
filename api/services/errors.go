@@ -117,6 +117,8 @@ var (
 	ErrDeviceRemovedDelete          = errors.New("device removed delete", ErrLayer, ErrCodeStore)
 	ErrDeviceRemovedGet             = errors.New("device removed get", ErrLayer, ErrCodeNotFound)
 	ErrBillingReportNamespaceDelete = errors.New("billing report namespace delete", ErrLayer, ErrCodePayment)
+	ErrBillingReportDevice          = errors.New("billing report device", ErrLayer, ErrCodePayment)
+	ErrBillingEvaluate              = errors.New("billing evaluate", ErrLayer, ErrCodePayment)
 )
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
@@ -403,4 +405,16 @@ func NewErrDeviceRemovedGet(next error) error {
 
 func NewErrBillingReportNamespaceDelete(next error) error {
 	return NewErrInvalid(ErrBillingReportNamespaceDelete, nil, next)
+}
+
+func NewErrBillingReportDevice(next error) error {
+	return NewErrInvalid(ErrBillingReportDevice, nil, next)
+}
+
+func NewErrBillingEvaluate(next error) error {
+	return NewErrInvalid(ErrBillingEvaluate, nil, next)
+}
+
+func NewErrDeviceMaxDevicesReached(count int) error {
+	return NewErrLimit(ErrMaxDeviceCountReached, count, nil)
 }
