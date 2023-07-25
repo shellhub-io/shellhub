@@ -27,11 +27,8 @@ func (n *Namespace) HasMaxDevices() bool {
 }
 
 // HasMaxDevicesReached checks if the namespace has reached the maximum number of devices.
-//
-// This function sum the number of devices in the namespace with the number of devices that were removed from that one
-// and check if this sum is greater than the maximum number of devices.
-func (n *Namespace) HasMaxDevicesReached(removedDevices int64) bool {
-	return n.HasMaxDevices() && int64(n.DevicesCount)+removedDevices >= int64(n.MaxDevices)
+func (n *Namespace) HasMaxDevicesReached() bool {
+	return uint64(n.DevicesCount) >= uint64(n.MaxDevices)
 }
 
 type NamespaceSettings struct {

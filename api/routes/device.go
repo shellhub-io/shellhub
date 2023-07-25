@@ -216,14 +216,14 @@ func (h *Handler) UpdateDeviceStatus(c gateway.Context) error {
 		tenant = c.Tenant().ID
 	}
 
-	status := map[string]string{
-		"accept":  "accepted",
-		"reject":  "rejected",
-		"pending": "pending",
-		"unused":  "unused",
+	status := map[string]models.DeviceStatus{
+		"accept":  models.DeviceStatusAccepted,
+		"reject":  models.DeviceStatusRejected,
+		"pending": models.DeviceStatusPending,
+		"unused":  models.DeviceStatusUnused,
 	}
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Accept, func() error {
-		err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(req.UID), models.DeviceStatus(status[req.Status]), tenant)
+		err := h.service.UpdateDeviceStatus(c.Ctx(), tenant, models.UID(req.UID), status[req.Status])
 
 		return err
 	})
