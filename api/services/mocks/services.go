@@ -961,6 +961,20 @@ func (_m *Service) LookupDevice(ctx context.Context, namespace string, name stri
 	return r0, r1
 }
 
+// OffineDevice provides a mock function with given fields: ctx, uid, online
+func (_m *Service) OffineDevice(ctx context.Context, uid models.UID, online bool) error {
+	ret := _m.Called(ctx, uid, online)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, bool) error); ok {
+		r0 = rf(ctx, uid, online)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PublicKey provides a mock function with given fields:
 func (_m *Service) PublicKey() *rsa.PublicKey {
 	ret := _m.Called()
@@ -1202,13 +1216,13 @@ func (_m *Service) UpdateDevice(ctx context.Context, tenant string, uid models.U
 	return r0
 }
 
-// UpdateDeviceStatus provides a mock function with given fields: ctx, uid, online
-func (_m *Service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
-	ret := _m.Called(ctx, uid, online)
+// UpdateDeviceStatus provides a mock function with given fields: ctx, uid, status, tenant
+func (_m *Service) UpdateDeviceStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error {
+	ret := _m.Called(ctx, uid, status, tenant)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, bool) error); ok {
-		r0 = rf(ctx, uid, online)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DeviceStatus, string) error); ok {
+		r0 = rf(ctx, uid, status, tenant)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1237,20 +1251,6 @@ func (_m *Service) UpdatePasswordUser(ctx context.Context, id string, currentPas
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
 		r0 = rf(ctx, id, currentPassword, newPassword)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UpdatePendingStatus provides a mock function with given fields: ctx, uid, status, tenant
-func (_m *Service) UpdatePendingStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error {
-	ret := _m.Called(ctx, uid, status, tenant)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DeviceStatus, string) error); ok {
-		r0 = rf(ctx, uid, status, tenant)
 	} else {
 		r0 = ret.Error(0)
 	}

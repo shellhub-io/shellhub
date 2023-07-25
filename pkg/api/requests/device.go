@@ -34,13 +34,8 @@ type DeviceLookup struct {
 	IPAddress string `query:"ip_address" validate:""`
 }
 
-// DeviceUpdateStatus is the structure to represent the request data for device update status endpoint.
+// DeviceStatus is the structure to represent the request data for update device status to pending endpoint.
 type DeviceUpdateStatus struct {
-	DeviceParam
-}
-
-// DevicePendingStatus is the structure to represent the request data for update device status to pending endpoint.
-type DevicePendingStatus struct {
 	DeviceParam
 	Status string `param:"status" validate:"required,oneof=accept reject pending unused"`
 }
