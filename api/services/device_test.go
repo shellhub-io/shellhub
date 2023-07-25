@@ -763,7 +763,7 @@ func TestLookupDevice(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestUpdateDeviceStatus(t *testing.T) {
+func TestOffineDevice(t *testing.T) {
 	mock := new(mocks.Store)
 
 	ctx := context.TODO()
@@ -802,7 +802,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			err := service.UpdateDeviceStatus(ctx, tc.uid, tc.online)
+			err := service.OffineDevice(ctx, tc.uid, tc.online)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -810,7 +810,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestUpdatePendingStatus(t *testing.T) {
+func TestUpdateDeviceStatus(t *testing.T) {
 	mock := new(mocks.Store)
 
 	ctx := context.TODO()
@@ -1319,7 +1319,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			err := service.UpdatePendingStatus(ctx, tc.uid, tc.status, tc.tenant)
+			err := service.UpdateDeviceStatus(ctx, tc.uid, tc.status, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

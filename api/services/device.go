@@ -25,8 +25,8 @@ type DeviceService interface {
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
-	UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error
-	UpdatePendingStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error
+	OffineDevice(ctx context.Context, uid models.UID, online bool) error
+	UpdateDeviceStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error
 	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
 	DeviceHeartbeat(ctx context.Context, uid models.UID) error
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
@@ -171,7 +171,7 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 	return device, nil
 }
 
-func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
+func (s *service) OffineDevice(ctx context.Context, uid models.UID, online bool) error {
 	err := s.store.DeviceSetOnline(ctx, uid, online)
 	if err == store.ErrNoDocuments {
 		return NewErrDeviceNotFound(uid, err)
@@ -180,7 +180,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online
 	return err
 }
 
-func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error {
+func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, status models.DeviceStatus, tenant string) error {
 	validateStatus := map[string]bool{
 		"accepted": true,
 		"pending":  true,

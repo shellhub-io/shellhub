@@ -22,7 +22,7 @@ const (
 	OfflineDeviceURL            = "/devices/:uid/offline"
 	HeartbeatDeviceURL          = "/devices/:uid/heartbeat"
 	LookupDeviceURL             = "/lookup"
-	UpdateStatusURL             = "/devices/:uid/:status"
+	UpdateDeviceStatusURL       = "/devices/:uid/:status"
 	CreateTagURL                = "/devices/:uid/tags"      // Add a tag to a device.
 	UpdateTagURL                = "/devices/:uid/tags"      // Update device's tags with a new set.
 	RemoveTagURL                = "/devices/:uid/tags/:tag" // Delete a tag from a device.
@@ -176,7 +176,7 @@ func (h *Handler) OfflineDevice(c gateway.Context) error {
 		return err
 	}
 
-	if err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(req.UID), false); err != nil {
+	if err := h.service.OffineDevice(c.Ctx(), models.UID(req.UID), false); err != nil {
 		return err
 	}
 
@@ -201,8 +201,8 @@ func (h *Handler) LookupDevice(c gateway.Context) error {
 	return c.JSON(http.StatusOK, device)
 }
 
-func (h *Handler) UpdatePendingStatus(c gateway.Context) error {
-	var req requests.DevicePendingStatus
+func (h *Handler) UpdateDeviceStatus(c gateway.Context) error {
+	var req requests.DeviceUpdateStatus
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -223,7 +223,7 @@ func (h *Handler) UpdatePendingStatus(c gateway.Context) error {
 		"unused":  "unused",
 	}
 	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Accept, func() error {
-		err := h.service.UpdatePendingStatus(c.Ctx(), models.UID(req.UID), models.DeviceStatus(status[req.Status]), tenant)
+		err := h.service.UpdateDeviceStatus(c.Ctx(), models.UID(req.UID), models.DeviceStatus(status[req.Status]), tenant)
 
 		return err
 	})
