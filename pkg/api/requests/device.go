@@ -51,6 +51,7 @@ type DeviceLookup struct {
 //go:generate structsnapshot DeviceUpdateStatus
 type DeviceUpdateStatus struct {
 	DeviceParam
+	Status string `param:"status" validate:"required,oneof=accept reject pending unused"`
 }
 
 // DevicePendingStatus is the structure to represent the request data for update device status to pending endpoint.

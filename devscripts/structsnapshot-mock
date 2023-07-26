@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# This script is used to generate/update snapshot struct's
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
+exec api sh -c "(cd ../pkg; go generate ./...)"
