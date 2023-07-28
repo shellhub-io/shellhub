@@ -1,10 +1,10 @@
 <template>
   <v-container>
-    <v-card-title class="d-flex justify-center">
+    <v-card-title class="d-flex justify-center" data-test="title">
       Reset your password
     </v-card-title>
 
-    <v-card-text>
+    <v-card-text data-test="sub-text">
       <div class="d-flex align-center justify-center text-center mb-6">
         Please insert your new password.
       </div>
@@ -47,7 +47,7 @@
         type="submit"
         color="primary"
         variant="tonal"
-        data-test="login-btn"
+        data-test="update-password-btn"
         @click="updatePassword"
       >
         UPDATE PASSWORD
@@ -69,9 +69,9 @@
   </v-container>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { useField } from "vee-validate";
-import { defineComponent, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { LocationQueryValue, useRoute, useRouter } from "vue-router";
 import * as yup from "yup";
 import {
@@ -87,122 +87,113 @@ type TUpdatePassword = {
   password: string;
 };
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const route = useRoute();
-    const router = useRouter();
-    const data = ref({} as TUpdatePassword);
-    const showPassword = ref(false);
-    const showConfirmPassword = ref(false);
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+const data = ref({} as TUpdatePassword);
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
-    const {
-      value: password,
-      errorMessage: passwordError,
-      setErrors: setPasswordError,
-    } = useField<string>(
-      "password",
-      yup
-        .string()
-        .required()
-        .min(5, "Your password should be 5-30 characters long")
-        .max(30, "Your password should be 5-30 characters long"),
-      {
-        initialValue: "",
-      },
-    );
-
-    const {
-      value: passwordConfirm,
-      errorMessage: passwordConfirmError,
-      resetField: resetPasswordConfirm,
-      setErrors: setPasswordConfirmError,
-    } = useField<string>(
-      "passwordConfirm",
-      yup
-        .string()
-        .required()
-        .test(
-          "passwords-match",
-          "Passwords do not match",
-          (value) => password.value === value,
-        ),
-      {
-        initialValue: "",
-      },
-    );
-
-    onMounted(() => {
-      data.value = {
-        id: route.query.id,
-        token: route.query.token,
-        password: "",
-      };
-    });
-
-    watch(password, () => {
-      if (password.value === passwordConfirm.value) {
-        resetPasswordConfirm();
-      }
-
-      if (password.value !== passwordConfirm.value && passwordConfirm.value) {
-        setPasswordConfirmError("Passwords do not match");
-      }
-    });
-
-    const hasErros = () => {
-      if (password.value === "") {
-        setPasswordError("this is a required field");
-        return true;
-      }
-
-      if (passwordConfirm.value === "") {
-        setPasswordConfirmError("this is a required field");
-        return true;
-      }
-
-      if (passwordError.value) {
-        return true;
-      }
-
-      if (passwordConfirmError.value) {
-        return true;
-      }
-
-      return false;
-    };
-
-    const updatePassword = async () => {
-      if (hasErros()) return;
-      try {
-        data.value = {
-          ...data.value,
-          password: password.value,
-        };
-        await store.dispatch("users/updatePassword", data.value);
-        await router.push({ name: "login" });
-        store.dispatch(
-          "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.updatingAccount,
-        );
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.updatingAccount,
-        );
-        handleError(error);
-      }
-    };
-
-    return {
-      updatePassword,
-      password,
-      passwordError,
-      passwordConfirm,
-      passwordConfirmError,
-      showPassword,
-      showConfirmPassword,
-    };
+const {
+  value: password,
+  errorMessage: passwordError,
+  setErrors: setPasswordError,
+} = useField<string>(
+  "password",
+  yup
+    .string()
+    .required()
+    .min(5, "Your password should be 5-30 characters long")
+    .max(30, "Your password should be 5-30 characters long"),
+  {
+    initialValue: "",
   },
+);
+
+const {
+  value: passwordConfirm,
+  errorMessage: passwordConfirmError,
+  resetField: resetPasswordConfirm,
+  setErrors: setPasswordConfirmError,
+} = useField<string>(
+  "passwordConfirm",
+  yup
+    .string()
+    .required()
+    .test(
+      "passwords-match",
+      "Passwords do not match",
+      (value) => password.value === value,
+    ),
+  {
+    initialValue: "",
+  },
+);
+
+onMounted(() => {
+  data.value = {
+    id: route.query.id,
+    token: route.query.token,
+    password: "",
+  };
+});
+
+watch(password, () => {
+  if (password.value === passwordConfirm.value) {
+    resetPasswordConfirm();
+  }
+
+  if (password.value !== passwordConfirm.value && passwordConfirm.value) {
+    setPasswordConfirmError("Passwords do not match");
+  }
+});
+
+const hasErros = () => {
+  if (password.value === "") {
+    setPasswordError("this is a required field");
+    return true;
+  }
+
+  if (passwordConfirm.value === "") {
+    setPasswordConfirmError("this is a required field");
+    return true;
+  }
+
+  if (passwordError.value) {
+    return true;
+  }
+
+  if (passwordConfirmError.value) {
+    return true;
+  }
+
+  return false;
+};
+
+const updatePassword = async () => {
+  if (hasErros()) return;
+  try {
+    data.value = {
+      ...data.value,
+      password: password.value,
+    };
+    await store.dispatch("users/updatePassword", data.value);
+    await router.push({ name: "login" });
+    store.dispatch(
+      "snackbar/showSnackbarSuccessAction",
+      INotificationsSuccess.updatingAccount,
+    );
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.updatingAccount,
+    );
+    handleError(error);
+  }
+};
+
+defineExpose({
+  updatePassword,
+  handleError,
 });
 </script>

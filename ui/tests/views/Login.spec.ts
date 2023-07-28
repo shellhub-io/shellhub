@@ -2,7 +2,6 @@ import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import { nextTick } from "vue";
 import Login from "../../src/views/Login.vue";
 import { usersApi } from "@/api/http";
 import { store, key } from "../../src/store";
