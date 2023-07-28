@@ -1,7 +1,9 @@
 // Styles
 import "@mdi/font/css/materialdesignicons.css";
+import "@fortawesome/fontawesome-free/css/all.css";
 import "vuetify/styles";
 import "../styles/_variables.scss";
+import { aliases as faAliases, fa } from "vuetify/iconsets/fa";
 
 // Vuetify
 import { createVuetify } from "vuetify";
@@ -42,6 +44,12 @@ export default createVuetify({
     themes: {
       dark,
       light,
+    },
+  },
+  icons: {
+    faAliases,
+    sets: {
+      fa,
     },
   },
 });

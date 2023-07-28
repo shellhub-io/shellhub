@@ -37,9 +37,7 @@ exports[`Billing Checkout > Renders the component 1`] = `
           <!---->
           <!---->
           <div class=\\"v-row align-center pa-0 pa-2\\" cols=\\"12\\">
-            <div class=\\"v-col v-col-1\\">
-              <font-awesome-icon icon=\\"far,credit-card\\" style=\\"font-size: 1.5rem;\\" data-test=\\"default-icon\\"></font-awesome-icon>
-            </div>
+            <div class=\\"v-col v-col-1\\"><i class=\\"fa:far fa-credit-card mdi v-icon notranslate v-theme--light v-icon--size-default\\" style=\\"font-size: 1.5rem;\\" aria-hidden=\\"true\\" data-test=\\"default-icon\\"></i></div>
             <div class=\\"v-col v-col-4\\"><b></b></div>
             <div class=\\"v-col v-col-2\\">0/0</div>
             <div class=\\"v-col v-col-2 d-flex flex-column align-end\\"></div>

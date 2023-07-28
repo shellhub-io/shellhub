@@ -1,14 +1,14 @@
 <template>
-  <font-awesome-icon
+  <v-icon
     v-if="isDefaultIcon()"
-    :icon="['far', 'credit-card']"
+    :icon="['fa:far', 'fa-credit-card'].join(' ')"
     :style="{ fontSize: size }"
     data-test="default-icon"
   />
 
-  <font-awesome-icon
+  <v-icon
     v-else
-    :icon="['fab', icon()]"
+    :icon="['fa:fab', icon()].join(' ')"
     :style="{ fontSize: size }"
     data-test="type-icon"
   />

@@ -1,3 +1,3 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Billing Icon > Renders the component 1`] = `"<font-awesome-icon icon=\\"far,credit-card\\" style=\\"font-size: 1.5rem;\\" data-test=\\"default-icon\\"></font-awesome-icon>"`;
+exports[`Billing Icon > Renders the component 1`] = `"<i class=\\"fa:far fa-credit-card mdi v-icon notranslate v-theme--light v-icon--size-default\\" style=\\"font-size: 1.5rem;\\" aria-hidden=\\"true\\" data-test=\\"default-icon\\"></i>"`;

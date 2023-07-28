@@ -1,7 +1,6 @@
 import { createApp } from "vue";
 import * as Sentry from "@sentry/vue";
 import { BrowserTracing } from "@sentry/vue";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { envVariables } from "./envVariables";
 import vuetify from "./plugins/vuetify";
 import { key, store } from "./store";
@@ -49,6 +48,5 @@ app.use(vuetify);
 app.use(router);
 app.use(store, key);
 app.use(SnackbarPlugin);
-app.component("font-awesome-icon", FontAwesomeIcon);
 app.component("SnackbarComponent", SnackbarComponent);
 app.mount("#app");
