@@ -12,7 +12,7 @@ import (
 	_ "github.com/GehirnInc/crypt/md5_crypt"    // GehirnInc/crypt uses blank imports for crypto subpackages
 	_ "github.com/GehirnInc/crypt/sha256_crypt" // GehirnInc/crypt uses blank imports for crypto subpackages
 	_ "github.com/GehirnInc/crypt/sha512_crypt" // GehirnInc/crypt uses blank imports for crypto subpackages
-	"github.com/shellhub-io/shellhub/agent/pkg/yescrypt"
+	"github.com/shellhub-io/shellhub/pkg/agent/pkg/yescrypt"
 	"github.com/sirupsen/logrus"
 )
 
