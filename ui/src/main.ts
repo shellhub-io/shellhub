@@ -16,15 +16,6 @@ import { SnackbarPlugin } from "./plugins/snackbar";
 
 /* import font awesome icon component */
 
-window.addEventListener("pageshow", (event) => {
-  const historyPage = event.persisted
-  || (typeof window.performance !== "undefined"
-  && (window.performance.getEntries()[0] as PerformanceNavigationTiming).type === "back_forward");
-  if (historyPage) {
-    window.location.reload();
-  }
-});
-
 const app = createApp(App);
 
 Sentry.init({
