@@ -6,8 +6,8 @@ package main
 import (
 	"os"
 
-	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
-	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
+	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
+	"github.com/shellhub-io/shellhub/pkg/agent/pkg/sysinfo"
 )
 
 var AgentPlatform string

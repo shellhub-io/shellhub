@@ -16,9 +16,9 @@ import (
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
-	"github.com/shellhub-io/shellhub/agent/server/command"
-	"github.com/shellhub-io/shellhub/agent/server/utmp"
+	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/command"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/utmp"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
