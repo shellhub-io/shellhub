@@ -41,7 +41,6 @@ exports[`Billing Settings Free Mode > Renders the component 1`] = `
     </div>
   </div>
   <!---->
-  <!--teleport start-->
-  <!--teleport end-->
+  <!---->
 </div>"
 `;
