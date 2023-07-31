@@ -77,24 +77,12 @@ jobs:
         run: |
           docker export $(docker create shellhubio/agent:${{ env.RELEASE_VERSION }}-${{ matrix.dockerfile }}) | gzip > rootfs-${{ matrix.dockerfile }}.tar.gz
 
-      - name: export vendored agent tarball
-        if: "contains(github.ref, 'refs/tags/v')"
-        run: |
-          cd ./agent && go mod vendor && tar cf * shellhub-agent.tar.gz
-
       - name: upload rootfs artifact
         if: "contains(github.ref, 'refs/tags/v')"
         uses: actions/upload-artifact@v3
         with:
           name: rootfs-${{ matrix.dockerfile }}
           path: rootfs-${{ matrix.dockerfile }}.tar.gz
-
-      - name: upload agent artifact
-        if: "contains(github.ref, 'refs/tags/v')"
-        uses: actions/upload-artifact@v3
-        with:
-          name: shellhub-agent
-          path: shellhub-agent.tar.gz
 
   multiarch:
     if: github.event_name != 'pull_request'
@@ -157,9 +145,27 @@ jobs:
             echo "Pushing multiarch manifest"
             docker manifest push shellhubio/agent:${{ env.RELEASE_VERSION }}
 
-  draft:
+  vendored-tarball:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: build
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      - name: export agent tarball
+        run: |
+          cd ./agent && go mod vendor && tar cf shellhub-agent.tar.gz * && mv shellhub-agent.tar.gz ..
+
+      - name: upload agent tarball artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: shellhub-agent
+          path: shellhub-agent.tar.gz
+
+  draft:
+    if: "contains(github.ref, 'refs/tags/v')"
+    needs: vendored-tarball
     runs-on: ubuntu-latest
     steps:
       - name: download amd64
@@ -182,9 +188,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: rootfs-i386
+      - name: download vendored tarball
+        uses: actions/download-artifact@v3
+        with:
+          name: shellhub-agent
       - name: release draft
         uses: softprops/action-gh-release@v1
-        if: "contains(github.ref, 'refs/tags/v')"
         with:
           draft: true
           generate_release_notes: true
