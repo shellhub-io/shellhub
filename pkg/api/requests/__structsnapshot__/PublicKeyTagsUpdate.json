@@ -1,0 +1,1 @@
+{"name":"PublicKeyTagsUpdate","fields":[{"name":"Fingerprint","type":"string","tag":"param:\"fingerprint\" validate:\"required\""},{"name":"Tags","type":"[]string","tag":"json:\"tags\" validate:\"required,min=1,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@\u0026:\""}]}

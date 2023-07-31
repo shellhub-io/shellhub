@@ -1,0 +1,1 @@
+{"name":"MemberParam","fields":[{"name":"MemberUID","type":"string","tag":"param:\"uid\" validate:\"required\""}]}

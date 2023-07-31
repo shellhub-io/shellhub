@@ -1,0 +1,1 @@
+{"name":"SystemGetInfo","fields":[{"name":"Host","type":"string","tag":"header:\"X-Forwarded-Host\""},{"name":"Port","type":"int","tag":"header:\"X-Forwarded-Port\""}]}

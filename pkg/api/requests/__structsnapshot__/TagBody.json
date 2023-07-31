@@ -1,0 +1,1 @@
+{"name":"TagBody","fields":[{"name":"Tag","type":"string","tag":"json:\"tag\" validate:\"required,min=3,max=255,alphanum,ascii,excludes=/@\u0026:\""}]}

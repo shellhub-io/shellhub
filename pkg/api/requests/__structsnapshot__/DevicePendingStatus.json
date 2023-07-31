@@ -1,0 +1,1 @@
+{"name":"DevicePendingStatus","fields":[{"name":"UID","type":"string","tag":"param:\"uid\" validate:\"required\""},{"name":"Status","type":"string","tag":"param:\"status\" validate:\"required,oneof=accept reject pending unused\""}]}

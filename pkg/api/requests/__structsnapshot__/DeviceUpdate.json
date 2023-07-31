@@ -1,0 +1,1 @@
+{"name":"DeviceUpdate","fields":[{"name":"UID","type":"string","tag":"param:\"uid\" validate:\"required\""},{"name":"Name","type":"*string","tag":"json:\"name\""},{"name":"PublicURL","type":"*bool","tag":"json:\"public_url\""}]}

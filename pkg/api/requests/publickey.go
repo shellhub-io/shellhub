@@ -1,16 +1,21 @@
 package requests
 
 // FingerprintParam is a structure to represent and validate a public key fingerprint as path param.
+//
+//go:generate structsnapshot FingerprintParam
 type FingerprintParam struct {
 	Fingerprint string `param:"fingerprint" validate:"required"`
 }
 
 // PublicKeyGet is the structure to represent the request data for get public key endpoint.
+//
+//go:generate structsnapshot PublicKeyGet
 type PublicKeyGet struct {
 	FingerprintParam
 	TenantParam
 }
 
+//go:generate structsnapshot PublicKeyFilter
 type PublicKeyFilter struct {
 	Hostname string `json:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
 	// FIXME: add validation for tags when it has at least one item.
@@ -21,6 +26,8 @@ type PublicKeyFilter struct {
 }
 
 // PublicKeyCreate is the structure to represent the request data for create public key endpoint.
+//
+//go:generate structsnapshot PublicKeyCreate
 type PublicKeyCreate struct {
 	Data        []byte          `json:"data" validate:"required"`
 	Filter      PublicKeyFilter `json:"filter" validate:"required"`
@@ -31,6 +38,8 @@ type PublicKeyCreate struct {
 }
 
 // PublicKeyUpdate is the structure to represent the request data for update public key endpoint.
+//
+//go:generate structsnapshot PublicKeyUpdate
 type PublicKeyUpdate struct {
 	FingerprintParam
 	// Name is the public key's name.
@@ -42,29 +51,39 @@ type PublicKeyUpdate struct {
 }
 
 // PublicKeyDelete is the structure to represent the request data for delete public key endpoint.
+//
+//go:generate structsnapshot PublicKeyDelete
 type PublicKeyDelete struct {
 	FingerprintParam
 }
 
 // PublicKeyTagAdd is the structure to represent the request data for add tag to public key endpoint.
+//
+//go:generate structsnapshot PublicKeyTagAdd
 type PublicKeyTagAdd struct {
 	FingerprintParam
 	TagParam
 }
 
 // PublicKeyTagRemove is the structure to represent the request data for remove tag from public key endpoint.
+//
+//go:generate structsnapshot PublicKeyTagRemove
 type PublicKeyTagRemove struct {
 	FingerprintParam
 	TagParam
 }
 
 // PublicKeyTagsUpdate is the structure to represent the request data for update tags from public key endpoint.
+//
+//go:generate structsnapshot PublicKeyTagsUpdate
 type PublicKeyTagsUpdate struct {
 	FingerprintParam
 	Tags []string `json:"tags" validate:"required,min=1,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
 // PublicKeyAuth is the structure to represent the request data for public key auth endpoint.
+//
+//go:generate structsnapshot PublicKeyAuth
 type PublicKeyAuth struct {
 	Fingerprint string `json:"fingerprint" validate:"required"`
 	Data        string `json:"data" validate:"required"`

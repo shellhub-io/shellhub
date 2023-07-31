@@ -1,0 +1,1 @@
+{"name":"UserDataUpdate","fields":[{"name":"ID","type":"string","tag":"param:\"id\" validate:\"required\""},{"name":"Name","type":"string","tag":"json:\"name\" validate:\"required\""},{"name":"Username","type":"string","tag":"json:\"username\" validate:\"required,username\""},{"name":"Email","type":"string","tag":"json:\"email\" validate:\"required\""}]}
