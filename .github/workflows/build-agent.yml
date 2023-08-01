@@ -155,7 +155,7 @@ jobs:
 
       - name: export agent tarball
         run: |
-          cd ./agent && go mod vendor && tar cf shellhub-agent.tar.gz * && mv shellhub-agent.tar.gz ..
+          cd ./agent && go mod vendor && tar czf shellhub-agent.tar.gz * && mv shellhub-agent.tar.gz ..
 
       - name: upload agent tarball artifact
         uses: actions/upload-artifact@v3
