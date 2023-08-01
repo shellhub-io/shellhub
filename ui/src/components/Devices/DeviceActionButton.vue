@@ -30,7 +30,7 @@
     <v-dialog max-width="450px" v-model="dialog" @click:outside="close" v-bind="$attrs">
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-5 bg-primary">
-          Are you sure?
+          Device {{ action }}
         </v-card-title>
         <v-divider />
         <v-container>
@@ -38,11 +38,10 @@
           <v-alert
             v-if="billingActive"
             type="warning"
-            text="Please note that each accepted device will be billed individually.
-          Removing a device later will not affect the charges for that device." />
+            text="Accepted devices in ShellHub become active in your account and are billed for the entire billing period." />
           <v-card-text class="mt-4 mb-0 pb-1">
-            <p class="text-body-2 mb-2">
-              You are about to {{ action }} this device.
+            <p class="mb-2">
+              Do you want to {{ action }} this device?
             </p>
           </v-card-text>
 
@@ -249,3 +248,9 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+p {
+  font-size: 1rem;
+}
+</style>

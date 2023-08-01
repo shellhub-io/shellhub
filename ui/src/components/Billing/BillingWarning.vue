@@ -3,23 +3,21 @@
     v-if="hasAuthorization"
     v-model="showMessage"
     transition="dialog-bottom-transition"
-    width="520"
+    width="650"
     data-test="billingWarning-dialog"
   >
     <v-card class="bg-v-theme-surface" data-test="card-dialog">
       <v-card-title class="pa-3 bg-primary" data-test="card-title">
-        Update account
+        Maximum Device Limit Reached
       </v-card-title>
 
       <v-card-text class="mt-4 mb-3 pb-1" data-test="card-text">
-        <p>
-          This namespace has maximum number of devices on your free account.
+        <p class="mb-2">
+          It seems that your current free account has reached the maximum number of devices allowed in this namespace.
         </p>
-
-        <p>
-          If you create the subscription in your account settings, you can
-          continue to take advantage of the features available on ShellHub by
-          adding more devices.
+        <p class="mb-2">
+          With a subscription, you can easily add and manage more devices within your account,
+          granting you the flexibility and freedom to scale as needed.
         </p>
       </v-card-text>
 
