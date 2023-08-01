@@ -82,6 +82,7 @@ export enum INotificationsError {
   privateKeyEditing = "editing private key",
   privateKeyDeleting = "deleting private key",
   addUser = "creating account",
+  resendEmail = "resend email",
   loginFailed = "login",
   logoutFailed = "logout",
   recoverPassword = "sending email",
