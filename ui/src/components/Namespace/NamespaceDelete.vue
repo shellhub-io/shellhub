@@ -19,17 +19,23 @@
   <v-dialog v-model="dialog" max-width="540">
     <v-card data-test="namespaceDelete-dialog" class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-4 bg-primary">
-        Are you sure?
+        Namespace Deletion Restriction
       </v-card-title>
 
       <v-card-text class="mt-4 mb-3 pb-1">
-        <p
+        <div
           v-if="hasAuthorization && billingActive"
           data-test="contentSubscription-p"
         >
-          To maintain the integrity of your namespace,
-          it is not possible to delete it while you have an active subscription or an unpaid invoice.
-        </p>
+          <p class="mb-2">
+            To ensure the integrity of your namespace,
+            we have implemented a restriction that prevents its deletion while you have an active subscription or an unpaid invoice.
+          </p>
+          <p class="mb-2">
+            Kindly note that in order to proceed with the deletion of your namespace,
+            please ensure that there are no active subscriptions associated with it, and all outstanding invoices are settled.
+          </p>
+        </div>
 
         <p data-test="content-text" v-else>
           This action cannot be undone. This will permanently delete the

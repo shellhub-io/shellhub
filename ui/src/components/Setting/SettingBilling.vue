@@ -73,13 +73,13 @@
               <div class="mt-6 mb-6">
                 <v-row>
                   <v-col>
-                    <h3>Next bill</h3>
+                    <h3>Current billing cycle</h3>
                   </v-col>
                 </v-row>
 
                 <div class="mt-6 pl-4 pr-4">
                   <p>
-                    Date:
+                    Ends at:
                     <b>
                       {{ formattedDate }}
                     </b>
