@@ -26,8 +26,23 @@ fi
 export WORKER_PROCESSES
 export MAX_WORKER_OPEN_FILES
 export MAX_WORKER_CONNECTIONS
-
 export HOST_IP=$(ip -4 route show default | awk '{ print $3 }')
+
+wait_for_acme_webserver() {
+  for i in `seq 30` ; do
+    nc -z localhost 80 > /dev/null 2>&1
+
+    if [ $? -eq 0 ] ; then
+        return
+    fi
+
+    sleep 1
+  done
+
+  echo "Timed out waiting for ACME webserver" >&2
+
+  exit 1
+}
 
 # The certificate generation is only available in production mode and if the SHELLHUB_AUTO_SSL is set to true.
 if [ "$SHELLHUB_ENV" != "development" ] && [ "$SHELLHUB_AUTO_SSL" == "true" ]; then
@@ -45,9 +60,17 @@ if [ "$SHELLHUB_ENV" != "development" ] && [ "$SHELLHUB_AUTO_SSL" == "true" ]; t
     if [ ! -f /etc/letsencrypt/live/$SHELLHUB_DOMAIN/fullchain.pem ]; then
         echo "Generating SSL certificate"
 
-        mkdir -p /var/www/letsencrypt
+        ACME_WEBSERVER_ROOT="/var/www/letsencrypt"
+        ACME_CHALLENGE_DIR="$ACME_WEBSERVER_ROOT/.well-known/acme-challenge"
 
-        certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --webroot --webroot-path /var/www/letsencrypt --preferred-challenges http -n -d $SHELLHUB_DOMAIN
+        mkdir -p $ACME_CHALLENGE_DIR
+
+        # We need to ensure that acme challenge webserver is running before running certbot,
+        # as we are utilizing the webroot mode, which relies on a running local webserver
+        ACME_WEBSERVER_PID=$(cd $ACME_WEBSERVER_ROOT; python -m http.server 80 > /dev/null 2>&1 & echo $!)
+        wait_for_acme_webserver
+
+        certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --webroot --webroot-path $ACME_WEBSERVER_ROOT --preferred-challenges http -n -d $SHELLHUB_DOMAIN
         if [ $? -ne 0 ]; then
             echo "Failed to generate SSL certificate"
             exit 1
@@ -62,6 +85,8 @@ if [ "$SHELLHUB_ENV" != "development" ] && [ "$SHELLHUB_AUTO_SSL" == "true" ]; t
         fi
 
         echo "Mozilla's DH parameters successfully downloaded"
+
+        kill $ACME_WEBSERVER_PID
     fi
 
     # Loop every 24 hours to check if certificate is about to expire.
