@@ -45,7 +45,9 @@ if [ "$SHELLHUB_ENV" != "development" ] && [ "$SHELLHUB_AUTO_SSL" == "true" ]; t
     if [ ! -f /etc/letsencrypt/live/$SHELLHUB_DOMAIN/fullchain.pem ]; then
         echo "Generating SSL certificate"
 
-        certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --standalone --preferred-challenges http -n -d $SHELLHUB_DOMAIN
+        mkdir -p /var/www/letsencrypt
+
+        certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --webroot --webroot-path /var/www/letsencrypt --preferred-challenges http -n -d $SHELLHUB_DOMAIN
         if [ $? -ne 0 ]; then
             echo "Failed to generate SSL certificate"
             exit 1
