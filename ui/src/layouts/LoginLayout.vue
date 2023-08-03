@@ -29,6 +29,11 @@
                   alt="ShellHub logo, a cloud with a shell in your base write ShellHub in the right side"
                 />
               </v-card-title>
+              <p
+                v-if="!envVariables.isEnterprise && !envVariables.isCloud"
+                class="text-caption text-center text-md font-weight-bolad"
+              >Community Edition
+              </p>
               <router-view :key="currentRoute.value.path" />
             </v-card>
           </v-col>
@@ -43,6 +48,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import Logo from "../assets/logo-inverted.png";
 import SnackbarNew from "@/components/Snackbar/SnackbarNew.vue";
+import { envVariables } from "../envVariables";
 
 const router = useRouter();
 const currentRoute = computed(() => router.currentRoute);
