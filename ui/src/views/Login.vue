@@ -36,7 +36,7 @@
       <v-col>
         <v-text-field
           color="primary"
-          prepend-icon="mdi-account"
+          prepend-inner-icon="mdi-account"
           v-model="username"
           :rules="rules"
           required
@@ -47,7 +47,7 @@
 
         <v-text-field
           color="primary"
-          prepend-icon="mdi-lock"
+          prepend-inner-icon="mdi-lock"
           :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
           v-model="password"
           :rules="rules"
@@ -58,12 +58,12 @@
           :type="showPassword ? 'text' : 'password'"
           @click:append-inner="showPassword = !showPassword"
         />
-        <v-card-actions class="justify-center">
+        <v-card-actions class="justify-center pa-0">
           <v-btn
             :disabled="!validForm"
             data-test="login-btn"
             color="primary"
-            variant="tonal"
+            :variant="validForm ? 'elevated' : 'tonal'"
             block
             type="submit"
           >

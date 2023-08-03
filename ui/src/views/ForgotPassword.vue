@@ -21,7 +21,7 @@
 
           <v-text-field
             color="primary"
-            prepend-icon="mdi-account"
+            prepend-inner-icon="mdi-account"
             v-model="account"
             :error-messages="accountError"
             required
@@ -29,12 +29,12 @@
             variant="underlined"
             data-test="account-text"
           />
-          <v-card-actions class="justify-center">
+          <v-card-actions class="justify-center pa-0">
             <v-btn
               :disabled="!validForm"
               data-test="forgotPassword-btn"
               color="primary"
-              variant="tonal"
+              variant="elevated"
               block
               @click="sendEmail"
             >

@@ -5,37 +5,40 @@
       <v-container>
         <v-text-field
           color="primary"
-          prepend-icon="mdi-account"
+          prepend-inner-icon="mdi-account"
           v-model="name"
           :error-messages="nameError"
           required
           label="Name"
           variant="underlined"
-          data-test="name-text" />
+          data-test="name-text"
+        />
 
         <v-text-field
           color="primary"
-          prepend-icon="mdi-account"
+          prepend-inner-icon="mdi-account"
           v-model="username"
           :error-messages="usernameError"
           required
           label="Username"
           variant="underlined"
-          data-test="username-text" />
+          data-test="username-text"
+        />
 
         <v-text-field
           color="primary"
-          prepend-icon="mdi-email"
+          prepend-inner-icon="mdi-email"
           v-model="email"
           :error-messages="emailError"
           required
           label="Email"
           variant="underlined"
-          data-test="email-text" />
+          data-test="email-text"
+        />
 
         <v-text-field
           color="primary"
-          prepend-icon="mdi-lock"
+          prepend-inner-icon="mdi-lock"
           :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
           v-model="password"
           :error-messages="passwordError"
@@ -44,11 +47,12 @@
           variant="underlined"
           data-test="password-text"
           :type="showPassword ? 'text' : 'password'"
-          @click:append-inner="showPassword = !showPassword" />
+          @click:append-inner="showPassword = !showPassword"
+        />
 
         <v-text-field
           color="primary"
-          prepend-icon="mdi-lock"
+          prepend-inner-icon="mdi-lock"
           :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
           v-model="passwordConfirm"
           :error-messages="passwordConfirmError"
@@ -57,20 +61,35 @@
           variant="underlined"
           data-test="password-confirm-text"
           :type="showConfirmPassword ? 'text' : 'password'"
-          @click:append-inner="showConfirmPassword = !showConfirmPassword" />
+          @click:append-inner="showConfirmPassword = !showConfirmPassword"
+        />
       </v-container>
 
       <div>
-        <v-checkbox v-model="acceptPrivacyPolicy" color="primary" hide-details data-test="accept-privacy-policy-checkbox">
+        <v-checkbox
+          v-model="acceptPrivacyPolicy"
+          color="primary"
+          hide-details
+          data-test="accept-privacy-policy-checkbox"
+        >
           <template #label>
             <span class="caption">
               I agree to the
-              <a href="https://www.shellhub.io/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy
+              <a
+                href="https://www.shellhub.io/privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+              >Privacy
                 Policy</a>
             </span>
           </template>
         </v-checkbox>
-        <v-checkbox v-model="acceptMarketing" color="primary" hide-details data-test="accept-news-checkbox">
+        <v-checkbox
+          v-model="acceptMarketing"
+          color="primary"
+          hide-details
+          data-test="accept-news-checkbox"
+        >
           <template #label>
             <p>
               I accept to receive news and updates from ShellHub via
@@ -81,20 +100,37 @@
       </div>
 
       <v-card-actions class="justify-center">
-        <v-btn :disabled="!acceptPrivacyPolicy" type="submit" data-test="create-account-btn" color="primary" variant="tonal" block>
-          CREATE
+        <v-btn
+          :disabled="!acceptPrivacyPolicy"
+          type="submit"
+          data-test="create-account-btn"
+          color="primary"
+          :variant="acceptPrivacyPolicy ? 'elevated' : 'tonal'"
+          block
+        >
+          SignUp
         </v-btn>
 
       </v-card-actions>
 
-      <v-card-subtitle class="d-flex align-center justify-center pa-4 mx-auto" data-test="login-btn">
+      <v-card-subtitle
+        class="d-flex align-center justify-center pa-4 mx-auto"
+        data-test="login-btn"
+      >
         Do you have account ?
-        <router-link class="ml-1" :to="{ name: 'login' }">
+        <router-link
+          class="ml-1"
+          :to="{ name: 'login' }"
+        >
           Login
         </router-link>
       </v-card-subtitle>
     </form>
-    <AccountCreated :show="showMessage" :username="username" data-test="accountCreated-component" />
+    <AccountCreated
+      :show="showMessage"
+      :username="username"
+      data-test="accountCreated-component"
+    />
   </v-container>
 </template>
 
@@ -199,15 +235,15 @@ const {
 
 const hasErrors = () => !!(
   nameError.value
-    || usernameError.value
-    || emailError.value
-    || passwordError.value
-    || passwordConfirmError.value
-    || !name.value
-    || !username.value
-    || !email.value
-    || !password.value
-    || !passwordConfirm.value
+  || usernameError.value
+  || emailError.value
+  || passwordError.value
+  || passwordConfirmError.value
+  || !name.value
+  || !username.value
+  || !email.value
+  || !password.value
+  || !passwordConfirm.value
 );
 
 const createAccount = async () => {
