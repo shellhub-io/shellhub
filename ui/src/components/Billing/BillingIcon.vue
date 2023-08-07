@@ -18,19 +18,6 @@
 <script lang="ts">
 /* eslint-disable */
 import { defineComponent, ref } from "vue";
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { faCreditCard } from '@fortawesome/free-regular-svg-icons';
-import { faCcAmex, faCcDinersClub, faCcDiscover, faCcJcb, faCcMastercard, faCcVisa } from '@fortawesome/free-brands-svg-icons';
-
-library.add(
-  faCreditCard,
-  faCcAmex,
-  faCcDinersClub,
-  faCcDiscover,
-  faCcJcb,
-  faCcMastercard,
-  faCcVisa
-);
 
 export default defineComponent({
   props: {
