@@ -54,6 +54,7 @@ export default defineComponent({
     const router = useRouter();
     const filter = ref("");
     const show = ref(false);
+
     const searchDevices = () => {
       let encodedFilter = "";
 
