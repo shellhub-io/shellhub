@@ -70,8 +70,6 @@ if [ "$SHELLHUB_ENV" != "development" ] && [ "$SHELLHUB_AUTO_SSL" == "true" ]; t
         ACME_WEBSERVER_PID=$(cd $ACME_WEBSERVER_ROOT; python -m http.server 80 > /dev/null 2>&1 & echo $!)
         wait_for_acme_webserver
 
-        mkdir -p /etc/letsencrypt/live/$SHELLHUB_DOMAIN
-
         certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --webroot --webroot-path $ACME_WEBSERVER_ROOT --preferred-challenges http -n -d $SHELLHUB_DOMAIN
         if [ $? -ne 0 ]; then
             echo "Failed to generate SSL certificate"
