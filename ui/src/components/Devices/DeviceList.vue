@@ -136,11 +136,10 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted, watch, computed } from "vue";
+<script setup lang="ts">
+import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "../../store";
-import { formatDate } from "../../utils/formateDate";
 import { displayOnlyTenCharacters } from "../../utils/string";
 import showTag from "../../utils/tag";
 import DataTable from "../DataTable.vue";
@@ -157,219 +156,166 @@ import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const loading = ref(false);
-    const filter = ref("");
-    const itemsPerPage = ref(10);
-    const page = ref(1);
+const headers = [
+  {
+    text: "Hostname",
+    value: "hostname",
+  },
+  {
+    text: "Operating System",
+    value: "info.pretty_name",
+  },
+  {
+    text: "SSHID",
+    value: "namespace",
+  },
+];
 
-    const deviceDeleteShow = ref([]);
+const store = useStore();
+const router = useRouter();
+const loading = ref(false);
+const filter = ref("");
+const itemsPerPage = ref(10);
+const page = ref(1);
 
-    const devices = computed(() => store.getters["devices/list"]);
-    const numberDevices = computed<number>(
-      () => store.getters["devices/getNumberDevices"],
+const devices = computed(() => store.getters["devices/list"]);
+const numberDevices = computed<number>(
+  () => store.getters["devices/getNumberDevices"],
+);
+
+onMounted(async () => {
+  try {
+    loading.value = true;
+    await store.dispatch("devices/fetch", {
+      perPage: itemsPerPage.value,
+      page: page.value,
+      filter: "",
+      status: "accepted",
+      sortStatusField: "",
+      sortStatusString: "",
+    });
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.deviceList,
     );
-
-    onMounted(async () => {
-      try {
-        loading.value = true;
-        await store.dispatch("devices/fetch", {
-          perPage: itemsPerPage.value,
-          page: page.value,
-          filter: "",
-          status: "accepted",
-          sortStatusField: "",
-          sortStatusString: "",
-        });
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceList,
-        );
-        handleError(error);
-      } finally {
-        loading.value = false;
-      }
-    });
-
-    const getDevices = async (perPagaeValue: number, pageValue: number) => {
-      try {
-        loading.value = true;
-
-        const hasDevices = await store.dispatch("devices/fetch", {
-          perPage: perPagaeValue,
-          page: pageValue,
-          status: "accepted",
-          filter: filter.value,
-          sortStatusField: store.getters["devices/getSortStatusField"],
-          sortStatusString: store.getters["devices/getSortStatusString"],
-        });
-
-        if (!hasDevices) {
-          page.value--;
-        }
-
-        loading.value = false;
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceList,
-        );
-        handleError(error);
-      }
-    };
-
-    const sortByItem = async (field: string) => {
-      let sortStatusString = store.getters["devices/getSortStatusString"];
-      const sortStatusField = store.getters["devices/getSortStatusField"];
-
-      if (field !== sortStatusField && sortStatusField) {
-        if (sortStatusString === "asc") {
-          sortStatusString = "desc";
-        } else {
-          sortStatusString = "asc";
-        }
-      }
-
-      if (sortStatusString === "") {
-        sortStatusString = "asc";
-      } else if (sortStatusString === "asc") {
-        sortStatusString = "desc";
-      } else {
-        sortStatusString = "asc";
-      }
-      await store.dispatch("devices/setSortStatus", {
-        sortStatusField: field,
-        sortStatusString,
-      });
-      await getDevices(itemsPerPage.value, page.value);
-    };
-
-    const next = async () => {
-      await getDevices(itemsPerPage.value, ++page.value);
-    };
-
-    const prev = async () => {
-      try {
-        if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
-      } catch (error: unknown) {
-        store.dispatch("snackbar/setSnackbarErrorDefault");
-        handleError(error);
-      }
-    };
-
-    const changeItemsPerPage = async (newItemsPerPage: number) => {
-      itemsPerPage.value = newItemsPerPage;
-    };
-
-    watch(itemsPerPage, async () => {
-      await getDevices(itemsPerPage.value, page.value);
-    });
-
-    const goToNamespace = (namespace: string) => {
-      router.push({ name: "namespaceDetails", params: { id: namespace } });
-    };
-
-    const redirectToDevice = (deviceId: string) => {
-      router.push({ name: "detailsDevice", params: { id: deviceId } });
-    };
-
-    const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
-
-    const copyText = (value: string | undefined) => {
-      if (value) {
-        navigator.clipboard.writeText(value);
-        store.dispatch(
-          "snackbar/showSnackbarCopy",
-          INotificationsCopy.deviceSSHID,
-        );
-      }
-    };
-
-    const refreshDevices = () => {
-      getDevices(itemsPerPage.value, page.value);
-    };
-
-    const hasAuthorizationFormUpdate = () => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
-      }
-
-      return false;
-    };
-
-    const hasAuthorizationRemove = () => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.device.remove);
-      }
-
-      return false;
-    };
-
-    return {
-      headers: [
-        {
-          text: "Online",
-          value: "online",
-          sortable: true,
-        },
-        {
-          text: "Hostname",
-          value: "name",
-          sortable: true,
-        },
-        {
-          text: "Operating System",
-          value: "operating_system",
-        },
-        {
-          text: "SSHID",
-          value: "sshid",
-        },
-        {
-          text: "Tags",
-          value: "tags",
-        },
-        {
-          text: "Actions",
-          value: "actions",
-        },
-      ],
-      itemsPerPage,
-      page,
-      loading,
-      devices,
-      deviceDeleteShow,
-      numberDevices,
-      next,
-      prev,
-      sortByItem,
-      showTag,
-      displayOnlyTenCharacters,
-      formatDate,
-      goToNamespace,
-      changeItemsPerPage,
-      redirectToDevice,
-      sshidAddress,
-      copyText,
-      refreshDevices,
-      hasAuthorizationFormUpdate,
-      hasAuthorizationRemove,
-    };
-  },
-  components: {
-    DataTable,
-    DeviceIcon,
-    DeviceDelete,
-    TagFormUpdate,
-    TerminalDialog,
-  },
+    handleError(error);
+  } finally {
+    loading.value = false;
+  }
 });
+
+const getDevices = async (perPagaeValue: number, pageValue: number) => {
+  try {
+    loading.value = true;
+
+    const hasDevices = await store.dispatch("devices/fetch", {
+      perPage: perPagaeValue,
+      page: pageValue,
+      status: "accepted",
+      filter: filter.value,
+      sortStatusField: store.getters["devices/getSortStatusField"],
+      sortStatusString: store.getters["devices/getSortStatusString"],
+    });
+
+    if (!hasDevices) {
+      page.value--;
+    }
+
+    loading.value = false;
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.deviceList,
+    );
+    handleError(error);
+  }
+};
+
+const sortByItem = async (field: string) => {
+  let sortStatusString = store.getters["devices/getSortStatusString"];
+  const sortStatusField = store.getters["devices/getSortStatusField"];
+
+  if (field !== sortStatusField && sortStatusField) {
+    if (sortStatusString === "asc") {
+      sortStatusString = "desc";
+    } else {
+      sortStatusString = "asc";
+    }
+  }
+
+  if (sortStatusString === "") {
+    sortStatusString = "asc";
+  } else if (sortStatusString === "asc") {
+    sortStatusString = "desc";
+  } else {
+    sortStatusString = "asc";
+  }
+  await store.dispatch("devices/setSortStatus", {
+    sortStatusField: field,
+    sortStatusString,
+  });
+  await getDevices(itemsPerPage.value, page.value);
+};
+
+const next = async () => {
+  await getDevices(itemsPerPage.value, ++page.value);
+};
+
+const prev = async () => {
+  try {
+    if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
+  } catch (error: unknown) {
+    store.dispatch("snackbar/setSnackbarErrorDefault");
+    handleError(error);
+  }
+};
+
+const changeItemsPerPage = async (newItemsPerPage: number) => {
+  itemsPerPage.value = newItemsPerPage;
+};
+
+watch(itemsPerPage, async () => {
+  await getDevices(itemsPerPage.value, page.value);
+});
+
+const redirectToDevice = (deviceId: string) => {
+  router.push({ name: "detailsDevice", params: { id: deviceId } });
+};
+
+const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+
+const copyText = (value: string | undefined) => {
+  if (value) {
+    navigator.clipboard.writeText(value);
+    store.dispatch(
+      "snackbar/showSnackbarCopy",
+      INotificationsCopy.deviceSSHID,
+    );
+  }
+};
+
+const refreshDevices = () => {
+  getDevices(itemsPerPage.value, page.value);
+};
+
+const hasAuthorizationFormUpdate = () => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
+  }
+
+  return false;
+};
+
+const hasAuthorizationRemove = () => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(authorizer.role[role], actions.device.remove);
+  }
+
+  return false;
+};
 </script>
 
 <style scoped>

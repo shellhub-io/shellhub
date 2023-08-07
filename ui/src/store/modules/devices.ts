@@ -19,7 +19,7 @@ export interface DevicesState {
   devicesForUserToChoose: Array<IDevice>;
   numberdevicesForUserToChoose: number;
   devicesSelected: Array<IDevice>;
-}
+  }
 
 export const devices: Module<DevicesState, State> = {
   namespaced: true,
@@ -98,10 +98,7 @@ export const devices: Module<DevicesState, State> = {
 
     setDevicesForUserToChoose: (state, res) => {
       state.devicesForUserToChoose = res.data;
-      state.numberdevicesForUserToChoose = parseInt(
-        res.headers["x-total-count"],
-        10,
-      );
+      state.numberdevicesForUserToChoose = parseInt(res.headers["x-total-count"] ?? 1, 10);
     },
 
     setDevicesSelected: (state, data) => {
@@ -222,6 +219,7 @@ export const devices: Module<DevicesState, State> = {
           state.sortStatusString,
         );
         commit("setDevices", res);
+        commit("setDevicesForUserToChoose", res);
         commit("setFilter", data.filter);
       } catch (error) {
         commit("clearListDevices");
@@ -260,6 +258,11 @@ export const devices: Module<DevicesState, State> = {
           data.sortStatusField,
           data.sortStatusString,
         );
+        res.data = res.data.map((item) => {
+          const newItem = item;
+          delete newItem.last_seen;
+          return newItem;
+        });
         if (res.data.length) {
           context.commit("setDevicesForUserToChoose", res);
           context.commit("setPagePerpageFilter", data);
