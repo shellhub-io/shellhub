@@ -1,0 +1,42 @@
+// Package mode defines the interfaces used by the server to determine how to handle authentication and sessions.
+package modes
+
+import gliderssh "github.com/gliderlabs/ssh"
+
+// Mode defines the SSH's server mode type.
+type Mode string
+
+const (
+	// HostMode represents the SSH's server host mode.
+	//
+	// HostMode mode means that the SSH's server runs in the host machine, using the host `/etc/passwd`, `/etc/shadow`,
+	// redirecting the SSH's connection to the device sdin, stdout and stderr and etc.
+	HostMode Mode = "host"
+)
+
+// Authenticator defines the authentication methods used by the SSH's server.
+type Authenticator interface {
+	// Password must be implemented to deal with password authentication.
+	Password(ctx gliderssh.Context, user string, password string) bool
+	// PublicKey must be implemented to deal with public key authentication.
+	PublicKey(ctx gliderssh.Context, user string, key gliderssh.PublicKey) bool
+}
+
+// Sessioner defines the session methods used by the SSH's server to deal wihth determining the type of session.
+type Sessioner interface {
+	Subsystemer
+	// Shell must be implemented to deal with shell session.
+	Shell(session gliderssh.Session) error
+	// Heredoc must be implemented to deal with heredoc session.
+	//
+	// heredoc is special block of code that contains multi-line strings that will be redirected to a stdin of a shell.
+	// It request a shell, but doesn't allocate a pty.
+	Heredoc(session gliderssh.Session) error
+	// Exec must be implemented to deal with exec session.
+	Exec(session gliderssh.Session) error
+}
+
+type Subsystemer interface {
+	// SFTP must be implemented to deal with SFTP session.
+	SFTP(session gliderssh.Session) error
+}
