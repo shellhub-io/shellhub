@@ -112,7 +112,6 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		PublicKeyHandler:       server.publicKeyHandler,
 		Handler:                server.sessionHandler,
 		SessionRequestCallback: server.sessionRequestCallback,
-		RequestHandlers:        gliderssh.DefaultRequestHandlers,
 		SubsystemHandlers: map[string]gliderssh.SubsystemHandler{
 			SFTPSubsystemName: server.sftpSubsystemHandler,
 		},
