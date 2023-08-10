@@ -34,13 +34,13 @@ func GetSessionType(session gliderssh.Session) (Type, error) {
 	}
 
 	switch {
-	case isPty && requestType == "shell":
+	case isPty && requestType == RequestTypeShell:
 		return SessionTypeShell, nil
-	case !isPty && requestType == "shell":
+	case !isPty && requestType == RequestTypeShell:
 		return SessionTypeHeredoc, nil
-	case requestType == "exec":
+	case requestType == RequestTypeExec:
 		return SessionTypeExec, nil
-	case requestType == "subsystem":
+	case requestType == RequestTypeSubsystem:
 		return SessionTypeSubsystem, nil
 	default:
 		return SessionTypeUnknown, nil
