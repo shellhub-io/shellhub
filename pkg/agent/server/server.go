@@ -60,6 +60,35 @@ type Server struct {
 	sessioner modes.Sessioner
 }
 
+// Channels supported by the SSH server.
+//
+// An SSH channel refers to a communication link established between a client and a server. SSH channels are multiplexed
+// over a single encrypted connection, facilitating concurrent and secure communication for various purposes.
+//
+// There are three main types of SSH channels: Session Channels for interactive command-line access, Forwarding Channels
+// for secure port tunneling, and SFTP Channels for secure file transfers.
+//
+// SSH_MSG_CHANNEL_OPEN
+//
+// https://www.ietf.org/rfc/rfc4254.txt
+const (
+	// ChannelSession
+	//
+	// Client implementations SHOULD reject any session channel open requests to make it more difficult for a corrupt
+	// server to attack the client.
+	//
+	// Check www.ietf.org/rfc/rfc4254.txt at section 6.1 for more information.
+	ChannelSession string = "session"
+	// ChannelDirectTcpip
+	//
+	// When a connection comes to a locally forwarded TCP/IP port, the following packet is sent to the other side.
+	// Note that these messages MAY also be sent for ports for which no forwarding has been explicitly requested.  The
+	// receiving side must decide whether to allow the forwarding.
+	//
+	// Check www.ietf.org/rfc/rfc4254.txt at section 7.2 for more information.
+	ChannelDirectTcpip string = "direct-tcpip"
+)
+
 // NewServer creates a new server SSH agent server.
 func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, singleUserPassword string) *Server {
 	server := &Server{
@@ -107,9 +136,9 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 			return false
 		},
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
-			"session":       gliderssh.DefaultSessionHandler,
-			"direct-tcpip":  gliderssh.DirectTCPIPHandler,
-			"dynamic-tcpip": gliderssh.DirectTCPIPHandler,
+			ChannelSession:     gliderssh.DefaultSessionHandler,
+			ChannelDirectTcpip: gliderssh.DirectTCPIPHandler,
+			"dynamic-tcpip":    gliderssh.DirectTCPIPHandler,
 		},
 	}
 
@@ -149,6 +178,24 @@ loop:
 		}
 	}
 }
+
+// List of request types that are supported by SSH.
+//
+// Once the session has been set up, a program is started at the remote end.  The program can be a shell, an application
+// program, or a subsystem with a host-independent name.  Only one of these requests can succeed per channel.
+//
+// Check www.ietf.org/rfc/rfc4254.txt at section 6.5 for more information.
+const (
+	// RequestTypeShell is a request type for shell.
+	RequestTypeShell = "shell"
+	// RequestTypeExec is a request type for exec.
+	RequestTypeExec = "exec"
+	// RequestTypeSubsystem is a request type for any subsystem.
+	RequestTypeSubsystem = "subsystem"
+	// RequestTypeUnknown is a request type for unknown.
+	// It is not a valid request type by SSH, but it is used to identify the request type when it is not known.
+	RequestTypeUnknown = "unknown"
+)
 
 func (s *Server) sessionRequestCallback(session gliderssh.Session, requestType string) bool {
 	session.Context().SetValue("request_type", requestType)
