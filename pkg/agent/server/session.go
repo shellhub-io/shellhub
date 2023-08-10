@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	gliderssh "github.com/gliderlabs/ssh"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -61,10 +62,31 @@ func (s *Server) sessionHandler(session gliderssh.Session) {
 
 	switch sessionType {
 	case SessionTypeShell:
+		if !s.features.IsFeatureEnabled(modes.FeatureShell) {
+			log.Info("Shell is not enabled for this device")
+			session.Write([]byte("Shell is not enabled for this device\n")) //nolint:errcheck
+
+			return
+		}
+
 		s.sessioner.Shell(session) //nolint:errcheck
 	case SessionTypeHeredoc:
+		if !s.features.IsFeatureEnabled(modes.FeatureHeredoc) {
+			log.Info("Heredoc is not enabled for this device")
+			session.Write([]byte("Heredoc is not enabled for this device\n")) //nolint:errcheck
+
+			return
+		}
+
 		s.sessioner.Heredoc(session) //nolint:errcheck
 	default:
+		if !s.features.IsFeatureEnabled(modes.FeatureExec) {
+			log.Info("Exec is not enabled for this device")
+			session.Write([]byte("Exec is not enabled for this device\n")) //nolint:errcheck
+
+			return
+		}
+
 		s.sessioner.Exec(session) //nolint:errcheck
 	}
 

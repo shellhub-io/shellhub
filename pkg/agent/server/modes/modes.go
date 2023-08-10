@@ -3,6 +3,30 @@ package modes
 
 import gliderssh "github.com/gliderlabs/ssh"
 
+// Features defines the features supported by the agent.
+type Features uint32
+
+// List of features supported by the agent using feature flags.
+const (
+	// FeatureLocalPortForwarding is the feature flag for local port forwarding.
+	FeatureLocalPortForwarding Features = 1 << iota
+	// FeatureReversePortForwarding is the feature flag for remote port forwarding.
+	FeatureReversePortForwarding
+	// FeatureShell is the feature flag for shell session.
+	FeatureShell
+	// FeatureHeredoc is the feature flag for heredoc session.
+	FeatureHeredoc
+	// FeatureExec is the feature flag for exec session.
+	FeatureExec
+	// FeatureSFTP is the feature flag for SFTP session.
+	FeatureSFTP
+)
+
+// IsFeatureEnabled checks if the feature flag is enabled.
+func (f Features) IsFeatureEnabled(flag Features) bool {
+	return (f & flag) != 0
+}
+
 // Mode defines the SSH's server mode type.
 type Mode string
 

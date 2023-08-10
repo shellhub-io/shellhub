@@ -58,6 +58,8 @@ type Server struct {
 	// sessioner also has the subsystemer interface, which contains methods used by the server to handle different
 	// types of subsystems.
 	sessioner modes.Sessioner
+	// features is the list of features enabled by server mode.
+	features modes.Features
 }
 
 // NewServer creates a new server SSH agent server.
@@ -76,6 +78,7 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 	case modes.HostMode:
 		server.authenticator = host.NewAuthenticator(api, authData, singleUserPassword, &server.deviceName)
 		server.sessioner = host.NewSessioner(&server.deviceName, server.cmds)
+		server.features = host.Features
 	}
 
 	server.sshd = &gliderssh.Server{
@@ -101,10 +104,10 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 			return &sshConn{conn, closeCallback, ctx}
 		},
 		LocalPortForwardingCallback: func(ctx gliderssh.Context, destinationHost string, destinationPort uint32) bool {
-			return true
+			return server.features.IsFeatureEnabled(modes.FeatureLocalPortForwarding)
 		},
 		ReversePortForwardingCallback: func(ctx gliderssh.Context, destinationHost string, destinationPort uint32) bool {
-			return false
+			return server.features.IsFeatureEnabled(modes.FeatureReversePortForwarding)
 		},
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
 			"session":       gliderssh.DefaultSessionHandler,
