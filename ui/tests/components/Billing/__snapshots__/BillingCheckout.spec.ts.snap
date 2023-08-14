@@ -30,7 +30,7 @@ exports[`Billing Checkout > Renders the component 1`] = `
       </div>
       <!---->
       <!---->
-      <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text pl-0 pr-0\\">
+      <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--variant-text pl-0 pr-0\\" title=\\"false\\">
         <!----><span class=\\"v-list-item__underlay\\"></span>
         <!---->
         <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -60,11 +60,11 @@ exports[`Billing Checkout > Renders the component 1`] = `
       <!----><span class=\\"v-card__underlay\\"></span>
     </div>
   </div>
-  <div class=\\"flex-grow-1 mb-5\\"></div>
+  <div class=\\"v-spacer mb-5\\"></div>
   <div class=\\"v-row\\">
     <div class=\\"v-col\\">
       <h3 data-test=\\"additional-information\\">Additional Information:</h3>
-      <div class=\\"flex-grow-1 mb-2\\"></div>
+      <div class=\\"v-spacer mb-2\\"></div>
       <ul data-test=\\"additional-information-list\\">
         <li>
           <p>Your selected payment method will be charged automatically on a monthly basis</p>
