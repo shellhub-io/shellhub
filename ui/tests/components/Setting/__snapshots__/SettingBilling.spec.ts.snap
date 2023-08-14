@@ -12,7 +12,7 @@ exports[`Billing Settings Free Mode > Renders the component 1`] = `
             <div data-v-d7a09f69=\\"\\" class=\\"v-col\\">
               <h3 data-v-d7a09f69=\\"\\">Subscription info</h3>
             </div>
-            <div data-v-d7a09f69=\\"\\" class=\\"flex-grow-1\\"></div>
+            <div data-v-d7a09f69=\\"\\" class=\\"v-spacer\\"></div>
             <div data-v-d7a09f69=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
               <div data-v-d7a09f69=\\"\\" class=\\"v-col\\" align=\\"left\\"><button data-v-d7a09f69=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated text-none text-uppercase\\" data-test=\\"subscribe-button\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                   <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i data-v-d7a09f69=\\"\\" class=\\"mdi-credit-card mdi v-icon notranslate v-theme--light v-icon--size-default mr-2\\" aria-hidden=\\"true\\"></i> Subscribe </span>
