@@ -16,50 +16,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var DefaultShadowFilename = "/etc/shadow"
-
-type ShadowEntry struct {
-	Username    string // Login name
-	Password    string // Hashed password
-	Lastchanged int    // Days since Jan 1, 1970 that password was last changed
-	Minimum     int    // The minimum number of days required between password changes i.e. the number of days left before the user is allowed to change his/her password
-	Maximum     int    // The maximum number of days the password is valid (after that user is forced to change his/her password)
-	Warn        int    // The number of days before password is to expire that user is warned that his/her password must be changed
-	Inactive    int    // The number of days after password expires that account is disabled
-	Expire      int    // Days since Jan 1, 1970 that account is disabled i.e. an absolute date specifying when the login may no longer be used.
+//go:generate mockery --name=OSAuther --filename=osauther.go
+type OSAuther interface {
+	AuthUser(username, password string) bool
+	VerifyPasswordHash(hash, password string) bool
+	LookupUser(username string) *User
 }
 
-func VerifyPasswordHash(hashPassword, passwd string) bool {
-	if hashPassword == "" {
-		logrus.Error("Password entry is empty")
+type OSAuth struct{}
 
-		return false
-	}
-
-	// If hash algorithm is yescrypt verify by ourselves, otherwise let's try crypt package
-	if strings.HasPrefix(hashPassword, "$y$") {
-		return yescrypt.Verify(passwd, hashPassword)
-	}
-
-	if ok := crypt.IsHashSupported(hashPassword); !ok {
-		logrus.Error("The crypto algorithm is not supported")
-
-		return false
-	}
-
-	crypt := crypt.NewFromHash(hashPassword)
-	if crypt == nil {
-		logrus.Error("Could not detect password crypto algorithm from shadow entry")
-
-		return false
-	}
-
-	err := crypt.Verify(hashPassword, []byte(passwd))
-
-	return err == nil
-}
-
-func AuthUser(username, passwd string) bool {
+func (l *OSAuth) AuthUser(username, password string) bool {
 	shadowFile, err := os.Open(DefaultShadowFilename)
 	if err != nil {
 		logrus.Error("Could not open /etc/shadow")
@@ -76,12 +42,85 @@ func AuthUser(username, passwd string) bool {
 	}
 
 	if entry, ok := entries[username]; ok {
-		return VerifyPasswordHash(entry.Password, passwd)
+		return l.VerifyPasswordHash(entry.Password, password)
 	}
 
 	logrus.Warn("User not found")
 
 	return false
+}
+
+func (l *OSAuth) VerifyPasswordHash(hash, password string) bool {
+	if hash == "" {
+		logrus.Error("Password entry is empty")
+
+		return false
+	}
+
+	// If hash algorithm is yescrypt verify by ourselves, otherwise let's try crypt package
+	if strings.HasPrefix(hash, "$y$") {
+		return yescrypt.Verify(password, hash)
+	}
+
+	if ok := crypt.IsHashSupported(hash); !ok {
+		logrus.Error("The crypto algorithm is not supported")
+
+		return false
+	}
+
+	crypt := crypt.NewFromHash(hash)
+	if crypt == nil {
+		logrus.Error("Could not detect password crypto algorithm from shadow entry")
+
+		return false
+	}
+
+	err := crypt.Verify(hash, []byte(password))
+
+	return err == nil
+}
+
+func (l *OSAuth) LookupUser(username string) *User {
+	if os.Geteuid() != 0 {
+		return singleUser()
+	}
+
+	passwdFile, err := os.Open(DefaultPasswdFilename)
+	if err != nil {
+		logrus.Errorf("Could not open %s", DefaultPasswdFilename)
+
+		return nil
+	}
+	defer passwdFile.Close()
+
+	entries, err := parsePasswdReader(passwdFile)
+	if err != nil {
+		logrus.Printf("Could not parse passwdfile %v", err)
+
+		return nil
+	}
+
+	user, found := entries[username]
+	if !found {
+		logrus.Error("User not found")
+
+		return nil
+	}
+
+	return &user
+}
+
+var DefaultShadowFilename = "/etc/shadow"
+
+type ShadowEntry struct {
+	Username    string // Login name
+	Password    string // Hashed password
+	Lastchanged int    // Days since Jan 1, 1970 that password was last changed
+	Minimum     int    // The minimum number of days required between password changes i.e. the number of days left before the user is allowed to change his/her password
+	Maximum     int    // The maximum number of days the password is valid (after that user is forced to change his/her password)
+	Warn        int    // The number of days before password is to expire that user is warned that his/her password must be changed
+	Inactive    int    // The number of days after password expires that account is disabled
+	Expire      int    // Days since Jan 1, 1970 that account is disabled i.e. an absolute date specifying when the login may no longer be used.
 }
 
 func parseShadowReader(r io.Reader) (map[string]ShadowEntry, error) {

@@ -21,7 +21,7 @@ import (
 func newShellCmd(deviceName string, username string, term string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
-	user := osauth.LookupUser(username)
+	user := new(osauth.OSAuth).LookupUser(username)
 
 	if shell == "" {
 		shell = user.Shell
@@ -70,7 +70,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		log.Warn(err)
 	}
 
-	u := osauth.LookupUser(session.User())
+	u := new(osauth.OSAuth).LookupUser(session.User())
 
 	err = os.Chown(pts.Name(), int(u.UID), -1)
 	if err != nil {
@@ -183,7 +183,7 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 
 // Exec handles the SSH's server exec session when server is running in host mode.
 func (s *Sessioner) Exec(session gliderssh.Session) error {
-	u := osauth.LookupUser(session.User())
+	u := new(osauth.OSAuth).LookupUser(session.User())
 	if len(session.Command()) == 0 {
 		log.WithFields(log.Fields{
 			"user":      session.User(),
