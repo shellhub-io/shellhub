@@ -15,6 +15,8 @@ const (
 )
 
 // Authenticator defines the authentication methods used by the SSH's server.
+//
+//go:generate mockery --name=Authenticator --filename=authenticator.go
 type Authenticator interface {
 	// Password must be implemented to deal with password authentication.
 	Password(ctx gliderssh.Context, user string, password string) bool

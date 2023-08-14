@@ -8,8 +8,6 @@ import (
 	"os/user"
 	"strconv"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 var DefaultPasswdFilename = "/etc/passwd"
@@ -47,36 +45,6 @@ func singleUser() *User {
 		HomeDir:  homeDir,
 		Shell:    shell,
 	}
-}
-
-func LookupUser(username string) *User {
-	if os.Geteuid() != 0 {
-		return singleUser()
-	}
-
-	passwdFile, err := os.Open(DefaultPasswdFilename)
-	if err != nil {
-		logrus.Errorf("Could not open %s", DefaultPasswdFilename)
-
-		return nil
-	}
-	defer passwdFile.Close()
-
-	entries, err := parsePasswdReader(passwdFile)
-	if err != nil {
-		logrus.Printf("Could not parse passwdfile %v", err)
-
-		return nil
-	}
-
-	user, found := entries[username]
-	if !found {
-		logrus.Error("User not found")
-
-		return nil
-	}
-
-	return &user
 }
 
 func parsePasswdReader(r io.Reader) (map[string]User, error) {
