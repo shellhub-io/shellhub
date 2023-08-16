@@ -53,9 +53,8 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 			return false
 		},
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
-			"session":                    gliderssh.DefaultSessionHandler,
-			channels.DirectTCPIPChannel:  channels.DefaultTCPIPHandler,
-			channels.DynamicTCPIPChannel: channels.DefaultTCPIPHandler,
+			"session":                   gliderssh.DefaultSessionHandler,
+			channels.DirectTCPIPChannel: channels.DefaultTCPIPHandler,
 		},
 	}
 
