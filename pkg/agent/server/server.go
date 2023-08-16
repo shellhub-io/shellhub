@@ -137,7 +137,6 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
 			ChannelSession:     gliderssh.DefaultSessionHandler,
 			ChannelDirectTcpip: gliderssh.DirectTCPIPHandler,
-			"dynamic-tcpip":    gliderssh.DirectTCPIPHandler,
 		},
 	}
 
