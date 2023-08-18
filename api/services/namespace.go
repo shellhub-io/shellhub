@@ -150,7 +150,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	}
 
 	if envs.IsCloud() && envs.HasBilling() && ableToReportDeleteNamespace(ns) {
-		if err := billingReport(s.client.(req.Client), tenantID, ReportNamespaceDelete); err != nil {
+		if err := s.BillingReport(s.client.(req.Client), tenantID, ReportNamespaceDelete); err != nil {
 			return NewErrBillingReportNamespaceDelete(err)
 		}
 	}

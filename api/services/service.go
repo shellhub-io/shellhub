@@ -25,6 +25,7 @@ type service struct {
 
 //go:generate mockery --name Service --dir ./services/ --output ./services/mocks --filename services.go
 type Service interface {
+	BillingInterface
 	TagsService
 	DeviceService
 	DeviceTags
