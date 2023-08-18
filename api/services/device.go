@@ -231,7 +231,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		}
 	case envs.IsCloud():
 		if namespace.Billing.IsActive() {
-			if err := billingReport(s.client.(req.Client), namespace.TenantID, ReportDeviceAccept); err != nil {
+			if err := s.BillingReport(s.client.(req.Client), namespace.TenantID, ReportDeviceAccept); err != nil {
 				return NewErrBillingReportNamespaceDelete(err)
 			}
 		} else {
@@ -256,7 +256,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 				}
 			}
 
-			ok, err := billingEvaluate(s.client.(req.Client), namespace.TenantID)
+			ok, err := s.BillingEvaluate(s.client.(req.Client), namespace.TenantID)
 			if err != nil {
 				return NewErrBillingEvaluate(err)
 			}
