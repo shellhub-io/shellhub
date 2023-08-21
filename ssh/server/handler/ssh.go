@@ -446,7 +446,11 @@ func exec(api internalclient.Client, uid string, device *models.Device, agent *g
 		}()
 	}
 
-	<-waitPipeOut
+	go func() {
+		// When agent stop to send data, it means that the command has finished and the process should be closed.
+		<-waitPipeOut
+		agent.Close()
+	}()
 
 	err = agent.Wait()
 	if isUnknownExitError(err) {
