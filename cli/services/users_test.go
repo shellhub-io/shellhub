@@ -14,122 +14,130 @@ import (
 )
 
 func TestDelUser(t *testing.T) {
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
-
+	mock := new(mocks.Store)
 	ctx := context.TODO()
 
-	Err := errors.New("error")
-	userNotFound := &models.User{
-		UserData: models.UserData{
-			Name:     "userNotFound",
-			Email:    "userNotFound@userNotFound.com",
-			Username: "usernameNotFound",
-		},
-	}
-	user := &models.User{
-		ID: "userID",
-		UserData: models.UserData{
-			Name:     "user",
-			Email:    "user@user.com",
-			Username: "username",
-		},
-	}
-	namespaceOwned := []*models.Namespace{
-		{
-			Name:     "namespace1",
-			Owner:    user.ID,
-			TenantID: "tenantID1",
-			Members:  []models.Member{{ID: user.ID, Role: "owner"}},
-			Settings: &models.NamespaceSettings{
-				SessionRecord: true,
-			},
-			CreatedAt: clock.Now(),
-		},
-		{
-			Name:     "namespace2",
-			Owner:    user.ID,
-			TenantID: "tenantID2",
-			Members:  []models.Member{{ID: user.ID, Role: "owner"}},
-			Settings: &models.NamespaceSettings{
-				SessionRecord: true,
-			},
-			CreatedAt: clock.Now(),
-		},
-	}
-	namespaceMember := []*models.Namespace{
-		{
-			Name:     "namespace3",
-			Owner:    "ownerID",
-			TenantID: "tenantID3",
-			Members:  []models.Member{{ID: "ownerID", Role: guard.RoleObserver}, {ID: user.ID, Role: guard.RoleObserver}},
-			Settings: &models.NamespaceSettings{
-				SessionRecord: true,
-			},
-			CreatedAt: clock.Now(),
-		},
-		{
-			Name:     "namespace1",
-			Owner:    "ownerID",
-			TenantID: "tenantID1",
-			Members:  []models.Member{{ID: "ownerID", Role: guard.RoleObserver}, {ID: user.ID, Role: guard.RoleObserver}},
-			Settings: &models.NamespaceSettings{
-				SessionRecord: true,
-			},
-			CreatedAt: clock.Now(),
-		},
-	}
-
-	tests := []struct {
+	cases := []struct {
 		description   string
 		username      string
 		requiredMocks func()
 		expected      error
 	}{
 		{
-			description: "Fails to find the user",
-			username:    userNotFound.Username,
+			description: "fails when could not find a user",
+			username:    "john_doe",
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, userNotFound.Username).Return(nil, Err).Once()
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, errors.New("error")).Once()
 			},
 			expected: ErrUserNotFound,
 		},
 		{
-			description: "Fail to delete the user and associated data",
-			username:    user.Username,
+			description: "fails to delete the user and associated data when namespace not found",
+			username:    "john_doe",
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
-				mock.On("UserDetachInfo", ctx, user.ID).Return(nil, Err).Once()
+				user := &models.User{
+					ID: "507f191e810c19729de860ea",
+					UserData: models.UserData{
+						Name:     "John Doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+				}
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserDetachInfo", ctx, "507f191e810c19729de860ea").Return(nil, errors.New("error")).Once()
 			},
 			expected: ErrNamespaceNotFound,
 		},
 		{
-			description: "Successfully delete the user and associated data",
-			username:    user.Username,
+			description: "successfully delete the user and associated data",
+			username:    "john_doe",
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
-				mock.On("UserDetachInfo", ctx, user.ID).Return(map[string][]*models.Namespace{
+				user := &models.User{
+					ID: "507f191e810c19729de860ea",
+					UserData: models.UserData{
+						Name:     "John Doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+				}
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+
+				namespaceOwned := []*models.Namespace{
+					{
+						Name:     "namespace1",
+						Owner:    "507f191e810c19729de860ea",
+						TenantID: "10000000-0000-0000-0000-000000000000",
+						Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+						Settings: &models.NamespaceSettings{
+							SessionRecord: true,
+						},
+						CreatedAt: clock.Now(),
+					},
+					{
+						Name:     "namespace2",
+						Owner:    "507f191e810c19729de860ea",
+						TenantID: "20000000-0000-0000-0000-000000000000",
+						Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+						Settings: &models.NamespaceSettings{
+							SessionRecord: true,
+						},
+						CreatedAt: clock.Now(),
+					},
+				}
+				namespaceMember := []*models.Namespace{
+					{
+						Name:     "namespace3",
+						Owner:    "507f191e810c19729de86000",
+						TenantID: "30000000-0000-0000-0000-000000000000",
+						Members: []models.Member{
+							{ID: "507f191e810c19729de86000", Role: guard.RoleObserver},
+							{ID: "507f191e810c19729de860ea", Role: guard.RoleObserver},
+						},
+						Settings: &models.NamespaceSettings{
+							SessionRecord: true,
+						},
+						CreatedAt: clock.Now(),
+					},
+					{
+						Name:     "namespace1",
+						Owner:    "507f191e810c19729de86000",
+						TenantID: "tenantID1",
+						Members: []models.Member{
+							{ID: "507f191e810c19729de86000", Role: guard.RoleObserver},
+							{ID: "507f191e810c19729de860ea", Role: guard.RoleObserver},
+						},
+						Settings: &models.NamespaceSettings{
+							SessionRecord: true,
+						},
+						CreatedAt: clock.Now(),
+					},
+				}
+
+				mock.On("UserDetachInfo", ctx, "507f191e810c19729de860ea").Return(map[string][]*models.Namespace{
 					"owner":  namespaceOwned,
 					"member": namespaceMember,
 				}, nil)
+
 				for _, v := range namespaceOwned {
 					mock.On("NamespaceDelete", ctx, v.TenantID).Return(nil).Once()
 				}
 				for _, v := range namespaceMember {
-					mock.On("NamespaceRemoveMember", ctx, v.TenantID, user.ID).Return(nil, nil).Once()
+					mock.On("NamespaceRemoveMember", ctx, v.TenantID, "507f191e810c19729de860ea").Return(nil, nil).Once()
 				}
-				mock.On("UserDelete", ctx, user.ID).Return(nil).Once()
+
+				mock.On("UserDelete", ctx, "507f191e810c19729de860ea").Return(nil).Once()
 			},
 			expected: nil,
 		},
 	}
 
-	for _, ts := range tests {
-		test := ts
-		t.Run(test.description, func(t *testing.T) {
-			test.requiredMocks()
-			err := s.UserDelete(ctx, test.username)
-			assert.Equal(t, test.expected, err)
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			service := NewService(store.Store(mock))
+			err := service.UserDelete(ctx, tc.username)
+			assert.Equal(t, tc.expected, err)
 		})
 	}
 
@@ -137,36 +145,10 @@ func TestDelUser(t *testing.T) {
 }
 
 func TestResetUserPassword(t *testing.T) {
-	mock := &mocks.Store{}
-	s := NewService(store.Store(mock))
-
+	mock := new(mocks.Store)
 	ctx := context.TODO()
 
-	Err := errors.New("error")
-
-	userPasswordInvalid := models.UserPassword{
-		Password: "ab",
-	}
-	userPassword := models.UserPassword{
-		Password: "password",
-	}
-	user := &models.User{
-		ID: "userID",
-		UserData: models.UserData{
-			Name:     "user",
-			Email:    "user@user.com",
-			Username: "username",
-		},
-	}
-	userNotFound := &models.User{
-		UserData: models.UserData{
-			Name:     "userNotFound",
-			Email:    "userNotFound@userNotFound.com",
-			Username: "usernameNotFound",
-		},
-	}
-
-	tests := []struct {
+	cases := []struct {
 		description   string
 		username      string
 		password      string
@@ -174,50 +156,66 @@ func TestResetUserPassword(t *testing.T) {
 		expected      error
 	}{
 		{
-			description: "Fails when the field is invalid",
-			username:    user.Username,
-			password:    userPasswordInvalid.Password,
+			description: "fails when the password is invalid",
+			username:    "john_doe",
+			password:    "ab",
 			requiredMocks: func() {
 			},
 			expected: ErrUserPasswordInvalid,
 		},
 		{
-			description: "Fails to find the user",
-			username:    userNotFound.Username,
-			password:    userPassword.Password,
+			description: "fails when could not find a user",
+			username:    "john_doe",
+			password:    "password",
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, userNotFound.Username).Return(nil, Err).Once()
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, errors.New("error")).Once()
 			},
 			expected: ErrUserNotFound,
 		},
 		{
 			description: "Fail reset the user password",
-			username:    user.Username,
-			password:    userPassword.Password,
+			username:    "john_doe",
+			password:    "password",
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
-				mock.On("UserUpdatePassword", ctx, hashPassword(userPassword.Password), user.ID).Return(Err).Once()
+				user := &models.User{
+					ID: "507f191e810c19729de860ea",
+					UserData: models.UserData{
+						Name:     "John Doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+				}
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserUpdatePassword", ctx, hashPassword("password"), "507f191e810c19729de860ea").Return(errors.New("error")).Once()
 			},
 			expected: ErrFailedUpdateUser,
 		},
 		{
 			description: "Successfully reset the user password",
-			username:    user.Username,
-			password:    userPassword.Password,
+			username:    "john_doe",
+			password:    "password",
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, user.Username).Return(user, nil).Once()
-				mock.On("UserUpdatePassword", ctx, hashPassword(userPassword.Password), user.ID).Return(nil).Once()
+				user := &models.User{
+					ID: "507f191e810c19729de860ea",
+					UserData: models.UserData{
+						Name:     "John Doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+				}
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserUpdatePassword", ctx, hashPassword("password"), "507f191e810c19729de860ea").Return(nil).Once()
 			},
 			expected: nil,
 		},
 	}
 
-	for _, ts := range tests {
-		test := ts
-		t.Run(test.description, func(t *testing.T) {
-			test.requiredMocks()
-			err := s.UserUpdate(ctx, test.username, test.password)
-			assert.Equal(t, test.expected, err)
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+			service := NewService(store.Store(mock))
+			err := service.UserUpdate(ctx, tc.username, tc.password)
+			assert.Equal(t, tc.expected, err)
 		})
 	}
 
