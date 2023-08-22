@@ -37,6 +37,6 @@ type NamespaceSettings struct {
 
 type Member struct {
 	ID       string `json:"id,omitempty" bson:"id,omitempty"`
-	Username string `json:"username,omitempty" bson:"username,omitempty" validate:"min=3,max=30,alphanum,ascii"`
+	Username string `json:"username,omitempty" bson:"username,omitempty" validate:"username"`
 	Role     string `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
 }
