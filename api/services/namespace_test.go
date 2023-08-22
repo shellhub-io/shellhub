@@ -993,7 +993,7 @@ func TestAddNamespaceUser(t *testing.T) {
 	}{
 		{
 			description: "fails when MemberID is not valid",
-			Username:    "invalid_username",
+			Username:    "",
 			Role:        guard.RoleObserver,
 			ID:          "ID1",
 			TenantID:    "a736a52b-5777-4f92-b0b8-e359bf484713",
