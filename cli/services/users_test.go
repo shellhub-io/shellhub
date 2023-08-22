@@ -9,9 +9,133 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestCreateUser(t *testing.T) {
+	type Expected struct {
+		user *models.User
+		err  error
+	}
+
+	mock := new(mocks.Store)
+	ctx := context.TODO()
+	now := clock.Now()
+
+	mockClock := new(clockmock.Clock)
+	clock.DefaultBackend = mockClock
+	mockClock.On("Now").Return(now)
+
+	cases := []struct {
+		description   string
+		requiredMocks func()
+		username      string
+		password      string
+		email         string
+		expected      Expected
+	}{
+		{
+			description: "fails when email is invalid",
+			username:    "john_doe",
+			email:       "invalidmail.com",
+			password:    "password",
+			requiredMocks: func() {
+			},
+			expected: Expected{nil, ErrUserDataInvalid},
+		},
+		{
+			description: "fails when username is invalid",
+			username:    "",
+			email:       "john.doe@test.com",
+			password:    "password",
+			requiredMocks: func() {
+			},
+			expected: Expected{nil, ErrUserDataInvalid},
+		},
+		{
+			description: "fails when the password is invalid",
+			username:    "john_doe",
+			email:       "john.doe@test.com",
+			password:    "ab",
+			requiredMocks: func() {
+			},
+			expected: Expected{nil, ErrUserPasswordInvalid},
+		},
+		{
+			description: "fails creates a user",
+			username:    "john_doe",
+			email:       "john.doe@test.com",
+			password:    "password",
+			requiredMocks: func() {
+				user := &models.User{
+					UserData: models.UserData{
+						Name:     "john_doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+					UserPassword: models.UserPassword{
+						Password: hashPassword("password"),
+					},
+					Confirmed:     true,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+				}
+				mock.On("UserCreate", ctx, user).Return(errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrCreateNewUser},
+		},
+		{
+			description: "successfully creates a user",
+			username:    "john_doe",
+			email:       "john.doe@test.com",
+			password:    "password",
+			requiredMocks: func() {
+				user := &models.User{
+					UserData: models.UserData{
+						Name:     "john_doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+					UserPassword: models.UserPassword{
+						Password: hashPassword("password"),
+					},
+					Confirmed:     true,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+				}
+				mock.On("UserCreate", ctx, user).Return(nil).Once()
+			},
+			expected: Expected{&models.User{
+				UserData: models.UserData{
+					Name:     "john_doe",
+					Email:    "john.doe@test.com",
+					Username: "john_doe",
+				},
+				UserPassword: models.UserPassword{
+					Password: hashPassword("password"),
+				},
+				Confirmed:     true,
+				CreatedAt:     clock.Now(),
+				MaxNamespaces: MaxNumberNamespacesCommunity,
+			}, nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			service := NewService(store.Store(mock))
+			user, err := service.UserCreate(ctx, tc.username, tc.password, tc.email)
+
+			assert.Equal(t, tc.expected, Expected{user, err})
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
 
 func TestDelUser(t *testing.T) {
 	mock := new(mocks.Store)
@@ -173,7 +297,7 @@ func TestResetUserPassword(t *testing.T) {
 			expected: ErrUserNotFound,
 		},
 		{
-			description: "Fail reset the user password",
+			description: "fails to reset the user password",
 			username:    "john_doe",
 			password:    "password",
 			requiredMocks: func() {
@@ -191,7 +315,7 @@ func TestResetUserPassword(t *testing.T) {
 			expected: ErrFailedUpdateUser,
 		},
 		{
-			description: "Successfully reset the user password",
+			description: "successfully reset the user password",
 			username:    "john_doe",
 			password:    "password",
 			requiredMocks: func() {
