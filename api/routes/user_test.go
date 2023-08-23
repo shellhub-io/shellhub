@@ -27,23 +27,18 @@ func TestUpdateUserData(t *testing.T) {
 		expectedStatus    int
 	}{
 		{
-			title: "returns Ok when updating an existing user",
-			uid:   "123",
+			title: "fails when bind fails to validate uid",
+			uid:   "1234",
 			updatePayloadMock: requests.UserDataUpdate{
-				UserParam: requests.UserParam{
-					ID: "123",
-				},
 				Name:     "new name",
 				Username: "usernameteste",
 				Email:    "newemail@example.com",
 			},
-			requiredMocks: func(updatePayloadMock requests.UserDataUpdate) {
-				mock.On("UpdateDataUser", gomock.Anything, "123", updatePayloadMock).Return(nil, nil)
-			},
-			expectedStatus: http.StatusOK,
+			requiredMocks:  func(updatePayloadMock requests.UserDataUpdate) {},
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			title: "Update UserData not found",
+			title: "fails when try to updating a non-existing user",
 			uid:   "1234",
 			updatePayloadMock: requests.UserDataUpdate{
 				UserParam: requests.UserParam{
@@ -57,6 +52,22 @@ func TestUpdateUserData(t *testing.T) {
 				mock.On("UpdateDataUser", gomock.Anything, "1234", updatePayloadMock).Return(nil, svc.ErrUserNotFound)
 			},
 			expectedStatus: http.StatusNotFound,
+		},
+		{
+			title: "success when try to updating an existing user",
+			uid:   "123",
+			updatePayloadMock: requests.UserDataUpdate{
+				UserParam: requests.UserParam{
+					ID: "123",
+				},
+				Name:     "new name",
+				Username: "usernameteste",
+				Email:    "newemail@example.com",
+			},
+			requiredMocks: func(updatePayloadMock requests.UserDataUpdate) {
+				mock.On("UpdateDataUser", gomock.Anything, "123", updatePayloadMock).Return(nil, nil)
+			},
+			expectedStatus: http.StatusOK,
 		},
 	}
 
@@ -95,7 +106,83 @@ func TestUpdateUserPassword(t *testing.T) {
 		expectedStatus    int
 	}{
 		{
-			title: "returns Ok when updating a password an existing user",
+			title: "fails when bind fails to validate uid",
+			uid:   "123",
+			updatePayloadMock: requests.UserPasswordUpdate{
+				UserParam: requests.UserParam{
+					ID: "123",
+				},
+			},
+			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "fails when validate because the tag does not have a min of 5 characters",
+			uid:   "123",
+			updatePayloadMock: requests.UserPasswordUpdate{
+				UserParam: requests.UserParam{
+					ID: "123",
+				},
+				CurrentPassword: "fail",
+				NewPassword:     "new_password",
+			},
+			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "fails when validate because the tag does not have a max of 30 characters",
+			uid:   "123",
+			updatePayloadMock: requests.UserPasswordUpdate{
+				UserParam: requests.UserParam{
+					ID: "123",
+				},
+				CurrentPassword: "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1",
+				NewPassword:     "new_password",
+			},
+			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "fails when validate because the tag does not have a min of 5 characters",
+			uid:   "123",
+			updatePayloadMock: requests.UserPasswordUpdate{
+				UserParam: requests.UserParam{
+					ID: "123",
+				},
+				CurrentPassword: "new_password",
+				NewPassword:     "fail",
+			},
+			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "fails when validate because the tag does not have a max of 30 characters",
+			uid:   "123",
+			updatePayloadMock: requests.UserPasswordUpdate{
+				UserParam: requests.UserParam{
+					ID: "123",
+				},
+				CurrentPassword: "new_password",
+				NewPassword:     "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1",
+			},
+			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "fails when validate because have a duplicate password",
+			uid:   "123",
+			updatePayloadMock: requests.UserPasswordUpdate{
+				UserParam: requests.UserParam{
+					ID: "123",
+				},
+				NewPassword:     "duplicate",
+				CurrentPassword: "duplicate",
+			},
+			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "fails when try to updating a password an existing user",
 			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{
 				UserParam: requests.UserParam{
@@ -105,7 +192,22 @@ func TestUpdateUserPassword(t *testing.T) {
 				NewPassword:     "new_password",
 			},
 			requiredMocks: func(updatePayloadMock requests.UserPasswordUpdate) {
-				mock.On("UpdatePasswordUser", gomock.Anything, "123", updatePayloadMock.CurrentPassword, updatePayloadMock.NewPassword).Return(nil)
+				mock.On("UpdatePasswordUser", gomock.Anything, "123", updatePayloadMock.CurrentPassword, updatePayloadMock.NewPassword).Return(svc.ErrUserNotFound).Once()
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			title: "success when try to updating a password an existing user",
+			uid:   "123",
+			updatePayloadMock: requests.UserPasswordUpdate{
+				UserParam: requests.UserParam{
+					ID: "123",
+				},
+				CurrentPassword: "old_password",
+				NewPassword:     "new_password",
+			},
+			requiredMocks: func(updatePayloadMock requests.UserPasswordUpdate) {
+				mock.On("UpdatePasswordUser", gomock.Anything, "123", updatePayloadMock.CurrentPassword, updatePayloadMock.NewPassword).Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},

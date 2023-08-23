@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
+	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -21,39 +22,48 @@ import (
 func TestCreateNamespace(t *testing.T) {
 	mock := new(mocks.Service)
 
-	cases := []struct {
-		name            string
-		uid             string
-		req             requests.NamespaceCreate
-		requiredMocks   func(req requests.NamespaceCreate)
-		expectedStatus  int
+	type Expected struct {
 		expectedSession *models.Namespace
+		expectedStatus  int
+	}
+	cases := []struct {
+		title         string
+		uid           string
+		req           string
+		expected      Expected
+		requiredMocks func()
 	}{
 		{
-			name: "returns Ok when creating a namespace",
-			uid:  "123",
-			req: requests.NamespaceCreate{
-				Name:     "example",
-				TenantID: "tenant-id",
+			title: "fails when try to creating a namespace",
+			uid:   "123",
+			req:   `{ "name": "example", "tenant": "tenant"}`,
+			requiredMocks: func() {
+				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("requests.NamespaceCreate"), "123").Return(nil, svc.ErrNotFound).Once()
 			},
-			requiredMocks: func(req requests.NamespaceCreate) {
-				mock.On("CreateNamespace", gomock.Anything, req, "123").Return(&models.Namespace{}, nil)
+			expected: Expected{
+				expectedStatus:  http.StatusNotFound,
+				expectedSession: &models.Namespace{},
 			},
-			expectedStatus:  http.StatusOK,
-			expectedSession: &models.Namespace{},
+		},
+		{
+			title: "success when try to creating a namespace",
+			uid:   "123",
+			req:   `{ "name": "example", "tenant": "tenant"}`,
+			requiredMocks: func() {
+				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("requests.NamespaceCreate"), "123").Return(&models.Namespace{}, nil).Once()
+			},
+			expected: Expected{
+				expectedStatus:  http.StatusOK,
+				expectedSession: &models.Namespace{},
+			},
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.requiredMocks(tc.req)
+		t.Run(tc.title, func(t *testing.T) {
+			tc.requiredMocks()
 
-			jsonData, err := json.Marshal(tc.req)
-			if err != nil {
-				assert.NoError(t, err)
-			}
-
-			req := httptest.NewRequest(http.MethodPost, "/api/namespaces", strings.NewReader(string(jsonData)))
+			req := httptest.NewRequest(http.MethodPost, "/api/namespaces", strings.NewReader(tc.req))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", guard.RoleOwner)
 			req.Header.Set("X-ID", "123")
@@ -62,13 +72,13 @@ func TestCreateNamespace(t *testing.T) {
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
 
 			var session models.Namespace
 			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
 				assert.ErrorIs(t, io.EOF, err)
 			}
-			assert.Equal(t, tc.expectedSession, &session)
+			assert.Equal(t, tc.expected.expectedSession, &session)
 		})
 	}
 
@@ -78,28 +88,58 @@ func TestCreateNamespace(t *testing.T) {
 func TestGetNamespace(t *testing.T) {
 	mock := new(mocks.Service)
 
-	cases := []struct {
-		name            string
-		uid             string
-		req             string
-		requiredMocks   func()
-		expectedStatus  int
+	type Expected struct {
 		expectedSession *models.Namespace
+		expectedStatus  int
+	}
+	cases := []struct {
+		title         string
+		uid           string
+		req           string
+		expected      Expected
+		requiredMocks func()
 	}{
 		{
-			name: "returns Ok for a existing namespace",
-			uid:  "123",
-			req:  "tenant",
+			title: "fails when validate because the tenant does not have a min of 3 characters",
+			uid:   "123",
+			req:   "tg",
+			expected: Expected{
+				expectedStatus: http.StatusBadRequest,
+			}, requiredMocks: func() {},
+		},
+
+		{
+			title: "fails when validate because the tenant does not have a max of 255 characters",
+			uid:   "123",
+			req:   "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9",
+			expected: Expected{
+				expectedStatus: http.StatusBadRequest,
+			}, requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because have a '/' with in your characters",
+			uid:   "123",
+			req:   "tes/t",
+			expected: Expected{
+				expectedStatus: http.StatusNotFound,
+			}, requiredMocks: func() {},
+		},
+		{
+			title: "success when try to get a existing namespace",
+			uid:   "123",
+			req:   "tenant",
 			requiredMocks: func() {
 				mock.On("GetNamespace", gomock.Anything, "tenant").Return(&models.Namespace{}, nil)
 			},
-			expectedStatus:  http.StatusOK,
-			expectedSession: &models.Namespace{},
+			expected: Expected{
+				expectedStatus:  http.StatusOK,
+				expectedSession: &models.Namespace{},
+			},
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
 			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/namespaces/%s", tc.req), nil)
@@ -111,13 +151,13 @@ func TestGetNamespace(t *testing.T) {
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
 
 			var session *models.Namespace
 			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
 				assert.ErrorIs(t, io.EOF, err)
 			}
-			assert.Equal(t, tc.expectedSession, session)
+			assert.Equal(t, tc.expected.expectedSession, session)
 		})
 	}
 
@@ -128,18 +168,44 @@ func TestDeleteNamespace(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		name           string
+		title          string
 		uid            string
-		req            requests.NamespaceDelete
+		req            string
 		requiredMocks  func()
 		expectedStatus int
 	}{
 		{
-			name: "returns Ok when deleting a existing namespace",
-			uid:  "123",
-			req: requests.NamespaceDelete{
-				TenantParam: requests.TenantParam{Tenant: "tenant-id"},
-			},
+			title:          "fails when bind fails to validate uid",
+			uid:            "123",
+			req:            "",
+			expectedStatus: http.StatusNotFound,
+			requiredMocks:  func() {},
+		},
+		{
+			title:          "fails when validate because the tenant does not have a min of 3 characters",
+			uid:            "123",
+			req:            "tg",
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func() {},
+		},
+		{
+			title:          "fails when validate because the tenant does not have a max of 255 characters",
+			uid:            "123",
+			req:            "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9",
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func() {},
+		},
+		{
+			title:          "fails when validate because have a '/' with in your characters",
+			uid:            "123",
+			req:            "tes/t",
+			expectedStatus: http.StatusNotFound,
+			requiredMocks:  func() {},
+		},
+		{
+			title: "fails when try to deleting a existing namespace",
+			uid:   "123",
+			req:   "tenant-id",
 			requiredMocks: func() {
 				mock.On("GetNamespace", gomock.Anything, "tenant-id").Return(&models.Namespace{
 					Name:     "namespace-name",
@@ -155,24 +221,44 @@ func TestDeleteNamespace(t *testing.T) {
 					DevicesCount: 50,
 					CreatedAt:    time.Now(),
 					Billing:      &models.Billing{},
-				}, nil)
+				}, nil).Once()
 
-				mock.On("DeleteNamespace", gomock.Anything, "tenant-id").Return(nil)
+				mock.On("DeleteNamespace", gomock.Anything, "tenant-id").Return(svc.ErrNotFound).Once()
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			title: "success when try to deleting a existing namespace",
+			uid:   "123",
+			req:   "tenant-id",
+			requiredMocks: func() {
+				mock.On("GetNamespace", gomock.Anything, "tenant-id").Return(&models.Namespace{
+					Name:     "namespace-name",
+					Owner:    "owner-name",
+					TenantID: "tenant-id",
+					Members: []models.Member{
+						{ID: "123", Username: "userexemple", Role: "owner"},
+					},
+					Settings:     &models.NamespaceSettings{},
+					Devices:      10,
+					Sessions:     5,
+					MaxDevices:   100,
+					DevicesCount: 50,
+					CreatedAt:    time.Now(),
+					Billing:      &models.Billing{},
+				}, nil).Once()
+
+				mock.On("DeleteNamespace", gomock.Anything, "tenant-id").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
-			jsonData, err := json.Marshal(tc.req)
-			if err != nil {
-				assert.NoError(t, err)
-			}
-
-			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/namespaces/%s", tc.req.Tenant), strings.NewReader(string(jsonData)))
+			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/namespaces/%s", tc.req), nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", guard.RoleOwner)
 			req.Header.Set("X-ID", tc.uid)
@@ -197,11 +283,20 @@ func TestGetSessionRecord(t *testing.T) {
 		requiredMocks  func()
 		expectedStatus int
 	}{
+
 		{
-			name:   "returns Ok for session record of a existing session",
+			name:   "fails when try to get a session record of a non-existing session",
 			tenant: "tenant",
 			requiredMocks: func() {
-				mock.On("GetSessionRecord", gomock.Anything, "tenant").Return(true, nil)
+				mock.On("GetSessionRecord", gomock.Anything, "tenant").Return(false, svc.ErrNotFound).Once()
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:   "success when try to get a  session record of a existing session",
+			tenant: "tenant",
+			requiredMocks: func() {
+				mock.On("GetSessionRecord", gomock.Anything, "tenant").Return(true, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -231,24 +326,42 @@ func TestEditNamespace(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		name           string
+		title          string
 		uid            string
-		req            requests.SessionEditRecordStatus
-		requiredMocks  func(req requests.SessionEditRecordStatus)
+		req            string
+		requiredMocks  func()
 		expectedStatus int
 	}{
 		{
-			name: "returns OK for editing an existing namespace",
-			uid:  "123",
-			req: requests.SessionEditRecordStatus{
-				SessionRecord: true,
-				TenantParam:   requests.TenantParam{Tenant: "tenant-id"},
-			},
-			requiredMocks: func(req requests.SessionEditRecordStatus) {
-				mock.On("GetNamespace", gomock.Anything, req.Tenant).Return(&models.Namespace{
+			title:          "fails when bind fails to validate uid",
+			uid:            "123",
+			req:            `{"session_record": true, "tenant": ""}`,
+			expectedStatus: http.StatusNotFound,
+			requiredMocks:  func() {},
+		},
+		{
+			title:          "fails when validate because the tenant does not have a min of 3 characters",
+			uid:            "123",
+			req:            `{"session_record": true, "tenant": "id"}`,
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func() {},
+		},
+		{
+			title:          "fails when validate because the tenant does not have a max of 255 characters",
+			uid:            "123",
+			req:            `{"session_record": true, "tenant": "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"}`,
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func() {},
+		},
+		{
+			title: "fails when try to editing an non-existing namespace",
+			uid:   "123",
+			req:   `{"session_record": true, "tenant": "tenant-id"}`,
+			requiredMocks: func() {
+				mock.On("GetNamespace", gomock.Anything, "tenant-id").Return(&models.Namespace{
 					Name:     "namespace-name",
 					Owner:    "owner-name",
-					TenantID: req.Tenant,
+					TenantID: "tenant-id",
 					Members: []models.Member{
 						{ID: "123", Username: "userexemple", Role: "owner"},
 					},
@@ -259,24 +372,50 @@ func TestEditNamespace(t *testing.T) {
 					DevicesCount: 50,
 					CreatedAt:    time.Now(),
 					Billing:      &models.Billing{},
-				}, nil)
+				}, nil).Once()
 
-				mock.On("EditSessionRecordStatus", gomock.Anything, req.SessionRecord, req.Tenant).Return(nil)
+				mock.On("EditSessionRecordStatus", gomock.Anything, true, "tenant-id").Return(svc.ErrNotFound).Once()
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			title: "success when try to editing an existing namespace",
+			uid:   "123",
+			req:   `{"session_record": true, "tenant": "tenant-id"}`,
+			requiredMocks: func() {
+				mock.On("GetNamespace", gomock.Anything, "tenant-id").Return(&models.Namespace{
+					Name:     "namespace-name",
+					Owner:    "owner-name",
+					TenantID: "tenant-id",
+					Members: []models.Member{
+						{ID: "123", Username: "userexemple", Role: "owner"},
+					},
+					Settings:     &models.NamespaceSettings{},
+					Devices:      10,
+					Sessions:     5,
+					MaxDevices:   100,
+					DevicesCount: 50,
+					CreatedAt:    time.Now(),
+					Billing:      &models.Billing{},
+				}, nil).Once()
+
+				mock.On("EditSessionRecordStatus", gomock.Anything, true, "tenant-id").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.requiredMocks(tc.req)
+		t.Run(tc.title, func(t *testing.T) {
+			tc.requiredMocks()
 
-			jsonData, err := json.Marshal(tc.req)
+			var data requests.SessionEditRecordStatus
+			err := json.Unmarshal([]byte(tc.req), &data)
 			if err != nil {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/users/security/%s", tc.req.Tenant), strings.NewReader(string(jsonData)))
+			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/users/security/%s", data.Tenant), strings.NewReader(tc.req))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", guard.RoleOwner)
 			req.Header.Set("X-ID", tc.uid)

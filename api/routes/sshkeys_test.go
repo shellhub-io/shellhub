@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
+	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -21,15 +22,18 @@ import (
 func TestGetPublicKeys(t *testing.T) {
 	mock := new(mocks.Service)
 
-	cases := []struct {
-		title           string
-		query           paginator.Query
-		requiredMocks   func(query paginator.Query)
+	type Expected struct {
 		expectedSession []models.PublicKey
 		expectedStatus  int
+	}
+	cases := []struct {
+		title         string
+		query         paginator.Query
+		requiredMocks func(query paginator.Query)
+		expected      Expected
 	}{
 		{
-			title: "returns Ok if a publics keys exists",
+			title: "success when try to list a publics keys exists",
 			query: paginator.Query{
 				Page:    1,
 				PerPage: 10,
@@ -37,8 +41,10 @@ func TestGetPublicKeys(t *testing.T) {
 			requiredMocks: func(query paginator.Query) {
 				mock.On("ListPublicKeys", gomock.Anything, query).Return([]models.PublicKey{}, 1, nil)
 			},
-			expectedSession: []models.PublicKey{},
-			expectedStatus:  http.StatusOK,
+			expected: Expected{
+				expectedSession: []models.PublicKey{},
+				expectedStatus:  http.StatusOK,
+			},
 		},
 	}
 
@@ -59,13 +65,13 @@ func TestGetPublicKeys(t *testing.T) {
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
 
 			var session []models.PublicKey
 			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
 				assert.ErrorIs(t, io.EOF, err)
 			}
-			assert.Equal(t, tc.expectedSession, session)
+			assert.Equal(t, tc.expected.expectedSession, session)
 		})
 	}
 }
@@ -73,15 +79,58 @@ func TestGetPublicKeys(t *testing.T) {
 func TestGetPublicKey(t *testing.T) {
 	mock := new(mocks.Service)
 
-	cases := []struct {
-		title           string
-		query           requests.PublicKeyGet
-		requiredMocks   func(query requests.PublicKeyGet)
+	type Expected struct {
 		expectedSession *models.PublicKey
 		expectedStatus  int
+	}
+	cases := []struct {
+		title         string
+		query         requests.PublicKeyGet
+		requiredMocks func(query requests.PublicKeyGet)
+		expected      Expected
 	}{
 		{
-			title: "returns Ok if a public key exists",
+			title: "fails when validate because the tag does not have a min of 3 characters",
+			query: requests.PublicKeyGet{
+				TenantParam: requests.TenantParam{Tenant: "tg"},
+			},
+			expected:      Expected{expectedStatus: http.StatusBadRequest},
+			requiredMocks: func(req requests.PublicKeyGet) {},
+		},
+		{
+			title: "fails when validate because the tag does not have a max of 255 characters",
+			query: requests.PublicKeyGet{
+				TenantParam: requests.TenantParam{Tenant: "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
+			},
+			expected:      Expected{expectedStatus: http.StatusBadRequest},
+			requiredMocks: func(req requests.PublicKeyGet) {},
+		},
+		{
+			title: "fails when validate because have a '/' with in your characters",
+			query: requests.PublicKeyGet{
+				TenantParam: requests.TenantParam{Tenant: "test/"},
+			},
+			expected:      Expected{expectedStatus: http.StatusBadRequest},
+			requiredMocks: func(req requests.PublicKeyGet) {},
+		},
+		{
+			title: "fails when validate because have a '&' with in your characters",
+			query: requests.PublicKeyGet{
+				TenantParam: requests.TenantParam{Tenant: "test&"},
+			},
+			expected:      Expected{expectedStatus: http.StatusBadRequest},
+			requiredMocks: func(req requests.PublicKeyGet) {},
+		},
+		{
+			title: "fails when validate because have a '@' with in your characters",
+			query: requests.PublicKeyGet{
+				TenantParam: requests.TenantParam{Tenant: "test@"},
+			},
+			expected:      Expected{expectedStatus: http.StatusBadRequest},
+			requiredMocks: func(req requests.PublicKeyGet) {},
+		},
+		{
+			title: "success when try to get a public key exists",
 			query: requests.PublicKeyGet{
 				FingerprintParam: requests.FingerprintParam{Fingerprint: "figertest"},
 				TenantParam:      requests.TenantParam{Tenant: "tenant"},
@@ -89,8 +138,10 @@ func TestGetPublicKey(t *testing.T) {
 			requiredMocks: func(query requests.PublicKeyGet) {
 				mock.On("GetPublicKey", gomock.Anything, query.Fingerprint, query.Tenant).Return(&models.PublicKey{}, nil)
 			},
-			expectedSession: &models.PublicKey{},
-			expectedStatus:  http.StatusOK,
+			expected: Expected{
+				expectedSession: &models.PublicKey{},
+				expectedStatus:  http.StatusOK,
+			},
 		},
 	}
 
@@ -111,13 +162,13 @@ func TestGetPublicKey(t *testing.T) {
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
 
 			var session *models.PublicKey
 			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
 				assert.ErrorIs(t, io.EOF, err)
 			}
-			assert.Equal(t, tc.expectedSession, session)
+			assert.Equal(t, tc.expected.expectedSession, session)
 		})
 	}
 }
@@ -132,12 +183,30 @@ func TestDeletePublicKey(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			title: "returns Ok when deleting an existing public key",
+			title: "fails when bind fails to validate uid",
+			query: requests.PublicKeyDelete{
+				FingerprintParam: requests.FingerprintParam{Fingerprint: ""},
+			},
+			requiredMocks:  func(query requests.PublicKeyDelete) {},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			title: "fails when try to deleting an existing public key",
 			query: requests.PublicKeyDelete{
 				FingerprintParam: requests.FingerprintParam{Fingerprint: "figertest"},
 			},
 			requiredMocks: func(query requests.PublicKeyDelete) {
-				mock.On("DeletePublicKey", gomock.Anything, query.Fingerprint, "tenant").Return(nil)
+				mock.On("DeletePublicKey", gomock.Anything, query.Fingerprint, "tenant").Return(svc.ErrNotFound).Once()
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			title: "success when try to deleting an existing public key",
+			query: requests.PublicKeyDelete{
+				FingerprintParam: requests.FingerprintParam{Fingerprint: "figertest"},
+			},
+			requiredMocks: func(query requests.PublicKeyDelete) {
+				mock.On("DeletePublicKey", gomock.Anything, query.Fingerprint, "tenant").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -172,7 +241,47 @@ func TestRemovePublicKeyTag(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			title: "returns Ok when removing an existing public key",
+			title: "fails when validate because the tag does not have a min of 3 characters",
+			query: requests.PublicKeyTagRemove{
+				TagParam: requests.TagParam{Tag: "tg"},
+			},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.PublicKeyTagRemove) {},
+		},
+		{
+			title: "fails when validate because the tag does not have a max of 255 characters",
+			query: requests.PublicKeyTagRemove{
+				TagParam: requests.TagParam{Tag: "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
+			},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.PublicKeyTagRemove) {},
+		},
+		{
+			title: "fails when validate because have a '/' with in your characters",
+			query: requests.PublicKeyTagRemove{
+				TagParam: requests.TagParam{Tag: "test/"},
+			},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.PublicKeyTagRemove) {},
+		},
+		{
+			title: "fails when validate because have a '&' with in your characters",
+			query: requests.PublicKeyTagRemove{
+				TagParam: requests.TagParam{Tag: "test&"},
+			},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.PublicKeyTagRemove) {},
+		},
+		{
+			title: "fails when validate because have a '@' with in your characters",
+			query: requests.PublicKeyTagRemove{
+				TagParam: requests.TagParam{Tag: "test@"},
+			},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.PublicKeyTagRemove) {},
+		},
+		{
+			title: "success when try to removing an existing public key",
 			query: requests.PublicKeyTagRemove{
 				FingerprintParam: requests.FingerprintParam{Fingerprint: "figertest"},
 				TagParam:         requests.TagParam{Tag: "tag"},
@@ -219,14 +328,54 @@ func TestAddPublicKeyTagURL(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			title: "returns Ok when add an existing public tag key",
+			title: "fails when validate because the tag does not have a min of 3 characters",
+			query: requests.PublicKeyTagAdd{
+				TagParam: requests.TagParam{Tag: "tg"},
+			},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.PublicKeyTagAdd) {},
+		},
+		{
+			title: "fails when validate because the tag does not have a max of 255 characters",
+			query: requests.PublicKeyTagAdd{
+				TagParam: requests.TagParam{Tag: "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
+			},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.PublicKeyTagAdd) {},
+		},
+		{
+			title: "fails when validate because have a '/' with in your characters",
+			query: requests.PublicKeyTagAdd{
+				TagParam: requests.TagParam{Tag: "test/"},
+			},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.PublicKeyTagAdd) {},
+		},
+		{
+			title: "fails when validate because have a '&' with in your characters",
+			query: requests.PublicKeyTagAdd{
+				TagParam: requests.TagParam{Tag: "test&"},
+			},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.PublicKeyTagAdd) {},
+		},
+		{
+			title: "fails when validate because have a '@' with in your characters",
+			query: requests.PublicKeyTagAdd{
+				TagParam: requests.TagParam{Tag: "test@"},
+			},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.PublicKeyTagAdd) {},
+		},
+		{
+			title: "success when try to add an existing public tag key",
 			query: requests.PublicKeyTagAdd{
 				FingerprintParam: requests.FingerprintParam{Fingerprint: "figertest"},
 				TagParam:         requests.TagParam{Tag: "tag"},
 			},
 			tenant: "tenant-id",
 			requiredMocks: func(query requests.PublicKeyTagAdd) {
-				mock.On("AddPublicKeyTag", gomock.Anything, "tenant-id", query.Fingerprint, query.Tag).Return(nil)
+				mock.On("AddPublicKeyTag", gomock.Anything, "tenant-id", query.Fingerprint, query.Tag).Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -259,12 +408,19 @@ func TestCreatePrivateKey(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		name           string
+		title          string
 		requiredMocks  func()
 		expectedStatus int
 	}{
 		{
-			name: "returns Ok when creating an existing private key",
+			title: "fails when try to deleting an existing public key",
+			requiredMocks: func() {
+				mock.On("CreatePrivateKey", gomock.Anything).Return(nil, svc.ErrNotFound).Once()
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			title: "success when try to creating an existing private key",
 			requiredMocks: func() {
 				mock.On("CreatePrivateKey", gomock.Anything).Return(&models.PrivateKey{}, nil)
 			},
@@ -273,7 +429,7 @@ func TestCreatePrivateKey(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
 			req := httptest.NewRequest(http.MethodPost, "/internal/sshkeys/private-keys", nil)
