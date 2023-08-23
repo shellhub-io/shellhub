@@ -25,7 +25,7 @@ func TestGetTags(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			title:          "returns Ok if a tags exists",
+			title:          "success when try to get an existing tag",
 			expectedStatus: http.StatusOK,
 			requiredMocks: func() {
 				mock.On("GetTags", gomock.Anything, "").Return([]string{"tag1", "tag2"}, 2, nil)
@@ -55,19 +55,89 @@ func TestGetTags(t *testing.T) {
 func TestRenameTag(t *testing.T) {
 	mock := new(mocks.Service)
 
-	cases := []struct {
-		title          string
-		requiredMocks  func()
-		expectedStatus int
+	type Expected struct {
 		expectedTags   requests.TagRename
+		expectedStatus int
+	}
+	cases := []struct {
+		title         string
+		requiredMocks func()
+		expected      Expected
 	}{
 		{
-			title: "returns Ok when renaming an existing tag",
-			expectedTags: requests.TagRename{
-				TagParam: requests.TagParam{Tag: "oldTag"},
-				NewTag:   "newTag",
+			title: "fails when bind fails to validate uid",
+			expected: Expected{
+				expectedTags: requests.TagRename{
+					TagParam: requests.TagParam{Tag: "oldTag"},
+				},
+				expectedStatus: http.StatusBadRequest,
 			},
-			expectedStatus: http.StatusOK,
+			requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because the tag does not have a min of 3 characters",
+			expected: Expected{
+				expectedTags: requests.TagRename{
+					TagParam: requests.TagParam{Tag: "oldTag"},
+					NewTag:   "tg",
+				},
+				expectedStatus: http.StatusBadRequest,
+			},
+			requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because the tag does not have a max of 255 characters",
+			expected: Expected{
+				expectedTags: requests.TagRename{
+					TagParam: requests.TagParam{Tag: "oldTag"},
+					NewTag:   "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9",
+				},
+				expectedStatus: http.StatusBadRequest,
+			},
+			requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because have a '/' with in your characters",
+			expected: Expected{
+				expectedTags: requests.TagRename{
+					TagParam: requests.TagParam{Tag: "oldTag"},
+					NewTag:   "/",
+				},
+				expectedStatus: http.StatusBadRequest,
+			},
+			requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because have a '&' with in your characters",
+			expected: Expected{
+				expectedTags: requests.TagRename{
+					TagParam: requests.TagParam{Tag: "oldTag"},
+					NewTag:   "&",
+				},
+				expectedStatus: http.StatusBadRequest,
+			},
+			requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because have a '@' with in your characters",
+			expected: Expected{
+				expectedTags: requests.TagRename{
+					TagParam: requests.TagParam{Tag: "oldTag"},
+					NewTag:   "@",
+				},
+				expectedStatus: http.StatusBadRequest,
+			},
+			requiredMocks: func() {},
+		},
+		{
+			title: "success when try to renaming an existing tag",
+			expected: Expected{
+				expectedTags: requests.TagRename{
+					TagParam: requests.TagParam{Tag: "oldTag"},
+					NewTag:   "newTag",
+				},
+				expectedStatus: http.StatusOK,
+			},
 			requiredMocks: func() {
 				mock.On("RenameTag", gomock.Anything, "", "oldTag", "newTag").Return(nil)
 			},
@@ -77,10 +147,10 @@ func TestRenameTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
-			jsonData, err := json.Marshal(tc.expectedTags)
+			jsonData, err := json.Marshal(tc.expected.expectedTags)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/tags/%s", tc.expectedTags.Tag), strings.NewReader(string(jsonData)))
+			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/tags/%s", tc.expected.expectedTags.Tag), strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
@@ -88,7 +158,7 @@ func TestRenameTag(t *testing.T) {
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
 		})
 	}
 
@@ -98,20 +168,91 @@ func TestRenameTag(t *testing.T) {
 func TestDeleteTag(t *testing.T) {
 	mock := new(mocks.Service)
 
-	cases := []struct {
-		title          string
-		requiredMocks  func()
-		expectedStatus int
+	type Expected struct {
 		expectedTags   requests.TagDelete
-		tenant         string
+		expectedStatus int
+	}
+	cases := []struct {
+		title         string
+		requiredMocks func()
+		tenant        string
+		expected      Expected
 	}{
 		{
-			title: "returns Ok when deleting an existing tag",
-			expectedTags: requests.TagDelete{
-				TagParam: requests.TagParam{Tag: "tagtest"},
+			title: "fails when bind fails to validate uid",
+			expected: Expected{
+				expectedTags: requests.TagDelete{
+					TagParam: requests.TagParam{Tag: ""},
+				},
+
+				expectedStatus: http.StatusBadRequest,
 			},
-			tenant:         "tenant",
-			expectedStatus: http.StatusOK,
+			requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because the tag does not have a min of 3 characters",
+			expected: Expected{
+				expectedTags: requests.TagDelete{
+					TagParam: requests.TagParam{Tag: "tg"},
+				},
+
+				expectedStatus: http.StatusBadRequest,
+			},
+			requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because the tag does not have a max of 255 characters",
+			expected: Expected{
+				expectedTags: requests.TagDelete{
+					TagParam: requests.TagParam{Tag: "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
+				},
+
+				expectedStatus: http.StatusBadRequest,
+			},
+			requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because have a '/' with in your characters",
+			expected: Expected{
+				expectedTags: requests.TagDelete{
+					TagParam: requests.TagParam{Tag: "/"},
+				},
+
+				expectedStatus: http.StatusBadRequest,
+			},
+			requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because have a '&' with in your characters",
+			expected: Expected{
+				expectedTags: requests.TagDelete{
+					TagParam: requests.TagParam{Tag: "&"},
+				},
+
+				expectedStatus: http.StatusBadRequest,
+			},
+			requiredMocks: func() {},
+		},
+		{
+			title: "fails when validate because have a '@' with in your characters",
+			expected: Expected{
+				expectedTags: requests.TagDelete{
+					TagParam: requests.TagParam{Tag: "@"},
+				},
+
+				expectedStatus: http.StatusBadRequest,
+			},
+			requiredMocks: func() {},
+		},
+		{
+			title: "success when try to deleting an existing tag",
+			expected: Expected{
+				expectedTags: requests.TagDelete{
+					TagParam: requests.TagParam{Tag: "tagtest"},
+				},
+				expectedStatus: http.StatusOK,
+			},
+			tenant: "tenant",
 			requiredMocks: func() {
 				mock.On("DeleteTag", gomock.Anything, "tenant", "tagtest").Return(nil)
 			},
@@ -121,10 +262,10 @@ func TestDeleteTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
-			jsonData, err := json.Marshal(tc.expectedTags)
+			jsonData, err := json.Marshal(tc.expected.expectedTags)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/tags/%s", tc.expectedTags), strings.NewReader(string(jsonData)))
+			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/tags/%s", tc.expected.expectedTags), strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", guard.RoleOwner)
 			req.Header.Set("X-Tenant-ID", tc.tenant)
@@ -133,7 +274,7 @@ func TestDeleteTag(t *testing.T) {
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
 		})
 	}
 

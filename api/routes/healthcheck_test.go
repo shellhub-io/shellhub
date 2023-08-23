@@ -22,7 +22,7 @@ func TestEvaluateHealth(t *testing.T) {
 		expectedErr   error
 	}{
 		{
-			title:       "returns Ok for evaluate health",
+			title:       "success when try to make a evaluate health",
 			expectedErr: nil,
 		},
 	}

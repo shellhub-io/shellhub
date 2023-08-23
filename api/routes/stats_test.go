@@ -26,7 +26,7 @@ func TestGetSystemInfo(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			title: "returns Ok if a system exists",
+			title: "success when try to get infos of a existing system",
 			request: requests.SystemGetInfo{
 				Host: "example.com",
 				Port: 0,
@@ -76,7 +76,7 @@ func TestGetStats(t *testing.T) {
 		requiredMocks  func()
 	}{
 		{
-			title: "returns Ok if a stats exists",
+			title: "success when try to get an stats",
 			reqStats: &models.Stats{
 				RegisteredDevices: 10,
 				OnlineDevices:     5,
