@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -12,43 +11,17 @@ import (
 
 const MaxNumberNamespacesCommunity = -1
 
+// UserCreate gets an input with the user's data and creates a new user. This method will also checks for any conflicts.
+// Returns the newly created user or an error if any issues arise.
 func (s *service) UserCreate(ctx context.Context, username, password, email string) (*models.User, error) {
-	// returnDuplicatedField checks user's name and user's email already exist in the database.
-	returnDuplicatedField := func(ctx context.Context, username, email string) error {
-		list, _, err := s.store.UserList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil)
-		if err != nil {
-			return err
-		}
-
-		var errs [2]error
-		for _, item := range list {
-			if item.Username == username {
-				errs[0] = ErrUserNameExists
-			}
-
-			if item.Email == email {
-				errs[1] = ErrUserEmailExists
-			}
-		}
-
-		switch errs {
-		case [2]error{ErrUserNameExists, nil}:
-			return ErrUserNameExists
-		case [2]error{nil, ErrUserEmailExists}:
-			return ErrUserEmailExists
-		case [2]error{ErrUserNameExists, ErrUserEmailExists}:
-			return ErrUserNameAndEmailExists
-		}
-
-		return nil
+	if ok := validator.ValidateFieldPassword(password); !ok {
+		return nil, ErrUserPasswordInvalid
 	}
 
 	name := normalizeField(username)
-	mail := normalizeField(email)
-
 	userData := models.UserData{
 		Name:     name,
-		Email:    mail,
+		Email:    normalizeField(email),
 		Username: name,
 	}
 
@@ -56,26 +29,37 @@ func (s *service) UserCreate(ctx context.Context, username, password, email stri
 		return nil, ErrUserDataInvalid
 	}
 
-	if ok := validator.ValidateFieldPassword(password); !ok {
-		return nil, ErrUserPasswordInvalid
-	}
-
-	userPass := models.UserPassword{
-		Password: hashPassword(password),
-	}
-
 	user := &models.User{
-		UserData:      userData,
-		UserPassword:  userPass,
+		UserData: userData,
+		UserPassword: models.UserPassword{
+			Password: hashPassword(password),
+		},
 		Confirmed:     true,
 		CreatedAt:     clock.Now(),
 		MaxNamespaces: MaxNumberNamespacesCommunity,
 	}
 
-	err := s.store.UserCreate(ctx, user)
-	if err != nil {
+	if err := s.store.UserCreate(ctx, user); err != nil {
+		// searches for conflicts in database
 		if err == store.ErrDuplicate {
-			return nil, returnDuplicatedField(ctx, user.Username, user.Email)
+			var usernameExists, emailExists bool
+			if u, _ := s.store.UserGetByUsername(ctx, user.Username); u != nil {
+				usernameExists = true
+			}
+			if u, _ := s.store.UserGetByEmail(ctx, user.Email); u != nil {
+				emailExists = true
+			}
+
+			switch {
+			case usernameExists && emailExists:
+				return nil, ErrUserNameAndEmailExists
+			case usernameExists:
+				return nil, ErrUserNameExists
+			case emailExists:
+				return nil, ErrUserEmailExists
+			default:
+				return nil, ErrUserUnhandledDuplicate
+			}
 		}
 
 		return nil, ErrCreateNewUser
