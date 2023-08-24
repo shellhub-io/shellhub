@@ -21,4 +21,5 @@ var (
 	ErrUserNameAndEmailExists      = errors.New("user name and email already exists")
 	ErrNamespaceInvalid            = errors.New("namespace is invalid")
 	ErrFailedNamespaceAddMember    = errors.New("could not add this member to this namespace")
+	ErrUserUnhandledDuplicate      = errors.New("unhandled duplicated field for the user")
 )

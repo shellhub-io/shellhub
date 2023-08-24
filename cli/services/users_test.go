@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateUser(t *testing.T) {
+func TestUserCreate(t *testing.T) {
 	type Expected struct {
 		user *models.User
 		err  error
@@ -62,6 +62,145 @@ func TestCreateUser(t *testing.T) {
 			requiredMocks: func() {
 			},
 			expected: Expected{nil, ErrUserPasswordInvalid},
+		},
+		{
+			description: "fails when email is duplicated",
+			username:    "john_doe",
+			email:       "john.doe@test.com",
+			password:    "password",
+			requiredMocks: func() {
+				user := &models.User{
+					UserData: models.UserData{
+						Name:     "john_doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+					UserPassword: models.UserPassword{
+						Password: hashPassword("password"),
+					},
+					Confirmed:     true,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+				}
+				mock.On("UserCreate", ctx, user).Return(store.ErrDuplicate).Once()
+				currentUser := &models.User{
+					UserData: models.UserData{
+						Name:     "jane_doe",
+						Email:    "john.doe@test.com",
+						Username: "jane_doe",
+					},
+					UserPassword: models.UserPassword{
+						Password: hashPassword("password"),
+					},
+					Confirmed:     true,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+				}
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, errors.New("error")).Once()
+				mock.On("UserGetByEmail", ctx, "john.doe@test.com").Return(currentUser, nil).Once()
+			},
+			expected: Expected{nil, ErrUserEmailExists},
+		},
+		{
+			description: "fails when username is duplicated",
+			username:    "john_doe",
+			email:       "john.doe@test.com",
+			password:    "password",
+			requiredMocks: func() {
+				user := &models.User{
+					UserData: models.UserData{
+						Name:     "john_doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+					UserPassword: models.UserPassword{
+						Password: hashPassword("password"),
+					},
+					Confirmed:     true,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+				}
+				mock.On("UserCreate", ctx, user).Return(store.ErrDuplicate).Once()
+				currentUser := &models.User{
+					UserData: models.UserData{
+						Name:     "john_doe",
+						Email:    "jane.doe@test.com",
+						Username: "john_doe",
+					},
+					UserPassword: models.UserPassword{
+						Password: hashPassword("password"),
+					},
+					Confirmed:     true,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+				}
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(currentUser, nil).Once()
+				mock.On("UserGetByEmail", ctx, "john.doe@test.com").Return(nil, errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrUserNameExists},
+		},
+		{
+			description: "fails when email and username is duplicated",
+			username:    "john_doe",
+			email:       "john.doe@test.com",
+			password:    "password",
+			requiredMocks: func() {
+				user := &models.User{
+					UserData: models.UserData{
+						Name:     "john_doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+					UserPassword: models.UserPassword{
+						Password: hashPassword("password"),
+					},
+					Confirmed:     true,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+				}
+				mock.On("UserCreate", ctx, user).Return(store.ErrDuplicate).Once()
+				currentUser := &models.User{
+					UserData: models.UserData{
+						Name:     "john_doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+					UserPassword: models.UserPassword{
+						Password: hashPassword("password"),
+					},
+					Confirmed:     true,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+				}
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(currentUser, nil).Once()
+				mock.On("UserGetByEmail", ctx, "john.doe@test.com").Return(currentUser, nil).Once()
+			},
+			expected: Expected{nil, ErrUserNameAndEmailExists},
+		},
+		{
+			description: "fails when some field is duplicated but unhandled",
+			username:    "john_doe",
+			email:       "john.doe@test.com",
+			password:    "password",
+			requiredMocks: func() {
+				user := &models.User{
+					UserData: models.UserData{
+						Name:     "john_doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+					UserPassword: models.UserPassword{
+						Password: hashPassword("password"),
+					},
+					Confirmed:     true,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+				}
+				mock.On("UserCreate", ctx, user).Return(store.ErrDuplicate).Once()
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, nil).Once()
+				mock.On("UserGetByEmail", ctx, "john.doe@test.com").Return(nil, nil).Once()
+			},
+			expected: Expected{nil, ErrUserUnhandledDuplicate},
 		},
 		{
 			description: "fails creates a user",
