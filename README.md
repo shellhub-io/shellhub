@@ -12,7 +12,7 @@
     <img src="https://badges.gitter.im/shellhub-io/shellhub.svg">
   </a>
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors-"><img src="https://img.shields.io/badge/all_contributors-20-orange.svg?style=flat-square"></a>
+<a href="#contributors-"><img src="https://img.shields.io/badge/all_contributors-23-orange.svg?style=flat-square"></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -185,6 +185,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/danyecls"><img src="https://avatars.githubusercontent.com/u/131564749?v=4?s=100" width="100px;" alt="nia"/><br /><sub><b>nia</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=danyecls" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://luannmoreira.github.io/portfolio/"><img src="https://avatars.githubusercontent.com/u/97236988?v=4?s=100" width="100px;" alt="Luann Curioso"/><br /><sub><b>Luann Curioso</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=luannmoreira" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
