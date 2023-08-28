@@ -177,6 +177,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "heiytor",
+      "name": "Heitor Danilo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/107213601?v=4",
+      "profile": "https://github.com/heiytor",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -184,5 +193,7 @@
   "projectOwner": "shellhub-io",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitType": "docs",
+  "commitConvention": "angular"
 }
