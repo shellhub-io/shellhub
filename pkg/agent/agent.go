@@ -1,3 +1,47 @@
+// Package agent provides packages and functions to create a new ShellHub Agent instance.
+//
+// The ShellHub Agent is a lightweight software component that runs the device and provide communication between the
+// device and ShellHub's server. Its main role is to provide a reserve SSH server always connected to the ShellHub
+// server, allowing SSH connections to be established to the device even when it is behind a firewall or NAT.
+//
+// This package provides a simple API to create a new agent instance and start the communication with the server. The
+// agent will automatically connect to the server and start listening for incoming connections. Once connected, the
+// agent will also automatically reconnect to the server if the connection is lost.
+//
+// The update process isn't handled by this package. This feature is provided by its main implementation in
+// [ShellHub Agent]. Check the [ShellHub Agent] documentation for more information.
+//
+// # Example:
+//
+// Creates the agent configuration with the minimum required fields:
+//
+//	func main() {
+//	    cfg := Config{
+//	        ServerAddress: "http://localhost:80",
+//	        TenantID:      "00000000-0000-4000-0000-000000000000",
+//	        PrivateKey:    "/tmp/shellhub.key",
+//	    }
+//
+//	    ag, err := NewAgentWithConfig(&cfg)
+//	    if err != nil {
+//	        panic(err)
+//	    }
+//
+//	    if err := ag.Initialize(); err != nil {
+//	        panic(err)
+//	    }
+//
+//	    listing := make(chan bool)
+//	    go func() {
+//	        <-listing
+//
+//	        log.Println("listing")
+//	    }()
+//
+//	    ag.Listen(listing)
+//	}
+//
+// [ShellHub Agent]: https://github.com/shellhub-io/shellhub/tree/master/agent
 package agent
 
 import (
@@ -24,26 +68,31 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Ping is a message sent by the agent to the server to keep the connection alive.
 type Ping struct {
+	// Timestamp is the time the ping was sent or received.
 	Timestamp time.Time
 }
 
-// TODO: can it panic?
 // throw sends a value on a channel, but does not block the goroutine.
 func throw[V any, T chan V](ch T, v V) {
 	ch <- v
 }
 
 // AgentVersion store the version to be embed inside the binary. This is
-// injected using `-ldflags` build option (e.g: `go build -ldflags "-X
-// main.AgentVersion=1.2.3"`).
+// injected using `-ldflags` build option.
+//
+//	go build -ldflags "-X main.AgentVersion=1.2.3"
 //
 // If set to `latest`, the auto-updating mechanism is disabled. This is intended
 // to be used during development only.
-var (
-	AgentVersion  string
-	AgentPlatform string
-)
+var AgentVersion string
+
+// AgentPlatform stores what platform the agent is running on. This is injected in build time in the [ShellHub Agent]
+// implementation.
+//
+// [ShellHub Agent]: https://github.com/shellhub-io/shellhub/tree/master/agent
+var AgentPlatform string
 
 // Config provides the configuration for the agent service.
 type Config struct {
@@ -81,7 +130,6 @@ type Config struct {
 }
 
 type Agent struct {
-	// config provides the configuration for the agent service.
 	config        *Config
 	pubKey        *rsa.PublicKey
 	Identity      *models.DeviceIdentity
@@ -95,6 +143,14 @@ type Agent struct {
 }
 
 // NewAgent creates a new agent instance.
+//
+// address is the ShellHub Server address the agent will use to connect, tenantID is the namespace where the device
+// will be registered and privateKey is the path to the device private key. If privateKey is empty, a new key will be
+// generated.
+//
+// To add a full customisation configuration, use [NewAgentWithConfig] instead.
+//
+// TODO(r): Use [NewAgentWithConfig] inside it to avoid code duplication.
 func NewAgent(address string, tenantID string, privateKey string) (*Agent, error) {
 	return NewAgentWithConfig(&Config{
 		ServerAddress: address,
@@ -104,6 +160,8 @@ func NewAgent(address string, tenantID string, privateKey string) (*Agent, error
 }
 
 // NewAgentWithConfig creates a new agent instance with a custom configuration.
+//
+// Check [Config] for more information.
 func NewAgentWithConfig(config *Config) (*Agent, error) {
 	if config.ServerAddress == "" {
 		return nil, errors.New("address is empty")
@@ -133,6 +191,8 @@ func NewAgentWithConfig(config *Config) (*Agent, error) {
 
 // Initialize initializes agent, generating device identity, loading device information, generating private key,
 // reading public key, probing server information and authorizing device on ShellHub server.
+//
+// When any of the steps fails, the agent will return an error, and the agent will not be able to start.
 func (a *Agent) Initialize() error {
 	if err := a.generateDeviceIdentity(); err != nil {
 		return errors.Wrap(err, "failed to generate device identity")
@@ -181,7 +241,8 @@ func (a *Agent) readPublicKey() error {
 
 // generateDeviceIdentity generates device identity.
 //
-// when preferred identity on Agent is set, it will be used instead of the network interface MAC address.
+// When preferred identity on Agent is set, it will be used instead of the network interface MAC address, what is the
+// default value for this property.
 func (a *Agent) generateDeviceIdentity() error {
 	if id := a.config.PreferredIdentity; id != "" {
 		a.Identity = &models.DeviceIdentity{
@@ -204,7 +265,7 @@ func (a *Agent) generateDeviceIdentity() error {
 	return nil
 }
 
-// loadDeviceInfo load some device information.
+// loadDeviceInfo load some device informations like OS name, version, arch and platform.
 func (a *Agent) loadDeviceInfo() error {
 	osrelease, err := sysinfo.GetOSRelease()
 	if err != nil {
@@ -253,7 +314,8 @@ func (a *Agent) NewReverseListener() (*revdial.Listener, error) {
 
 // Listen creates a new SSH server, tunnel to ShellHub and listen for incoming connections.
 //
-// It's possible to pass a channel to be notified when the agent is listing for connections.
+// listening parameter is a channel that is notified when the agent is listing for connections. It can be used to
+// start to ping the server, synchronizing device information or other tasks.
 func (a *Agent) Listen(listining chan bool) error {
 	a.server = server.NewServer(a.cli, a.authData, a.config.PrivateKey, a.config.KeepAliveInterval, a.config.SingleUserPassword)
 
@@ -372,7 +434,8 @@ func (a *Agent) Listen(listining chan bool) error {
 // Ping sends an authtorization request to the server every ticker interval.
 //
 // If the ticker is nil, it will be set to 10 minutes.
-// It's possible to pass a channel to be notified when the ping is sent.
+//
+// ping parameter is a channel that is notified when the agent pings the server.
 func (a *Agent) Ping(ticker *time.Ticker, ping chan Ping) {
 	if ticker == nil {
 		ticker = time.NewTicker(10 * time.Minute)
@@ -394,7 +457,7 @@ func (a *Agent) Ping(ticker *time.Ticker, ping chan Ping) {
 	}
 }
 
-// CheckUpdate check for agent updates.
+// CheckUpdate gets the ShellHub's server version.
 func (a *Agent) CheckUpdate() (*semver.Version, error) {
 	info, err := a.cli.GetInfo(AgentVersion)
 	if err != nil {
@@ -404,6 +467,7 @@ func (a *Agent) CheckUpdate() (*semver.Version, error) {
 	return semver.NewVersion(info.Version)
 }
 
+// GetInfo gets the ShellHub's server information like version and endpoints, and updates the Agent's server's info.
 func (a *Agent) GetInfo() (*models.Info, error) {
 	if a.serverInfo != nil {
 		return a.serverInfo, nil
