@@ -181,6 +181,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/gessecarneiro"><img src="https://avatars.githubusercontent.com/u/55324790?v=4?s=100" width="100px;" alt="Gessé Carneiro"/><br /><sub><b>Gessé Carneiro</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=gessecarneiro" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/benasse"><img src="https://avatars.githubusercontent.com/u/5676729?v=4?s=100" width="100px;" alt="Benoît Stahl"/><br /><sub><b>Benoît Stahl</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=benasse" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/heiytor"><img src="https://avatars.githubusercontent.com/u/107213601?v=4?s=100" width="100px;" alt="Heitor Danilo"/><br /><sub><b>Heitor Danilo</b></sub></a><br /><a href="https://github.com/shellhub-io/shellhub/commits?author=heiytor" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Drakonis"><img src="https://avatars.githubusercontent.com/u/1462899?v=4?s=100" width="100px;" alt="Victor Hugo Aguiar Pacce"/><br /><sub><b>Victor Hugo Aguiar Pacce</b></sub></a><br /><a href="#infra-Drakonis" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     </tr>
   </tbody>
 </table>
