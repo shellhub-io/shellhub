@@ -195,6 +195,15 @@
       "contributions": [
         "infra"
       ]
+    },
+    {
+      "login": "danyecls",
+      "name": "nia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/131564749?v=4",
+      "profile": "https://github.com/danyecls",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
