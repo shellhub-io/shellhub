@@ -9,7 +9,7 @@ type Mode string
 const (
 	// HostMode represents the SSH's server host mode.
 	//
-	// HostMode mode means that the SSH's server runs in the host machine, using the host `/etc/passwd`, `/etc/shadow`,
+	// HostMode mode means that the SSH's server runs in the host machine, using the host "/etc/passwd", "/etc/shadow",
 	// redirecting the SSH's connection to the device sdin, stdout and stderr and etc.
 	HostMode Mode = "host"
 )
@@ -25,6 +25,8 @@ type Authenticator interface {
 }
 
 // Sessioner defines the session methods used by the SSH's server to deal wihth determining the type of session.
+//
+//go:generate mockery --name=Sessioner --filename=sessioner.go
 type Sessioner interface {
 	Subsystemer
 	// Shell must be implemented to deal with shell session.
@@ -35,14 +37,17 @@ type Sessioner interface {
 	// It request a shell, but doesn't allocate a pty.
 	//
 	// An example of heredoc is:
-	// cat <<EOF
-	//     test123
-	// EOF
+	//  cat <<EOF
+	//      test123
+	//  EOF
 	Heredoc(session gliderssh.Session) error
 	// Exec must be implemented to deal with exec session.
 	Exec(session gliderssh.Session) error
 }
 
+// Subsystemer defines the subsystem methods used by the SSH's server to deal with determining the type of subsystem.
+//
+// Subsystemer is a subset of the [Sessioner] interface.
 type Subsystemer interface {
 	// SFTP must be implemented to deal with SFTP session.
 	SFTP(session gliderssh.Session) error
