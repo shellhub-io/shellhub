@@ -45,45 +45,41 @@ type Server struct {
 	mu                 sync.Mutex
 	keepAliveInterval  int
 	singleUserPassword string
-	// mode is the mode of the server.
+	// mode is the mode of the server, identifing where and how the SSH's server is running.
 	//
-	// mode is used to identify where and how the SSH's server is running. For example, the modes.HostMode means
-	// that the SSH's server runs in the host machine, using the host `/etc/passwd`, `/etc/shadow`, redirecting the
-	// SSH's connection to the device sdin, stdout and stderr and etc.
+	// For example, the [modes.HostMode] means that the SSH's server runs in the host machine, using the host
+	// `/etc/passwd`, `/etc/shadow`, redirecting the SSH's connection to the device sdin, stdout and stderr and etc.
+	//
+	// Check the [modes] package for more information.
 	mode modes.Mode
-	// authenticator contains methods by the server to authenticate the user on the device and on the ShellHub server.
+	// authenticator contains methods used by the server to authenticate the user on the device and on the ShellHub
+	// server.
 	authenticator modes.Authenticator
 	// sessioner contains methods used by the server to handle different types of sessions.
 	//
-	// sessioner also has the subsystemer interface, which contains methods used by the server to handle different
-	// types of subsystems.
+	// sessioner also has the [modes.Subsystemer] interface, which contains methods used by the server to handle
+	// different types of subsystems.
 	sessioner modes.Sessioner
 }
 
-// Channels supported by the SSH server.
+// SSH channels supported by the SSH server.
 //
 // An SSH channel refers to a communication link established between a client and a server. SSH channels are multiplexed
 // over a single encrypted connection, facilitating concurrent and secure communication for various purposes.
 //
-// There are three main types of SSH channels: Session Channels for interactive command-line access, Forwarding Channels
-// for secure port tunneling, and SFTP Channels for secure file transfers.
-//
 // SSH_MSG_CHANNEL_OPEN
 //
-// https://www.ietf.org/rfc/rfc4254.txt
+// Check www.ietf.org/rfc/rfc4254.txt for more information.
 const (
-	// ChannelSession
-	//
-	// Client implementations SHOULD reject any session channel open requests to make it more difficult for a corrupt
-	// server to attack the client.
+	// ChannelSession refers to a type of SSH channel that is established between a client and a server for interactive
+	// shell sessions or command execution. SSH channels are used to multiplex multiple logical communication channels
+	// over a single SSH connection.
 	//
 	// Check www.ietf.org/rfc/rfc4254.txt at section 6.1 for more information.
 	ChannelSession string = "session"
-	// ChannelDirectTcpip
-	//
-	// When a connection comes to a locally forwarded TCP/IP port, the following packet is sent to the other side.
-	// Note that these messages MAY also be sent for ports for which no forwarding has been explicitly requested.  The
-	// receiving side must decide whether to allow the forwarding.
+	// ChannelDirectTcpip is the channel type in SSH is used to establish a direct TCP/IP connection between the SSH
+	// client and a target host through the SSH server. This channel type allows the client to initiate a connection to
+	// a specific destination host and port, and the SSH server acts as a bridge to facilitate this connection.
 	//
 	// Check www.ietf.org/rfc/rfc4254.txt at section 7.2 for more information.
 	ChannelDirectTcpip string = "direct-tcpip"
@@ -184,14 +180,16 @@ loop:
 //
 // Check www.ietf.org/rfc/rfc4254.txt at section 6.5 for more information.
 const (
-	// RequestTypeShell is a request type for shell.
+	// RequestTypeShell is the request type for shell.
 	RequestTypeShell = "shell"
-	// RequestTypeExec is a request type for exec.
+	// RequestTypeExec is the request type for exec.
 	RequestTypeExec = "exec"
-	// RequestTypeSubsystem is a request type for any subsystem.
+	// RequestTypeSubsystem is the request type for any subsystem.
 	RequestTypeSubsystem = "subsystem"
-	// RequestTypeUnknown is a request type for unknown.
-	// It is not a valid request type by SSH, but it is used to identify the request type when it is not known.
+	// RequestTypeUnknown is the request type for unknown.
+	//
+	// It is not a valid request type documentated by SSH's RFC, but it can be useful to identify the request type when
+	// it is not known.
 	RequestTypeUnknown = "unknown"
 )
 

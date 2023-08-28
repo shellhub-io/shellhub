@@ -1,4 +1,3 @@
-// Package host defines authentication and sessions handles when SSH's server is running in host mode.
 package host
 
 import (
@@ -38,8 +37,11 @@ type Authenticator struct {
 }
 
 // NewAuthenticator creates a new instance of Authenticator for the host mode.
-// It receives the api client, the authentication data, the single user password and the device name.
-// The device name is a pointer to a string because when the server is created, we don't know the device name yet, that
+// It receives the api client to perform requests to the ShellHub's API, the authentication data received by the agent
+// when started the communication between it and the agent, the singleUserPassword, what indicates is is running at
+// this mode and the deviceName.
+//
+// The deviceName is a pointer to a string because when the server is created, we don't know the device name yet, that
 // is set later.
 func NewAuthenticator(api client.Client, authData *models.DeviceAuthResponse, singleUserPassword string, deviceName *string) *Authenticator {
 	return &Authenticator{
