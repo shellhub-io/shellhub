@@ -128,16 +128,14 @@ $ make start
 Wait for all services to be ready then create initial user by running:
 
 ```
-$ ./bin/add-user <username> <password> <email>
+$ ./bin/cli user create <username> <password> <email>
 ```
 
-Create a namespace for grouping devices and set user as owner:
-
 ```
-$ TENANT_ID=00000000-0000-4000-0000-000000000000 ./bin/add-namespace <namespace> <owner>
+$ ./bin/cli namespace create <namespace> <owner> 00000000-0000-4000-0000-000000000000
 ```
 
-> Don't change the value of `TENANT_ID`, this value is hardcoded during agent initialization in development mode.
+> Don't change the value of `00000000-0000-4000-0000-000000000000` (the TenantID), this value is hardcoded during agent initialization in development mode.
 
 When you open ShellHub UI for the first time, be sure to accept pending device.
 
