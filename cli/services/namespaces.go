@@ -11,11 +11,9 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
-const (
-	MaxNumberDevicesLimited   = 3
-	MaxNumberDevicesUnlimited = -1
-)
-
+// NamespaceCreate initializes a new namespace, making the specified user its owner.
+// The tenant defaults to a UUID if not provided.
+// Max device limit is based on the envs.IsCloud() setting.
 func (s *service) NamespaceCreate(ctx context.Context, namespace, username, tenant string) (*models.Namespace, error) {
 	// tenant is optional.
 	if tenant == "" {
@@ -63,6 +61,7 @@ func (s *service) NamespaceCreate(ctx context.Context, namespace, username, tena
 	return ns, nil
 }
 
+// NamespaceAddMember adds a new member with a specified role to a namespace.
 func (s *service) NamespaceAddMember(ctx context.Context, username, namespace, role string) (*models.Namespace, error) {
 	if _, err := validator.ValidateStruct(models.Member{Username: username, Role: role}); err != nil {
 		return nil, ErrInvalidFormat
@@ -86,6 +85,7 @@ func (s *service) NamespaceAddMember(ctx context.Context, username, namespace, r
 	return ns, nil
 }
 
+// NamespaceRemoveMember removes a member from a namespace.
 func (s *service) NamespaceRemoveMember(ctx context.Context, username, namespace string) (*models.Namespace, error) {
 	if _, err := validator.ValidateVar(username, "username"); err != nil {
 		return nil, ErrInvalidFormat
@@ -109,6 +109,7 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, username, namespace
 	return ns, nil
 }
 
+// NamespaceDelete deletes a namespace based on the provided namespace name.
 func (s *service) NamespaceDelete(ctx context.Context, namespace string) error {
 	ns, err := s.store.NamespaceGetByName(ctx, namespace)
 	if err != nil {
