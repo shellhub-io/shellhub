@@ -9,10 +9,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
-const MaxNumberNamespacesCommunity = -1
-
-// UserCreate gets an input with the user's data and creates a new user. This method will also checks for any conflicts.
-// Returns the newly created user or an error if any issues arise.
+// UserCreate adds a new user based on the provided user's data. This method validates data and
+// checks for conflicts.
 func (s *service) UserCreate(ctx context.Context, username, password, email string) (*models.User, error) {
 	if ok := validator.ValidateFieldPassword(password); !ok {
 		return nil, ErrUserPasswordInvalid
@@ -68,38 +66,32 @@ func (s *service) UserCreate(ctx context.Context, username, password, email stri
 	return user, nil
 }
 
+// UserDelete removes a user and cleans up related data based on the provided username.
 func (s *service) UserDelete(ctx context.Context, username string) error {
-	// Gets the user data.
 	user, err := s.store.UserGetByUsername(ctx, username)
 	if err != nil {
 		return ErrUserNotFound
 	}
 
-	// Gets data about the namespaces what the user is either member or owner.
 	detach, err := s.store.UserDetachInfo(ctx, user.ID)
 	if err != nil {
 		return ErrNamespaceNotFound
 	}
-	// Owned namespaces.
-	owned := detach["owner"]
-	// Joined namespaces.
-	joined := detach["member"]
 
-	// Delete all namespaces what the user is member.
-	for _, o := range owned {
-		if err := s.store.NamespaceDelete(ctx, o.TenantID); err != nil {
+	// Delete all namespaces what the user is owner.
+	for _, ns := range detach["owner"] {
+		if err := s.store.NamespaceDelete(ctx, ns.TenantID); err != nil {
 			return err
 		}
 	}
 
 	// Remove user from all namespaces what it is a member.
-	for _, m := range joined {
-		if _, err := s.store.NamespaceRemoveMember(ctx, m.TenantID, user.ID); err != nil {
+	for _, ns := range detach["member"] {
+		if _, err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
 			return err
 		}
 	}
 
-	// Delete the user.
 	if err := s.store.UserDelete(ctx, user.ID); err != nil {
 		return ErrFailedDeleteUser
 	}
@@ -107,6 +99,7 @@ func (s *service) UserDelete(ctx context.Context, username string) error {
 	return nil
 }
 
+// UserUpdate updates a user's data based on the provided username.
 func (s *service) UserUpdate(ctx context.Context, username, password string) error {
 	ok := validator.ValidateFieldPassword(password)
 	if !ok {
