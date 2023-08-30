@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import * as Sentry from "@sentry/vue";
 import { BrowserTracing } from "@sentry/vue";
+import VueGtag from "vue-gtag";
 import { envVariables } from "./envVariables";
 import vuetify from "./plugins/vuetify";
 import { key, store } from "./store";
@@ -38,6 +39,9 @@ loadFonts();
 app.use(vuetify);
 app.use(router);
 app.use(store, key);
+app.use(VueGtag, {
+  config: { id: envVariables.googleAnalyticsID || "" },
+});
 app.use(SnackbarPlugin);
 app.component("SnackbarComponent", SnackbarComponent);
 app.mount("#app");
