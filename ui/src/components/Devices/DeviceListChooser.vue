@@ -11,21 +11,19 @@
       :actualPage="page"
       :enable-items-per-page="false"
       :comboboxOptions="[5]"
-      @changeItemsPerPage="changeItemsPerPage"
       @clickNextPage="next"
       @clickPreviousPage="prev"
-      @clickSortableIcon="sortByItem"
       data-test="devices-dataTable"
     >
       <template v-slot:rows>
         <tr v-for="(item, i) in devices" :key="i">
           <td class="pa-0 text-center">
             <v-checkbox
-              v-if="props.isAllDevices"
+              v-if="props.isSelectable"
               v-model="selected"
               class="mt-5 ml-5"
               density="compact"
-              :value="item"
+              :value="item.uid"
             />
           </td>
           <td class="text-center">
@@ -46,19 +44,11 @@
 
           <td class="text-center">
             <v-chip>
-              <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
-                  <span
-                    v-bind="props"
-                    @click="copyText(address(item))"
-                    @keypress="copyText(address(item))"
-                    class="hover-text"
-                  >
-                    {{ address(item) }}
-                  </span>
-                </template>
-                <span>Copy ID</span>
-              </v-tooltip>
+              <span
+                class="hover-text"
+              >
+                {{ address(item) }}
+              </span>
             </v-chip>
           </td>
         </tr>
@@ -68,10 +58,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import {
-  INotificationsCopy,
   INotificationsError,
 } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
@@ -80,7 +69,7 @@ import DeviceIcon from "./DeviceIcon.vue";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
 
-const props = defineProps(["action", "isAllDevices"]);
+const props = defineProps(["isSelectable"]);
 
 const store = useStore();
 
@@ -128,10 +117,6 @@ const selected = computed({
   },
 });
 
-onMounted(() => {
-  store.dispatch("devices/getDevicesMostUsed");
-});
-
 const getDevices = async (perPagaeValue: number, pageValue: number) => {
   try {
     loading.value = true;
@@ -153,46 +138,22 @@ const getDevices = async (perPagaeValue: number, pageValue: number) => {
 
     loading.value = false;
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) {
+    const axiosError = error as AxiosError;
+    switch (axios.isAxiosError(error)) {
+      case axiosError.response?.status === 403: {
         store.dispatch("snackbar/showSnackbarErrorAssociation");
-        handleError(error);
+        break;
       }
-    } else {
-      store.dispatch(
-        "snackbar/showSnackbarErrorLoading",
-        INotificationsError.deviceList,
-      );
-      handleError(error);
+      default: {
+        store.dispatch(
+          "snackbar/showSnackbarErrorLoading",
+          INotificationsError.deviceList,
+        );
+        break;
+      }
     }
+    handleError(error);
   }
-};
-
-const sortByItem = async (field: string) => {
-  let sortStatusString = store.getters["devices/getSortStatusString"];
-  const sortStatusField = store.getters["devices/getSortStatusField"];
-
-  if (field !== sortStatusField && sortStatusField) {
-    if (sortStatusString === "asc") {
-      sortStatusString = "desc";
-    } else {
-      sortStatusString = "asc";
-    }
-  }
-
-  if (sortStatusString === "") {
-    sortStatusString = "asc";
-  } else if (sortStatusString === "asc") {
-    sortStatusString = "desc";
-  } else {
-    sortStatusString = "asc";
-  }
-  await store.dispatch("devices/setSortStatus", {
-    sortStatusField: field,
-    sortStatusString,
-  });
-  await getDevices(itemsPerPage.value, page.value);
 };
 
 const next = async () => {
@@ -207,10 +168,6 @@ const prev = async () => {
   }
 };
 
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
 watch(itemsPerPage, async () => {
   await getDevices(itemsPerPage.value, page.value);
 });
@@ -222,14 +179,4 @@ watch(selected, (newValue, oldValue) => {
 });
 
 const address = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
-
-const copyText = (value: string | undefined) => {
-  if (value) {
-    navigator.clipboard.writeText(value);
-    store.dispatch(
-      "snackbar/showSnackbarCopy",
-      INotificationsCopy.deviceSSHID,
-    );
-  }
-};
 </script>
