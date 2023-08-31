@@ -127,7 +127,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, watch, nextTick } from "vue";
+import { defineComponent, ref, computed, watch, nextTick, onUnmounted } from "vue";
 import { useField } from "vee-validate";
 import "xterm/css/xterm.css";
 import { Terminal } from "xterm";
@@ -312,8 +312,6 @@ export default defineComponent({
       }
     };
 
-    context.expose({ open });
-
     const resetFieldValidation = () => {
       resetUsername();
       resetPassword();
@@ -351,6 +349,12 @@ export default defineComponent({
       store.dispatch("modal/toggleTerminal", "");
       resetFieldValidation();
     };
+
+    onUnmounted(() => {
+      close();
+    });
+
+    context.expose({ open });
 
     return {
       showTerminal,

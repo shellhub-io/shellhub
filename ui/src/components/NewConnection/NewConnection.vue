@@ -7,7 +7,6 @@
       variant="elevated"
       aria-label="Dialog New Connection"
       data-test="new-connection-add-btn"
-      :size="size"
       prepend-icon="mdi-link"
     >
       New Connection
@@ -95,105 +94,83 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { useMagicKeys } from "@vueuse/core";
-import { defineComponent, watch, computed, ref, onUnmounted } from "vue";
-import { useRouter } from "vue-router";
+import { watch, ref, onUnmounted } from "vue";
 import axios, { AxiosError } from "axios";
 import NewConnectionList from "./NewConnectionList.vue";
 import { useStore } from "../../store";
 import handleError from "../../utils/handleError";
 
-export default defineComponent({
-  props: {
-    size: {
-      type: String,
-      default: "default",
-      required: false,
-    },
-  },
-  setup() {
-    const list = ref<InstanceType<typeof NewConnectionList>>();
-    const dialog = ref(false);
-    const store = useStore();
-    const router = useRouter();
-    const filter = ref("");
-    const show = ref(false);
-    const searchDevices = () => {
-      let encodedFilter = "";
+const list = ref<InstanceType<typeof NewConnectionList>>();
+const dialog = ref(false);
+const store = useStore();
+const filter = ref("");
+const show = ref(false);
+const searchDevices = () => {
+  let encodedFilter = "";
 
-      if (filter.value) {
-        const filterToEncodeBase64 = [
-          {
-            type: "property",
-            params: { name: "name", operator: "contains", value: filter.value },
-          },
-        ];
-        encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
-      }
-
-      if (dialog.value === false) {
-        encodedFilter = "";
-      }
-
-      try {
-        store.dispatch("devices/search", {
-          page: store.getters["devices/getPage"],
-          perPage: store.getters["devices/getPerPage"],
-          filter: encodedFilter,
-          status: store.getters["devices/getStatus"],
-        });
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorDefault");
-      }
-    };
-
-    const isDeviceList = computed(() => router.currentRoute.value.name === "listDevices");
-
-    watch(dialog, async (value) => {
-      if (!value) return;
-
-      try {
-        await store.dispatch("stats/get");
-        show.value = true;
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError;
-          if (axiosError.response?.status === 403) store.dispatch("snackbar/showSnackbarErrorAssociation");
-        } else {
-          store.dispatch("snackbar/showSnackbarErrorDefault");
-        }
-        handleError(error);
-      }
-    });
-
-    onUnmounted(async () => {
-      await store.dispatch("devices/setFilter", null);
-    });
-
-    const { keyboardMacros } = useMagicKeys({
-      passive: false,
-      onEventFired(e) {
-        if (e.ctrlKey && e.key === "k" && e.type === "keydown") {
-          e.preventDefault();
-          dialog.value = !dialog.value;
-        } else if ((e.key === "ArrowDown" || e.key === "ArrowUp") && e.type === "keydown") {
-          e.preventDefault();
-          list.value?.rootEl?.focus();
-        }
+  if (filter.value) {
+    const filterToEncodeBase64 = [
+      {
+        type: "property",
+        params: { name: "name", operator: "contains", value: filter.value },
       },
+    ];
+    encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
+  }
+
+  if (dialog.value === false) {
+    encodedFilter = "";
+  }
+
+  try {
+    store.dispatch("devices/search", {
+      page: store.getters["devices/getPage"],
+      perPage: store.getters["devices/getPerPage"],
+      filter: encodedFilter,
+      status: store.getters["devices/getStatus"],
     });
-    return {
-      dialog,
-      list,
-      keyboardMacros,
-      filter,
-      searchDevices,
-      isDeviceList,
-    };
+  } catch {
+    store.dispatch("snackbar/showSnackbarErrorDefault");
+  }
+};
+
+watch(dialog, async (value) => {
+  if (!value) return;
+
+  try {
+    await store.dispatch("stats/get");
+    show.value = true;
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    switch (axios.isAxiosError(error)) {
+      case axiosError.response?.status === 403: {
+        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        break; }
+      default: store.dispatch("snackbar/showSnackbarErrorDefault");
+    }
+    handleError(error);
+  }
+});
+
+onUnmounted(async () => {
+  await store.dispatch("devices/setFilter", null);
+});
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const keyboardMacros = useMagicKeys({
+  passive: false,
+  onEventFired(e) {
+    if (e.ctrlKey && e.key === "k" && e.type === "keydown") {
+      e.preventDefault();
+      dialog.value = !dialog.value;
+    } else if ((e.key === "ArrowDown" || e.key === "ArrowUp") && e.type === "keydown") {
+      e.preventDefault();
+      list.value?.rootEl?.focus();
+    }
   },
-  components: { NewConnectionList },
 });
 </script>
 
