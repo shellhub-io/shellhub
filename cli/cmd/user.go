@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/shellhub-io/shellhub/cli/pkg/input"
+	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/cli/services"
 	"github.com/spf13/cobra"
 )
@@ -32,17 +32,13 @@ func userCreate(service services.Services) *cobra.Command {
 The username must be unique, and the password should meet the system's security requirements.`,
 		Example: `cli user create john_doe Secret123!- john.doe@test.com`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var input input.UserCreate
+			var input inputs.UserCreate
 
 			if err := bind(args, &input); err != nil {
 				return err
 			}
 
-			if err := validate(input); err != nil {
-				return err
-			}
-
-			user, err := service.UserCreate(cmd.Context(), input.Username, input.Password, input.Email)
+			user, err := service.UserCreate(cmd.Context(), &input)
 			if err != nil {
 				return err
 			}
@@ -64,17 +60,13 @@ func userResetPassword(service services.Services) *cobra.Command {
 		Long:    `Updates the password for an existing user identified by the given username.`,
 		Example: `cli user password john_doe Secret123!-`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var input input.UserUpdate
+			var input inputs.UserUpdate
 
 			if err := bind(args, &input); err != nil {
 				return err
 			}
 
-			if err := validate(input); err != nil {
-				return err
-			}
-
-			if err := service.UserUpdate(cmd.Context(), input.Username, input.Password); err != nil {
+			if err := service.UserUpdate(cmd.Context(), &input); err != nil {
 				return err
 			}
 
@@ -94,17 +86,13 @@ func userDelete(service services.Services) *cobra.Command {
 		Long:    `Deletes a user and all associated data from the system based on the provided username.`,
 		Example: `cli user delete john_doe`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var input input.UserDelete
+			var input inputs.UserDelete
 
 			if err := bind(args, &input); err != nil {
 				return err
 			}
 
-			if err := validate(input); err != nil {
-				return err
-			}
-
-			if err := service.UserDelete(cmd.Context(), input.Username); err != nil {
+			if err := service.UserDelete(cmd.Context(), &input); err != nil {
 				return err
 			}
 

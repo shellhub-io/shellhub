@@ -4,33 +4,34 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 // UserCreate adds a new user based on the provided user's data. This method validates data and
 // checks for conflicts.
-func (s *service) UserCreate(ctx context.Context, username, password, email string) (*models.User, error) {
-	if ok := validator.ValidateFieldPassword(password); !ok {
+func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*models.User, error) {
+	if err := validate(&inputs.UserPassword{Password: input.Password}); err != nil {
 		return nil, ErrUserPasswordInvalid
 	}
 
-	name := normalizeField(username)
-	userData := models.UserData{
-		Name:     name,
-		Email:    normalizeField(email),
-		Username: name,
+	if err := validate(input); err != nil {
+		return nil, ErrUserDataInvalid
 	}
 
-	if _, err := validator.ValidateStruct(userData); err != nil {
-		return nil, ErrUserDataInvalid
+	name := normalizeField(input.Username)
+	mail := normalizeField(input.Email)
+	userData := models.UserData{
+		Name:     name,
+		Email:    mail,
+		Username: name,
 	}
 
 	user := &models.User{
 		UserData: userData,
 		UserPassword: models.UserPassword{
-			Password: hashPassword(password),
+			Password: hashPassword(input.Password),
 		},
 		Confirmed:     true,
 		CreatedAt:     clock.Now(),
@@ -67,8 +68,12 @@ func (s *service) UserCreate(ctx context.Context, username, password, email stri
 }
 
 // UserDelete removes a user and cleans up related data based on the provided username.
-func (s *service) UserDelete(ctx context.Context, username string) error {
-	user, err := s.store.UserGetByUsername(ctx, username)
+func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) error {
+	if err := validate(input); err != nil {
+		return ErrUserDataInvalid
+	}
+
+	user, err := s.store.UserGetByUsername(ctx, input.Username)
 	if err != nil {
 		return ErrUserNotFound
 	}
@@ -100,20 +105,17 @@ func (s *service) UserDelete(ctx context.Context, username string) error {
 }
 
 // UserUpdate updates a user's data based on the provided username.
-func (s *service) UserUpdate(ctx context.Context, username, password string) error {
-	ok := validator.ValidateFieldPassword(password)
-	if !ok {
+func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) error {
+	if err := validate(&inputs.UserPassword{Password: input.Password}); err != nil {
 		return ErrUserPasswordInvalid
 	}
 
-	passHash := hashPassword(password)
-
-	user, err := s.store.UserGetByUsername(ctx, username)
+	user, err := s.store.UserGetByUsername(ctx, input.Username)
 	if err != nil {
 		return ErrUserNotFound
 	}
 
-	if err := s.store.UserUpdatePassword(ctx, passHash, user.ID); err != nil {
+	if err := s.store.UserUpdatePassword(ctx, hashPassword(input.Password), user.ID); err != nil {
 		return ErrFailedUpdateUser
 	}
 
