@@ -158,16 +158,30 @@ import { IDevice } from "@/interfaces/IDevice";
 
 const headers = [
   {
+    text: "Online",
+    value: "online",
+    sortable: true,
+  },
+  {
     text: "Hostname",
-    value: "hostname",
+    value: "name",
+    sortable: true,
   },
   {
     text: "Operating System",
-    value: "info.pretty_name",
+    value: "operating_system",
   },
   {
     text: "SSHID",
-    value: "namespace",
+    value: "sshid",
+  },
+  {
+    text: "Tags",
+    value: "tags",
+  },
+  {
+    text: "Actions",
+    value: "actions",
   },
 ];
 
