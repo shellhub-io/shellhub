@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -40,36 +41,13 @@ func TestNamespaceCreate(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "fails when could not find a user",
-			namespace:   "namespace",
-			username:    "john_doe",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func() {
-				envMock := &env_mocks.Backend{}
-				envs.DefaultBackend = envMock
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, errors.New("error")).Once()
-			},
-			expected: Expected{nil, ErrUserNotFound},
-		},
-		{
 			description: "fails when namespace is not valid",
-			namespace:   "invalid_namespace",
+			namespace:   "",
 			username:    "john_doe",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-				user := &models.User{
-					ID: "507f191e810c19729de860ea",
-					UserData: models.UserData{
-						Name:     "John Doe",
-						Email:    "john.doe@test.com",
-						Username: "john_doe",
-					},
-				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
 			},
 			expected: Expected{nil, ErrNamespaceInvalid},
 		},
@@ -81,19 +59,20 @@ func TestNamespaceCreate(t *testing.T) {
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-				user := &models.User{
-					ID: "507f191e810c19729de860ea",
-					UserData: models.UserData{
-						Name:     "John Doe",
-						Email:    "john.doe@test.com",
-						Username: "john_doe",
-					},
-				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
 			},
 			expected: Expected{nil, ErrNamespaceInvalid},
+		},
+		{
+			description: "fails when could not find a user",
+			namespace:   "namespace",
+			username:    "john_doe",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			requiredMocks: func() {
+				envMock := &env_mocks.Backend{}
+				envs.DefaultBackend = envMock
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrUserNotFound},
 		},
 		{
 			description: "fails when namespace is duplicated",
@@ -268,7 +247,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tc.requiredMocks()
 
 			s := NewService(store.Store(mock))
-			ns, err := s.NamespaceCreate(ctx, tc.namespace, tc.username, tc.tenant)
+			ns, err := s.NamespaceCreate(ctx, &inputs.NamespaceCreate{Namespace: tc.namespace, Owner: tc.username, TenantID: tc.tenant})
 			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
 	}
@@ -276,7 +255,7 @@ func TestNamespaceCreate(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestAddUserNamespace(t *testing.T) {
+func TestNamespaceAddMember(t *testing.T) {
 	type Expected struct {
 		namespace *models.Namespace
 		err       error
@@ -370,7 +349,7 @@ func TestAddUserNamespace(t *testing.T) {
 			tc.requiredMocks()
 
 			s := NewService(store.Store(mock))
-			ns, err := s.NamespaceAddMember(ctx, tc.username, tc.namespace, tc.role)
+			ns, err := s.NamespaceAddMember(ctx, &inputs.MemberAdd{Username: tc.username, Namespace: tc.namespace, Role: tc.role})
 			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
 	}
@@ -378,7 +357,7 @@ func TestAddUserNamespace(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestDelUserNamespace(t *testing.T) {
+func TestNamespaceRemoveMember(t *testing.T) {
 	type Expected struct {
 		user *models.Namespace
 		err  error
@@ -497,7 +476,7 @@ func TestDelUserNamespace(t *testing.T) {
 			tc.requiredMocks()
 
 			s := NewService(store.Store(mock))
-			ns, err := s.NamespaceRemoveMember(ctx, tc.username, tc.namespace)
+			ns, err := s.NamespaceRemoveMember(ctx, &inputs.MemberRemove{Username: tc.username, Namespace: tc.namespace})
 			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
 	}
@@ -505,7 +484,7 @@ func TestDelUserNamespace(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestDelNamespace(t *testing.T) {
+func TestNamespaceDelete(t *testing.T) {
 	mock := new(mocks.Store)
 
 	ctx := context.TODO()
@@ -518,9 +497,9 @@ func TestDelNamespace(t *testing.T) {
 	}{
 		{
 			description: "fails when could not find a namespace",
-			namespace:   "invalid_namespace",
+			namespace:   "namespace",
 			requiredMocks: func() {
-				mock.On("NamespaceGetByName", ctx, "invalid_namespace").Return(nil, errors.New("error")).Once()
+				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, errors.New("error")).Once()
 			},
 			expected: ErrNamespaceNotFound,
 		},
@@ -571,7 +550,7 @@ func TestDelNamespace(t *testing.T) {
 			tc.requiredMocks()
 
 			s := NewService(store.Store(mock))
-			err := s.NamespaceDelete(ctx, tc.namespace)
+			err := s.NamespaceDelete(ctx, &inputs.NamespaceDelete{Namespace: tc.namespace})
 			assert.Equal(t, tc.expected, err)
 		})
 	}

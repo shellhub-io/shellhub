@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -267,7 +268,7 @@ func TestUserCreate(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(mock))
-			user, err := service.UserCreate(ctx, tc.username, tc.password, tc.email)
+			user, err := service.UserCreate(ctx, &inputs.UserCreate{Username: tc.username, Password: tc.password, Email: tc.email})
 
 			assert.Equal(t, tc.expected, Expected{user, err})
 		})
@@ -276,7 +277,7 @@ func TestUserCreate(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestDelUser(t *testing.T) {
+func TestUserDelete(t *testing.T) {
 	mock := new(mocks.Store)
 	ctx := context.TODO()
 
@@ -399,7 +400,7 @@ func TestDelUser(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(mock))
-			err := service.UserDelete(ctx, tc.username)
+			err := service.UserDelete(ctx, &inputs.UserDelete{Username: tc.username})
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -407,7 +408,7 @@ func TestDelUser(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestResetUserPassword(t *testing.T) {
+func TestUserResetPassword(t *testing.T) {
 	mock := new(mocks.Store)
 	ctx := context.TODO()
 
@@ -477,7 +478,7 @@ func TestResetUserPassword(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 			service := NewService(store.Store(mock))
-			err := service.UserUpdate(ctx, tc.username, tc.password)
+			err := service.UserUpdate(ctx, &inputs.UserUpdate{Username: tc.username, Password: tc.password})
 			assert.Equal(t, tc.expected, err)
 		})
 	}

@@ -1,4 +1,4 @@
-package input
+package inputs
 
 // UserCreate defines the structure for inputs when creating a user.
 type UserCreate struct {
@@ -16,4 +16,9 @@ type UserUpdate struct {
 // UserDelete defines the structure for inputs when deleting a user.
 type UserDelete struct {
 	Username string `validate:"required,username"`
+}
+
+// UserPassword the structure for validate passowrd.
+type UserPassword struct {
+	Password string `validate:"required,password"`
 }

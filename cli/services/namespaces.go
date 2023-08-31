@@ -4,31 +4,35 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
+	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 // NamespaceCreate initializes a new namespace, making the specified user its owner.
 // The tenant defaults to a UUID if not provided.
 // Max device limit is based on the envs.IsCloud() setting.
-func (s *service) NamespaceCreate(ctx context.Context, namespace, username, tenant string) (*models.Namespace, error) {
+func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCreate) (*models.Namespace, error) {
 	// tenant is optional.
-	if tenant == "" {
-		tenant = uuid.Generate()
+	if input.TenantID == "" {
+		input.TenantID = uuid.Generate()
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, username)
+	if err := validate(input); err != nil {
+		return nil, ErrNamespaceInvalid
+	}
+
+	user, err := s.store.UserGetByUsername(ctx, input.Owner)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
 
 	ns := &models.Namespace{
-		Name:     namespace,
+		Name:     input.Namespace,
 		Owner:    user.ID,
-		TenantID: tenant,
+		TenantID: input.TenantID,
 		MaxDevices: func() int {
 			if envs.IsCloud() {
 				return MaxNumberDevicesLimited
@@ -48,11 +52,6 @@ func (s *service) NamespaceCreate(ctx context.Context, namespace, username, tena
 		CreatedAt: clock.Now(),
 	}
 
-	_, err = validator.ValidateStruct(ns)
-	if err != nil {
-		return nil, ErrNamespaceInvalid
-	}
-
 	ns, err = s.store.NamespaceCreate(ctx, ns)
 	if err != nil {
 		return nil, ErrDuplicateNamespace
@@ -62,22 +61,22 @@ func (s *service) NamespaceCreate(ctx context.Context, namespace, username, tena
 }
 
 // NamespaceAddMember adds a new member with a specified role to a namespace.
-func (s *service) NamespaceAddMember(ctx context.Context, username, namespace, role string) (*models.Namespace, error) {
-	if _, err := validator.ValidateStruct(models.Member{Username: username, Role: role}); err != nil {
+func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAdd) (*models.Namespace, error) {
+	if err := validate(input); err != nil {
 		return nil, ErrInvalidFormat
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, username)
+	user, err := s.store.UserGetByUsername(ctx, input.Username)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
 
-	ns, err := s.store.NamespaceGetByName(ctx, namespace)
+	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
 
-	ns, err = s.store.NamespaceAddMember(ctx, ns.TenantID, user.ID, role)
+	ns, err = s.store.NamespaceAddMember(ctx, ns.TenantID, user.ID, input.Role)
 	if err != nil {
 		return nil, ErrFailedNamespaceAddMember
 	}
@@ -86,17 +85,17 @@ func (s *service) NamespaceAddMember(ctx context.Context, username, namespace, r
 }
 
 // NamespaceRemoveMember removes a member from a namespace.
-func (s *service) NamespaceRemoveMember(ctx context.Context, username, namespace string) (*models.Namespace, error) {
-	if _, err := validator.ValidateVar(username, "username"); err != nil {
+func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.MemberRemove) (*models.Namespace, error) {
+	if err := validate(input); err != nil {
 		return nil, ErrInvalidFormat
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, username)
+	user, err := s.store.UserGetByUsername(ctx, input.Username)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
 
-	ns, err := s.store.NamespaceGetByName(ctx, namespace)
+	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
@@ -110,8 +109,12 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, username, namespace
 }
 
 // NamespaceDelete deletes a namespace based on the provided namespace name.
-func (s *service) NamespaceDelete(ctx context.Context, namespace string) error {
-	ns, err := s.store.NamespaceGetByName(ctx, namespace)
+func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDelete) error {
+	if err := validate(input); err != nil {
+		return ErrNamespaceInvalid
+	}
+
+	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
 	if err != nil {
 		return ErrNamespaceNotFound
 	}

@@ -1,4 +1,4 @@
-package input
+package inputs
 
 // MemberAdd is a struct for handling input when adding a member.
 type MemberAdd struct {
