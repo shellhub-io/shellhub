@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
@@ -43,6 +44,9 @@ func report(reporter *sentry.Client, err error, request *http.Request) {
 				Level:   sentry.LevelError,
 				Message: err.Error(),
 				Request: sentry.NewRequest(request),
+				Tags: map[string]string{
+					"domain": os.Getenv("SHELLHUB_DOMAIN"),
+				},
 			}, &sentry.EventHint{Request: request}, &sentry.Scope{}) //nolint:exhaustruct
 		}
 	}()
