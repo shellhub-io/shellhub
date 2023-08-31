@@ -186,17 +186,17 @@ describe("Device Chooser", () => {
   it("Render V-Tabs", async () => {
     const wrapper = new DOMWrapper(document.body);
     expect(wrapper.find('[data-test="v-tabs"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="Suggested Devices-tab"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="All devices-tab"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="Suggested-tab"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="All-tab"]').exists()).toBe(true);
   });
 
   it("Accepts the devices listed (Suggested Devices)", async () => {
     mockBilling.onGet("http://localhost:3000/api/billing/device-most-used").reply(200);
-    mockBilling.onPost("http://localhost:3000/api/billing/device-choice").reply(200, { choices: [devices] });
+    mockBilling.onPost("http://localhost:3000/api/billing/device-choice").reply(200, { devices });
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
-    await wrapper.findComponent('[data-test="Suggested Devices-tab"]').trigger("click");
+    await wrapper.findComponent('[data-test="Suggested-tab"]').trigger("click");
     await nextTick();
     await wrapper.findComponent('[data-test="accept-btn"]').trigger("click");
 
@@ -205,22 +205,57 @@ describe("Device Chooser", () => {
     expect(StoreSpy).toHaveBeenCalledWith(
       "devices/postDevicesChooser",
       {
-        choices: [
-          "a582b47a42d",
-          "a582b47a42e",
+        devices: [
+          {
+            identity: {
+              mac: "00:00:00:00:00:00",
+            },
+            info: {
+              id: "linuxmint",
+              pretty_name: "Linux Mint 19.3",
+              version: "",
+            },
+            last_seen: "2020-05-20T18:58:53.276Z",
+            name: "39-5e-2a",
+            namespace: "user",
+            online: false,
+            public_key: "----- PUBLIC KEY -----",
+            status: "accepted",
+            tenant_id: "fake-tenant-data",
+            uid: "a582b47a42d",
+          },
+          {
+            identity: {
+              mac: "00:00:00:00:00:00",
+            },
+            info: {
+              id: "linuxmint",
+              pretty_name: "Linux Mint 19.3",
+              version: "",
+            },
+            last_seen: "2020-05-20T19:58:53.276Z",
+            name: "39-5e-2b",
+            namespace: "user",
+            online: true,
+            public_key: "----- PUBLIC KEY -----",
+            status: "accepted",
+            tenant_id: "fake-tenant-data",
+            uid: "a582b47a42e",
+          },
         ],
+
       },
     );
   });
 
   it("Accepts the devices listed(All Devices)", async () => {
     mockBilling.onGet("http://localhost:3000/api/billing/device-most-used").reply(200);
-    mockBilling.onPost("http://localhost:3000/api/billing/device-choice").reply(200, { choices: [devices] });
+    mockBilling.onPost("http://localhost:3000/api/billing/device-choice").reply(200, { devices: [devices] });
     mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=5&status=accepted").reply(200, devices);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
-    await wrapper.findComponent('[data-test="All devices-tab"]').trigger("click");
+    await wrapper.findComponent('[data-test="All-tab"]').trigger("click");
     await nextTick();
     await wrapper.findComponent('[data-test="accept-btn"]').trigger("click");
 
