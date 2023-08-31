@@ -304,9 +304,9 @@ func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*
 }
 
 func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool) error {
-	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
-		return FromMongoError(err)
+	var device *models.Device
+	if err := s.cache.Get(ctx, strings.Join([]string{"device", string(uid)}, "/"), &device); err != nil {
+		logrus.Error(err)
 	}
 
 	if !online {
@@ -315,11 +315,21 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 		return FromMongoError(err)
 	}
 
+	if device == nil {
+		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
+			return FromMongoError(err)
+		}
+	}
+
 	device.LastSeen = clock.Now()
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"last_seen": device.LastSeen}}, opts)
 	if err != nil {
 		return FromMongoError(err)
+	}
+
+	if err := s.cache.Set(ctx, strings.Join([]string{"device", string(uid)}, "/"), device, time.Minute); err != nil {
+		logrus.Error(err)
 	}
 
 	cd := &models.ConnectedDevice{
