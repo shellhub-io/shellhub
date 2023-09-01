@@ -84,15 +84,15 @@
     <v-overlay
       :scrim="false"
       disabled
+      class="align-center justify-center"
       v-model="hasSpinner"
+      v-if="hasSpinner"
     >
-      <v-col class="full-width-height d-flex justify-center align-center">
-        <v-progress-circular
-          indeterminate
-          size="64"
-          alt="Request loading"
-        />
-      </v-col>
+      <v-progress-circular
+        indeterminate
+        size="64"
+        alt="Request loading"
+      />
     </v-overlay>
   </v-app>
 
