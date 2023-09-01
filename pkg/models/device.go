@@ -32,7 +32,7 @@ type Device struct {
 	CreatedAt        time.Time       `json:"created_at" bson:"created_at,omitempty"`
 	RemoteAddr       string          `json:"remote_addr" bson:"remote_addr"`
 	Position         *DevicePosition `json:"position" bson:"position"`
-	Tags             []string        `json:"tags" bson:"tags,omitempty"`
+	Tags             []string        `json:"tags" bson:"tags"`
 	PublicURL        bool            `json:"public_url" bson:"public_url,omitempty"`
 	PublicURLAddress string          `json:"public_url_address" bson:"public_url_address,omitempty"`
 	Acceptable       bool            `json:"acceptable" bson:"acceptable,omitempty"`
