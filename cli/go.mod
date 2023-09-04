@@ -3,7 +3,7 @@ module github.com/shellhub-io/shellhub/cli
 go 1.20
 
 require (
-	github.com/shellhub-io/shellhub v0.5.2
+	github.com/shellhub-io/shellhub v0.8.1
 	github.com/shellhub-io/shellhub/api v0.8.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0

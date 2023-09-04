@@ -110,6 +110,7 @@ var (
 	ErrSessionNotFound              = errors.New("session not found", ErrLayer, ErrCodeNotFound)
 	ErrAuthInvalid                  = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthUnathorized              = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
+	ErrMFAUnathorized               = errors.New("auth  mfa unauthorized", ErrLayer, ErrCodeUnauthorized)
 	ErrNamespaceLimitReached        = errors.New("namespace limit reached", ErrLayer, ErrCodeLimit)
 	ErrDeviceRemovedCount           = errors.New("device removed count", ErrLayer, ErrCodeNotFound)
 	ErrDeviceRemovedInsert          = errors.New("device removed insert", ErrLayer, ErrCodeStore)
@@ -375,6 +376,11 @@ func NewErrDeviceSetOnline(id models.UID, err error) error {
 
 // NewErrAuthUnathorized returns a error to be used when the auth is unauthorized.
 func NewErrAuthUnathorized(err error) error {
+	return NewErrUnathorized(ErrAuthUnathorized, err)
+}
+
+// NewErrAuthUnathorized returns a error to be used when the auth is unauthorized.
+func NewErrMFAUnathorized(err error) error {
 	return NewErrUnathorized(ErrAuthUnathorized, err)
 }
 

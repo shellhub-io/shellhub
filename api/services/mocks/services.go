@@ -106,9 +106,39 @@ func (_m *Service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remo
 	return r0, r1
 }
 
+<<<<<<< HEAD
 // AuthGetToken provides a mock function with given fields: ctx, id
 func (_m *Service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {
 	ret := _m.Called(ctx, id)
+=======
+// AuthGetCacheMFA provides a mock function with given fields: ctx, username
+func (_m *Service) AuthGetCacheMFA(ctx context.Context, username string) (bool, error) {
+	ret := _m.Called(ctx, username)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, username)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, username)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, username)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AuthGetToken provides a mock function with given fields: ctx, tenant
+func (_m *Service) AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error) {
+	ret := _m.Called(ctx, tenant)
+>>>>>>> 21e33cb4 (feat(api): This commit is to implement 2fat validation,)
 
 	var r0 *models.UserAuthResponse
 	var r1 error
@@ -149,6 +179,30 @@ func (_m *Service) AuthIsCacheToken(ctx context.Context, tenant string, id strin
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, tenant, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AuthMFA provides a mock function with given fields: ctx, id
+func (_m *Service) AuthMFA(ctx context.Context, id string) (bool, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}

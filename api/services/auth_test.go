@@ -154,6 +154,7 @@ func TestAuthUser(t *testing.T) {
 				}
 
 				mock.On("NamespaceGetFirst", ctx, user.ID).Return(namespace, nil).Once()
+				mock.On("GetStatusMFA", ctx, user.ID).Return(false, nil).Once()
 			},
 			expected: Expected{nil, NewErrAuthUnathorized(nil)},
 		},
@@ -231,6 +232,7 @@ func TestAuthUserInfo(t *testing.T) {
 					ID: "id",
 				}, nil).Once()
 				mock.On("NamespaceGet", ctx, "xxxxxx").Return(namespace, nil).Once()
+				mock.On("GetStatusMFA", ctx, "id").Return(false, nil).Once()
 			},
 			expected: Expected{
 				userAuthResponse: &models.UserAuthResponse{

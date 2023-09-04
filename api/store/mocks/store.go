@@ -22,6 +22,34 @@ type Store struct {
 	mock.Mock
 }
 
+// AddSecret provides a mock function with given fields: ctx, username, secret
+func (_m *Store) AddSecret(ctx context.Context, username string, secret string) error {
+	ret := _m.Called(ctx, username, secret)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, username, secret)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// AddStatusMFA provides a mock function with given fields: ctx, username, statusMFA
+func (_m *Store) AddStatusMFA(ctx context.Context, username string, statusMFA bool) error {
+	ret := _m.Called(ctx, username, statusMFA)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) error); ok {
+		r0 = rf(ctx, username, statusMFA)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // AnnouncementCreate provides a mock function with given fields: ctx, announcement
 func (_m *Store) AnnouncementCreate(ctx context.Context, announcement *models.Announcement) error {
 	ret := _m.Called(ctx, announcement)
@@ -116,6 +144,20 @@ func (_m *Store) AnnouncementUpdate(ctx context.Context, announcement *models.An
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *models.Announcement) error); ok {
 		r0 = rf(ctx, announcement)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteSecret provides a mock function with given fields: ctx, username
+func (_m *Store) DeleteSecret(ctx context.Context, username string) error {
+	ret := _m.Called(ctx, username)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, username)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -908,6 +950,30 @@ func (_m *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetStatusMFA provides a mock function with given fields: ctx, id
+func (_m *Store) GetStatusMFA(ctx context.Context, id string) (bool, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}

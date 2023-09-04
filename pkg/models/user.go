@@ -65,6 +65,8 @@ type User struct {
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 	LastLogin      time.Time `json:"last_login" bson:"last_login"`
 	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
+	MFA            bool      `json:"status_mfa" bson:"status_mfa"`
+	Secret         string    `json:"secret" bson:"secret"`
 	UserData       `bson:",inline"`
 	UserPassword   `bson:",inline"`
 }
@@ -97,16 +99,17 @@ type UserAuthResponse struct {
 	Tenant string `json:"tenant"`
 	Role   string `json:"role"`
 	Email  string `json:"email"`
+	MFA    bool   `json:"mfa" bson:"mfa"`
 }
 
 type UserAuthClaims struct {
-	Username string `json:"name"`
-	Admin    bool   `json:"admin"`
-	Tenant   string `json:"tenant"`
-	ID       string `json:"id"`
-	Role     string `json:"role"`
-
+	Username             string `json:"name"`
+	Admin                bool   `json:"admin"`
+	Tenant               string `json:"tenant"`
+	ID                   string `json:"id"`
+	Role                 string `json:"role"`
 	AuthClaims           `mapstruct:",squash"`
+	MFA                  MFA `json:"mfa"`
 	jwt.RegisteredClaims `mapstruct:",squash"`
 }
 
