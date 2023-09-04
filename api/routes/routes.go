@@ -24,6 +24,9 @@ func NewRouter(service services.Service) *echo.Echo {
 
 	handler := NewHandler(service)
 
+	// Public routes for external access through API gateway
+	publicAPI := e.Group("/api", gateway.Middleware(AuthMiddlewareMFA))
+
 	// Internal routes only accessible by other services in the local container network
 	internalAPI := e.Group("/internal")
 

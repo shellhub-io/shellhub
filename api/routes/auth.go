@@ -2,7 +2,9 @@ package routes
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	jwt "github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -27,6 +29,7 @@ const (
 	AuthUserTokenPublicURL   = "/auth/token/:tenant" //nolint:gosec
 
 	AuthPublicKeyURL = "/auth/ssh"
+	AuthMFAURL       = "/auth/mfa"
 )
 
 const (
@@ -93,10 +96,30 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 			}
 		}
 
-		setHeader(c, "X-Tenant-ID", claims.Tenant)
-		setHeader(c, "X-Username", claims.Username)
-		setHeader(c, "X-ID", claims.ID)
-		setHeader(c, "X-Role", claims.Role)
+		MFA, err := h.service.AuthMFA(c.Ctx(), claims.ID)
+		if err != nil {
+			return err
+		}
+
+		if MFA != claims.MFA.Status {
+			if MFA {
+				if !claims.MFA.Validate {
+					return svc.NewErrAuthUnathorized(errors.New("necessary make validate MFA"))
+				}
+			}
+		}
+
+		fmt.Println("AUTH REQUEST SET HEADER MFA:", claims.MFA.Status)
+		fmt.Println("AUTH REQUEST SET HEADER validate:", claims.MFA.Validate)
+		fmt.Println("AUTH REQUEST SET HEADERs:", c.Response().Header())
+
+		// Extract datas of user from JWT
+		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
+		c.Response().Header().Set("X-Username", claims.Username)
+		c.Response().Header().Set("X-ID", claims.ID)
+		c.Response().Header().Set("X-Role", claims.Role)
+		c.Response().Header().Set("X-MFA", strconv.FormatBool(claims.MFA.Status))
+		c.Response().Header().Set("X-Validate-MFA", strconv.FormatBool(claims.MFA.Validate))
 
 		return c.NoContent(http.StatusOK)
 	case AuthRequestDeviceToken:
@@ -179,6 +202,7 @@ func (h *Handler) AuthUserInfo(c gateway.Context) error {
 
 func (h *Handler) AuthGetToken(c gateway.Context) error {
 	var req requests.AuthTokenGet
+
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -204,7 +228,6 @@ func (h *Handler) AuthSwapToken(c gateway.Context) error {
 	if err := c.Validate(&req); err != nil {
 		return err
 	}
-
 	var id string
 	if v := c.ID(); v != nil {
 		id = v.ID
@@ -250,5 +273,34 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		})
 
 		return jwt(next)(c)
+	}
+}
+
+func AuthMiddlewareMFA(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Verify is the user have a 2fa enable
+
+		statusMFA := c.Request().Header.Get("X-MFA")
+		validateMFA := c.Request().Header.Get("X-Validate-MFA")
+
+		if statusMFA != "" {
+			status, err := strconv.ParseBool(statusMFA)
+			if err != nil {
+				return err
+			}
+
+			if status {
+				validate, err := strconv.ParseBool(validateMFA)
+				if err != nil {
+					return err
+				}
+
+				if !validate {
+					return svc.NewErrMFAUnathorized(nil)
+				}
+			}
+		}
+
+		return (next)(c)
 	}
 }
