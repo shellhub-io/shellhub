@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	resty "github.com/go-resty/resty/v2"
+	"github.com/hibiken/asynq"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 )
@@ -23,7 +24,14 @@ var (
 	ErrUnknown          = errors.New("unknown error")
 )
 
-type Opt func(*client) error
+// Options wraps injectable values to a new API internal client.
+// NOTE(r): This is a workaround to inject the Asynq client to the API internal client, because the [client] structure
+// and its properties are privated.
+type Options struct {
+	Asynq *asynq.Client
+}
+
+type Opt func(*Options) error
 
 func NewClient(opts ...Opt) Client {
 	httpClient := resty.New()
@@ -43,10 +51,15 @@ func NewClient(opts ...Opt) Client {
 		http:   httpClient,
 	}
 
+	o := new(Options)
 	for _, opt := range opts {
-		if err := opt(c); err != nil {
+		if err := opt(o); err != nil {
 			return nil
 		}
+	}
+
+	if o.Asynq != nil {
+		c.asynq = o.Asynq
 	}
 
 	if c.logger != nil {
@@ -68,6 +81,7 @@ type client struct {
 	port   int
 	http   *resty.Client
 	logger *logrus.Logger
+	asynq  *asynq.Client
 }
 
 func (c *client) ListDevices() ([]models.Device, error) {
