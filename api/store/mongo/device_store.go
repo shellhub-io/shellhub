@@ -17,6 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
@@ -304,32 +305,36 @@ func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*
 }
 
 func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool) error {
-	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
-		return FromMongoError(err)
-	}
-
 	if !online {
 		_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
 
 		return FromMongoError(err)
 	}
 
-	device.LastSeen = clock.Now()
-	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"last_seen": device.LastSeen}}, opts)
-	if err != nil {
+	collOptions := writeconcern.W1()
+	updateOptions := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+	result := s.db.Collection("devices", options.Collection().SetWriteConcern(collOptions)).
+		FindOneAndUpdate(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"last_seen": clock.Now()}}, updateOptions)
+	if result.Err() != nil {
+		return FromMongoError(result.Err())
+	}
+
+	device := new(models.Device)
+	if err := result.Decode(&device); err != nil {
 		return FromMongoError(err)
 	}
 
 	cd := &models.ConnectedDevice{
 		UID:      device.UID,
 		TenantID: device.TenantID,
-		LastSeen: clock.Now(),
+		LastSeen: device.LastSeen,
 		Status:   string(device.Status),
 	}
 
-	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
+	replaceOptions := options.Replace().SetUpsert(true)
+	_, err := s.db.Collection("connected_devices", options.Collection().SetWriteConcern(collOptions)).
+		ReplaceOne(ctx, bson.M{"uid": uid}, &cd, replaceOptions)
+	if err != nil {
 		return FromMongoError(err)
 	}
 
