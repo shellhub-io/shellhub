@@ -42,6 +42,10 @@ var serverCmd = &cobra.Command{
 				log.WithError(err).Fatal("Failed to start cleaner worker")
 			}
 
+			if err := workers.StartHeartBeat(ctx); err != nil {
+				log.WithError(err).Fatal("Failed to start heartbeat worker")
+			}
+
 			log.Info("Workers started")
 		}()
 

@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/hibiken/asynq"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -125,13 +126,9 @@ func (c *client) DevicesOffline(id string) error {
 }
 
 func (c *client) DevicesHeartbeat(id string) error {
-	_, err := c.http.R().
-		Post(buildURL(c, fmt.Sprintf("/internal/devices/%s/heartbeat", id)))
-	if err != nil {
-		return err
-	}
+	_, err := c.asynq.Enqueue(asynq.NewTask("api:heartbeat", []byte(id)), asynq.Queue("api"), asynq.Group("heartbeats"))
 
-	return nil
+	return err
 }
 
 var (
