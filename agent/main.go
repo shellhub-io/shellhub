@@ -11,6 +11,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/shellhub-io/shellhub/pkg/agent"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/selfupdater"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -31,13 +32,28 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			loglevel.SetLogLevel()
 
-			cfg := agent.Config{}
-
-			// Process unprefixed env vars for backward compatibility
-			envconfig.Process("", &cfg) // nolint:errcheck
-
-			if err := envconfig.Process("shellhub", &cfg); err != nil {
-				// show envconfig usage help users to run agent
+			// NOTE(r): When T, the generic parameter, is a structure with required tag, the fallback for an
+			// "unprefixed" parameter is used.
+			//
+			// For example,
+			//
+			// For the structure below, the parser will parse successfully when the variables exist with or without the
+			// prefixes since the "required" tag is set to true.
+			//
+			//  SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000 SERVER_ADDRESS=http://127.0.0.1
+			//  PRIVATE_KEY=/tmp/shellhub sudo -E ./agent
+			//
+			//  struct {
+			//    ServerAddress string `envconfig:"server_address" required:"true"`
+			//    PrivateKey string `envconfig:"private_key" required:"true"`
+			//    TenantID string `envconfig:"tenant_id" required:"true"`
+			//  }
+			//
+			//  This behavior is driven by the [envconfig] package. Check it out for more information.
+			//
+			// [envconfig]: https://github.com/kelseyhightower/envconfig
+			cfg, err := envs.ParseWithPrefix[agent.Config]("shellhub")
+			if err != nil {
 				envconfig.Usage("shellhub", &cfg) // nolint:errcheck
 				log.Fatal(err)
 			}
@@ -88,7 +104,7 @@ func main() {
 				"mode":    mode,
 			}).Info("Starting ShellHub")
 
-			ag, err := agent.NewAgentWithConfig(&cfg)
+			ag, err := agent.NewAgentWithConfig(cfg)
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,

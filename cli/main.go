@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 
-	"github.com/kelseyhightower/envconfig"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/cli/cmd"
 	"github.com/shellhub-io/shellhub/cli/services"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -26,8 +26,8 @@ func init() {
 }
 
 func main() {
-	var cfg config
-	if err := envconfig.Process("cli", &cfg); err != nil {
+	cfg, err := envs.ParseWithPrefix[config]("cli")
+	if err != nil {
 		log.Error(err.Error())
 	}
 
