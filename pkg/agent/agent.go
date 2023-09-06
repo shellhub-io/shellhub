@@ -96,33 +96,11 @@ type Agent struct {
 
 // NewAgent creates a new agent instance.
 func NewAgent(address string, tenantID string, privateKey string) (*Agent, error) {
-	if address == "" {
-		return nil, errors.New("address is empty")
-	}
-
-	addr, err := url.Parse(address)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse address")
-	}
-
-	if tenantID == "" {
-		return nil, errors.New("tenantID is empty")
-	}
-
-	if privateKey == "" {
-		return nil, errors.New("privateKey is empty")
-	}
-
-	a := &Agent{
-		config: &Config{
-			TenantID:      tenantID,
-			ServerAddress: address,
-			PrivateKey:    privateKey,
-		},
-		serverAddress: addr,
-	}
-
-	return a, nil
+	return NewAgentWithConfig(&Config{
+		ServerAddress: address,
+		TenantID:      tenantID,
+		PrivateKey:    privateKey,
+	})
 }
 
 // NewAgentWithConfig creates a new agent instance with a custom configuration.
