@@ -1,8 +1,6 @@
 package workers
 
-import (
-	"github.com/kelseyhightower/envconfig"
-)
+import "github.com/shellhub-io/shellhub/pkg/envs"
 
 type Envs struct {
 	MongoURI                      string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
@@ -30,10 +28,10 @@ type Envs struct {
 }
 
 func getEnvs() (*Envs, error) {
-	var envs Envs
-	if err := envconfig.Process("api", &envs); err != nil {
+	env, err := envs.ParseWithPrefix[Envs]("api")
+	if err != nil {
 		return nil, err
 	}
 
-	return &envs, nil
+	return env, nil
 }

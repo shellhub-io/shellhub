@@ -8,9 +8,9 @@ import (
 	"net/http"
 
 	"github.com/hibiken/asynq"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	sshTunnel "github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/ssh/server"
@@ -25,17 +25,17 @@ func init() {
 }
 
 func main() {
-	// Populates configuration based on environment variables prefixed with 'SSH_'
-	var opts server.Options
-	if err := envconfig.Process("ssh", &opts); err != nil {
+	// Populates configuration based on environment variables prefixed with 'SSH_'.
+	env, err := envs.ParseWithPrefix[server.Options]("ssh")
+	if err != nil {
 		log.WithError(err).Fatal("Failed to load environment variables")
 	}
 
-	if err := cache.ConnectRedis(opts.RedisURI); err != nil {
+	if err := cache.ConnectRedis(env.RedisURI); err != nil {
 		log.WithError(err).Fatal("Failed to connect to redis")
 	}
 
-	options, err := asynq.ParseRedisURI(opts.RedisURI)
+	options, err := asynq.ParseRedisURI(env.RedisURI)
 	if err != nil {
 		log.WithError(err).Fatal("Failed to parse redis uri")
 	}
@@ -146,5 +146,5 @@ func main() {
 
 	go http.ListenAndServe(":8080", router) // nolint:errcheck
 
-	log.Fatal(server.NewServer(&opts, tunnel.Tunnel).ListenAndServe())
+	log.Fatal(server.NewServer(env, tunnel.Tunnel).ListenAndServe())
 }

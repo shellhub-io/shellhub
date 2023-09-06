@@ -11,8 +11,8 @@ import (
 	"path"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/kelseyhightower/envconfig"
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/sirupsen/logrus"
 )
@@ -36,8 +36,7 @@ type Options struct {
 func NewClient() Webhook {
 	httpClient := resty.New()
 	httpClient.SetRetryCount(3)
-	opts := Options{}
-	err := envconfig.Process("", &opts)
+	opts, err := envs.ParseWithPrefix[Options]("")
 	if err != nil {
 		return nil
 	}

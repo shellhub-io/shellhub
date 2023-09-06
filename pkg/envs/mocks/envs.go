@@ -23,6 +23,20 @@ func (_m *Backend) Get(key string) string {
 	return r0
 }
 
+// Process provides a mock function with given fields: prefix, spec
+func (_m *Backend) Process(prefix string, spec interface{}) error {
+	ret := _m.Called(prefix, spec)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+		r0 = rf(prefix, spec)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewBackend interface {
 	mock.TestingT
 	Cleanup(func())

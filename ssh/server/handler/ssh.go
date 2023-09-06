@@ -13,7 +13,6 @@ import (
 
 	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/webhook"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -109,9 +108,8 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 			time.Sleep(time.Duration(res.Timeout) * time.Second)
 		}
 
-		opts := ConfigOptions{} // nolint: exhaustruct
-
-		if err := envconfig.Process("", &opts); err != nil {
+		opts, err := envs.ParseWithPrefix[ConfigOptions]("")
+		if err != nil {
 			// TODO: add external error.
 			sendAndInformError(client, err, nil)
 
@@ -159,7 +157,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 			}
 		}
 
-		err = connectSSH(ctx, client, sess, config, api, opts)
+		err = connectSSH(ctx, client, sess, config, api, *opts)
 		if err != nil {
 			sendAndInformError(client, err, err)
 
