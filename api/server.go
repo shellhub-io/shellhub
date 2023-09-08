@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"os"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/routes"
 	"github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/api/workers"
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -32,21 +32,39 @@ var serverCmd = &cobra.Command{
 			log.Fatal("Failed to retrieve environment config from context")
 		}
 
+		log.Trace("Connecting to Redis")
+
+		cache, err := storecache.NewRedisCache(cfg.RedisURI)
+		if err != nil {
+			log.WithError(err).Error("Failed to configure redis store cache")
+		}
+
+		log.Info("Connected to Redis")
+
+		log.Trace("Connecting to MongoDB")
+
+		store, err := mongo.NewStoreMongo(cmd.Context(), cache, cfg.MongoURI)
+		if err != nil {
+			log.WithError(err).Fatal("failed to create the store")
+		}
+
+		log.Info("Connected to MongoDB")
+
 		go func() {
 			log.Info("Starting workers")
 
-			if err := workers.StartCleaner(ctx); err != nil {
+			if err := workers.StartCleaner(ctx, store); err != nil {
 				log.WithError(err).Fatal("Failed to start cleaner worker")
 			}
 
-			if err := workers.StartHeartBeat(ctx); err != nil {
+			if err := workers.StartHeartBeat(ctx, store); err != nil {
 				log.WithError(err).Fatal("Failed to start heartbeat worker")
 			}
 
 			log.Info("Workers started")
 		}()
 
-		return startServer(cfg)
+		return startServer(cfg, store, cache)
 	},
 }
 
@@ -101,9 +119,7 @@ func startSentry(dsn string) (*sentry.Client, error) {
 	return nil, errors.New("sentry DSN not provided")
 }
 
-func startServer(cfg *config) error {
-	ctx := context.Background()
-
+func startServer(cfg *config, store store.Store, cache storecache.Cache) error {
 	log.Info("Starting Sentry client")
 
 	reporter, err := startSentry(cfg.SentryDSN)
@@ -114,15 +130,6 @@ func startServer(cfg *config) error {
 	}
 
 	log.Info("Starting API server")
-
-	log.Trace("Connecting to Redis")
-
-	cache, err := storecache.NewRedisCache(cfg.RedisURI)
-	if err != nil {
-		log.WithError(err).Error("Failed to configure redis store cache")
-	}
-
-	log.Info("Connected to Redis")
 
 	requestClient := requests.NewClient()
 
@@ -137,15 +144,6 @@ func startServer(cfg *config) error {
 		log.Info("GeoIP is disabled")
 		locator = geoip.NewNullGeoLite()
 	}
-
-	log.Trace("Connecting to MongoDB")
-
-	store, err := mongo.NewStoreMongo(ctx, cache, cfg.MongoURI)
-	if err != nil {
-		log.WithError(err).Fatal("failed to create the store")
-	}
-
-	log.Info("Connected to MongoDB")
 
 	service := services.NewService(store, nil, nil, cache, requestClient, locator)
 
