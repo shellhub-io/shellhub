@@ -9,37 +9,16 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	"github.com/shellhub-io/shellhub/api/store/mongo"
-	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
-	mongodriver "go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 )
 
-func StartHeartBeat(ctx context.Context) error {
+func StartHeartBeat(_ context.Context, store store.Store) error {
 	envs, err := getEnvs()
 	if err != nil {
 		return fmt.Errorf("failed to get the envs: %w", err)
 	}
-
-	connStr, err := connstring.ParseAndValidate(envs.MongoURI)
-	if err != nil {
-		log.WithError(err).Fatal("Invalid Mongo URI format")
-	}
-
-	clientOptions := options.Client().ApplyURI(envs.MongoURI)
-	client, err := mongodriver.Connect(ctx, clientOptions)
-	if err != nil {
-		log.WithError(err).Fatal("Failed to connect to MongoDB")
-	}
-
-	if err = client.Ping(ctx, nil); err != nil {
-		log.WithError(err).Fatal("Failed to ping MongoDB")
-	}
-
-	store := mongo.NewStore(client.Database(connStr.Database), cache.NewNullCache())
 
 	addr, err := asynq.ParseRedisURI(envs.RedisURI)
 	if err != nil {
