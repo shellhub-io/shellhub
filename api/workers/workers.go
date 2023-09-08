@@ -1,6 +1,8 @@
 package workers
 
 import (
+	"context"
+
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -27,6 +29,34 @@ type Envs struct {
 	//
 	// Check [https://github.com/hibiken/asynq/wiki/Task-aggregation] for more information.
 	AsynqGroupMaxSize int `envconfig:"asynq_group_max_size" default:"500"`
+}
+
+// WorkerMessage is a message sent by a worker.
+type WorkerMessage struct {
+	// Message is the message sent by the worker.
+	Message string
+	// Error is the error returned by the worker.
+	Error error
+}
+
+// NewWorkerMessage creates a new WorkerMessage.
+func NewWorkerMessage(msg string, err error) WorkerMessage {
+	return WorkerMessage{
+		Message: msg,
+		Error:   err,
+	}
+}
+
+var (
+	// WorkerMessageStarted is a message sent by a worker when it starts.
+	WorkerMessageStarted = NewWorkerMessage("worker started", nil)
+	// WorkerMessageStopped is a message sent by a worker when it stops.
+	WorkerMessageStopped = NewWorkerMessage("worker stopped", nil)
+)
+
+// Worker is an interface that defines a worker.
+type Worker interface {
+	Start(ctx context.Context, msgs chan WorkerMessage)
 }
 
 func getEnvs() (*Envs, error) {

@@ -2,50 +2,70 @@ package workers
 
 import (
 	"context"
-	"fmt"
 	"runtime"
 	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-// StartCleaner starts a worker to delete session's records registers older than days defined by
+type Cleaner struct {
+	store store.Store
+}
+
+var _ Worker = (*Cleaner)(nil)
+
+func NewCleaner(store store.Store) *Cleaner {
+	return &Cleaner{
+		store: store,
+	}
+}
+
+// Start starts a worker to delete session's records registers older than days defined by
 // SHELLHUB_RECORD_RETENTION.
 //
 // If something inside the function does not work properly, it will panic.
 // When SHELLHUB_RECORD_RETENTION is equals to zero, records will never be deleted.
 // When SHELLHUB_RECORD_RETENTION is less than zero, nothing happen.
-func StartCleaner(_ context.Context, storeI store.Store) error {
+func (c *Cleaner) Start(ctx context.Context, msgs chan WorkerMessage) {
 	envs, err := getEnvs()
 	if err != nil {
-		return fmt.Errorf("failed to get the envs: %w", err)
+		// return fmt.Errorf("failed to get the envs: %w", err)
+		msgs <- NewWorkerMessage("failed to get the envs", err)
+
+		return
 	}
 
 	if envs.SessionRecordCleanupRetention == 0 {
-		return nil
+		msgs <- NewWorkerMessage("session retention time is zero", nil)
+
+		return
 	}
 
 	if envs.SessionRecordCleanupRetention < 0 {
-		return fmt.Errorf("invalid time interval: %w", fmt.Errorf("%d is not a valid time interval", envs.SessionRecordCleanupRetention))
+		msgs <- NewWorkerMessage("invalid time interval", err)
+
+		return
 	}
 
 	limit := time.Now().UTC().AddDate(0, 0, envs.SessionRecordCleanupRetention*-1)
 
-	store := storeI.(*mongo.Store)
+	store := c.store.(*mongo.Store)
 
 	addr, err := asynq.ParseRedisURI(envs.RedisURI)
 	if err != nil {
-		return fmt.Errorf("failed to parse redis uri: %w", err)
+		msgs <- NewWorkerMessage("failed to parse redis uri", err)
+
+		return
 	}
 
 	srv := asynq.NewServer(
 		addr,
 		asynq.Config{ //nolint:exhaustruct
 			Concurrency: runtime.NumCPU(),
+			BaseContext: func() context.Context { return ctx },
 		},
 	)
 
@@ -70,7 +90,7 @@ func StartCleaner(_ context.Context, storeI store.Store) error {
 
 	go func() {
 		if err := srv.Run(mux); err != nil {
-			logrus.Fatal(err)
+			msgs <- NewWorkerMessage("failed to run server", err)
 		}
 	}()
 
@@ -79,8 +99,14 @@ func StartCleaner(_ context.Context, storeI store.Store) error {
 	// Schedule session_record:cleanup to run once a day
 	if _, err := scheduler.Register(envs.SessionRecordCleanupSchedule,
 		asynq.NewTask("session_record:cleanup", nil, asynq.TaskID("session_record:cleanup"))); err != nil {
-		logrus.Error(err)
+		msgs <- NewWorkerMessage("failed to register task", err)
+
+		return
 	}
 
-	return scheduler.Run() //nolint:contextcheck
+	msgs <- WorkerMessageStarted
+
+	if err := scheduler.Run(); err != nil { //nolint:contextcheck
+		msgs <- WorkerMessageStopped
+	}
 }

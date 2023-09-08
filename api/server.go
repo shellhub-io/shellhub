@@ -43,7 +43,7 @@ var serverCmd = &cobra.Command{
 
 		log.Trace("Connecting to MongoDB")
 
-		store, err := mongo.NewStoreMongo(cmd.Context(), cache, cfg.MongoURI)
+		store, err := mongo.NewStoreMongo(ctx, cache, cfg.MongoURI)
 		if err != nil {
 			log.WithError(err).Fatal("failed to create the store")
 		}
@@ -51,17 +51,29 @@ var serverCmd = &cobra.Command{
 		log.Info("Connected to MongoDB")
 
 		go func() {
-			log.Info("Starting workers")
+			cleaner := workers.NewCleaner(store)
+			heartbeater := workers.NewHeartbeater(store)
 
-			if err := workers.StartCleaner(ctx, store); err != nil {
-				log.WithError(err).Fatal("Failed to start cleaner worker")
+			msgsCleaner := make(chan workers.WorkerMessage)
+			go cleaner.Start(ctx, msgsCleaner)
+
+			msgsHeartbeater := make(chan workers.WorkerMessage)
+			go heartbeater.Start(ctx, msgsHeartbeater)
+
+			for {
+				select {
+				case msg := <-msgsCleaner:
+					log.WithError(msg.Error).WithFields(
+						log.Fields{
+							"worker": "cleaner",
+						},
+					).Info(msg.Message)
+				case msg := <-msgsHeartbeater:
+					log.WithError(msg.Error).WithFields(log.Fields{
+						"worker": "heartbeater",
+					}).Info(msg.Message)
+				}
 			}
-
-			if err := workers.StartHeartBeat(ctx, store); err != nil {
-				log.WithError(err).Fatal("Failed to start heartbeat worker")
-			}
-
-			log.Info("Workers started")
 		}()
 
 		return startServer(cfg, store, cache)

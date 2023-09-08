@@ -4,25 +4,39 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	log "github.com/sirupsen/logrus"
 )
 
-func StartHeartBeat(_ context.Context, store store.Store) error {
+type HeartBeat struct {
+	store store.Store
+}
+
+var _ Worker = (*HeartBeat)(nil)
+
+func NewHeartbeater(store store.Store) *HeartBeat {
+	return &HeartBeat{
+		store: store,
+	}
+}
+
+func (h *HeartBeat) Start(_ context.Context, msgs chan WorkerMessage) {
 	envs, err := getEnvs()
 	if err != nil {
-		return fmt.Errorf("failed to get the envs: %w", err)
+		msgs <- NewWorkerMessage("failed to get the envs", err)
+
+		return
 	}
 
 	addr, err := asynq.ParseRedisURI(envs.RedisURI)
 	if err != nil {
-		return fmt.Errorf("failed to parse redis uri: %w", err)
+		msgs <- NewWorkerMessage("failed to parse redis uri", err)
+
+		return
 	}
 
 	aggregate := func(group string, tasks []*asynq.Task) *asynq.Task {
@@ -54,15 +68,15 @@ func StartHeartBeat(_ context.Context, store store.Store) error {
 		scanner.Split(bufio.ScanLines)
 
 		for scanner.Scan() {
-			store.DeviceSetOnline(ctx, models.UID(scanner.Text()), true) //nolint:errcheck
+			h.store.DeviceSetOnline(ctx, models.UID(scanner.Text()), true) //nolint:errcheck
 		}
 
 		return nil
 	})
 
-	if err := srv.Run(mux); err != nil {
-		log.Fatal(err)
-	}
+	msgs <- WorkerMessageStarted
 
-	return nil
+	if err := srv.Run(mux); err != nil {
+		msgs <- WorkerMessageStopped
+	}
 }
