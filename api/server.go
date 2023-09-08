@@ -20,9 +20,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/middleware"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	mongodriver "go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 )
 
 var serverCmd = &cobra.Command{
@@ -127,31 +124,6 @@ func startServer(cfg *config) error {
 
 	log.Info("Connected to Redis")
 
-	log.Trace("Connecting to MongoDB")
-
-	connStr, err := connstring.ParseAndValidate(cfg.MongoURI)
-	if err != nil {
-		log.WithError(err).Fatal("Invalid Mongo URI format")
-	}
-
-	clientOptions := options.Client().ApplyURI(cfg.MongoURI)
-	client, err := mongodriver.Connect(ctx, clientOptions)
-	if err != nil {
-		log.WithError(err).Fatal("Failed to connect to MongoDB")
-	}
-
-	if err = client.Ping(ctx, nil); err != nil {
-		log.WithError(err).Fatal("Failed to ping MongoDB")
-	}
-
-	log.Info("Connected to MongoDB")
-
-	log.Info("Running database migrations")
-
-	if err := mongo.ApplyMigrations(client.Database(connStr.Database)); err != nil {
-		log.WithError(err).Fatal("Failed to apply mongo migrations")
-	}
-
 	requestClient := requests.NewClient()
 
 	var locator geoip.Locator
@@ -166,7 +138,15 @@ func startServer(cfg *config) error {
 		locator = geoip.NewNullGeoLite()
 	}
 
-	store := mongo.NewStore(client.Database(connStr.Database), cache)
+	log.Trace("Connecting to MongoDB")
+
+	store, err := mongo.NewStoreMongo(ctx, cache, cfg.MongoURI)
+	if err != nil {
+		log.WithError(err).Fatal("failed to create the store")
+	}
+
+	log.Info("Connected to MongoDB")
+
 	service := services.NewService(store, nil, nil, cache, requestClient, locator)
 
 	e := routes.NewRouter(service)
