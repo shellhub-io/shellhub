@@ -6,7 +6,7 @@ exports[`Billing Payment > Renders the component 1`] = `
     <div data-v-ec12e293=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--disabled v-text-field\\" data-test=\\"customer-name\\">
       <!---->
       <div class=\\"v-input__control\\">
-        <div class=\\"v-field v-field--center-affix v-field--disabled v-field--variant-filled v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
+        <div class=\\"v-field v-field--center-affix v-field--disabled v-field--variant-filled v-theme--light v-locale--is-ltr\\">
           <div class=\\"v-field__overlay\\"></div>
           <div class=\\"v-field__loader\\">
             <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -27,8 +27,7 @@ exports[`Billing Payment > Renders the component 1`] = `
             </label><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
               <!---->Name
             </label>
-            <!---->
-            <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\"></div>
+            <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" class=\\"v-field__input\\">
             <!---->
           </div>
           <!---->
@@ -52,7 +51,7 @@ exports[`Billing Payment > Renders the component 1`] = `
     <div data-v-ec12e293=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--disabled v-text-field\\" data-test=\\"customer-email\\">
       <!---->
       <div class=\\"v-input__control\\">
-        <div class=\\"v-field v-field--center-affix v-field--disabled v-field--variant-filled v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
+        <div class=\\"v-field v-field--center-affix v-field--disabled v-field--variant-filled v-theme--light v-locale--is-ltr\\">
           <div class=\\"v-field__overlay\\"></div>
           <div class=\\"v-field__loader\\">
             <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -73,8 +72,7 @@ exports[`Billing Payment > Renders the component 1`] = `
             </label><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
               <!---->E-mail
             </label>
-            <!---->
-            <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\"></div>
+            <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" class=\\"v-field__input\\">
             <!---->
           </div>
           <!---->
