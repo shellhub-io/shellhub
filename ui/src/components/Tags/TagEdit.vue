@@ -52,7 +52,7 @@
 
 <script lang="ts">
 import { useField } from "vee-validate";
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref, computed } from "vue";
 import * as yup from "yup";
 import { useStore } from "../../store";
 import {
@@ -78,6 +78,7 @@ export default defineComponent({
     const store = useStore();
     const showDialog = ref(false);
 
+    const prop = computed(() => props);
     const { value: tagLocal, errorMessage: tagLocalError, resetField: resetTagLocal } = useField<string>(
       "tagLocal",
       yup
@@ -87,7 +88,7 @@ export default defineComponent({
         .max(255)
         .matches(/^[^/|@|&|:]*$/, "The name must not contain /, @, &, and :"),
       {
-        initialValue: props.tag,
+        initialValue: prop.value.tag,
       },
     );
 

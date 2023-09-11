@@ -10,6 +10,7 @@ export interface CustomerState {
 }
 
 type errorResponseData = {
+  code: string;
   message: string;
 };
 
@@ -52,7 +53,7 @@ export const customer: Module<CustomerState, State> = {
       try {
         await apiBilling.attachPaymentMethod(id);
         commit("setCustomer", customer);
-      } catch (error: any) {
+      } catch (error) {
         if (isAxiosError<errorResponseData>(error)) {
           throw error.response?.data;
         } else {

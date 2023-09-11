@@ -167,6 +167,7 @@ export default defineComponent({
     const choiceFilter = ref("hostname");
     const validateLength = ref(true);
     const errMsg = ref("");
+    const prop = computed(() => props);
     const choiceUsername = ref("username");
     const filterList = ref([
       {
@@ -207,7 +208,7 @@ export default defineComponent({
       errorMessage: nameError,
       setErrors: setnameError,
     } = useField<string>("name", yup.string().required(), {
-      initialValue: props.keyObject.name,
+      initialValue: prop.value.keyObject.name,
     });
 
     watch(name, () => {
@@ -219,7 +220,7 @@ export default defineComponent({
       errorMessage: usernameError,
       setErrors: setUsernameError,
     } = useField<string>("username", yup.string().required(), {
-      initialValue: props.keyObject.username,
+      initialValue: prop.value.keyObject.username,
     });
 
     watch(username, () => {
@@ -231,14 +232,14 @@ export default defineComponent({
       errorMessage: hostnameError,
       setErrors: setHostnameError,
     } = useField<string>("hostname", yup.string().required(), {
-      initialValue: props.keyObject.filter?.hostname || "",
+      initialValue: prop.value.keyObject.filter?.hostname || "",
     });
 
     const {
       value: publicKeyData,
       errorMessage: publicKeyDataError,
     } = useField<string>("publicKeyData", yup.string().required(), {
-      initialValue: props.keyObject.data,
+      initialValue: prop.value.keyObject.data,
     });
 
     watch(username, () => {

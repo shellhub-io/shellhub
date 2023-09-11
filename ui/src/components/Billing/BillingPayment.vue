@@ -101,11 +101,12 @@ import BillingIcon from "./BillingIcon.vue";
 import { useStore } from "../../store";
 import handleError from "@/utils/handleError";
 import { envVariables } from "../../envVariables";
+import { Customer } from "@/interfaces/ICustomer";
 
 const emit = defineEmits(["no-payment-methods", "has-default-payment", "customer-id-created"]);
 const stripeKey = computed(() => envVariables.stripeKey);
 const stripeLoaded = ref(false);
-const customer: any = reactive({ name: "", email: "", payment_methods: [] });
+const customer: Customer = reactive({ name: "", email: "", payment_methods: [] });
 const store = useStore();
 const consumerData = computed(() => store.getters["customer/getCustomer"]);
 const card = ref();
@@ -169,30 +170,43 @@ const fetchData = async () => {
   }
 };
 
+class CustomError {
+  code: string;
+
+  message: string;
+
+  constructor(code: string, message: string) {
+    this.code = code;
+    this.message = message;
+  }
+}
+
 const savePayment = async () => {
   const cardElement = card.value.stripeElement;
   elms.value.instance.createPaymentMethod({
     type: "card",
     card: cardElement,
   })
-    .then(async (result: any) => {
+    .then(async (result: { paymentMethod: { id: string; }; }) => {
       try {
         const id: string = result.paymentMethod.id || "";
         await store.dispatch("customer/attachPaymentMethod", id);
         await fetchData();
         alertRender.value = false;
         addNewCard.value = false;
-      } catch (error: any) {
-        alertRender.value = true;
+      } catch (error) {
         const errorMessages = {
-          card_declined: "Your payment method was declined, check if your card is valid or have sufficient funds",
+          card_declined: "Your payment method was declined, check if your card is valid or has sufficient funds",
           expired_card: "Your payment was declined because the card has expired.",
           incorrect_cvc: "Your payment was declined due to an incorrect CVC.",
           processing_error: "Your payment was declined due to a processing error.",
           incorrect_number: "Your payment was declined because the card number is incorrect.",
           default: "An error occurred during payment processing.",
         };
-        errorMessage.value = errorMessages[error.code] || errorMessages.default;
+
+        alertRender.value = true;
+        const isMessageError = (error: unknown): error is CustomError => typeof error === "object" && error !== null && "code" in error;
+        errorMessage.value = isMessageError(error) ? errorMessages[error.code] : errorMessages.default;
       }
     });
 };

@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, computed } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
@@ -74,6 +74,7 @@ export default defineComponent({
   },
   emits: ["new-hostname"],
   setup(props, ctx) {
+    const name = computed(() => props.name);
     const showDialog = ref(false);
     const messages = ref(
       "Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)",
@@ -85,7 +86,7 @@ export default defineComponent({
       errorMessage: editNameError,
       setErrors: setEditNameError,
     } = useField<string | undefined>("name", yup.string().required(), {
-      initialValue: props.name,
+      initialValue: name.value,
     });
 
     const close = () => {

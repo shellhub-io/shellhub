@@ -1,8 +1,8 @@
 import http from "../helpers/http";
 import { sshApi } from "../../api/http";
-import { IPublicKey } from "@/interfaces/IPublicKey";
+import { PublicKeyRequest, UpdatePublicKeyRequest } from "@/api/client/api";
 
-export const postPublicKey = async (data : any | IPublicKey) => sshApi.createPublicKey(data);
+export const postPublicKey = async (data : PublicKeyRequest) => sshApi.createPublicKey(data);
 
 export const fetchPublicKeys = async (
   page : number,
@@ -16,6 +16,8 @@ export const fetchPublicKeys = async (
 
 export const getPublicKey = async (fingerprint : string) => http().get(`/sshkeys/public-keys/${fingerprint}`); // TODO
 
-export const putPublicKey = async (data : any | IPublicKey) => sshApi.updatePublicKey(data.fingerprint, data);
+export const putPublicKey = async (data : { fingerprint: string } & UpdatePublicKeyRequest) => {
+  sshApi.updatePublicKey(data.fingerprint, data);
+};
 
 export const removePublicKey = async (fingerprint : string) => sshApi.deletePublicKey(fingerprint);
