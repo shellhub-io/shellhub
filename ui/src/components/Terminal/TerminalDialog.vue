@@ -189,7 +189,8 @@ export default defineComponent({
     const terminal = ref<HTMLElement>({} as HTMLElement);
     const attachAddon = ref<AttachAddon | null>({} as AttachAddon);
 
-    const showTerminal = ref(store.getters["modal/terminal"] === props.uid);
+    const uid = computed(() => props.uid);
+    const showTerminal = ref(store.getters["modal/terminal"] === uid.value);
 
     const {
       value: username,

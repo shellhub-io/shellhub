@@ -5,7 +5,6 @@ export default function infoExtract(data, periodEnd) {
   const upcomingInvoice = data.upcoming_invoice;
   const productDescription = data.product_description;
   const pms = data.payment_methods;
-  const pm = data.default_payment_method;
 
   const showLink = (r, s) => {
     if (s === "open") {

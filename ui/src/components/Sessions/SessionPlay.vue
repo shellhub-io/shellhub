@@ -254,7 +254,7 @@ export default defineComponent({
       let between: number;
       let lowerBound = 0;
       let higherBound = frames.length - 1;
-      let nextTimeSetPrint: any;
+      let nextTimeSetPrint;
 
       for (; higherBound - lowerBound > 1;) {
         // progressive increment search

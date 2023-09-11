@@ -93,7 +93,8 @@ export default defineComponent({
     const showDialog = ref(false);
 
     const hasTags = computed(() => props.tagsList.length > 0);
-    const inputTags = ref(props.tagsList);
+    const prop = computed(() => props);
+    const inputTags = ref(prop.value.tagsList);
     const tagsError = ref("");
 
     const tagsHasLessThan3Characters = computed(() => inputTags.value.some((tag) => tag.length < 3));

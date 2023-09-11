@@ -27,7 +27,7 @@ import axios, { AxiosError } from "axios";
 import Card from "../components/Card/Card.vue";
 import { useStore } from "../store";
 import handleError from "@/utils/handleError";
-import { INotificationsSuccess, INotificationsError } from "@/interfaces/INotifications";
+import { INotificationsError } from "@/interfaces/INotifications";
 
 type ItemCard = {
   id: number;

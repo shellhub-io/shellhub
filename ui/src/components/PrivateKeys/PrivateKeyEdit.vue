@@ -72,6 +72,7 @@ import {
   ref,
   watch,
   onMounted,
+  toRefs,
 } from "vue";
 import * as yup from "yup";
 import { useStore } from "../../store";
@@ -107,6 +108,7 @@ export default defineComponent({
       username: "",
       data: "",
     });
+    const { keyObject } = toRefs(props);
     const supportedKeys = ref(
       "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
     );
@@ -114,7 +116,7 @@ export default defineComponent({
     const { value: name, errorMessage: nameError } = useField<
       string | undefined
     >("name", yup.string().required(), {
-      initialValue: props.keyObject.name,
+      initialValue: keyObject.value.name,
     });
 
     watch(name, () => {
