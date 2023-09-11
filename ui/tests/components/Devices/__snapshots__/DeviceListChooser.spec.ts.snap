@@ -45,7 +45,7 @@ exports[`Device Chooser List > Renders the component 1`] = `
         <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-text-field v-text-field--plain-underlined v-combobox v-combobox--single mb-4\\">
           <!---->
           <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\">
+            <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
                 <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -76,7 +76,7 @@ exports[`Device Chooser List > Renders the component 1`] = `
               </div>
               <!---->
               <div class=\\"v-field__append-inner\\">
-                <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\"></i>
+                <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"Open\\" title=\\"Open\\"></i>
                 <!---->
               </div>
               <div class=\\"v-field__outline\\">

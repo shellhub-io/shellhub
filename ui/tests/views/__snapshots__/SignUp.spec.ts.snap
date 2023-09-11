@@ -8,7 +8,7 @@ exports[`Login > Renders the component 1`] = `
       <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"name-text\\">
         <!---->
         <div class=\\"v-input__control\\">
-          <div class=\\"v-field v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
+          <div class=\\"v-field v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
             <div class=\\"v-field__overlay\\"></div>
             <div class=\\"v-field__loader\\">
               <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -30,8 +30,7 @@ exports[`Login > Renders the component 1`] = `
               <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
                 <!---->Name
               </label>
-              <!---->
-              <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" required=\\"\\"></div>
+              <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" required=\\"\\" class=\\"v-field__input\\">
               <!---->
             </div>
             <!---->
@@ -54,7 +53,7 @@ exports[`Login > Renders the component 1`] = `
       <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"username-text\\">
         <!---->
         <div class=\\"v-input__control\\">
-          <div class=\\"v-field v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
+          <div class=\\"v-field v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
             <div class=\\"v-field__overlay\\"></div>
             <div class=\\"v-field__loader\\">
               <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -76,8 +75,7 @@ exports[`Login > Renders the component 1`] = `
               <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
                 <!---->Username
               </label>
-              <!---->
-              <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\"></div>
+              <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
               <!---->
             </div>
             <!---->
@@ -100,7 +98,7 @@ exports[`Login > Renders the component 1`] = `
       <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"email-text\\">
         <!---->
         <div class=\\"v-input__control\\">
-          <div class=\\"v-field v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
+          <div class=\\"v-field v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
             <div class=\\"v-field__overlay\\"></div>
             <div class=\\"v-field__loader\\">
               <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -122,8 +120,7 @@ exports[`Login > Renders the component 1`] = `
               <!----><label class=\\"v-label v-field-label\\" for=\\"input-4\\">
                 <!---->Email
               </label>
-              <!---->
-              <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input size=\\"1\\" type=\\"text\\" id=\\"input-4\\" aria-describedby=\\"input-4-messages\\" required=\\"\\"></div>
+              <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-4\\" aria-describedby=\\"input-4-messages\\" required=\\"\\" class=\\"v-field__input\\">
               <!---->
             </div>
             <!---->
@@ -146,7 +143,7 @@ exports[`Login > Renders the component 1`] = `
       <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"password-text\\">
         <!---->
         <div class=\\"v-input__control\\">
-          <div class=\\"v-field v-field--appended v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
+          <div class=\\"v-field v-field--appended v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
             <div class=\\"v-field__overlay\\"></div>
             <div class=\\"v-field__loader\\">
               <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -168,8 +165,7 @@ exports[`Login > Renders the component 1`] = `
               <!----><label class=\\"v-label v-field-label\\" for=\\"input-6\\">
                 <!---->Password
               </label>
-              <!---->
-              <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input size=\\"1\\" type=\\"password\\" id=\\"input-6\\" aria-describedby=\\"input-6-messages\\" required=\\"\\"></div>
+              <!----><input size=\\"1\\" type=\\"password\\" id=\\"input-6\\" aria-describedby=\\"input-6-messages\\" required=\\"\\" class=\\"v-field__input\\">
               <!---->
             </div>
             <!---->
@@ -194,7 +190,7 @@ exports[`Login > Renders the component 1`] = `
       <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"password-confirm-text\\">
         <!---->
         <div class=\\"v-input__control\\">
-          <div class=\\"v-field v-field--appended v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"textbox\\">
+          <div class=\\"v-field v-field--appended v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
             <div class=\\"v-field__overlay\\"></div>
             <div class=\\"v-field__loader\\">
               <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -216,8 +212,7 @@ exports[`Login > Renders the component 1`] = `
               <!----><label class=\\"v-label v-field-label\\" for=\\"input-8\\">
                 <!---->Confirm Password
               </label>
-              <!---->
-              <div class=\\"v-field__input\\" data-no-activator=\\"\\"><input size=\\"1\\" type=\\"password\\" id=\\"input-8\\" aria-describedby=\\"input-8-messages\\" required=\\"\\"></div>
+              <!----><input size=\\"1\\" type=\\"password\\" id=\\"input-8\\" aria-describedby=\\"input-8-messages\\" required=\\"\\" class=\\"v-field__input\\">
               <!---->
             </div>
             <!---->
@@ -247,9 +242,7 @@ exports[`Login > Renders the component 1`] = `
           <div class=\\"v-selection-control v-selection-control--density-default v-checkbox-btn\\">
             <div class=\\"v-selection-control__wrapper\\">
               <!---->
-              <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-10\\" aria-disabled=\\"false\\" type=\\"checkbox\\" indeterminateicon=\\"$checkboxIndeterminate\\" aria-describedby=\\"checkbox-10-messages\\" value=\\"true\\">
-                <!---->
-              </div>
+              <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-10\\" aria-disabled=\\"false\\" type=\\"checkbox\\" aria-describedby=\\"checkbox-10-messages\\" value=\\"true\\"></div>
             </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-10\\">
               <!----><span class=\\"caption\\"> I agree to the <a href=\\"https://www.shellhub.io/privacy-policy\\" target=\\"_blank\\" rel=\\"noopener noreferrer\\">Privacy Policy</a></span>
             </label>
@@ -264,9 +257,7 @@ exports[`Login > Renders the component 1`] = `
           <div class=\\"v-selection-control v-selection-control--density-default v-checkbox-btn\\">
             <div class=\\"v-selection-control__wrapper\\">
               <!---->
-              <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-13\\" aria-disabled=\\"false\\" type=\\"checkbox\\" indeterminateicon=\\"$checkboxIndeterminate\\" aria-describedby=\\"checkbox-13-messages\\" value=\\"true\\">
-                <!---->
-              </div>
+              <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-13\\" aria-disabled=\\"false\\" type=\\"checkbox\\" aria-describedby=\\"checkbox-13-messages\\" value=\\"true\\"></div>
             </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-13\\">
               <!---->
               <p> I accept to receive news and updates from ShellHub via email. </p>
