@@ -26,6 +26,18 @@ const (
 	AuthPublicKeyURL = "/auth/ssh"
 )
 
+const (
+	// AuthRequestUserToken is the type of the token used to authenticate a user.
+	AuthRequestUserToken = "user"
+	// AuthRequestDeviceToken is the type of the token used to authenticate a device.
+	AuthRequestDeviceToken = "device"
+)
+
+// AuthRequest checks the user and device authentication token.
+//
+// This route is a special route and it is called every time a user tries to access a route which requires
+// authentication. It gets the JWT token sent, unwraps it and sets the information, like tenant, user, etc., as headers
+// of the response to be got in the subsequent through the [gateway.Context].
 func (h *Handler) AuthRequest(c gateway.Context) error {
 	token, ok := c.Get(middleware.DefaultJWTConfig.ContextKey).(*jwt.Token)
 	if !ok {
@@ -37,11 +49,36 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		return svc.ErrTypeAssertion
 	}
 
-	switch claims := (*rawClaims)["claims"]; claims {
-	case "user":
-		var claims models.UserAuthClaims
+	// setHeader sets a reader to the HTTP response to be read in the subsequent request.
+	setHeader := func(response gateway.Context, key string, value string) {
+		response.Response().Header().Set(key, value)
+	}
 
-		if err := DecodeMap(rawClaims, &claims); err != nil {
+	// decodeMap parses the JWT claims into a struct.
+	decodeMap := func(input *jwt.MapClaims, output any) error {
+		config := &mapstructure.DecoderConfig{
+			TagName:  "json",
+			Metadata: nil,
+			Result:   output,
+		}
+
+		decoder, err := mapstructure.NewDecoder(config)
+		if err != nil {
+			return err
+		}
+
+		return decoder.Decode(input)
+	}
+
+	switch claims := (*rawClaims)["claims"]; claims {
+	case AuthRequestUserToken:
+		// A [AuthRequestUserToken] is a token used to authenticate a user.
+		// This kind of token can have its "namespace" as a empty value, indicating that is a "user" token. Its a kind
+		// of sub-token, what allows the logged user to change its information, but does not allow to change the any
+		// other namespace information.
+
+		var claims models.UserAuthClaims
+		if err := decodeMap(rawClaims, &claims); err != nil {
 			return err
 		}
 
@@ -53,27 +90,26 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 			}
 		}
 
-		// Extract tenant and username from JWT
-		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
-		c.Response().Header().Set("X-Username", claims.Username)
-		c.Response().Header().Set("X-ID", claims.ID)
-		c.Response().Header().Set("X-Role", claims.Role)
+		setHeader(c, "X-Tenant-ID", claims.Tenant)
+		setHeader(c, "X-Username", claims.Username)
+		setHeader(c, "X-ID", claims.ID)
+		setHeader(c, "X-Role", claims.Role)
 
 		return c.NoContent(http.StatusOK)
-	case "device":
+	case AuthRequestDeviceToken:
 		var claims models.DeviceAuthClaims
 
-		if err := DecodeMap(rawClaims, &claims); err != nil {
+		if err := decodeMap(rawClaims, &claims); err != nil {
 			return err
 		}
 
-		// Extract device UID from JWT
-		c.Response().Header().Set(client.DeviceUIDHeader, claims.UID)
+		// Extract device UID from JWT and set it into the header.
+		setHeader(c, client.DeviceUIDHeader, claims.UID)
 
 		return c.NoContent(http.StatusOK)
+	default:
+		return svc.NewErrAuthUnathorized(nil)
 	}
-
-	return svc.NewErrAuthUnathorized(nil)
 }
 
 func (h *Handler) AuthDevice(c gateway.Context) error {
@@ -209,19 +245,4 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return jwt(next)(c)
 	}
-}
-
-func DecodeMap(input, output interface{}) error {
-	config := &mapstructure.DecoderConfig{
-		TagName:  "json",
-		Metadata: nil,
-		Result:   output,
-	}
-
-	decoder, err := mapstructure.NewDecoder(config)
-	if err != nil {
-		return err
-	}
-
-	return decoder.Decode(input)
 }
