@@ -119,25 +119,30 @@ func main() {
 				}).Fatal("Failed to initialize agent")
 			}
 
-			listing := make(chan bool)
+			ctx := cmd.Context()
+
+			listening := make(chan bool)
 			go func() {
-				<-listing
+				<-listening
 				// NOTICE: We only start to ping the server when the agent is ready to accept connections.
 				// It will make the agent ping to server after the ticker time set on ping function, what is 10 minutes by
 				// default.
 
-				ping := make(chan agent.Ping)
-				go ag.Ping(nil, ping)
-
-				for range ping {
-					log.WithFields(log.Fields{
+				if err := ag.Ping(ctx, nil); err != nil {
+					log.WithError(err).WithFields(log.Fields{
 						"version":        AgentVersion,
 						"mode":           mode,
 						"tenant_id":      cfg.TenantID,
 						"server_address": cfg.ServerAddress,
-						"timestamp":      time.Now(),
-					}).Info("ping")
+					}).Fatal("Failed to ping server")
 				}
+
+				log.WithFields(log.Fields{
+					"version":        AgentVersion,
+					"mode":           mode,
+					"tenant_id":      cfg.TenantID,
+					"server_address": cfg.ServerAddress,
+				}).Info("Stopped pinging server")
 			}()
 
 			log.WithFields(log.Fields{
@@ -145,7 +150,7 @@ func main() {
 				"mode":           mode,
 				"tenant_id":      cfg.TenantID,
 				"server_address": cfg.ServerAddress,
-			}).Info("listening for connections")
+			}).Info("Listening for connections")
 
 			// Disable check update in development mode
 			if AgentVersion != "latest" {
@@ -178,7 +183,21 @@ func main() {
 				}()
 			}
 
-			ag.Listen(listing) //nolint:errcheck
+			if err := ag.Listen(ctx, listening); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"version":        AgentVersion,
+					"mode":           mode,
+					"tenant_id":      cfg.TenantID,
+					"server_address": cfg.ServerAddress,
+				}).Fatal("Failed to listen for connections")
+			}
+
+			log.WithFields(log.Fields{
+				"version":        AgentVersion,
+				"mode":           mode,
+				"tenant_id":      cfg.TenantID,
+				"server_address": cfg.ServerAddress,
+			}).Info("Stopped listening for connections")
 		},
 	}
 

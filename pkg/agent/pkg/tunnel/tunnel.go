@@ -55,3 +55,12 @@ func NewTunnel() *Tunnel {
 func (t *Tunnel) Listen(l *revdial.Listener) error {
 	return t.srv.Serve(l)
 }
+
+// Close closes the tunnel.
+func (t *Tunnel) Close() error {
+	if err := t.router.Close(); err != nil {
+		return err
+	}
+
+	return t.srv.Close()
+}

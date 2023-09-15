@@ -45,6 +45,7 @@
 package agent
 
 import (
+	"context"
 	"crypto/rsa"
 	"io"
 	"net"
@@ -53,6 +54,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Masterminds/semver"
@@ -67,12 +69,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	log "github.com/sirupsen/logrus"
 )
-
-// Ping is a message sent by the agent to the server to keep the connection alive.
-type Ping struct {
-	// Timestamp is the time the ping was sent or received.
-	Timestamp time.Time
-}
 
 // throw sends a value on a channel, but does not block the goroutine.
 func throw[V any, T chan V](ch T, v V) {
@@ -140,6 +136,9 @@ type Agent struct {
 	serverAddress *url.URL
 	sessions      []string
 	server        *server.Server
+	tunnel        *tunnel.Tunnel
+	mux           sync.RWMutex
+	closed        bool
 }
 
 // NewAgent creates a new agent instance.
@@ -184,6 +183,7 @@ func NewAgentWithConfig(config *Config) (*Agent, error) {
 		config:        config,
 		serverAddress: serverAddress,
 		cli:           client.NewClient(client.WithURL(serverAddress)),
+		tunnel:        tunnel.NewTunnel(),
 	}
 
 	return a, nil
@@ -217,6 +217,10 @@ func (a *Agent) Initialize() error {
 	if err := a.authorize(); err != nil {
 		return errors.Wrap(err, "failed to authorize device")
 	}
+
+	a.mux.Lock()
+	a.closed = false
+	a.mux.Unlock()
 
 	return nil
 }
@@ -312,17 +316,24 @@ func (a *Agent) NewReverseListener() (*revdial.Listener, error) {
 	return a.cli.NewReverseListener(a.authData.Token)
 }
 
+func (a *Agent) Close() error {
+	a.mux.Lock()
+	a.closed = true
+	a.mux.Unlock()
+
+	return a.tunnel.Close()
+}
+
 // Listen creates a new SSH server, tunnel to ShellHub and listen for incoming connections.
 //
 // listening parameter is a channel that is notified when the agent is listing for connections. It can be used to
 // start to ping the server, synchronizing device information or other tasks.
-func (a *Agent) Listen(listining chan bool) error {
+func (a *Agent) Listen(ctx context.Context, listining chan bool) error {
 	a.server = server.NewServer(a.cli, a.authData, a.config.PrivateKey, a.config.KeepAliveInterval, a.config.SingleUserPassword)
 
 	serv := a.server
 
-	tun := tunnel.NewTunnel()
-	tun.ConnHandler = func(c echo.Context) error {
+	a.tunnel.ConnHandler = func(c echo.Context) error {
 		hj, ok := c.Response().Writer.(http.Hijacker)
 		if !ok {
 			return c.String(http.StatusInternalServerError, "webserver doesn't support hijacking")
@@ -343,7 +354,7 @@ func (a *Agent) Listen(listining chan bool) error {
 		return nil
 	}
 
-	tun.HTTPHandler = func(c echo.Context) error {
+	a.tunnel.HTTPHandler = func(c echo.Context) error {
 		replyError := func(err error, msg string, code int) error {
 			log.WithError(err).WithFields(log.Fields{
 				"remote":    c.Request().RemoteAddr,
@@ -388,7 +399,7 @@ func (a *Agent) Listen(listining chan bool) error {
 		return nil
 	}
 
-	tun.CloseHandler = func(c echo.Context) error {
+	a.tunnel.CloseHandler = func(c echo.Context) error {
 		id := c.Param("id")
 		serv.CloseSession(id)
 
@@ -397,7 +408,25 @@ func (a *Agent) Listen(listining chan bool) error {
 
 	serv.SetDeviceName(a.authData.Name)
 
+	// NOTICE(r): when context is canceled, the agent will close the tunnel and stop listening for connections.
+	go func() {
+		<-ctx.Done()
+		a.Close() //nolint:errcheck
+	}()
+
 	for {
+		a.mux.RLock()
+		if a.closed {
+			log.WithFields(log.Fields{
+				"version":        AgentVersion,
+				"tenant_id":      a.authData.Namespace,
+				"server_address": a.config.ServerAddress,
+			}).Debug("stopped listening for connections")
+
+			return nil
+		}
+		a.mux.RUnlock()
+
 		listener, err := a.NewReverseListener()
 		if err != nil {
 			time.Sleep(time.Second * 10)
@@ -424,7 +453,7 @@ func (a *Agent) Listen(listining chan bool) error {
 		}).Info("Server connection established")
 
 		throw(listining, true)
-		if err := tun.Listen(listener); err != nil {
+		if err := a.tunnel.Listen(listener); err != nil {
 			continue
 		}
 		throw(listining, false)
@@ -436,24 +465,40 @@ func (a *Agent) Listen(listining chan bool) error {
 // If the ticker is nil, it will be set to 10 minutes.
 //
 // ping parameter is a channel that is notified when the agent pings the server.
-func (a *Agent) Ping(ticker *time.Ticker, ping chan Ping) {
+func (a *Agent) Ping(ctx context.Context, ticker *time.Ticker) error {
 	if ticker == nil {
 		ticker = time.NewTicker(10 * time.Minute)
 	}
 
-	for range ticker.C {
-		sessions := make([]string, 0, len(a.server.Sessions))
-		for key := range a.server.Sessions {
-			sessions = append(sessions, key)
+	for {
+		select {
+		case <-ctx.Done():
+			log.WithFields(log.Fields{
+				"version":        AgentVersion,
+				"tenant_id":      a.authData.Namespace,
+				"server_address": a.config.ServerAddress,
+			}).Debug("stopped pinging server due to context cancellation")
+
+			return nil
+		case <-ticker.C:
+			sessions := make([]string, 0, len(a.server.Sessions))
+			for key := range a.server.Sessions {
+				sessions = append(sessions, key)
+			}
+
+			a.sessions = sessions
+
+			if err := a.authorize(); err != nil {
+				a.server.SetDeviceName(a.authData.Name)
+			}
+
+			log.WithFields(log.Fields{
+				"version":        AgentVersion,
+				"tenant_id":      a.authData.Namespace,
+				"server_address": a.config.ServerAddress,
+				"timestamp":      time.Now(),
+			}).Info("Ping")
 		}
-
-		a.sessions = sessions
-
-		if err := a.authorize(); err != nil {
-			a.server.SetDeviceName(a.authData.Name)
-		}
-
-		throw(ping, Ping{Timestamp: time.Now()})
 	}
 }
 
