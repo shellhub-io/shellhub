@@ -230,17 +230,22 @@ func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, 
 	defer cursor.Close(ctx)
 	cursor.Next(ctx)
 
-	err = cursor.Decode(&device)
-	if err != nil {
+	if err := cursor.Decode(&device); err != nil {
 		return nil, FromMongoError(err)
 	}
 
 	return device, nil
 }
 
+// DeviceDelete removes the specified device along with its associated sessions and connected devices.
 func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
-	if _, err := s.db.Collection("devices").DeleteOne(ctx, bson.M{"uid": uid}); err != nil {
+	dev, err := s.db.Collection("devices").DeleteOne(ctx, bson.M{"uid": uid})
+	if err != nil {
 		return FromMongoError(err)
+	}
+
+	if dev.DeletedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"device", string(uid)}, "/")); err != nil {
@@ -251,9 +256,11 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 		return FromMongoError(err)
 	}
 
-	_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
+	if _, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid}); err != nil {
+		return FromMongoError(err)
+	}
 
-	return FromMongoError(err)
+	return nil
 }
 
 func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
@@ -282,14 +289,21 @@ func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname stri
 	return FromMongoError(err)
 }
 
+// DeviceRename updates the name of a specific device.
 func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname string) error {
-	if _, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": hostname}}); err != nil {
+	d, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": hostname}})
+	if err != nil {
 		return FromMongoError(err)
+	}
+
+	if d.ModifiedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	return nil
 }
 
+// DeviceLookup retrieves a specific device based on its name, namespace, and acceptance status.
 func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error) {
 	ns := new(models.Namespace)
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
@@ -341,32 +355,47 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 	return nil
 }
 
+// DeviceUpdateOnline updates the "online" of a specific device.
 func (s *Store) DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error {
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"online": online}})
+	d, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"online": online}})
+	if err != nil {
+		return FromMongoError(err)
+	}
 
-	return FromMongoError(err)
+	if d.ModifiedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
 }
 
+// DeviceUpdateLastSeen updates the "last_seen" of a specific device.
 func (s *Store) DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error {
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"last_seen": ts}})
+	d, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"last_seen": ts}})
+	if err != nil {
+		return FromMongoError(err)
+	}
 
-	return FromMongoError(err)
+	if d.ModifiedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
 }
 
+// DeviceUpdateStatus updates the status of a specific device in the devices collection and records the device's
+// connection status in the connected_devices collection.
 func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error {
+	updateOptions := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	result := s.db.Collection("devices", options.Collection()).
+		FindOneAndUpdate(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"status": status, "status_updated_at": clock.Now()}}, updateOptions)
+
+	if result.Err() != nil {
+		return FromMongoError(result.Err())
+	}
+
 	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
-		return FromMongoError(err)
-	}
-
-	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"status": status}}, opts)
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	_, err = s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"status_updated_at": time.Now()}}, opts)
-	if err != nil {
+	if err := result.Decode(&device); err != nil {
 		return FromMongoError(err)
 	}
 
@@ -432,12 +461,14 @@ func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.
 
 func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error) {
 	device := new(models.Device)
-	if status != "" {
-		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "identity": bson.M{"mac": mac}, "status": status}).Decode(&device); err != nil {
+
+	switch status {
+	case "":
+		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
 			return nil, FromMongoError(err)
 		}
-	} else {
-		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
+	default:
+		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "status": status, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
 			return nil, FromMongoError(err)
 		}
 	}
@@ -476,17 +507,26 @@ func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID str
 }
 
 func (s *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"position": position}})
+	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"position": position}})
+	if err != nil {
+		return FromMongoError(err)
+	}
 
-	return err
+	if dev.ModifiedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
 }
 
-func (s *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []string) error {
+// DeviceChooser updates devices with "accepted" status to "pending" for a given tenantID,
+// excluding devices with UIDs present in the "notIn" list.
+func (s *Store) DeviceChooser(ctx context.Context, tenantID string, notIn []string) error {
 	filter := bson.M{
 		"status":    "accepted",
 		"tenant_id": tenantID,
 		"uid": bson.M{
-			"$nin": chosen,
+			"$nin": notIn,
 		},
 	}
 
@@ -496,9 +536,13 @@ func (s *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []str
 		},
 	}
 
-	_, err := s.db.Collection("devices").UpdateMany(ctx, filter, update)
+	dev, err := s.db.Collection("devices").UpdateMany(ctx, filter, update)
 	if err != nil {
-		return err
+		return FromMongoError(err)
+	}
+
+	if dev.ModifiedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	return nil

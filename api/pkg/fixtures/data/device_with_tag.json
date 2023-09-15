@@ -1,0 +1,27 @@
+{
+    "devices": {
+        "8591c9f137d3e914063ff823": {
+            "created_at": "2023-09-12T20:24:16.136Z",
+            "identity": {"mac": "mac"},
+            "info": null,
+            "last_seen": "2023-09-12T20:24:14.544Z",
+            "name": "hostname_with_tag",
+            "position": null,
+            "public_key": "",
+            "remote_addr": "",
+            "status": "accepted",
+            "status_updated_at": "2023-09-12T20:24:16.151Z",
+            "tags": ["device1"],
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "uid": "4500450g5dc4g859858d6e247f3457380136087fd7426d8f337598eef0a120e"
+        }
+    },
+    "connected_devices": {
+        "6500c8f086353a36732d544a": {
+            "last_seen": "2023-09-12T20:24:16.151Z",
+            "status": "accepted",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "uid": "4500450g5dc4g859858d6e247f3457380136087fd7426d8f337598eef0a120e"
+        }
+    }
+}

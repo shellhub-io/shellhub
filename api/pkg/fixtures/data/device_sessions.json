@@ -1,0 +1,344 @@
+{
+    "sessions": {
+        "6504041e9bf883fef7222772": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid1",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222773": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid1",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222774": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid1",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222775": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid1",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222776": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid1",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222777": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid1",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222778": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid1",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222779": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid1",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef722277a": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid1",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef722277b": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid1",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef722277c": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid2",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef722277d": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid2",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef722277e": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid2",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef722277f": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid2",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222780": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid2",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222781": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid3",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222782": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid3",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222783": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid3",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222784": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid4",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        },
+        "6504041e9bf883fef7222785": {
+            "authenticated": false,
+            "closed": false,
+            "device_uid": "uid5",
+            "last_seen": "0001-01-03T00:00:00.000Z",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "started_at": "0001-01-03T00:00:00.000Z",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "term": "",
+            "type": "",
+            "uid": "",
+            "username": ""
+        }
+    }
+}
