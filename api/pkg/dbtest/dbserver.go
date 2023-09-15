@@ -67,7 +67,7 @@ type DBServer struct {
 	client  *mongo.Client
 	output  bytes.Buffer
 	server  *exec.Cmd
-	host    string
+	Host    string
 	network string
 	tomb    tomb.Tomb
 }
@@ -80,7 +80,7 @@ func (dbs *DBServer) start() {
 	if dbs.server != nil {
 		panic("DBServer already started")
 	}
-	l, err := net.Listen("tcp", "127.0.0.1:0")
+	l, err := net.Listen("tcp", "127.0.0.1:6999")
 	if err != nil {
 		panic("unable to listen on a local address: " + err.Error())
 	}
@@ -92,7 +92,7 @@ func (dbs *DBServer) start() {
 	l.Close()
 
 	dbs.network = "host" // Use same network as docker host
-	dbs.host = addr.String()
+	dbs.Host = addr.String()
 
 	if dockerutils.IsRunningInDocker() {
 		containerID, err := dockerutils.CurrentContainerID()
@@ -221,7 +221,7 @@ ticker:
 		case <-time.After(dbs.timeout):
 			panic("mongodb connection timeout")
 		case <-ticker.C:
-			if _, err := net.Dial("tcp", dbs.host); err != nil {
+			if _, err := net.Dial("tcp", dbs.Host); err != nil {
 				continue
 			}
 
@@ -232,7 +232,7 @@ ticker:
 	args := []string{
 		"run", "--rm", fmt.Sprintf("--net=%s", dbs.network), "mongo:4.4.8",
 		"mongo",
-		"--host", dbs.host,
+		"--host", dbs.Host,
 		"--eval", "rs.initiate()",
 		"--quiet",
 	}
@@ -245,7 +245,7 @@ ticker:
 		panic(err)
 	}
 
-	clientOptions := options.Client().ApplyURI("mongodb://" + dbs.host + "/test")
+	clientOptions := options.Client().ApplyURI("mongodb://" + dbs.Host + "/test")
 	dbs.Ctx = context.Background()
 
 	dbs.client, err = mongo.Connect(dbs.Ctx, clientOptions)
