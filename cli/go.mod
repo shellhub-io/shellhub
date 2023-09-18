@@ -3,7 +3,6 @@ module github.com/shellhub-io/shellhub/cli
 go 1.20
 
 require (
-	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/shellhub-io/shellhub v0.5.2
 	github.com/shellhub-io/shellhub/api v0.8.2
 	github.com/sirupsen/logrus v1.9.3
@@ -27,6 +26,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/labstack/echo/v4 v4.11.1 // indirect
