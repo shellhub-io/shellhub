@@ -24,5 +24,5 @@ export const envVariables = {
   announcementsEnable: (window.env || process.env).VUE_APP_SHELLHUB_ANNOUNCEMENTS === "true",
   stripeKey: (window.env || process.env).VUE_APP_SHELLHUB_STRIPE_PUBLISHABLE_KEY,
   sentryDsn: (window.env || process.env).VUE_APP_SHELLHUB_SENTRY_DSN_VERSION,
-  googleAnalyticsID: (window.env || process.env).VUE_APP_GOOGLE_ANALYTICS_ID,
+  googleAnalyticsID: (window.env || process.env).VUE_APP_SHELLHUB_GOOGLE_ANALYTICS_ID,
 };
