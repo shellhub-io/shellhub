@@ -58,36 +58,28 @@ const (
 	Unk     = "unknown" // unknown.
 )
 
-// handlePty sets the connection`s type to session.
-//
-// Connection types possible are: web, term, exec, heredoc, scp, sftp, unknown.
-func handlePty(s *Session) {
-	ctx := s.Client.Context()
-
-	// TODO: improve and clean.
+// setPty sets the connection's pty.
+func (s *Session) setPty() {
 	pty, _, isPty := s.Client.Pty()
 	if isPty {
 		s.Term = pty.Term
-		s.Type = Unk
 	}
 
 	s.Pty = isPty
+}
+
+// setType sets the connection`s type to session.
+//
+// Connection types possible are: Web, SFTP, SCP, Exec, HereDoc, Term, Unk (unknown)
+func (s *Session) setType() {
+	ctx := s.Client.Context()
 
 	env := loadEnv(s.Client.Environ())
-
 	if value, ok := env["WS"]; ok && value == "true" {
 		env["WS"] = "false"
 		s.Type = Web
 
 		return
-	}
-
-	commands := s.Client.Command()
-
-	var cmd string
-
-	if len(commands) != 0 {
-		cmd = commands[0]
 	}
 
 	if s.Client.Subsystem() == SFTP {
@@ -96,14 +88,20 @@ func handlePty(s *Session) {
 		return
 	}
 
+	var cmd string
+	commands := s.Client.Command()
+	if len(commands) != 0 {
+		cmd = commands[0]
+	}
+
 	switch {
-	case !isPty && strings.HasPrefix(cmd, SCP):
+	case !s.Pty && strings.HasPrefix(cmd, SCP):
 		s.Type = SCP
-	case !isPty && cmd != "":
-		s.Type = Exec
-	case !isPty && metadata.RestoreRequest(ctx) == "shell":
+	case !s.Pty && metadata.RestoreRequest(ctx) == "shell":
 		s.Type = HereDoc
-	case isPty:
+	case !s.Pty && cmd != "":
+		s.Type = Exec
+	case s.Pty:
 		s.Type = Term
 	default:
 		s.Type = Unk
@@ -124,11 +122,15 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 		}
 	}
 
-	device := metadata.RestoreDevice(client.Context())
-	tag := metadata.RestoreTarget(client.Context())
-	api := metadata.RestoreAPI(client.Context())
-	lookup := metadata.RestoreLookup(client.Context())
+	clientCtx := client.Context()
+
+	device := metadata.RestoreDevice(clientCtx)
+	tag := metadata.RestoreTarget(clientCtx)
+	api := metadata.RestoreAPI(clientCtx)
+	lookup := metadata.RestoreLookup(clientCtx)
+
 	lookup["username"] = tag.Username
+	// TODO: probabily this need an if
 	lookup["ip_address"] = hos.Host
 
 	if envs.IsCloud() || envs.IsEnterprise() {
@@ -177,7 +179,8 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 		Dialed:    dialed,
 	}
 
-	handlePty(session)
+	session.setPty()
+	session.setType()
 
 	session.Register(client) // nolint:errcheck
 
