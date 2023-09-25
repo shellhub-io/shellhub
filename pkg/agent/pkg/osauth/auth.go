@@ -2,6 +2,7 @@ package osauth
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -19,8 +20,10 @@ import (
 //go:generate mockery --name=OSAuther --filename=osauther.go
 type OSAuther interface {
 	AuthUser(username, password string) bool
+	AuthUserFromShadow(username, password string, shadow io.Reader) bool
 	VerifyPasswordHash(hash, password string) bool
 	LookupUser(username string) *User
+	LookupUserFromPasswd(username string, passwd io.Reader) (*User, error)
 }
 
 type OSAuth struct{}
@@ -46,6 +49,21 @@ func (l *OSAuth) AuthUser(username, password string) bool {
 	}
 
 	logrus.Warn("User not found")
+
+	return false
+}
+
+// AuthUserFromShadow checks if the given username and password are valid for the given shadow file.
+// TODO: Use this functin inside the AuthUser.
+func (l *OSAuth) AuthUserFromShadow(username string, password string, shadow io.Reader) bool {
+	entries, err := parseShadowReader(shadow)
+	if err != nil {
+		return false
+	}
+
+	if entry, ok := entries[username]; ok {
+		return l.VerifyPasswordHash(entry.Password, password)
+	}
 
 	return false
 }
@@ -78,6 +96,25 @@ func (l *OSAuth) VerifyPasswordHash(hash, password string) bool {
 	err := crypt.Verify(hash, []byte(password))
 
 	return err == nil
+}
+
+// ErrUserNotFound is returned when the user is not found in the passwd file.
+var ErrUserNotFound = errors.New("user not found")
+
+// LookupUserFromPasswd reads the passwd file from the given reader and returns the user, if found.
+// TODO: Use this function inside the LookupUser.
+func (l *OSAuth) LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
+	entries, err := parsePasswdReader(passwd)
+	if err != nil {
+		return nil, err
+	}
+
+	user, found := entries[username]
+	if !found {
+		return nil, ErrUserNotFound
+	}
+
+	return &user, nil
 }
 
 func (l *OSAuth) LookupUser(username string) *User {
