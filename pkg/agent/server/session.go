@@ -60,6 +60,8 @@ func (s *Server) sessionHandler(session gliderssh.Session) {
 		return
 	}
 
+	log.WithField("type", sessionType).Info("Request type got")
+
 	switch sessionType {
 	case SessionTypeShell:
 		s.sessioner.Shell(session) //nolint:errcheck

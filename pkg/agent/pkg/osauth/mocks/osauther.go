@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	io "io"
+
 	osauth "github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -26,6 +28,20 @@ func (_m *OSAuther) AuthUser(username string, password string) bool {
 	return r0
 }
 
+// AuthUserFromShadow provides a mock function with given fields: username, password, shadow
+func (_m *OSAuther) AuthUserFromShadow(username string, password string, shadow io.Reader) bool {
+	ret := _m.Called(username, password, shadow)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, io.Reader) bool); ok {
+		r0 = rf(username, password, shadow)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // LookupUser provides a mock function with given fields: username
 func (_m *OSAuther) LookupUser(username string) *osauth.User {
 	ret := _m.Called(username)
@@ -40,6 +56,32 @@ func (_m *OSAuther) LookupUser(username string) *osauth.User {
 	}
 
 	return r0
+}
+
+// LookupUserFromPasswd provides a mock function with given fields: username, passwd
+func (_m *OSAuther) LookupUserFromPasswd(username string, passwd io.Reader) (*osauth.User, error) {
+	ret := _m.Called(username, passwd)
+
+	var r0 *osauth.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, io.Reader) (*osauth.User, error)); ok {
+		return rf(username, passwd)
+	}
+	if rf, ok := ret.Get(0).(func(string, io.Reader) *osauth.User); ok {
+		r0 = rf(username, passwd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*osauth.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, io.Reader) error); ok {
+		r1 = rf(username, passwd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // VerifyPasswordHash provides a mock function with given fields: hash, password

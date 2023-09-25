@@ -6,8 +6,10 @@ import (
 	"sync"
 	"time"
 
+	dockerclient "github.com/docker/docker/client"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/connector"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -86,7 +88,7 @@ const (
 )
 
 // NewServer creates a new server SSH agent server.
-func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, singleUserPassword string) *Server {
+func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, singleUserPassword string, mode modes.Mode) *Server {
 	server := &Server{
 		api:                api,
 		authData:           authData,
@@ -94,13 +96,25 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		Sessions:           make(map[string]net.Conn),
 		keepAliveInterval:  keepAliveInterval,
 		singleUserPassword: singleUserPassword,
-		mode:               modes.HostMode,
+		mode:               mode,
 	}
 
 	switch server.mode {
 	case modes.HostMode:
 		server.authenticator = host.NewAuthenticator(api, authData, singleUserPassword, &server.deviceName)
 		server.sessioner = host.NewSessioner(&server.deviceName, server.cmds)
+	case modes.ConnectorMode:
+		cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		server.authenticator = connector.NewAuthenticator(api, cli, authData, &server.deviceName)
+		server.sessioner = connector.NewSessioner(&server.deviceName, cli)
+	default:
+		log.WithFields(log.Fields{
+			"mode": server.mode,
+		}).Fatal("Invalid server mode")
 	}
 
 	server.sshd = &gliderssh.Server{
