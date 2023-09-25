@@ -408,55 +408,69 @@ func (a *Agent) Listen(ctx context.Context, listining chan bool) error {
 
 	serv.SetDeviceName(a.authData.Name)
 
-	// NOTICE(r): when context is canceled, the agent will close the tunnel and stop listening for connections.
+	done := make(chan bool)
 	go func() {
-		<-ctx.Done()
-		a.Close() //nolint:errcheck
+		for {
+			a.mux.RLock()
+			if a.closed {
+				log.WithFields(log.Fields{
+					"version":        AgentVersion,
+					"tenant_id":      a.authData.Namespace,
+					"server_address": a.config.ServerAddress,
+				}).Debug("Stopped listening for connections")
+
+				done <- true
+
+				a.mux.RUnlock()
+
+				return
+			}
+			a.mux.RUnlock()
+
+			listener, err := a.NewReverseListener()
+			if err != nil {
+				time.Sleep(time.Second * 10)
+
+				continue
+			}
+
+			namespace := a.authData.Namespace
+			tenantName := a.authData.Name
+			sshEndpoint := a.serverInfo.Endpoints.SSH
+
+			sshid := strings.NewReplacer(
+				"{namespace}", namespace,
+				"{tenantName}", tenantName,
+				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
+			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
+
+			log.WithFields(log.Fields{
+				"namespace":      namespace,
+				"hostname":       tenantName,
+				"server_address": a.config.ServerAddress,
+				"ssh_server":     sshEndpoint,
+				"sshid":          sshid,
+			}).Info("Server connection established")
+
+			throw(listining, true)
+			if err := a.tunnel.Listen(listener); err != nil {
+				listener.Close() //nolint:errcheck
+
+				continue
+			}
+			throw(listining, false)
+		}
 	}()
 
-	for {
-		a.mux.RLock()
-		if a.closed {
-			log.WithFields(log.Fields{
-				"version":        AgentVersion,
-				"tenant_id":      a.authData.Namespace,
-				"server_address": a.config.ServerAddress,
-			}).Debug("stopped listening for connections")
-
-			return nil
-		}
-		a.mux.RUnlock()
-
-		listener, err := a.NewReverseListener()
-		if err != nil {
-			time.Sleep(time.Second * 10)
-
-			continue
+	select {
+	case <-ctx.Done():
+		if err := a.Close(); err != nil {
+			return err
 		}
 
-		namespace := a.authData.Namespace
-		tenantName := a.authData.Name
-		sshEndpoint := a.serverInfo.Endpoints.SSH
-
-		sshid := strings.NewReplacer(
-			"{namespace}", namespace,
-			"{tenantName}", tenantName,
-			"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
-		).Replace("{namespace}.{tenantName}@{sshEndpoint}")
-
-		log.WithFields(log.Fields{
-			"namespace":      namespace,
-			"hostname":       tenantName,
-			"server_address": a.config.ServerAddress,
-			"ssh_server":     sshEndpoint,
-			"sshid":          sshid,
-		}).Info("Server connection established")
-
-		throw(listining, true)
-		if err := a.tunnel.Listen(listener); err != nil {
-			continue
-		}
-		throw(listining, false)
+		return nil
+	case <-done:
+		return nil
 	}
 }
 
