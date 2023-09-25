@@ -1,5 +1,10 @@
 <template>
-  <i v-if="iconName" data-test="type-icon" :class="iconName + ' mr-1'" style="font-size: 20px" />
+  <i
+    v-if="iconName"
+    data-test="type-icon"
+    :class="iconName + ' mr-1'"
+    style="font-size: 20px"
+  />
   <i v-else data-test="type-icon" class="fl-tux mr-1" style="font-size: 20px" />
 </template>
 
@@ -39,6 +44,7 @@ export default defineComponent({
       "ubuntu-core": "fl-ubuntu",
       ubuntucore: "fl-ubuntu",
       void: "fl-void",
+      docker: "fl-docker",
     };
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
