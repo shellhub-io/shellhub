@@ -233,6 +233,16 @@ func isUnknownExitError(err error) bool {
 	return err != nil
 }
 
+func resizeWindow(uid string, agent *gossh.Session, winCh <-chan gliderssh.Window) {
+	for win := range winCh {
+		if err := agent.WindowChange(win.Height, win.Width); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"client": uid}).
+				Error("failed to send WindowChange")
+		}
+	}
+}
+
 // shell handles an interactive terminal session.
 func shell(api internalclient.Client, sess *session.Session, agent *gossh.Session, client gliderssh.Session, opts ConfigOptions) error {
 	uid := sess.UID
@@ -247,15 +257,7 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 		return err
 	}
 
-	go func() {
-		for win := range winCh {
-			if err := agent.WindowChange(win.Height, win.Width); err != nil {
-				log.WithError(err).
-					WithFields(log.Fields{"client": uid}).
-					Error("failed to send WindowChange")
-			}
-		}
-	}()
+	go resizeWindow(uid, agent, winCh)
 
 	flw, err := flow.NewFlow(agent)
 	if err != nil {
@@ -394,6 +396,14 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 		return err
 	}
 
+	// request a new pty when isPty is true
+	pty, winCh, isPty := client.Pty()
+	if isPty {
+		if err := agent.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, gossh.TerminalModes{}); err != nil {
+			return err
+		}
+	}
+
 	dev, err := api.GetDevice(device.UID)
 	if err != nil {
 		log.WithError(err).
@@ -401,6 +411,10 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 			Error("failed to get device")
 
 		return err
+	}
+
+	if isPty {
+		go resizeWindow(uid, agent, winCh)
 	}
 
 	waitPipeIn := make(chan bool)
