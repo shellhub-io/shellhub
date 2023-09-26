@@ -50,8 +50,8 @@ type Session struct {
 
 const (
 	Web     = "web"     // web terminal.
-	Term    = "term"    // iterative pty.
-	Exec    = "exec"    // non-iterative pty.
+	Term    = "term"    // interactive session
+	Exec    = "exec"    // command execution
 	HereDoc = "heredoc" // heredoc pty.
 	SCP     = "scp"     // scp.
 	SFTP    = "sftp"    // sftp subsystem.
@@ -99,7 +99,7 @@ func (s *Session) setType() {
 		s.Type = SCP
 	case !s.Pty && metadata.RestoreRequest(ctx) == "shell":
 		s.Type = HereDoc
-	case !s.Pty && cmd != "":
+	case cmd != "":
 		s.Type = Exec
 	case s.Pty:
 		s.Type = Term
@@ -130,7 +130,6 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 	lookup := metadata.RestoreLookup(clientCtx)
 
 	lookup["username"] = tag.Username
-	// TODO: probabily this need an if
 	lookup["ip_address"] = hos.Host
 
 	if envs.IsCloud() || envs.IsEnterprise() {

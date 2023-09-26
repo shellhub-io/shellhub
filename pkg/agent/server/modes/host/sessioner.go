@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"strings"
 	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -59,7 +60,7 @@ func NewSessioner(deviceName *string, cmds map[string]*exec.Cmd) *Sessioner {
 	}
 }
 
-// Shell handles the server's SSH shell session when server is running in host mode.
+// Shell manages the SSH shell session of the server when operating in host mode.
 func (s *Sessioner) Shell(session gliderssh.Session) error {
 	sspty, winCh, isPty := session.Pty()
 
@@ -183,7 +184,6 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 
 // Exec handles the SSH's server exec session when server is running in host mode.
 func (s *Sessioner) Exec(session gliderssh.Session) error {
-	u := new(osauth.OSAuth).LookupUser(session.User())
 	if len(session.Command()) == 0 {
 		log.WithFields(log.Fields{
 			"user":      session.User(),
@@ -196,65 +196,95 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		return nil
 	}
 
-	cmd := command.NewCmd(u, "", "", *s.deviceName, session.Command()...)
+	user := new(osauth.OSAuth).LookupUser(session.User())
+	sPty, sWinCh, sIsPty := session.Pty()
 
-	stdout, _ := cmd.StdoutPipe()
-	stdin, _ := cmd.StdinPipe()
-	stderr, _ := cmd.StderrPipe()
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = user.Shell
+	}
+
+	term := sPty.Term
+	if sIsPty && term == "" {
+		term = "xterm"
+	}
+
+	cmd := command.NewCmd(user, shell, term, *s.deviceName, shell, "-c", strings.Join(session.Command(), " "))
+	defer session.Exit(cmd.ProcessState.ExitCode()) //nolint:errcheck
+
+	wg := &sync.WaitGroup{}
+	if sIsPty {
+		pty, tty, err := initPty(cmd, session, sWinCh)
+		if err != nil {
+			log.Warn(err)
+		}
+
+		defer tty.Close()
+		defer pty.Close()
+
+		if err := os.Chown(tty.Name(), int(user.UID), -1); err != nil {
+			log.Warn(err)
+		}
+	} else {
+		stdout, _ := cmd.StdoutPipe()
+		stdin, _ := cmd.StdinPipe()
+		stderr, _ := cmd.StderrPipe()
+
+		// relay input from the SSH session to the command.
+		go func() {
+			if _, err := io.Copy(stdin, session); err != nil {
+				fmt.Println(err) //nolint:forbidigo
+			}
+
+			stdin.Close()
+		}()
+
+		wg.Add(1)
+
+		// relay the command's combined output and error streams back to the SSH session.
+		go func() {
+			defer wg.Done()
+			combinedOutput := io.MultiReader(stdout, stderr)
+			if _, err := io.Copy(session, combinedOutput); err != nil {
+				fmt.Println(err) //nolint:forbidigo
+			}
+		}()
+	}
+
+	log.WithFields(log.Fields{
+		"user":        session.User(),
+		"ispty":       sIsPty,
+		"remoteaddr":  session.RemoteAddr(),
+		"localaddr":   session.LocalAddr(),
+		"Raw command": session.RawCommand(),
+	}).Info("Command started")
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	if !sIsPty {
+		wg.Wait()
+	}
 
 	serverConn, ok := session.Context().Value(gliderssh.ContextKeyConn).(*gossh.ServerConn)
 	if !ok {
 		return fmt.Errorf("failed to get server connection from session context")
 	}
 
-	log.WithFields(log.Fields{
-		"user":        session.User(),
-		"remoteaddr":  session.RemoteAddr(),
-		"localaddr":   session.LocalAddr(),
-		"Raw command": session.RawCommand(),
-	}).Info("Command started")
-
-	err := cmd.Start()
-	if err != nil {
-		log.Warn(err)
-	}
-
+	// kill the process if the SSH connection is interrupted
 	go func() {
 		serverConn.Wait()  // nolint:errcheck
 		cmd.Process.Kill() // nolint:errcheck
 	}()
 
-	go func() {
-		if _, err := io.Copy(stdin, session); err != nil {
-			fmt.Println(err) //nolint:forbidigo
-		}
-
-		stdin.Close()
-	}()
-
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	go func() {
-		combinedOutput := io.MultiReader(stdout, stderr)
-		if _, err := io.Copy(session, combinedOutput); err != nil {
-			fmt.Println(err) //nolint:forbidigo
-		}
-
-		wg.Done()
-	}()
-
-	wg.Wait()
-
-	err = cmd.Wait()
-	if err != nil {
+	if err := cmd.Wait(); err != nil {
 		log.Warn(err)
 	}
 
-	session.Exit(cmd.ProcessState.ExitCode()) //nolint:errcheck
-
 	log.WithFields(log.Fields{
 		"user":        session.User(),
+		"ispty":       sIsPty,
 		"remoteaddr":  session.RemoteAddr(),
 		"localaddr":   session.LocalAddr(),
 		"Raw command": session.RawCommand(),

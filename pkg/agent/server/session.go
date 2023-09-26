@@ -28,6 +28,7 @@ const (
 // GetSessionType returns the session's type based on the SSH client session.
 func GetSessionType(session gliderssh.Session) (Type, error) {
 	_, _, isPty := session.Pty()
+
 	requestType, ok := session.Context().Value("request_type").(string)
 	if !ok {
 		return SessionTypeUnknown, fmt.Errorf("failed to get request type from session context")
