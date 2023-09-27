@@ -304,7 +304,7 @@ func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*
 	return device, nil
 }
 
-func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool) error {
+func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, timestamp time.Time, online bool) error {
 	if !online {
 		_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
 
@@ -312,9 +312,15 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 	}
 
 	collOptions := writeconcern.W1()
-	updateOptions := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+	updateOptions := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.Before)
+
 	result := s.db.Collection("devices", options.Collection().SetWriteConcern(collOptions)).
-		FindOneAndUpdate(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"last_seen": clock.Now()}}, updateOptions)
+		FindOneAndUpdate(ctx, bson.M{"uid": uid},
+			mongo.Pipeline{
+				bson.D{
+					bson.E{Key: "$set", Value: bson.M{"last_seen": bson.M{"$cond": bson.A{bson.M{"$lt": bson.A{"$last_seen", timestamp}}, timestamp, "$last_seen"}}}},
+				},
+			}, updateOptions)
 	if result.Err() != nil {
 		return FromMongoError(result.Err())
 	}
@@ -331,11 +337,14 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool
 		Status:   string(device.Status),
 	}
 
-	replaceOptions := options.Replace().SetUpsert(true)
-	_, err := s.db.Collection("connected_devices", options.Collection().SetWriteConcern(collOptions)).
-		ReplaceOne(ctx, bson.M{"uid": uid}, &cd, replaceOptions)
-	if err != nil {
-		return FromMongoError(err)
+	updated := cd.LastSeen.Before(timestamp)
+	if updated {
+		replaceOptions := options.Replace().SetUpsert(true)
+		_, err := s.db.Collection("connected_devices", options.Collection().SetWriteConcern(collOptions)).
+			ReplaceOne(ctx, bson.M{"uid": uid}, &cd, replaceOptions)
+		if err != nil {
+			return FromMongoError(err)
+		}
 	}
 
 	return nil

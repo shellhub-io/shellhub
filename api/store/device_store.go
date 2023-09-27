@@ -26,7 +26,7 @@ type DeviceStore interface {
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
 	DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error)
-	DeviceSetOnline(ctx context.Context, uid models.UID, online bool) error
+	DeviceSetOnline(ctx context.Context, uid models.UID, timestamp time.Time, online bool) error
 	DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error
 	DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error
 	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error

@@ -779,7 +779,8 @@ func TestOffineDevice(t *testing.T) {
 			name: "fails when store device online fails",
 			uid:  models.UID("uid"),
 			requiredMocks: func() {
-				mock.On("DeviceSetOnline", ctx, models.UID("uid"), false).
+				clockMock.On("Now").Return(now).Once()
+				mock.On("DeviceSetOnline", ctx, models.UID("uid"), now, false).
 					Return(errors.New("error", "", 0)).Once()
 			},
 			expected: errors.New("error", "", 0),
@@ -790,7 +791,8 @@ func TestOffineDevice(t *testing.T) {
 			online: true,
 			requiredMocks: func() {
 				online := true
-				mock.On("DeviceSetOnline", ctx, models.UID("uid"), online).
+				clockMock.On("Now").Return(now).Once()
+				mock.On("DeviceSetOnline", ctx, models.UID("uid"), now, online).
 					Return(errors.New("error", "", 0)).Once()
 			},
 			expected: errors.New("error", "", 0),
@@ -1983,7 +1985,7 @@ func TestDeviceHeartbeat(t *testing.T) {
 
 	clockMock.On("Now").Return(now).Once()
 
-	mock.On("DeviceSetOnline", ctx, uid, true).Return(nil).Once()
+	mock.On("DeviceSetOnline", ctx, uid, now, true).Return(nil).Once()
 
 	service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 	err := service.DeviceHeartbeat(ctx, uid)

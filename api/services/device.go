@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -172,7 +173,7 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 }
 
 func (s *service) OffineDevice(ctx context.Context, uid models.UID, online bool) error {
-	err := s.store.DeviceSetOnline(ctx, uid, online)
+	err := s.store.DeviceSetOnline(ctx, uid, clock.Now(), online)
 	if err == store.ErrNoDocuments {
 		return NewErrDeviceNotFound(uid, err)
 	}
@@ -309,7 +310,7 @@ func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip stri
 }
 
 func (s *service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
-	if err := s.store.DeviceSetOnline(ctx, uid, true); err != nil {
+	if err := s.store.DeviceSetOnline(ctx, uid, clock.Now(), true); err != nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
 

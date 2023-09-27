@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -29,8 +30,7 @@ func StartHeartBeat(_ context.Context, store store.Store) error {
 		var b strings.Builder
 
 		for _, task := range tasks {
-			b.Write(task.Payload())
-			b.WriteString("\n")
+			b.WriteString(fmt.Sprintf("%s:%d\n", task.Payload(), time.Now().Unix()))
 		}
 
 		return asynq.NewTask("api:heartbeat", []byte(b.String()))
@@ -54,7 +54,19 @@ func StartHeartBeat(_ context.Context, store store.Store) error {
 		scanner.Split(bufio.ScanLines)
 
 		for scanner.Scan() {
-			store.DeviceSetOnline(ctx, models.UID(scanner.Text()), true) //nolint:errcheck
+			parts := strings.SplitN(scanner.Text(), ":", 2)
+			uid := parts[0]
+
+			i, err := strconv.ParseInt(parts[1], 10, 64)
+			if err != nil {
+				log.Error(err)
+
+				continue
+			}
+
+			timestamp := time.Unix(i, 0)
+
+			store.DeviceSetOnline(ctx, models.UID(uid), timestamp, true) //nolint:errcheck
 		}
 
 		return nil

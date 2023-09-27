@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -116,7 +117,7 @@ func TestDeviceSetOnline(t *testing.T) {
 	err = mongostore.DeviceCreate(data.Context, data.Device, "hostname")
 	assert.NoError(t, err)
 
-	err = mongostore.DeviceSetOnline(data.Context, models.UID(data.Device.UID), true)
+	err = mongostore.DeviceSetOnline(data.Context, models.UID(data.Device.UID), clock.Now(), true)
 	assert.NoError(t, err)
 }
 
