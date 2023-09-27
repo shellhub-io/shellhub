@@ -32,12 +32,12 @@ bundle_install() {
     INSTALL_DIR="${INSTALL_DIR:-/opt/shellhub}"
 
     if [ "$(id -u)" -ne 0 ]; then
-        printf "NOTE: This install method requires root privileges\n"
+        printf "NOTE: This install method requires root privileges.\n"
         SUDO="sudo"
     fi
 
     if ! systemctl show-environment > /dev/null 2>&1 ; then
-        printf "ERROR: This is not a systemd based OS. Could be not proceed.."
+        printf "ERROR: This is not a systemd-based operation system. Unable to proceed with the requested action.\n"
         exit 1
     fi
 
@@ -45,26 +45,26 @@ bundle_install() {
     echo "Downloading runc static binary..."
     {
         download "https://github.com/opencontainers/runc/releases/download/${RUNC_VERSION}/runc.${RUNC_ARCH}" $TMP_DIR/runc && chmod 755 $TMP_DIR/runc
-    } || { rm -rf $TMP_DIR && echo "Failed to download runc bnary" && exit 1; }
+    } || { rm -rf $TMP_DIR && echo "Failed to download runc binary." && exit 1; }
 
     echo "Downloading OCI runtime spec file..."
     {
         download https://raw.githubusercontent.com/shellhub-io/shellhub/${AGENT_VERSION}/agent/packaging/config.json $TMP_DIR/config.json
-    } ||  { rm -rf $TMP_DIR && echo "Failed to download OCI runtime spec" && exit 1; }
+    } ||  { rm -rf $TMP_DIR && echo "Failed to download OCI runtime spec." && exit 1; }
 
     echo "Downloading systemd service file..."
     {
         download https://raw.githubusercontent.com/shellhub-io/shellhub/${AGENT_VERSION}/agent/packaging/shellhub-agent.service $TMP_DIR/shellhub-agent.service
-    } || { rm -rf $TMP_DIR && echo "Failed to download systemd service file..." && exit 1; }
+    } || { rm -rf $TMP_DIR && echo "Failed to download systemd service file." && exit 1; }
     echo "Downloading rootfs tarball..."
     {
         download https://github.com/shellhub-io/shellhub/releases/download/$AGENT_VERSION/rootfs-$AGENT_ARCH.tar.gz $TMP_DIR/rootfs.tar.gz
-    } || { rm -rf $TMP_DIR && echo "Failed to download rootfs" && exit 1; }
+    } || { rm -rf $TMP_DIR && echo "Failed to download rootfs." && exit 1; }
 
     echo "Extracting rootfs..."
     {
         mkdir -p $TMP_DIR/rootfs && tar -C $TMP_DIR/rootfs -xzf $TMP_DIR/rootfs.tar.gz && rm -f $TMP_DIR/rootfs.tar.gz
-    } || { rm -rf $TMP_DIR && echo "Failed to extract rootfs" && exit 1; }
+    } || { rm -rf $TMP_DIR && echo "Failed to extract rootfs." && exit 1; }
 
     rm -f $TMP_DIR/rootfs/.dockerenv
 
@@ -73,10 +73,10 @@ bundle_install() {
     sed -i "s,__ROOT_PATH__,$INSTALL_DIR/rootfs,g" $TMP_DIR/config.json
     sed -i "s,__INSTALL_DIR__,$INSTALL_DIR,g" $TMP_DIR/shellhub-agent.service
 
-    echo "Creating systemd service and starting it"
+    echo "Creating systemd service and starting it..."
 
     $SUDO cp $TMP_DIR/shellhub-agent.service /etc/systemd/system/shellhub-agent.service
-    $SUDO systemctl enable --now shellhub-agent || { rm -rf $TMP_DIR && echo "Failed to active systemd service service"; exit 1; }
+    $SUDO systemctl enable --now shellhub-agent || { rm -rf $TMP_DIR && echo "Failed to enable systemd service."; exit 1; }
 
     $SUDO rm -rf $INSTALL_DIR
     $SUDO mv $TMP_DIR $INSTALL_DIR
@@ -104,7 +104,7 @@ http_get() {
     fi
 }
 
-[ -z "$TENANT_ID" ] && { echo "ERROR: TENANT_ID is missing"; exit 1; }
+[ -z "$TENANT_ID" ] && { echo "ERROR: TENANT_ID is missing."; exit 1; }
 
 SERVER_ADDRESS="${SERVER_ADDRESS:-https://cloud.shellhub.io}"
 TENANT_ID="${TENANT_ID}"
@@ -162,6 +162,6 @@ case "$INSTALL_METHOD" in
         docker_install
         ;;
     *)
-        echo "Install method not supported"
+        echo "Install method not supported."
         exit 1
 esac
