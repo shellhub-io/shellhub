@@ -67,6 +67,7 @@ type User struct {
 	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
 	MFA            bool      `json:"status_mfa" bson:"status_mfa"`
 	Secret         string    `json:"secret" bson:"secret"`
+	Codes          []string  `json:"codes" bson:"codes"`
 	UserData       `bson:",inline"`
 	UserPassword   `bson:",inline"`
 }

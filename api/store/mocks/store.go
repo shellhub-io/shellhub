@@ -22,6 +22,20 @@ type Store struct {
 	mock.Mock
 }
 
+// AddCodes provides a mock function with given fields: ctx, username, codes
+func (_m *Store) AddCodes(ctx context.Context, username string, codes []string) error {
+	ret := _m.Called(ctx, username, codes)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
+		r0 = rf(ctx, username, codes)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // AddSecret provides a mock function with given fields: ctx, username, secret
 func (_m *Store) AddSecret(ctx context.Context, username string, secret string) error {
 	ret := _m.Called(ctx, username, secret)
@@ -144,6 +158,20 @@ func (_m *Store) AnnouncementUpdate(ctx context.Context, announcement *models.An
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *models.Announcement) error); ok {
 		r0 = rf(ctx, announcement)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteCodes provides a mock function with given fields: ctx, username
+func (_m *Store) DeleteCodes(ctx context.Context, username string) error {
+	ret := _m.Called(ctx, username)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, username)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -929,6 +957,56 @@ func (_m *Store) FirewallRuleUpdateTags(ctx context.Context, id string, tags []s
 	}
 
 	return r0
+}
+
+// GetCodes provides a mock function with given fields: ctx, id
+func (_m *Store) GetCodes(ctx context.Context, id string) ([]string, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]string, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSecret provides a mock function with given fields: ctx, id
+func (_m *Store) GetSecret(ctx context.Context, id string) (string, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetStats provides a mock function with given fields: ctx
@@ -1878,6 +1956,20 @@ func (_m *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, err
 	}
 
 	return r0, r1, r2
+}
+
+// UpdateCodes provides a mock function with given fields: ctx, id, codes
+func (_m *Store) UpdateCodes(ctx context.Context, id string, codes []string) error {
+	ret := _m.Called(ctx, id, codes)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
+		r0 = rf(ctx, id, codes)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // UserCreate provides a mock function with given fields: ctx, user
