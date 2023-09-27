@@ -107,6 +107,7 @@ func (_m *Service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remo
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // AuthGetToken provides a mock function with given fields: ctx, id
 func (_m *Service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {
 	ret := _m.Called(ctx, id)
@@ -147,14 +148,32 @@ func (_m *Service) AuthGetToken(ctx context.Context, tenant string) (*models.Use
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *models.UserAuthResponse); ok {
 		r0 = rf(ctx, id)
+=======
+// AuthGetToken provides a mock function with given fields: ctx, tenant, mfa
+func (_m *Service) AuthGetToken(ctx context.Context, tenant string, mfa bool) (*models.UserAuthResponse, error) {
+	ret := _m.Called(ctx, tenant, mfa)
+
+	var r0 *models.UserAuthResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) (*models.UserAuthResponse, error)); ok {
+		return rf(ctx, tenant, mfa)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) *models.UserAuthResponse); ok {
+		r0 = rf(ctx, tenant, mfa)
+>>>>>>> 13c27515 (feat(api): This commit is to implement)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserAuthResponse)
 		}
 	}
 
+<<<<<<< HEAD
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, id)
+=======
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
+		r1 = rf(ctx, tenant, mfa)
+>>>>>>> 13c27515 (feat(api): This commit is to implement)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -276,6 +295,7 @@ func (_m *Service) AuthUncacheToken(ctx context.Context, tenant string, id strin
 	return r0
 }
 
+<<<<<<< HEAD
 // AuthUser provides a mock function with given fields: ctx, model
 func (_m *Service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error) {
 	ret := _m.Called(ctx, model)
@@ -287,14 +307,32 @@ func (_m *Service) AuthUser(ctx context.Context, model *models.UserAuthRequest) 
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, *models.UserAuthRequest) *models.UserAuthResponse); ok {
 		r0 = rf(ctx, model)
+=======
+// AuthUser provides a mock function with given fields: ctx, req, validate
+func (_m *Service) AuthUser(ctx context.Context, req requests.UserAuth, validate bool) (*models.UserAuthResponse, error) {
+	ret := _m.Called(ctx, req, validate)
+
+	var r0 *models.UserAuthResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, requests.UserAuth, bool) (*models.UserAuthResponse, error)); ok {
+		return rf(ctx, req, validate)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, requests.UserAuth, bool) *models.UserAuthResponse); ok {
+		r0 = rf(ctx, req, validate)
+>>>>>>> 13c27515 (feat(api): This commit is to implement)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserAuthResponse)
 		}
 	}
 
+<<<<<<< HEAD
 	if rf, ok := ret.Get(1).(func(context.Context, *models.UserAuthRequest) error); ok {
 		r1 = rf(ctx, model)
+=======
+	if rf, ok := ret.Get(1).(func(context.Context, requests.UserAuth, bool) error); ok {
+		r1 = rf(ctx, req, validate)
+>>>>>>> 13c27515 (feat(api): This commit is to implement)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -1,8 +1,9 @@
 package models
 
-type ValidateMFA struct {
-	TokenMFA string `json:"token_mfa"`
-	Secret   string `json:"secret"`
+type EnableMFA struct {
+	TokenMFA string   `json:"token_mfa"`
+	Secret   string   `json:"secret"`
+	Codes    []string `json:"codes" bson:"codes"`
 }
 
 type MFA struct {
@@ -10,7 +11,10 @@ type MFA struct {
 	Validate bool `json:"validate"`
 }
 
-type CreateMFA struct {
-	Username string `json:"username"`
-	Status   bool   `json:"status"`
+type GetCodes struct {
+	Codes []string `json:"codes" bson:"codes"`
+}
+
+type Code struct {
+	Code string `json:"code"`
 }

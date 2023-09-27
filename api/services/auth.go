@@ -25,12 +25,11 @@ type AuthService interface {
 	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
-	AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error)
-	AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error)
+	AuthUser(ctx context.Context, model *models.UserAuth, validate boolRequest) (*models.UserAuthResponse, error)
+	AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
 	AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error)
-	AuthGetCacheMFA(ctx context.Context, username string) (bool, error)
 	AuthMFA(ctx context.Context, id string) (bool, error)
 	PublicKey() *rsa.PublicKey
 }
@@ -134,11 +133,9 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}, nil
 }
 
-func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error) {
+func (s *service) AuthUser(ctx context.Context, model *models.UserAuth, validate boolRequest) (*models.UserAuthResponse, error) {
 	var err error
 	var user *models.User
-	userFromUsername, errUsername := s.store.UserGetByUsername(ctx, strings.ToLower(req.Username))
-	userFromEmail, errEmail := s.store.UserGetByEmail(ctx, strings.ToLower(req.Username))
 
 	if model.Identifier.IsEmail() {
 		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(model.Identifier)))
@@ -168,11 +165,6 @@ func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (
 
 	if user.UserPassword.Compare(models.NewUserPassword(model.Password)) {
 	status, err := s.AuthMFA(ctx, user.ID)
-	if err != nil {
-		return nil, NewErrUserNotFound(user.ID, err)
-	}
-
-	validate, err := s.AuthGetCacheMFA(ctx, user.Username)
 	if err != nil {
 		return nil, NewErrUserNotFound(user.ID, err)
 	}
@@ -225,7 +217,7 @@ func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (
 	return nil, NewErrAuthUnathorized(nil)
 }
 
-func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {
+func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error) {
 	user, _, err := s.store.UserGetByID(ctx, id, false)
 	if err != nil {
 		return nil, NewErrUserNotFound(id, err)
@@ -252,11 +244,6 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 		return nil, NewErrUserNotFound(id, err)
 	}
 
-	validate, err := s.AuthGetCacheMFA(ctx, user.Username)
-	if err != nil {
-		return nil, NewErrUserNotFound(user.ID, err)
-	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 		Username: user.Username,
 		Admin:    true,
@@ -268,7 +255,7 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 		},
 		MFA: models.MFA{
 			Status:   status,
-			Validate: validate,
+			Validate: mfa,
 		},
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(clock.Now().Add(time.Hour * 72)),
@@ -332,16 +319,6 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 		return nil, NewErrUserNotFound(id, err)
 	}
 
-	status, err := s.AuthMFA(ctx, user.ID)
-	if err != nil {
-		return nil, NewErrUserNotFound(id, err)
-	}
-
-	validate, err := s.AuthGetCacheMFA(ctx, user.Username)
-	if err != nil {
-		return nil, NewErrUserNotFound(user.ID, err)
-	}
-
 	for _, member := range namespace.Members {
 		if user.ID == member.ID {
 			token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
@@ -352,10 +329,6 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				ID:       user.ID,
 				AuthClaims: models.AuthClaims{
 					Claims: "user",
-				},
-				MFA: models.MFA{
-					Status:   status,
-					Validate: validate,
 				},
 				RegisteredClaims: jwt.RegisteredClaims{
 					ExpiresAt: jwt.NewNumericDate(clock.Now().Add(time.Hour * 72)),
@@ -377,7 +350,6 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				Role:   member.Role,
 				Tenant: namespace.TenantID,
 				Email:  user.Email,
-				MFA:    status,
 			}, nil
 		}
 	}
@@ -456,23 +428,6 @@ func (s *service) AuthIsCacheToken(ctx context.Context, tenant, id string) (bool
 // AuthUncacheToken returns an erro when it could not uncache the token.
 func (s *service) AuthUncacheToken(ctx context.Context, tenant, id string) error {
 	return s.cache.Delete(ctx, "token_"+tenant+id)
-}
-
-// AuthGetCacheMFA checks if the 'validate_mfa' status is cached;
-//
-// It receives a context, used to "control" the request flow and the user ID.
-//
-// AuthGetCacheMFA returns a string to indicate if the validate_mfa is cached and
-//
-//	an error when it could not get the status of validate_mfa.
-func (s *service) AuthGetCacheMFA(ctx context.Context, username string) (bool, error) {
-	var data bool
-
-	if err := s.cache.Get(ctx, "validate_mfa_"+username, &data); err != nil {
-		return false, err
-	}
-
-	return data, nil
 }
 
 func (s *service) AuthMFA(ctx context.Context, id string) (bool, error) {

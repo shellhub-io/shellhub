@@ -37,6 +37,7 @@ func NewErrInvalidEntity(fields map[string]string) error {
 	return errors.Wrap(errors.WithData(ErrInvalidEntity, ErrDataInvalidEntity{Fields: fields}), nil)
 }
 
+// NewErrUnauthorized returns an error with the access is not authorized.
 func NewErrUnauthorized(err error) error {
 	return errors.Wrap(ErrUnauthorized, err)
 }

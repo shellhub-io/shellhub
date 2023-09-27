@@ -2,7 +2,6 @@ package routes
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -96,23 +95,6 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 			}
 		}
 
-		MFA, err := h.service.AuthMFA(c.Ctx(), claims.ID)
-		if err != nil {
-			return err
-		}
-
-		if MFA != claims.MFA.Status {
-			if MFA {
-				if !claims.MFA.Validate {
-					return svc.NewErrAuthUnathorized(errors.New("necessary make validate MFA"))
-				}
-			}
-		}
-
-		fmt.Println("AUTH REQUEST SET HEADER MFA:", claims.MFA.Status)
-		fmt.Println("AUTH REQUEST SET HEADER validate:", claims.MFA.Validate)
-		fmt.Println("AUTH REQUEST SET HEADERs:", c.Response().Header())
-
 		// Extract datas of user from JWT
 		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
 		c.Response().Header().Set("X-Username", claims.Username)
@@ -134,6 +116,7 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 
 		return c.NoContent(http.StatusOK)
 	default:
+
 		return svc.NewErrAuthUnathorized(nil)
 	}
 }
@@ -211,7 +194,7 @@ func (h *Handler) AuthGetToken(c gateway.Context) error {
 		return err
 	}
 
-	res, err := h.service.AuthGetToken(c.Ctx(), req.ID)
+	res, err := h.service.AuthGetToken(c.Ctx(), req.ID, req.MFA)
 	if err != nil {
 		return err
 	}
@@ -265,7 +248,6 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if !ok {
 			return svc.ErrTypeAssertion
 		}
-
 		jwt := middleware.JWTWithConfig(middleware.JWTConfig{ //nolint:staticcheck
 			Claims:        &jwt.MapClaims{},
 			SigningKey:    ctx.Service().(svc.Service).PublicKey(),
@@ -278,12 +260,20 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 func AuthMiddlewareMFA(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// Verify is the user have a 2fa enable
-
 		statusMFA := c.Request().Header.Get("X-MFA")
 		validateMFA := c.Request().Header.Get("X-Validate-MFA")
 
-		if statusMFA != "" {
+		exemptedPaths := []string{"/api/mfa/generate", "/api/mfa/enable", "/api/mfa/desable", "/api/mfa/recovery", "/api/mfa/auth"}
+		currentPath := c.Path()
+		isExempted := false
+
+		for _, path := range exemptedPaths {
+			if currentPath == path {
+				isExempted = true
+			}
+		}
+
+		if !isExempted && statusMFA != "" {
 			status, err := strconv.ParseBool(statusMFA)
 			if err != nil {
 				return err
@@ -296,7 +286,7 @@ func AuthMiddlewareMFA(next echo.HandlerFunc) echo.HandlerFunc {
 				}
 
 				if !validate {
-					return svc.NewErrMFAUnathorized(nil)
+					return svc.NewErrAuthUnathorized(nil)
 				}
 			}
 		}

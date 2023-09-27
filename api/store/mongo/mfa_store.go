@@ -40,8 +40,66 @@ func (s *Store) AddSecret(ctx context.Context, username string, secret string) e
 	return nil
 }
 
+func (s *Store) GetSecret(ctx context.Context, id string) (string, error) {
+	var user models.User
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return "", err
+	}
+
+	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
+		return "", FromMongoError(err)
+	}
+
+	return user.Secret, nil
+}
+
 func (s *Store) DeleteSecret(ctx context.Context, username string) error {
 	_, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"username": username}, bson.M{"$unset": bson.M{"secret": ""}})
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) GetCodes(ctx context.Context, id string) ([]string, error) {
+	var codes models.User
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&codes); err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	return codes.Codes, nil
+}
+
+func (s *Store) AddCodes(ctx context.Context, username string, codes []string) error {
+	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"username": username}, bson.M{"$set": bson.M{"codes": codes}}); err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) UpdateCodes(ctx context.Context, id string, codes []string) error {
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"codes": codes}}); err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) DeleteCodes(ctx context.Context, username string) error {
+	_, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"username": username}, bson.M{"$unset": bson.M{"codes": ""}})
 	if err != nil {
 		return FromMongoError(err)
 	}

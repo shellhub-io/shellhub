@@ -65,7 +65,6 @@ func NewErrors(reporter *sentry.Client) func(error, echo.Context) {
 		}
 
 		var status int
-
 		switch e.Layer {
 		case guard.ErrLayer:
 			status = http.StatusForbidden
@@ -78,7 +77,6 @@ func NewErrors(reporter *sentry.Client) func(error, echo.Context) {
 			// service error affecting it, which requires fixing.
 			status = http.StatusInternalServerError
 		}
-
 		ctx.NoContent(status) //nolint:errcheck
 	}
 }
