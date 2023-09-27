@@ -547,13 +547,13 @@ func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname stri
 	return r0
 }
 
-// DeviceSetOnline provides a mock function with given fields: ctx, uid, online
-func (_m *Store) DeviceSetOnline(ctx context.Context, uid models.UID, online bool) error {
-	ret := _m.Called(ctx, uid, online)
+// DeviceSetOnline provides a mock function with given fields: ctx, uid, timestamp, online
+func (_m *Store) DeviceSetOnline(ctx context.Context, uid models.UID, timestamp time.Time, online bool) error {
+	ret := _m.Called(ctx, uid, timestamp, online)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, bool) error); ok {
-		r0 = rf(ctx, uid, online)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, time.Time, bool) error); ok {
+		r0 = rf(ctx, uid, timestamp, online)
 	} else {
 		r0 = ret.Error(0)
 	}

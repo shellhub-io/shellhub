@@ -110,7 +110,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		return nil, NewErrDeviceCreate(device, err)
 	}
 
-	if err := s.store.DeviceSetOnline(ctx, models.UID(device.UID), true); err != nil {
+	if err := s.store.DeviceSetOnline(ctx, models.UID(device.UID), clock.Now(), true); err != nil {
 		return nil, NewErrDeviceSetOnline(models.UID(device.UID), err)
 	}
 

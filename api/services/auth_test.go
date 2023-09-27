@@ -58,7 +58,7 @@ func TestAuthDevice(t *testing.T) {
 
 	mock.On("DeviceCreate", ctx, *device, "").
 		Return(nil).Once()
-	mock.On("DeviceSetOnline", ctx, models.UID(device.UID), true).
+	mock.On("DeviceSetOnline", ctx, models.UID(device.UID), now, true).
 		Return(nil).Once()
 	mock.On("SessionSetLastSeen", ctx, models.UID(authReq.Sessions[0])).
 		Return(nil).Once()
