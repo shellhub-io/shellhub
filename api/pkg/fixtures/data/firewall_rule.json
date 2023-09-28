@@ -1,0 +1,15 @@
+{
+    "firewall_rules": {
+        "6504b7bd9b6c4a63a9ccc053": {
+            "action": "allow",
+            "active": true,
+            "filter": {
+                "tags": ["tag1"]
+            },
+            "priority": 1,
+            "source_ip": ".*",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "username": ".*"
+        }
+    }
+}

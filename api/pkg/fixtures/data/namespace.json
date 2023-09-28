@@ -1,0 +1,24 @@
+{
+    "namespaces": {
+        "6500c8f086353a36732d544a": {
+            "created_at": "2023-01-01T12:00:00.000Z",
+            "max_devices": -1,
+            "members": [
+                {
+                    "id": "507f1f77bcf86cd799439011",
+                    "role": "owner"
+                },
+                {
+                    "id": "6509e169ae6144b2f56bf288",
+                    "role": "observer"
+                }
+            ],
+            "name": "namespace",
+            "owner": "507f1f77bcf86cd799439011",
+            "settings": {
+                "session_record": true
+            },
+            "tenant_id": "00000000-0000-4000-0000-000000000000"
+        }
+    }
+}

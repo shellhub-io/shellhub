@@ -1,0 +1,9 @@
+{
+    "private_keys": {
+        "65088c97a3efce71bf6e1f32": {
+            "created_at": "2023-01-01T12:00:00.000Z",
+            "data": "test",
+            "fingerprint": "fingerprint"
+        }
+    }
+}

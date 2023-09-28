@@ -1,0 +1,36 @@
+{
+    "sessions": {
+        "650a16617ab1243960ee4c8c": {
+            "started_at": "2023-01-01T12:00:00.000Z",
+            "last_seen": "2023-01-01T12:00:00.000Z",
+            "authenticated": true,
+            "closed": false,
+            "device_uid": "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+            "ip_address": "0.0.0.0",
+            "position": {
+                "longitude": 0,
+                "latitude": 0
+            },
+            "recorded": false,
+            "term": "",
+            "type": "",
+            "uid": "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+            "username": "john_doe",
+            "tenant_id": "00000000-0000-4000-0000-000000000000"
+        }
+    },
+    "active_sessions": {
+        "650a1c1b3b3bb3a0f8e9bf43": {
+            "last_seen": "2023-01-01T12:00:00.000Z",
+            "uid": "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"
+        }
+    },
+    "recorded_sessions": {
+        "650a29b8ed1050a22b2c862e": {
+            "time": "2023-01-01T12:00:00.000Z",
+            "uid": "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "message": "message"
+        }
+    }
+}
