@@ -17,7 +17,7 @@ func (s *Store) PublicKeyAddTag(ctx context.Context, tenant, fingerprint, tag st
 		return err
 	}
 
-	if result.ModifiedCount <= 0 {
+	if result.ModifiedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
@@ -34,7 +34,7 @@ func (s *Store) PublicKeyRemoveTag(ctx context.Context, tenant, fingerprint, tag
 		return err
 	}
 
-	if result.ModifiedCount <= 0 {
+	if result.ModifiedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
@@ -52,7 +52,7 @@ func (s *Store) PublicKeyUpdateTags(ctx context.Context, tenant, fingerprint str
 		return err
 	}
 
-	if result.ModifiedCount <= 0 {
+	if result.MatchedCount < 1 {
 		return store.ErrNoDocuments
 	}
 

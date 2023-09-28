@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (s *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
@@ -73,19 +75,26 @@ func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) erro
 }
 
 func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}, bson.M{"$set": key}); err != nil {
-		if err != nil {
-			return nil, FromMongoError(err)
-		}
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	filter := bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}
 
-		return nil, err
+	pubKey := new(models.PublicKey)
+	if err := s.db.Collection("public_keys").FindOneAndUpdate(ctx, filter, bson.M{"$set": key}, opts).Decode(&pubKey); err != nil {
+		return nil, FromMongoError(err)
 	}
 
-	return s.PublicKeyGet(ctx, fingerprint, tenantID)
+	return pubKey, nil
 }
 
 func (s *Store) PublicKeyDelete(ctx context.Context, fingerprint string, tenantID string) error {
-	_, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID})
+	pubKey, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID})
+	if err != nil {
+		return FromMongoError(err)
+	}
 
-	return err
+	if pubKey.DeletedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
 }

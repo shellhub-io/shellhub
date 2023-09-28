@@ -4,11 +4,13 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -140,15 +142,29 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 }
 
 func (s *Store) SessionSetAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
-	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"authenticated": authenticated}})
+	session, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"authenticated": authenticated}})
+	if err != nil {
+		return FromMongoError(err)
+	}
 
-	return FromMongoError(err)
+	if session.MatchedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
 }
 
 func (s *Store) SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error {
-	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": recorded}})
+	session, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": recorded}})
+	if err != nil {
+		return FromMongoError(err)
+	}
 
-	return FromMongoError(err)
+	if session.MatchedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
 }
 
 func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
@@ -211,48 +227,83 @@ func (s *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 	return nil
 }
 
+// SessionDeleteActives sets a session's "closed" status to true and deletes all related active_sessions.
 func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error {
-	session := new(models.Session)
-	if err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": uid}).Decode(&session); err != nil {
+	mongoSession, err := s.db.Client().StartSession()
+	if err != nil {
 		return FromMongoError(err)
 	}
+	defer mongoSession.EndSession(ctx)
 
-	session.LastSeen = clock.Now()
-	session.Closed = true
+	_, err = mongoSession.WithTransaction(ctx, func(mongoctx mongo.SessionContext) (interface{}, error) {
+		session := new(models.Session)
 
-	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session}, opts)
+		query := bson.M{"uid": uid}
+		update := bson.M{"$set": bson.M{"last_seen": clock.Now(), "closed": true}}
+
+		if err := s.db.Collection("sessions").FindOneAndUpdate(ctx, query, update).Decode(&session); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		_, err := s.db.Collection("active_sessions").DeleteMany(ctx, bson.M{"uid": session.UID})
+
+		return nil, FromMongoError(err)
+	})
+
+	return err
+}
+
+func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordSession *models.RecordedSession) error {
+	mongoSession, err := s.db.Client().StartSession()
+	if err != nil {
+		return FromMongoError(err)
+	}
+	defer mongoSession.EndSession(ctx)
+
+	_, err = mongoSession.WithTransaction(ctx, func(mongoctx mongo.SessionContext) (interface{}, error) {
+		session, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": true}})
+		if err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		if session.MatchedCount < 1 {
+			return nil, store.ErrNoDocuments
+		}
+
+		if _, err := s.db.Collection("recorded_sessions").InsertOne(ctx, &recordSession); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		return nil, err
+	})
+
+	return err
+}
+
+func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
+	session, err := s.db.Collection("sessions").UpdateMany(ctx, bson.M{"device_uid": oldUID}, bson.M{"$set": bson.M{"device_uid": newUID}})
 	if err != nil {
 		return FromMongoError(err)
 	}
 
-	_, err = s.db.Collection("active_sessions").DeleteMany(ctx, bson.M{"uid": session.UID})
-
-	return FromMongoError(err)
-}
-
-func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordSession *models.RecordedSession) error {
-	if _, err := s.db.Collection("recorded_sessions").InsertOne(ctx, &recordSession); err != nil {
-		return FromMongoError(err)
-	}
-
-	if _, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": true}}); err != nil {
-		return FromMongoError(err)
+	if session.MatchedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	return nil
 }
 
-func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
-	_, err := s.db.Collection("sessions").UpdateMany(ctx, bson.M{"device_uid": oldUID}, bson.M{"$set": bson.M{"device_uid": newUID}})
-
-	return FromMongoError(err)
-}
-
 func (s *Store) SessionDeleteRecordFrame(ctx context.Context, uid models.UID) error {
-	_, err := s.db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{"uid": uid})
+	session, err := s.db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{"uid": uid})
+	if err != nil {
+		return FromMongoError(err)
+	}
 
-	return FromMongoError(err)
+	if session.DeletedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
 }
 
 func (s *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error) {

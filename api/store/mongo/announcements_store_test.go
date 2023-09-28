@@ -1,10 +1,14 @@
 package mongo
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/mongotest"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/order"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/cache"
@@ -13,175 +17,269 @@ import (
 )
 
 func TestAnnouncementList(t *testing.T) {
-	data := initData()
+	ctx := context.TODO()
 
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	ordination := order.Query{
-		OrderBy: order.Asc,
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Configure(&db)
+
+	type Expected struct {
+		ann []models.AnnouncementShort
+		len int
+		err error
 	}
 
-	times := []time.Time{
-		time.Now().Add(time.Hour * 2),
-		time.Now().Add(time.Hour),
-		time.Now().Add(time.Hour * 4),
-		time.Now().Add(time.Hour * 3),
-		time.Now(),
+	cases := []struct {
+		description string
+		setup       func() error
+		expected    Expected
+	}{
+		{
+			description: "succeeds when announcement list is empty",
+			setup: func() error {
+				return nil
+			},
+			expected: Expected{
+				ann: nil,
+				len: 0,
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when announcement list is not empty",
+			setup: func() error {
+				return mongotest.UseFixture(fixtures.Announcement)
+			},
+			expected: Expected{
+				ann: []models.AnnouncementShort{
+					{
+						Date:  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						UUID:  "00000000-0000-4000-0000-000000000000",
+						Title: "title0",
+					},
+				},
+				len: 1,
+				err: nil,
+			},
+		},
 	}
 
-	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	err := store.AnnouncementCreate(data.Context, &models.Announcement{
-		UUID:    "uuid0",
-		Title:   "title0",
-		Content: "content0",
-		Date:    times[0],
-	})
-	assert.NoError(t, err)
-	err = store.AnnouncementCreate(data.Context, &models.Announcement{
-		UUID:    "uuid1",
-		Title:   "title1",
-		Content: "content1",
-		Date:    times[1],
-	})
-	assert.NoError(t, err)
-	err = store.AnnouncementCreate(data.Context, &models.Announcement{
-		UUID:    "uuid2",
-		Title:   "title2",
-		Content: "content2",
-		Date:    times[2],
-	})
-	assert.NoError(t, err)
-	err = store.AnnouncementCreate(data.Context, &models.Announcement{
-		UUID:    "uuid3",
-		Title:   "title3",
-		Content: "content3",
-		Date:    times[3],
-	})
-	assert.NoError(t, err)
-	err = store.AnnouncementCreate(data.Context, &models.Announcement{
-		UUID:    "uuid4",
-		Title:   "title4",
-		Content: "content4",
-		Date:    times[4],
-	})
-	assert.NoError(t, err)
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			err := tc.setup()
+			assert.NoError(t, err)
 
-	announcements, size, err := store.AnnouncementList(data.Context, paginator.Query{
-		Page:    1,
-		PerPage: 2,
-	}, ordination)
-	assert.NoError(t, err)
+			ann, count, err := mongostore.AnnouncementList(ctx, paginator.Query{Page: -1, PerPage: -1}, order.Query{OrderBy: order.Asc})
+			assert.Equal(t, tc.expected, Expected{ann: ann, len: count, err: err})
 
-	assert.Equal(t, announcements[0].Title, "title4")
-	assert.Equal(t, announcements[1].Title, "title1")
-	assert.Equal(t, 2, size)
-
-	announcements, size, err = store.AnnouncementList(data.Context, paginator.Query{
-		Page:    2,
-		PerPage: 2,
-	}, ordination)
-	assert.NoError(t, err)
-
-	assert.Equal(t, announcements[0].Title, "title0")
-	assert.Equal(t, announcements[1].Title, "title3")
-	assert.Equal(t, 2, size)
-
-	announcements, size, err = store.AnnouncementList(data.Context, paginator.Query{
-		Page:    3,
-		PerPage: 2,
-	}, ordination)
-	assert.NoError(t, err)
-
-	assert.Equal(t, announcements[0].Title, "title2")
-	assert.Equal(t, 1, size)
+			err = mongotest.DropDatabase()
+			assert.NoError(t, err)
+		})
+	}
 }
 
 func TestAnnouncementGet(t *testing.T) {
-	data := initData()
+	ctx := context.TODO()
 
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	err := store.AnnouncementCreate(data.Context, &models.Announcement{
-		UUID:    "uuid0",
-		Title:   "title0",
-		Content: "content0",
-	})
-	assert.NoError(t, err)
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Configure(&db)
 
-	announcement, err := store.AnnouncementGet(data.Context, "uuid0")
-	assert.NoError(t, err)
+	type Expected struct {
+		ann *models.Announcement
+		err error
+	}
 
-	assert.Equal(t, "title0", announcement.Title)
-	assert.Equal(t, "content0", announcement.Content)
+	cases := []struct {
+		description string
+		uuid        string
+		setup       func() error
+		expected    Expected
+	}{
+		{
+			description: "fails when announcement is not found",
+			uuid:        "nonexistent",
+			setup: func() error {
+				return mongotest.UseFixture(fixtures.Announcement)
+			},
+			expected: Expected{
+				ann: nil,
+				err: store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds when announcement is found",
+			uuid:        "00000000-0000-4000-0000-000000000000",
+			setup: func() error {
+				return mongotest.UseFixture(fixtures.Announcement)
+			},
+			expected: Expected{
+				ann: &models.Announcement{
+					Date:    time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					UUID:    "00000000-0000-4000-0000-000000000000",
+					Title:   "title0",
+					Content: "content0",
+				},
+				err: nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			err := tc.setup()
+			assert.NoError(t, err)
+
+			ann, err := mongostore.AnnouncementGet(ctx, tc.uuid)
+			assert.Equal(t, tc.expected, Expected{ann: ann, err: err})
+
+			err = mongotest.DropDatabase()
+			assert.NoError(t, err)
+		})
+	}
 }
 
 func TestAnnouncementCreate(t *testing.T) {
-	data := initData()
+	ctx := context.TODO()
 
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
 	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	err := store.AnnouncementCreate(data.Context, &models.Announcement{
-		UUID:    "uuid0",
-		Title:   "title0",
-		Content: "content0",
-	})
-	assert.NoError(t, err)
 
-	announcement, err := store.AnnouncementGet(data.Context, "uuid0")
-	assert.NoError(t, err)
+	cases := []struct {
+		description  string
+		announcement *models.Announcement
+		setup        func() error
+		expected     error
+	}{
+		{
+			description: "succeeds when data is valid",
+			announcement: &models.Announcement{
+				UUID:    "00000000-0000-4000-0000-000000000000",
+				Title:   "title",
+				Content: "content",
+			},
+			setup: func() error {
+				return nil
+			},
+			expected: nil,
+		},
+	}
 
-	assert.Equal(t, "title0", announcement.Title)
-	assert.Equal(t, "content0", announcement.Content)
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			err := tc.setup()
+			assert.NoError(t, err)
+
+			err = store.AnnouncementCreate(ctx, tc.announcement)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
 }
 
 func TestAnnouncementUpdate(t *testing.T) {
-	data := initData()
+	ctx := context.TODO()
 
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Configure(&db)
 
-	err := store.AnnouncementCreate(data.Context, &models.Announcement{
-		UUID:    "uuid0",
-		Title:   "title0",
-		Content: "content0",
-	})
-	assert.NoError(t, err)
+	cases := []struct {
+		description string
+		ann         *models.Announcement
+		setup       func() error
+		expected    error
+	}{
+		{
+			description: "fails when announcement is not found",
+			ann: &models.Announcement{
+				UUID:    "nonexistent",
+				Title:   "edited title",
+				Content: "edited content",
+			},
+			setup: func() error {
+				return mongotest.UseFixture(fixtures.Announcement)
+			},
+			expected: store.ErrNoDocuments,
+		},
+		{
+			description: "succeeds when announcement is found",
+			ann: &models.Announcement{
+				UUID:    "00000000-0000-4000-0000-000000000000",
+				Title:   "edited title",
+				Content: "edited content",
+			},
+			setup: func() error {
+				return mongotest.UseFixture(fixtures.Announcement)
+			},
+			expected: nil,
+		},
+	}
 
-	err = store.AnnouncementUpdate(data.Context, &models.Announcement{
-		UUID:    "uuid0",
-		Title:   "title1",
-		Content: "content1",
-	})
-	assert.NoError(t, err)
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			err := tc.setup()
+			assert.NoError(t, err)
 
-	announcement, err := store.AnnouncementGet(data.Context, "uuid0")
-	assert.NoError(t, err)
+			err = mongostore.AnnouncementUpdate(ctx, tc.ann)
+			assert.Equal(t, tc.expected, err)
 
-	assert.Equal(t, "title1", announcement.Title)
-	assert.Equal(t, "content1", announcement.Content)
+			err = mongotest.DropDatabase()
+			assert.NoError(t, err)
+		})
+	}
 }
 
 func TestAnnouncementDelete(t *testing.T) {
-	data := initData()
+	ctx := context.TODO()
 
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
-	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	err := store.AnnouncementCreate(data.Context, &models.Announcement{
-		UUID:    "uuid0",
-		Title:   "title0",
-		Content: "content0",
-	})
-	assert.NoError(t, err)
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Configure(&db)
 
-	err = store.AnnouncementDelete(data.Context, "uuid0")
-	assert.NoError(t, err)
+	cases := []struct {
+		description string
+		uuid        string
+		setup       func() error
+		expected    error
+	}{
+		{
+			description: "fails when announcement is not found",
+			uuid:        "nonexistent",
+			setup: func() error {
+				return mongotest.UseFixture(fixtures.Announcement)
+			},
+			expected: store.ErrNoDocuments,
+		},
+		{
+			description: "succeeds when announcement is found",
+			uuid:        "00000000-0000-4000-0000-000000000000",
+			setup: func() error {
+				return mongotest.UseFixture(fixtures.Announcement)
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			err := tc.setup()
+			assert.NoError(t, err)
+
+			err = mongostore.AnnouncementDelete(ctx, tc.uuid)
+			assert.Equal(t, tc.expected, err)
+
+			err = mongotest.DropDatabase()
+			assert.NoError(t, err)
+		})
+	}
 }

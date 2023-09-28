@@ -4,11 +4,13 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (s *Store) FirewallRuleList(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error) {
@@ -94,13 +96,19 @@ func (s *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.F
 		return nil, FromMongoError(err)
 	}
 
-	if _, err := s.db.Collection("firewall_rules").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": rule}); err != nil {
+	updateOpts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	result := s.db.Collection("firewall_rules").FindOneAndUpdate(ctx, bson.M{"_id": objID}, bson.M{"$set": rule}, updateOpts)
+
+	if result.Err() != nil {
+		return nil, FromMongoError(result.Err())
+	}
+
+	firewallRule := new(models.FirewallRule)
+	if err := result.Decode(&firewallRule); err != nil {
 		return nil, FromMongoError(err)
 	}
 
-	r, err := s.FirewallRuleGet(ctx, id)
-
-	return r, FromMongoError(err)
+	return firewallRule, nil
 }
 
 func (s *Store) FirewallRuleDelete(ctx context.Context, id string) error {
@@ -109,8 +117,13 @@ func (s *Store) FirewallRuleDelete(ctx context.Context, id string) error {
 		return FromMongoError(err)
 	}
 
-	if _, err := s.db.Collection("firewall_rules").DeleteOne(ctx, bson.M{"_id": objID}); err != nil {
+	fRule, err := s.db.Collection("firewall_rules").DeleteOne(ctx, bson.M{"_id": objID})
+	if err != nil {
 		return FromMongoError(err)
+	}
+
+	if fRule.DeletedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	return nil

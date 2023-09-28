@@ -23,7 +23,7 @@ func (s *Store) FirewallRuleAddTag(ctx context.Context, id, tag string) error {
 		return err
 	}
 
-	if result.ModifiedCount <= 0 {
+	if result.ModifiedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
@@ -45,7 +45,7 @@ func (s *Store) FirewallRuleRemoveTag(ctx context.Context, id, tag string) error
 		return err
 	}
 
-	if result.ModifiedCount <= 0 {
+	if result.ModifiedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
@@ -68,7 +68,7 @@ func (s *Store) FirewallRuleUpdateTags(ctx context.Context, id string, tags []st
 		return err
 	}
 
-	if result.ModifiedCount <= 0 {
+	if result.ModifiedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
@@ -79,10 +79,10 @@ func (s *Store) FirewallRuleUpdateTags(ctx context.Context, id string, tags []st
 func (s *Store) FirewallRuleRenameTag(ctx context.Context, tenant, tagCurrent, tagNew string) error {
 	result, err := s.db.Collection("firewall_rules").UpdateMany(ctx, bson.M{"tenant_id": tenant, "filter.tags": tagCurrent}, bson.M{"$set": bson.M{"filter.tags.$": tagNew}})
 	if err != nil {
-		return err
+		return FromMongoError(err)
 	}
 
-	if result.ModifiedCount <= 0 {
+	if result.ModifiedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
