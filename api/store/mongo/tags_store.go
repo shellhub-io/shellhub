@@ -49,24 +49,23 @@ func (s *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, erro
 	return tags, len(tags), err
 }
 
-func (s *Store) TagRename(ctx context.Context, tenantID string, tag string, newTag string) error {
+func (s *Store) TagRename(ctx context.Context, tenantID string, oldTag string, newTag string) error {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
-		return err
+		return FromMongoError(err)
 	}
 	defer session.EndSession(ctx)
 
 	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
-		_, err := s.db.Collection("devices").UpdateMany(sessCtx, bson.M{"tags": tag, "tenant_id": tenantID}, bson.M{"$set": bson.M{"tags.$": newTag}})
-		if err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		if err := s.PublicKeyRenameTag(sessCtx, tenantID, tag, newTag); err != store.ErrNoDocuments {
+		if err := s.DeviceRenameTag(sessCtx, tenantID, oldTag, newTag); err != store.ErrNoDocuments {
 			return nil, err
 		}
 
-		if err := s.FirewallRuleRenameTag(sessCtx, tenantID, tag, newTag); err != store.ErrNoDocuments {
+		if err := s.PublicKeyRenameTag(sessCtx, tenantID, oldTag, newTag); err != store.ErrNoDocuments {
+			return nil, err
+		}
+
+		if err := s.FirewallRuleRenameTag(sessCtx, tenantID, oldTag, newTag); err != store.ErrNoDocuments {
 			return nil, err
 		}
 
@@ -79,13 +78,12 @@ func (s *Store) TagRename(ctx context.Context, tenantID string, tag string, newT
 func (s *Store) TagDelete(ctx context.Context, tenantID string, tag string) error {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
-		return err
+		return FromMongoError(err)
 	}
 	defer session.EndSession(ctx)
 
 	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
-		_, err := s.db.Collection("devices").UpdateMany(sessCtx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"tags": tag}})
-		if err != nil {
+		if err := s.DeviceDeleteTag(sessCtx, tenantID, tag); err != store.ErrNoDocuments {
 			return nil, err
 		}
 
@@ -100,5 +98,5 @@ func (s *Store) TagDelete(ctx context.Context, tenantID string, tag string) erro
 		return nil, nil
 	})
 
-	return err
+	return FromMongoError(err)
 }

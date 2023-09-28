@@ -2,255 +2,153 @@ package mongo
 
 import (
 	"context"
-	"sort"
 	"testing"
 
+	"github.com/shellhub-io/mongotest"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/cache"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetTags(t *testing.T) {
+func TestTagsGet(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Configure(&db)
 
-	device1 := models.Device{
-		UID:       "1",
-		Namespace: "namespace1",
-		TenantID:  "tenant1",
-		Tags: []string{
-			"device1",
-			"device2",
-			"device3",
-		},
+	type Expected struct {
+		tags []string
+		len  int
+		err  error
 	}
 
-	device2 := models.Device{
-		UID:       "2",
-		Namespace: "namespace2",
-		TenantID:  "tenant2",
-		Tags: []string{
-			"device4",
-			"device5",
-			"device6",
-		},
-	}
-
-	key1 := models.PublicKey{
-		Fingerprint: "fingerprint1",
-		TenantID:    "tenant1",
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Tags: []string{"device1", "device2", "device4"},
+	cases := []struct {
+		description string
+		tenant      string
+		setup       func() error
+		expected    Expected
+	}{
+		{
+			description: "succeeds when tag is found",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			setup: func() error {
+				return mongotest.UseFixture(
+					fixtures.PublicKey,
+					fixtures.FirewallRule,
+					fixtures.Device,
+				)
+			},
+			expected: Expected{
+				tags: []string{"tag1"},
+				len:  1,
+				err:  nil,
 			},
 		},
 	}
 
-	rule1 := models.FirewallRule{
-		ID:       "rule1",
-		TenantID: "tenant1",
-		FirewallRuleFields: models.FirewallRuleFields{
-			Filter: models.FirewallFilter{
-				Tags: []string{"device2", "device5"},
-			},
-		},
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			err := tc.setup()
+			assert.NoError(t, err)
+
+			tags, count, err := mongostore.TagsGet(ctx, tc.tenant)
+			assert.Equal(t, tc.expected, Expected{tags: tags, len: count, err: err})
+
+			err = mongotest.DropDatabase()
+			assert.NoError(t, err)
+		})
 	}
-
-	_, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, &device1)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device2)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, &key1)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, &rule1)
-	assert.NoError(t, err)
-
-	tags, count, err := mongostore.TagsGet(ctx, "tenant1")
-	assert.NoError(t, err)
-	assert.Equal(t, 5, count)
-
-	sort.Strings(tags) // Guarantee the order for comparison.
-	assert.Equal(t, []string{"device1", "device2", "device3", "device4", "device5"}, tags)
 }
 
-func TestRenameTag(t *testing.T) {
+func TestTagRename(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Configure(&db)
 
-	device1 := models.Device{
-		UID:      "1",
-		TenantID: "tenant1",
-		Tags: []string{
-			"device1",
-			"device2",
-			"device3",
-		},
-	}
-
-	device2 := models.Device{
-		UID:      "2",
-		TenantID: "tenant2",
-		Tags: []string{
-			"device1",
-			"device2",
-			"device3",
-		},
-	}
-
-	device3 := models.Device{
-		UID:      "3",
-		TenantID: "tenant1",
-		Tags: []string{
-			"device1",
-			"device2",
-			"device3",
-		},
-	}
-
-	key1 := models.PublicKey{
-		Fingerprint: "fingerprint1",
-		TenantID:    "tenant1",
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Tags: []string{"device1", "device4", "device7"},
+	cases := []struct {
+		description string
+		tenant      string
+		oldTag      string
+		newTag      string
+		setup       func() error
+		expected    error
+	}{
+		{
+			description: "succeeds when tag is found",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			oldTag:      "tag1",
+			newTag:      "edited-tag",
+			setup: func() error {
+				return mongotest.UseFixture(
+					fixtures.PublicKey,
+					fixtures.FirewallRule,
+					fixtures.Device,
+				)
 			},
+			expected: nil,
 		},
 	}
 
-	rule1 := models.FirewallRule{
-		ID:       "rule1",
-		TenantID: "tenant1",
-		FirewallRuleFields: models.FirewallRuleFields{
-			Filter: models.FirewallFilter{
-				Tags: []string{"device6", "device7", "device8"},
-			},
-		},
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			err := tc.setup()
+			assert.NoError(t, err)
+
+			err = mongostore.TagRename(ctx, tc.tenant, tc.oldTag, tc.newTag)
+			assert.Equal(t, tc.expected, err)
+
+			err = mongotest.DropDatabase()
+			assert.NoError(t, err)
+		})
 	}
-
-	_, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, &device1)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device2)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device3)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, &key1)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, &rule1)
-	assert.NoError(t, err)
-
-	err = mongostore.TagRename(ctx, "tenant1", "device2", "device9")
-	assert.NoError(t, err)
-
-	tags1, _, err := mongostore.TagsGet(ctx, "tenant1")
-	sort.Strings(tags1) // Guarantee the order for comparison.
-	assert.NoError(t, err)
-	assert.Equal(t, []string{"device1", "device3", "device4", "device6", "device7", "device8", "device9"}, tags1)
-
-	tags2, _, err := mongostore.TagsGet(ctx, "tenant2")
-	sort.Strings(tags2) // Guarantee the order for comparison.
-	assert.NoError(t, err)
-	assert.Equal(t, []string{"device1", "device2", "device3"}, tags2)
 }
 
-func TestDeleteTag(t *testing.T) {
+func TestTagDelete(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Configure(&db)
 
-	device1 := models.Device{
-		UID:       "1",
-		Namespace: "namespace1",
-		TenantID:  "tenant1",
-		Tags: []string{
-			"device1",
-			"device5",
-			"device3",
-		},
-	}
-
-	device2 := models.Device{
-		UID:       "2",
-		Namespace: "namespace1",
-		TenantID:  "tenant1",
-		Tags: []string{
-			"device1",
-			"device5",
-			"device6",
-		},
-	}
-
-	device3 := models.Device{
-		UID:       "3",
-		Namespace: "namespace2",
-		TenantID:  "tenant2",
-		Tags: []string{
-			"device1",
-			"device5",
-			"device6",
-		},
-	}
-
-	key1 := models.PublicKey{
-		Fingerprint: "fingerprint1",
-		TenantID:    "tenant1",
-		PublicKeyFields: models.PublicKeyFields{
-			Filter: models.PublicKeyFilter{
-				Tags: []string{"device1", "device4", "device7"},
+	cases := []struct {
+		description string
+		tenant      string
+		tag         string
+		setup       func() error
+		expected    error
+	}{
+		{
+			description: "succeeds when tag is found",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			tag:         "tag1",
+			setup: func() error {
+				return mongotest.UseFixture(
+					fixtures.PublicKey,
+					fixtures.FirewallRule,
+					fixtures.Device,
+				)
 			},
+			expected: nil,
 		},
 	}
 
-	rule1 := models.FirewallRule{
-		ID:       "rule1",
-		TenantID: "tenant1",
-		FirewallRuleFields: models.FirewallRuleFields{
-			Filter: models.FirewallFilter{
-				Tags: []string{"device6", "device7", "device8"},
-			},
-		},
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			err := tc.setup()
+			assert.NoError(t, err)
+
+			err = mongostore.TagDelete(ctx, tc.tenant, tc.tag)
+			assert.Equal(t, tc.expected, err)
+
+			err = mongotest.DropDatabase()
+			assert.NoError(t, err)
+		})
 	}
-
-	_, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, &device1)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device2)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(ctx, &device3)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(ctx, &key1)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, &rule1)
-	assert.NoError(t, err)
-
-	err = mongostore.TagDelete(ctx, "tenant1", "device1")
-	assert.NoError(t, err)
-
-	tags1, _, err := mongostore.TagsGet(ctx, "tenant1")
-	sort.Strings(tags1) // Guarantee the order for comparison.
-	assert.NoError(t, err)
-	assert.Equal(t, []string{"device3", "device4", "device5", "device6", "device7", "device8"}, tags1)
-
-	tags2, _, err := mongostore.TagsGet(ctx, "tenant2")
-	sort.Strings(tags2) // Guarantee the order for comparison.
-	assert.NoError(t, err)
-	assert.Equal(t, []string{"device1", "device5", "device6"}, tags2)
 }

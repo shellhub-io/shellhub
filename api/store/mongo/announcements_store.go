@@ -30,14 +30,14 @@ func (s *Store) AnnouncementList(ctx context.Context, pagination paginator.Query
 }
 
 func (s *Store) AnnouncementGet(ctx context.Context, uuid string) (*models.Announcement, error) {
-	var announcement *models.Announcement
+	ann := new(models.Announcement)
 
-	err := s.db.Collection("announcements").FindOne(ctx, bson.M{"uuid": uuid}).Decode(&announcement)
+	err := s.db.Collection("announcements").FindOne(ctx, bson.M{"uuid": uuid}).Decode(&ann)
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
 
-	return announcement, nil
+	return ann, nil
 }
 
 func (s *Store) AnnouncementCreate(ctx context.Context, announcement *models.Announcement) error {
@@ -54,7 +54,7 @@ func (s *Store) AnnouncementUpdate(ctx context.Context, announcement *models.Ann
 		return FromMongoError(err)
 	}
 
-	if result.MatchedCount == 0 {
+	if result.MatchedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
@@ -67,7 +67,7 @@ func (s *Store) AnnouncementDelete(ctx context.Context, uuid string) error {
 		return FromMongoError(err)
 	}
 
-	if result.DeletedCount == 0 {
+	if result.DeletedCount < 1 {
 		return store.ErrNoDocuments
 	}
 

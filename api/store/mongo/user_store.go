@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -189,57 +190,84 @@ func (s *Store) UserUpdateData(ctx context.Context, id string, data models.User)
 		return FromMongoError(err)
 	}
 
-	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"name": data.Name, "username": data.Username, "email": data.Email, "last_login": data.LastLogin}}); err != nil {
+	user, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"name": data.Name, "username": data.Username, "email": data.Email, "last_login": data.LastLogin}})
+	if err != nil {
 		return FromMongoError(err)
+	}
+
+	if user.ModifiedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	return nil
 }
 
 func (s *Store) UserUpdatePassword(ctx context.Context, newPassword string, id string) error {
-	if _, _, err := s.UserGetByID(ctx, id, false); err != nil {
-		return FromMongoError(err)
-	}
-
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return FromMongoError(err)
 	}
 
-	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"password": newPassword}}); err != nil {
+	user, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"password": newPassword}})
+	if err != nil {
 		return FromMongoError(err)
+	}
+
+	if user.ModifiedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
+// UserUpdateAccountStatus sets the 'confirmed' attribute of a user to true.
+func (s *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"confirmed": true}})
+	if err != nil {
+		return err
+	}
+
+	if user.ModifiedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	return nil
 }
 
 func (s *Store) UserUpdateFromAdmin(ctx context.Context, name string, username string, email string, password string, id string) error {
-	user, _, err := s.UserGetByID(ctx, id, false)
-	objID, _ := primitive.ObjectIDFromHex(id)
+	updatedFields := bson.M{}
 
-	if err != nil {
-		return FromMongoError(err)
+	if name != "" {
+		updatedFields["name"] = name
 	}
-
-	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"name": name}}); err != nil {
-		return FromMongoError(err)
+	if username != "" {
+		updatedFields["username"] = username
 	}
-
-	if username != "" && username != user.Username {
-		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"username": username}}); err != nil {
-			return FromMongoError(err)
-		}
+	if email != "" {
+		updatedFields["email"] = email
 	}
-
-	if email != "" && email != user.Email {
-		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"email": email}}); err != nil {
-			return FromMongoError(err)
-		}
-	}
-
 	if password != "" {
-		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"password": password}}); err != nil {
+		updatedFields["password"] = password
+	}
+
+	if len(updatedFields) > 0 {
+		objID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
 			return FromMongoError(err)
+		}
+
+		user, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": updatedFields})
+		if err != nil {
+			return FromMongoError(err)
+		}
+
+		if user.ModifiedCount < 1 {
+			return store.ErrNoDocuments
 		}
 	}
 
@@ -260,6 +288,7 @@ func (s *Store) UserCreateToken(ctx context.Context, token *models.UserTokenReco
 
 func (s *Store) UserGetToken(ctx context.Context, id string) (*models.UserTokenRecover, error) {
 	token := new(models.UserTokenRecover)
+
 	if err := s.db.Collection("recovery_tokens").FindOne(ctx, bson.M{"user": id}).Decode(&token); err != nil {
 		return nil, FromMongoError(err)
 	}
@@ -268,21 +297,13 @@ func (s *Store) UserGetToken(ctx context.Context, id string) (*models.UserTokenR
 }
 
 func (s *Store) UserDeleteTokens(ctx context.Context, id string) error {
-	if _, err := s.db.Collection("recovery_tokens").DeleteMany(ctx, bson.M{"user": id}); err != nil {
+	tokens, err := s.db.Collection("recovery_tokens").DeleteMany(ctx, bson.M{"user": id})
+	if err != nil {
 		return FromMongoError(err)
 	}
 
-	return nil
-}
-
-func (s *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-
-	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"confirmed": true}}); err != nil {
-		return err
+	if tokens.DeletedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	return nil
@@ -294,9 +315,13 @@ func (s *Store) UserDelete(ctx context.Context, id string) error {
 		return FromMongoError(err)
 	}
 
-	_, err = s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
+	user, err := s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
 	if err != nil {
 		return FromMongoError(err)
+	}
+
+	if user.DeletedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	return nil

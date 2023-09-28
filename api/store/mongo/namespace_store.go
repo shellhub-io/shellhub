@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -253,8 +254,25 @@ func (s *Store) NamespaceRename(ctx context.Context, tenantID string, name strin
 }
 
 func (s *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error {
-	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"name": namespace.Name, "max_devices": namespace.MaxDevices, "settings.session_record": namespace.Settings.SessionRecord}}); err != nil {
+	ns, err := s.db.Collection("namespaces").UpdateOne(
+		ctx,
+		bson.M{
+			"tenant_id": tenantID,
+		},
+		bson.M{
+			"$set": bson.M{
+				"name":                    namespace.Name,
+				"max_devices":             namespace.MaxDevices,
+				"settings.session_record": namespace.Settings.SessionRecord,
+			},
+		},
+	)
+	if err != nil {
 		return FromMongoError(err)
+	}
+
+	if ns.MatchedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
@@ -283,11 +301,17 @@ func (s *Store) NamespaceAddMember(ctx context.Context, tenantID string, memberI
 }
 
 func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) (*models.Namespace, error) {
-	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"members": bson.M{"id": memberID}}})
+	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"members": bson.M{"id": memberID}}})
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
-	if result.ModifiedCount == 0 {
+
+	switch {
+	// tenant not found
+	case ns.MatchedCount < 1:
+		return nil, store.ErrNoDocuments
+	// member not found
+	case ns.ModifiedCount < 1:
 		return nil, ErrUserNotFound
 	}
 
@@ -299,9 +323,13 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memb
 }
 
 func (s *Store) NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewRole string) error {
-	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID, "members.id": memberID}, bson.M{"$set": bson.M{"members.$.role": memberNewRole}})
+	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID, "members.id": memberID}, bson.M{"$set": bson.M{"members.$.role": memberNewRole}})
 	if err != nil {
 		return FromMongoError(err)
+	}
+
+	if ns.MatchedCount < 1 {
+		return ErrUserNotFound
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
@@ -321,8 +349,13 @@ func (s *Store) NamespaceGetFirst(ctx context.Context, id string) (*models.Names
 }
 
 func (s *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error {
-	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"settings.session_record": sessionRecord}}); err != nil {
+	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"settings.session_record": sessionRecord}})
+	if err != nil {
 		return FromMongoError(err)
+	}
+
+	if ns.MatchedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	return nil
