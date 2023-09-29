@@ -210,7 +210,6 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 	}
 
 	cmd := command.NewCmd(user, shell, term, *s.deviceName, shell, "-c", strings.Join(session.Command(), " "))
-	defer session.Exit(cmd.ProcessState.ExitCode()) //nolint:errcheck
 
 	wg := &sync.WaitGroup{}
 	if sIsPty {
@@ -289,6 +288,10 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		"localaddr":   session.LocalAddr(),
 		"Raw command": session.RawCommand(),
 	}).Info("Command ended")
+
+	if err := session.Exit(cmd.ProcessState.ExitCode()); err != nil { // nolint:errcheck
+		log.Warn(err)
+	}
 
 	return nil
 }
