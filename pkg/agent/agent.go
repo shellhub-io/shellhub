@@ -70,11 +70,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// throw sends a value on a channel, but does not block the goroutine.
-func throw[V any, T chan V](ch T, v V) {
-	ch <- v
-}
-
 // AgentVersion store the version to be embed inside the binary. This is
 // injected using `-ldflags` build option.
 //
@@ -138,6 +133,7 @@ type Agent struct {
 	server        *server.Server
 	tunnel        *tunnel.Tunnel
 	mux           sync.RWMutex
+	listening     chan bool
 	closed        bool
 }
 
@@ -184,6 +180,7 @@ func NewAgentWithConfig(config *Config) (*Agent, error) {
 		serverAddress: serverAddress,
 		cli:           client.NewClient(client.WithURL(serverAddress)),
 		tunnel:        tunnel.NewTunnel(),
+		listening:     make(chan bool),
 	}
 
 	return a, nil
@@ -328,7 +325,7 @@ func (a *Agent) Close() error {
 //
 // listening parameter is a channel that is notified when the agent is listing for connections. It can be used to
 // start to ping the server, synchronizing device information or other tasks.
-func (a *Agent) Listen(ctx context.Context, listining chan bool) error {
+func (a *Agent) Listen(ctx context.Context) error {
 	a.server = server.NewServer(a.cli, a.authData, a.config.PrivateKey, a.config.KeepAliveInterval, a.config.SingleUserPassword)
 
 	serv := a.server
@@ -452,13 +449,20 @@ func (a *Agent) Listen(ctx context.Context, listining chan bool) error {
 				"sshid":          sshid,
 			}).Info("Server connection established")
 
-			throw(listining, true)
+			a.listening <- true
 			if err := a.tunnel.Listen(listener); err != nil {
-				listener.Close() //nolint:errcheck
+				// NOTICE: Tunnel'll only realize that it lost its connection to the ShellHub SSH when the next
+				// "keep-alive" connection fails. As a result, it will take this interval to reconnect to its server.
+				//
+				// It can be observed in the logs, that prints something like:
+				//  0000/00/00 00:00:00 revdial.Listener: error writing message to server: write tcp [::1]:00000->[::1]:80: write: broken pipe
+				listener.Close() // nolint:errcheck
+				a.listening <- false
 
 				continue
 			}
-			throw(listining, false)
+			listener.Close() // nolint:errcheck
+			a.listening <- false
 		}
 	}()
 
@@ -476,15 +480,27 @@ func (a *Agent) Listen(ctx context.Context, listining chan bool) error {
 
 // Ping sends an authtorization request to the server every ticker interval.
 //
-// If the ticker is nil, it will be set to 10 minutes.
+// If the durantion is 0, the default value set to it will be the 10 minutes.
 //
-// ping parameter is a channel that is notified when the agent pings the server.
-func (a *Agent) Ping(ctx context.Context, ticker *time.Ticker) error {
-	if ticker == nil {
-		ticker = time.NewTicker(10 * time.Minute)
+// Ping will only sends its requests to the server if the agent is listening for connections. If the agent is not
+// listening, the ping will be stopped.
+func (a *Agent) Ping(ctx context.Context, durantion time.Duration) error {
+	if durantion == 0 {
+		durantion = 10 * time.Minute
 	}
 
+	ticker := time.NewTicker(durantion)
+	<-a.listening // NOTE: wait for the first connection to start to ping the server.
+
 	for {
+		a.mux.RLock()
+		if a.closed {
+			a.mux.RUnlock()
+
+			return nil
+		}
+		a.mux.RUnlock()
+
 		select {
 		case <-ctx.Done():
 			log.WithFields(log.Fields{
@@ -494,6 +510,26 @@ func (a *Agent) Ping(ctx context.Context, ticker *time.Ticker) error {
 			}).Debug("stopped pinging server due to context cancellation")
 
 			return nil
+		case ok := <-a.listening:
+			if ok {
+				log.WithFields(log.Fields{
+					"version":        AgentVersion,
+					"tenant_id":      a.authData.Namespace,
+					"server_address": a.config.ServerAddress,
+					"timestamp":      time.Now(),
+				}).Debug("Restarted pinging server")
+
+				ticker.Reset(durantion)
+			} else {
+				log.WithFields(log.Fields{
+					"version":        AgentVersion,
+					"tenant_id":      a.authData.Namespace,
+					"server_address": a.config.ServerAddress,
+					"timestamp":      time.Now(),
+				}).Debug("Stopped pinging server due listener status")
+
+				ticker.Stop()
+			}
 		case <-ticker.C:
 			sessions := make([]string, 0, len(a.server.Sessions))
 			for key := range a.server.Sessions {
