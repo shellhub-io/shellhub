@@ -121,14 +121,12 @@ func main() {
 
 			ctx := cmd.Context()
 
-			listening := make(chan bool)
 			go func() {
-				<-listening
 				// NOTICE: We only start to ping the server when the agent is ready to accept connections.
-				// It will make the agent ping to server after the ticker time set on ping function, what is 10 minutes by
-				// default.
+				// It will make the agent ping to server after the ticker time set on ping function, what is 10 minutes
+				// by default.
 
-				if err := ag.Ping(ctx, nil); err != nil {
+				if err := ag.Ping(ctx, 0); err != nil {
 					log.WithError(err).WithFields(log.Fields{
 						"version":        AgentVersion,
 						"mode":           mode,
@@ -183,7 +181,7 @@ func main() {
 				}()
 			}
 
-			if err := ag.Listen(ctx, listening); err != nil {
+			if err := ag.Listen(ctx); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":        AgentVersion,
 					"mode":           mode,
