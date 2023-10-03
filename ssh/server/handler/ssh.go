@@ -162,6 +162,27 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 }
 
 func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Session, config *gossh.ClientConfig, api internalclient.Client, opts ConfigOptions) error {
+	device := metadata.RestoreDevice(ctx.(gliderssh.Context))
+
+	// versions earlier than 0.6.0 do not validate the user when receiving a public key
+	// authentication request. This implies that requests with invalid users are
+	// treated as "authenticated" because the connection does not raise any errors. To
+	// avoid this, we manually verify the user when necessary.
+	if device.Info.Version != "latest" {
+		ver, err := semver.NewVersion(device.Info.Version)
+		if err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"client": device.UID}).
+				Error("failed to parse device version")
+
+			return err
+		}
+
+		if ver.LessThan(semver.MustParse("0.6.0")) {
+            // TODO
+		}
+	}
+
 	connection, reqs, err := sess.NewClientConnWithDeadline(config)
 	if err != nil {
 		return ErrAuthentication
@@ -192,8 +213,6 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 			return ErrRequestHeredoc
 		}
 	case session.Exec, session.SCP:
-		device := metadata.RestoreDevice(ctx.(gliderssh.Context))
-
 		if err := exec(api, sess, device, agent, client); err != nil {
 			return ErrRequestExec
 		}
