@@ -282,10 +282,21 @@ type controlMsg struct {
 func (ln *Listener) run() {
 	defer ln.Close()
 
+	// NOTICE: done is a helper function to close the listener and send a signal to the donec channel indicating that
+	// the listener is closed. It is used to return the function when one of their goroutines is finished, avoiding
+	// the father function to be blocked.
+	done := func() {
+		if !ln.closed {
+			ln.donec <- struct{}{}
+		}
+	}
+
 	// Write loop
 	writec := make(chan []byte, 8)
 	ln.writec = writec
 	go func() {
+		defer done()
+
 		for {
 			select {
 			case <-ln.donec:
@@ -302,6 +313,8 @@ func (ln *Listener) run() {
 	}()
 
 	go func() {
+		defer done()
+
 		// Read loop
 		br := bufio.NewReader(ln.sc)
 		for {
