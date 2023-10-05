@@ -404,15 +404,6 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 		}
 	}
 
-	dev, err := api.GetDevice(device.UID)
-	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"client": uid}).
-			Error("failed to get device")
-
-		return err
-	}
-
 	if isPty {
 		go resizeWindow(uid, agent, winCh)
 	}
@@ -434,8 +425,8 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 
 	var ver *semver.Version
 
-	if dev.Info.Version != "latest" {
-		ver, err = semver.NewVersion(dev.Info.Version)
+	if device.Info.Version != "latest" {
+		ver, err = semver.NewVersion(device.Info.Version)
 		if err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"client": uid}).
@@ -446,7 +437,7 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 	}
 
 	// version less 0.9.3 does not support the exec command, what will make some commands to hang forever.
-	if dev.Info.Version != "latest" && ver.LessThan(semver.MustParse("0.9.3")) {
+	if device.Info.Version != "latest" && ver.LessThan(semver.MustParse("0.9.3")) {
 		go func() {
 			// When agent stop to send data, it means that the command has finished and the process should be closed.
 			<-waitPipeIn
