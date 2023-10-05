@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sync"
 	"time"
 
 	"github.com/Masterminds/semver"
@@ -423,6 +424,12 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 		return err
 	}
 
+	// Due to potential race conditions, there are situations where the client exits
+	// before the write/read goroutines have finished. This may result in the client
+	// not receiving the command output. To avoid this, we ensure all such
+	// goroutines complete before proceeding.
+	var wg sync.WaitGroup
+
 	if device.Info.Version != "latest" {
 		ver, err := semver.NewVersion(device.Info.Version)
 		if err != nil {
@@ -435,7 +442,10 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 
 		// version less 0.9.3 does not support the exec command, what will make some commands to hang forever.
 		if ver.LessThan(semver.MustParse("0.9.3")) {
+			wg.Add(1)
 			go func() {
+				defer wg.Done()
+
 				// When agent stop to send data, it means that the command has finished and the process should be closed.
 				<-waitPipeIn
 				agent.Close()
@@ -443,11 +453,16 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 		}
 	}
 
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
+
 		// When agent stop to send data, it means that the command has finished and the process should be closed.
 		<-waitPipeOut
 		agent.Close()
 	}()
+
+	wg.Wait()
 
 	if err = agent.Wait(); isUnknownExitError(err) {
 		log.WithError(err).
