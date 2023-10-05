@@ -423,27 +423,25 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 		return err
 	}
 
-	var ver *semver.Version
+    if device.Info.Version != "latest" {
+        ver, err := semver.NewVersion(device.Info.Version)
+        if err != nil {
+            log.WithError(err).
+            WithFields(log.Fields{"client": uid}).
+            Error("failed to parse device version")
 
-	if device.Info.Version != "latest" {
-		ver, err = semver.NewVersion(device.Info.Version)
-		if err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"client": uid}).
-				Error("failed to parse device version")
+            return err
+        }
 
-			return err
-		}
-	}
-
-	// version less 0.9.3 does not support the exec command, what will make some commands to hang forever.
-	if device.Info.Version != "latest" && ver.LessThan(semver.MustParse("0.9.3")) {
-		go func() {
-			// When agent stop to send data, it means that the command has finished and the process should be closed.
-			<-waitPipeIn
-			agent.Close()
-		}()
-	}
+        // version less 0.9.3 does not support the exec command, what will make some commands to hang forever.
+        if ver.LessThan(semver.MustParse("0.9.3")) {
+            go func() {
+                // When agent stop to send data, it means that the command has finished and the process should be closed.
+                <-waitPipeIn
+                agent.Close()
+            }()
+        }
+    }
 
 	go func() {
 		// When agent stop to send data, it means that the command has finished and the process should be closed.
