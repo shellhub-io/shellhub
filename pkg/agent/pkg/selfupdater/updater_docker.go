@@ -134,6 +134,10 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		return err
 	}
 
+	if err := d.stopContainer(container); err != nil {
+		return err
+	}
+
 	return nil
 }
 
