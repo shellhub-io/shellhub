@@ -73,7 +73,7 @@ describe("Login", () => {
       name: "test",
       email: "test@test.com",
       username: "test",
-      password: "test",
+      password: "test123",
       emailMarketing: true,
     };
 
@@ -84,8 +84,8 @@ describe("Login", () => {
     await wrapper.findComponent('[data-test="name-text"]').setValue("test");
     await wrapper.findComponent('[data-test="username-text"]').setValue("test");
     await wrapper.findComponent('[data-test="email-text"]').setValue("test@test.com");
-    await wrapper.findComponent('[data-test="password-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="password-confirm-text"]').setValue("test");
+    await wrapper.findComponent('[data-test="password-text"]').setValue("test123");
+    await wrapper.findComponent('[data-test="password-confirm-text"]').setValue("test123");
     await wrapper.findComponent('[data-test="accept-privacy-policy-checkbox"]').setValue(true);
     await wrapper.findComponent('[data-test="accept-news-checkbox"]').setValue(true);
 
@@ -98,8 +98,8 @@ describe("Login", () => {
       name: "test",
       email: "test@test.com",
       username: "test",
-      password: "test",
-      confirmPassword: "test",
+      password: "test123",
+      confirmPassword: "test123",
       emailMarketing: true,
     });
   });
