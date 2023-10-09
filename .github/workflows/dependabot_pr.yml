@@ -29,7 +29,7 @@ jobs:
         run: |
           echo "msg=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
       - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: ${{ github.event.workflow_run.head_branch }}
           file_pattern: '**/go.mod **/go.sum'
