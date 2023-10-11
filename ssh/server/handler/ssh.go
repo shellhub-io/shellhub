@@ -303,7 +303,7 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 		}
 	}()
 
-	go flw.PipeErr(client, nil)
+	go flw.PipeErr(client.Stderr(), nil)
 
 	go func() {
 		// When agent stop to send data, it means that the command has finished and the process should be closed.
@@ -351,7 +351,7 @@ func heredoc(api internalclient.Client, uid string, agent *gossh.Session, client
 
 	go flw.PipeIn(client, nil)
 	go flw.PipeOut(client, done)
-	go flw.PipeErr(client, nil)
+	go flw.PipeErr(client.Stderr(), nil)
 
 	go func() {
 		// When agent stop to send data, it means that the command has finished and the process should be closed.
@@ -414,7 +414,7 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 
 	go flw.PipeIn(client, waitPipeIn)
 	go flw.PipeOut(client, waitPipeOut)
-	go flw.PipeErr(client, nil)
+	go flw.PipeErr(client.Stderr(), nil)
 
 	if err := agent.Start(client.RawCommand()); err != nil {
 		log.WithError(err).
