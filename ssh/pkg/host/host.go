@@ -6,6 +6,7 @@ type Host struct {
 	Host string
 }
 
+// NewHost creates a new Host.
 func NewHost(address string) (*Host, error) {
 	host, _, err := net.SplitHostPort(address)
 	if err != nil {
