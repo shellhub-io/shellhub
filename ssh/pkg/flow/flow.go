@@ -4,20 +4,8 @@ import (
 	"io"
 
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh"
+	gossh "golang.org/x/crypto/ssh"
 )
-
-func finish(stream interface{}) error {
-	if c, ok := stream.(io.Closer); ok {
-		if err := c.Close(); err != nil && err != io.EOF {
-			log.WithError(err).Error("failed to close stream")
-
-			return err
-		}
-	}
-
-	return nil
-}
 
 type Flow struct {
 	Stdin  io.WriteCloser
@@ -30,7 +18,7 @@ type Flow struct {
 // It receives a *ssh.Session to be piped into Stdin, Stdout and Stderr.
 //
 // It returns a *Flow and an error if any piped try failed.
-func NewFlow(session *ssh.Session) (*Flow, error) {
+func NewFlow(session *gossh.Session) (*Flow, error) {
 	stdin, err := session.StdinPipe()
 	if err != nil {
 		return nil, err
@@ -96,6 +84,18 @@ func (f *Flow) PipeErr(client io.Writer, done chan bool) {
 	}
 
 	done <- true
+}
+
+func finish(stream interface{}) error {
+	if c, ok := stream.(io.Closer); ok {
+		if err := c.Close(); err != nil && err != io.EOF {
+			log.WithError(err).Error("failed to close stream")
+
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Close closes all piped flows.
