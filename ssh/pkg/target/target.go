@@ -1,8 +1,13 @@
 package target
 
 import (
-	"fmt"
+	"errors"
 	"strings"
+)
+
+var (
+	ErrSplitTarget = errors.New("could not split the target into two parts")
+	ErrNotSSHID    = errors.New("target is not from SSHID type")
 )
 
 type Target struct {
@@ -10,6 +15,7 @@ type Target struct {
 	Data     string
 }
 
+// NewTarget creates a new Target.
 func NewTarget(sshid string) (*Target, error) {
 	// SSHID could be either device ID or a SSHID.
 	//
@@ -23,7 +29,7 @@ func NewTarget(sshid string) (*Target, error) {
 
 	parts := strings.SplitN(sshid, "@", 2)
 	if len(parts) != 2 {
-		return nil, fmt.Errorf("cloud not split the target into two parts")
+		return nil, ErrSplitTarget
 	}
 
 	return &Target{Username: parts[USERNAME], Data: parts[DATA]}, nil
@@ -38,7 +44,7 @@ func (t *Target) IsSSHID() bool {
 // Namespace is the device's namespace and hostname is the device's name.
 func (t *Target) SplitSSHID() (string, string, error) {
 	if !t.IsSSHID() {
-		return "", "", fmt.Errorf("target is not from SSHID type")
+		return "", "", ErrNotSSHID
 	}
 
 	const NAMESPACE = 0
@@ -46,7 +52,7 @@ func (t *Target) SplitSSHID() (string, string, error) {
 
 	parts := strings.SplitN(t.Data, ".", 2)
 	if len(parts) != 2 {
-		return "", "", fmt.Errorf("cloud not split the target into two parts")
+		return "", "", ErrSplitTarget
 	}
 
 	return parts[NAMESPACE], parts[HOSTNAME], nil
