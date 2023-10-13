@@ -118,7 +118,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 		api := metadata.RestoreAPI(ctx)
 
 		switch metadata.RestoreAuthenticationMethod(ctx) {
-		case metadata.PublicKeyAuthenticationMethod:
+		case metadata.AuthMethodPubKey:
 			privateKey, err := api.CreatePrivateKey()
 			if err != nil {
 				sendAndInformError(client, err, ErrPrivateKey)
@@ -145,7 +145,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 			config.Auth = []gossh.AuthMethod{
 				gossh.PublicKeys(signer),
 			}
-		case metadata.PasswordAuthenticationMethod:
+		case metadata.AuthMethodPasswd:
 			password := metadata.RestorePassword(ctx)
 
 			config.Auth = []gossh.AuthMethod{

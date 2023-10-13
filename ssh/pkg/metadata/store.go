@@ -13,11 +13,6 @@ func store(ctx gliderssh.Context, key string, value interface{}) {
 	ctx.SetValue(key, value)
 }
 
-// StoreRequest stores the request type in the context as metadata.
-func StoreRequest(ctx gliderssh.Context, value string) {
-	store(ctx, request, value)
-}
-
 // maybeStore stores a value into a context if it does not exist yet. If the value already exists, it will be returned.
 //
 // Its return must be cast.
@@ -31,30 +26,33 @@ func maybeStore(ctx gliderssh.Context, key string, value interface{}) interface{
 	return value
 }
 
-// MaybeStoreSSHID stores the SSHID in the context as metadata if is not set yet.
-func MaybeStoreSSHID(ctx gliderssh.Context, value string) string {
-	return maybeStore(ctx, sshid, value).(string)
+// StoreRequest stores the request type in the context as metadata.
+func (b *backend) StoreRequest(ctx gliderssh.Context, value string) {
+	store(ctx, request, value)
 }
 
-type AuthenticationMethod int
-
 // StoreAuthenticationMethod stores the authentication method in the context/ as metadata.
-func StoreAuthenticationMethod(ctx gliderssh.Context, method AuthenticationMethod) {
+func (b *backend) StoreAuthenticationMethod(ctx gliderssh.Context, method AuthMethod) {
 	store(ctx, authentication, method)
 }
 
 // StorePassword stores the password in the context as metadata.
-func StorePassword(ctx gliderssh.Context, value string) {
+func (b *backend) StorePassword(ctx gliderssh.Context, value string) {
 	store(ctx, password, value)
 }
 
+// MaybeStoreSSHID stores the SSHID in the context as metadata if is not set yet.
+func (b *backend) MaybeStoreSSHID(ctx gliderssh.Context, value string) string {
+	return maybeStore(ctx, sshid, value).(string)
+}
+
 // MaybeStoreFingerprint stores the fingerprint in the context as metadata if is not set yet.
-func MaybeStoreFingerprint(ctx gliderssh.Context, value string) string {
+func (b *backend) MaybeStoreFingerprint(ctx gliderssh.Context, value string) string {
 	return maybeStore(ctx, fingerprint, value).(string)
 }
 
 // MaybeStoreTarget stores the target in the context as metadata if is not set yet.
-func MaybeStoreTarget(ctx gliderssh.Context, sshid string) (*target.Target, error) {
+func (b *backend) MaybeStoreTarget(ctx gliderssh.Context, sshid string) (*target.Target, error) {
 	value, err := target.NewTarget(sshid)
 	if err != nil {
 		return nil, err
@@ -63,7 +61,8 @@ func MaybeStoreTarget(ctx gliderssh.Context, sshid string) (*target.Target, erro
 	return maybeStore(ctx, tag, value).(*target.Target), nil
 }
 
-func MaybeSetAPI(ctx gliderssh.Context, client internalclient.Client) internalclient.Client {
+// MaybeSetAPI sets the client in the context as metadata if is not set yet.
+func (b *backend) MaybeSetAPI(ctx gliderssh.Context, client internalclient.Client) internalclient.Client {
 	value := maybeStore(ctx, api, client)
 	if value == nil {
 		return nil
@@ -73,7 +72,7 @@ func MaybeSetAPI(ctx gliderssh.Context, client internalclient.Client) internalcl
 }
 
 // MaybeStoreLookup stores the lookup in the context as metadata if is not set yet.
-func MaybeStoreLookup(ctx gliderssh.Context, tag *target.Target, api internalclient.Client) (map[string]string, error) {
+func (b *backend) MaybeStoreLookup(ctx gliderssh.Context, tag *target.Target, api internalclient.Client) (map[string]string, error) {
 	var value map[string]string
 	setValue := func(namespace, hostname string) {
 		value = map[string]string{
@@ -103,7 +102,7 @@ func MaybeStoreLookup(ctx gliderssh.Context, tag *target.Target, api internalcli
 }
 
 // MaybeStoreDevice stores the device in the context as metadata if is not set yet.
-func MaybeStoreDevice(ctx gliderssh.Context, lookup map[string]string, api internalclient.Client) (*models.Device, []error) {
+func (b *backend) MaybeStoreDevice(ctx gliderssh.Context, lookup map[string]string, api internalclient.Client) (*models.Device, []error) {
 	value, errs := api.DeviceLookup(lookup)
 	if len(errs) > 0 {
 		return nil, errs
@@ -113,11 +112,11 @@ func MaybeStoreDevice(ctx gliderssh.Context, lookup map[string]string, api inter
 }
 
 // MaybeStoreAgent stores the agent in the context as metadata if is not set yet.
-func MaybeStoreAgent(ctx gliderssh.Context, client *gossh.Client) *gossh.Client {
+func (b *backend) MaybeStoreAgent(ctx gliderssh.Context, client *gossh.Client) *gossh.Client {
 	return maybeStore(ctx, agent, client).(*gossh.Client)
 }
 
 // MaybeStoreEstablished stores the connection established status between server and agent in the context as metadata if is not set yet.
-func MaybeStoreEstablished(ctx gliderssh.Context, value bool) bool {
+func (b *backend) MaybeStoreEstablished(ctx gliderssh.Context, value bool) bool {
 	return maybeStore(ctx, established, value).(bool)
 }

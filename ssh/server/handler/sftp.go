@@ -48,7 +48,7 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 		}
 
 		switch metadata.RestoreAuthenticationMethod(ctx) {
-		case metadata.PublicKeyAuthenticationMethod:
+		case metadata.AuthMethodPubKey:
 			privateKey, err := api.CreatePrivateKey()
 			if err != nil {
 				sendAndInformError(client, err, ErrPrivateKey)
@@ -75,7 +75,7 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 			config.Auth = []gossh.AuthMethod{
 				gossh.PublicKeys(signer),
 			}
-		case metadata.PasswordAuthenticationMethod:
+		case metadata.AuthMethodPasswd:
 			password := metadata.RestorePassword(ctx)
 
 			config.Auth = []gossh.AuthMethod{

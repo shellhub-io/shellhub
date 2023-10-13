@@ -14,7 +14,7 @@ func restore(ctx gliderssh.Context, key string) interface{} {
 }
 
 // RestoreRequest restores the request type from context as metadata.
-func RestoreRequest(ctx gliderssh.Context) string {
+func (b *backend) RestoreRequest(ctx gliderssh.Context) string {
 	value := restore(ctx, request)
 	if value == nil {
 		return ""
@@ -24,17 +24,17 @@ func RestoreRequest(ctx gliderssh.Context) string {
 }
 
 // RestoreAuthenticationMethod restores the authentication method from context as metadata.
-func RestoreAuthenticationMethod(ctx gliderssh.Context) AuthenticationMethod {
+func (b *backend) RestoreAuthenticationMethod(ctx gliderssh.Context) AuthMethod {
 	value := restore(ctx, authentication)
 	if value == nil {
-		return 0
+		return AuthMethodInvalid
 	}
 
-	return value.(AuthenticationMethod)
+	return value.(AuthMethod)
 }
 
 // RestorePassword restores the password from context as metadata.
-func RestorePassword(ctx gliderssh.Context) string {
+func (b *backend) RestorePassword(ctx gliderssh.Context) string {
 	value := restore(ctx, password)
 	if value == nil {
 		return ""
@@ -44,7 +44,7 @@ func RestorePassword(ctx gliderssh.Context) string {
 }
 
 // RestoreFingerprint restores the fingerprint from context as metadata.
-func RestoreFingerprint(ctx gliderssh.Context) string {
+func (b *backend) RestoreFingerprint(ctx gliderssh.Context) string {
 	value := restore(ctx, fingerprint)
 	if value == nil {
 		return ""
@@ -54,7 +54,7 @@ func RestoreFingerprint(ctx gliderssh.Context) string {
 }
 
 // RestoreTarget restores the target from context as metadata.
-func RestoreTarget(ctx gliderssh.Context) *target.Target {
+func (b *backend) RestoreTarget(ctx gliderssh.Context) *target.Target {
 	value := restore(ctx, tag)
 	if value == nil {
 		return nil
@@ -64,7 +64,7 @@ func RestoreTarget(ctx gliderssh.Context) *target.Target {
 }
 
 // RestoreAPI restores the API client from context as metadata.
-func RestoreAPI(ctx gliderssh.Context) internalclient.Client {
+func (b *backend) RestoreAPI(ctx gliderssh.Context) internalclient.Client {
 	value := restore(ctx, api)
 	if value == nil {
 		return nil
@@ -74,7 +74,7 @@ func RestoreAPI(ctx gliderssh.Context) internalclient.Client {
 }
 
 // RestoreLookup restores the lookup from context as metadata.
-func RestoreLookup(ctx gliderssh.Context) map[string]string {
+func (b *backend) RestoreLookup(ctx gliderssh.Context) map[string]string {
 	value := restore(ctx, lookup)
 	if value == nil {
 		return nil
@@ -84,7 +84,7 @@ func RestoreLookup(ctx gliderssh.Context) map[string]string {
 }
 
 // RestoreDevice restores the device from context as metadata.
-func RestoreDevice(ctx gliderssh.Context) *models.Device {
+func (b *backend) RestoreDevice(ctx gliderssh.Context) *models.Device {
 	value := restore(ctx, device)
 	if value == nil {
 		return nil
@@ -94,7 +94,7 @@ func RestoreDevice(ctx gliderssh.Context) *models.Device {
 }
 
 // RestoreAgent restores the agent from context as metadata.
-func RestoreAgent(ctx gliderssh.Context) *gossh.Client {
+func (b *backend) RestoreAgent(ctx gliderssh.Context) *gossh.Client {
 	value := restore(ctx, agent)
 	if value == nil {
 		return nil
@@ -104,11 +104,15 @@ func RestoreAgent(ctx gliderssh.Context) *gossh.Client {
 }
 
 // RestoreEstablished restores the connection established status between server and agent from context as metadata.
-func RestoreEstablished(ctx gliderssh.Context) bool {
+func (b *backend) RestoreEstablished(ctx gliderssh.Context) bool {
 	value := restore(ctx, established)
 	if value == nil {
 		return false
 	}
 
 	return value.(bool)
+}
+
+func (b *backend) RestoreUID(ctx gliderssh.Context) string {
+	return ctx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
 }

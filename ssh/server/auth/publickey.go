@@ -56,7 +56,7 @@ func PublicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool
 		}
 	}
 
-	metadata.StoreAuthenticationMethod(ctx, metadata.PublicKeyAuthenticationMethod)
+	metadata.StoreAuthenticationMethod(ctx, metadata.AuthMethodPubKey)
 
 	log.WithFields(log.Fields{
 		"sshid":       sshid,

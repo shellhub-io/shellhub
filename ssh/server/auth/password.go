@@ -39,7 +39,7 @@ func PasswordHandler(ctx ssh.Context, password string) bool {
 	}
 
 	metadata.StorePassword(ctx, password)
-	metadata.StoreAuthenticationMethod(ctx, metadata.PasswordAuthenticationMethod)
+	metadata.StoreAuthenticationMethod(ctx, metadata.AuthMethodPasswd)
 
 	log.WithFields(log.Fields{
 		"sshid": sshid,
