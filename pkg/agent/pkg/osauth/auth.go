@@ -29,43 +29,44 @@ type OSAuther interface {
 type OSAuth struct{}
 
 func (l *OSAuth) AuthUser(username, password string) bool {
-	shadowFile, err := os.Open(DefaultShadowFilename)
+	shadow, err := os.Open(DefaultShadowFilename)
 	if err != nil {
-		logrus.Error("Could not open /etc/shadow")
+		logrus.WithError(err).Error("Could not open /etc/shadow")
 
 		return false
 	}
-	defer shadowFile.Close()
+	defer shadow.Close()
 
-	entries, err := parseShadowReader(shadowFile)
-	if err != nil {
-		logrus.Printf("Could not parse shadowfile %v", err)
+	if ok := l.AuthUserFromShadow(username, password, shadow); !ok {
+		logrus.WithFields(logrus.Fields{
+			"username": username,
+		}).Debug("Failed to authenticate user from shadow file")
 
 		return false
 	}
 
-	if entry, ok := entries[username]; ok {
-		return l.VerifyPasswordHash(entry.Password, password)
-	}
-
-	logrus.Warn("User not found")
-
-	return false
+	return true
 }
 
 // AuthUserFromShadow checks if the given username and password are valid for the given shadow file.
-// TODO: Use this functin inside the AuthUser.
 func (l *OSAuth) AuthUserFromShadow(username string, password string, shadow io.Reader) bool {
 	entries, err := parseShadowReader(shadow)
 	if err != nil {
+		logrus.WithError(err).Debug("Error parsing shadow file")
+
 		return false
 	}
 
-	if entry, ok := entries[username]; ok {
-		return l.VerifyPasswordHash(entry.Password, password)
+	entry, ok := entries[username]
+	if !ok {
+		logrus.WithFields(logrus.Fields{
+			"username": username,
+		}).Error("User not found")
+
+		return false
 	}
 
-	return false
+	return l.VerifyPasswordHash(entry.Password, password)
 }
 
 func (l *OSAuth) VerifyPasswordHash(hash, password string) bool {
@@ -93,9 +94,13 @@ func (l *OSAuth) VerifyPasswordHash(hash, password string) bool {
 		return false
 	}
 
-	err := crypt.Verify(hash, []byte(password))
+	if err := crypt.Verify(hash, []byte(password)); err != nil {
+		logrus.WithError(err).Debug("Error verifying password hash")
 
-	return err == nil
+		return false
+	}
+
+	return true
 }
 
 // ErrUserNotFound is returned when the user is not found in the passwd file.
@@ -106,11 +111,17 @@ var ErrUserNotFound = errors.New("user not found")
 func (l *OSAuth) LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
 	entries, err := parsePasswdReader(passwd)
 	if err != nil {
+		logrus.WithError(err).Error("Error parsing passwd file")
+
 		return nil, err
 	}
 
 	user, found := entries[username]
 	if !found {
+		logrus.WithFields(logrus.Fields{
+			"username": username,
+		}).Error("User not found in passwd file")
+
 		return nil, ErrUserNotFound
 	}
 
@@ -122,29 +133,20 @@ func (l *OSAuth) LookupUser(username string) *User {
 		return singleUser()
 	}
 
-	passwdFile, err := os.Open(DefaultPasswdFilename)
+	passwd, err := os.Open(DefaultPasswdFilename)
 	if err != nil {
 		logrus.Errorf("Could not open %s", DefaultPasswdFilename)
 
 		return nil
 	}
-	defer passwdFile.Close()
+	defer passwd.Close()
 
-	entries, err := parsePasswdReader(passwdFile)
+	user, err := l.LookupUserFromPasswd(username, passwd)
 	if err != nil {
-		logrus.Printf("Could not parse passwdfile %v", err)
-
 		return nil
 	}
 
-	user, found := entries[username]
-	if !found {
-		logrus.Error("User not found")
-
-		return nil
-	}
-
-	return &user
+	return user
 }
 
 var DefaultShadowFilename = "/etc/shadow"

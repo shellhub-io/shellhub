@@ -69,7 +69,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, _ string, pass string) b
 	if ok {
 		log.Info("Using password authentication")
 	} else {
-		log.Info("Failed password")
+		log.Info("Failed to authenticate using password")
 	}
 
 	return ok
