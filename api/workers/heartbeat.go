@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func StartHeartBeat(_ context.Context, store store.Store) error {
+func StartHeartBeat(ctx context.Context, store store.Store) error {
 	envs, err := getEnvs()
 	if err != nil {
 		return fmt.Errorf("failed to get the envs: %w", err)
@@ -39,6 +39,9 @@ func StartHeartBeat(_ context.Context, store store.Store) error {
 	srv := asynq.NewServer(
 		addr,
 		asynq.Config{
+			BaseContext: func() context.Context {
+				return ctx
+			},
 			GroupAggregator:  asynq.GroupAggregatorFunc(aggregate),
 			GroupMaxDelay:    time.Duration(envs.AsynqGroupMaxDelay) * time.Second,
 			GroupGracePeriod: time.Duration(envs.AsynqGroupGracePeriod) * time.Second,

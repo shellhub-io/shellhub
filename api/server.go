@@ -53,15 +53,17 @@ var serverCmd = &cobra.Command{
 		go func() {
 			log.Info("Starting workers")
 
-			if err := workers.StartCleaner(ctx, store); err != nil {
-				log.WithError(err).Fatal("Failed to start cleaner worker")
-			}
-
-			if err := workers.StartHeartBeat(ctx, store); err != nil {
-				log.WithError(err).Fatal("Failed to start heartbeat worker")
-			}
+			go workers.StartCleaner(ctx, store)   //nolint:errcheck
+			go workers.StartHeartBeat(ctx, store) //nolint:errcheck
 
 			log.Info("Workers started")
+
+			select { //nolint:gosimple
+			case <-ctx.Done():
+				log.Warn("Closing workers due context cancellation")
+
+				return
+			}
 		}()
 
 		return startServer(cfg, store, cache)

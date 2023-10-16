@@ -19,7 +19,7 @@ import (
 // If something inside the function does not work properly, it will panic.
 // When SHELLHUB_RECORD_RETENTION is equals to zero, records will never be deleted.
 // When SHELLHUB_RECORD_RETENTION is less than zero, nothing happen.
-func StartCleaner(_ context.Context, store store.Store) error {
+func StartCleaner(ctx context.Context, store store.Store) error {
 	envs, err := getEnvs()
 	if err != nil {
 		return fmt.Errorf("failed to get the envs: %w", err)
@@ -45,6 +45,9 @@ func StartCleaner(_ context.Context, store store.Store) error {
 	srv := asynq.NewServer(
 		addr,
 		asynq.Config{ //nolint:exhaustruct
+			BaseContext: func() context.Context {
+				return ctx
+			},
 			Concurrency: runtime.NumCPU(),
 		},
 	)
