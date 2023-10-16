@@ -15,10 +15,24 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func StartHeartBeat(ctx context.Context, store store.Store) error {
+func StartHeartBeat(ctx context.Context, store store.Store) (err error) {
+	log.WithFields(log.Fields{
+		"workder": "cleaner",
+	}).Info("Starting heartbeat worker")
+	defer log.WithFields(log.Fields{
+		"workder": "cleaner",
+	}).Info("Heartbeat worker done")
+	defer func() {
+		// NOTE: Due to named return, err, we can log what happened using this defer function, avoiding a `log.Error` on
+		// each error's return.
+		log.WithFields(log.Fields{
+			"workder": "cleaner",
+		}).Error(err)
+	}()
+
 	envs, err := getEnvs()
 	if err != nil {
-		return fmt.Errorf("failed to get the envs: %w", err)
+		return err
 	}
 
 	addr, err := asynq.ParseRedisURI(envs.RedisURI)
@@ -76,7 +90,7 @@ func StartHeartBeat(ctx context.Context, store store.Store) error {
 	})
 
 	if err := srv.Run(mux); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	return nil

@@ -1,6 +1,10 @@
 package workers
 
-import "github.com/shellhub-io/shellhub/pkg/envs"
+import (
+	"fmt"
+
+	"github.com/shellhub-io/shellhub/pkg/envs"
+)
 
 type Envs struct {
 	MongoURI                      string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
@@ -30,7 +34,7 @@ type Envs struct {
 func getEnvs() (*Envs, error) {
 	env, err := envs.ParseWithPrefix[Envs]("api")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get the envs: %w", err)
 	}
 
 	return env, nil

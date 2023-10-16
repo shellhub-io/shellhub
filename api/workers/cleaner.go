@@ -9,7 +9,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -19,14 +19,28 @@ import (
 // If something inside the function does not work properly, it will panic.
 // When SHELLHUB_RECORD_RETENTION is equals to zero, records will never be deleted.
 // When SHELLHUB_RECORD_RETENTION is less than zero, nothing happen.
-func StartCleaner(ctx context.Context, store store.Store) error {
+func StartCleaner(ctx context.Context, store store.Store) (err error) {
+	log.WithFields(log.Fields{
+		"workder": "cleaner",
+	}).Info("Starting cleaner worker")
+	defer log.WithFields(log.Fields{
+		"workder": "cleaner",
+	}).Info("Cleaner worker done")
+	defer func() {
+		// NOTE: Due to named return, err, we can log what happened using this defer function, avoiding a `log.Error` on
+		// each error's return.
+		log.WithFields(log.Fields{
+			"workder": "cleaner",
+		}).Error(err)
+	}()
+
 	envs, err := getEnvs()
 	if err != nil {
-		return fmt.Errorf("failed to get the envs: %w", err)
+		return err
 	}
 
 	if envs.SessionRecordCleanupRetention == 0 {
-		return nil
+		return fmt.Errorf("stopping cleaner worker due cleaup rentention set to zero")
 	}
 
 	if envs.SessionRecordCleanupRetention < 0 {
@@ -73,7 +87,7 @@ func StartCleaner(ctx context.Context, store store.Store) error {
 
 	go func() {
 		if err := srv.Run(mux); err != nil {
-			logrus.Fatal(err)
+			log.Fatal(err)
 		}
 	}()
 
@@ -82,7 +96,7 @@ func StartCleaner(ctx context.Context, store store.Store) error {
 	// Schedule session_record:cleanup to run once a day
 	if _, err := scheduler.Register(envs.SessionRecordCleanupSchedule,
 		asynq.NewTask("session_record:cleanup", nil, asynq.TaskID("session_record:cleanup"))); err != nil {
-		logrus.Error(err)
+		log.Error(err)
 	}
 
 	return scheduler.Run() //nolint:contextcheck
