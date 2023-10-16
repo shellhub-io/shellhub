@@ -2,12 +2,11 @@ name: QA
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
 
   pull_request:
-    branches: [ master ]
+    branches: [master]
     types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
-
 
 jobs:
   validate:
@@ -17,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [ api,  agent,  pkg,  ssh, ui, cli ]
+        project: [api, agent, pkg, ssh, ui, cli, connector]
         include:
           - project: api
             extra_args: ""
@@ -35,6 +34,9 @@ jobs:
             extra_args: ""
             lint_args: ""
           - project: cli
+            extra_args: ""
+            lint_args: ""
+          - project: connector
             extra_args: ""
             lint_args: ""
 
@@ -57,6 +59,7 @@ jobs:
               - 'pkg/**'
               - 'ssh/**'
               - 'cli/**'
+              - 'connector/**'
 
       - name: Set up Go 1.x [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
@@ -132,7 +135,7 @@ jobs:
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: npm run test
-      
+
       - name: Save Code Linting Report JSON [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}

@@ -1,0 +1,18 @@
+version: "3.7"
+
+services:
+  connector:
+    image: shellhubio/connector:${SHELLHUB_VERSION}
+    restart: unless-stopped
+    environment:
+      - SHELLHUB_SERVER_ADDRESS=http://${SHELLHUB_DOMAIN}/
+      - SHELLHUB_PRIVATE_KEYS=/var/run/connector/keys
+      - SHELLHUB_TENANT_ID=${SHELLHUB_CONNECTOR_TENANT_ID}
+      - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "connector_keys:/var/run/connector/keys"
+    depends_on:
+      - api
+      - ssh
+      - gateway

@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"runtime"
 	"time"
 
 	"github.com/Masterminds/semver"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/shellhub-io/shellhub/agent/connector"
 	"github.com/shellhub-io/shellhub/pkg/agent"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/selfupdater"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -262,51 +260,6 @@ func main() {
 It is initialized by the agent when a new SFTP session is created.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			agent.NewSFTPServer()
-		},
-	})
-
-	rootCmd.AddCommand(&cobra.Command{ // nolint: exhaustruct
-		Use:   "connector",
-		Short: "Starts the Connector",
-		Long:  "Starts the Connector, a special kind of Agent that turns your docker containers into ShellHub devices.",
-		Run: func(cmd *cobra.Command, args []string) {
-			cfg, err := envs.ParseWithPrefix[agent.ConfigConnector]("shellhub")
-			if err != nil {
-				envconfig.Usage("shellhub", &cfg) // nolint:errcheck
-				log.Fatal(err)
-			}
-
-			cfg.PrivateKeys = path.Dir(cfg.PrivateKeys)
-
-			log.WithFields(log.Fields{
-				"version":      AgentVersion,
-				"address":      cfg.ServerAddress,
-				"tenant_id":    cfg.TenantID,
-				"private_keys": cfg.PrivateKeys,
-			}).Info("Starting ShellHub Connector")
-
-			connector, err := connector.NewDockerConnector(cfg.ServerAddress, cfg.TenantID, cfg.PrivateKeys)
-			if err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"version":   AgentVersion,
-					"address":   cfg.ServerAddress,
-					"tenant_id": cfg.TenantID,
-				}).Fatal("Failed to create connector")
-			}
-
-			if err := connector.Listen(cmd.Context()); err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"version":   AgentVersion,
-					"address":   cfg.ServerAddress,
-					"tenant_id": cfg.TenantID,
-				}).Fatal("Failed to listen for connections")
-			}
-
-			log.WithFields(log.Fields{
-				"version":   AgentVersion,
-				"address":   cfg.ServerAddress,
-				"tenant_id": cfg.TenantID,
-			}).Info("Connector stopped")
 		},
 	})
 
