@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 
 	resty "github.com/go-resty/resty/v2"
@@ -89,19 +88,43 @@ func (c *client) Endpoints() (*models.Endpoints, error) {
 	return endpoints, nil
 }
 
-func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
-	req, _ := http.NewRequest("GET", "", nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+// Dial creates a websocket connection to ShellHub's SSH server.
+//
+// It receivees the endpoint to connect and the necessary headers for authentication on the server. If the server
+// redirect the connection with status [http.StatusTemporaryRedirect] or [http.StatusPermanentRedirect], the Dial method
+// will follow. Any other response from the server will result in an error as result of this function.
+func Dial(url string, header http.Header) (*websocket.Conn, *http.Response, error) {
+	conn, res, err := websocket.DefaultDialer.Dial(url, header)
+	if err != nil {
+		switch res.StatusCode {
+		case http.StatusTemporaryRedirect, http.StatusPermanentRedirect:
+			location, err := res.Location()
+			if err != nil {
+				return nil, nil, err
+			}
 
-	url := regexp.MustCompile(`^http`).ReplaceAllString(buildURL(c, "/ssh/connection"), "ws")
-	conn, _, err := websocket.DefaultDialer.Dial(url, req.Header)
+			return Dial(parseToWS(location.String()), header)
+		default:
+			return nil, nil, err
+		}
+	}
+
+	return conn, res, nil
+}
+
+func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
+	req := c.http.R()
+	req.SetHeader("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.URL = parseToWS(buildURL(c, "/ssh/connection"))
+
+	conn, res, err := Dial(req.URL, req.Header)
 	if err != nil {
 		return nil, err
 	}
 
 	listener := revdial.NewListener(wsconnadapter.New(conn),
 		func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
-			return tunnelDial(ctx, strings.Replace(c.scheme, "http", "ws", 1), c.host, c.port, path)
+			return tunnelDial(ctx, strings.Replace(res.Request.URL.Scheme, "http", "ws", 1), res.Request.URL.Host, path)
 		},
 	)
 
@@ -122,6 +145,14 @@ func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (
 	return res, nil
 }
 
-func tunnelDial(ctx context.Context, protocol, address string, port int, path string) (*websocket.Conn, *http.Response, error) {
-	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s:%d", protocol, address, port), path}, ""), nil)
+func tunnelDial(ctx context.Context, protocol, address string, path string) (*websocket.Conn, *http.Response, error) {
+	getPortFromProtocol := func(protocol string) int {
+		if protocol == "wss" {
+			return 443
+		}
+
+		return 80
+	}
+
+	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s:%d", protocol, address, getPortFromProtocol(protocol)), path}, ""), nil)
 }

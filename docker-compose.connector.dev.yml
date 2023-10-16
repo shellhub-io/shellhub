@@ -1,0 +1,29 @@
+version: "3.7"
+
+services:
+  connector:
+    image: connector
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: connector/Dockerfile
+      target: development
+      network: host
+      args:
+        - GOPROXY=${SHELLHUB_GOPROXY}
+        - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
+    network_mode: host
+    environment:
+      - SHELLHUB_SERVER_ADDRESS=http://${SHELLHUB_DOMAIN}/
+      - SHELLHUB_PRIVATE_KEYS=/go/src/github.com/shellhub-io/shellhub/connector/.keys/
+      - SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
+      - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
+    volumes:
+      - ./connector:/go/src/github.com/shellhub-io/shellhub/connector
+      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./.golangci.yaml:/.golangci.yaml
+    depends_on:
+      - api
+      - ssh
+      - gateway

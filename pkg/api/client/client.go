@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"regexp"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -33,6 +34,7 @@ func NewClient(opts ...Opt) Client {
 
 		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
 	})
+	httpClient.SetRedirectPolicy(SameDomainRedirectPolicy())
 
 	c := &client{
 		host:   apiHost,
@@ -102,4 +104,9 @@ func buildURL(c *client, uri string) string {
 	u, _ := url.Parse(fmt.Sprintf("%s://%s:%d%s", c.scheme, c.host, c.port, uri))
 
 	return u.String()
+}
+
+// parseToWS gets a HTTP URI and change its values to meet the WebSocket format.
+func parseToWS(uri string) string {
+	return regexp.MustCompile(`^http`).ReplaceAllString(uri, "ws")
 }

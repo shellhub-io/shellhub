@@ -2,34 +2,33 @@ name: docker-build
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
     paths:
-    - '**Dockerfile**'
+      - "**Dockerfile**"
 
   pull_request:
-    branches: [ master ]
+    branches: [master]
     paths:
-    - '**Dockerfile'
+      - "**Dockerfile"
 
 jobs:
-
   build:
     name: Build '${{ matrix.project }}' Docker container
 
     strategy:
       fail-fast: false
       matrix:
-        project: [ api, ssh, gateway, ui, cli ]
+        project: [api, ssh, gateway, ui, cli, connector]
 
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Checkout source code
-      uses: actions/checkout@v4
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-    - name: Build '${{ matrix.project }}' Docker container
-      uses: docker/build-push-action@v5
-      with:
-        tags: shellhubio/${{ matrix.project }}:latest
-        push: false
-        file: ${{ matrix.project }}/Dockerfile
+      - name: Build '${{ matrix.project }}' Docker container
+        uses: docker/build-push-action@v5
+        with:
+          tags: shellhubio/${{ matrix.project }}:latest
+          push: false
+          file: ${{ matrix.project }}/Dockerfile

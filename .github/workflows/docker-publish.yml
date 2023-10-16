@@ -6,30 +6,29 @@ on:
       - v*
 
 jobs:
-
   build:
     name: Build and publish '${{ matrix.project }}' to Docker Registry
 
     strategy:
       fail-fast: true
       matrix:
-        project: [ api, ssh, gateway, ui, cli ]
+        project: [api, ssh, gateway, ui, cli, connector]
 
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Checkout source code
-      uses: actions/checkout@v4
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-    - name: Get release version
-      id: get_version
-      run: echo RELEASE_VERSION=$(echo ${GITHUB_REF:10}) >> $GITHUB_ENV
+      - name: Get release version
+        id: get_version
+        run: echo RELEASE_VERSION=$(echo ${GITHUB_REF:10}) >> $GITHUB_ENV
 
-    - name: Build and publish '${{ matrix.project }}' to Docker Registry
-      uses: elgohr/Publish-Docker-Github-Action@master
-      with:
-        name: shellhubio/${{ matrix.project }}
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        tags: "latest,${{ env.RELEASE_VERSION }}"
-        dockerfile: ${{ matrix.project }}/Dockerfile
+      - name: Build and publish '${{ matrix.project }}' to Docker Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: shellhubio/${{ matrix.project }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tags: "latest,${{ env.RELEASE_VERSION }}"
+          dockerfile: ${{ matrix.project }}/Dockerfile

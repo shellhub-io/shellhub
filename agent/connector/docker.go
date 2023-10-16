@@ -3,6 +3,7 @@ package connector
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -12,6 +13,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/agent"
 	log "github.com/sirupsen/logrus"
 )
+
+const AgentPlatformConnector = "connector"
 
 var _ Connector = new(DockerConnector)
 
@@ -133,6 +136,9 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 
 // initContainerAgent initializes the agent for a container.
 func initContainerAgent(ctx context.Context, container Container) {
+	agent.AgentVersion = os.Getenv("SHELLHUB_VERSION")
+	agent.AgentPlatform = AgentPlatformConnector
+
 	cfg := &agent.Config{
 		ServerAddress:     container.ServerAddress,
 		TenantID:          container.Tenant,

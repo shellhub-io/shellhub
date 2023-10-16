@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 
 services:
   ssh:
@@ -110,8 +110,7 @@ services:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./.golangci.yaml:/.golangci.yaml
     depends_on:
-    - api
-    - mongo
+      - api
+      - mongo
   autossl:
     image: tianon/true
-
