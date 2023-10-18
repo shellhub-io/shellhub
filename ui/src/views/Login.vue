@@ -104,7 +104,7 @@
   </v-container>
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../store";
@@ -125,24 +125,27 @@ const rules = [(v: string) => v ? true : "This is a required field"];
 const validForm = ref(false);
 const cloudEnvironment = isCloudEnvironment();
 const invalidCredentials = ref(false);
+const isMfaValid = computed(() => store.getters["auth/mfaStatus"]);
 
 onMounted(async () => {
   if (!route.query.token) {
     return;
   }
-
   loginToken.value = true;
   await store.dispatch("stats/clear");
   await store.dispatch("namespaces/clearNamespaceList");
   await store.dispatch("auth/logout");
   await store.dispatch("auth/loginToken", route.query.token);
-  await router.push("/");
 });
 
 const login = async () => {
   try {
     await store.dispatch("auth/login", { username: username.value, password: password.value });
-    router.push(route.query.redirect ? route.query.redirect.toString() : "/");
+    if (isMfaValid.value) {
+      router.push({ name: "MfaLogin" });
+    } else {
+      router.push(route.query.redirect ? route.query.redirect.toString() : "/");
+    }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -159,7 +162,6 @@ const login = async () => {
       }
       return;
     }
-
     snackbar.showError("Something went wrong. Please try again later.");
     handleError(error);
   }

@@ -34,6 +34,7 @@ export enum INotificationsSuccess {
   subscription = "subscription",
   updateSubscription = "updating subscription",
   cancelSubscription = "cancelling subscription",
+  cancelMfa = "cancelling mfa"
 }
 
 export enum INotificationsError {
@@ -98,5 +99,6 @@ export enum INotificationsError {
 export enum INotificationsCopy {
   command = "Command",
   deviceSSHID = "Device SSHID",
+  recoveryCodes = "Recovery Codes",
   tenantId = "Tenant ID",
 }

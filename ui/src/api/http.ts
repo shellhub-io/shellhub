@@ -55,6 +55,11 @@ const usersApi = new axiosTs.UsersApi(
   undefined,
   newAxiosInstance(),
 );
+const mfaApi = new axiosTs.MfaApi(
+  configuration,
+  undefined,
+  newAxiosInstance(),
+);
 const billingApi = new axiosTs.BillingApi(
   configuration,
   undefined,
@@ -103,6 +108,7 @@ export {
   sshApi,
   tagsApi,
   usersApi,
+  mfaApi,
   billingApi,
   rulesApi,
   announcementApi,
