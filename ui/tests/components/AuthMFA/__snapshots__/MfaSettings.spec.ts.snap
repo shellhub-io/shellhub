@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MfaSettings > Renders the component 1`] = `
+"<button data-v-491349b1=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" data-test=\\"enable-dialog-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Enable MFA</span>
+  <!---->
+  <!---->
+</button>"
+`;

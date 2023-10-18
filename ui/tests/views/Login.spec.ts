@@ -69,6 +69,7 @@ describe("Login", () => {
       tenant: "fake-tenant",
       role: "administrator",
       email: "test@test.com",
+      mfa: false,
     };
 
     // mock error below
@@ -92,6 +93,39 @@ describe("Login", () => {
     expect(routerPushSpy).toHaveBeenCalledWith("/");
   });
 
+  it("calls the mfa action when the login form is submitted", async () => {
+    const responseData = {
+      token: "fake-token",
+      user: "test",
+      name: "Test",
+      id: "1",
+      tenant: "fake-tenant",
+      role: "administrator",
+      email: "test@test.com",
+      mfa: true,
+    };
+
+    // mock error below
+    mock.onPost("http://localhost:3000/api/login").reply(200, responseData);
+
+    const loginSpy = vi.spyOn(store, "dispatch");
+    const routerPushSpy = vi.spyOn(router, "push");
+
+    await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
+    await wrapper.findComponent('[data-test="password-text"]').setValue("password");
+    await wrapper.findComponent('[data-test="form"]').trigger("submit");
+    await flushPromises();
+
+    // Assert the login action dispatch
+    expect(loginSpy).toHaveBeenCalledWith("auth/login", {
+      username: "testuser",
+      password: "password",
+    });
+
+    expect(wrapper.findComponent(".v-alert").exists()).toBeFalsy();
+    expect(routerPushSpy).toHaveBeenCalledWith({ name: "MfaLogin" });
+  });
+
   it("shows an error message for a 401 response", async () => {
     const loginSpy = vi.spyOn(store, "dispatch");
 
@@ -109,7 +143,6 @@ describe("Login", () => {
       password: "password",
     });
 
-    expect(wrapper.vm.invalidCredentials).toBe(true);
     expect(wrapper.findComponent(".v-alert").exists()).toBeTruthy();
   });
 

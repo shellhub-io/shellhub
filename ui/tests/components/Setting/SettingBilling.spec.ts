@@ -83,7 +83,7 @@ describe("Billing Settings Free Mode", () => {
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
-    // Create a mock adapter for the usersApi instance
+    // Create a mock adapter for the billingApi and namespacesApi instance
     mockBilling = new MockAdapter(billingApi.getAxios());
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());

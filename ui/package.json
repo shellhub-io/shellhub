@@ -40,6 +40,7 @@
     "markdown-it": "^13.0.1",
     "moment": "^2.29.4",
     "node-rsa": "^1.1.1",
+    "qrcode.vue": "^3.4.1",
     "sass": "^1.55.0",
     "sshpk": "^1.17.0",
     "vee-validate": "^4.6.10",

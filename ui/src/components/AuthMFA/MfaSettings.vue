@@ -1,0 +1,301 @@
+<template>
+  <v-btn
+    @click="setupMfa()"
+    color="primary"
+    tabindex="0"
+    variant="elevated"
+    data-test="enable-dialog-btn"
+  >Enable MFA</v-btn>
+
+  <v-dialog v-model="dialog" width="650" transition="dialog-bottom-transition" data-test="dialog">
+    <v-window v-model="el">
+      <v-window-item :value="1">
+        <v-card class="bg-v-theme-surface content" data-test="card-first-page">
+          <v-container>
+            <v-row>
+              <v-col align="center" class="pa-0" data-test="title-first-page">
+                <h2>Your Recovery Codes</h2>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-col class="pa-0">
+                  <v-alert
+                    variant="text"
+                    type="warning"
+                    :icon="false"
+                    data-test="alert-first-page"
+                    text="Please, check the box below whenever you're sure you've saved your recovery codes, without then,
+                     you'll have no means to return to your account after a MFA device loss,
+                     note that the codes will change if you re-enter this page."
+                  />
+                </v-col>
+              </v-col>
+            </v-row>
+            <v-card class="mb-2">
+              <v-row>
+                <v-col
+                  v-for="(code, index) in recoveryCodes"
+                  :key="index"
+                  :cols="4"
+                  align="center"
+                  class="pa-4 ma-0 pl-0 pr-0"
+                  data-test="recovery-codes"
+                >
+                  <h4>{{ code }}</h4>
+                </v-col>
+              </v-row>
+
+            </v-card>
+
+            <v-row>
+              <v-col>
+                <v-btn
+                  @click="downloadRecoveryCodes()"
+                  color="primary"
+                  tabindex="0"
+                  variant="elevated"
+                  prepend-icon="mdi-download-box-outline"
+                  class="mr-2"
+                  data-test="download-recovery-codes-btn"
+                >Download</v-btn>
+                <v-btn
+                  @click="copyRecoveryCodes()"
+                  color="primary"
+                  tabindex="0"
+                  variant="elevated"
+                  prepend-icon="mdi-content-copy"
+                  data-test="copy-recovery-codes-btn"
+                >Copy</v-btn>
+              </v-col>
+            </v-row>
+
+            <v-row>
+              <v-col class="pt-0">
+                <v-checkbox
+                  v-model="checkbox"
+                  data-test="checkbox-recovery"
+                  label="I have saved my recovery codes and I want to continue the MFA Setup"
+                  @click="checkbox === true"
+                />
+              </v-col>
+            </v-row>
+            <v-card-actions>
+              <v-btn variant="text" data-test="close-btn" @click="dialog = !dialog">
+                Close
+              </v-btn>
+
+              <v-spacer />
+
+              <v-btn variant="text" :disabled="!checkbox" color="primary" data-test="next-btn" @click="goToNextStep()">
+                Next Step
+              </v-btn>
+            </v-card-actions>
+          </v-container>
+        </v-card>
+      </v-window-item>
+      <v-window-item :value="2">
+        <v-card class="bg-v-theme-surface content" data-test="card-second-page">
+          <v-container>
+            <v-row>
+              <v-col align="center" data-test="title-second-page">
+                <h2>Set up multi-factor authentication</h2>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col align="center" data-test="qr-code">
+                <qrcode-vue :value="value" :size="250" level="H" />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col data-test="step-one">
+                <p><strong>Step 1:</strong> To set up your multi-factor authentication,
+                  please read the QR code above or paste the Secret Key below with your favorite OTP provider.</p>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col data-test="secret">
+                <p>Secret: <strong>{{ secret }}</strong></p>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col data-test="step-two">
+                <p><strong>Step 2:</strong> To set up your multi-factor authentication,
+                  please read the QR code above or paste the Secret Key below with your favorite OTP provider.</p>
+              </v-col>
+            </v-row>
+            <v-row v-if="errorAlert">
+              <v-col>
+                <v-alert
+                  type="error"
+                  :text="errorMessage"
+                  data-test="error-alert" />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-text-field
+                  v-model="verificationCode"
+                  label="Verification Code"
+                  required
+                  variant="underlined"
+                  data-test="verification-code"
+                />
+              </v-col>
+            </v-row>
+            <v-card-actions>
+              <v-btn variant="text" color="primary" data-test="back-btn" @click="el--">
+                Back
+              </v-btn>
+
+              <v-spacer />
+              <v-btn variant="text" :disabled="!verificationCode" color="primary" data-test="verify-btn" @click="enableMfa()">
+                Verify
+              </v-btn>
+            </v-card-actions>
+          </v-container>
+        </v-card>
+      </v-window-item>
+      <v-window-item :value="3">
+        <v-card class="bg-v-theme-surface content" data-test="card-third-page">
+          <v-container>
+            <v-row>
+              <v-col align="center" data-test="congratulation-text">
+                <h2>Congratulations! You've successfully verified your code.</h2>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col align="center">
+                <v-icon
+                  end
+                  icon="mdi-cloud-lock-outline"
+                  color="green"
+                  size="100"
+                  class="green-cloud"
+                  data-test="green-cloud-icon" />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col align="start" class="ml-5 pb-0" data-test="title-bp">
+                <h4>Your account is now more secure with:</h4>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col class="ml-5 pt-0" data-test="congratulation-bullet-point">
+                <ul>
+                  <li>Two-step verification adding an extra layer of protection.</li>
+                  <li>Reduced risk of unauthorized access even if your password is compromised.</li>
+                  <li>Enhanced security against phishing attacks and identity theft.</li>
+                </ul>
+              </v-col>
+            </v-row>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn variant="text" data-test="close-btn" @click="dialog = false">
+                Close
+              </v-btn>
+            </v-card-actions>
+          </v-container>
+        </v-card>
+      </v-window-item>
+    </v-window>
+  </v-dialog>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from "vue";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import QrcodeVue from "qrcode.vue";
+import axios, { AxiosError } from "axios";
+import { useClipboard } from "@vueuse/core";
+import { useStore } from "@/store";
+import handleError from "@/utils/handleError";
+import { INotificationsCopy } from "@/interfaces/INotifications";
+
+const store = useStore();
+const el = ref<number>(1);
+const dialog = ref(false);
+const value = computed(() => store.getters["auth/link_mfa"]);
+const secret = computed(() => store.getters["auth/secret"]);
+const recoveryCodes = computed(() => store.getters["auth/recoveryCodes"]);
+const verificationCode = ref("");
+const checkbox = ref(false);
+const errorAlert = ref(false);
+const errorMessage = ref("");
+
+const setupMfa = async () => {
+  try {
+    await store.dispatch("auth/generateMfa").then(() => {
+      el.value = 1;
+      dialog.value = true;
+      checkbox.value = false;
+    });
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+const copyRecoveryCodes = () => {
+  const codesText = recoveryCodes.value.join("\n");
+  useClipboard(codesText);
+  store.dispatch(
+    "snackbar/showSnackbarCopy",
+    INotificationsCopy.recoveryCodes,
+  );
+};
+
+const downloadRecoveryCodes = () => {
+  const codesText = recoveryCodes.value.join("\n");
+  const blob = new Blob([codesText], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "recovery_codes.txt";
+  a.click();
+
+  URL.revokeObjectURL(url);
+};
+
+const goToNextStep = () => {
+  el.value++;
+};
+
+const enableMfa = async () => {
+  try {
+    await store.dispatch("auth/enableMfa", {
+      token_mfa: verificationCode.value,
+      secret: secret.value,
+      codes: recoveryCodes.value,
+    }).then(() => {
+      el.value = 3;
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      errorAlert.value = true;
+      switch (axiosError.response?.status) {
+        case 500:
+          errorMessage.value = "The verification code sent in your MFA verification is invalid, please try again.";
+          break;
+        default:
+          errorMessage.value = "An error occurred during your MFA verification, try again later.";
+          handleError(error);
+      }
+      return;
+    }
+    handleError(error);
+  }
+};
+
+defineExpose({
+  goToNextStep,
+  el,
+});
+</script>
+
+<style scoped>
+.green-cloud {
+  filter: drop-shadow(0px 0px 30px rgba(43, 255, 10, 0.444))
+}
+</style>

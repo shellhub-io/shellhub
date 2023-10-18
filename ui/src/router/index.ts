@@ -30,6 +30,24 @@ export const routes: Array<RouteRecordRaw> = [
     component: () => import(/* webpackChunkName: "login" */ "../views/Login.vue"),
   },
   {
+    path: "/auth-mfa",
+    name: "MfaLogin",
+    meta: {
+      layout: "LoginLayout",
+      requiresAuth: false,
+    },
+    component: () => import(/* webpackChunkName: "login" */ "../components/AuthMFA/MfaLogin.vue"),
+  },
+  {
+    path: "/recover-mfa",
+    name: "RecoverMfa",
+    meta: {
+      layout: "LoginLayout",
+      requiresAuth: false,
+    },
+    component: () => import(/* webpackChunkName: "login" */ "../components/AuthMFA/MfaRecover.vue"),
+  },
+  {
     path: "/forgot-pass",
     name: "ForgotPassword",
     meta: {
@@ -188,18 +206,19 @@ export const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (route) => {
+router.beforeEach(async (to, from, next) => {
   const isLoggedIn = store.getters["auth/isLoggedIn"];
-  // defaults to "AppLayout" if route doesn't requires a custom layout
-  const layout = route.meta.layout || "AppLayout";
-  const requiresAuth = route.meta.requiresAuth ?? true;
+  const layout = to.meta.layout || "AppLayout";
+  const requiresAuth = to.meta.requiresAuth ?? true;
 
   await store.dispatch("layout/setLayout", layout);
 
-  // redirect to login page if the user was not logged in and auth is required
-  if (!isLoggedIn && requiresAuth) {
-    return { name: "login" };
+  // Redirect to the appropriate page based on authentication status
+  if (requiresAuth && !isLoggedIn) {
+    next({ name: "login" }); // Redirect to login page if authentication is required and user is not logged in
+  } else if (to.name === "login" && isLoggedIn) {
+    next({ path: "/" }); // Redirect from login page to home if user is already logged in
+  } else {
+    next(); // Continue with the original navigation
   }
-
-  return true;
 });
