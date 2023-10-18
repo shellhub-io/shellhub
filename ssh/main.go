@@ -56,7 +56,7 @@ func main() {
 
 	tunnel.API = internalclient.NewClient(withAsynq)
 
-	router := tunnel.GetRouter()
+	router := tunnel.Router()
 	router.Any("/sessions/:uid/close", func(c echo.Context) error {
 		exit := func(status int, err error) error {
 			log.WithError(err).WithField("status", status).Error("failed to close the session")

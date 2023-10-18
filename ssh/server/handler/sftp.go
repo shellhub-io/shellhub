@@ -18,7 +18,7 @@ import (
 const SFTPSubsystem = "sftp"
 
 // SFTPSubsystemHandler handlers a SFTP connection.
-func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler {
+func SFTPSubsystemHandler(tunnel httptunnel.Tunneler) gliderssh.SubsystemHandler {
 	return func(client gliderssh.Session) {
 		defer client.Close()
 

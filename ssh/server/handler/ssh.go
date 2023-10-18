@@ -70,7 +70,7 @@ type ConfigOptions struct {
 }
 
 // SSHHandler handlers a "normal" SSH connection.
-func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
+func SSHHandler(tunnel httptunnel.Tunneler) gliderssh.Handler {
 	return func(client gliderssh.Session) {
 		defer client.Close()
 

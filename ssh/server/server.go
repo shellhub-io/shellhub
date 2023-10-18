@@ -23,11 +23,11 @@ type Options struct {
 type Server struct {
 	sshd   *gliderssh.Server
 	opts   *Options
-	tunnel *httptunnel.Tunnel
+	tunnel httptunnel.Tunneler
 }
 
 // NewServer create a new ShellHub's Connect server.
-func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
+func NewServer(opts *Options, tunnel httptunnel.Tunneler) *Server {
 	server := &Server{ // nolint: exhaustruct
 		opts:   opts,
 		tunnel: tunnel,

@@ -109,7 +109,7 @@ func (s *Session) setType() {
 }
 
 // NewSession creates a new Client from a client to agent, validating data, instance and payment.
-func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, error) {
+func NewSession(client gliderssh.Session, tunnel httptunnel.Tunneler) (*Session, error) {
 	hos, err := host.NewHost(client.RemoteAddr().String())
 	if err != nil {
 		return nil, ErrHost
@@ -124,13 +124,14 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 
 	clientCtx := client.Context()
 
-	device := metadata.RestoreDevice(clientCtx)
+    uid := metadata.RestoreUID(clientCtx)
 	tag := metadata.RestoreTarget(clientCtx)
 	api := metadata.RestoreAPI(clientCtx)
+	device := metadata.RestoreDevice(clientCtx)
 	lookup := metadata.RestoreLookup(clientCtx)
 
-	lookup["username"] = tag.Username
 	lookup["ip_address"] = hos.Host
+	lookup["username"] = tag.Username
 
 	if envs.IsCloud() || envs.IsEnterprise() {
 		if err := api.FirewallEvaluate(lookup); err != nil {
@@ -160,8 +161,6 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 	if err != nil {
 		return nil, ErrDial
 	}
-
-	uid := client.Context().Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
 
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", uid), nil)
 	if err = req.Write(dialed); err != nil {

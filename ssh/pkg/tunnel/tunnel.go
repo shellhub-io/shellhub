@@ -12,7 +12,7 @@ import (
 )
 
 type Tunnel struct {
-	Tunnel *httptunnel.Tunnel
+	Tunnel httptunnel.Tunneler
 	API    internalclient.Client
 }
 
@@ -22,24 +22,32 @@ func NewTunnel(connection, dial string) *Tunnel {
 		API:    internalclient.NewClient(),
 	}
 
-	tunnel.Tunnel.ConnectionHandler = func(request *http.Request) (string, error) {
-		return request.Header.Get(internalclient.DeviceUIDHeader), nil
-	}
-	tunnel.Tunnel.CloseHandler = func(id string) {
-		if err := internalclient.NewClient().DevicesOffline(id); err != nil {
-			log.Error(err)
-		}
-	}
-	tunnel.Tunnel.KeepAliveHandler = func(id string) {
-		if err := tunnel.API.DevicesHeartbeat(id); err != nil {
-			log.Error(err)
-		}
-	}
+	tunnel.Tunnel.SetConnectionHandler(
+		func(request *http.Request) (string, error) {
+			return request.Header.Get(internalclient.DeviceUIDHeader), nil
+		},
+	)
+
+	tunnel.Tunnel.SetCloseHandler(
+		func(id string) {
+			if err := internalclient.NewClient().DevicesOffline(id); err != nil {
+				log.Error(err)
+			}
+		},
+	)
+
+	tunnel.Tunnel.SetKeepAliveHandler(
+		func(id string) {
+			if err := tunnel.API.DevicesHeartbeat(id); err != nil {
+				log.Error(err)
+			}
+		},
+	)
 
 	return tunnel
 }
 
-func (t *Tunnel) GetRouter() *echo.Echo {
+func (t *Tunnel) Router() *echo.Echo {
 	router, ok := t.Tunnel.Router().(*echo.Echo)
 	if !ok {
 		// TODO: should the Connect does not up when this assertion fail?
