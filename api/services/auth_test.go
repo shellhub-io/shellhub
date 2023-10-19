@@ -309,6 +309,7 @@ func TestAuthGetToken(t *testing.T) {
 					ID: "id",
 				}, 1, nil).Once()
 				mock.On("NamespaceGetFirst", ctx, "id").Return(namespace, nil).Once()
+				mock.On("GetStatusMFA", ctx, "id").Return(false, nil).Once()
 
 				clockMock.On("Now").Return(now).Twice()
 			},
@@ -329,7 +330,7 @@ func TestAuthGetToken(t *testing.T) {
 
 			service := NewService(mock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
 
-			authRes, err := service.AuthGetToken(ctx, tc.userID)
+			authRes, err := service.AuthGetToken(ctx, tc.userID, false)
 			assert.NotNil(t, authRes)
 			assert.Equal(t, tc.expected.err, err)
 
