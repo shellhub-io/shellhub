@@ -50,7 +50,7 @@ func TestAuthGetToken(t *testing.T) {
 			title: "success when trying to get a token",
 			id:    requests.AuthTokenGet{UserParam: requests.UserParam{ID: "id"}},
 			requiredMocks: func() {
-				mock.On("AuthGetToken", gomock.Anything, "id").Return(&models.UserAuthResponse{}, nil).Once()
+				mock.On("AuthGetToken", gomock.Anything, "id", false).Return(&models.UserAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedSession: &models.UserAuthResponse{},
@@ -121,8 +121,8 @@ func TestAuthDevice(t *testing.T) {
 				TenantID:  "your_tenant_id",
 			},
 			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.Anything, gomock.Anything).Return(&models.DeviceAuthResponse{}, nil).Once()
-				mock.On("SetDevicePosition", gomock.Anything, gomock.Anything, gomock.Anything).Return(nil).Once()
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "").Return(&models.DeviceAuthResponse{}, nil).Once()
+				mock.On("SetDevicePosition", gomock.Anything, models.UID(""), "").Return(nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -139,7 +139,6 @@ func TestAuthDevice(t *testing.T) {
 			},
 		},
 	}
-
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
@@ -191,7 +190,12 @@ func TestAuthUser(t *testing.T) {
 				Password: "testpassword",
 			},
 			requiredMocks: func() {
-				mock.On("AuthUser", gomock.Anything, gomock.Anything).Return(&models.UserAuthResponse{}, nil).Once()
+				req := requests.UserAuth{
+					Username: "testuser",
+					Password: "testpassword",
+				}
+
+				mock.On("AuthUser", gomock.Anything, req, false).Return(&models.UserAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.UserAuthResponse{},
@@ -229,7 +233,7 @@ func TestAuthUser(t *testing.T) {
 				Password: "password",
 			},
 			requiredMocks: func() {
-				mock.On("AuthUser", gomock.Anything, gomock.Anything).Return(nil, svc.ErrAuthUnathorized).Once()
+				mock.On("AuthUser", gomock.Anything, gomock.Anything, gomock.Anything).Return(nil, svc.ErrAuthUnathorized).Once()
 			},
 			expected: Expected{
 				expectedResponse: nil,
@@ -427,7 +431,11 @@ func TestAuthPublicKey(t *testing.T) {
 				Data:        "data",
 			},
 			requiredMocks: func() {
-				mock.On("AuthPublicKey", gomock.Anything, gomock.Anything).Return(&models.PublicKeyAuthResponse{}, nil).Once()
+				req := requests.PublicKeyAuth{
+					Fingerprint: "fingerprint",
+					Data:        "data",
+				}
+				mock.On("AuthPublicKey", gomock.Anything, req).Return(&models.PublicKeyAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.PublicKeyAuthResponse{},
@@ -486,7 +494,7 @@ func TestAuthRequest(t *testing.T) {
 		Admin:    true,
 		Tenant:   "tenant",
 		Role:     "role",
-		ID:       "userID",
+		ID:       "id",
 		AuthClaims: models.AuthClaims{
 			Claims: "user",
 		},
@@ -507,7 +515,7 @@ func TestAuthRequest(t *testing.T) {
 			title: "success when trying to verify token authorization",
 			requiredMocks: func() {
 				mock.On("PublicKey").Return(&privateKey.PublicKey).Once()
-				mock.On("AuthIsCacheToken", gomock.Anything, gomock.Anything, gomock.Anything).Return(true, nil).Once()
+				mock.On("AuthIsCacheToken", gomock.Anything, "tenant", "id").Return(true, nil).Once()
 			},
 			expected: Expected{
 				expectedStatus: http.StatusOK,
@@ -517,7 +525,7 @@ func TestAuthRequest(t *testing.T) {
 			title: "fails when token dont have cache",
 			requiredMocks: func() {
 				mock.On("PublicKey").Return(&privateKey.PublicKey).Once()
-				mock.On("AuthIsCacheToken", gomock.Anything, gomock.Anything, gomock.Anything).Return(false, nil).Once()
+				mock.On("AuthIsCacheToken", gomock.Anything, "tenant", "id").Return(false, nil).Once()
 			},
 			expected: Expected{
 				expectedStatus: http.StatusUnauthorized,

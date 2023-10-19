@@ -154,6 +154,11 @@ func NewErrUnathorized(err error, next error) error {
 	return errors.Wrap(err, next)
 }
 
+// NewErrBadRequest returns a error to be used when the access to a resource is not authorized.
+func NewErrRequest(err error, next error) error {
+	return errors.Wrap(err, next)
+}
+
 // NewErrForbidden return a error to be used when the access to a resource is forbidden.
 func NewErrForbidden(err error, next error) error {
 	return errors.Wrap(err, next)
@@ -376,6 +381,11 @@ func NewErrDeviceSetOnline(id models.UID, err error) error {
 // NewErrAuthUnathorized returns a error to be used when the auth is unauthorized.
 func NewErrAuthUnathorized(err error) error {
 	return NewErrUnathorized(ErrAuthUnathorized, err)
+}
+
+// NewErrBadRequest returns a error to be used when the auth is unauthorized.
+func NewErrBadRequest(err error) error {
+	return NewErrRequest(ErrBadRequest, err)
 }
 
 // NewErrNamespaceLimitReached a error to be used when the user namespace limit number is reached.
