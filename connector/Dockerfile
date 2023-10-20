@@ -64,6 +64,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 # production stage
 FROM alpine:3.18.4 AS production
 
+COPY --from=0 /usr/lib/libcrypt.so* /usr/lib/
+
 WORKDIR /app
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/connector/connector /connector
 
