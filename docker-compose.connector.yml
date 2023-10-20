@@ -4,6 +4,7 @@ services:
   connector:
     image: shellhubio/connector:${SHELLHUB_VERSION}
     restart: unless-stopped
+    network_mode: host
     environment:
       - SHELLHUB_SERVER_ADDRESS=http://${SHELLHUB_DOMAIN}/
       - SHELLHUB_PRIVATE_KEYS=/var/run/connector/keys
