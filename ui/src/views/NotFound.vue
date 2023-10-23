@@ -10,16 +10,19 @@
         <p class="mb-5 font-weight-bold text-h3">Page not found</p>
         <p class="mb-4 font-weight-bold text-h6">The requested URL was not found on the server. You can go back to the dashboard
           by clicking the button below.</p>
-        <v-btn color="primary" @click="$router.push({ name: 'Dashboard' })" data-test="dashboard-btn">Go to Dashboard</v-btn>
+        <v-btn color="primary" @click="goToDashboard" data-test="dashboard-btn">Go to Dashboard</v-btn>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
+import { useRouter } from "vue-router";
 
-export default defineComponent({
-  name: "NotFound",
-});
+const router = useRouter();
+
+const goToDashboard = () => {
+  router.push({ name: "Dashboard" });
+};
+
 </script>
