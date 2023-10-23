@@ -124,7 +124,7 @@ func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
 
 	listener := revdial.NewListener(wsconnadapter.New(conn),
 		func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
-			return tunnelDial(ctx, strings.Replace(res.Request.URL.Scheme, "http", "ws", 1), res.Request.URL.Host, path)
+			return tunnelDial(ctx, strings.Replace(res.Request.URL.Scheme, "http", "ws", 1), res.Request.URL.Hostname(), path)
 		},
 	)
 
