@@ -54,7 +54,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType } from "vue";
+import { computed, defineComponent, PropType, toRefs, ref } from "vue";
 
 type HeaderItem = {
   text: string;
@@ -119,8 +119,10 @@ export default defineComponent({
   },
   emits: ["changeItemsPerPage", "clickNextPage", "clickPreviousPage", "clickSortableIcon"],
   setup(props) {
-    const itemsPerPageRef = computed(() => props.itemsPerPage);
-    const pageQuantity = computed(() => Math.ceil(props.totalCount / props.itemsPerPage));
+    const { itemsPerPage, totalCount } = toRefs(props);
+
+    const itemsPerPageRef = ref(itemsPerPage.value);
+    const pageQuantity = computed(() => Math.ceil(totalCount.value / itemsPerPageRef.value));
 
     return {
       itemsPerPageRef,
