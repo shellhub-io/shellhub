@@ -206,7 +206,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	}
 
 	if sameMacDev != nil && sameMacDev.UID != device.UID {
-		if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil {
+		if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil && err != store.ErrNoDocuments {
 			return err
 		}
 
