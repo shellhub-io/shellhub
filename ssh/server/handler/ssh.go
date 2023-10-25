@@ -64,6 +64,14 @@ func sendAndInformError(client io.Writer, internal, external error) {
 	client.Write([]byte(fmt.Sprintf("%s\n", external.Error()))) // nolint: errcheck
 }
 
+func sshError(client gliderssh.Session, internal, external error) {
+	log.WithError(internal).
+		WithFields(log.Fields{"client": client.User()}).
+		Error("error when trying to establish ssh connection")
+
+	client.Write([]byte(fmt.Sprintf("%s\n", external.Error()))) // nolint: errcheck
+}
+
 type ConfigOptions struct {
 	RecordURL string `envconfig:"record_url"`
 }
@@ -78,7 +86,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 
 		sess, err := session.NewSession(client, tunnel)
 		if err != nil {
-			sendAndInformError(client, err, err)
+			sshError(client, err, err)
 
 			return
 		}
@@ -88,7 +96,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 		if wh := webhook.NewClient(); wh != nil {
 			res, err := wh.Connect(sess.Lookup)
 			if errors.Is(err, webhook.ErrForbidden) {
-				sendAndInformError(client, err, ErrWebhook)
+				sshError(client, err, ErrWebhook)
 
 				return
 			}
@@ -103,7 +111,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 		opts, err := envs.ParseWithPrefix[ConfigOptions]("")
 		if err != nil {
 			// TODO: add external error.
-			sendAndInformError(client, err, nil)
+			sshError(client, err, nil)
 
 			return
 		}
@@ -120,7 +128,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 		case metadata.PublicKeyAuthenticationMethod:
 			privateKey, err := api.CreatePrivateKey()
 			if err != nil {
-				sendAndInformError(client, err, ErrPrivateKey)
+				sshError(client, err, ErrPrivateKey)
 
 				return
 			}
@@ -129,14 +137,14 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 
 			parsed, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 			if err != nil {
-				sendAndInformError(client, err, ErrPublicKey)
+				sshError(client, err, ErrPublicKey)
 
 				return
 			}
 
 			signer, err := gossh.NewSignerFromKey(parsed)
 			if err != nil {
-				sendAndInformError(client, err, ErrSigner)
+				sshError(client, err, ErrSigner)
 
 				return
 			}
@@ -154,7 +162,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 
 		err = connectSSH(ctx, client, sess, config, api, *opts)
 		if err != nil {
-			sendAndInformError(client, err, err)
+			sshError(client, err, err)
 
 			return
 		}
