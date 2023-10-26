@@ -55,22 +55,29 @@ func (d *DockerConnector) events(ctx context.Context) (<-chan events.Message, <-
 	return d.cli.Events(ctx, types.EventsOptions{})
 }
 
-func (d *DockerConnector) List(ctx context.Context) ([]string, error) {
+func (d *DockerConnector) List(ctx context.Context) ([]Container, error) {
 	containers, err := d.cli.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	list := make([]string, len(containers))
+	list := make([]Container, len(containers))
 	for i, container := range containers {
-		list[i] = container.ID
+		list[i].ID = container.ID
+
+		name, err := d.getContainerNameFromID(ctx, container.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		list[i].Name = name
 	}
 
 	return list, nil
 }
 
 // Start starts the agent for the container with the given ID.
-func (d *DockerConnector) Start(ctx context.Context, id string) {
+func (d *DockerConnector) Start(ctx context.Context, id string, name string) {
 	id = id[:12]
 
 	d.mu.Lock()
@@ -80,6 +87,7 @@ func (d *DockerConnector) Start(ctx context.Context, id string) {
 	privateKey := fmt.Sprintf("%s/%s.key", d.privateKeys, id)
 	go initContainerAgent(ctx, Container{
 		ID:            id,
+		Name:          name,
 		ServerAddress: d.server,
 		Tenant:        d.tenant,
 		PrivateKey:    privateKey,
@@ -101,6 +109,16 @@ func (d *DockerConnector) Stop(_ context.Context, id string) {
 	}
 }
 
+func (d *DockerConnector) getContainerNameFromID(ctx context.Context, id string) (string, error) {
+	container, err := d.cli.ContainerInspect(ctx, id)
+	if err != nil {
+		return "", err
+	}
+
+	// NOTICE: It removes the first character on container's name that is a `/`.
+	return container.Name[1:], nil
+}
+
 // Listen listens for events and starts or stops the agent for the containers.
 func (d *DockerConnector) Listen(ctx context.Context) error {
 	containers, err := d.List(ctx)
@@ -109,7 +127,7 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 	}
 
 	for _, container := range containers {
-		d.Start(ctx, container)
+		d.Start(ctx, container.ID, container.Name)
 	}
 
 	events, errs := d.events(ctx)
@@ -126,7 +144,12 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 			// the "start" event will be called too. The same happens with the "die" event.
 			switch container.Action {
 			case "start":
-				d.Start(ctx, container.ID)
+				name, err := d.getContainerNameFromID(ctx, container.ID)
+				if err != nil {
+					return err
+				}
+
+				d.Start(ctx, container.ID, name)
 			case "die":
 				d.Stop(ctx, container.ID)
 			}
@@ -143,8 +166,8 @@ func initContainerAgent(ctx context.Context, container Container) {
 		ServerAddress:     container.ServerAddress,
 		TenantID:          container.Tenant,
 		PrivateKey:        container.PrivateKey,
-		PreferredHostname: container.ID,
 		PreferredIdentity: container.ID,
+		PreferredHostname: container.Name,
 		Mode:              agent.ModeConnector,
 		KeepAliveInterval: 30,
 	}

@@ -8,6 +8,8 @@ import (
 type Container struct {
 	// ID is the container ID.
 	ID string
+	// Name is the container name.
+	Name string
 	// ServerAddress is the ShellHub address of the server that the agent will connect to.
 	ServerAddress string
 	// Tenant is the tenant ID of the namespace that the agent belongs to.
@@ -22,9 +24,9 @@ type Container struct {
 // Connector is an interface that defines the methods that a connector must implement.
 type Connector interface {
 	// List lists all containers running on the host.
-	List(ctx context.Context) ([]string, error)
+	List(ctx context.Context) ([]Container, error)
 	// Start starts the agent for the container with the given ID.
-	Start(ctx context.Context, id string)
+	Start(ctx context.Context, id string, name string)
 	// Stop stops the agent for the container with the given ID.
 	Stop(ctx context.Context, id string)
 	// Listen listens for events and starts or stops the agent for the container that was created or removed.
