@@ -256,6 +256,8 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 		return nil, NewErrTokenSigned(err)
 	}
 
+	s.AuthCacheToken(ctx, tenant, user.ID, tokenStr) // nolint: errcheck
+
 	return &models.UserAuthResponse{
 		Token:  tokenStr,
 		Name:   user.Name,
