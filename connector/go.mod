@@ -4,13 +4,13 @@ go 1.20
 
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/shellhub-io/shellhub v0.13.0-rc.3.0.20231016135144-7087045b3877
-	github.com/shellhub-io/shellhub/agent v0.0.0-20231016135144-7087045b3877
+	github.com/shellhub-io/shellhub v0.13.0-rc.6.0.20231026135513-f00f02afa3d1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 )
 
 require (
+	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
