@@ -12,25 +12,22 @@ import (
 var ErrNoConnection = errors.New("no connection")
 
 type ConnectionManager struct {
-	dialers                 map[string]*revdial.Dialer
-	lock                    sync.RWMutex
+	dialers                 sync.Map
 	DialerDoneCallback      func(string, *revdial.Dialer)
 	DialerKeepAliveCallback func(string, *revdial.Dialer)
 }
 
 func New() *ConnectionManager {
 	return &ConnectionManager{
-		dialers: make(map[string]*revdial.Dialer),
 		DialerDoneCallback: func(string, *revdial.Dialer) {
 		},
 	}
 }
 
 func (m *ConnectionManager) Set(key string, conn net.Conn) {
-	m.lock.Lock()
 	dialer := revdial.NewDialer(conn, "/ssh/revdial")
-	m.dialers[key] = dialer
-	m.lock.Unlock()
+
+	m.dialers.Store(key, dialer)
 
 	go func() {
 		for {
@@ -40,6 +37,7 @@ func (m *ConnectionManager) Set(key string, conn net.Conn) {
 
 				continue
 			case <-dialer.Done():
+				m.dialers.Delete(key)
 				m.DialerDoneCallback(key, dialer)
 
 				return
@@ -49,14 +47,10 @@ func (m *ConnectionManager) Set(key string, conn net.Conn) {
 }
 
 func (m *ConnectionManager) Dial(ctx context.Context, key string) (net.Conn, error) {
-	m.lock.RLock()
-	dialer, ok := m.dialers[key]
+	dialer, ok := m.dialers.Load(key)
 	if !ok {
-		m.lock.RUnlock()
-
 		return nil, ErrNoConnection
 	}
-	m.lock.RUnlock()
 
-	return dialer.Dial(ctx)
+	return dialer.(*revdial.Dialer).Dial(ctx)
 }

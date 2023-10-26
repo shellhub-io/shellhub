@@ -58,8 +58,7 @@ type Dialer struct {
 }
 
 var (
-	dmapMu  sync.Mutex
-	dialers = map[string]*Dialer{}
+	dialers = sync.Map{}
 )
 
 // NewDialer returns the side of the connection which will initiate
@@ -99,15 +98,11 @@ func newUniqID() string {
 }
 
 func (d *Dialer) register() {
-	dmapMu.Lock()
-	defer dmapMu.Unlock()
-	dialers[d.uniqID] = d
+	dialers.Store(d.uniqID, d)
 }
 
 func (d *Dialer) unregister() {
-	dmapMu.Lock()
-	defer dmapMu.Unlock()
-	delete(dialers, d.uniqID)
+	dialers.Delete(d.uniqID)
 }
 
 // Done returns a channel which is closed when d is closed (either by
@@ -451,9 +446,7 @@ func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		dialerUniq := r.FormValue(dialerUniqParam)
 
-		dmapMu.Lock()
-		d, ok := dialers[dialerUniq]
-		dmapMu.Unlock()
+		d, ok := dialers.Load(dialerUniq)
 		if !ok {
 			http.Error(w, "unknown dialer", http.StatusBadRequest)
 
@@ -467,6 +460,6 @@ func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 			return
 		}
 
-		d.matchConn(wsconnadapter.New(wsConn))
+		d.(*Dialer).matchConn(wsconnadapter.New(wsConn))
 	})
 }
