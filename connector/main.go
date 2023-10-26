@@ -4,8 +4,8 @@ import (
 	"path"
 
 	"github.com/kelseyhightower/envconfig"
-	"github.com/shellhub-io/shellhub/agent/connector"
 	"github.com/shellhub-io/shellhub/pkg/agent"
+	"github.com/shellhub-io/shellhub/pkg/agent/connector"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
