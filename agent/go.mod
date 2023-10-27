@@ -23,6 +23,7 @@ require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
+	github.com/caarlos0/env/v10 v10.0.0 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/docker v24.0.5+incompatible // indirect

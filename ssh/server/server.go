@@ -16,8 +16,8 @@ import (
 )
 
 type Options struct {
-	ConnectTimeout time.Duration `envconfig:"connect_timeout" default:"30s"`
-	RedisURI       string        `envconfig:"redis_uri" default:"redis://redis:6379"`
+	ConnectTimeout time.Duration `env:"CONNECT_TIMEOUT" envDefault:"30s"`
+	RedisURI       string        `env:"REDIS_URI" envDefault:"redis://redis:6379"`
 }
 
 type Server struct {

@@ -15,6 +15,7 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
+	github.com/caarlos0/env/v10 v10.0.0 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/distribution/reference v0.5.0 // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect

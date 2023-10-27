@@ -44,15 +44,15 @@ func main() {
 			//  PRIVATE_KEY=/tmp/shellhub sudo -E ./agent
 			//
 			//  struct {
-			//    ServerAddress string `envconfig:"server_address" required:"true"`
-			//    PrivateKey string `envconfig:"private_key" required:"true"`
-			//    TenantID string `envconfig:"tenant_id" required:"true"`
+			//    ServerAddress string `env:"SERVER_ADDRESS,required"`
+			//    PrivateKey string `env:"PRIVATE_KEY,required"`
+			//    TenantID string `env:"TENANT_ID,required"`
 			//  }
 			//
-			//  This behavior is driven by the [envconfig] package. Check it out for more information.
+			//  This behavior is driven by the [env] package. Check it out for more information.
 			//
-			// [envconfig]: https://github.com/kelseyhightower/envconfig
-			cfg, err := envs.ParseWithPrefix[agent.Config]("shellhub")
+			// [env]: https://github.com/caarlos0/env
+			cfg, err := envs.ParseWithPrefix[agent.Config]("SHELLHUB_")
 			if err != nil {
 				envconfig.Usage("shellhub", &cfg) // nolint:errcheck
 				log.Fatal(err)

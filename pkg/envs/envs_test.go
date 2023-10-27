@@ -1,16 +1,52 @@
 package envs
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParse_with_default(t *testing.T) {
+func ExampleParseWithPrefix() {
 	type Envs struct {
-		RedisURI string `envconfig:"redis_uri" default:"redis://redis:6379/default"`
-		MongoURI string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/default"`
+		RedisURI string `env:"REDIS_URI" envDefault:"redis://redis:6379/default"`
+		MongoURI string `env:"MONGO_URI" envDefault:"mongodb://mongo:27017/default"`
+	}
+
+	os.Setenv("EXAMPLE_REDIS_URI", "redis://redis:6379/test")
+	os.Setenv("EXAMPLE_MONGO_URI", "mongodb://mongo:27017/test")
+
+	envs, _ := ParseWithPrefix[Envs]("EXAMPLE_")
+
+	fmt.Println(envs.RedisURI)
+	fmt.Println(envs.MongoURI)
+	// Output:
+	// redis://redis:6379/test
+	// mongodb://mongo:27017/test
+}
+
+func ExampleParse() {
+	type Envs struct {
+		RedisURI string `env:"REDIS_URI" envDefault:"redis://redis:6379/default"`
+		MongoURI string `env:"MONGO_URI" envDefault:"mongodb://mongo:27017/default"`
+	}
+
+	os.Setenv("REDIS_URI", "redis://redis:6379/test")
+	os.Setenv("MONGO_URI", "mongodb://mongo:27017/test")
+	envs, _ := Parse[Envs]()
+
+	fmt.Println(envs.RedisURI)
+	fmt.Println(envs.MongoURI)
+	// Output:
+	// redis://redis:6379/test
+	// mongodb://mongo:27017/test
+}
+
+func TestParseWithPrefix_with_default(t *testing.T) {
+	type Envs struct {
+		RedisURI string `env:"REDIS_URI" envDefault:"redis://redis:6379/default"`
+		MongoURI string `env:"MONGO_URI" envDefault:"mongodb://mongo:27017/default"`
 	}
 
 	type Expected struct {
@@ -46,7 +82,7 @@ func TestParse_with_default(t *testing.T) {
 		},
 		{
 			description: "parse envs with one prefix and an empty",
-			prefix:      "foo",
+			prefix:      "FOO_",
 			before: func() {
 				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
 				os.Setenv("REDIS_URI", "redis://redis:6379/empty")
@@ -60,14 +96,14 @@ func TestParse_with_default(t *testing.T) {
 			expected: Expected{
 				Envs: &Envs{
 					RedisURI: "redis://redis:6379/foo",
-					MongoURI: "mongodb://mongo:27017/empty",
+					MongoURI: "mongodb://mongo:27017/default",
 				},
 				Error: nil,
 			},
 		},
 		{
 			description: "parse envs with one prefix",
-			prefix:      "bar",
+			prefix:      "BAR_",
 			before: func() {
 				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
 				os.Setenv("BAR_REDIS_URI", "redis://redis:6379/bar")
@@ -90,7 +126,7 @@ func TestParse_with_default(t *testing.T) {
 		},
 		{
 			description: "parse envs with one prefix and default",
-			prefix:      "foo",
+			prefix:      "FOO_",
 			before: func() {
 				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
 				os.Setenv("BAR_REDIS_URI", "redis://redis:6379/bar")
@@ -124,10 +160,10 @@ func TestParse_with_default(t *testing.T) {
 	}
 }
 
-func TestParse_with_required(t *testing.T) {
+func TestParseWithPrefix_with_required(t *testing.T) {
 	type Envs struct {
-		RedisURI string `envconfig:"redis_uri" required:"true"`
-		MongoURI string `envconfig:"mongo_uri" required:"true"`
+		RedisURI string `env:"REDIS_URI,required"`
+		MongoURI string `env:"MONGO_URI,required"`
 	}
 
 	type Expected struct {
@@ -143,8 +179,8 @@ func TestParse_with_required(t *testing.T) {
 		expected    Expected
 	}{
 		{
-			description: "parse envs with a prefix and no prefixed",
-			prefix:      "foo",
+			description: "fail to parse envs with a prefix and no prefixed",
+			prefix:      "FOO_",
 			before: func() {
 				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
 				os.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
@@ -154,16 +190,13 @@ func TestParse_with_required(t *testing.T) {
 				os.Unsetenv("MONGO_URI")
 			},
 			expected: Expected{
-				Envs: &Envs{
-					RedisURI: "redis://redis:6379/foo",
-					MongoURI: "mongodb://mongo:27017/empty",
-				},
-				Error: nil,
+				Envs:  nil,
+				Error: ErrParsePrefix,
 			},
 		},
 		{
-			description: "parse envs with a prefix and no prefixed",
-			prefix:      "foo",
+			description: "fail to parse envs when no env with prefix is fould",
+			prefix:      "FOO_",
 			before: func() {
 				os.Setenv("REDIS_URI", "redis://redis:6379/empty")
 				os.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
@@ -173,16 +206,13 @@ func TestParse_with_required(t *testing.T) {
 				os.Unsetenv("MONGO_URI")
 			},
 			expected: Expected{
-				Envs: &Envs{
-					RedisURI: "redis://redis:6379/empty",
-					MongoURI: "mongodb://mongo:27017/empty",
-				},
-				Error: nil,
+				Envs:  nil,
+				Error: ErrParsePrefix,
 			},
 		},
 		{
 			description: "fails to parse when two different prefixes",
-			prefix:      "foo",
+			prefix:      "FOO_",
 			before: func() {
 				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
 				os.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/empty")
@@ -193,7 +223,26 @@ func TestParse_with_required(t *testing.T) {
 			},
 			expected: Expected{
 				Envs:  nil,
-				Error: ErrParse,
+				Error: ErrParsePrefix,
+			},
+		},
+		{
+			description: "success to parse with prefix",
+			prefix:      "FOO_",
+			before: func() {
+				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
+				os.Setenv("FOO_MONGO_URI", "mongodb://mongo:27017/foo")
+			},
+			after: func() {
+				os.Unsetenv("FOO_REDIS_URI")
+				os.Unsetenv("BAR_MONGO_URI")
+			},
+			expected: Expected{
+				Envs: &Envs{
+					RedisURI: "redis://redis:6379/foo",
+					MongoURI: "mongodb://mongo:27017/foo",
+				},
+				Error: nil,
 			},
 		},
 	}

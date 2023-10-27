@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
 	github.com/Masterminds/semver v1.5.0
+	github.com/caarlos0/env/v10 v10.0.0
 	github.com/creack/pty v1.1.18
 	github.com/docker/docker v24.0.5+incompatible
 	github.com/gliderlabs/ssh v0.3.5
@@ -16,7 +17,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/hibiken/asynq v0.24.1
-	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/mholt/archiver/v3 v3.5.1

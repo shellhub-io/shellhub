@@ -42,22 +42,22 @@ func IsCommunity() bool {
 	return (DefaultBackend.Get("SHELLHUB_CLOUD") != ENABLED && DefaultBackend.Get("SHELLHUB_ENTERPRISE") != ENABLED)
 }
 
-var ErrParse = errors.New("failed to parse environment variables for the given prefix")
+var ErrParsePrefix = errors.New("failed to parse environment variables for the given prefix")
 
-// ParseWithPrefix parses the environment variables for the a given prefix.
+// ParseWithPrefix parses the environment variables using the given prefix.
 //
-// This function uses the [envconfig] package as its default backend, so it requires the struct to be annotated with
-// the [envconfig] tags. Check the [envconfig] documentation for more information.
+// This function uses the [env] package as its default backend, so it requires the struct to be annotated with
+// the [env] tags. Check the [env] documentation for more information.
 //
-// The T generic parameter must be a struct with the fields annotated with the [envconfig] tags, that will be returned
+// The T generic parameter must be a struct with the fields annotated with the [env] tags, that will be returned
 // with the values parsed from the environment variables.
 //
-// [envconfig]: https://github.com/kelseyhightower/envconfig
+// [env]: https://github.com/caarlos0/env
 func ParseWithPrefix[T any](prefix string) (*T, error) {
 	envs := new(T)
 
 	if err := DefaultBackend.Process(prefix, envs); err != nil {
-		return nil, errors.Join(ErrParse, err)
+		return nil, errors.Join(ErrParsePrefix, err)
 	}
 
 	return envs, nil

@@ -27,6 +27,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/caarlos0/env/v10 v10.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -42,7 +43,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect

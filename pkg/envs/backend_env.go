@@ -3,7 +3,7 @@ package envs
 import (
 	"os"
 
-	"github.com/kelseyhightower/envconfig"
+	"github.com/caarlos0/env/v10"
 )
 
 type envBackend struct{}
@@ -14,5 +14,7 @@ func (b *envBackend) Get(name string) string {
 }
 
 func (b *envBackend) Process(prefix string, spec interface{}) error {
-	return envconfig.Process(prefix, spec)
+	return env.ParseWithOptions(spec, env.Options{
+		Prefix: prefix,
+	})
 }
