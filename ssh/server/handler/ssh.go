@@ -108,7 +108,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 			time.Sleep(time.Duration(res.Timeout) * time.Second)
 		}
 
-		opts, err := envs.ParseWithPrefix[ConfigOptions]("")
+		opts, err := envs.Parse[ConfigOptions]()
 		if err != nil {
 			// TODO: add external error.
 			sshError(client, err, nil)

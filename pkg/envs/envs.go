@@ -62,3 +62,24 @@ func ParseWithPrefix[T any](prefix string) (*T, error) {
 
 	return envs, nil
 }
+
+var ErrParse = errors.New("failed to parse environment variables")
+
+// Parse parses the environment variables.
+//
+// This function uses the [env] package as its default backend, so it requires the struct to be annotated with
+// the [env] tags. Check the [env] documentation for more information.
+//
+// The T generic parameter must be a struct with the fields annotated with the [env] tags, that will be returned
+// with the values parsed from the environment variables.
+//
+// [env]: https://github.com/caarlos0/env
+func Parse[T any]() (*T, error) {
+	envs := new(T)
+
+	if err := DefaultBackend.Process("", envs); err != nil {
+		return nil, errors.Join(ErrParse, err)
+	}
+
+	return envs, nil
+}
