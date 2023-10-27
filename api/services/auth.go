@@ -18,6 +18,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type AuthService interface {
@@ -137,18 +138,17 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 }
 
 func (s *service) AuthUser(ctx context.Context, req requests.UserAuth) (*models.UserAuthResponse, error) {
+	var err error
 	var user *models.User
 
-	userFromUsername, errUsername := s.store.UserGetByUsername(ctx, strings.ToLower(req.Username))
-	userFromEmail, errEmail := s.store.UserGetByEmail(ctx, strings.ToLower(req.Username))
+	if validator.IsEmail(req.Username) {
+		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(req.Username))
+	} else {
+		user, err = s.store.UserGetByUsername(ctx, strings.ToLower(req.Username))
+	}
 
-	switch {
-	case errUsername != nil && errEmail != nil:
+	if err != nil {
 		return nil, NewErrAuthUnathorized(nil)
-	case errUsername == nil:
-		user = userFromUsername
-	case errEmail == nil:
-		user = userFromEmail
 	}
 
 	if !user.Confirmed {
