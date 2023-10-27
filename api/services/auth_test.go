@@ -107,15 +107,26 @@ func TestAuthUser(t *testing.T) {
 		expectedErr   error
 	}{
 		{
-			description: "Fails when user username and email are not found",
+			description: "Fails when username is not found",
 			req: requests.UserAuth{
 				Username: "user",
 				Password: "passwd",
 			},
 			expectedErr: errors.New("error", "", 0),
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "user").Return(nil, errors.New("error", "", 0))
-				mock.On("UserGetByEmail", ctx, "user").Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("UserGetByUsername", ctx, "user").Return(nil, errors.New("error", "", 0)).Once()
+			},
+			expected: Expected{nil, NewErrAuthUnathorized(nil)},
+		},
+		{
+			description: "Fails when email is not found",
+			req: requests.UserAuth{
+				Username: "user@test.com",
+				Password: "passwd",
+			},
+			expectedErr: errors.New("error", "", 0),
+			requiredMocks: func() {
+				mock.On("UserGetByEmail", ctx, "user@test.com").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, NewErrAuthUnathorized(nil)},
 		},
@@ -138,14 +149,14 @@ func TestAuthUser(t *testing.T) {
 					LastLogin: now,
 				}
 
+				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
+
 				namespace := &models.Namespace{
 					Name:     "group1",
 					Owner:    "hash1",
 					TenantID: "tenant",
 				}
 
-				mock.On("UserGetByUsername", ctx, "user").Return(user, nil)
-				mock.On("UserGetByEmail", ctx, "user").Return(user, nil).Once()
 				mock.On("NamespaceGetFirst", ctx, user.ID).Return(namespace, nil).Once()
 			},
 			expected: Expected{nil, NewErrAuthUnathorized(nil)},
