@@ -4,7 +4,7 @@ import (
 	"io"
 
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh"
+	gossh "golang.org/x/crypto/ssh"
 )
 
 func finish(stream interface{}) error {
@@ -30,7 +30,7 @@ type Flow struct {
 // It receives a *ssh.Session to be piped into Stdin, Stdout and Stderr.
 //
 // It returns a *Flow and an error if any piped try failed.
-func NewFlow(session *ssh.Session) (*Flow, error) {
+func NewFlow(session *gossh.Session) (*Flow, error) {
 	stdin, err := session.StdinPipe()
 	if err != nil {
 		return nil, err
