@@ -44,6 +44,7 @@ type Server struct {
 	cmds               map[string]*exec.Cmd
 	Sessions           map[string]net.Conn
 	deviceName         string
+	containerID        string
 	mu                 sync.Mutex
 	keepAliveInterval  int
 	singleUserPassword string
@@ -109,8 +110,8 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 			log.Fatal(err)
 		}
 
-		server.authenticator = connector.NewAuthenticator(api, cli, authData, &server.deviceName)
-		server.sessioner = connector.NewSessioner(&server.deviceName, cli)
+		server.authenticator = connector.NewAuthenticator(api, cli, authData, &server.containerID)
+		server.sessioner = connector.NewSessioner(&server.containerID, cli)
 	default:
 		log.WithFields(log.Fields{
 			"mode": server.mode,
@@ -219,6 +220,10 @@ func (s *Server) HandleConn(conn net.Conn) {
 
 func (s *Server) SetDeviceName(name string) {
 	s.deviceName = name
+}
+
+func (s *Server) SetContainerID(id string) {
+	s.containerID = id
 }
 
 func (s *Server) CloseSession(id string) {
