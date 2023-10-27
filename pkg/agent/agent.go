@@ -401,6 +401,14 @@ func (a *Agent) Close() error {
 func (a *Agent) Listen(ctx context.Context) error {
 	a.server = server.NewServer(a.cli, a.authData, a.config.PrivateKey, a.config.KeepAliveInterval, a.config.SingleUserPassword, modes.Mode(a.config.Mode))
 
+	// NOTICE: When the agent is running in Connector Mode, we need to identify the container ID to maintain the
+	// communication between the server and the agent when the container name on the host changes.  This information is
+	// saved inside the device's identity, avoiding significant changes in the current state of the agent.
+	// TODO: Evaluate if we can use another field than "MAC" to store the container ID.
+	if modes.Mode(a.config.Mode) == modes.ConnectorMode {
+		a.server.SetContainerID(a.Identity.MAC)
+	}
+
 	serv := a.server
 
 	a.tunnel.ConnHandler = func(c echo.Context) error {
