@@ -4,6 +4,10 @@ import (
 	"context"
 )
 
+// ConnectorVersion stores the version of the ShellHub Instane that is running the connector.
+// It is used in the ShellHub Agents initialized by the connector when a container is started.
+var ConnectorVersion string
+
 // Container is a struct that represents a container that will be managed by the connector.
 type Container struct {
 	// ID is the container ID.

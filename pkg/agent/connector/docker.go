@@ -3,7 +3,6 @@ package connector
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
@@ -13,8 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/agent"
 	log "github.com/sirupsen/logrus"
 )
-
-const AgentPlatformConnector = "connector"
 
 var _ Connector = new(DockerConnector)
 
@@ -159,8 +156,8 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 
 // initContainerAgent initializes the agent for a container.
 func initContainerAgent(ctx context.Context, container Container) {
-	agent.AgentVersion = os.Getenv("SHELLHUB_VERSION")
-	agent.AgentPlatform = AgentPlatformConnector
+	agent.AgentPlatform = "connector"
+	agent.AgentVersion = ConnectorVersion
 
 	cfg := &agent.Config{
 		ServerAddress:     container.ServerAddress,
@@ -179,6 +176,7 @@ func initContainerAgent(ctx context.Context, container Container) {
 		"tenant_id":      cfg.TenantID,
 		"server_address": cfg.ServerAddress,
 		"timestamp":      time.Now(),
+		"version":        agent.AgentVersion,
 	}).Info("Connector container started")
 
 	ag, err := agent.NewAgentWithConfig(cfg)
@@ -186,6 +184,7 @@ func initContainerAgent(ctx context.Context, container Container) {
 		log.WithError(err).WithFields(log.Fields{
 			"id":            container.ID,
 			"configuration": cfg,
+			"version":       agent.AgentVersion,
 		}).Fatal("Failed to create agent")
 	}
 
@@ -193,6 +192,7 @@ func initContainerAgent(ctx context.Context, container Container) {
 		log.WithError(err).WithFields(log.Fields{
 			"id":            container.ID,
 			"configuration": cfg,
+			"version":       agent.AgentVersion,
 		}).Fatal("Failed to initialize agent")
 	}
 
@@ -205,6 +205,7 @@ func initContainerAgent(ctx context.Context, container Container) {
 				"tenant_id":      cfg.TenantID,
 				"server_address": cfg.ServerAddress,
 				"timestamp":      time.Now(),
+				"version":        agent.AgentVersion,
 			}).Fatal("Failed to ping server")
 		}
 
@@ -215,6 +216,7 @@ func initContainerAgent(ctx context.Context, container Container) {
 			"tenant_id":      cfg.TenantID,
 			"server_address": cfg.ServerAddress,
 			"timestamp":      time.Now(),
+			"version":        agent.AgentVersion,
 		}).Info("Stopped pinging server")
 	}()
 
@@ -225,6 +227,7 @@ func initContainerAgent(ctx context.Context, container Container) {
 		"tenant_id":      cfg.TenantID,
 		"server_address": cfg.ServerAddress,
 		"timestamp":      time.Now(),
+		"version":        agent.AgentVersion,
 	}).Info("Listening for connections")
 
 	// NOTICE(r): listing for connection and wait for a channel message to close the agent. It will receives
@@ -238,6 +241,7 @@ func initContainerAgent(ctx context.Context, container Container) {
 			"tenant_id":      cfg.TenantID,
 			"server_address": cfg.ServerAddress,
 			"timestamp":      time.Now(),
+			"version":        agent.AgentVersion,
 		}).Fatal("Failed to listen for connections")
 	}
 
@@ -247,5 +251,6 @@ func initContainerAgent(ctx context.Context, container Container) {
 		"hostname":       cfg.PreferredHostname,
 		"tenant_id":      cfg.TenantID,
 		"server_address": cfg.ServerAddress,
+		"version":        agent.AgentVersion,
 	}).Info("Connector container done")
 }

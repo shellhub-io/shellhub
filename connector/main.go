@@ -11,6 +11,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// ConnectorVersion store the version to be embed inside the binary. This is
+// injected using `-ldflags` build option (e.g: `go build -ldflags "-X
+// main.ConnectorVersion=1.2.3"`).
+var ConnectorVersion string
+
 func main() {
 	rootCmd := &cobra.Command{ // nolint: exhaustruct
 		Use:   "docker",
@@ -29,13 +34,16 @@ func main() {
 				"address":      cfg.ServerAddress,
 				"tenant_id":    cfg.TenantID,
 				"private_keys": cfg.PrivateKeys,
+				"version":      ConnectorVersion,
 			}).Info("Starting ShellHub Docker Connector")
 
+			connector.ConnectorVersion = ConnectorVersion
 			connector, err := connector.NewDockerConnector(cfg.ServerAddress, cfg.TenantID, cfg.PrivateKeys)
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"address":   cfg.ServerAddress,
 					"tenant_id": cfg.TenantID,
+					"version":   ConnectorVersion,
 				}).Fatal("Failed to create ShellHub Docker Connector")
 			}
 
@@ -43,15 +51,18 @@ func main() {
 				log.WithError(err).WithFields(log.Fields{
 					"address":   cfg.ServerAddress,
 					"tenant_id": cfg.TenantID,
+					"version":   ConnectorVersion,
 				}).Fatal("Failed to listen for connections")
 			}
 
 			log.WithFields(log.Fields{
 				"address":   cfg.ServerAddress,
 				"tenant_id": cfg.TenantID,
+				"version":   ConnectorVersion,
 			}).Info("ShellHub Docker Connector stopped")
 		},
 	}
 
+	rootCmd.Version = ConnectorVersion
 	rootCmd.Execute() // nolint: errcheck
 }
