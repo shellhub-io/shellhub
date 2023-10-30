@@ -1,9 +1,10 @@
 package envs
 
 import (
+	"context"
 	"os"
 
-	"github.com/kelseyhightower/envconfig"
+	"github.com/sethvargo/go-envconfig"
 )
 
 type envBackend struct{}
@@ -14,5 +15,8 @@ func (b *envBackend) Get(name string) string {
 }
 
 func (b *envBackend) Process(prefix string, spec interface{}) error {
-	return envconfig.Process(prefix, spec)
+	return envconfig.ProcessWith(context.Background(), spec, envconfig.MultiLookuper(
+		envconfig.PrefixLookuper(prefix, envconfig.OsLookuper()),
+		envconfig.OsLookuper(),
+	))
 }

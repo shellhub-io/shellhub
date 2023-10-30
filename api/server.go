@@ -72,19 +72,19 @@ var serverCmd = &cobra.Command{
 // The values are load from the system environment variables.
 type config struct {
 	// MongoDB connection string (URI format)
-	MongoURI string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
+	MongoURI string `env:"MONGO_URI,default=mongodb://mongo:27017/main"`
 	// Redis connection string (URI format)
-	RedisURI string `envconfig:"redis_uri" default:"redis://redis:6379"`
+	RedisURI string `env:"REDIS_URI,default=redis://redis:6379"`
 	// Enable GeoIP feature.
 	//
 	// GeoIP features enable the ability to get the logitude and latitude of the client from the IP address.
 	// The feature is disabled by default. To enable it, it is required to have a `MAXMIND` database license and feed it
 	// to `SHELLHUB_MAXMIND_LICENSE` with it, and `SHELLHUB_GEOIP=true`.
-	GeoIP bool `envconfig:"geoip" default:"false"`
+	GeoIP bool `env:"GEOIP,default=false"`
 	// Session record cleanup worker schedule
-	SessionRecordCleanupSchedule string `envconfig:"session_record_cleanup_schedule" default:"@daily"`
+	SessionRecordCleanupSchedule string `env:"SESSION_RECORD_CLEANUP_SCHEDULE,default=@daily"`
 	// Sentry DSN.
-	SentryDSN string `envconfig:"sentry_dsn" default:""`
+	SentryDSN string `env:"SENTRY_DSN,default="`
 }
 
 func init() {

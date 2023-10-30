@@ -27,7 +27,7 @@ func init() {
 
 func main() {
 	// Populates configuration based on environment variables prefixed with 'SSH_'.
-	env, err := envs.ParseWithPrefix[server.Options]("ssh")
+	env, err := envs.ParseWithPrefix[server.Options]("SSH_")
 	if err != nil {
 		log.WithError(err).Fatal("Failed to load environment variables")
 	}

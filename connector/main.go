@@ -22,7 +22,7 @@ func main() {
 		Short: "Starts the Docker Connector",
 		Long:  "Starts the Docker Connector, a service what turns all containers in a docker engine into a ShelHub device",
 		Run: func(cmd *cobra.Command, args []string) {
-			cfg, err := envs.ParseWithPrefix[agent.ConfigConnector]("shellhub")
+			cfg, err := envs.ParseWithPrefix[agent.ConfigConnector]("SHELLHUB_")
 			if err != nil {
 				envconfig.Usage("shellhub", &cfg) // nolint:errcheck
 				log.Fatal(err)

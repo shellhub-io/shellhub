@@ -17,8 +17,8 @@ import (
 )
 
 type config struct {
-	MongoURI string `envconfig:"mongo_uri" default:"mongodb://mongo:27017/main"`
-	RedisURI string `envconfig:"redis_uri" default:"redis://redis:6379"`
+	MongoURI string `env:"MONGO_URI,default=mongodb://mongo:27017/main"`
+	RedisURI string `env:"REDIS_URI,default=redis://redis:6379"`
 }
 
 func init() {
@@ -26,7 +26,7 @@ func init() {
 }
 
 func main() {
-	cfg, err := envs.ParseWithPrefix[config]("cli")
+	cfg, err := envs.ParseWithPrefix[config]("CLI_")
 	if err != nil {
 		log.Error(err.Error())
 	}
