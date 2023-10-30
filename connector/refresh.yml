@@ -5,7 +5,7 @@ included_extensions:
   - .go
 build_target_path: ""
 build_path: /go/src/github.com/shellhub-io/shellhub/connector
-build_flags: []
+build_flags: ["-tags", "docker", "-ldflags", "-X main.ConnectorVersion=latest"]
 build_delay: 200ns
 binary_name: connector
 command_flags: ["docker"]

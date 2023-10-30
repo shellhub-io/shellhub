@@ -39,7 +39,7 @@ RUN go mod download
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/connector
 
-RUN go build -tags docker
+RUN go build -tags docker -ldflags "-X main.ConnectorVersion=${SHELLHUB_VERSION}"
 
 # development stage
 FROM base AS development
