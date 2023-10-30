@@ -16,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
 
@@ -68,35 +69,84 @@ func getPasswd(ctx context.Context, cli dockerclient.APIClient, container string
 func (a *Authenticator) Password(ctx gliderssh.Context, username string, password string) bool {
 	passwd, err := getPasswd(ctx, a.docker, *a.container)
 	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to get the passwd file from container")
+
 		return false
 	}
 
 	user, err := a.osauth.LookupUserFromPasswd(username, passwd)
 	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to lookup for the user on passwd file")
+
 		return false
 	}
 
 	if user.Password == "" {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("user passwd is empty, so the authentication via password is blocked")
+
 		// NOTICE(r): when the user doesn't have password, we block the login.
 		return false
 	}
 
 	shadowTar, _, err := a.docker.CopyFromContainer(ctx, *a.container, "/etc/shadow")
 	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to get the shadow file from the container")
+
 		return false
 	}
 
 	shadow := tar.NewReader(shadowTar)
 	if _, err := shadow.Next(); err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to get the shadow file from the tar")
+
 		return false
 	}
 
 	if !a.osauth.AuthUserFromShadow(username, password, shadow) {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to authenticate the user on the device")
+
 		return false
 	}
 
 	// NOTICE: set the osauth.User to the context to be obtained later on.
 	ctx.SetValue("user", user)
+
+	log.WithFields(
+		log.Fields{
+			"container": *a.container,
+			"username":  username,
+		},
+	).Error("using password authentication")
 
 	return true
 }
@@ -105,11 +155,25 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gliderssh.PublicKey) bool {
 	passwd, err := getPasswd(ctx, a.docker, *a.container)
 	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to get the passwd file from container")
+
 		return false
 	}
 
 	user, err := a.osauth.LookupUserFromPasswd(username, passwd)
 	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to lookup for the user on passwd file")
+
 		return false
 	}
 
@@ -125,6 +189,13 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 
 	sigBytes, err := json.Marshal(sig)
 	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to marshal signature")
+
 		return false
 	}
 
@@ -135,16 +206,41 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 		Data:        string(sigBytes),
 	}, a.authData.Token)
 	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to authenticate the user via public key")
+
 		return false
 	}
 
 	digest, err := base64.StdEncoding.DecodeString(res.Signature)
 	if err != nil {
+		if err != nil {
+			log.WithFields(
+				log.Fields{
+					"container": *a.container,
+					"username":  username,
+				},
+			).WithError(err).Error("failed to decode the signature")
+
+			return false
+		}
+
 		return false
 	}
 
 	cryptoKey, ok := key.(gossh.CryptoPublicKey)
 	if !ok {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to get the crypto public key")
+
 		return false
 	}
 
@@ -152,15 +248,36 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 
 	pubKey, ok := pubCrypto.(*rsa.PublicKey)
 	if !ok {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to get the crypto public key")
+
 		return false
 	}
 
 	if err = rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, sigHash[:], digest); err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": *a.container,
+				"username":  username,
+			},
+		).WithError(err).Error("failed to verify the signature")
+
 		return false
 	}
 
 	// NOTICE: set the osauth.User to the context to be obtained later on.
 	ctx.SetValue("user", user)
+
+	log.WithFields(
+		log.Fields{
+			"container": *a.container,
+			"username":  username,
+		},
+	).Error("using public key authentication")
 
 	return true
 }
