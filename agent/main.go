@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/shellhub-io/shellhub/pkg/agent"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/selfupdater"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -44,17 +43,16 @@ func main() {
 			//  PRIVATE_KEY=/tmp/shellhub sudo -E ./agent
 			//
 			//  struct {
-			//    ServerAddress string `envconfig:"server_address" required:"true"`
-			//    PrivateKey string `envconfig:"private_key" required:"true"`
-			//    TenantID string `envconfig:"tenant_id" required:"true"`
+			//    ServerAddress string `env:"SERVER_ADDRESS,required"`
+			//    PrivateKey string `env:"PRIVATE_KEY,required"`
+			//    TenantID string `env:"TENANT_ID,required`
 			//  }
 			//
 			//  This behavior is driven by the [envconfig] package. Check it out for more information.
 			//
-			// [envconfig]: https://github.com/kelseyhightower/envconfig
-			cfg, err := envs.ParseWithPrefix[agent.Config]("shellhub")
+			// [envconfig]: https://github.com/sethvargo/go-envconfig
+			cfg, err := envs.ParseWithPrefix[agent.Config]("SHELLHUB_")
 			if err != nil {
-				envconfig.Usage("shellhub", &cfg) // nolint:errcheck
 				log.Fatal(err)
 			}
 
@@ -231,18 +229,12 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			loglevel.SetLogLevel()
 
-			cfg := agent.Config{}
-
-			// Process unprefixed env vars for backward compatibility
-			envconfig.Process("", &cfg) // nolint:errcheck
-
-			if err := envconfig.Process("shellhub", &cfg); err != nil {
-				// show envconfig usage help users to run agent
-				envconfig.Usage("shellhub", &cfg) // nolint:errcheck
+			cfg, err := envs.ParseWithPrefix[agent.Config]("SHELLHUB_")
+			if err != nil {
 				log.Fatal(err)
 			}
 
-			ag, err := agent.NewAgentWithConfig(&cfg)
+			ag, err := agent.NewAgentWithConfig(cfg)
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,

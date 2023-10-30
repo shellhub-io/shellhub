@@ -19,7 +19,7 @@ func main() {
 	rootCmd.AddCommand(serverCmd)
 
 	// Populates configuration based on environment variables prefixed with 'API_'.
-	cfg, err := envs.ParseWithPrefix[config]("api")
+	cfg, err := envs.ParseWithPrefix[config]("API_")
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to load environment variables")
 	}

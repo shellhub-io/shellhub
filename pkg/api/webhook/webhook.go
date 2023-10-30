@@ -28,9 +28,9 @@ type Webhook interface {
 }
 
 type Options struct {
-	WebhookURL    string `envconfig:"webhook_url"`
-	WebhookPort   int    `envconfig:"webhook_port"`
-	WebhookScheme string `envconfig:"webhook_scheme"`
+	WebhookURL    string `env:"WEBHOOK_URL"`
+	WebhookPort   int    `env:"WEBHOOK_PORT"`
+	WebhookScheme string `env:"WEBHOOK_SCHEME"`
 }
 
 func NewClient() Webhook {

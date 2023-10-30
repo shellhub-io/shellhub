@@ -57,7 +57,7 @@ var (
 )
 
 type ConfigOptions struct {
-	RecordURL string `envconfig:"record_url"`
+	RecordURL string `env:"RECORD_URL"`
 }
 
 // SSHHandler handlers a "normal" SSH connection.
